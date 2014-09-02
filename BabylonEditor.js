@@ -16,6 +16,8 @@ function BabylonEditor(babylonEditorCore) {
     this._core.customUpdates.push(this);
 
     /// Gui elements
+    this._layouts = null;
+
     this._mainToolbar = null;
     this._editionTool = null;
     this._graphTool = null;
@@ -45,7 +47,7 @@ BabylonEditor.prototype._createUI = function() {
         BabylonEditorUICreator.Layout.createPanel('right', 350, true, pstyle, '<div id="MainGraphTool" style="height: 100%"></div>', 300),
         BabylonEditorUICreator.Layout.createPanel('bottom', 50, true, pstyle, '<div id="MainOptionsBar" style="height: 100%"></div>')
     ]);
-    BabylonEditorUICreator.Layout.createLayout('Mainlayout', panels);
+    this._layouts = BabylonEditorUICreator.Layout.createLayout('Mainlayout', panels);
 
     /// Create Babylon's engine here. Then, we'll be able to manage events like onClick, onResize, etc.
     var canvas = document.getElementById("renderCanvas");
@@ -57,7 +59,8 @@ BabylonEditor.prototype._createUI = function() {
     };
 
     /// FIXME: events don't necessary call function(target, eventData);
-    BabylonEditorUICreator.addEvent('Mainlayout', 'resize', function (target, eventData) {
+    /// FIXED
+    BabylonEditorUICreator.addEvent(this._layouts, 'resize', function () {
         scope.engine.resize();
     });
 

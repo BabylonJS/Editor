@@ -16,7 +16,10 @@ This creator uses the jQuery and w2ui frameworks
 
 var BabylonEditorUICreator = BabylonEditorUICreator || {};
 
-/* General */
+//------------------------------------------------------------------------------------------------------------------
+/* UI Utils */
+//------------------------------------------------------------------------------------------------------------------
+
 /// Clears elements stored into an array. Must implement it
 /// Because some UI libraries can implement "delete()" instead of
 /// "destroy()"
@@ -34,10 +37,14 @@ BabylonEditorUICreator.clearUI = function (elements) {
 /// Configure an event
 /// element and event are string
 BabylonEditorUICreator.addEvent = function(element, event, callback) {
-    w2ui[element].on(event, callback);
+    element.on(event, function (target, eventData) {
+        callback();
+    });
 }
 
+//------------------------------------------------------------------------------------------------------------------
 /* Toolbars */
+//------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Toolbar = BabylonEditorUICreator.Toolbar || {};
 
 /// Creates a toolbar and returns its reference
@@ -83,32 +90,31 @@ BabylonEditorUICreator.Toolbar.extendItems = function (items, itemsToAdd) {
 /// Call if the menu's item was clicked. It automatically determine if
 /// the item is now checked or not
 BabylonEditorUICreator.Toolbar.setAutoItemChecked = function (menu, item) {
-    var ui = w2ui[menu];
-    var checked = ui.get(item).checked;
+    var checked = menu.get(item).checked;
 
     if (!checked)
-        ui.check(item);
+        menu.check(item);
     else
-        ui.uncheck(item);
+        menu.uncheck(item);
 }
 
 /// Set the item checked or not
 /// check : boolean
 BabylonEditorUICreator.Toolbar.setItemChecked = function (menu, item, check) {
-    var ui = w2ui[menu];
-
     if (check)
-        ui.check(item);
+        menu.check(item);
     else
-        ui.uncheck(item);
+        menu.uncheck(item);
 }
 
 /// Returns if the item is checked or not
 BabylonEditorUICreator.Toolbar.isItemChecked = function (menu, item) {
-    return w2ui[menu].get(item).checked;
+    return menu.get(item).checked;
 }
 
+//------------------------------------------------------------------------------------------------------------------
 /* Layouts */
+//------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Layout = BabylonEditorUICreator.Layout || {};
 
 /// Creates a layout and returns its reference
@@ -147,7 +153,9 @@ BabylonEditorUICreator.Layout.createTab = function (id, caption) {
     return { id: id, caption: caption };
 }
 
+//------------------------------------------------------------------------------------------------------------------
 /* Forms */
+//------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Form = BabylonEditorUICreator.Form || {};
 
 /// Creates a form and returns its reference
@@ -177,14 +185,14 @@ BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope) 
 ///     scope.object.name = els.fields['MyFormName:name'].value;
 ///     scope.object.setEnabled(els.fields['MyFormName:enabled'].checked);
 /// etc.
-BabylonEditorUICreator.Form.getElements = function (name) {
+BabylonEditorUICreator.Form.getElements = function (form) {
     var fields = new Array();
 
-    for (var i = 0; i < w2ui[name].fields.length; i++) {
-        fields[w2ui[name].fields[i].name] = w2ui[name].fields[i].el;
+    for (var i = 0; i < form.fields.length; i++) {
+        fields[form.fields[i].name] = form.fields[i].el;
     }
 
-    var scope = w2ui[name].scope;
+    var scope = form.scope;
 
     return { fields: fields, scope: scope };
 }
@@ -226,12 +234,14 @@ BabylonEditorUICreator.Form.extendFields = function (fields, fieldsToAdd) {
 /// Extends the recors of the form
 BabylonEditorUICreator.Form.extendRecord = function (form, recordToAdd) {
     /// With w2ui, just extend the records using jQuery
-    var record = $.extend(w2ui[form].record, recordToAdd);
+    var record = $.extend(form.record, recordToAdd);
 
     return record;
 }
 
+//------------------------------------------------------------------------------------------------------------------
 /* Sidebar */
+//------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Sidebar = BabylonEditorUICreator.Sidebar || {};
 
 /// Creates a side bar and returns its reference

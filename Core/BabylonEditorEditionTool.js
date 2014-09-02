@@ -1,18 +1,23 @@
 ﻿/// <reference path="./../index.html" />
 
 function BabylonEditorEditionTool(babylonEditorCore) {
+    /// This
     this._core = babylonEditorCore;
     this._core.eventReceivers.push(this);
     this._core.customUpdates.push(this);
 
+    /// Scene
     this.object = null;
 
+    /// GUI Elements
     this._forms = [
         'MainEditObjectGeneral',
         'MainEditObjectTransform',
         'MainEditObjectOptions'
     ];
-
+    this._generalForm = null;
+    this._transformForm = null;
+    this._optionsForm = null;
 };
 
 BabylonEditorEditionTool.prototype.onEvent = function (event) {
@@ -78,9 +83,9 @@ BabylonEditorEditionTool.prototype._clearUI = function () {
 
 BabylonEditorEditionTool.prototype._onChange = function () {
     /// Get elements of forms
-    var general = BabylonEditorUICreator.Form.getElements('MainEditObjectGeneral');
-    var transform = BabylonEditorUICreator.Form.getElements('MainEditObjectTransform');
-    var options = BabylonEditorUICreator.Form.getElements('MainEditObjectOptions');
+    var general = BabylonEditorUICreator.Form.getElements(this._generalForm);
+    var transform = BabylonEditorUICreator.Form.getElements(this._transformForm);
+    var options = BabylonEditorUICreator.Form.getElements(this._optionsForm);
     
     var scope = general.scope;
 
@@ -142,10 +147,10 @@ BabylonEditorEditionTool.prototype._createUI = function () {
         BabylonEditorUICreator.Form.createField('MainEditObjectEnabled', 'checkbox', 'Enabled :'),
     ]);
 
-    var MainEditObjectGeneral = BabylonEditorUICreator.Form.createForm('MainEditObjectGeneral', 'General', fields, this);
+    this._generalForm = BabylonEditorUICreator.Form.createForm('MainEditObjectGeneral', 'General', fields, this);
 
     /// Fill fields
-    BabylonEditorUICreator.Form.extendRecord(MainEditObjectGeneral.name, {
+    BabylonEditorUICreator.Form.extendRecord(this._generalForm, {
         MainEditObjectName: this.object.name,
         MainEditObjectEnabled: this.object.isEnabled()
     });
@@ -177,18 +182,18 @@ BabylonEditorEditionTool.prototype._createUI = function () {
         ]);
     }
 
-    var MainEditObjectTransform = BabylonEditorUICreator.Form.createForm('MainEditObjectTransform',
-                                                                         'Transforms', fields, this);
+    this._transformForm = BabylonEditorUICreator.Form.createForm('MainEditObjectTransform',
+                                                                 'Transforms', fields, this);
 
     /// Fill fields
-    BabylonEditorUICreator.Form.extendRecord(MainEditObjectTransform.name, {
+    BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
         MainEditObjectTransformPositionX: this.object.position.x,
         MainEditObjectTransformPositionY: this.object.position.y,
         MainEditObjectTransformPositionZ: this.object.position.z,
     });
 
     if (this.object instanceof BABYLON.Mesh) {
-        BabylonEditorUICreator.Form.extendRecord(MainEditObjectTransform.name, {
+        BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
             MainEditMeshTransformRotationX: this.object.rotation.x,
             MainEditMeshTransformRotationY: this.object.rotation.y,
             MainEditMeshTransformRotationZ: this.object.rotation.z,
@@ -212,12 +217,12 @@ BabylonEditorEditionTool.prototype._createUI = function () {
         ]);
     }
 
-    var MainEditObjectOptions = BabylonEditorUICreator.Form.createForm('MainEditObjectOptions',
-                                                                       'Options', fields, this);
+    this._optionsForm = BabylonEditorUICreator.Form.createForm('MainEditObjectOptions',
+                                                               'Options', fields, this);
 
     /// Configure fields
     if (this.object instanceof BABYLON.Mesh) {
-        BabylonEditorUICreator.Form.extendRecord(MainEditObjectOptions.name, {
+        BabylonEditorUICreator.Form.extendRecord(this._optionsForm, {
             MainEditMeshOptionsVisible: this.object.isVisible,
             MainEditMeshOptionsInfiniteDistance: this.object.infiniteDistance,
             MainEditMeshOptionsCheckCollisions: this.object.checkCollisions

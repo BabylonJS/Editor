@@ -1,8 +1,12 @@
 ﻿/// <reference path="./../index.html" />
 
 function BabylonEditorMainToolbar(babylonEditorCore) {
+    /// This
     this._core = babylonEditorCore;
     this._core.eventReceivers.push(this);
+
+    /// GUI Elements
+    this._toolbar = null;
 };
 
 BabylonEditorMainToolbar.prototype.onEvent = function (event) {
@@ -13,13 +17,13 @@ BabylonEditorMainToolbar.prototype.onEvent = function (event) {
             
             /// Position, rotation or scaling
             if (['MainToolBarPosition', 'MainToolBarRotation', 'MainToolBarScale'].indexOf(event.UIEvent.Caller) > -1) {
-                var checked = BabylonEditorUICreator.Toolbar.isItemChecked('MainToolBar', event.UIEvent.Caller);
+                var checked = BabylonEditorUICreator.Toolbar.isItemChecked(this._toolbar, event.UIEvent.Caller);
                 /// Uncheck position, rotation and scaling
-                BabylonEditorUICreator.Toolbar.setItemChecked('MainToolBar', 'MainToolBarPosition', false);
-                BabylonEditorUICreator.Toolbar.setItemChecked('MainToolBar', 'MainToolBarRotation', false);
-                BabylonEditorUICreator.Toolbar.setItemChecked('MainToolBar', 'MainToolBarScale', false);
+                BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarPosition', false);
+                BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarRotation', false);
+                BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarScale', false);
                 /// And check or uncheck it
-                BabylonEditorUICreator.Toolbar.setItemChecked('MainToolBar', event.UIEvent.Caller, !checked);
+                BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, event.UIEvent.Caller, !checked);
                 /// Set transformer
                 this.setTransformer(checked ? null : event.UIEvent.Caller);
             }
@@ -76,6 +80,6 @@ BabylonEditorMainToolbar.prototype._createUI = function () {
     ]);
 
     /// Create tool bar
-    BabylonEditorUICreator.Toolbar.createToolbar('MainToolBar', items, this);
+    this._toolbar = BabylonEditorUICreator.Toolbar.createToolbar('MainToolBar', items, this);
 
 }
