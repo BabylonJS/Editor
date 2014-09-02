@@ -1,0 +1,59 @@
+﻿/* Style sheet for custom icons etc. for the Babylon Editor*/
+
+/* Edit */
+.w2ui-icon.icon-edit {
+    background: url("images/edit.png");
+}
+.w2ui-icon.icon-position {
+    background: url("images/position.png");
+}
+.w2ui-icon.icon-rotation {
+    background: url("images/rotation.png");
+}
+.w2ui-icon.icon-scale {
+    background: url("images/scale.png");
+}
+
+/* Files */
+.w2ui-icon.icon-open-file {
+    background: url("images/open.png");
+}
+.w2ui-icon.icon-save-file {
+    background: url("images/save.png");
+}
+
+/* Lights */
+.w2ui-icon.icon-add-light {
+    background: url("images/light.png");
+}
+
+/* Primitives */
+.w2ui-icon.icon-primitives {
+    background: url("images/primitives.png");
+}
+
+.w2ui-icon.icon-add-ground {
+    background: url("images/hill_plane.png");
+}
+.w2ui-icon.icon-add-sphere {
+    background: url("images/sphere.png");
+}
+.w2ui-icon.icon-add-cube {
+    background: url("images/cube.png");
+}
+.w2ui-icon.icon-add-billboard {
+    background: url("images/billboard.png");
+}
+
+/* Mesh */
+.w2ui-icon.icon-mesh {
+    background: url("images/abstract_mesh.png");
+}
+
+/* CSS */
+.block {
+    padding-top: 20px; 
+    padding-bottom: 10px; 
+    color: #999;
+}
+
