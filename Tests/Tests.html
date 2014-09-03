@@ -1,0 +1,36 @@
+﻿
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <title>QUnit Example</title>
+    <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.15.0.css">
+</head>
+<body>
+    <canvas id="renderCanvas" hidden></canvas>
+    <div id="MainUI"></div>
+
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <script src="//code.jquery.com/qunit/qunit-1.15.0.js"></script>
+
+    <!-- References -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="../UI/w2ui-1.4.1.js"></script>
+    <script src="../Babylon.js/babylon.1.13.js"></script>
+
+    <script src="../UI/BabylonEditorUICreator.js"></script>
+
+    <script src="../Core/BabylonEditorUtils.js"></script>
+    <script src="../Core/BabylonEditorEvents.js"></script>
+    <script src="../Core/BabylonEditorCore.js"></script>
+    <script src="../Core/BabylonEditorEditionTool.js"></script>
+    <script src="../Core/BabylonEditorGraphTool.js"></script>
+    <script src="../Core/BabylonEditorMainToolbar.js"></script>
+
+    <!-- Files containing tests -->
+    <script src="CoreUtilsTests.js"></script>
+    <script src="CoreTests.js"></script>
+    <!-- End of tests -->
+</body>
+</html>

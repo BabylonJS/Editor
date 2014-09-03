@@ -6,8 +6,6 @@ function BabylonEditor(babylonEditorCore) {
     /// An editor must manage multiple scenes. Then, you'll be able to mange different
     /// worlds in your video game
     this.scenes = new Array();
-    /// If multiple Canvas elements (view ports, etc.)
-    this.canvases = new Array();
 
     /// Core
     this.transformer = null;
@@ -65,7 +63,6 @@ BabylonEditor.prototype._createUI = function() {
     });
 
     /// Configure "this"
-    this.canvases.push(canvas);
     this.engine = new BABYLON.Engine(canvas, true);
     this._core.engine = this.engine;
 
