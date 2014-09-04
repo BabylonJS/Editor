@@ -1,4 +1,6 @@
-﻿/// <reference path="../Core/BabylonEditorCore.js" />
+﻿/// <reference path="./Tests.html" />
+/// <reference path="../Core/BabylonEditorEvents.js" />
+/// <reference path="../Core/BabylonEditorCore.js" />
 
 /* File creating BabylonEditorUtils.js tests */
 
@@ -26,12 +28,15 @@ function CoreTestsEvents(core) {
 }
 
 CoreTestsEvents.prototype.onEvent = function (event) {
-    this.eventType = event.EventType;
-    this.type = event.UIEvent.Type;
-    if (event.EventType == BabylonEditorEventType.UIEvent)
-        this.data = event.UIEvent.Caller;
-    else
-        this.data = event.SceneEvent.UserData.object;
+    this.eventType = event.eventType;
+
+    if (event.eventType == BABYLON.Editor.EventType.GUIEvent) {
+        this.type = event.event.eventType;
+        this.data = event.event.caller;
+    } else {
+        this.type = event.event.eventType;
+        this.data = event.event.object;
+    }
 }
 // ------------------------------------
 
@@ -40,14 +45,18 @@ module('Events', {
         var canvas = document.getElementById("renderCanvas");
         this.engine = new BABYLON.Engine(canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
-        this.core = new BabylonEditorCore(this.engine);
+        this.core = new BABYLON.Editor.Core(this.engine);
         this.core.currentScene = this.scene;
 
         this.class = new CoreTestsEvents(this.core);
 
-        this.createEvent = function (eventType, type) {
-            var ev = BabylonEditorEvent;
-            ev.EventType = eventType;
+        this.createEvent = function (eventType) {
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = eventType;
+            if (eventType == BABYLON.Editor.EventType.GUIEvent)
+                ev.event = new BABYLON.Editor.Event.GUIEvent();
+            else
+                ev.event = new BABYLON.Editor.Event.SceneEvent();
             return ev;
         }
     },
@@ -58,22 +67,57 @@ module('Events', {
 });
 
 test('onEvent UIEvent <toolbar selected> test', function () {
-    var ev = this.createEvent(BabylonEditorEventType.UIEvent);
-    ev.UIEvent.Type = BabylonEditorEvents.UIEvents.ToolbarSelected;
-    ev.UIEvent.Caller = this.class.toolbar;
+    var ev = this.createEvent(BABYLON.Editor.EventType.GUIEvent);
+    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED;
+    ev.event.caller = this.class.toolbar;
     this.core.sendEvent(ev);
 
-    equal(this.class.eventType, BabylonEditorEventType.UIEvent, 'eventType is a UIEvent');
-    equal(this.class.type, BabylonEditorEvents.UIEvents.ToolbarSelected, 'type is ToolBarSelected');
+    equal(this.class.eventType, BABYLON.Editor.EventType.GUIEvent, 'eventType is a UIEvent');
+    equal(this.class.type, BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED, 'type is ToolBarSelected');
     equal(this.class.data, this.class.toolbar, 'Caller is the toolbar');
 });
 
 test('onEvent SceneEvent <object changed> test', function () {
-    var ev = this.createEvent(BabylonEditorEventType.SceneEvent);
-    ev.SceneEvent.Type = BabylonEditorEvents.SceneEvents.ObjectChanged;
-    var scope = this;
-    ev.SceneEvent.UserData = { object: scope.class.object };
+    var ev = this.createEvent(BABYLON.Editor.EventType.SceneEvent);
+    ev.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED;
+    ev.event.object = this.class.object;
     this.core.sendEvent(ev);
 
-    equal(this.class.data, this.class.object);
+    equal(this.class.eventType, BABYLON.Editor.EventType.SceneEvent, 'eventType is SceneEvent');
+    equal(this.class.type, BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED, 'type is ObjectChanged');
+    equal(this.class.data, this.class.object, 'data equals object');
+});
+
+test('onEvent SceneEvent <object added/removed> test', function () {
+    /// Object added
+    var ev = this.createEvent(BABYLON.Editor.EventType.SceneEvent);
+    ev.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_ADDED;
+    ev.event.object = this.class.object;
+    this.core.sendEvent(ev);
+
+    equal(this.class.eventType, BABYLON.Editor.EventType.SceneEvent, 'added: eventType is SceneEvent');
+    equal(this.class.type, BABYLON.Editor.Event.SceneEvent.OBJECT_ADDED, 'added: type is ObjectAdded');
+    equal(this.class.data, this.class.object, 'added: data equals object');
+
+    /// Object removed
+    var ev2 = this.createEvent(BABYLON.Editor.EventType.SceneEvent);
+    ev2.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_REMOVED;
+    ev2.event.object = this.class.object;
+    this.core.sendEvent(ev2);
+
+    equal(this.class.eventType, BABYLON.Editor.EventType.SceneEvent, 'removed: eventType is SceneEvent');
+    equal(this.class.type, BABYLON.Editor.Event.SceneEvent.OBJECT_REMOVED, 'removed: type is ObjectRemoved');
+    equal(this.class.data, this.class.object, 'removed: data equals object');
+});
+
+test('onEvent EventClass', function () {
+    var ev = new BABYLON.Editor.Event();
+    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+    ev.event = new BABYLON.Editor.Event.GUIEvent();
+    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED;
+    ev.event.caller = this.class.toolbar;
+
+    this.core.sendEvent(ev);
+
+    equal(1, 1);
 });

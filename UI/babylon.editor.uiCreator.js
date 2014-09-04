@@ -1,4 +1,4 @@
-﻿/// <reference path="index.html" />
+﻿/// <reference path="../index.html" />
 
 /*
 Babylon Editor's UI creator.
@@ -58,10 +58,11 @@ BabylonEditorUICreator.Toolbar.createToolbar = function (name, items, scope) {
         scope: scope,
         onClick: function (event) {
             /// Send the click event to event receivers
-            var ev = BabylonEditorEvent;
-            ev.EventType = BabylonEditorEventType.UIEvent;
-            ev.UIEvent.Type = BabylonEditorEvents.UIEvents.ToolbarSelected;
-            ev.UIEvent.Caller = event.target;
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+            ev.event = new BABYLON.Editor.Event.GUIEvent();
+            ev.event.eventType = BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED;
+            ev.event.caller = event.target;
             scope._core.sendEvent(ev);
         }
     });
@@ -167,11 +168,12 @@ BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope) 
         scope: scope,
         onChange: function (event) {
             /// Send the FormChanged event to the event receivers
-            var event = BabylonEditorEvent;
-            event.EventType = BabylonEditorEventType.UIEvent;
-            event.UIEvent.Type = BabylonEditorEvents.UIEvents.FormChanged;
-            event.UIEvent.Caller = name;
-            this.scope._core.sendEvent(event);
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+            ev.event = new BABYLON.Editor.Event.GUIEvent();
+            ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FORM_CHANGED;
+            ev.event.caller = name;
+            this.scope._core.sendEvent(ev);
         }
     });
 
@@ -255,10 +257,11 @@ BabylonEditorUICreator.Sidebar.createSideBar = function (name, nodes, scope) {
         onClick: function (event) {
             /// Send the ObjectPicked event to the event receivers
             /// Must be extern
-            var ev = BabylonEditorEvent;
-            ev.EventType = BabylonEditorEventType.SceneEvent;
-            ev.SceneEvent.Type = BabylonEditorEvents.SceneEvents.ObjectPicked;
-            ev.SceneEvent.UserData = { mesh: event.object.data };
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = BABYLON.Editor.EventType.SceneEvent;
+            ev.event = new BABYLON.Editor.Event.SceneEvent();
+            ev.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_PICKED;
+            ev.event.object = event.object.data;
             this.scope._core.sendEvent(ev);
         }
 

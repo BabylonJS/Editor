@@ -1,4 +1,5 @@
-﻿<html xmlns="http://www.w3.org/1999/xhtml">
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Babylon.js Editor</title>
@@ -130,22 +131,22 @@
 
     <link rel="stylesheet" type="text/css" href="UI/BabylonEditor.css" />
 
-    <script src="UI/BabylonEditorUICreator.js"></script>
+    <script src="UI/babylon.editor.uiCreator.js"></script>
 
     <!-- Hand & optional library for physics computation-->
     <script src="Babylon.js/cannon.js"></script>
     <script src="hand.minified-1.2.js"></script>
 
     <!-- Babylon Editor Files -->
-    <script src="Core/BabylonEditorUtils.js"></script>
-    <script src="Core/BabylonEditorEvents.js"></script>
-    <script src="Core/BabylonEditorCore.js"></script>
-    <script src="Core/BabylonEditorEditionTool.js"></script>
-    <script src="Core/BabylonEditorGraphTool.js"></script>
-    <script src="Core/BabylonEditorMainToolbar.js"></script>
+    <script src="Core/babylon.editor.utils.js"></script>
+    <script src="Core/babylon.editor.events.js"></script>
+    <script src="Core/babylon.editor.core.js"></script>
+    <script src="Core/babylon.editor.editionTool.js"></script>
+    <script src="Core/babylon.editor.graphTool.js"></script>
+    <script src="Core/babylon.editor.mainToolbar.js"></script>
 
-    <script src="Core/BabylonEditorTransformer.js"></script>
-    <script src="BabylonEditor.js"></script>
+    <script src="Core/babylon.editor.transformer.js"></script>
+    <script src="babylon.editor.js"></script>
 
     <!-- Common Tests -->
     <script src="Tests/CommonTests.js"></script>
@@ -161,10 +162,10 @@
         /// Launch the Babylon Editor here...
         /// -----------------------------------------------------------------------
         /// Create an instance of the core functions of the editor
-        var core = new BabylonEditorCore();
+        var core = new BABYLON.Editor.Core();
 
         /// Create the editor (creates the GUI)
-        var editor = new BabylonEditor(core);
+        var editor = new BABYLON.Editor.BabylonEditor(core);
         core.transformer = editor.transformer;
         /// -----------------------------------------------------------------------
 
