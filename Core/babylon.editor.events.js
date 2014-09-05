@@ -32,10 +32,12 @@ var Event = (function () {
     function GUIEvent() {
         this.eventType = null;
         this.caller = null;
+        this.result = null;
 
         BABYLON.Editor.Event.GUIEvent.GRAPH_CHANGED = 0;
         BABYLON.Editor.Event.GUIEvent.FORM_CHANGED = 1;
         BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED = 2;
+        BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG = 3;
     }
 
     /// Scene event

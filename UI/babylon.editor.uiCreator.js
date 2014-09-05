@@ -48,13 +48,16 @@ BabylonEditorUICreator.addEvent = function(element, event, callback) {
 BabylonEditorUICreator.Toolbar = BabylonEditorUICreator.Toolbar || {};
 
 /// Creates a toolbar and returns its reference
-BabylonEditorUICreator.Toolbar.createToolbar = function (name, items, scope) {
+BabylonEditorUICreator.Toolbar.createToolbar = function (name, items, scope, rightText) {
+    if (rightText == null)
+        rightText = '';
 
     /// Configure events with scope on onClick event
     /// Creates the toolbar
     var toolbar = $('#' + name).w2toolbar({
         name: name,
         items: items,
+        right: '<a>' + rightText + '</a>',
         scope: scope,
         onClick: function (event) {
             /// Send the click event to event receivers
@@ -160,19 +163,25 @@ BabylonEditorUICreator.Layout.createTab = function (id, caption) {
 BabylonEditorUICreator.Form = BabylonEditorUICreator.Form || {};
 
 /// Creates a form and returns its reference
-BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope) {
+BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, textBlock) {
+    var textBlockText = '';
+    if (textBlock != null)
+        textBlockText = '<div style="padding: 3px; font-weight: bold; color: #777; font-size: 125%;">'
+                        + textBlock + '</div>';
+
     var form = $('#' + name).w2form({
         name: name,
         header: header,
         fields: fields,
         scope: scope,
+        formHTML: textBlockText,
         onChange: function (event) {
             /// Send the FormChanged event to the event receivers
             var ev = new BABYLON.Editor.Event();
             ev.eventType = BABYLON.Editor.EventType.GUIEvent;
             ev.event = new BABYLON.Editor.Event.GUIEvent();
             ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FORM_CHANGED;
-            ev.event.caller = name;
+            ev.event.caller = this;
             this.scope._core.sendEvent(ev);
         }
     });
@@ -239,6 +248,12 @@ BabylonEditorUICreator.Form.extendRecord = function (form, recordToAdd) {
     var record = $.extend(form.record, recordToAdd);
 
     return record;
+}
+
+/// Sets a checkbox checked or not
+BabylonEditorUICreator.Form.setItemChecked = function (form, item, check) {
+    var f = BabylonEditorUICreator.Form.getElements(form);
+    rendering.fields[item].checked = check;
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -329,4 +344,33 @@ BabylonEditorUICreator.Sidebar.createNode = function (id, text, img, data) {
 BabylonEditorUICreator.Sidebar.extendNodes = function (nodes, nodesToAdd) {
     /// With w2ui, just concat arrays
     return nodes.push.apply(nodes, nodesToAdd);
+}
+
+//------------------------------------------------------------------------------------------------------------------
+/* Popups */
+//------------------------------------------------------------------------------------------------------------------
+BabylonEditorUICreator.Popup = BabylonEditorUICreator.Popup || {};
+
+/// Statics
+BabylonEditorUICreator.Popup.YES_NO = 0;
+
+/// Create a popup
+BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, width, height, scope) {
+    if (type == BabylonEditorUICreator.Popup.YES_NO) {
+
+        return w2confirm(text, title, function (result) {
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+            ev.event = new BABYLON.Editor.Event.GUIEvent();
+            ev.event.eventType = BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG;
+            ev.event.caller = this;
+            ev.event.result = result;
+            scope._core.sendEvent(ev);
+        });
+
+    } else {
+
+        /// Create custom popup here.
+
+    }
 }

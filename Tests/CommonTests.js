@@ -27,6 +27,7 @@ function createTestScene(scene, core) {
     object3.position.x = 2;
     object3.position.y = 2;
     object3.parent = object2;
+    shadows.getShadowMap().renderList.push(object3);
     BABYLON.Editor.Utils.sendEventObjectAdded(object3, core);
 
 }

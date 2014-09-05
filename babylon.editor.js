@@ -43,7 +43,10 @@ var BabylonEditor = (function () {
         /// Create Layouts in one shot
         var panels = new Array();
         BabylonEditorUICreator.Layout.extendPanels(panels, [
-            BabylonEditorUICreator.Layout.createPanel('top', 50, true, pstyle, '<div id="MainToolBar" style="height: 100%"></div>'),
+            BabylonEditorUICreator.Layout.createPanel('top', 70, true, pstyle,
+                '<div id="MainToolBar" style="height: 50%"></div>'
+                + '<div id="MainToolsToolBar" style="height: 50%"></div>'
+            ),
             BabylonEditorUICreator.Layout.createPanel('left', 350, true, pstyle, '<div id="MainEditorEditObject"></div>', 350),
             BabylonEditorUICreator.Layout.createPanel('main', 350, true, pstyle, '<canvas id="renderCanvas"></canvas>', 350, [
                 BabylonEditorUICreator.Layout.createTab('MainScene', 'Main scene'),
