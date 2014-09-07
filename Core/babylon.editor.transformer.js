@@ -92,7 +92,7 @@ var Editor;
             this._scene.activeCamera = this._core.currentScene.activeCamera;
 
             if (this._nodeToTransform != null) {
-                if (this._nodeToTransform instanceof BABYLON.Mesh) {
+                if (this._nodeToTransform instanceof BABYLON.AbstractMesh) {
                     this._nodeToTransform.computeWorldMatrix(true);
                     this._positionTransformerX.position = this._nodeToTransform.absolutePosition.clone();
                 } else {
@@ -136,7 +136,7 @@ var Editor;
 
         }
 
-        Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect, outIntersection, distance) {
+        Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect, outIntersection) {
 
             var t2 = BABYLON.Vector3.Dot(this._pickingPlane.normal.clone(), lineVect.clone());
             if (t2 == 0)
@@ -150,12 +150,11 @@ var Editor;
 
         Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
             var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity());
-            var distance = BABYLON.Vector3.Distance(ray.origin, this._nodeToTransform.absolutePosition);
 
             if (this._getIntersectionWithLine(
                 ray.origin.clone(),
                 pickingInfos.pickedPoint.clone().subtract(ray.origin.clone().multiply(ray.direction)),
-                this._mousePositionInPlane, distance))
+                this._mousePositionInPlane))
             {
                 return true;
             } else {
@@ -182,13 +181,13 @@ var Editor;
             if (this._pickPosition) {
                 /// Setup plane and set selected transformer type (x, y, or z)
                 if (this._xmeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
-                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(0, -1, 0));
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(0, -1, 0));
                     this._selectedTransform = 'x';
                 } else if (this._ymeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
-                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(-1, 0, 0));
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(-1, 0, 0));
                     this._selectedTransform = 'y'
                 } else if (this._zmeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
-                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(0, -1, 0));
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(0, -1, 0));
                     this._selectedTransform = 'z';
                 }
 
@@ -265,9 +264,9 @@ var Editor;
 
             if (this._transformerType == BabylonEditorTransformerType.Position) {
                 this._setTransformersEnabled([this._positionTransformerX, this._positionTransformerY, this._positionTransformerZ], true);
-            } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
+            } else if (this._transformerType == BabylonEditorTransformerType.Rotation && this._nodeToTransform instanceof BABYLON.AbstractMesh) {
                 this._setTransformersEnabled([this._rotationTransformerX, this._rotationTransformerY, this._rotationTransformerZ], true);
-            } else if (this._transformerType == BabylonEditorTransformerType.Scaling) {
+            } else if (this._transformerType == BabylonEditorTransformerType.Scaling && this._nodeToTransform instanceof BABYLON.AbstractMesh) {
                 this._setTransformersEnabled([this._scalingTransformerX, this._scalingTransformerY, this._scalingTransformerZ], true);
             } /// else Nothing
         }
