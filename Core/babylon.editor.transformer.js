@@ -27,10 +27,10 @@ var Editor;
             this._core = core;
             core.customUpdates.push(this);
             core.eventReceivers.push(this);
-            this._transformerType = BabylonEditorTransformerType.Nothing;
+            this._transformerType = BabylonEditorTransformerType.Rotation;
 
             /// Configure
-            /// Transformer 
+            /// Scene 
             this._scene = new BABYLON.Scene(engine);
             this._scene.autoClear = false;
 
@@ -50,46 +50,206 @@ var Editor;
             this._rotationTransformerY = null;
             this._rotationTransformerZ = null;
 
+            this._xmeshes = new Array();
+            this._ymeshes = new Array();
+            this._zmeshes = new Array();
+
+            /// Values
+            this._transform = new BABYLON.Vector3(0, 0, 0);
+            this._mousePositionInPlane = new BABYLON.Vector3(0, 0, 0);
+            this._mousePosition = new BABYLON.Vector3(0, 0, 0);
+            this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(
+                new BABYLON.Vector3.Zero(),
+                new BABYLON.Vector3(0, 1, 0)
+            );
+
+            this._mouseDown = false;
+            this._pickPosition = true;
+
+            this._pickedInfos = null;
+            this._selectedTransform = null;
+
             /// Create transformers
             this._createTransformers();
+
+            /// Events
+            var scope = this;
+            this._core.canvas.onmousedown = function (event) {
+                scope._mouseDown = true;
+            };
+            window.onmouseup = function (event) {
+                scope._mouseDown = false;
+                scope._pickPosition = true;
+                scope._core.currentScene.activeCamera.attachControl(scope._core.canvas, false);
+                if (scope._pickedInfos != null)
+                    scope._pickedInfos.pickedMesh.material.emissiveColor
+                        = scope._pickedInfos.pickedMesh.material.emissiveColor.multiply(new BABYLON.Color3(2, 2, 2));
+                scope._pickedInfos = null;
+            };
         }
 
         Transformer.prototype.update = function () {
             this._scene.activeCamera = this._core.currentScene.activeCamera;
 
-            /// Update transformers scales
-            var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._positionTransformerX.position) * 0.03;
-            var transform = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
+            if (this._nodeToTransform != null) {
+                if (this._nodeToTransform instanceof BABYLON.Mesh) {
+                    this._nodeToTransform.computeWorldMatrix(true);
+                    this._positionTransformerX.position = this._nodeToTransform.absolutePosition.clone();
+                } else {
+                    this._positionTransformerX.position = this._nodeToTransform.position.clone();
+                }
 
-            /// Position
-            this._positionTransformerX.scaling = transform;
-            this._positionTransformerY.scaling = transform;
-            this._positionTransformerZ.scaling = transform;
+                /// Update transformers scales
+                var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._positionTransformerX.position) * 0.03;
+                var transform = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
+                this._transform.x = transform.x;
+                this._transform.y = transform.y;
+                this._transform.z = transform.z;
 
-            /// Rotation
-            this._rotationTransformerX.scaling = transform;
-            this._rotationTransformerY.scaling = transform;
-            this._rotationTransformerZ.scaling = transform;
+                /// Update transformers
+                /// Position
+                this._positionTransformerY.position = this._positionTransformerX.position.clone();
+                this._positionTransformerZ.position = this._positionTransformerX.position.clone();
+                this._positionTransformerY.position.y += distance * 1.3;
+                this._positionTransformerZ.position.z += distance * 1.3;
+                this._positionTransformerX.position.x += distance * 1.3;
 
-            /// Scaling
-            this._scalingTransformerX.scaling = transform;
-            this._scalingTransformerY.scaling = transform;
-            this._scalingTransformerZ.scaling = transform;
+                /// Rotation
+                this._rotationTransformerX.position = this._nodeToTransform.position;
+                this._rotationTransformerY.position = this._nodeToTransform.position;
+                this._rotationTransformerZ.position = this._nodeToTransform.position;
 
-            /// Update transformers
-            this._positionTransformerX.position.y = distance * 1.3; /// Position
-            this._positionTransformerY.position.z = -distance * 1.3;
-            this._positionTransformerZ.position.x = distance * 1.3;
+                /// Scaling
+                this._scalingTransformerX.position = this._positionTransformerX.position.clone();
+                this._scalingTransformerY.position = this._positionTransformerY.position.clone();
+                this._scalingTransformerZ.position = this._positionTransformerZ.position.clone();
 
-            this._scalingTransformerX.position.y = distance * 1.3; /// Scaling
-            this._scalingTransformerY.position.z = -distance * 1.3;
-            this._scalingTransformerZ.position.x = distance * 1.3;
+                if (this._mouseDown)
+                    this._updateTransform(distance);
 
-            /// Finish
-            this._scene.render();
+                /// Finish
+                this._scene.render();
+            }
         }
 
         Transformer.prototype.onEvent = function (event) {
+
+        }
+
+        Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect, outIntersection, distance) {
+
+            var t2 = BABYLON.Vector3.Dot(this._pickingPlane.normal.clone(), lineVect.clone());
+            if (t2 == 0)
+                return false;
+
+            var t = -(BABYLON.Vector3.Dot(this._pickingPlane.normal.clone(), linePoint.clone()) + this._pickingPlane.d) / t2;
+            var result = linePoint.clone().add(lineVect.clone().multiply(new BABYLON.Vector3(t, t, t)));
+            this._mousePositionInPlane = result;
+            return true;
+        }
+
+        Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
+            var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity());
+            var distance = BABYLON.Vector3.Distance(ray.origin, this._nodeToTransform.absolutePosition);
+
+            if (this._getIntersectionWithLine(
+                ray.origin.clone(),
+                pickingInfos.pickedPoint.clone().subtract(ray.origin.clone().multiply(ray.direction)),
+                this._mousePositionInPlane, distance))
+            {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /// If the mouse is down and object is selected, compute the nodeToTransform's transform
+        Transformer.prototype._updateTransform = function (distance) {
+            /// Get the picked mesh in this._scene;
+            var pickedMesh = this._core.getPickedMesh({
+                layerX: this._scene.pointerX,
+                layerY: this._scene.pointerY
+            }, false, this._scene);
+
+            /// The is only transformers in the scene.
+            if (!pickedMesh.hit && this._pickedInfos == null)
+                return;
+            
+            if (pickedMesh.hit && this._pickedInfos == null) {
+                this._pickedInfos = pickedMesh;
+            }
+
+            if (this._pickPosition) {
+                /// Setup plane and set selected transformer type (x, y, or z)
+                if (this._xmeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(0, -1, 0));
+                    this._selectedTransform = 'x';
+                } else if (this._ymeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(-1, 0, 0));
+                    this._selectedTransform = 'y'
+                } else if (this._zmeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.absolutePosition.clone(), new BABYLON.Vector3(0, -1, 0));
+                    this._selectedTransform = 'z';
+                }
+
+                if (this._findMousePositionInPlane(this._pickedInfos)) {
+                    this._mousePosition = this._mousePositionInPlane.clone();
+
+                    if (this._transformerType == BabylonEditorTransformerType.Position) {
+                        this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.position);
+                    } else if (this._transformerType == BabylonEditorTransformerType.Scaling) {
+                        this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.scaling);
+                    } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
+                        this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.rotation);
+                    }
+                    /// change color of the selected transformer
+                    this._pickedInfos.pickedMesh.material.emissiveColor
+                        = this._pickedInfos.pickedMesh.material.emissiveColor.multiply(new BABYLON.Color3(0.5, 0.5, 0.5));
+                    /// Do not need to re-update
+                    this._pickPosition = false;
+                }
+
+                /// Detach controls because a transformer was selected
+                this._core.currentScene.activeCamera.detachControl(this._core.canvas);
+            }
+
+            /// Update position
+            if (this._transformerType == BabylonEditorTransformerType.Position) {
+                if (this._findMousePositionInPlane(this._pickedInfos)) {
+                    if (this._selectedTransform == 'x')
+                        this._nodeToTransform.position.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                    else if (this._selectedTransform == 'y')
+                        this._nodeToTransform.position.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                    else if (this._selectedTransform == 'z')
+                        this._nodeToTransform.position.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+
+                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
+                }
+            /// Update scaling
+            } else if (this._transformerType == BabylonEditorTransformerType.Scaling) {
+                if (this._findMousePositionInPlane(this._pickedInfos)) {
+                    if (this._selectedTransform == 'x')
+                        this._nodeToTransform.scaling.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                    else if (this._selectedTransform == 'y')
+                        this._nodeToTransform.scaling.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                    else if (this._selectedTransform == 'z')
+                        this._nodeToTransform.scaling.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+
+                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
+                }
+            /// Update rotation
+            } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
+                if (this._findMousePositionInPlane(this._pickedInfos)) {
+                    if (this._selectedTransform == 'x')
+                        this._nodeToTransform.rotation.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                    else if (this._selectedTransform == 'y')
+                        this._nodeToTransform.rotation.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                    else if (this._selectedTransform == 'z')
+                        this._nodeToTransform.rotation.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+
+                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
+                }
+            }
 
         }
 
@@ -114,21 +274,6 @@ var Editor;
 
         Transformer.prototype.setNodeToTransform = function (node) {
             this._nodeToTransform = node;
-    
-            /// Position
-            this._positionTransformerX.parent = node;
-            this._positionTransformerY.parent = node;
-            this._positionTransformerZ.parent = node;
-
-            /// Rotation
-            this._rotationTransformerX.parent = node;
-            this._rotationTransformerY.parent = node;
-            this._rotationTransformerZ.parent = node;
-
-            /// Scaling
-            this._scalingTransformerX.parent = node;
-            this._scalingTransformerY.parent = node;
-            this._scalingTransformerZ.parent = node;
 
             this.setTransformerType(this._transformerType);
         }
@@ -141,31 +286,60 @@ var Editor;
 
         Transformer.prototype._createTransformers = function () {
             /// Position
-            this._positionTransformerX = this._createPositionModifier('x', new BABYLON.Color3(0, 1, 0));
-            this._positionTransformerY = this._createPositionModifier('y', new BABYLON.Color3(1, 0, 0));
-            this._positionTransformerZ = this._createPositionModifier('z', new BABYLON.Color3(0, 0, 1));
+            this._positionTransformerZ = this._createPositionModifier('x', new BABYLON.Color3(0, 0, 1));
+            this._positionTransformerX = this._createPositionModifier('y', new BABYLON.Color3(1, 0, 0));
+            this._positionTransformerY = this._createPositionModifier('z', new BABYLON.Color3(0, 1, 0));
 
             /// Rotation
-            this._rotationTransformerX = this._createRotationModifier('x', new BABYLON.Color3(0, 1, 0));
-            this._rotationTransformerY = this._createRotationModifier('x', new BABYLON.Color3(1, 0, 0));
             this._rotationTransformerZ = this._createRotationModifier('x', new BABYLON.Color3(0, 0, 1));
+            this._rotationTransformerX = this._createRotationModifier('x', new BABYLON.Color3(1, 0, 0));
+            this._rotationTransformerY = this._createRotationModifier('x', new BABYLON.Color3(0, 1, 0));
 
             /// Scaling
-            this._scalingTransformerX = this._createScaleModifier('x', new BABYLON.Color3(0, 1, 0));
-            this._scalingTransformerY = this._createScaleModifier('y', new BABYLON.Color3(1, 0, 0));
-            this._scalingTransformerZ = this._createScaleModifier('z', new BABYLON.Color3(0, 0, 1));
+            this._scalingTransformerZ = this._createScaleModifier('x', new BABYLON.Color3(0, 0, 1));
+            this._scalingTransformerX = this._createScaleModifier('y', new BABYLON.Color3(1, 0, 0));
+            this._scalingTransformerY = this._createScaleModifier('z', new BABYLON.Color3(0, 1, 0));
 
             /// Set transforms
-            this._positionTransformerY.rotation.x = -(Math.PI / 2.0); /// Position
-            this._positionTransformerZ.rotation.z = -(Math.PI / 2.0);
+            this._positionTransformerZ.rotation.x = (Math.PI / 2.0); /// Position
+            this._positionTransformerX.rotation.z = -(Math.PI / 2.0);
 
-            this._rotationTransformerY.rotation.x = -(Math.PI / 2.0); /// Rotation
-            this._rotationTransformerZ.rotation.z = -(Math.PI / 2.0);
+            this._rotationTransformerZ.rotation.x = (Math.PI / 2.0); /// Rotation
+            this._rotationTransformerX.rotation.z = -(Math.PI / 2.0);
 
-            this._scalingTransformerY.rotation.x = -(Math.PI / 2.0); /// Scaling
-            this._scalingTransformerZ.rotation.z = -(Math.PI / 2.0);
+            this._scalingTransformerZ.rotation.x = (Math.PI / 2.0); /// Scaling
+            this._scalingTransformerX.rotation.z = -(Math.PI / 2.0);
+
+            /// Share the scaling vector
+            this._positionTransformerX.scaling = this._transform; /// Position
+            this._positionTransformerY.scaling = this._transform;
+            this._positionTransformerZ.scaling = this._transform;
+
+            this._rotationTransformerX.scaling = this._transform; /// Rotation
+            this._rotationTransformerY.scaling = this._transform;
+            this._rotationTransformerZ.scaling = this._transform;
+
+            this._scalingTransformerX.scaling = this._transform; /// Scaling
+            this._scalingTransformerY.scaling = this._transform;
+            this._scalingTransformerZ.scaling = this._transform;
 
             /// Finish
+            this._xmeshes.push.apply(this._xmeshes, [
+                this._positionTransformerX, this._positionTransformerX.getDescendants()[0],
+                this._rotationTransformerX,
+                this._scalingTransformerX, this._scalingTransformerX.getDescendants()[0]
+            ]);
+            this._ymeshes.push.apply(this._ymeshes, [
+                this._positionTransformerY, this._positionTransformerY.getDescendants()[0],
+                this._rotationTransformerY,
+                this._scalingTransformerY, this._scalingTransformerY.getDescendants()[0]
+            ]);
+            this._zmeshes.push.apply(this._zmeshes, [
+                this._positionTransformerZ, this._positionTransformerZ.getDescendants()[0],
+                this._rotationTransformerZ,
+                this._scalingTransformerZ, this._scalingTransformerZ.getDescendants()[0]
+            ]);
+
             this._positionTransformerX.setEnabled(false); /// Position
             this._positionTransformerY.setEnabled(false);
             this._positionTransformerZ.setEnabled(false);
@@ -181,9 +355,12 @@ var Editor;
 
         Transformer.prototype._createPositionModifier = function (name, color) {
             var mesh = BABYLON.Mesh.CreateCylinder('BabylonEditorTransformer:Position:Cylinder:' + name, 8, 0.2, 0.2, 8, 1, this._scene, true);
+            mesh.isPickable = true;
 
             var mesh2 = BABYLON.Mesh.CreateCylinder('BabylonEditorTransformer:Position:CylinderCross:' + name, 2, 0, 3, 8, 1, this._scene, true);
+            this.isPickable = true;
             mesh2.parent = mesh;
+            mesh2.scaling = new BABYLON.Vector3(1.3, 1.3, 1.3);
             mesh2.position.y = mesh.scaling.y * 5;
 
             var material = new BABYLON.StandardMaterial('BabylonEditorTransformer:PMMaterial' + name, this._scene);
@@ -197,8 +374,10 @@ var Editor;
 
         Transformer.prototype._createScaleModifier = function (name, color) {
             var mesh = BABYLON.Mesh.CreateCylinder('BabylonEditorTransformer:Scale:Cylinder:' + name, 8, 0.2, 0.2, 8, 1, this._scene, true);
+            mesh.isPickable = true;
 
             var mesh2 = BABYLON.Mesh.CreateBox('BabylonEditorTransformer:Scale:Box' + name, 2, this._scene, true);
+            mesh.isPickable = true;
             mesh2.parent = mesh;
             mesh2.position.y = mesh.scaling.y * 5;
 
@@ -212,7 +391,7 @@ var Editor;
         }
 
         Transformer.prototype._createRotationModifier = function (name, color) {
-            var mesh = BABYLON.Mesh.CreateTorus('BabylonEditorTransformer:Rotation:Torus' + name, 20, 0.5, 35, this._scene, true);
+            var mesh = BABYLON.Mesh.CreateTorus('BabylonEditorTransformer:Rotation:Torus' + name, 20, 0.75, 35, this._scene, true);
 
             var material = new BABYLON.StandardMaterial('BabylonEditorTransformer:PMMaterial' + name, this._scene);
             material.emissiveColor = color;

@@ -107,6 +107,15 @@ var Utils = (function () {
         ev.event.object = object;
         core.sendEvent(ev);
     }
+
+    Utils.sendEventObjectChanged = function (object, core) {
+        var ev = new BABYLON.Editor.Event();
+        ev.eventType = BABYLON.Editor.EventType.SceneEvent;
+        ev.event = new BABYLON.Editor.Event.SceneEvent();
+        ev.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED;
+        ev.event.object = object;
+        core.sendEvent(ev);
+    }
     /// -----------------------------------------------------------------------------------------------------
 
     return Utils;

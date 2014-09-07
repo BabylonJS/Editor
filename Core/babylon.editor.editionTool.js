@@ -90,6 +90,7 @@ var EditionTool = (function () {
                 if (ev.event.caller = this._castDialog) {
                     if (ev.event.result == "Yes") {
                         BABYLON.Editor.Utils.excludeObjectFromShadowsCalculations(this.object, this._core.currentScene);
+                        this._objectCastingShadows = false;
                     } else {
                         /// Restore checking
                         BabylonEditorUICreator.Form.setItemChecked(this._renderingForm, 'MainEditMeshRenderingCastShadows', true);
@@ -177,8 +178,8 @@ var EditionTool = (function () {
                 );
             } else if (castShadows && !this._objectCastingShadows) {
                 BABYLON.Editor.Utils.addObjectInShadowsCalculations(this.object, this._core.currentScene);
+                this._objectCastingShadows = true;
             }
-            this._objectCastingShadows = castShadows;
         }
 
         /// FIXME: Reset focus

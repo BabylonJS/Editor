@@ -59,6 +59,7 @@ var BabylonEditor = (function () {
 
         /// Create Babylon's engine here. Then, we'll be able to manage events like onClick, onResize, etc.
         var canvas = document.getElementById("renderCanvas");
+        this._core.canvas = canvas;
         var scope = this;
 
         /// FIXME: Must work on IE

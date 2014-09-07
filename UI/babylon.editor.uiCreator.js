@@ -253,7 +253,7 @@ BabylonEditorUICreator.Form.extendRecord = function (form, recordToAdd) {
 /// Sets a checkbox checked or not
 BabylonEditorUICreator.Form.setItemChecked = function (form, item, check) {
     var f = BabylonEditorUICreator.Form.getElements(form);
-    rendering.fields[item].checked = check;
+    f.fields[item].checked = check;
 }
 
 //------------------------------------------------------------------------------------------------------------------

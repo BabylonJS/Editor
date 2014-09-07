@@ -33,6 +33,7 @@ var Core = (function () {
         /// myClass.prototype.onEvent = function(event);
         this.eventReceivers = new Array();
 
+        this.canvas = null;
         this.engine = null;
         this.currentScene = null;
         this.transformer = null;
@@ -51,10 +52,11 @@ var Core = (function () {
         }
     }
 
-    Core.prototype.getPickedMesh = function (event, sendEvent) {
-        if (!this.currentScene) return null;
+    Core.prototype.getPickedMesh = function (event, sendEvent, optionalScene) {
+        var scene = (optionalScene != null) ? optionalScene : this.currentScene;
+        if (!scene) return null;
 
-        var result = this.currentScene.pick(event.layerX, event.layerY);
+        var result = scene.pick(event.layerX, event.layerY);
 
         if (sendEvent == false) {
             return result;
