@@ -25,9 +25,8 @@ var Editor;
             /// "This"
             this._engine = engine;
             this._core = core;
-            core.customUpdates.push(this);
             core.eventReceivers.push(this);
-            this._transformerType = BabylonEditorTransformerType.Rotation;
+            this._transformerType = BabylonEditorTransformerType.Nothing;
 
             /// Configure
             /// Scene 
@@ -66,6 +65,7 @@ var Editor;
             this._mouseDown = false;
             this._pickPosition = true;
 
+            this._selectedTransformer = null;
             this._pickedInfos = null;
             this._selectedTransform = null;
 
@@ -82,8 +82,7 @@ var Editor;
                 scope._pickPosition = true;
                 scope._core.currentScene.activeCamera.attachControl(scope._core.canvas, false);
                 if (scope._pickedInfos != null)
-                    scope._pickedInfos.pickedMesh.material.emissiveColor
-                        = scope._pickedInfos.pickedMesh.material.emissiveColor.multiply(new BABYLON.Color3(2, 2, 2));
+                    scope._restorTransformerColor();
                 scope._pickedInfos = null;
             };
         }
@@ -126,17 +125,21 @@ var Editor;
 
                 if (this._mouseDown)
                     this._updateTransform(distance);
+                else
+                    this._highlightTransformer();
 
                 /// Finish
                 this._scene.render();
             }
         }
 
+        /// Receive events
         Transformer.prototype.onEvent = function (event) {
 
         }
 
-        Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect, outIntersection) {
+        /// Returns if the line intersects the plane and updates this._mousePositionInPlane
+        Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect) {
 
             var t2 = BABYLON.Vector3.Dot(this._pickingPlane.normal.clone(), lineVect.clone());
             if (t2 == 0)
@@ -153,8 +156,7 @@ var Editor;
 
             if (this._getIntersectionWithLine(
                 ray.origin.clone(),
-                pickingInfos.pickedPoint.clone().subtract(ray.origin.clone().multiply(ray.direction)),
-                this._mousePositionInPlane))
+                pickingInfos.pickedPoint.clone().subtract(ray.origin.clone().multiply(ray.direction))))
             {
                 return true;
             } else {
@@ -162,20 +164,55 @@ var Editor;
             }
         }
 
-        /// If the mouse is down and object is selected, compute the nodeToTransform's transform
-        Transformer.prototype._updateTransform = function (distance) {
+        /// Highlight the selected transformer, to know if a transformer is picked and ready to act
+        Transformer.prototype._highlightTransformer = function () {
             /// Get the picked mesh in this._scene;
             var pickedMesh = this._core.getPickedMesh({
                 layerX: this._scene.pointerX,
                 layerY: this._scene.pointerY
             }, false, this._scene);
 
-            /// The is only transformers in the scene.
-            if (!pickedMesh.hit && this._pickedInfos == null)
-                return;
-            
-            if (pickedMesh.hit && this._pickedInfos == null) {
-                this._pickedInfos = pickedMesh;
+            /// highlight or restor color
+            if (pickedMesh.hit) {
+                if (pickedMesh.pickedMesh != this._selectedTransformer) {
+                    var currentColor = pickedMesh.pickedMesh.material.emissiveColor;
+                    if (currentColor.r == 1 || currentColor.g == 1 || currentColor.b == 1) {
+                        pickedMesh.pickedMesh.material.emissiveColor = currentColor.multiply(new BABYLON.Color3(0.5, 0.5, 0.5));
+                    }
+                }
+                this._selectedTransformer = pickedMesh.pickedMesh;
+            } else {
+                if (this._selectedTransformer != null) {
+                    this._selectedTransformer.material.emissiveColor
+                        = this._selectedTransformer.material.emissiveColor.multiply(new BABYLON.Color3(2, 2, 2));
+                    this._selectedTransformer = null;
+                }
+            }
+        }
+
+        /// Restor the selected transformer's color
+        Transformer.prototype._restorTransformerColor = function () {
+            this._pickedInfos.pickedMesh.material.emissiveColor
+                        = this._pickedInfos.pickedMesh.material.emissiveColor.multiply(new BABYLON.Color3(2, 2, 2));
+        }
+
+        /// If the mouse is down and object is selected, compute the nodeToTransform's transform
+        Transformer.prototype._updateTransform = function (distance) {
+
+            if (this._pickedInfos == null) {
+                /// Get the picked mesh in this._scene;
+                var pickedMesh = this._core.getPickedMesh({
+                    layerX: this._scene.pointerX,
+                    layerY: this._scene.pointerY
+                }, false, this._scene);
+
+                /// The is only transformers in the scene.
+                if (!pickedMesh.hit && this._pickedInfos == null)
+                    return;
+
+                if (pickedMesh.hit && this._pickedInfos == null) {
+                    this._pickedInfos = pickedMesh;
+                }
             }
 
             if (this._pickPosition) {
@@ -187,7 +224,7 @@ var Editor;
                     this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(-1, 0, 0));
                     this._selectedTransform = 'y'
                 } else if (this._zmeshes.indexOf(this._pickedInfos.pickedMesh) > -1) {
-                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(0, -1, 0));
+                    this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(this._nodeToTransform.position.clone(), new BABYLON.Vector3(0, 1, 0));
                     this._selectedTransform = 'z';
                 }
 

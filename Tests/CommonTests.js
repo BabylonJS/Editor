@@ -31,3 +31,9 @@ function createTestScene(scene, core) {
     BABYLON.Editor.Utils.sendEventObjectAdded(object3, core);
 
 }
+
+function runPlugin(core) {
+    var plugin = createPlugin();
+    plugin.configure(core);
+    delete createPlugin;
+}

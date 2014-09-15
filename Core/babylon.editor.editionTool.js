@@ -72,6 +72,13 @@ var EditionTool = (function () {
 
             }
 
+            /// Object changed
+            if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
+                if (ev.event.object == this.object) {
+                    this._objectChanged();
+                }
+            }
+
         }
 
         else /// UI Event
@@ -110,7 +117,7 @@ var EditionTool = (function () {
     /// Creates an empty form to tell 0 object is selected
     EditionTool.prototype.createEmptyForm = function () {
         BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectEmpty'], 'MainEditorEditObject', true);
-        this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', 'Empty', [], this,
+        this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', 'Empty', [], this, this._core,
             'To edit an object, double click in the scene or select and object in the graph.'
         );
     }
@@ -121,6 +128,28 @@ var EditionTool = (function () {
         /// Can clear other forms or UI elements
         if (this._emptyForm)
             BabylonEditorUICreator.clearUI([this._emptyForm.name]);
+    }
+
+    EditionTool.prototype._objectChanged = function () {
+        BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
+            MainEditObjectTransformPositionX: this.object.position.x,
+            MainEditObjectTransformPositionY: this.object.position.y,
+            MainEditObjectTransformPositionZ: this.object.position.z,
+        });
+
+        if (this.object instanceof BABYLON.Mesh) {
+            BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
+                MainEditMeshTransformRotationX: this.object.rotation.x,
+                MainEditMeshTransformRotationY: this.object.rotation.y,
+                MainEditMeshTransformRotationZ: this.object.rotation.z,
+
+                MainEditMeshTransformScaleX: this.object.scaling.x,
+                MainEditMeshTransformScaleY: this.object.scaling.y,
+                MainEditMeshTransformScaleZ: this.object.scaling.z
+            });
+        }
+
+        BabylonEditorUICreator.updateElement(this._transformForm);
     }
 
     EditionTool.prototype._onChange = function () {
@@ -174,7 +203,7 @@ var EditionTool = (function () {
                     'Informations',
                     'Are you sure ?\n'
                     + 'The object will be removed from all shadows calculations.',
-                    BabylonEditorUICreator.Popup.YES_NO, true, 350, 200, this
+                    BabylonEditorUICreator.Popup.YES_NO, true, 350, 200, this._core
                 );
             } else if (castShadows && !this._objectCastingShadows) {
                 BABYLON.Editor.Utils.addObjectInShadowsCalculations(this.object, this._core.currentScene);
@@ -209,7 +238,7 @@ var EditionTool = (function () {
             BabylonEditorUICreator.Form.createField('MainEditObjectEnabled', 'checkbox', 'Enabled :', 5),
         ]);
 
-        this._generalForm = BabylonEditorUICreator.Form.createForm('MainEditObjectGeneral', 'General', fields, this);
+        this._generalForm = BabylonEditorUICreator.Form.createForm('MainEditObjectGeneral', 'General', fields, this, this._core);
 
         /// Fill fields
         BabylonEditorUICreator.Form.extendRecord(this._generalForm, {
@@ -245,7 +274,7 @@ var EditionTool = (function () {
         }
 
         this._transformForm = BabylonEditorUICreator.Form.createForm('MainEditObjectTransform',
-                                                                     'Transforms', fields, this);
+                                                                     'Transforms', fields, this, this._core);
 
         /// Fill fields
         BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
@@ -280,7 +309,7 @@ var EditionTool = (function () {
         }
 
         this._optionsForm = BabylonEditorUICreator.Form.createForm('MainEditObjectOptions',
-                                                                    'Options', fields, this);
+                                                                    'Options', fields, this, this._core);
 
         /// Configure fields
         if (this.object instanceof BABYLON.Mesh) {
@@ -302,7 +331,7 @@ var EditionTool = (function () {
             ]);
 
             this._renderingForm = BabylonEditorUICreator.Form.createForm('MainEditObjectRendering',
-                                                                         'Rendering', fields, this);
+                                                                         'Rendering', fields, this, this._core);
 
             /// Configure fields
             BabylonEditorUICreator.Form.extendRecord(this._renderingForm, {

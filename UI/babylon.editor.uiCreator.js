@@ -34,12 +34,27 @@ BabylonEditorUICreator.clearUI = function (elements) {
     }
 }
 
+BabylonEditorUICreator.clearUIFromRefs = function (elements) {
+    if (!(elements instanceof Array)) return;
+    if (elements.length == 0) return;
+
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].destroy();
+    }
+}
+
 /// Configure an event
 /// element and event are string
 BabylonEditorUICreator.addEvent = function(element, event, callback) {
     element.on(event, function (target, eventData) {
         callback();
     });
+}
+
+/// Update a GUI Element
+BabylonEditorUICreator.updateElement = function (element) {
+    if (element != null)
+        element.refresh();
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -120,6 +135,7 @@ BabylonEditorUICreator.Toolbar.isItemChecked = function (menu, item) {
 /* Layouts */
 //------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Layout = BabylonEditorUICreator.Layout || {};
+BabylonEditorUICreator.Layout.Style = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
 
 /// Creates a layout and returns its reference
 BabylonEditorUICreator.Layout.createLayout = function (name, panels, scope) {
@@ -163,7 +179,7 @@ BabylonEditorUICreator.Layout.createTab = function (id, caption) {
 BabylonEditorUICreator.Form = BabylonEditorUICreator.Form || {};
 
 /// Creates a form and returns its reference
-BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, textBlock) {
+BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, core, textBlock) {
     var textBlockText = '';
     if (textBlock != null)
         textBlockText = '<div style="padding: 3px; font-weight: bold; color: #777; font-size: 125%;">'
@@ -182,7 +198,14 @@ BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, 
             ev.event = new BABYLON.Editor.Event.GUIEvent();
             ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FORM_CHANGED;
             ev.event.caller = this;
-            this.scope._core.sendEvent(ev);
+            if (this.get(event.target).type == 'file') {
+                var contents = $('#' + event.target).data('selected');
+                for (var i = 0; i < contents.length; i++) {
+                    contents[i].content = /*'file:' + */(contents[i].content);
+                }
+                ev.event.result = { caller: event.target, contents: contents };
+            }
+            core.sendEvent(ev);
         }
     });
 
@@ -231,7 +254,9 @@ BabylonEditorUICreator.Form.createField = function (name, type, caption, span, t
     if (span == null)
         span = 6;
 
-    return { name: name, type: type, html: { caption: caption, span: span, text: text } };
+    var field = { name: name, type: type, html: { caption: caption, span: span, text: text } };
+
+    return field;
 };
 
 /// Extends the fields
@@ -355,7 +380,7 @@ BabylonEditorUICreator.Popup = BabylonEditorUICreator.Popup || {};
 BabylonEditorUICreator.Popup.YES_NO = 0;
 
 /// Create a popup
-BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, width, height, scope) {
+BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, width, height, core) {
     if (type == BabylonEditorUICreator.Popup.YES_NO) {
 
         return w2confirm(text, title, function (result) {
@@ -365,7 +390,7 @@ BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, w
             ev.event.eventType = BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG;
             ev.event.caller = this;
             ev.event.result = result;
-            scope._core.sendEvent(ev);
+            core.sendEvent(ev);
         });
 
     } else {
@@ -373,4 +398,49 @@ BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, w
         /// Create custom popup here.
 
     }
+}
+
+/// Create a window
+BabylonEditorUICreator.Popup.createWindow = function (title, body, modal, width, height, buttons, core) {
+    var buttonsText = '';
+    for (var i=0; i < buttons.length; i++) {
+        buttonsText += '<button class="btn" id="PopupButton' + buttons[i] + '">' + buttons[i] + '</button>\n';
+    }
+
+    var popup = w2popup.open({
+        title: title,
+        body: body,
+        buttons: buttonsText,
+        width: width,
+        height: height,
+        showClose: true
+    });
+
+    for (var i = 0; i < buttons.length; i++) {
+        var element = $('#PopupButton' + buttons[i]);
+        element.click(function () {
+            var ev = new BABYLON.Editor.Event();
+            ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+            ev.event = new BABYLON.Editor.Event.GUIEvent();
+            ev.event.eventType = BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED;
+            ev.event.caller = this;
+            core.sendEvent(ev);
+        });
+    }
+
+    return popup;
+}
+
+/// Custom close (to remove elements)
+BabylonEditorUICreator.Popup.removeElementsOnClose = function (popup, elements, onClose) {
+
+    function close() {
+        if (elements != null) {
+            BabylonEditorUICreator.clearUI(elements);
+        }
+        if (onClose != null)
+            onClose();
+    }
+
+    popup.onClose = close;
 }

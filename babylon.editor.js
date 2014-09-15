@@ -20,6 +20,7 @@ var BabylonEditor = (function () {
         this._core = babylonEditorCore;
         this._core.customUpdates.push(this);
 
+        this.camera = null;
         /// Gui elements
         this._layouts = null;
 
@@ -35,10 +36,49 @@ var BabylonEditor = (function () {
         this._core.currentScene.render();
     }
 
+    BabylonEditor.prototype.dragAndDrop = function (canvas) {
+        var scope = this;
+
+        /// scene loaded callback
+        function sceneLoaded(file, scene) {
+            /// Clear the graph tool
+            scope._graphTool._createUI();
+
+            /// Scene already exists, just replace it
+            var index = scope.scenes.indexOf(scope._core.currentScene);
+            scope.scenes[index] = scene;
+            scene.activeCamera = scope._core.currentScene.activeCamera;
+            scene.cameras.push(scope._core.currentScene.activeCamera);
+            /// Remove current scene
+            scope._core.currentScene.dispose();
+
+            /// Send events
+            for (var i = 0; i < scene.meshes.length; i++) {
+                scene.meshes[i].checkCollisions = true;
+                BABYLON.Editor.Utils.sendEventObjectAdded(scene.meshes[i], scope._core);
+            }
+            for (var i = 0; i < scene.lights; i++) {
+                BABYLON.Editor.Utils.sendEventObjectAdded(scene.lights[i], scope._core);
+            }
+
+            /// Set as current scene
+            scope._core.currentScene = scene;
+        }
+
+        /// Create file input and fill callbacks
+        this._core.filesInput = new BABYLON.FilesInput(this.engine, null, canvas, sceneLoaded, null, function () {
+            scope.engine.runRenderLoop(function () {
+                scope._core.update();
+                scope._core.transformer.update();
+            });
+        });
+        this._core.filesInput.monitorElementForDragNDrop(canvas);
+    }
+
     BabylonEditor.prototype._createUI = function () {
 
         /// Global style
-        var pstyle = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
+        var pstyle = BabylonEditorUICreator.Layout.Style;
 
         /// Create Layouts in one shot
         var panels = new Array();
@@ -63,9 +103,9 @@ var BabylonEditor = (function () {
         var scope = this;
 
         /// FIXME: Must work on IE
-        canvas.ondblclick = function (event) {
+        canvas.addEventListener('dblclick', function(event) {
             scope._core.getPickedMesh(event, true);
-        };
+        });
 
         /// FIXME: events don't necessary call function(target, eventData);
         /// FIXED
@@ -97,13 +137,15 @@ var BabylonEditor = (function () {
         this.scenes.push(scene);
         this._core.currentScene = scene;
 
-        var camera = new BABYLON.FreeCamera("BabylonEditorCamera", new BABYLON.Vector3(0, 5, -10), scene);
-        camera.setTarget(new BABYLON.Vector3.Zero());
-        camera.attachControl(canvas, false);
+        this.camera = new BABYLON.FreeCamera("BabylonEditorCamera", new BABYLON.Vector3(0, 5, -10), scene);
+        this.camera.setTarget(new BABYLON.Vector3.Zero());
+        this.camera.attachControl(canvas, false);
 
         this.transformer = new BABYLON.Editor.Transformer(this.engine, this._core);
 
         this._graphTool._fillGraph(null, null);
+
+        this.dragAndDrop(canvas);
     };
 
     return BabylonEditor;

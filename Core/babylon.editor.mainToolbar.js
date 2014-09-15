@@ -34,6 +34,8 @@ var Editor;
                         BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, ev.event.caller, !checked);
                         /// Set transformer
                         this.setTransformer(checked ? null : ev.event.caller);
+                    } else if (ev.event.caller == 'MainToolBarAddMesh') {
+                        BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', this._core);
                     }
 
                     else /// Tools Toolbar

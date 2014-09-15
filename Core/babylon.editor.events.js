@@ -38,6 +38,7 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.FORM_CHANGED = 1;
         BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED = 2;
         BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG = 3;
+        BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED = 4;
     }
 
     /// Scene event

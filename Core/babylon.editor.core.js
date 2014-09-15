@@ -37,6 +37,8 @@ var Core = (function () {
         this.engine = null;
         this.currentScene = null;
         this.transformer = null;
+
+        this.filesInput = null;
     }
 
     Core.prototype.update = function () {

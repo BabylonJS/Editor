@@ -149,12 +149,18 @@
     <script src="Core/babylon.editor.transformer.js"></script>
     <script src="babylon.editor.js"></script>
 
+    <script src="Core/babylon.editor.plugin.js"></script>
+
     <!-- Common Tests -->
     <script src="Tests/CommonTests.js"></script>
+    <script src="UserInterfaces/babylon.editor.ui.addMesh.js"></script>
 
 </head>
 
 <body>
+    <!-- Plugin files -->
+    <div id="BabylonEditorPlugins"></div>
+
     <!-- Main layout -->
     <div id="Mainlayout" style="height: 100%"></div>
 
@@ -173,10 +179,12 @@
         /// Fill the render loop
         editor.engine.runRenderLoop(function () {
             core.update();
+            core.transformer.update();
         });
 
         /// Tests
         createTestScene(core.currentScene, core);
+        runPlugin(core);
 
     </script>
 

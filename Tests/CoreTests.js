@@ -109,15 +109,3 @@ test('onEvent SceneEvent <object added/removed> test', function () {
     equal(this.class.type, BABYLON.Editor.Event.SceneEvent.OBJECT_REMOVED, 'removed: type is ObjectRemoved');
     equal(this.class.data, this.class.object, 'removed: data equals object');
 });
-
-test('onEvent EventClass', function () {
-    var ev = new BABYLON.Editor.Event();
-    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
-    ev.event = new BABYLON.Editor.Event.GUIEvent();
-    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED;
-    ev.event.caller = this.class.toolbar;
-
-    this.core.sendEvent(ev);
-
-    equal(1, 1);
-});

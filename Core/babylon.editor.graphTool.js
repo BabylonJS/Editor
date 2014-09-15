@@ -138,6 +138,8 @@ var GraphTool = (function () {
     }
 
     GraphTool.prototype._createUI = function () {
+        if (this.sideBar != null)
+            BabylonEditorUICreator.clearUIFromRefs([this.sideBar]);
 
         /// Create nodes
         var nodes = new Array();
