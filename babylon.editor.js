@@ -42,12 +42,14 @@ var BabylonEditor = (function () {
         /// scene loaded callback
         function sceneLoaded(file, scene) {
             /// Clear the graph tool
+            scope._core.transformer.setNodeToTransform(null);
             scope._graphTool._createUI();
 
             /// Scene already exists, just replace it
             var index = scope.scenes.indexOf(scope._core.currentScene);
             scope.scenes[index] = scene;
             scene.activeCamera = scope._core.currentScene.activeCamera;
+            scene.cameras.splice(0, scene.cameras.length);
             scene.cameras.push(scope._core.currentScene.activeCamera);
             /// Remove current scene
             scope._core.currentScene.dispose();

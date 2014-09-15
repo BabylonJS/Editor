@@ -249,12 +249,23 @@ BabylonEditorUICreator.Form.createDivsForForms = function (forms, parentDiv, cle
     }
 }
 
+/// Create an input-file type input
+BabylonEditorUICreator.Form.createInputFileField = function (element, name, core) {
+    var caller = $('#' + element).after('<input class="file-input" id="' + name + '" type="file" name="attachment" multiple="" style="width: 100%;" tabindex="-1">');
+
+    $('#' + name).change(function (event) {
+        BABYLON.Editor.Utils.sendEventFileSelected(caller, event, core);
+    });
+
+    return caller;
+}
+
 /// Creates a field to use with forms
-BabylonEditorUICreator.Form.createField = function (name, type, caption, span, text) {
+BabylonEditorUICreator.Form.createField = function (name, type, caption, span, text, attr) {
     if (span == null)
         span = 6;
 
-    var field = { name: name, type: type, html: { caption: caption, span: span, text: text } };
+    var field = { name: name, type: type, html: { caption: caption, span: span, text: text, attr: attr } };
 
     return field;
 };

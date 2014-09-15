@@ -116,6 +116,16 @@ var Utils = (function () {
         ev.event.object = object;
         core.sendEvent(ev);
     }
+
+    Utils.sendEventFileSelected = function (caller, event, core) {
+        var ev = new BABYLON.Editor.Event();
+        ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+        ev.event = new BABYLON.Editor.Event.GUIEvent();
+        ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FILE_SELECTED;
+        ev.event.caller = caller;
+        ev.event.result = event;
+        core.sendEvent(ev);
+    }
     /// -----------------------------------------------------------------------------------------------------
 
     return Utils;

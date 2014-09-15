@@ -93,7 +93,7 @@ var Editor;
             if (this._nodeToTransform != null) {
                 if (this._nodeToTransform instanceof BABYLON.AbstractMesh) {
                     this._nodeToTransform.computeWorldMatrix(true);
-                    this._positionTransformerX.position = this._nodeToTransform.absolutePosition.clone();
+                    this._positionTransformerX.position = this._nodeToTransform.position.clone();
                 } else {
                     this._positionTransformerX.position = this._nodeToTransform.position.clone();
                 }
@@ -166,6 +166,9 @@ var Editor;
 
         /// Highlight the selected transformer, to know if a transformer is picked and ready to act
         Transformer.prototype._highlightTransformer = function () {
+            if (this._pickedInfos != null)
+                return;
+
             /// Get the picked mesh in this._scene;
             var pickedMesh = this._core.getPickedMesh({
                 layerX: this._scene.pointerX,
@@ -201,10 +204,13 @@ var Editor;
 
             if (this._pickedInfos == null) {
                 /// Get the picked mesh in this._scene;
-                var pickedMesh = this._core.getPickedMesh({
-                    layerX: this._scene.pointerX,
-                    layerY: this._scene.pointerY
-                }, false, this._scene);
+                var pickedMesh = null;
+                if (this._pickedInfos == null) {
+                    pickedMesh = this._core.getPickedMesh({
+                        layerX: this._scene.pointerX,
+                        layerY: this._scene.pointerY
+                    }, false, this._scene);
+                }
 
                 /// The is only transformers in the scene.
                 if (!pickedMesh.hit && this._pickedInfos == null)
