@@ -115,3 +115,7 @@ UpgradeLog*.XML
 
 # Mac Os X files
 .DS_Store
+._.DS_Store
+
+# Windows files
+Thumbs.db

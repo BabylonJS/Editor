@@ -21,9 +21,9 @@ var BabylonEditor = (function () {
         this._core.customUpdates.push(this);
 
         this.camera = null;
+
         /// Gui elements
         this._layouts = null;
-
         this._mainToolbar = null;
         this._editionTool = null;
         this._graphTool = null;
@@ -43,6 +43,7 @@ var BabylonEditor = (function () {
         function sceneLoaded(file, scene) {
             /// Clear the graph tool
             scope._core.transformer.setNodeToTransform(null);
+            /// Clears the graph if the graph already exists
             scope._graphTool._createUI();
 
             /// Scene already exists, just replace it

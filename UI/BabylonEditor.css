@@ -13,6 +13,15 @@
 .w2ui-icon.icon-scale {
     background: url("images/scale.png");
 }
+.w2ui-icon.icon-textures {
+    background: url("images/effects.png");
+}
+.w2ui-icon.icon-shaders {
+    background: url("images/shaders.png");
+}
+.w2ui-icon.icon-filters {
+    background: url("images/render.png");
+}
 
 /* Files */
 .w2ui-icon.icon-open-file {

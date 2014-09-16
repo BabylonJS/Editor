@@ -37,6 +37,10 @@ var Editor;
                     } else if (ev.event.caller == 'MainToolBarAddMesh') {
                         BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', this._core);
                     }
+                    /// MainEdit
+                    else if (ev.event.caller == 'MainEdit:edit-textures') {
+                        BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', core);
+                    }
 
                     else /// Tools Toolbar
 
@@ -78,15 +82,16 @@ var Editor;
                     BabylonEditorUICreator.Toolbar.createItem('button', 'save-scene', 'Save scene..', 'icon-save-file')
                 ]),
                 BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainEdit', 'Edit', 'icon-edit', false, [
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-materials', 'Edit Materials...'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-material-shaders', 'Edit Material Shaders..'),
+                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-textures', 'Edit Textures...', 'icon-textures'),
+                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-material-shaders', 'Edit Material Shaders..', 'icon-shaders'),
                     BabylonEditorUICreator.Toolbar.createItem('break'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-current-scene', 'Edit Current Scene...'),
+                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-current-scene', 'Edit Filters...', 'icon-filters'),
                 ]),
                 BabylonEditorUICreator.Toolbar.createMenu('break'),
                 BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainToolBarAddLight', 'Add Light', 'icon-add-light', false, [
                     BabylonEditorUICreator.Toolbar.createItem('button', 'add-point-light', 'Point Light', 'icon-add-light'),
                     BabylonEditorUICreator.Toolbar.createItem('button', 'add-spot-light', 'Spot Light', 'icon-add-light'),
+                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-direction-light', 'Directional Light', 'icon-add-light'),
                 ]),
                 BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainToolBarAddPrimitive', 'Primitives', 'icon-primitives', false, [
                     BabylonEditorUICreator.Toolbar.createItem('button', 'add-ground', 'Add Ground', 'icon-add-ground'),

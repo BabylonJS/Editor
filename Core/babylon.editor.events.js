@@ -40,6 +40,7 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG = 3;
         BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED = 4;
         BABYLON.Editor.Event.GUIEvent.FILE_SELECTED = 5;
+        BABYLON.Editor.Event.GUIEvent.GRID_SELECTED = 6;
     }
 
     /// Scene event

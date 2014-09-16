@@ -383,6 +383,70 @@ BabylonEditorUICreator.Sidebar.extendNodes = function (nodes, nodesToAdd) {
 }
 
 //------------------------------------------------------------------------------------------------------------------
+/* Grids */
+//------------------------------------------------------------------------------------------------------------------
+BabylonEditorUICreator.Grid = BabylonEditorUICreator.Grid || {};
+
+/// Create a grid
+BabylonEditorUICreator.Grid.createGrid = function(element, name, header, columns, records, core) {
+    var grid = $('#' + element).w2grid({
+        name: name,
+        show: {
+            toolbar: true,
+            footer: true
+        },
+        header: header,
+        columns: columns,
+        records: records,
+        onClick: function (event) {
+            var scope = this;
+            event.onComplete = function () {
+                var selected = scope.getSelection();
+                if (selected.length == 1) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.Event.GUIEvent();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_SELECTED;
+                    ev.event.caller = scope;
+                    ev.event.result = selected[0];
+                    core.sendEvent(ev);
+                }
+            }
+        }
+    });
+
+    return grid;
+}
+
+/// Create a column
+BabylonEditorUICreator.Grid.createColumn = function (field, caption, size) {
+    if (size == null)
+        size = '50%';
+
+    return { field: field, caption: caption, size: size };
+}
+
+BabylonEditorUICreator.Grid.extendColumns = function (columns, columnsToAdd) {
+    columns.push.apply(columns, columnsToAdd);
+    return columns;
+}
+
+/// Create a record. Argument 'records' must be ordered in function of columns :)
+BabylonEditorUICreator.Grid.addRecord = function (grid, record) {
+    grid.add(record);
+}
+
+/// Removes a record
+BabylonEditorUICreator.Grid.removeRecord = function (grid, index) {
+    grid.remove(index);
+}
+
+/// Returns the selected record id
+BabylonEditorUICreator.Grid.getSelected = function (grid) {
+    return grid.getSelection();
+}
+
+//------------------------------------------------------------------------------------------------------------------
 /* Popups */
 //------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Popup = BabylonEditorUICreator.Popup || {};
@@ -412,7 +476,7 @@ BabylonEditorUICreator.Popup.createPopup = function (title, text, type, modal, w
 }
 
 /// Create a window
-BabylonEditorUICreator.Popup.createWindow = function (title, body, modal, width, height, buttons, core) {
+BabylonEditorUICreator.Popup.createWindow = function (title, body, modal, width, height, buttons, core, showMax) {
     var buttonsText = '';
     for (var i=0; i < buttons.length; i++) {
         buttonsText += '<button class="btn" id="PopupButton' + buttons[i] + '">' + buttons[i] + '</button>\n';
@@ -424,7 +488,8 @@ BabylonEditorUICreator.Popup.createWindow = function (title, body, modal, width,
         buttons: buttonsText,
         width: width,
         height: height,
-        showClose: true
+        showClose: true,
+        showMax: showMax == null ? false : showMax
     });
 
     for (var i = 0; i < buttons.length; i++) {
@@ -454,4 +519,33 @@ BabylonEditorUICreator.Popup.removeElementsOnClose = function (popup, elements, 
     }
 
     popup.onClose = close;
+}
+
+BabylonEditorUICreator.Popup.addElementsToResize = function (popup, elements) {
+    function resize() {
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].resize();
+        }
+    }
+
+    /// Because it is called at the end of UI creation, we resize children
+    resize();
+
+    popup.onToggle = function (event) {
+        event.onComplete = resize;
+    }
+}
+
+/// onOpen event for windows
+BabylonEditorUICreator.Popup.onOpen = function (popup, callback) {
+    popup.onOpen = function (event) {
+        event.onComplete = callback;
+    };
+}
+
+/// onToggle event for windows
+BabylonEditorUICreator.Popup.onToggle = function (popup, callback) {
+    popup.onToggle = function (event) {
+        event.onComplete = callback;
+    };
 }

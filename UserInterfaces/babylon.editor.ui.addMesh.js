@@ -13,14 +13,14 @@ var AddMesh = (function (_super) {
         this._window = null;
         this._layouts = null;
         this._form = null;
-        this._fileSelector = null;
 
         /// Datas
-        this.canvas = null;
-        this.engine = null;
-        this.scene = null;
-        this.camera = null;
-        this._filesInput = null;
+        this._canvas = null;
+        this._engine = null;
+        this._scene = null;
+        this._camera = null;
+
+        this._meshFiles = null;
     }
 
     AddMesh.prototype.configure = function (core) {
@@ -28,37 +28,6 @@ var AddMesh = (function (_super) {
         this.core.eventReceivers.push(this);
         this._createUI();
 
-        var scope = this;
-        function sceneLoaded(name, scene) {
-            scope.scene.dispose();
-            scope.scene = scene;
-            scope.configureScene();
-        }
-        this._filesInput = new BABYLON.FilesInput(this.engine, null, this.canvas, sceneLoaded, null, function () {
-            scope.scene.activeCamera = scope.camera;
-        });
-    }
-
-    AddMesh.prototype.configureScene = function () {
-        this.scene.clearColor = new BABYLON.Color3(0, 0, 0);
-
-        if (this.scene.meshes.length == 0)
-            return;
-
-        var center = new BABYLON.Vector3(0, 0, 0);
-        var max = this.scene.meshes[0].getBoundingInfo().maximum.y,
-            min = this.scene.meshes[0].getBoundingInfo().maximum.y;
-
-        for (var i = 0; i < this.scene.meshes.length; i++) {
-            if (this.scene.meshes[i].getBoundingInfo().maximum.y > max)
-                max = this.scene.meshes[i].getBoundingInfo().maximum.y;
-            if (this.scene.meshes[i].getBoundingInfo().minimum.y < min)
-                min = this.scene.meshes[i].getBoundingInfo().minimum.y;
-        }
-        center.y = (max - min) / 2.0;
-
-        this.camera = new BABYLON.ArcRotateCamera("AddMeshCamera", 1, 1.3, 100, center, this.scene);
-        this.camera.attachControl(this.canvas, false);
     }
 
     AddMesh.prototype.onEvent = function (ev) {
@@ -67,33 +36,86 @@ var AddMesh = (function (_super) {
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
                 /// Close
                 if (ev.event.caller.id == 'PopupButtonClose') {
-                    this._window.close();
+                    this._close();
                 }
                 else /// Add
                 if (ev.event.caller.id == "PopupButtonAdd") {
                     this._accept();
                 }
             }
-
-            /// Form changed
+            else /// Form changed
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FORM_CHANGED) {
                 if (ev.event.caller == this._form) {
                     if (ev.event.result && ev.event.result.caller === 'AddMeshFile') {
+                        this._meshFiles = ev.event.result;
                         this._loadMesh(ev.event.result);
                     }
-                }
-            }
-            else /// File selected
-            if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FILE_SELECTED) {
-                if (ev.event.caller == this._fileSelector) {
-                    this._filesInput.loadFiles(ev.event.result);
                 }
             }
         }
     }
 
-    AddMesh.prototype._accept = function() {
-        /// Empty for the moment...
+    AddMesh.prototype._accept = function () {
+        if (this._meshFiles != null) {
+
+            var scope = this;
+            var parameters = BabylonEditorUICreator.Form.getElements(this._form);
+
+            for (var i = 0; i < this._meshFiles.contents.length; i++) {
+                if (this._meshFiles.contents[i].name.indexOf('.babylon') !== -1) {
+                    var datas = 'data:' + atob(this._meshFiles.contents[i].content);
+
+                    BABYLON.SceneLoader.ImportMesh(null, null, datas, this.core.currentScene, function (meshes) {
+                        for (var i = 0; i < meshes.length; i++) {
+                            /// Name
+                            if (!meshes[i].parent)
+                                meshes[i].name = parameters.fields['AddMeshObjectName'].value;
+                            /// Scaling factor
+                            meshes[i].scaling.x *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[i].scaling.y *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[i].scaling.z *= parameters.fields['AddMeshScaleFactor'].value;
+                            /// Shadows
+                            meshes[i].receiveShadows = parameters.fields['AddMeshReceiveShadows'].checked;
+                            if (parameters.fields['AddMeshCastShadows'].checked) {
+                                BABYLON.Editor.Utils.addObjectInShadowsCalculations(meshes[i], scope.core.currentScene);
+                            }
+                            /// Others
+                            meshes[i].isPickable = true;
+                            meshes[i].position = new BABYLON.Vector3(0, 0, 0);
+                            meshes[i].id = BABYLON.Editor.Utils.generateUUID();
+                            BABYLON.Editor.Utils.sendEventObjectAdded(meshes[i], scope.core);
+                        }
+                    });
+
+                }
+
+            }
+        }
+        this._meshFiles = null;
+        this._scene.dispose();
+        this._close();
+    }
+
+    AddMesh.prototype._loadMesh = function (data) {
+        var scope = this;
+
+        for (var i = 0; i < data.contents.length; i++) {
+            if (data.contents[i].name.indexOf('.babylon') !== -1) {
+                var datas = 'data:' + atob(data.contents[i].content);
+
+                BABYLON.SceneLoader.ImportMesh(null, null, datas, this._scene, function (meshes, particleSystems, skeletons) {
+                    for (var i = 0; i < meshes.length; i++) {
+                        meshes[i].isVisible = true;
+                        meshes[i].position = new BABYLON.Vector3(0, 0, 0);
+                    }
+                });
+
+            }
+        }
+    }
+
+    AddMesh.prototype._close = function () {
+        this._window.close();
     }
 
     AddMesh.prototype._createUI = function () {
@@ -119,33 +141,44 @@ var AddMesh = (function (_super) {
         BabylonEditorUICreator.Form.createDivsForForms(['AddFile', 'AddMeshForm'], 'AddMeshOptions', true);
         var fields = new Array();
         BabylonEditorUICreator.Form.extendFields(fields, [
-            BabylonEditorUICreator.Form.createField('AddMeshFile', 'file', 'Select Mesh...', 5),
-            BabylonEditorUICreator.Form.createField('AddMeshObjectName', 'text', 'Name :', 5)
+            BabylonEditorUICreator.Form.createField('AddMeshFile', 'file', 'Select Mesh...', 6),
+            BabylonEditorUICreator.Form.createField('AddMeshObjectName', 'text', 'Name :', 6),
+            BabylonEditorUICreator.Form.createField('AddMeshScaleFactor', 'text', 'Scale Factor :', 6),
+            BabylonEditorUICreator.Form.createField('AddMeshReceiveShadows', 'checkbox', 'Receive Shadows :', 6),
+            BabylonEditorUICreator.Form.createField('AddMeshCastShadows', 'checkbox', 'Cast Shadows :', 6)
         ]);
-        this._fileSelector = BabylonEditorUICreator.Form.createInputFileField('AddFile', 'AddMeshFileInput', this.core);
         this._form = BabylonEditorUICreator.Form.createForm('AddMeshForm', 'Add Mesh', fields, this, this.core);
+        BabylonEditorUICreator.Form.extendRecord(this._form, {
+            AddMeshObjectName: 'New Mesh',
+            AddMeshScaleFactor: '0.1',
+            AddMeshCastShadows: true,
+            AddMeshReceiveShadows: false,
+        });
 
         /// Create engine and scene
-        this.canvas = document.getElementById("addMeshRenderCanvas");
+        this._canvas = document.getElementById("addMeshRenderCanvas");
 
-        this.engine = new BABYLON.Engine(this.canvas, true);
-        this.scene = new BABYLON.Scene(this.engine);
-        this.scene.clearColor = new BABYLON.Color3(0, 0, 0);
+        this._engine = new BABYLON.Engine(this._canvas, true);
+        this._scene = new BABYLON.Scene(this._engine);
+        this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
 
-        this.camera = new BABYLON.ArcRotateCamera("AddMeshCamera", 1, 1.3, 100, new BABYLON.Vector3(0, 0, 0), this.scene);
-        this.camera.attachControl(this.canvas, false);
+        this._camera = new BABYLON.ArcRotateCamera("AddMeshCamera", 1, 1.3, 100, new BABYLON.Vector3(0, 0, 0), this._scene);
+        this._camera.attachControl(this._canvas, false);
 
-        this.engine.runRenderLoop(function () {
-            scope.scene.render();
+        var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), this._scene);
+        light.position = new BABYLON.Vector3(1000, 1000, 0);
+
+        this._engine.runRenderLoop(function () {
+            scope._scene.render();
         });
 
         /// Configure window
         BabylonEditorUICreator.Popup.removeElementsOnClose(this._window, ['addMeshMainLayout', 'AddMeshForm'],
             function () {
-                scope.engine.dispose();
+                _super.prototype.close.call(this);
+                scope._engine.dispose();
             }
         );
-
     }
 
     return AddMesh;

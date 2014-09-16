@@ -17,6 +17,10 @@ var Plugin = (function () {
         this.engine = core.engine;
     }
 
+    Plugin.prototype.close = function () {
+        this.core.removeEventReceiver(this);
+    }
+
     /// Statics
     Plugin.executeScript = function (path, core) {
 

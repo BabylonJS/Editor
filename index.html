@@ -123,6 +123,7 @@
     <script src="Babylon.js/Babylon/Cameras/babylon.gamepadCamera.js"></script>
     <script src="Babylon.js/Babylon/Mesh/babylon.linesMesh.js"></script>
     <script src="Babylon.js/Babylon/Rendering/babylon.outlineRenderer.js"></script>
+    <script src="Babylon.js/Babylon/Tools/babylon.assetsManager.js"></script>
 
     <!-- Related to the w2ui UI library and babylon's editor UI-->
     <link rel="stylesheet" type="text/css" href="UI/w2ui-1.4.1.css" />
@@ -153,7 +154,7 @@
 
     <!-- Common Tests -->
     <script src="Tests/CommonTests.js"></script>
-    <script src="UserInterfaces/babylon.editor.ui.addMesh.js"></script>
+    <!--<script src="UserInterfaces/babylon.editor.ui.editTextures.js"></script>-->
 
 </head>
 
@@ -183,8 +184,10 @@
         });
 
         /// Tests
-        createTestScene(core.currentScene, core);
-        runPlugin(core);
+        createReleaseScene(core.currentScene, core);
+        //createTestScene(core.currentScene, core);
+        //BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', core);
+        //runPlugin(core); /// Launch a plugin configured above
 
     </script>
 

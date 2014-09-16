@@ -54,6 +54,12 @@ var Core = (function () {
         }
     }
 
+    Core.prototype.removeEventReceiver = function (receiver) {
+        var index = this.eventReceivers.indexOf(receiver);
+        if (index !== -1)
+            this.eventReceivers.splice(index, 1);
+    }
+
     Core.prototype.getPickedMesh = function (event, sendEvent, optionalScene) {
         var scene = (optionalScene != null) ? optionalScene : this.currentScene;
         if (!scene) return null;
