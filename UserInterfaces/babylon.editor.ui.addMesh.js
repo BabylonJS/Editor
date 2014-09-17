@@ -97,21 +97,20 @@ var AddMesh = (function (_super) {
     }
 
     AddMesh.prototype._loadMesh = function (data) {
-        var scope = this;
+
+        var assetsManager = new BABYLON.AssetsManager(this._scene);
 
         for (var i = 0; i < data.contents.length; i++) {
-            if (data.contents[i].name.indexOf('.babylon') !== -1) {
-                var datas = 'data:' + atob(data.contents[i].content);
+            var datas = 'data:' + atob(data.contents[i].content);
+            var meshTask = assetsManager.addMeshTask(data.contents[i].name, null, null, datas);
 
-                BABYLON.SceneLoader.ImportMesh(null, null, datas, this._scene, function (meshes, particleSystems, skeletons) {
-                    for (var i = 0; i < meshes.length; i++) {
-                        meshes[i].isVisible = true;
-                        meshes[i].position = new BABYLON.Vector3(0, 0, 0);
-                    }
-                });
-
+            meshTask.onSuccess = function (task) {
+                for (var j = 0; j < task.loadedMeshes.length; j++)
+                    task.loadedMeshes[j].position = new BABYLON.Vector3(0, 0, 0);
             }
         }
+
+        assetsManager.load();
     }
 
     AddMesh.prototype._close = function () {

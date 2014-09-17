@@ -20,6 +20,7 @@ var EditTextures = (function (_super) {
         this._window = null;
         this._layouts = null;
         this._grid = null;
+        this._textureFiles = null;
     }
 
     EditTextures.prototype.configure = function (core) {
@@ -37,14 +38,47 @@ var EditTextures = (function (_super) {
                     if (ev.event.result > -1) {
                         if (this._currentTexture)
                             this._currentTexture.dispose();
-                        this._currentTexture = new BABYLON.Texture(this.core.currentScene.textures[ev.event.result].url, this._scene);
+
+                        var tex = this.core.currentScene.textures[ev.event.result];
+                        this._currentTexture = new BABYLON.Texture(tex.url, this._scene, tex._noMipMap, tex.invertY, tex._samplingMode, tex._buffer);
                         this._plane.material.diffuseTexture = this._currentTexture;
                     }
                 }
+
             } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
                 if (ev.event.caller.id == 'PopupButtonClose') {
                     _super.prototype.close.call(this);
                     this._close();
+                }
+
+            } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FILE_SELECTED) {
+
+                if (ev.event.caller == this._textureFiles) {
+                    var scope = this;
+                    for (var i = 0; i < ev.event.result.target.files.length; i++) {
+
+                        var file = ev.event.result.target.files[i];
+                        var url = file.name;
+                        var extension = url.substr(url.length - 4, 4).toLowerCase();
+                        var isDDS = this._engine.getCaps().s3tc && (extension === ".dds");
+                        var isTGA = (extension === ".tga");
+
+                        var callback = function (result) {
+                            var url = 'data:' + file.name + ':';
+                            var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
+                            tex.name = file.name;
+                            var tex2 = tex.clone();
+                            var count = BabylonEditorUICreator.Grid.getLineCount(scope._grid);
+                            BabylonEditorUICreator.Grid.addRecord(scope._grid, { recid: count, path: tex.name });
+                        };
+
+                        if (isDDS || isTGA)
+                            BABYLON.Tools.ReadFile(file, callback, null, true);
+                        else
+                            BABYLON.Tools.ReadFileAsDataURL(file, callback, null);
+
+                    }
+
                 }
             }
         }
@@ -71,6 +105,14 @@ var EditTextures = (function (_super) {
             BabylonEditorUICreator.Layout.createPanel('right', 500, true, pstyle, '<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>', 500),
         ]);
         this._layouts = BabylonEditorUICreator.Layout.createLayout('EditTexturesMainLayout', panels);
+
+        /// Create buttons
+        this._textureFiles = BabylonEditorUICreator.createCustomField('EditTexturesGrid', 'AddTexturesFiles',
+            '<input class="file-input" id="AddTexturesFiles" type="file" name="attachment" multiple="" style="width: 100%;" tabindex="-1">',
+            this.core, function (event) {
+                BABYLON.Editor.Utils.sendEventFileSelected(scope._textureFiles, event, scope.core);
+            }, true
+        );
 
         /// Create grid
         this._grid = BabylonEditorUICreator.Grid.createGrid('EditTexturesGrid', 'Textures', 'Textures', [

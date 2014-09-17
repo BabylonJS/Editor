@@ -57,6 +57,21 @@ BabylonEditorUICreator.updateElement = function (element) {
         element.refresh();
 }
 
+/// Create a custom type
+BabylonEditorUICreator.createCustomField = function (element, name, field, core, callback, before) {
+    var caller = null;
+    if (before == null || before == false)
+        caller = $('#' + element).after(field);
+    else
+        caller = $('#' + element).before(field);
+
+    $('#' + name).change(function (event) {
+        callback(event);
+    });
+
+    return caller;
+}
+
 //------------------------------------------------------------------------------------------------------------------
 /* Toolbars */
 //------------------------------------------------------------------------------------------------------------------
@@ -416,6 +431,11 @@ BabylonEditorUICreator.Grid.createGrid = function(element, name, header, columns
     });
 
     return grid;
+}
+
+/// Get the amount of lines in the grid
+BabylonEditorUICreator.Grid.getLineCount = function (grid) {
+    return grid.total;
 }
 
 /// Create a column
