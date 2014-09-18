@@ -77,14 +77,15 @@ var Editor;
             this._core.canvas.onmousedown = function (event) {
                 scope._mouseDown = true;
             };
-            window.onmouseup = function (event) {
+            this._core.canvas.onmouseup = function (event) {
                 scope._mouseDown = false;
                 scope._pickPosition = true;
                 scope._core.currentScene.activeCamera.attachControl(scope._core.canvas, false);
                 if (scope._pickedInfos != null)
                     scope._restorTransformerColor();
                 scope._pickedInfos = null;
-                BABYLON.Editor.Utils.sendEventObjectChanged(scope._nodeToTransform, scope._core);
+                if (scope._nodeToTransform != null)
+                    BABYLON.Editor.Utils.sendEventObjectChanged(scope._nodeToTransform, scope._core);
             };
         }
 
