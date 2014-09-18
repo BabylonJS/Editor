@@ -89,6 +89,28 @@ var Utils = (function () {
     /// -----------------------------------------------------------------------------------------------------
 
     /// -----------------------------------------------------------------------------------------------------
+    /* Colors utils */
+    Utils.HexToRGBColor = function (hexColor) {
+        if (hexColor == '#null')
+            return null;
+
+        var color = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
+        return new BABYLON.Color3(parseInt(color[1], 16), parseInt(color[2], 16), parseInt(color[3], 16));
+    }
+
+    Utils.RGBToHexColor = function (rgbColor, addHash) {
+        if (addHash == null)
+            addHash = false;
+
+        if (!rgbColor) return 'null';
+
+        var hex = (addHash ? "#" : '') + ((1 << 24) + (rgbColor.r << 16) + (rgbColor.g << 8) + rgbColor.b).toString(16).slice(1);
+        return hex;
+    }
+
+    /// -----------------------------------------------------------------------------------------------------
+
+    /// -----------------------------------------------------------------------------------------------------
     /* Events utils */
     Utils.sendEventObjectAdded = function (object, core) {
         var ev = new BABYLON.Editor.Event();
@@ -124,6 +146,15 @@ var Utils = (function () {
         ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FILE_SELECTED;
         ev.event.caller = caller;
         ev.event.result = event;
+        core.sendEvent(ev);
+    }
+
+    Utils.sendEventButtonClicked = function (caller, core) {
+        var ev = new BABYLON.Editor.Event();
+        ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+        ev.event = new BABYLON.Editor.Event.GUIEvent();
+        ev.event.eventType = BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED;
+        ev.event.caller = caller;
         core.sendEvent(ev);
     }
     /// -----------------------------------------------------------------------------------------------------

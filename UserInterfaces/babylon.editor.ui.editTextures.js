@@ -67,7 +67,6 @@ var EditTextures = (function (_super) {
                             var url = 'data:' + file.name + ':';
                             var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
                             tex.name = file.name;
-                            var tex2 = tex.clone();
                             var count = BabylonEditorUICreator.Grid.getLineCount(scope._grid);
                             BabylonEditorUICreator.Grid.addRecord(scope._grid, { recid: count, path: tex.name });
                         };

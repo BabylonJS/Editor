@@ -30,7 +30,7 @@ function createReleaseScene(scene, core) {
     BABYLON.Editor.Utils.sendEventObjectAdded(object, core);
 
     var box = BABYLON.Mesh.CreateBox('New Cube', 1, core.currentScene, true);
-    box.material = createMaterial('sphere1m', './Tests/textures/diffuse.tga');
+    //box.material = createMaterial('sphere1m', './Tests/textures/diffuse.tga');
     box.scaling = new BABYLON.Vector3(4, 4, 4);
     box.position = new BABYLON.Vector3(0, 2, 0);
     box.id = BABYLON.Editor.Utils.generateUUID();

@@ -6,7 +6,7 @@ var Editor;
 (function (Editor) { /// namespace Editor
 
 var EditionTool = (function () {
-    function EditionTool(babylonEditorCore) {
+    function EditionTool(babylonEditorCore, layouts) {
         /// This
         this._core = babylonEditorCore;
         this._core.eventReceivers.push(this);
@@ -18,12 +18,25 @@ var EditionTool = (function () {
         this.object = null;
 
         /// GUI Elements
-        this._forms = [
+        this._generalForms = [
             'MainEditObjectGeneral',
             'MainEditObjectTransform',
             'MainEditObjectOptions',
             'MainEditObjectRendering'
         ];
+        this._materialForms = [
+            'MainEditObjectColors',
+            'MainEditObjectMaterialParameters'
+        ];
+
+        this._tabs = [
+            'MainEditorEditObjectGeneral',
+            'MainEditorEditObjectMaterial'
+        ];
+        this._activeTab = this._tabs[0];
+        
+        this._layouts = layouts;
+        this._panel = BabylonEditorUICreator.Layout.getPanelFromname(layouts, 'left');
 
         this._emptyForm = null;
         this._generalForm = null;
@@ -31,10 +44,14 @@ var EditionTool = (function () {
         this._optionsForm = null;
         this._renderingForm = null;
 
+        this._addMaterialButton = null;
+        this._colorsForm = null;
+        this._materialParametersForm = null;
+
         this._castDialog = null;
 
         /// Finish
-        this.createEmptyForm();
+        this.createEmptyForm('Empty', 'To edit an object, double click in the scene or select and object in the graph.');
     };
 
     EditionTool.prototype.onEvent = function (ev) {
@@ -67,13 +84,13 @@ var EditionTool = (function () {
                     this._createUI();
                 } else {
                     this._clearUI();
-                    this.createEmptyForm();
+                    this.createEmptyForm('Empty', 'To edit an object, double click in the scene or select and object in the graph.');
                 }
 
             }
 
             /// Object changed
-            if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
+            else if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
                 if (ev.event.object == this.object) {
                     this._objectChanged();
                 }
@@ -86,13 +103,15 @@ var EditionTool = (function () {
         if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FORM_CHANGED) {
 
-                if (this._forms.indexOf(ev.event.caller.name) > -1) {
+                if (this._generalForms.indexOf(ev.event.caller.name) > -1
+                    || this._materialForms.indexOf(ev.event.caller.name) > -1)
+                {
                     this._onChange();
                 }
 
             }
 
-            if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG) {
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG) {
                 /// Exclude object from shadows calculations
                 if (ev.event.caller = this._castDialog) {
                     if (ev.event.result == "Yes") {
@@ -102,6 +121,20 @@ var EditionTool = (function () {
                         /// Restore checking
                         BabylonEditorUICreator.Form.setItemChecked(this._renderingForm, 'MainEditMeshRenderingCastShadows', true);
                     }
+                }
+            }
+
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
+                if (ev.event.caller == 'Mainlayout' && this._tabs.indexOf(ev.event.result) != -1) {
+                    this._clearUI();
+                    this._activeTab = ev.event.result;
+                    this._createUI();
+                }
+            }
+
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED) {
+                if (ev.event.caller == this._addMaterialButton) {
+                    alert('Be patient, already working on :)');
                 }
             }
         }
@@ -115,119 +148,204 @@ var EditionTool = (function () {
     }
 
     /// Creates an empty form to tell 0 object is selected
-    EditionTool.prototype.createEmptyForm = function () {
+    EditionTool.prototype.createEmptyForm = function (name, text) {
+        this._clearUI();
         BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectEmpty'], 'MainEditorEditObject', true);
-        this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', 'Empty', [], this, this._core,
-            'To edit an object, double click in the scene or select and object in the graph.'
-        );
+        this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', name, [], this, this._core, text);
     }
 
     /// Clears the UI
     EditionTool.prototype._clearUI = function () {
-        BabylonEditorUICreator.clearUI(this._forms);
+        BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', false);
+
+        BabylonEditorUICreator.clearUI(this._generalForms);
+        BabylonEditorUICreator.clearUI(this._materialForms);
+
+        this._generalForm = null;
+        this._transformForm = null;
+        this._optionsForm = null;
+        this._renderingForm = null;
+
+        this._colorsForm = null;
+
         /// Can clear other forms or UI elements
         if (this._emptyForm)
             BabylonEditorUICreator.clearUI([this._emptyForm.name]);
     }
 
     EditionTool.prototype._objectChanged = function () {
-        BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-            MainEditObjectTransformPositionX: this.object.position.x,
-            MainEditObjectTransformPositionY: this.object.position.y,
-            MainEditObjectTransformPositionZ: this.object.position.z,
-        });
-
-        if (this.object instanceof BABYLON.Mesh) {
+        if (this._activeTab == 'MainEditorEditObjectGeneral') {
             BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-                MainEditMeshTransformRotationX: this.object.rotation.x,
-                MainEditMeshTransformRotationY: this.object.rotation.y,
-                MainEditMeshTransformRotationZ: this.object.rotation.z,
-
-                MainEditMeshTransformScaleX: this.object.scaling.x,
-                MainEditMeshTransformScaleY: this.object.scaling.y,
-                MainEditMeshTransformScaleZ: this.object.scaling.z
+                MainEditObjectTransformPositionX: this.object.position.x,
+                MainEditObjectTransformPositionY: this.object.position.y,
+                MainEditObjectTransformPositionZ: this.object.position.z,
             });
+
+            if (this.object instanceof BABYLON.Mesh) {
+                BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
+                    MainEditMeshTransformRotationX: this.object.rotation.x,
+                    MainEditMeshTransformRotationY: this.object.rotation.y,
+                    MainEditMeshTransformRotationZ: this.object.rotation.z,
+
+                    MainEditMeshTransformScaleX: this.object.scaling.x,
+                    MainEditMeshTransformScaleY: this.object.scaling.y,
+                    MainEditMeshTransformScaleZ: this.object.scaling.z
+                });
+            }
         }
 
         BabylonEditorUICreator.updateElement(this._transformForm);
     }
 
     EditionTool.prototype._onChange = function () {
-        /// Get elements of forms
-        var general = BabylonEditorUICreator.Form.getElements(this._generalForm);
-        var transform = BabylonEditorUICreator.Form.getElements(this._transformForm);
-        var options = BabylonEditorUICreator.Form.getElements(this._optionsForm);
 
-        var scope = general.scope;
+        if (this._activeTab == 'MainEditorEditObjectGeneral') {
 
-        /// General 
-        scope.object.name = general.fields['MainEditObjectName'].value;
-        scope.object.setEnabled(general.fields['MainEditObjectEnabled'].checked);
+            /// Get elements of forms
+            var general = BabylonEditorUICreator.Form.getElements(this._generalForm);
+            var transform = BabylonEditorUICreator.Form.getElements(this._transformForm);
+            var options = BabylonEditorUICreator.Form.getElements(this._optionsForm);
 
-        /// Transforms
-        scope.object.position = new BABYLON.Vector3(
-            BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionX'].value),
-            BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionY'].value),
-            BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionZ'].value)
-        );
+            /// General 
+            this.object.name = general.fields['MainEditObjectName'].value;
+            this.object.setEnabled(general.fields['MainEditObjectEnabled'].checked);
 
-        if (scope.object instanceof BABYLON.Mesh) {
-            scope.object.rotation = new BABYLON.Vector3(
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationX'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationY'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationZ'].value)
+            /// Transforms
+            this.object.position = new BABYLON.Vector3(
+                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionX'].value),
+                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionY'].value),
+                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionZ'].value)
             );
 
-            scope.object.scaling = new BABYLON.Vector3(
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleX'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleY'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleZ'].value)
-            );
-        }
-
-        /// Options
-        if (scope.object instanceof BABYLON.Mesh) {
-            scope.object.isVisible = options.fields['MainEditMeshOptionsVisible'].checked;
-            scope.object.infiniteDistance = options.fields['MainEditMeshOptionsInfiniteDistance'].checked;
-            scope.object.checkCollisions = options.fields['MainEditMeshOptionsCheckCollisions'].checked;
-        }
-
-        /// Rendering
-        if (scope.object instanceof BABYLON.Mesh) {
-            var rendering = BabylonEditorUICreator.Form.getElements(this._renderingForm);
-            scope.object.receiveShadows = rendering.fields['MainEditMeshRenderingReceiveShadows'].checked;
-
-            var castShadows = rendering.fields['MainEditMeshRenderingCastShadows'].checked;
-            if (!castShadows && this._objectCastingShadows) {
-                this._castDialog = BabylonEditorUICreator.Popup.createPopup(
-                    'Informations',
-                    'Are you sure ?\n'
-                    + 'The object will be removed from all shadows calculations.',
-                    BabylonEditorUICreator.Popup.YES_NO, true, 350, 200, this._core
+            if (this.object instanceof BABYLON.Mesh) {
+                this.object.rotation = new BABYLON.Vector3(
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationX'].value),
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationY'].value),
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationZ'].value)
                 );
-            } else if (castShadows && !this._objectCastingShadows) {
-                BABYLON.Editor.Utils.addObjectInShadowsCalculations(this.object, this._core.currentScene);
-                this._objectCastingShadows = true;
-            }
-        }
 
-        /// FIXME: Reset focus
-        $(this).focus();
+                this.object.scaling = new BABYLON.Vector3(
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleX'].value),
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleY'].value),
+                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleZ'].value)
+                );
+            }
+
+            /// Options
+            if (this.object instanceof BABYLON.Mesh) {
+                this.object.isVisible = options.fields['MainEditMeshOptionsVisible'].checked;
+                this.object.infiniteDistance = options.fields['MainEditMeshOptionsInfiniteDistance'].checked;
+                this.object.checkCollisions = options.fields['MainEditMeshOptionsCheckCollisions'].checked;
+            }
+
+            /// Rendering
+            if (this.object instanceof BABYLON.Mesh) {
+                var rendering = BabylonEditorUICreator.Form.getElements(this._renderingForm);
+                this.object.receiveShadows = rendering.fields['MainEditMeshRenderingReceiveShadows'].checked;
+
+                var castShadows = rendering.fields['MainEditMeshRenderingCastShadows'].checked;
+                if (!castShadows && this._objectCastingShadows) {
+                    this._castDialog = BabylonEditorUICreator.Popup.createPopup(
+                        'Informations',
+                        'Are you sure ?\n'
+                        + 'The object will be removed from all shadows calculations.',
+                        BabylonEditorUICreator.Popup.YES_NO, true, 350, 200, this._core
+                    );
+                } else if (castShadows && !this._objectCastingShadows) {
+                    BABYLON.Editor.Utils.addObjectInShadowsCalculations(this.object, this._core.currentScene);
+                    this._objectCastingShadows = true;
+                }
+            }
+
+        } else if (this._activeTab == 'MainEditorEditObjectMaterial') {
+
+            /// Get elements of forms
+            var colors = BabylonEditorUICreator.Form.getElements(this._colorsForm);
+            var parameters = BabylonEditorUICreator.Form.getElements(this._materialParametersForm);
+
+            this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectAmbiantColor'].value);
+            this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectDiffuseColor'].value);
+            this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectSpecularColor'].value);
+            this.object.material.emissiveColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectEmissiveColor'].value);
+
+            this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters.fields['MainEditObjectSpecularPower'].value);
+            this.object.material.useAlphaFromDiffuseTexture = parameters.fields['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
+        }
 
         /// Send event because object changed
         var event = new BABYLON.Editor.Event();
         event.eventType = BABYLON.Editor.EventType.SceneEvent;
         event.event = new BABYLON.Editor.Event.SceneEvent();
         event.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED;
-        event.event.object = scope.object;
-        scope._core.sendEvent(event);
+        event.event.object = this.object;
+        this._core.sendEvent(event);
     }
 
-    EditionTool.prototype._createUI = function () {
+    EditionTool.prototype._createMaterialUI = function () {
+        if (!this.object.material) {
+            this.createEmptyForm('No material', 'To edit material, please add one before.');
+            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectGeneral', true);
+            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', true);
 
+            var scope = this;
+            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial'], 'MainEditorEditObject', false);
+            this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
+                '<button type="button" id="EditionAddMaterial" style="width: 100%;">Add one...</button>',
+                this.core, function (event) {
+                    BABYLON.Editor.Utils.sendEventButtonClicked(scope._addMaterialButton, scope._core);
+                }, false
+            );
+
+        } else {
+            /// Create divs for forms
+            /// We use forms because the editor can work as a collaborative edition, why not.
+            BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'MainEditorEditObject', true);
+
+            /// -----------------------------------------------------------------------------------------------------
+            /// Colors
+            var fields = new Array();
+            BabylonEditorUICreator.Form.extendFields(fields, [
+                BabylonEditorUICreator.Form.createField('MainEditObjectAmbiantColor', 'color', 'Ambiant Color :', 5),
+                BabylonEditorUICreator.Form.createField('MainEditObjectDiffuseColor', 'color', 'Diffuse Color :', 5),
+                BabylonEditorUICreator.Form.createField('MainEditObjectSpecularColor', 'color', 'Specular Color :', 5),
+                BabylonEditorUICreator.Form.createField('MainEditObjectEmissiveColor', 'color', 'Emissive Color :', 5),
+            ]);
+
+            this._colorsForm = BabylonEditorUICreator.Form.createForm('MainEditObjectColors', 'Colors', fields, this, this._core);
+
+            /// Fill fields
+            BabylonEditorUICreator.Form.extendRecord(this._colorsForm, {
+                MainEditObjectAmbiantColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.ambiantColor),
+                MainEditObjectDiffuseColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.diffuseColor),
+                MainEditObjectSpecularColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.specularColor),
+                MainEditObjectEmissiveColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.emissiveColor),
+            });
+            /// -----------------------------------------------------------------------------------------------------
+
+            /// -----------------------------------------------------------------------------------------------------
+            /// Parameters
+            fields = new Array();
+            BabylonEditorUICreator.Form.extendFields(fields, [
+                BabylonEditorUICreator.Form.createField('MainEditObjectSpecularPower', 'text', 'Specular Power :', 5),
+                BabylonEditorUICreator.Form.createField('MainEditObjectUseAlphaFromDiffuseTexture', 'checkbox', 'Use alpha :', 5),
+            ]);
+
+            this._materialParametersForm = BabylonEditorUICreator.Form.createForm('MainEditObjectMaterialParameters', 'Parameters', fields, this, this._core);
+
+            /// Fill fields
+            BabylonEditorUICreator.Form.extendRecord(this._materialParametersForm, {
+                MainEditObjectSpecularPower: this.object.material.specularPower,
+                MainEditObjectUseAlphaFromDiffuseTexture: this.object.material.useAlphaFromDiffuseTexture,
+            });
+
+            /// -----------------------------------------------------------------------------------------------------
+        }
+    }
+
+    EditionTool.prototype._createGeneralUI = function () {
         /// Create divs for forms
         /// We use forms because the editor can work as a collaborative edition, why not.
-        BabylonEditorUICreator.Form.createDivsForForms(this._forms, 'MainEditorEditObject', true);
+        BabylonEditorUICreator.Form.createDivsForForms(this._generalForms, 'MainEditorEditObject', true);
 
         /// -----------------------------------------------------------------------------------------------------
         /// General
@@ -340,6 +458,24 @@ var EditionTool = (function () {
             });
         }
         /// -----------------------------------------------------------------------------------------------------
+    }
+
+    EditionTool.prototype._createUI = function () {
+
+        if (this.object instanceof BABYLON.Mesh)
+            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', true);
+        else
+            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', false);
+
+        if (this._activeTab == 'MainEditorEditObjectGeneral')
+            this._createGeneralUI();
+        else if (this._activeTab == 'MainEditorEditObjectMaterial') {
+            if (this.object instanceof BABYLON.Mesh)
+                this._createMaterialUI();
+            else {
+                this.createEmptyForm('No material', 'This object cannot handle materials');
+            }
+        }
 
         this._objectCastingShadows = BABYLON.Editor.Utils.isObjectCastingShadows(this.object, this._core.currentScene);
 

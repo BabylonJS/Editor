@@ -34,6 +34,7 @@ var Event = (function () {
         this.caller = null;
         this.result = null;
 
+        /// Common events
         BABYLON.Editor.Event.GUIEvent.GRAPH_CHANGED = 0;
         BABYLON.Editor.Event.GUIEvent.FORM_CHANGED = 1;
         BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED = 2;
@@ -41,6 +42,11 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED = 4;
         BABYLON.Editor.Event.GUIEvent.FILE_SELECTED = 5;
         BABYLON.Editor.Event.GUIEvent.GRID_SELECTED = 6;
+        BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 7;
+        BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 8;
+
+        /// Plugins related
+        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONDED = 9;
     }
 
     /// Scene event

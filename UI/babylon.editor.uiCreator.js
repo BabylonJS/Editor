@@ -46,7 +46,7 @@ BabylonEditorUICreator.clearUIFromRefs = function (elements) {
 /// Configure an event
 /// element and event are string
 BabylonEditorUICreator.addEvent = function(element, event, callback) {
-    element.on(event, function (target, eventData) {
+    element.on({ type: event, execute: 'after' }, function (target, eventData) {
         callback();
     });
 }
@@ -66,6 +66,9 @@ BabylonEditorUICreator.createCustomField = function (element, name, field, core,
         caller = $('#' + element).before(field);
 
     $('#' + name).change(function (event) {
+        callback(event);
+    });
+    $('#' + name).click(function (event) {
         callback(event);
     });
 
@@ -165,12 +168,39 @@ BabylonEditorUICreator.Layout.createLayout = function (name, panels, scope) {
 /// Creates a panel
 /// A panel must contain a HTML content
 /// A panel must contain tabs
-BabylonEditorUICreator.Layout.createPanel = function (type, size, resizable, style, content, minSize, tabs) {
+BabylonEditorUICreator.Layout.createPanel = function (type, size, resizable, style, content, minSize, maxSize, tabs) {
     var panel = {
         type: type, size: size, resizable: resizable, style: style, content: content,
         minSize: minSize == null ? 50 : minSize,
-        tabs: tabs
+        maxSize: maxSize,
+        tabs: {
+            active: (tabs && tabs.length > 0) ? tabs[0].id : '',
+            tabs: tabs,
+            onClick: function (event) {
+                //w2ui.layout.html('main', 'Active tab: ' + event.target);
+                /// Send the FormChanged event to the event receivers
+                var ev = new BABYLON.Editor.Event();
+                ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                ev.event = new BABYLON.Editor.Event.GUIEvent();
+                ev.event.eventType = BABYLON.Editor.Event.GUIEvent.TAB_CHANGED;
+                ev.event.caller = this.owner.name;
+                ev.event.result = event.target;
+                core.sendEvent(ev);
+            }
+        }
     };
+
+    return panel;
+}
+
+/// Disable or enable a tab
+BabylonEditorUICreator.Layout.setTabEnabled = function (element, tab, enable) {
+    enable ? element.tabs.enable(tab) : element.tabs.disable(tab);
+}
+
+/// Get a panel by its name
+BabylonEditorUICreator.Layout.getPanelFromname = function (layouts, name) {
+    var panel = layouts.get(name);
 
     return panel;
 }
@@ -202,6 +232,7 @@ BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, 
 
     var form = $('#' + name).w2form({
         name: name,
+        focus: -1,
         header: header,
         fields: fields,
         scope: scope,
@@ -219,6 +250,8 @@ BabylonEditorUICreator.Form.createForm = function (name, header, fields, scope, 
                     contents[i].content = /*'file:' + */(contents[i].content);
                 }
                 ev.event.result = { caller: event.target, contents: contents };
+            } else {
+                ev.event.result = this.name;
             }
             core.sendEvent(ev);
         }

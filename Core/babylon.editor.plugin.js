@@ -19,15 +19,16 @@ var Plugin = (function () {
 
     Plugin.prototype.close = function () {
         this.core.removeEventReceiver(this);
+        delete this; /// Right in JS ?
     }
 
     /// Statics
-    Plugin.executeScript = function (path, core) {
+    Plugin.executeScript = function (path, core, parameters) {
 
         BABYLON.Tools.LoadFile(path, function (result) {
             eval.call(window, result);
 
-            var plugin = createPlugin();
+            var plugin = createPlugin(parameters);
             plugin.configure(core);
             delete createPlugin;
         });

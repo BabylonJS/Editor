@@ -66,24 +66,24 @@ var AddMesh = (function (_super) {
                     var datas = 'data:' + atob(this._meshFiles.contents[i].content);
 
                     BABYLON.SceneLoader.ImportMesh(null, null, datas, this.core.currentScene, function (meshes) {
-                        for (var i = 0; i < meshes.length; i++) {
+                        for (var j = 0; j < meshes.length; j++) {
                             /// Name
-                            if (!meshes[i].parent)
-                                meshes[i].name = parameters.fields['AddMeshObjectName'].value;
+                            if (!meshes[j].parent)
+                                meshes[j].name = parameters.fields['AddMeshObjectName'].value;
                             /// Scaling factor
-                            meshes[i].scaling.x *= parameters.fields['AddMeshScaleFactor'].value;
-                            meshes[i].scaling.y *= parameters.fields['AddMeshScaleFactor'].value;
-                            meshes[i].scaling.z *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.x *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.y *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.z *= parameters.fields['AddMeshScaleFactor'].value;
                             /// Shadows
-                            meshes[i].receiveShadows = parameters.fields['AddMeshReceiveShadows'].checked;
+                            meshes[j].receiveShadows = parameters.fields['AddMeshReceiveShadows'].checked;
                             if (parameters.fields['AddMeshCastShadows'].checked) {
-                                BABYLON.Editor.Utils.addObjectInShadowsCalculations(meshes[i], scope.core.currentScene);
+                                BABYLON.Editor.Utils.addObjectInShadowsCalculations(meshes[j], scope.core.currentScene);
                             }
                             /// Others
-                            meshes[i].isPickable = true;
-                            meshes[i].position = new BABYLON.Vector3(0, 0, 0);
-                            meshes[i].id = BABYLON.Editor.Utils.generateUUID();
-                            BABYLON.Editor.Utils.sendEventObjectAdded(meshes[i], scope.core);
+                            meshes[j].isPickable = true;
+                            meshes[j].position = new BABYLON.Vector3(0, 0, 0);
+                            meshes[j].id = BABYLON.Editor.Utils.generateUUID();
+                            BABYLON.Editor.Utils.sendEventObjectAdded(meshes[j], scope.core);
                         }
                     });
 
@@ -102,7 +102,7 @@ var AddMesh = (function (_super) {
 
         for (var i = 0; i < data.contents.length; i++) {
             var datas = 'data:' + atob(data.contents[i].content);
-            var meshTask = assetsManager.addMeshTask(data.contents[i].name, null, null, datas);
+            var meshTask = assetsManager.addMeshTask(data.contents[i].name, '', '', datas);
 
             meshTask.onSuccess = function (task) {
                 for (var j = 0; j < task.loadedMeshes.length; j++)

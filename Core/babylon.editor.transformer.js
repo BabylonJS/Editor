@@ -84,6 +84,7 @@ var Editor;
                 if (scope._pickedInfos != null)
                     scope._restorTransformerColor();
                 scope._pickedInfos = null;
+                BABYLON.Editor.Utils.sendEventObjectChanged(scope._nodeToTransform, scope._core);
             };
         }
 
@@ -264,8 +265,6 @@ var Editor;
                         this._nodeToTransform.position.y = (this._mousePositionInPlane.y - this._mousePosition.y);
                     else if (this._selectedTransform == 'z')
                         this._nodeToTransform.position.z = (this._mousePositionInPlane.z - this._mousePosition.z);
-
-                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
                 }
             /// Update scaling
             } else if (this._transformerType == BabylonEditorTransformerType.Scaling) {
@@ -276,8 +275,6 @@ var Editor;
                         this._nodeToTransform.scaling.y = (this._mousePositionInPlane.y - this._mousePosition.y);
                     else if (this._selectedTransform == 'z')
                         this._nodeToTransform.scaling.z = (this._mousePositionInPlane.z - this._mousePosition.z);
-
-                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
                 }
             /// Update rotation
             } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
@@ -288,8 +285,6 @@ var Editor;
                         this._nodeToTransform.rotation.y = (this._mousePositionInPlane.y - this._mousePosition.y);
                     else if (this._selectedTransform == 'z')
                         this._nodeToTransform.rotation.z = (this._mousePositionInPlane.z - this._mousePosition.z);
-
-                    BABYLON.Editor.Utils.sendEventObjectChanged(this._nodeToTransform, this._core);
                 }
             }
 

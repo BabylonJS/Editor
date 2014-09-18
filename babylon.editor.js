@@ -88,14 +88,18 @@ var BabylonEditor = (function () {
         BabylonEditorUICreator.Layout.extendPanels(panels, [
             BabylonEditorUICreator.Layout.createPanel('top', 70, true, pstyle,
                 '<div id="MainToolBar" style="height: 50%"></div>'
-                + '<div id="MainToolsToolBar" style="height: 50%"></div>'
+                + '<div id="MainToolsToolBar" style="height: 50%"></div>',
+                70, 70
             ),
-            BabylonEditorUICreator.Layout.createPanel('left', 350, true, pstyle, '<div id="MainEditorEditObject"></div>', 350),
-            BabylonEditorUICreator.Layout.createPanel('main', 350, true, pstyle, '<canvas id="renderCanvas"></canvas>', 350, [
+            BabylonEditorUICreator.Layout.createPanel('left', 350, true, pstyle, '<div id="MainEditorEditObject"></div>', 10, false, [
+                BabylonEditorUICreator.Layout.createTab('MainEditorEditObjectGeneral', 'General'),
+                BabylonEditorUICreator.Layout.createTab('MainEditorEditObjectMaterial', 'Material')
+            ]),
+            BabylonEditorUICreator.Layout.createPanel('main', 350, true, pstyle, '<canvas id="renderCanvas"></canvas>', 350, false, [
                 BabylonEditorUICreator.Layout.createTab('MainScene', 'Main scene'),
                 BabylonEditorUICreator.Layout.createTab('scene2', 'Test Scene')
             ]),
-            BabylonEditorUICreator.Layout.createPanel('right', 350, true, pstyle, '<div id="MainGraphTool" style="height: 100%"></div>', 300),
+            BabylonEditorUICreator.Layout.createPanel('right', 350, true, pstyle, '<div id="MainGraphTool" style="height: 100%"></div>', 10),
             BabylonEditorUICreator.Layout.createPanel('bottom', 50, true, pstyle, '<div id="MainOptionsBar" style="height: 100%"></div>')
         ]);
         this._layouts = BabylonEditorUICreator.Layout.createLayout('Mainlayout', panels);
@@ -125,7 +129,7 @@ var BabylonEditor = (function () {
         this._mainToolbar._createUI();
 
         /// Create Left Edition Tool
-        this._editionTool = new BABYLON.Editor.EditionTool(this._core);
+        this._editionTool = new BABYLON.Editor.EditionTool(this._core, this._layouts);
 
         /// Create Right Sidebar (Scene Graph)
         this._graphTool = new BABYLON.Editor.GraphTool(this._core);
