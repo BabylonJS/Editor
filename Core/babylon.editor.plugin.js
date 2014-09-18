@@ -23,7 +23,7 @@ var Plugin = (function () {
     }
 
     /// Statics
-    Plugin.executeScript = function (path, core, parameters) {
+    Plugin.executeScript = function (path, core, callback, parameters) {
 
         BABYLON.Tools.LoadFile(path, function (result) {
             eval.call(window, result);
@@ -31,6 +31,8 @@ var Plugin = (function () {
             var plugin = createPlugin(parameters);
             plugin.configure(core);
             delete createPlugin;
+
+            callback(plugin);
         });
 
     }

@@ -76,6 +76,25 @@ BabylonEditorUICreator.createCustomField = function (element, name, field, core,
 }
 
 //------------------------------------------------------------------------------------------------------------------
+/* Lists */
+//------------------------------------------------------------------------------------------------------------------
+BabylonEditorUICreator.List = BabylonEditorUICreator.List || {};
+
+/// Create a list
+BabylonEditorUICreator.List.createList = function (element, items) {
+    var list = $('input[type=list]' + '#' + element).w2field('list', { items: items, selected: items[0] });
+    list.items = items;
+
+    return list;
+}
+
+/// Return selected item of a list
+BabylonEditorUICreator.List.getSelectedItem = function (element) {
+    var value = element.val();
+    return element.items.indexOf(value);
+}
+
+//------------------------------------------------------------------------------------------------------------------
 /* Toolbars */
 //------------------------------------------------------------------------------------------------------------------
 BabylonEditorUICreator.Toolbar = BabylonEditorUICreator.Toolbar || {};
@@ -318,6 +337,12 @@ BabylonEditorUICreator.Form.createField = function (name, type, caption, span, t
     return field;
 };
 
+BabylonEditorUICreator.Form.createFieldWithItems = function (name, type, caption, items, span, text, attr) {
+    var field = BabylonEditorUICreator.Form.createField(name, type, caption, span, text, attr);
+    field.options = { items: items };
+    return field;
+}
+
 /// Extends the fields
 BabylonEditorUICreator.Form.extendFields = function (fields, fieldsToAdd) {
     /// With w2ui, just concat arrays
@@ -552,7 +577,8 @@ BabylonEditorUICreator.Popup.createWindow = function (title, body, modal, width,
             ev.eventType = BABYLON.Editor.EventType.GUIEvent;
             ev.event = new BABYLON.Editor.Event.GUIEvent();
             ev.event.eventType = BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED;
-            ev.event.caller = this;
+            ev.event.caller = popup;
+            ev.event.result = this.id;
             core.sendEvent(ev);
         });
     }
@@ -601,4 +627,9 @@ BabylonEditorUICreator.Popup.onToggle = function (popup, callback) {
     popup.onToggle = function (event) {
         event.onComplete = callback;
     };
+}
+
+/// Close a window
+BabylonEditorUICreator.Popup.closeWindow = function (popup) {
+    popup.close();
 }

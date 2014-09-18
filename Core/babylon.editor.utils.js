@@ -109,6 +109,27 @@ var Utils = (function () {
     }
 
     /// -----------------------------------------------------------------------------------------------------
+    /* Textures utils */
+    Utils.GetTextureFromName = function (name, scene) {
+        for (var i = 0; i < scene.textures.length; i++) {
+            if (scene.textures[i].name == name) {
+                return scene.textures[i];
+            }
+        }
+
+        return null;
+    }
+
+    Utils.GetTextureName = function (texture) {
+        if (!texture)
+            return 'None';
+        else
+            return texture.name;
+    }
+
+    /// -----------------------------------------------------------------------------------------------------
+
+    /// -----------------------------------------------------------------------------------------------------
 
     /// -----------------------------------------------------------------------------------------------------
     /* Events utils */

@@ -26,7 +26,8 @@ var EditionTool = (function () {
         ];
         this._materialForms = [
             'MainEditObjectColors',
-            'MainEditObjectMaterialParameters'
+            'MainEditObjectMaterialParameters',
+            'MainEditObjectMaterialTextures'
         ];
 
         this._tabs = [
@@ -38,15 +39,22 @@ var EditionTool = (function () {
         this._layouts = layouts;
         this._panel = BabylonEditorUICreator.Layout.getPanelFromname(layouts, 'left');
 
+        /// Genral
         this._emptyForm = null;
         this._generalForm = null;
         this._transformForm = null;
         this._optionsForm = null;
         this._renderingForm = null;
 
+        /// Material
+        this._removeMaterialButton = null;
         this._addMaterialButton = null;
+        this._addMaterialWindow = null;
+        this._addMaterialList = null;
+
         this._colorsForm = null;
         this._materialParametersForm = null;
+        this._texturesForm = null;
 
         this._castDialog = null;
 
@@ -134,7 +142,31 @@ var EditionTool = (function () {
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED) {
                 if (ev.event.caller == this._addMaterialButton) {
-                    alert('Be patient, already working on :)');
+                    this._createWindowAddMaterial();
+                } else if (ev.event.caller == this._removeMaterialButton) {
+                    this.object.material.dispose();
+                    this.object.material = null;
+                    this._clearUI();
+                    this._createUI();
+                }
+            }
+
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
+                if (ev.event.caller == this._addMaterialWindow) {
+                    if (ev.event.result == 'PopupButtonClose') {
+                        /// Close
+                        BabylonEditorUICreator.Popup.closeWindow(this._addMaterialWindow);
+                    } else {
+                        /// Accept
+                        var index = BabylonEditorUICreator.List.getSelectedItem(this._addMaterialList);
+
+                        if (index == 0) this.object.material = new BABYLON.StandardMaterial('New Material', this._core.currentScene);
+                        else if (index == 1) this.object.material = new BABYLON.ShaderMaterial('New Material', this._core.currentScene);
+
+                        BabylonEditorUICreator.Popup.closeWindow(this._addMaterialWindow);
+                        this._clearUI();
+                        this._createUI();
+                    }
                 }
             }
         }
@@ -262,6 +294,7 @@ var EditionTool = (function () {
             /// Get elements of forms
             var colors = BabylonEditorUICreator.Form.getElements(this._colorsForm);
             var parameters = BabylonEditorUICreator.Form.getElements(this._materialParametersForm);
+            var textures = BabylonEditorUICreator.Form.getElements(this._texturesForm);
 
             this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectAmbiantColor'].value);
             this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectDiffuseColor'].value);
@@ -270,6 +303,9 @@ var EditionTool = (function () {
 
             this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters.fields['MainEditObjectSpecularPower'].value);
             this.object.material.useAlphaFromDiffuseTexture = parameters.fields['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
+
+            this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures.fields['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
+            this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures.fields['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
         }
 
         /// Send event because object changed
@@ -282,12 +318,13 @@ var EditionTool = (function () {
     }
 
     EditionTool.prototype._createMaterialUI = function () {
+        var scope = this;
+
         if (!this.object.material) {
             this.createEmptyForm('No material', 'To edit material, please add one before.');
             BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectGeneral', true);
             BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', true);
 
-            var scope = this;
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial'], 'MainEditorEditObject', false);
             this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
                 '<button type="button" id="EditionAddMaterial" style="width: 100%;">Add one...</button>',
@@ -338,7 +375,34 @@ var EditionTool = (function () {
                 MainEditObjectUseAlphaFromDiffuseTexture: this.object.material.useAlphaFromDiffuseTexture,
             });
 
+            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'MainEditorEditObject', false);
+            this._removeMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectRemoveMaterial', 'EditionRemoveMaterial',
+                '<button type="button" id="EditionRemoveMaterial" style="width: 100%;">Remove Material</button>',
+                this.core, function (event) {
+                    BABYLON.Editor.Utils.sendEventButtonClicked(scope._removeMaterialButton, scope._core);
+                }, false
+            );
+
             /// -----------------------------------------------------------------------------------------------------
+
+            fields = new Array();
+            var textures = new Array();
+            textures.push('None');
+            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                var tex = this._core.currentScene.textures[i];
+                textures.push(tex.name);
+            }
+
+            BabylonEditorUICreator.Form.extendFields(fields, [
+                BabylonEditorUICreator.Form.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5),
+                BabylonEditorUICreator.Form.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5),
+            ]);
+            this._texturesForm = BabylonEditorUICreator.Form.createForm('MainEditObjectMaterialTextures', 'Textures', fields, this, this._core);
+
+            BabylonEditorUICreator.Form.extendRecord(this._texturesForm, {
+                MainEditObjectMaterialTexturesDiffuse: BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
+                MainEditObjectMaterialTexturesNormal: BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture),
+            });
         }
     }
 
@@ -478,6 +542,26 @@ var EditionTool = (function () {
         }
 
         this._objectCastingShadows = BABYLON.Editor.Utils.isObjectCastingShadows(this.object, this._core.currentScene);
+
+    }
+
+    EditionTool.prototype._createWindowAddMaterial = function () {
+        /// Create popup with a canvas
+        this._addMaterialWindow = BabylonEditorUICreator.Popup.createWindow(
+            'Create a new material',
+            '<div id="AddMaterial" style="height: 100%">'
+            + '<span class="legend">Type : </span><input type="list" id="AddMaterialList" style="width: 83%; margin-top: 20px;"></input>'
+            + '</div>', false, 400, 150,
+            ['Add', 'Close'],
+            this._core
+        );
+
+        /// Create list
+        this._addMaterialList = BabylonEditorUICreator.List.createList('AddMaterialList', [
+            'Standard Material',
+            'Shader Material',
+            'Multi Material'
+        ], name);
 
     }
 

@@ -46,7 +46,7 @@ var EditTextures = (function (_super) {
                 }
 
             } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
-                if (ev.event.caller.id == 'PopupButtonClose') {
+                if (ev.event.caller == this._window) {
                     _super.prototype.close.call(this);
                     this._close();
                 }
@@ -84,7 +84,7 @@ var EditTextures = (function (_super) {
     }
 
     EditTextures.prototype._close = function () {
-        this._window.close();
+        BabylonEditorUICreator.Popup.closeWindow(this._window);
     }
 
     EditTextures.prototype._createUI = function () {
@@ -156,7 +156,7 @@ var EditTextures = (function (_super) {
 })(BABYLON.Editor.Plugin);
 
 
-this.createPlugin = function () {
+this.createPlugin = function (parameters) {
     return new EditTextures();
 }
 //# sourceMappingURL=babylon.editor.ui.editTextures.js.map

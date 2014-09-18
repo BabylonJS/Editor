@@ -34,13 +34,14 @@ var AddMesh = (function (_super) {
         if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
             /// Button clicked
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
-                /// Close
-                if (ev.event.caller.id == 'PopupButtonClose') {
-                    this._close();
-                }
-                else /// Add
-                if (ev.event.caller.id == "PopupButtonAdd") {
-                    this._accept();
+                if (ev.event.caller == this._window) {
+                    /// Close
+                    if (ev.event.result == 'PopupButtonClose') {
+                        this._close();
+                    }
+                    else if (ev.event.result == "PopupButtonAdd") {
+                        this._accept();
+                    }
                 }
             }
             else /// Form changed
@@ -114,7 +115,7 @@ var AddMesh = (function (_super) {
     }
 
     AddMesh.prototype._close = function () {
-        this._window.close();
+        BabylonEditorUICreator.Popup.closeWindow(this._window);
     }
 
     AddMesh.prototype._createUI = function () {
