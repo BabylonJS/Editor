@@ -182,7 +182,9 @@ var EditionTool = (function () {
     EditionTool.prototype.createEmptyForm = function (name, text) {
         this._clearUI();
         BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectEmpty'], 'BabylonEditorEditObject', true);
-        this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', name, [], this, this._core, text);
+        this._emptyForm = new BABYLON.Editor.GUIForm('MainEditObjectColors', this._core, 'Colors');
+        this._emptyForm.textBlock = text;
+        this._emptyForm.buildElement('MainEditorEditObjectEmpty');
     }
 
     /// Clears the UI
@@ -233,48 +235,48 @@ var EditionTool = (function () {
         if (this._activeTab == 'GeneralTab') {
 
             /// Get elements of forms
-            var general = BabylonEditorUICreator.Form.getElements(this._generalForm);
-            var transform = BabylonEditorUICreator.Form.getElements(this._transformForm);
-            var options = BabylonEditorUICreator.Form.getElements(this._optionsForm);
+            var general = this._generalForm.getElements();
+            var transform = this._transformForm.getElements();
+            var options = this._optionsForm.getElements();
 
             /// General 
-            this.object.name = general.fields['MainEditObjectName'].value;
-            this.object.setEnabled(general.fields['MainEditObjectEnabled'].checked);
+            this.object.name = general['MainEditObjectName'].value;
+            this.object.setEnabled(general['MainEditObjectEnabled'].checked);
 
             /// Transforms
             this.object.position = new BABYLON.Vector3(
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionX'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionY'].value),
-                BABYLON.Editor.Utils.toFloat(transform.fields['MainEditObjectTransformPositionZ'].value)
+                BABYLON.Editor.Utils.toFloat(transform['MainEditObjectTransformPositionX'].value),
+                BABYLON.Editor.Utils.toFloat(transform['MainEditObjectTransformPositionY'].value),
+                BABYLON.Editor.Utils.toFloat(transform['MainEditObjectTransformPositionZ'].value)
             );
 
             if (this.object instanceof BABYLON.Mesh) {
                 this.object.rotation = new BABYLON.Vector3(
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationX'].value),
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationY'].value),
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformRotationZ'].value)
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformRotationX'].value),
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformRotationY'].value),
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformRotationZ'].value)
                 );
 
                 this.object.scaling = new BABYLON.Vector3(
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleX'].value),
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleY'].value),
-                    BABYLON.Editor.Utils.toFloat(transform.fields['MainEditMeshTransformScaleZ'].value)
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformScaleX'].value),
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformScaleY'].value),
+                    BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformScaleZ'].value)
                 );
             }
 
             /// Options
             if (this.object instanceof BABYLON.Mesh) {
-                this.object.isVisible = options.fields['MainEditMeshOptionsVisible'].checked;
-                this.object.infiniteDistance = options.fields['MainEditMeshOptionsInfiniteDistance'].checked;
-                this.object.checkCollisions = options.fields['MainEditMeshOptionsCheckCollisions'].checked;
+                this.object.isVisible = options['MainEditMeshOptionsVisible'].checked;
+                this.object.infiniteDistance = options['MainEditMeshOptionsInfiniteDistance'].checked;
+                this.object.checkCollisions = options['MainEditMeshOptionsCheckCollisions'].checked;
             }
 
             /// Rendering
             if (this.object instanceof BABYLON.Mesh) {
-                var rendering = BabylonEditorUICreator.Form.getElements(this._renderingForm);
-                this.object.receiveShadows = rendering.fields['MainEditMeshRenderingReceiveShadows'].checked;
+                var rendering = this._renderingForm.getElements();
+                this.object.receiveShadows = rendering['MainEditMeshRenderingReceiveShadows'].checked;
 
-                var castShadows = rendering.fields['MainEditMeshRenderingCastShadows'].checked;
+                var castShadows = rendering['MainEditMeshRenderingCastShadows'].checked;
                 if (!castShadows && this._objectCastingShadows) {
                     this._castDialog = BabylonEditorUICreator.Popup.createPopup(
                         'Informations',
@@ -291,20 +293,20 @@ var EditionTool = (function () {
         } else if (this._activeTab == 'MaterialTab') {
 
             /// Get elements of forms
-            var colors = BabylonEditorUICreator.Form.getElements(this._colorsForm);
-            var parameters = BabylonEditorUICreator.Form.getElements(this._materialParametersForm);
-            var textures = BabylonEditorUICreator.Form.getElements(this._texturesForm);
+            var colors = this._colorsForm.getElements();
+            var parameters = this._materialParametersForm.getElements();
+            var textures = this._texturesForm.getElements();
 
-            this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectAmbiantColor'].value);
-            this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectDiffuseColor'].value);
-            this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectSpecularColor'].value);
-            this.object.material.emissiveColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors.fields['MainEditObjectEmissiveColor'].value);
+            this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectAmbiantColor'].value);
+            this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectDiffuseColor'].value);
+            this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectSpecularColor'].value);
+            this.object.material.emissiveColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectEmissiveColor'].value);
 
-            this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters.fields['MainEditObjectSpecularPower'].value);
-            this.object.material.useAlphaFromDiffuseTexture = parameters.fields['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
+            this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters['MainEditObjectSpecularPower'].value);
+            this.object.material.useAlphaFromDiffuseTexture = parameters['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
 
-            this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures.fields['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
-            this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures.fields['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+            this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
+            this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
         }
 
         /// Send event because object changed
@@ -333,46 +335,37 @@ var EditionTool = (function () {
             );
 
         } else {
-            /// Create divs for forms
-            /// We use forms because the editor can work as a collaborative edition, why not.
+            /// cf. EditionTool._createGeneralUI()
             BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'BabylonEditorEditObject', true);
 
             /// -----------------------------------------------------------------------------------------------------
             /// Colors
-            var fields = new Array();
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                BabylonEditorUICreator.Form.createField('MainEditObjectAmbiantColor', 'color', 'Ambiant Color :', 5),
-                BabylonEditorUICreator.Form.createField('MainEditObjectDiffuseColor', 'color', 'Diffuse Color :', 5),
-                BabylonEditorUICreator.Form.createField('MainEditObjectSpecularColor', 'color', 'Specular Color :', 5),
-                BabylonEditorUICreator.Form.createField('MainEditObjectEmissiveColor', 'color', 'Emissive Color :', 5),
+            this._colorsForm = new BABYLON.Editor.GUIForm('MainEditObjectColors', this._core, 'Colors');
+            this._colorsForm.createField('MainEditObjectAmbiantColor', 'color', 'Ambiant Color :', 5);
+            this._colorsForm.createField('MainEditObjectDiffuseColor', 'color', 'Diffuse Color :', 5);
+            this._colorsForm.createField('MainEditObjectSpecularColor', 'color', 'Specular Color :', 5);
+            this._colorsForm.createField('MainEditObjectEmissiveColor', 'color', 'Emissive Color :', 5);
+
+            this._colorsForm.buildElement('MainEditObjectColors');
+
+            this._colorsForm.fillFields([
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.ambiantColor),
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.diffuseColor),
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.specularColor),
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.emissiveColor)
             ]);
-
-            this._colorsForm = BabylonEditorUICreator.Form.createForm('MainEditObjectColors', 'Colors', fields, this, this._core);
-
-            /// Fill fields
-            BabylonEditorUICreator.Form.extendRecord(this._colorsForm, {
-                MainEditObjectAmbiantColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.ambiantColor),
-                MainEditObjectDiffuseColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.diffuseColor),
-                MainEditObjectSpecularColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.specularColor),
-                MainEditObjectEmissiveColor: BABYLON.Editor.Utils.RGBToHexColor(this.object.material.emissiveColor),
-            });
             /// -----------------------------------------------------------------------------------------------------
 
             /// -----------------------------------------------------------------------------------------------------
             /// Parameters
-            fields = new Array();
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                BabylonEditorUICreator.Form.createField('MainEditObjectSpecularPower', 'text', 'Specular Power :', 5),
-                BabylonEditorUICreator.Form.createField('MainEditObjectUseAlphaFromDiffuseTexture', 'checkbox', 'Use alpha :', 5),
-            ]);
+            this._materialParametersForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialParameters', this._core, 'Parameters');
+            this._materialParametersForm.createField('MainEditObjectSpecularPower', 'text', 'Specular Power :', 5);
+            this._materialParametersForm.createField('MainEditObjectUseAlphaFromDiffuseTexture', 'checkbox', 'Use Alpha :', 5);
 
-            this._materialParametersForm = BabylonEditorUICreator.Form.createForm('MainEditObjectMaterialParameters', 'Parameters', fields, this, this._core);
+            this._materialParametersForm.buildElement('MainEditObjectMaterialParameters');
 
-            /// Fill fields
-            BabylonEditorUICreator.Form.extendRecord(this._materialParametersForm, {
-                MainEditObjectSpecularPower: this.object.material.specularPower,
-                MainEditObjectUseAlphaFromDiffuseTexture: this.object.material.useAlphaFromDiffuseTexture,
-            });
+            this._materialParametersForm.fillFields([this.object.material.specularPower, this.object.material.useAlphaFromDiffuseTexture]);
+            /// -----------------------------------------------------------------------------------------------------
 
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'BabylonEditorEditObject', false);
             this._removeMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectRemoveMaterial', 'EditionRemoveMaterial',
@@ -383,8 +376,7 @@ var EditionTool = (function () {
             );
 
             /// -----------------------------------------------------------------------------------------------------
-
-            fields = new Array();
+            /// Textures
             var textures = new Array();
             textures.push('None');
             for (var i = 0; i < this._core.currentScene.textures.length; i++) {
@@ -392,16 +384,19 @@ var EditionTool = (function () {
                 textures.push(tex.name);
             }
 
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                BabylonEditorUICreator.Form.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5),
-                BabylonEditorUICreator.Form.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5),
-            ]);
-            this._texturesForm = BabylonEditorUICreator.Form.createForm('MainEditObjectMaterialTextures', 'Textures', fields, this, this._core);
+            this._texturesForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialTextures', this._core, 'Textures');
 
-            BabylonEditorUICreator.Form.extendRecord(this._texturesForm, {
-                MainEditObjectMaterialTexturesDiffuse: BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
-                MainEditObjectMaterialTexturesNormal: BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture),
-            });
+            this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5);
+            this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5);
+
+            this._texturesForm.buildElement('MainEditObjectMaterialTextures');
+
+            this._texturesForm.fillFields([
+                BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
+                BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture)
+            ]);
+            /// -----------------------------------------------------------------------------------------------------
+
         }
     }
 
@@ -412,113 +407,67 @@ var EditionTool = (function () {
 
         /// -----------------------------------------------------------------------------------------------------
         /// General
-        var fields = new Array();
+        this._generalForm = new BABYLON.Editor.GUIForm('MainEditObjectGeneral', this._core, 'General');
+        this._generalForm.createField('MainEditObjectName', 'text', 'Name :', 5);
+        this._generalForm.createField('MainEditObjectEnabled', 'checkbox', 'Enabled :', 5);
 
-        BabylonEditorUICreator.Form.extendFields(fields, [
-            BabylonEditorUICreator.Form.createField('MainEditObjectName', 'text', 'Name :', 5),
-            BabylonEditorUICreator.Form.createField('MainEditObjectEnabled', 'checkbox', 'Enabled :', 5),
-        ]);
+        this._generalForm.buildElement('MainEditObjectGeneral');
 
-        this._generalForm = BabylonEditorUICreator.Form.createForm('MainEditObjectGeneral', 'General', fields, this, this._core);
-
-        /// Fill fields
-        BabylonEditorUICreator.Form.extendRecord(this._generalForm, {
-            MainEditObjectName: this.object.name,
-            MainEditObjectEnabled: this.object.isEnabled()
-        });
-
+        this._generalForm.fillFields([this.object.name, this.object.isEnabled()]);
         /// -----------------------------------------------------------------------------------------------------
 
         /// -----------------------------------------------------------------------------------------------------
         /// Transforms
+        this._transformForm = new BABYLON.Editor.GUIForm('MainEditObjectTransform', this._core, 'Transforms');
 
-        fields = new Array();
-        BabylonEditorUICreator.Form.extendFields(fields, [
-            /// Position
-            BabylonEditorUICreator.Form.createField('MainEditObjectTransformPositionX', 'float', 'Position :', 3, '<img src="UI/images/position.png"></img>'),
-            BabylonEditorUICreator.Form.createField('MainEditObjectTransformPositionY', 'float', ' ', 3),
-            BabylonEditorUICreator.Form.createField('MainEditObjectTransformPositionZ', 'float', ' ', 3),
-        ]);
-
-        /// If mesh
+        this._transformForm.createField('MainEditObjectTransformPositionX', 'float', 'Position :', 3, '<img src="UI/images/position.png"></img>');
+        this._transformForm.createField('MainEditObjectTransformPositionY', 'float', ' ', 3);
+        this._transformForm.createField('MainEditObjectTransformPositionZ', 'float', ' ', 3);
         if (this.object instanceof BABYLON.Mesh) {
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                /// Rotation
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformRotationX', 'float', 'Rotation :', 3, '<img src="UI/images/rotation.png"></img>'),
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformRotationY', 'float', ' ', 3),
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformRotationZ', 'float', ' ', 3),
-                /// Scale
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformScaleX', 'float', 'Scaling :', 3, '<img src="UI/images/scale.png"></img>'),
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformScaleY', 'float', ' ', 3),
-                BabylonEditorUICreator.Form.createField('MainEditMeshTransformScaleZ', 'float', ' ', 3)
-            ]);
+            this._transformForm.createField('MainEditMeshTransformRotationX', 'float', 'Rotation :', 3, '<img src="UI/images/rotation.png"></img>');
+            this._transformForm.createField('MainEditMeshTransformRotationY', 'float', ' ', 3);
+            this._transformForm.createField('MainEditMeshTransformRotationZ', 'float', ' ', 3);
+
+            this._transformForm.createField('MainEditMeshTransformScaleX', 'float', 'Scaling :', 3, '<img src="UI/images/scale.png"></img>');
+            this._transformForm.createField('MainEditMeshTransformScaleY', 'float', ' ', 3);
+            this._transformForm.createField('MainEditMeshTransformScaleZ', 'float', ' ', 3);
         }
 
-        this._transformForm = BabylonEditorUICreator.Form.createForm('MainEditObjectTransform',
-                                                                     'Transforms', fields, this, this._core);
+        this._transformForm.buildElement('MainEditObjectTransform');
 
-        /// Fill fields
-        BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-            MainEditObjectTransformPositionX: this.object.position.x,
-            MainEditObjectTransformPositionY: this.object.position.y,
-            MainEditObjectTransformPositionZ: this.object.position.z,
-        });
-
+        BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditObjectTransformPositionX', 'MainEditObjectTransformPositionY', 'MainEditObjectTransformPositionZ'], this.object.position);
         if (this.object instanceof BABYLON.Mesh) {
-            BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-                MainEditMeshTransformRotationX: this.object.rotation.x,
-                MainEditMeshTransformRotationY: this.object.rotation.y,
-                MainEditMeshTransformRotationZ: this.object.rotation.z,
-
-                MainEditMeshTransformScaleX: this.object.scaling.x,
-                MainEditMeshTransformScaleY: this.object.scaling.y,
-                MainEditMeshTransformScaleZ: this.object.scaling.z
-            });
+            BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformRotationX', 'MainEditMeshTransformRotationY', 'MainEditMeshTransformRotationZ'], this.object.rotation);
+            BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformScaleX', 'MainEditMeshTransformScaleY', 'MainEditMeshTransformScaleZ'], this.object.scaling);
         }
 
         /// -----------------------------------------------------------------------------------------------------
 
         /// -----------------------------------------------------------------------------------------------------
         /// Options
-        fields = new Array();
+        this._optionsForm = new BABYLON.Editor.GUIForm('MainEditObjectOptions', this._core, 'Options');
+
         if (this.object instanceof BABYLON.Mesh) {
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                BabylonEditorUICreator.Form.createField('MainEditMeshOptionsVisible', 'checkbox', 'Visible :', 6),
-                BabylonEditorUICreator.Form.createField('MainEditMeshOptionsInfiniteDistance', 'checkbox', 'Infinite Distance :', 6),
-                BabylonEditorUICreator.Form.createField('MainEditMeshOptionsCheckCollisions', 'checkbox', 'Check Collisions :', 6)
-            ]);
+            this._optionsForm.createField('MainEditMeshOptionsVisible', 'checkbox', 'Visible :', 6);
+            this._optionsForm.createField('MainEditMeshOptionsInfiniteDistance', 'checkbox', 'Infinite Distance :', 6);
+            this._optionsForm.createField('MainEditMeshOptionsCheckCollisions', 'checkbox', 'Check Collisions :', 6);
         }
 
-        this._optionsForm = BabylonEditorUICreator.Form.createForm('MainEditObjectOptions',
-                                                                    'Options', fields, this, this._core);
+        this._optionsForm.buildElement('MainEditObjectOptions');
 
-        /// Configure fields
-        if (this.object instanceof BABYLON.Mesh) {
-            BabylonEditorUICreator.Form.extendRecord(this._optionsForm, {
-                MainEditMeshOptionsVisible: this.object.isVisible,
-                MainEditMeshOptionsInfiniteDistance: this.object.infiniteDistance,
-                MainEditMeshOptionsCheckCollisions: this.object.checkCollisions
-            });
-        }
+        this._optionsForm.fillFields([this.object.isVisible, this.object.infiniteDistance, this.object.checkCollisions]);
         /// -----------------------------------------------------------------------------------------------------
 
         /// -----------------------------------------------------------------------------------------------------
         /// Rendering
-        fields = new Array();
+        this._renderingForm = new BABYLON.Editor.GUIForm('MainEditObjectRendering', this._core, 'Rendering');
         if (this.object instanceof BABYLON.Mesh) {
-            BabylonEditorUICreator.Form.extendFields(fields, [
-                BabylonEditorUICreator.Form.createField('MainEditMeshRenderingCastShadows', 'checkbox', 'Cast Shadows :', 6),
-                BabylonEditorUICreator.Form.createField('MainEditMeshRenderingReceiveShadows', 'checkbox', 'Receive Shadows :', 6),
-            ]);
+            this._renderingForm.createField('MainEditMeshRenderingCastShadows', 'checkbox', 'Cast Shadows :', 6);
+            this._renderingForm.createField('MainEditMeshRenderingReceiveShadows', 'checkbox', 'Receive Shadows :', 6);
 
-            this._renderingForm = BabylonEditorUICreator.Form.createForm('MainEditObjectRendering',
-                                                                         'Rendering', fields, this, this._core);
+            this._renderingForm.buildElement('MainEditObjectRendering');
 
-            /// Configure fields
-            BabylonEditorUICreator.Form.extendRecord(this._renderingForm, {
-                MainEditMeshRenderingCastShadows: BABYLON.Editor.Utils.isObjectCastingShadows(this.object, this._core.currentScene),
-                MainEditMeshRenderingReceiveShadows: this.object.receiveShadows,
-            });
+            this._renderingForm.fillFields([BABYLON.Editor.Utils.isObjectCastingShadows(this.object, this._core.currentScene), this.object.receiveShadows]);
         }
         /// -----------------------------------------------------------------------------------------------------
     }

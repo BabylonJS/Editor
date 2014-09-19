@@ -331,8 +331,6 @@ var Editor;
                 keyboard: false,
                 nodes: [],
                 onClick: function (event) {
-                    /// Send the ObjectPicked event to the event receivers
-                    /// Must be extern
                     var ev = new BABYLON.Editor.Event();
                     ev.eventType = BABYLON.Editor.EventType.SceneEvent;
                     ev.event = new BABYLON.Editor.Event.SceneEvent();
@@ -358,10 +356,122 @@ var Editor;
 
     })(GUIElement);
 
+    var GUIForm = (function (_super) {
+        __extends(GUIForm, _super);
+        function GUIForm(name, core, header) {
+            _super.call(this, name, core);
+            /// Members
+            this.header = header;
+            this.textBlock = null;
+            this.fields = new Array();
+        }
+
+        GUIForm.prototype.createField = function (id, type, text, span, htmlContent) {
+            span = (span == null) ? 6 : span;
+            var field = { name: id, type: type, html: { caption: text, span: span, text: htmlContent } };
+            this.fields.push(field);
+            return this;
+        }
+        GUIForm.prototype.createFieldWithItems = function (id, type, text, items, span, htmlContent) {
+            span = (span == null) ? 6 : span;
+            var field = { name: id, type: type, html: { caption: text, span: span, text: htmlContent } };
+            field.options = { items: items };
+            this.fields.push(field);
+            return this;
+        }
+        GUIForm.prototype.fillFields = function (parameters) {
+            for (var i = 0; i < this.element.fields.length; i++) {
+                if (i < parameters.length)
+                    this.element.record[this.element.fields[i].name] = parameters[i];
+            }
+        }
+
+        GUIForm.prototype.getElements = function () {
+            var fields = new Array();
+            for (var i = 0; i < this.element.fields.length; i++)
+                fields[this.element.fields[i].name] = this.element.fields[i].el;
+
+            return fields;
+        }
+
+        GUIForm.prototype.buildElement = function (parent) {
+            var scope = this;
+
+            var textBlockText = '';
+            if (this.textBlock != null)
+                textBlockText = '<div style="padding: 3px; font-weight: bold; color: #777; font-size: 125%;">'
+                                + this.textBlock + '</div>';
+
+            this.element = $('#' + parent).w2form({
+                name: this.name,
+                focus: -1,
+                header: this.header,
+                fields: this.fields,
+                formHTML: textBlockText,
+                onChange: function (event) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.Event.GUIEvent();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FORM_CHANGED;
+                    ev.event.caller = scope;
+                    if (this.get(event.target).type == 'file') {
+                        var contents = $('#' + event.target).data('selected');
+                        for (var i = 0; i < contents.length; i++) {
+                            contents[i].content = /*'file:' + */(contents[i].content);
+                        }
+                        ev.event.result = { caller: event.target, contents: contents };
+                    } else {
+                        ev.event.result = this.name;
+                    }
+                    core.sendEvent(ev);
+                }
+            });
+
+            return this;
+        }
+
+        /// Statics and utils
+        GUIForm.UpdateFieldsFromVector3 = function(form, fields, vector) {
+            form.element.record[fields[0]] = vector.x;
+            form.element.record[fields[1]] = vector.y;
+            form.element.record[fields[2]] = vector.z;
+        }
+        GUIForm.UpdateFieldsFromColor3 = function (form, fields, color) {
+            GUIForm.UpdateFieldsFromVector3(form, fields, BABYLON.Vector3.FromArray([color.r, color.g, color.b], 0));
+        }
+
+        return GUIForm;
+
+    })(GUIElement);
+
+    var GUIWindow = (function (_super) {
+        __extends(GUIWindow, _super);
+        function GUIWindow(name, core) {
+            _super.call(this, name, core, title, body, dimension, buttons);
+            /// Members
+            this.title = title;
+            this.body = body;
+            this.dimension = dimension; /// Vector2
+            this.buttons = buttons;
+
+            this.showClose = true;
+            this.showMax = false;
+        }
+
+        GUIWindow.prototype.buildElement = function (parent) {
+
+        }
+
+        return GUIWindow;
+
+    })(GUIElement);
+
     BABYLON.Editor.GUIElement = GUIElement;
     BABYLON.Editor.GUILayout = GUILayout;
     BABYLON.Editor.GUIToolbar = GUIToolbar;
     BABYLON.Editor.GUISidebar = GUISidebar;
+    BABYLON.Editor.GUIForm = GUIForm;
+    BABYLON.Editor.GUIWindow = GUIWindow;
 
 })(BABYLON.Editor || (BABYLON.Editor = {})); /// End namespace Editor
 })(BABYLON || (BABYLON = {})); /// End namespace BABYLON
