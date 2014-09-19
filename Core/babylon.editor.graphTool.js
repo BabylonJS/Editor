@@ -1,16 +1,16 @@
 ﻿/// <reference path="./../index.html" />
 
 var BABYLON;
-(function (BABYLON) {
+(function (BABYLON) { /// namespace BABYLON
 var Editor;
-(function (Editor) {
+(function (Editor) { /// namespace Editor
 
 var GraphTool = (function () {
-    function GraphTool(babylonEditorCore) {
-        this._core = babylonEditorCore;
+    function GraphTool(core) {
+        this._core = core;
         this._core.eventReceivers.push(this);
 
-        this.sideBar = null;
+        this._sidebar = null;
 
         this._graphRootName = 'babylon_editor_root_0';
     };
@@ -45,20 +45,16 @@ var GraphTool = (function () {
             if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_PICKED) {
                 var mesh = ev.event.object;
                 if (mesh != null) {
-                    BabylonEditorUICreator.Sidebar.setSelected(this.sideBar, mesh.id);
-                    BabylonEditorUICreator.Sidebar.update(this.sideBar);
+                    this._sidebar.setSelected(mesh.id);
                 } else
-                    BabylonEditorUICreator.Sidebar.setSelected(this.sideBar, this._graphRootName);
+                    this._sidebar.setSelected(this._graphRootName);
             }
-
             else
-
             /// An object changed
             if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
                 var object = ev.event.object;
                 if (object != null) {
-                    BabylonEditorUICreator.Sidebar.updateNodeFromObject(this.sideBar, object);
-                    BabylonEditorUICreator.Sidebar.update(this.sideBar);
+                    BABYLON.Editor.GUISidebar.UpdateSidebarFromObject(this._sidebar, object);
                 }
             }
         }
@@ -81,10 +77,8 @@ var GraphTool = (function () {
         /// Set root as the root node of the side bar
         /// if the element isn't specified
         if (element == null) {
-            BABYLON.Editor.Utils.clearSideBar(this.sideBar);
-            BabylonEditorUICreator.Sidebar.addNodes(this.sideBar, [
-                BabylonEditorUICreator.Sidebar.createNode(this._graphRootName, 'Root', 'icon-position', null)
-            ]);
+            this._sidebar.clear();
+            this._sidebar.addNodes([this._sidebar.createNode(this._graphRootName, 'Root', 'icon-position', null)]);
             root = this._graphRootName;
         }
 
@@ -96,7 +90,7 @@ var GraphTool = (function () {
             children = object.getDescendants();
 
         if (root == this._graphRootName)
-            BabylonEditorUICreator.Sidebar.setNodeExpanded(this.sideBar, root, true);
+            this._sidebar.setNodeExpanded(root, true);
 
         /// If children then fill the side bar recursively
         if (children != null) {
@@ -105,9 +99,7 @@ var GraphTool = (function () {
                 var object = children[i];
                 var icon = this._getObjectIcon(object);
 
-                BabylonEditorUICreator.Sidebar.addNodes(this.sideBar, [
-                    BabylonEditorUICreator.Sidebar.createNode(object.id, object.name, icon, object)
-                ], root);
+                this._sidebar.addNodes([this._sidebar.createNode(object.id, object.name, icon, object)], root);
                 this._fillGraph(object, object.id);
 
             }
@@ -126,28 +118,22 @@ var GraphTool = (function () {
 
         if (!remove) {
             var icon = this._getObjectIcon(object);
-
-            BabylonEditorUICreator.Sidebar.addNodes(this.sideBar, [
-                BabylonEditorUICreator.Sidebar.createNode(object.id, object.name, icon, object)
-            ], element);
-
+            this._sidebar.addNodes([this._sidebar.createNode(object.id, object.name, icon, object)], element);
         } else
-            BabylonEditorUICreator.Sidebar.removeNode(this.sideBar, element);
+            this._sidebar.removeNode(element);
 
-        BabylonEditorUICreator.Sidebar.update(this.sideBar);
+        this._sidebar.refresh();
     }
 
     GraphTool.prototype._createUI = function () {
-        if (this.sideBar != null)
-            BabylonEditorUICreator.clearUIFromRefs([this.sideBar]);
+        if (this._sidebar != null)
+            this._sidebar.destroy();
 
-        /// Create nodes
-        var nodes = new Array();
-        BabylonEditorUICreator.Sidebar.extendNodes(nodes, [
-            BabylonEditorUICreator.Sidebar.createNode(this._graphRootName, 'Root', 'icon-position', null)
-        ]);
+        this._sidebar = new BABYLON.Editor.GUISidebar('BabylonEditorGraphTool', this._core);
+        this._sidebar.buildElement('BabylonEditorGraphTool');
 
-        this.sideBar = BabylonEditorUICreator.Sidebar.createSideBar('MainGraphTool', nodes, this);
+        /// Default node
+        this._sidebar.addNodes([this._sidebar.createNode(this._graphRootName, 'Root', 'icon-position', null)]);
 
     }
     

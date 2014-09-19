@@ -31,13 +31,12 @@ var EditionTool = (function () {
         ];
 
         this._tabs = [
-            'MainEditorEditObjectGeneral',
-            'MainEditorEditObjectMaterial'
+            'GeneralTab',
+            'MaterialTab'
         ];
-        this._activeTab = this._tabs[0];
-        
-        this._layouts = layouts;
-        this._panel = BabylonEditorUICreator.Layout.getPanelFromname(layouts, 'left');
+
+        this._panel = layouts.getPanelFromType('left');
+        this._activeTab = this._panel.getTabIDFromIndex(0);
 
         /// Genral
         this._emptyForm = null;
@@ -133,7 +132,7 @@ var EditionTool = (function () {
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
-                if (ev.event.caller == 'Mainlayout' && this._tabs.indexOf(ev.event.result) != -1) {
+                if (ev.event.caller == this._panel && this._tabs.indexOf(ev.event.result) != -1) {
                     this._clearUI();
                     this._activeTab = ev.event.result;
                     this._createUI();
@@ -182,13 +181,13 @@ var EditionTool = (function () {
     /// Creates an empty form to tell 0 object is selected
     EditionTool.prototype.createEmptyForm = function (name, text) {
         this._clearUI();
-        BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectEmpty'], 'MainEditorEditObject', true);
+        BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectEmpty'], 'BabylonEditorEditObject', true);
         this._emptyForm = BabylonEditorUICreator.Form.createForm('MainEditorEditObjectEmpty', name, [], this, this._core, text);
     }
 
     /// Clears the UI
     EditionTool.prototype._clearUI = function () {
-        BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', false);
+        this._panel.setTabEnabled('MaterialTab', false);
 
         BabylonEditorUICreator.clearUI(this._generalForms);
         BabylonEditorUICreator.clearUI(this._materialForms);
@@ -206,7 +205,7 @@ var EditionTool = (function () {
     }
 
     EditionTool.prototype._objectChanged = function () {
-        if (this._activeTab == 'MainEditorEditObjectGeneral') {
+        if (this._activeTab == 'GeneralTab') {
             BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
                 MainEditObjectTransformPositionX: this.object.position.x,
                 MainEditObjectTransformPositionY: this.object.position.y,
@@ -231,7 +230,7 @@ var EditionTool = (function () {
 
     EditionTool.prototype._onChange = function () {
 
-        if (this._activeTab == 'MainEditorEditObjectGeneral') {
+        if (this._activeTab == 'GeneralTab') {
 
             /// Get elements of forms
             var general = BabylonEditorUICreator.Form.getElements(this._generalForm);
@@ -289,7 +288,7 @@ var EditionTool = (function () {
                 }
             }
 
-        } else if (this._activeTab == 'MainEditorEditObjectMaterial') {
+        } else if (this._activeTab == 'MaterialTab') {
 
             /// Get elements of forms
             var colors = BabylonEditorUICreator.Form.getElements(this._colorsForm);
@@ -322,10 +321,10 @@ var EditionTool = (function () {
 
         if (!this.object.material) {
             this.createEmptyForm('No material', 'To edit material, please add one before.');
-            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectGeneral', true);
-            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', true);
+            this._panel.setTabEnabled('GeneralTab', true);
+            this._panel.setTabEnabled('MaterialTab', true);
 
-            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial'], 'MainEditorEditObject', false);
+            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial'], 'BabylonEditorEditObject', false);
             this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
                 '<button type="button" id="EditionAddMaterial" style="width: 100%;">Add one...</button>',
                 this.core, function (event) {
@@ -336,7 +335,7 @@ var EditionTool = (function () {
         } else {
             /// Create divs for forms
             /// We use forms because the editor can work as a collaborative edition, why not.
-            BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'MainEditorEditObject', true);
+            BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'BabylonEditorEditObject', true);
 
             /// -----------------------------------------------------------------------------------------------------
             /// Colors
@@ -375,7 +374,7 @@ var EditionTool = (function () {
                 MainEditObjectUseAlphaFromDiffuseTexture: this.object.material.useAlphaFromDiffuseTexture,
             });
 
-            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'MainEditorEditObject', false);
+            BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'BabylonEditorEditObject', false);
             this._removeMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectRemoveMaterial', 'EditionRemoveMaterial',
                 '<button type="button" id="EditionRemoveMaterial" style="width: 100%;">Remove Material</button>',
                 this.core, function (event) {
@@ -409,7 +408,7 @@ var EditionTool = (function () {
     EditionTool.prototype._createGeneralUI = function () {
         /// Create divs for forms
         /// We use forms because the editor can work as a collaborative edition, why not.
-        BabylonEditorUICreator.Form.createDivsForForms(this._generalForms, 'MainEditorEditObject', true);
+        BabylonEditorUICreator.Form.createDivsForForms(this._generalForms, 'BabylonEditorEditObject', true);
 
         /// -----------------------------------------------------------------------------------------------------
         /// General
@@ -527,13 +526,13 @@ var EditionTool = (function () {
     EditionTool.prototype._createUI = function () {
 
         if (this.object instanceof BABYLON.Mesh)
-            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', true);
+            this._panel.setTabEnabled('MaterialTab', true);
         else
-            BabylonEditorUICreator.Layout.setTabEnabled(this._panel, 'MainEditorEditObjectMaterial', false);
+            this._panel.setTabEnabled('MaterialTab', false);
 
-        if (this._activeTab == 'MainEditorEditObjectGeneral')
+        if (this._activeTab == 'GeneralTab')
             this._createGeneralUI();
-        else if (this._activeTab == 'MainEditorEditObjectMaterial') {
+        else if (this._activeTab == 'MaterialTab') {
             if (this.object instanceof BABYLON.Mesh)
                 this._createMaterialUI();
             else {

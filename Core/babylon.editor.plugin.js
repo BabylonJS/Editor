@@ -32,7 +32,8 @@ var Plugin = (function () {
             plugin.configure(core);
             delete createPlugin;
 
-            callback(plugin);
+            if (callback)
+                callback(plugin);
         });
 
     }

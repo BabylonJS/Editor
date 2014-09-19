@@ -22,38 +22,40 @@ var Editor;
                 /// Tool bar menu/button/etc. selected
                 if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED) {
 
-                    /// Main Toolbar
-                    /// Position, rotation or scaling
-                    if (['MainToolBarPosition', 'MainToolBarRotation', 'MainToolBarScale'].indexOf(ev.event.caller) > -1) {
-                        var checked = BabylonEditorUICreator.Toolbar.isItemChecked(this._toolbar, ev.event.caller);
-                        /// Uncheck position, rotation and scaling
-                        BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarPosition', false);
-                        BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarRotation', false);
-                        BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, 'MainToolBarScale', false);
-                        /// And check or uncheck it
-                        BabylonEditorUICreator.Toolbar.setItemChecked(this._toolbar, ev.event.caller, !checked);
-                        /// Set transformer
-                        this.setTransformer(checked ? null : ev.event.caller);
-                    } else if (ev.event.caller == 'MainToolBarAddMesh') {
-                        BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', this._core);
-                    }
-                    /// MainEdit
-                    else if (ev.event.caller == 'MainEdit:edit-textures') {
-                        BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', core);
-                    }
+                    if (ev.event.caller == this._toolbar) {
+                        /// Main Toolbar
+                        /// Position, rotation or scaling
+                        if (['MainPosition', 'MainRotation', 'MainScale'].indexOf(ev.event.result) > -1) {
+                            var checked = this._toolbar.isItemChecked(ev.event.result);
+                            /// Uncheck position, rotation and scaling
+                            this._toolbar.setItemChecked('MainPosition', false);
+                            this._toolbar.setItemChecked('MainRotation', false);
+                            this._toolbar.setItemChecked('MainScale', false);
+                            /// And check or uncheck it
+                            this._toolbar.setItemChecked(ev.event.result, !checked);
+                            /// Set transformer
+                            this.setTransformer(checked ? null : ev.event.result);
+                        } else if (ev.event.result == 'MainAddMesh') {
+                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', this._core);
+                        }
+                            /// MainEdit
+                        else if (ev.event.result == 'MainEdit:edit-textures') {
+                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', core);
+                        }
 
-                    else /// Tools Toolbar
+                    } else if (ev.event.caller == this._toolsToolbar) {/// Tools Toolbar
 
-                    if (ev.event.caller == 'MainToolsToolbarAddCube') {
-                        BABYLON.Editor.Factory.addBox(this._core);
-                    } else if (ev.event.caller == 'MainToolsToolbarAddSphere') {
-                        BABYLON.Editor.Factory.addSphere(this._core);
-                    } else if (ev.event.caller == 'MainToolsToolbarAddGround') {
-                        BABYLON.Editor.Factory.addGround(this._core);
-                    } else if (ev.event.caller == 'MainToolsToolbarAddBillboard') {
-                        /// Nothing for the moment... 
-                    } else if (ev.event.caller == 'MainToolsToolbarAddLight') {
-                        BABYLON.Editor.Factory.addLight(this._core);
+                        if (ev.event.result == 'ToolsAddCube') {
+                            BABYLON.Editor.Factory.addBox(this._core);
+                        } else if (ev.event.result == 'ToolsAddSphere') {
+                            BABYLON.Editor.Factory.addSphere(this._core);
+                        } else if (ev.event.result == 'ToolsAddGround') {
+                            BABYLON.Editor.Factory.addGround(this._core);
+                        } else if (ev.event.result == 'ToolsAddBillboard') {
+                            /// Nothing for the moment... 
+                        } else if (ev.event.result == 'ToolsAddLight') {
+                            BABYLON.Editor.Factory.addLight(this._core);
+                        }
                     }
                 }
             }
@@ -62,11 +64,11 @@ var Editor;
 
         /// Sets the appropriate transformer, identified by its id (string)
         MainToolbar.prototype.setTransformer = function (id) {
-            if (id == 'MainToolBarPosition')
+            if (id == 'MainPosition')
                 this._core.transformer.setTransformerType(BabylonEditorTransformerType.Position);
-            else if (id == 'MainToolBarRotation')
+            else if (id == 'MainRotation')
                 this._core.transformer.setTransformerType(BabylonEditorTransformerType.Rotation);
-            else if (id == 'MainToolBarScale')
+            else if (id == 'MainScale')
                 this._core.transformer.setTransformerType(BabylonEditorTransformerType.Scaling);
             else
                 this._core.transformer.setTransformerType(BabylonEditorTransformerType.Nothing);
@@ -74,52 +76,44 @@ var Editor;
 
         /// Creates the toolbars
         MainToolbar.prototype._createUI = function () {
-            /// Create items
-            var items = new Array();
-            BabylonEditorUICreator.Toolbar.extendItems(items, [
-                BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainFiles', 'File', 'icon-open-file', false, [
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'open-scene', 'Open a saved scene...', 'icon-open-file'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'save-scene', 'Save scene..', 'icon-save-file')
-                ]),
-                BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainEdit', 'Edit', 'icon-edit', false, [
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-textures', 'Edit Textures...', 'icon-textures'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-material-shaders', 'Edit Material Shaders..', 'icon-shaders'),
-                    BabylonEditorUICreator.Toolbar.createItem('break'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'edit-current-scene', 'Edit Filters...', 'icon-filters'),
-                ]),
-                BabylonEditorUICreator.Toolbar.createMenu('break'),
-                BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainToolBarAddLight', 'Add Light', 'icon-add-light', false, [
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-point-light', 'Point Light', 'icon-add-light'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-spot-light', 'Spot Light', 'icon-add-light'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-direction-light', 'Directional Light', 'icon-add-light'),
-                ]),
-                BabylonEditorUICreator.Toolbar.createMenu('menu', 'MainToolBarAddPrimitive', 'Primitives', 'icon-primitives', false, [
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-ground', 'Add Ground', 'icon-add-ground'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-sphere', 'Add Sphere', 'icon-add-sphere'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-cube', 'Add Cube', 'icon-add-cube'),
-                    BabylonEditorUICreator.Toolbar.createItem('button', 'add-billboard', 'Add Billboard', 'icon-add-billboard'),
-                ]),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolBarAddMesh', 'Add Mesh...', 'icon-mesh', false),
-                BabylonEditorUICreator.Toolbar.createMenu('break'),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolBarPosition', '', 'icon-position', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolBarRotation', '', 'icon-rotation', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolBarScale', '', 'icon-scale', false),
-            ]);
 
-            /// Create main tool bar
-            this._toolbar = BabylonEditorUICreator.Toolbar.createToolbar('MainToolBar', items, this, 'Main');
+            /// Main toolbar
+            this._toolbar = new BABYLON.Editor.GUIToolbar('BabylonEditorMainToolbar', this._core);
+            var menu = this._toolbar.createMenu('menu', 'MainFiles', 'Files', 'icon-folder');
+            menu.createItem('button', 'open-scene', 'Open saved scene...', 'icon-open-file');
+            menu.createItem('button', 'save-scene', 'Save scene...', 'icon-save-file');
 
-            /// Create tools items
-            items = new Array();
-            BabylonEditorUICreator.Toolbar.extendItems(items, [
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolsToolbarAddCube', '', 'icon-add-cube', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolsToolbarAddSphere', '', 'icon-add-sphere', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolsToolbarAddGround', '', 'icon-add-ground', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolsToolbarAddBillboard', '', 'icon-add-billboard', false),
-                BabylonEditorUICreator.Toolbar.createMenu('button', 'MainToolsToolbarAddLight', '', 'icon-add-light', false),
-            ]);
-            this._toolsToolbar = BabylonEditorUICreator.Toolbar.createToolbar('MainToolsToolBar', items, this, 'Tools');
+            menu = this._toolbar.createMenu('menu', 'MainEdit', 'Files', 'icon-edit');
+            menu.createItem('button', 'edit-textures', 'Edit textures...', 'icon-textures');
+            menu.createItem('button', 'edit-material-shaders', 'Edit material shaders...', 'icon-shaders');
+            menu.createItem('break');
 
+            this._toolbar.createMenu('break');
+
+            menu = this._toolbar.createMenu('menu', 'MainPrimitives', 'Primitives', 'icon-primitives');
+            menu.createItem('button', 'add-ground', 'Add Ground', 'icon-add-ground');
+            menu.createItem('button', 'add-sphere', 'Add Sphere', 'icon-add-sphere');
+            menu.createItem('button', 'add-cube', 'Add Cube', 'icon-add-cube');
+            menu.createItem('button', 'add-billboard', 'Add Billboard', 'icon-add-billboard');
+            this._toolbar.createMenu('button', 'MainAddMesh', 'Add Mesh...', 'icon-mesh');
+
+            this._toolbar.createMenu('break');
+
+            this._toolbar.createMenu('button', 'MainPosition', '', 'icon-position');
+            this._toolbar.createMenu('button', 'MainRotation', '', 'icon-rotation');
+            this._toolbar.createMenu('button', 'MainScale', '', 'icon-scale');
+
+            this._toolbar.buildElement('BabylonEditorMainToolbar');
+
+            /// Tools toolbar
+            this._toolsToolbar = new BABYLON.Editor.GUIToolbar('BabylonEditorToolsToolbar', this._core);
+            this._toolsToolbar.createMenu('button', 'ToolsAddCube', '', 'icon-add-cube');
+            this._toolsToolbar.createMenu('button', 'ToolsAddSphere', '', 'icon-add-sphere');
+            this._toolsToolbar.createMenu('button', 'ToolsAddGround', '', 'icon-add-ground');
+            this._toolsToolbar.createMenu('button', 'ToolsAddBillboard', '', 'icon-add-billboard');
+            this._toolsToolbar.createMenu('button', 'ToolsAddLight', '', 'icon-add-light');
+
+            this._toolsToolbar.buildElement('BabylonEditorToolsToolbar');
         }
 
         return MainToolbar;
