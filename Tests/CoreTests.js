@@ -2,7 +2,7 @@
 /// <reference path="../Core/BabylonEditorEvents.js" />
 /// <reference path="../Core/BabylonEditorCore.js" />
 
-/* File creating BabylonEditorUtils.js tests */
+/* File creating babylon.editor.core.js tests */
 
 // ------------------------------------
 /* Class that implements onEvent */

@@ -46,7 +46,7 @@ var EditTextures = (function (_super) {
                 }
 
             } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
-                if (ev.event.caller == this._window) {
+                if (ev.event.caller == this._window) { /// It is the "Close" button
                     _super.prototype.close.call(this);
                     this._close();
                 }
@@ -58,23 +58,24 @@ var EditTextures = (function (_super) {
                     for (var i = 0; i < ev.event.result.target.files.length; i++) {
 
                         var file = ev.event.result.target.files[i];
-                        var url = file.name;
-                        var extension = url.substr(url.length - 4, 4).toLowerCase();
+                        var name = file.name;
+                        var extension = name.substr(name.length - 4, 4).toLowerCase();
                         var isDDS = this._engine.getCaps().s3tc && (extension === ".dds");
                         var isTGA = (extension === ".tga");
 
-                        var callback = function (result) {
-                            var url = 'data:' + file.name + ':';
-                            var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
-                            tex.name = file.name;
-                            var count = BabylonEditorUICreator.Grid.getLineCount(scope._grid);
-                            BabylonEditorUICreator.Grid.addRecord(scope._grid, { recid: count, path: tex.name });
+                        var callback = function (name) {
+                            return function (result) {
+                                var url = 'data:' + name + ':';
+                                var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
+                                tex.name = name;
+                                scope._grid.addRow({ path: tex.name });
+                            }
                         };
 
                         if (isDDS || isTGA)
-                            BABYLON.Tools.ReadFile(file, callback, null, true);
+                            BABYLON.Tools.ReadFile(file, callback(name), null, true);
                         else
-                            BABYLON.Tools.ReadFileAsDataURL(file, callback, null);
+                            BABYLON.Tools.ReadFileAsDataURL(file, callback(name), null);
 
                     }
 
@@ -84,26 +85,21 @@ var EditTextures = (function (_super) {
     }
 
     EditTextures.prototype._close = function () {
-        BabylonEditorUICreator.Popup.closeWindow(this._window);
+        this._window.close();
     }
 
     EditTextures.prototype._createUI = function () {
         var scope = this;
 
         /// Create popup with a canvas
-        this._window = BabylonEditorUICreator.Popup.createWindow(
-            'Edit Textures', '<div id="EditTexturesMainLayout" style="height: 100%"></div>', false, 1000, 500,
-            ['Close'], this.core
-        );
+        this._window = new BABYLON.Editor.GUIWindow('BabylonEditorEditTexturesWindow', this.core, 'Edit Textures', '<div id="BabylonEditorEditTexturesLayout" style="height: 100%"></div>', new BABYLON.Vector2(1000, 500), ['Close']);
+        this._window.buildElement();
 
         /// Create layouts
-        var pstyle = BabylonEditorUICreator.Layout.Style;
-        var panels = new Array();
-        BabylonEditorUICreator.Layout.extendPanels(panels, [
-            BabylonEditorUICreator.Layout.createPanel('left', 500, true, pstyle, '<div id="EditTexturesGrid" style="height: 100%;"></div>', 500),
-            BabylonEditorUICreator.Layout.createPanel('right', 500, true, pstyle, '<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>', 500),
-        ]);
-        this._layouts = BabylonEditorUICreator.Layout.createLayout('EditTexturesMainLayout', panels);
+        this._layouts = new BABYLON.Editor.GUILayout('BabylonEditorEditTexturesLayout', this.core);
+        this._layouts.createPanel('TexturesList', 'left', 500, false).setContent('<div id="EditTexturesGrid" style="height: 100%;"></div>');
+        this._layouts.createPanel('TexturePreview', 'right', 500, false).setContent('<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>');
+        this._layouts.buildElement('BabylonEditorEditTexturesLayout');
 
         /// Create buttons
         this._textureFiles = BabylonEditorUICreator.createCustomField('EditTexturesGrid', 'AddTexturesFiles',
@@ -114,15 +110,13 @@ var EditTextures = (function (_super) {
         );
 
         /// Create grid
-        this._grid = BabylonEditorUICreator.Grid.createGrid('EditTexturesGrid', 'Textures', 'Textures', [
-                BabylonEditorUICreator.Grid.createColumn('path', 'Texture path', '100%')
-            ], [ /* No records here...*/], this.core
-        );
+        this._grid = new BABYLON.Editor.GUIGrid('EditTexturesGrid', this.core, 'Textures');
+        this._grid.createColumn('path', 'Texture Path', '100%');
+        this._grid.buildElement('EditTexturesGrid');
 
-        /// Fill grid
         for (var i = 0; i < this.core.currentScene.textures.length; i++) {
             var tex = this.core.currentScene.textures[i];
-            BabylonEditorUICreator.Grid.addRecord(this._grid, { recid: i, path: tex.name });
+            this._grid.addRow({ path: tex.name });
         }
 
         /// Create scene
@@ -144,11 +138,12 @@ var EditTextures = (function (_super) {
         });
 
         /// Configure window
-        BabylonEditorUICreator.Popup.removeElementsOnClose(this._window, ['EditTexturesMainLayout', 'Textures'], function () {
-            _super.prototype.close.call(this);
+        this._window.removeElementsOnClose(['BabylonEditorEditTexturesLayout', 'EditTexturesGrid']);
+        this._window.onClose(function () {
+            _super.prototype.close.call(scope);
             scope._engine.dispose();
         });
-        BabylonEditorUICreator.Popup.addElementsToResize(this._window, [this._layouts]);
+        this._window.addElementsToResize([this._layouts]);
     }
 
     return EditTextures;

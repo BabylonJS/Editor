@@ -126,13 +126,13 @@ var EditionTool = (function () {
                         this._objectCastingShadows = false;
                     } else {
                         /// Restore checking
-                        BabylonEditorUICreator.Form.setItemChecked(this._renderingForm, 'MainEditMeshRenderingCastShadows', true);
+                        this._renderingForm.setFieldChecked('MainEditMeshRenderingCastShadows', true);
                     }
                 }
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
-                if (ev.event.caller == this._panel && this._tabs.indexOf(ev.event.result) != -1) {
+                if (ev.event.caller == this._panel && this._tabs.indexOf(ev.event.result) != -1 && this.object) {
                     this._clearUI();
                     this._activeTab = ev.event.result;
                     this._createUI();
@@ -154,15 +154,15 @@ var EditionTool = (function () {
                 if (ev.event.caller == this._addMaterialWindow) {
                     if (ev.event.result == 'PopupButtonClose') {
                         /// Close
-                        BabylonEditorUICreator.Popup.closeWindow(this._addMaterialWindow);
+                        this._addMaterialWindow.close();
                     } else {
                         /// Accept
-                        var index = BabylonEditorUICreator.List.getSelectedItem(this._addMaterialList);
+                        var index = this._addMaterialList.getSelected();
 
                         if (index == 0) this.object.material = new BABYLON.StandardMaterial('New Material', this._core.currentScene);
                         else if (index == 1) this.object.material = new BABYLON.ShaderMaterial('New Material', this._core.currentScene);
 
-                        BabylonEditorUICreator.Popup.closeWindow(this._addMaterialWindow);
+                        this._addMaterialWindow.close();
                         this._clearUI();
                         this._createUI();
                     }
@@ -208,26 +208,13 @@ var EditionTool = (function () {
 
     EditionTool.prototype._objectChanged = function () {
         if (this._activeTab == 'GeneralTab') {
-            BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-                MainEditObjectTransformPositionX: this.object.position.x,
-                MainEditObjectTransformPositionY: this.object.position.y,
-                MainEditObjectTransformPositionZ: this.object.position.z,
-            });
-
+            BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditObjectTransformPositionX', 'MainEditObjectTransformPositionY', 'MainEditObjectTransformPositionZ'], this.object.position);
             if (this.object instanceof BABYLON.Mesh) {
-                BabylonEditorUICreator.Form.extendRecord(this._transformForm, {
-                    MainEditMeshTransformRotationX: this.object.rotation.x,
-                    MainEditMeshTransformRotationY: this.object.rotation.y,
-                    MainEditMeshTransformRotationZ: this.object.rotation.z,
-
-                    MainEditMeshTransformScaleX: this.object.scaling.x,
-                    MainEditMeshTransformScaleY: this.object.scaling.y,
-                    MainEditMeshTransformScaleZ: this.object.scaling.z
-                });
+                BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformRotationX', 'MainEditMeshTransformRotationY', 'MainEditMeshTransformRotationZ'], this.object.rotation);
+                BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformScaleX', 'MainEditMeshTransformScaleY', 'MainEditMeshTransformScaleZ'], this.object.scaling);
             }
+            this._transformForm.refresh();
         }
-
-        BabylonEditorUICreator.updateElement(this._transformForm);
     }
 
     EditionTool.prototype._onChange = function () {
@@ -278,12 +265,11 @@ var EditionTool = (function () {
 
                 var castShadows = rendering['MainEditMeshRenderingCastShadows'].checked;
                 if (!castShadows && this._objectCastingShadows) {
-                    this._castDialog = BabylonEditorUICreator.Popup.createPopup(
-                        'Informations',
-                        'Are you sure ?\n'
-                        + 'The object will be removed from all shadows calculations.',
-                        BabylonEditorUICreator.Popup.YES_NO, true, 350, 200, this._core
+                    this._castDialog = new BABYLON.Editor.GUIDialog('BabylonEditorCastDialog', this._core, 'Informations',
+                        'Are you sure ?\n' + 'The object will be removed from all shadows calculations.',
+                        new BABYLON.Vector2(350, 200)
                     );
+                    this._castDialog.buildElement();
                 } else if (castShadows && !this._objectCastingShadows) {
                     BABYLON.Editor.Utils.addObjectInShadowsCalculations(this.object, this._core.currentScene);
                     this._objectCastingShadows = true;
@@ -473,6 +459,7 @@ var EditionTool = (function () {
     }
 
     EditionTool.prototype._createUI = function () {
+        if (!this.object) return;
 
         if (this.object instanceof BABYLON.Mesh)
             this._panel.setTabEnabled('MaterialTab', true);
@@ -494,22 +481,17 @@ var EditionTool = (function () {
     }
 
     EditionTool.prototype._createWindowAddMaterial = function () {
-        /// Create popup with a canvas
-        this._addMaterialWindow = BabylonEditorUICreator.Popup.createWindow(
-            'Create a new material',
-            '<div id="AddMaterial" style="height: 100%">'
-            + '<span class="legend">Type : </span><input type="list" id="AddMaterialList" style="width: 83%; margin-top: 20px;"></input>'
-            + '</div>', false, 400, 150,
-            ['Add', 'Close'],
-            this._core
-        );
 
-        /// Create list
-        this._addMaterialList = BabylonEditorUICreator.List.createList('AddMaterialList', [
-            'Standard Material',
-            'Shader Material',
-            'Multi Material'
-        ], name);
+        var body = '<div id="AddMaterial" style="height: 100%">'
+            + '<span class="legend">Type : </span><input type="list" id="AddMaterialList" style="width: 83%; margin-top: 20px;"></input>'
+            + '</div>';
+
+        this._addMaterialWindow = new BABYLON.Editor.GUIWindow('BabylonEditorCreateNewMaterial', this._core, 'Create a new material', body, new BABYLON.Vector2(400, 150), ['Add', 'Close']);
+        this._addMaterialWindow.buildElement();
+
+        this._addMaterialList = new BABYLON.Editor.GUIList('AddMaterialList', this._core);
+        this._addMaterialList.addItem('Standard Material').addItem('Shader Material').addItem('Multi Material');
+        this._addMaterialList.buildElement('AddMaterialList');
 
     }
 

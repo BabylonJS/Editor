@@ -105,7 +105,7 @@ var Utils = (function () {
         if (!rgbColor) return 'null';
 
         var hex = (addHash ? "#" : '') + ((1 << 24) + (rgbColor.r << 16) + (rgbColor.g << 8) + rgbColor.b).toString(16).slice(1);
-        return hex;
+        return hex.toUpperCase();
     }
 
     /// -----------------------------------------------------------------------------------------------------

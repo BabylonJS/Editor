@@ -60,7 +60,7 @@ var AddMesh = (function (_super) {
         if (this._meshFiles != null) {
 
             var scope = this;
-            var parameters = BabylonEditorUICreator.Form.getElements(this._form);
+            var parameters = this._form.getElements();
 
             for (var i = 0; i < this._meshFiles.contents.length; i++) {
                 if (this._meshFiles.contents[i].name.indexOf('.babylon') !== -1) {
@@ -70,14 +70,14 @@ var AddMesh = (function (_super) {
                         for (var j = 0; j < meshes.length; j++) {
                             /// Name
                             if (!meshes[j].parent)
-                                meshes[j].name = parameters.fields['AddMeshObjectName'].value;
+                                meshes[j].name = parameters['AddMeshObjectName'].value;
                             /// Scaling factor
-                            meshes[j].scaling.x *= parameters.fields['AddMeshScaleFactor'].value;
-                            meshes[j].scaling.y *= parameters.fields['AddMeshScaleFactor'].value;
-                            meshes[j].scaling.z *= parameters.fields['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.x *= parameters['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.y *= parameters['AddMeshScaleFactor'].value;
+                            meshes[j].scaling.z *= parameters['AddMeshScaleFactor'].value;
                             /// Shadows
-                            meshes[j].receiveShadows = parameters.fields['AddMeshReceiveShadows'].checked;
-                            if (parameters.fields['AddMeshCastShadows'].checked) {
+                            meshes[j].receiveShadows = parameters['AddMeshReceiveShadows'].checked;
+                            if (parameters['AddMeshCastShadows'].checked) {
                                 BABYLON.Editor.Utils.addObjectInShadowsCalculations(meshes[j], scope.core.currentScene);
                             }
                             /// Others
@@ -115,45 +115,39 @@ var AddMesh = (function (_super) {
     }
 
     AddMesh.prototype._close = function () {
-        BabylonEditorUICreator.Popup.closeWindow(this._window);
+        this._window.close();
     }
 
     AddMesh.prototype._createUI = function () {
         var scope = this;
 
         /// Create popup with a canvas
-        this._window = BabylonEditorUICreator.Popup.createWindow(
-            'Add a new mesh', '<div id="addMeshMainLayout" style="height: 100%"></div>', false, 800, 500,
-            ['Add', 'Close'],
-            this.core
-        );
+        this._window = new BABYLON.Editor.GUIWindow('BabylonEditorAddMeshWindow', this.core, 'Add a new mesh', '<div id="BabylonEditorAddMeshLayout" style="height: 100%"></div>', new BABYLON.Vector2(800, 500), ['Add', 'Close']);
+        this._window.buildElement();
 
         /// Create layouts
-        var pstyle = BabylonEditorUICreator.Layout.Style;
-        var panels = new Array();
-        BabylonEditorUICreator.Layout.extendPanels(panels, [
-            BabylonEditorUICreator.Layout.createPanel('left', 400, true, pstyle, '<canvas id="addMeshRenderCanvas" style="height: 100%; width: 100%"></canvas>', 400),
-            BabylonEditorUICreator.Layout.createPanel('right', 400, true, pstyle, '<div id="AddMeshOptions"></div>', 400),
-        ]);
-        this._layouts = BabylonEditorUICreator.Layout.createLayout('addMeshMainLayout', panels);
+        this._layouts = new BABYLON.Editor.GUILayout('BabylonEditorAddMeshLayout', this.core);
+        this._layouts.createPanel('CanvasPanel', 'left', 400, false).setContent('<canvas id="addMeshRenderCanvas" style="height: 100%; width: 100%"></canvas>');
+        this._layouts.createPanel('OptionsPanel', 'right', 400, false).setContent('<div id="AddMeshOptions"></div>');
+        this._layouts.buildElement('BabylonEditorAddMeshLayout');
 
         /// Create Form
-        BabylonEditorUICreator.Form.createDivsForForms(['AddFile', 'AddMeshForm'], 'AddMeshOptions', true);
-        var fields = new Array();
-        BabylonEditorUICreator.Form.extendFields(fields, [
-            BabylonEditorUICreator.Form.createField('AddMeshFile', 'file', 'Select Mesh...', 6),
-            BabylonEditorUICreator.Form.createField('AddMeshObjectName', 'text', 'Name :', 6),
-            BabylonEditorUICreator.Form.createField('AddMeshScaleFactor', 'text', 'Scale Factor :', 6),
-            BabylonEditorUICreator.Form.createField('AddMeshReceiveShadows', 'checkbox', 'Receive Shadows :', 6),
-            BabylonEditorUICreator.Form.createField('AddMeshCastShadows', 'checkbox', 'Cast Shadows :', 6)
-        ]);
-        this._form = BabylonEditorUICreator.Form.createForm('AddMeshForm', 'Add Mesh', fields, this, this.core);
-        BabylonEditorUICreator.Form.extendRecord(this._form, {
-            AddMeshObjectName: 'New Mesh',
-            AddMeshScaleFactor: '0.1',
-            AddMeshCastShadows: true,
-            AddMeshReceiveShadows: false,
-        });
+        BabylonEditorUICreator.Form.createDivsForForms(['AddMeshForm'], 'AddMeshOptions', true);
+
+        this._form = new BABYLON.Editor.GUIForm('AddMeshOptions', this.core, 'Add Mesh');
+
+        this._form.createField('AddMeshFile', 'file', 'Select Mesh...', 6);
+        this._form.createField('AddMeshObjectName', 'text', 'Name :', 6);
+        this._form.createField('AddMeshScaleFactor', 'text', 'Scale Factor :', 6);
+        this._form.createField('AddMeshReceiveShadows', 'checkbox', 'Receive Shadows :', 6);
+        this._form.createField('AddMeshCastShadows', 'checkbox', 'Cast Shadows :', 6);
+
+        this._form.buildElement('AddMeshForm');
+
+        this._form.fillSpecifiedFields(
+            ['AddMeshObjectName', 'AddMeshScaleFactor', 'AddMeshReceiveShadows', 'AddMeshCastShadows'],
+            ['New Mesh', '0.1', false, true]
+        );
 
         /// Create engine and scene
         this._canvas = document.getElementById("addMeshRenderCanvas");
@@ -173,12 +167,11 @@ var AddMesh = (function (_super) {
         });
 
         /// Configure window
-        BabylonEditorUICreator.Popup.removeElementsOnClose(this._window, ['addMeshMainLayout', 'AddMeshForm'],
-            function () {
-                _super.prototype.close.call(this);
-                scope._engine.dispose();
-            }
-        );
+        this._window.onClose(function () {
+            _super.prototype.close.call(scope);
+            scope._engine.dispose();
+        });
+        this._window.removeElementsOnClose(['BabylonEditorAddMeshLayout', 'AddMeshOptions']);
     }
 
     return AddMesh;

@@ -1,5 +1,18 @@
 ﻿/// <reference path="../index.html" />
 
+/*
+Babylon Editor's UI elements.
+Contains objets to create UI elements for the editor.
+
+Please use this creator to create elements, it can clean your code
+and can abstract the creation of GUI elements if the UI library must change
+or must be replaced
+
+This creator uses the jQuery and w2ui frameworks
+*/
+
+/// FIXME: Rename Sidebar as "Graph", because it is a graph...
+
 /// Extends
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29,6 +42,7 @@ var Editor;
         /// Destroy the element
         GUIElement.prototype.destroy = function () {
             this.element.destroy();
+            this.element = null;
         }
 
         /// Add event
@@ -52,7 +66,7 @@ var Editor;
             _super.call(this, name, core);
             /// Members
             this.tabs = new Array();
-            this.id = name + '.id';
+            this.id = name + '_id';
             this.type = type;
             this.size = (size == null) ? 150 : size;
             this.resizable = (resizable == null) ? false : resizable;
@@ -156,7 +170,7 @@ var Editor;
             return null;
         }
 
-        GUIElement.prototype.buildElement = function (parent) {
+        GUILayout.prototype.buildElement = function (parent) {
             var datas = new Array();
             for (var i = 0; i < this.panels.length; i++) {
                 if (this.panels[i].element == null)
@@ -385,6 +399,15 @@ var Editor;
                     this.element.record[this.element.fields[i].name] = parameters[i];
             }
         }
+        GUIForm.prototype.fillSpecifiedFields = function (fields, parameters) {
+            for (var i = 0; i < fields.length; i++) {
+                this.element.record[fields[i]] = parameters[i];
+            }
+        }
+        GUIForm.prototype.setFieldChecked = function (field, checked) {
+            var f = this.getElements();
+            f[field].checked = checked;
+        }
 
         GUIForm.prototype.getElements = function () {
             var fields = new Array();
@@ -446,23 +469,192 @@ var Editor;
 
     var GUIWindow = (function (_super) {
         __extends(GUIWindow, _super);
-        function GUIWindow(name, core) {
+        function GUIWindow(name, core, title, body, dimension, buttons) {
             _super.call(this, name, core, title, body, dimension, buttons);
             /// Members
             this.title = title;
-            this.body = body;
-            this.dimension = dimension; /// Vector2
-            this.buttons = buttons;
+            this.body = (body == null) ? '' : body;
+            this.dimension = (dimension == null) ? new BABYLON.Vector2(800, 600) : dimension; /// Vector2
+            this.buttons = (buttons == null) ? new Array() : buttons;
 
             this.showClose = true;
             this.showMax = false;
+            this.onCloseCallback = null;
+        }
+
+        GUIWindow.prototype.removeElementsOnClose = function (elementsToRemove) {
+            var scope = this;
+            function close() {
+                if (elementsToRemove != null) {
+                    BabylonEditorUICreator.clearUI(elementsToRemove);
+                }
+                if (scope.onCloseCallback != null)
+                    scope.onCloseCallback();
+            }
+
+            this.element.onClose = close;
+        }
+        GUIWindow.prototype.onClose = function (callback) {
+            this.onCloseCallback = callback;
+        }
+        GUIWindow.prototype.close = function () {
+            this.element.close();
+        }
+        GUIWindow.prototype.addElementsToResize = function (elements) {
+            function resize() {
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].element.resize();
+                }
+            }
+
+            /// Because it is called at the end of UI creation, we resize children
+            resize();
+
+            this.element.onToggle = function (event) {
+                event.onComplete = resize;
+            }
         }
 
         GUIWindow.prototype.buildElement = function (parent) {
+            var buttonsText = '';
+            for (var i=0; i < this.buttons.length; i++) {
+                buttonsText += '<button class="btn" id="PopupButton' + this.buttons[i] + '">' + this.buttons[i] + '</button>\n';
+            }
 
+            this.element = w2popup.open({
+                title: this.title,
+                body: this.body,
+                buttons: buttonsText,
+                width: this.dimension.x,
+                height: this.dimension.y,
+                showClose: this.showClose,
+                showMax: this.showMax == null ? false : this.showMax
+            });
+
+            var scope = this;
+            for (var i = 0; i < this.buttons.length; i++) {
+                var element = $('#PopupButton' + this.buttons[i]);
+                element.click(function () {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.Event.GUIEvent();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED;
+                    ev.event.caller = scope;
+                    ev.event.result = this.id;
+                    core.sendEvent(ev);
+                });
+            }
         }
 
         return GUIWindow;
+
+    })(GUIElement);
+
+    var GUIDialog = (function (_super) {
+        __extends(GUIDialog, _super);
+        function GUIDialog(name, core, title, body, dimension) {
+            _super.call(this, name, core, title, body, dimension, []);
+        }
+
+        GUIDialog.prototype.buildElement = function (parent) {
+            this.element = w2confirm(this.body, this.title, function (result) {
+                var ev = new BABYLON.Editor.Event();
+                ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                ev.event = new BABYLON.Editor.Event.GUIEvent();
+                ev.event.eventType = BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG;
+                ev.event.caller = this;
+                ev.event.result = result;
+                core.sendEvent(ev);
+            });
+        }
+
+        return GUIDialog;
+    })(GUIWindow);
+
+    var GUIList = (function (_super) {
+        __extends(GUIList, _super);
+        function GUIList(name, core) {
+            _super.call(name, core);
+            /// Members
+            this.items = new Array();
+        }
+
+        GUIList.prototype.getSelected = function () {
+            var value = this.element.val();
+            return this.element.items.indexOf(value);
+        }
+        GUIList.prototype.addItem = function (item) {
+            this.items.push(item);
+            return this;
+        }
+
+        GUIList.prototype.buildElement = function (parent) {
+            this.element = $('input[type=list]' + '#' + parent).w2field('list', { items: this.items, selected: this.items[0] });
+            this.element.items = this.items;
+        }
+
+        return GUIList;
+
+    })(GUIElement);
+
+    var GUIGrid = (function (_super) {
+        __extends(GUIGrid, _super);
+        function GUIGrid(name, core, header) {
+            _super.call(this, name, core);
+            /// Members
+            this.columns = new Array();
+            this.header = header;
+            this.showToolbar = true;
+            this.showFooter = true;
+        }
+
+        GUIGrid.prototype.createColumn = function (id, text, size) {
+            if (size == null)
+                size = '50%';
+
+            this.columns.push({ field: id, caption: text, size: size });
+            return this;
+        }
+        GUIGrid.prototype.addRow = function (data) {
+            data.recid = this.getRowCount();
+            this.element.add(data);
+        }
+
+        GUIGrid.prototype.getRowCount = function () {
+            return this.element.total;
+        }
+
+        GUIGrid.prototype.buildElement = function (parent) {
+            var scope = this;
+
+            this.element = $('#' + parent).w2grid({
+                name: this.name,
+                show: {
+                    toolbar: this.showToolbar,
+                    footer: this.showFooter
+                },
+                header: this.header,
+                columns: this.columns,
+                records: [],
+                onClick: function (event) {
+                    var gridScope = this;
+                    event.onComplete = function () {
+                        var selected = gridScope.getSelection();
+                        if (selected.length == 1) {
+                            var ev = new BABYLON.Editor.Event();
+                            ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                            ev.event = new BABYLON.Editor.Event.GUIEvent();
+                            ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_SELECTED;
+                            ev.event.caller = scope;
+                            ev.event.result = selected[0];
+                            core.sendEvent(ev);
+                        }
+                    }
+                }
+            });
+        }
+
+        return GUIGrid;
 
     })(GUIElement);
 
@@ -472,6 +664,9 @@ var Editor;
     BABYLON.Editor.GUISidebar = GUISidebar;
     BABYLON.Editor.GUIForm = GUIForm;
     BABYLON.Editor.GUIWindow = GUIWindow;
+    BABYLON.Editor.GUIDialog = GUIDialog;
+    BABYLON.Editor.GUIList = GUIList;
+    BABYLON.Editor.GUIGrid = GUIGrid;
 
 })(BABYLON.Editor || (BABYLON.Editor = {})); /// End namespace Editor
 })(BABYLON || (BABYLON = {})); /// End namespace BABYLON
