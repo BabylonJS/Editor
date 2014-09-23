@@ -69,6 +69,11 @@ BabylonEditorUICreator.createCustomField = function (element, name, field, core,
     return caller;
 }
 
+/// Fills a element from its id with the given text
+BabylonEditorUICreator.fillElementWithText = function (elementId, text) {
+    $('#' + elementId).text(text);
+}
+
 //------------------------------------------------------------------------------------------------------------------
 /* Layouts */
 //------------------------------------------------------------------------------------------------------------------

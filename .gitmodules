@@ -1,3 +1,6 @@
 [submodule "Babylon.js"]
 	path = Babylon.js
 	url = https://github.com/BabylonJS/Babylon.js.git
+[submodule "Dependencies/ace-builds"]
+	path = Dependencies/ace-builds
+	url = https://github.com/ajaxorg/ace-builds.git

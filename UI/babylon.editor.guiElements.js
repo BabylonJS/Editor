@@ -170,6 +170,10 @@ var Editor;
             return null;
         }
 
+        GUILayout.prototype.setSize = function (panelType, size) {
+            this.element.sizeTo(panelType, size);
+        }
+
         GUILayout.prototype.buildElement = function (parent) {
             var datas = new Array();
             for (var i = 0; i < this.panels.length; i++) {
@@ -477,9 +481,11 @@ var Editor;
             this.dimension = (dimension == null) ? new BABYLON.Vector2(800, 600) : dimension; /// Vector2
             this.buttons = (buttons == null) ? new Array() : buttons;
 
+            this.modal = false;
             this.showClose = true;
             this.showMax = false;
             this.onCloseCallback = null;
+            this.onToggleCallback = null;
         }
 
         GUIWindow.prototype.removeElementsOnClose = function (elementsToRemove) {
@@ -500,18 +506,38 @@ var Editor;
         GUIWindow.prototype.close = function () {
             this.element.close();
         }
+        GUIWindow.prototype.maximize = function () {
+            this.element.max();
+        }
         GUIWindow.prototype.addElementsToResize = function (elements) {
+            var scope = this;
             function resize() {
                 for (var i = 0; i < elements.length; i++) {
                     elements[i].element.resize();
                 }
             }
-
             /// Because it is called at the end of UI creation, we resize children
             resize();
 
             this.element.onToggle = function (event) {
-                event.onComplete = resize;
+                event.onComplete = function (eventData) {
+                    resize();
+                    if (scope.onToggleCallback)
+                        scope.onToggleCallback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                }
+            }
+        }
+        GUIWindow.prototype.onToggle = function (callback) {
+            this.onToggleCallback = callback;
+            this.element.onMax = function (event) {
+                event.onComplete = function (eventData) {
+                    callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                }
+            }
+            this.element.onMin = function (event) {
+                event.onComplete = function (eventData) {
+                    callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                }
             }
         }
 
@@ -528,7 +554,8 @@ var Editor;
                 width: this.dimension.x,
                 height: this.dimension.y,
                 showClose: this.showClose,
-                showMax: this.showMax == null ? false : this.showMax
+                showMax: this.showMax == null ? false : this.showMax,
+                modal: this.modal
             });
 
             var scope = this;

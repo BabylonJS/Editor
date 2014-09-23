@@ -93,12 +93,13 @@ var EditTextures = (function (_super) {
 
         /// Create popup with a canvas
         this._window = new BABYLON.Editor.GUIWindow('BabylonEditorEditTexturesWindow', this.core, 'Edit Textures', '<div id="BabylonEditorEditTexturesLayout" style="height: 100%"></div>', new BABYLON.Vector2(1000, 500), ['Close']);
+        this._window.showMax = true;
         this._window.buildElement();
 
         /// Create layouts
         this._layouts = new BABYLON.Editor.GUILayout('BabylonEditorEditTexturesLayout', this.core);
-        this._layouts.createPanel('TexturesList', 'left', 500, false).setContent('<div id="EditTexturesGrid" style="height: 100%;"></div>');
-        this._layouts.createPanel('TexturePreview', 'right', 500, false).setContent('<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>');
+        this._layouts.createPanel('TexturesList', 'left', 500, true).setContent('<div id="EditTexturesGrid" style="height: 100%;"></div>');
+        this._layouts.createPanel('TexturePreview', 'right', 500, true).setContent('<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>');
         this._layouts.buildElement('BabylonEditorEditTexturesLayout');
 
         /// Create buttons
@@ -144,6 +145,11 @@ var EditTextures = (function (_super) {
             scope._engine.dispose();
         });
         this._window.addElementsToResize([this._layouts]);
+        this._window.onToggle(function (maximized, width, height) {
+            scope._layouts.setSize('right', maximized ? width - 500 : 500);
+            scope._engine.resize();
+        });
+
     }
 
     return EditTextures;

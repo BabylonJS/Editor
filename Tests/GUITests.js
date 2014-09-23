@@ -15,9 +15,17 @@ module('GUITests', {
     }
 });
 
-test("inherit", function () {
+test('inherit', function () {
     var layout = new BABYLON.Editor.GUILayout('layoutTest', this.core);
     ok(layout instanceof BABYLON.Editor.GUILayout && layout instanceof BABYLON.Editor.GUIElement);
+
+    var dialog = new BABYLON.Editor.GUIDialog('dialog_test', this.core, 'test', '', new BABYLON.Vector2(100, 100));
+    ok(dialog instanceof BABYLON.Editor.GUIElement);
+    ok(dialog instanceof BABYLON.Editor.GUIWindow);
+});
+
+test('layout', function () {
+    var layout = new BABYLON.Editor.GUILayout('layoutTest', this.core);
     equal(layout.element, null);
     equal(layout.panels.length, 0);
     layout.createPanel('layout_panel', 'left', 0, true);
@@ -27,4 +35,15 @@ test("inherit", function () {
     ok(layout.element != null);
     layout.destroy();
     equal(layout.element, null);
+});
+
+test('toolbar', function () {
+    var toolbar = new BABYLON.Editor.GUIToolbar('toolbar_test', this.core);
+    equal(toolbar.items.length, 0);
+    toolbar.createMenu('menu', 'id_menu', 'test text', '');
+    equal(toolbar.items.length, 1);
+    toolbar.buildElement('mainUI');
+    ok(toolbar.element != null);
+    toolbar.destroy();
+    equal(toolbar.element, null);
 });

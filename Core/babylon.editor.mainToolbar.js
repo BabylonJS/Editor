@@ -40,7 +40,10 @@ var Editor;
                         }
                             /// MainEdit
                         else if (ev.event.result == 'MainEdit:edit-textures') {
-                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', core);
+                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', this._core);
+                        }
+                        else if (ev.event.result == 'MainEdit:edit-material-shaders') {
+                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.materialCreator.js', this._core);
                         }
 
                     } else if (ev.event.caller == this._toolsToolbar) {/// Tools Toolbar
@@ -83,7 +86,7 @@ var Editor;
             menu.createItem('button', 'open-scene', 'Open saved scene...', 'icon-open-file');
             menu.createItem('button', 'save-scene', 'Save scene...', 'icon-save-file');
 
-            menu = this._toolbar.createMenu('menu', 'MainEdit', 'Files', 'icon-edit');
+            menu = this._toolbar.createMenu('menu', 'MainEdit', 'Edit', 'icon-edit');
             menu.createItem('button', 'edit-textures', 'Edit textures...', 'icon-textures');
             menu.createItem('button', 'edit-material-shaders', 'Edit material shaders...', 'icon-shaders');
             menu.createItem('break');
