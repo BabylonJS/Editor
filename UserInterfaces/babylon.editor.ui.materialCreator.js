@@ -33,7 +33,6 @@ var MaterialCreator = (function (_super) {
         this._codeActiveTab = 'vertexShaderTab';
         this._codeEditor = null;
         this._consoleOutput = null;
-        this._material = null;
         this._customUpdate = null;
 
         this._vertexShader = '';
@@ -41,18 +40,26 @@ var MaterialCreator = (function (_super) {
         this._buildScript = '';
         this._callbackScript = '';
 
+        this._material = null;
         this._shaderManager = null;
+        this._textures = new Array();
+        this._uniforms = new Array();
 
         /// UI
         this._window = null;
 
         this._layouts = null;
         this._leftPanel = null;
-        this._toolbar = null;
         this._rightPanel = null;
 
-        this._previewMeshList = null;
-        this._compileShaderButton = null;
+        this._toolbar = null;
+        this._imageSelector = null;
+
+        this._renderingLayouts = null;
+        this._optionsLayouts = null;
+        this._generalForm = null;
+        this._uniformsForm = null;
+        this._texturesForm = null;
     }
 
     MaterialCreator.prototype.configure = function (core) {
@@ -86,28 +93,20 @@ var MaterialCreator = (function (_super) {
 
             }
 
-            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED) {
-                if (ev.event.caller == this._compileShaderButton) {
-                    this._createMaterial();
+            /// Form changed
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FORM_CHANGED) {
+
+                if (ev.event.caller == this._texturesForm) {
+                    var textures = this._texturesForm.getElements();
+                    for (var i = 0; i < this._textures.length; i++) {
+                        var name = textures[this._textures[i]].value;
+                        this._material.setTexture(this._textures[i], BABYLON.Editor.Utils.GetTextureFromName(name, this._scene));
+                    }
                 }
+
             }
 
-            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.LIST_SELECTED) {
-                if (ev.event.caller == this._previewMeshList && ev.event.result > -1) {
-                    this._object.dispose();
-
-                    if (ev.event.result == 0)
-                        this._object = BABYLON.Mesh.CreateBox("previewObject", 6.0, this._scene);
-                    else if (ev.event.result == 1)
-                        this._object = BABYLON.Mesh.CreateTorus("previewObject", 5, 1, 32, this._scene);
-                    else if (ev.event.result == 2)
-                        this._object = BABYLON.Mesh.CreateTorusKnot("previewObject", 2, 0.5, 128, 64, 2, 3, this._scene);
-
-                    this._object.material = this._material;
-
-                }
-            }
-
+            /// Toolbar selected
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED) {
                 if (ev.event.caller == this._toolbar) {
                     /// General
@@ -123,10 +122,30 @@ var MaterialCreator = (function (_super) {
                         this._evalCallback();
                     }
                     else if (ev.event.result == 'MainEdit:set-custom-texture') {
-                        var fileSelector = document.createElement('input');
-                        fileSelector.setAttribute('type', 'file');
-                        fileSelector.click();
+                        var scope = this;
+                        this._imageSelector = BabylonEditorUICreator.createFileSelector();
+                        this._imageSelector.onchange = function (event) {
+                            for (var i = 0; i < event.target.files.length; i++) {
+                                var file = event.target.files[i];
+                                BABYLON.Editor.Utils.GetTextureFromFile(file, scope._scene, function (tex) {
+                                    scope._createForms();
+                                });
+                            }
+                        }
+                        this._imageSelector.click();
+                    }
+                    /// Object
+                    else if (ev.event.result.indexOf('MainObject:') != -1) {
+                        this._object.dispose();
 
+                        if (ev.event.result == 'MainObject:set-object-box')
+                            this._object = BABYLON.Mesh.CreateBox("previewObject", 6.0, this._scene);
+                        else if (ev.event.result == 'MainObject:set-object-torus')
+                            this._object = BABYLON.Mesh.CreateTorus("previewObject", 5, 1, 32, this._scene);
+                        else if (ev.event.result == 'MainObject:set-object-torus-knot')
+                            this._object = BABYLON.Mesh.CreateTorusKnot("previewObject", 2, 0.5, 128, 64, 2, 3, this._scene);
+
+                        this._object.material = this._material;
                     }
                 }
             }
@@ -139,7 +158,18 @@ var MaterialCreator = (function (_super) {
 
     MaterialCreator.prototype._evalCallback = function () {
         var customBuild = eval(this._callbackScript);
-        customBuild.init(this._shaderManager);
+        try {
+            customBuild.init(this._shaderManager);
+        } catch (error) {
+            this._shaderManager.log(error.message);
+        }
+
+        try {
+            customBuild.update(this._shaderManager);
+        } catch (error) {
+            this._customUpdate = null;
+            return;
+        }
         this._customUpdate = customBuild.update;
     }
 
@@ -147,6 +177,7 @@ var MaterialCreator = (function (_super) {
         var scope = this;
 
         if (this._material) {
+            this._material._textures = [];
             this._material.dispose(true);
         }
 
@@ -154,7 +185,13 @@ var MaterialCreator = (function (_super) {
         document.getElementById('BabylonEditorMaterialEditorVertexCodeZone').innerHTML = this._vertexShader;
 
         /// Execute build script and configure arrays (attributes and uniforms)
-        var buildScriptResult = eval(this._buildScript);
+        var buildScriptResult;
+        try {
+            buildScriptResult = eval(this._buildScript);
+        } catch (error) {
+            this._shaderManager.log(error.message);
+            return;
+        }
 
         var uniforms = ["worldViewProjection"];
         uniforms.push.apply(uniforms, buildScriptResult.uniforms);
@@ -162,15 +199,18 @@ var MaterialCreator = (function (_super) {
         var attributes = ["position", "uv"];
         attributes.push.apply(attributes, buildScriptResult.attributes);
 
+        var textures = buildScriptResult.samplers;
+
         /// Compile material
         this._material = new BABYLON.ShaderMaterial("ShaderMaterial", this._scene,
             { vertexElement: "BabylonEditorMaterialEditorVertexCodeZone", fragmentElement: "BabylonEditorMaterialEditorPixelCodeZone" },
-            {attributes: attributes, uniforms: uniforms}
+            {attributes: attributes, uniforms: uniforms, samplers: textures}
         );
 
         /// Configure material
         this._material.onError = function (sender, errors) {
             scope._consoleOutput.setValue(scope._consoleOutput.getValue() + errors + '\n', -1);
+            scope._material = null;
         }
         this._material.onCompiled = function () {
             scope._consoleOutput.setValue(scope._consoleOutput.getValue() + 'compiled successfully\n', -1);
@@ -183,13 +223,18 @@ var MaterialCreator = (function (_super) {
 
         /// Set material
         this._object.material = this._material;
+
+        /// Create forms
+        this._textures = textures;
+        this._uniforms = uniforms;
+        this._createForms();
     }
 
     MaterialCreator.prototype._createUI = function () {
         var scope = this;
 
-        /// Create popup with a canvas
-        this._window = new BABYLON.Editor.GUIWindow('BabylonEditorEditTexturesWindow', this.core, 'Material Editor', '<div id="BabylonEditorMaterialEditorLayout" style="height: 100%"></div>', new BABYLON.Vector2(1000, 500), ['Ok', 'Close']);
+        /// Create popup with layouts
+        this._window = new BABYLON.Editor.GUIWindow('BabylonEditorEditTexturesWindow', this.core, 'Material Editor', '<div id="BabylonEditorMaterialEditorLayout" style="height: 100%"></div>', new BABYLON.Vector2(1000, 500), []);
         this._window.modal = true;
         this._window.buildElement();
 
@@ -208,19 +253,38 @@ var MaterialCreator = (function (_super) {
         this._leftPanel.createTab('callbackTab', 'Callback');
 
         (this._rightPanel = this._layouts.createPanel('BabylonEditorMaterialEditorRenderPreview', 'right', 500, true)).setContent(
-              '<canvas id="materialEditorCanvas" style="height: 94%; width: 100%"></canvas>'
+              '<div id="BabylonEditorMaterialEditorRenderingLayout" style="height: 100%; width: 100%"></div>'
         );
-        this._rightPanel.createTab('renderTab', 'Preview');
-        this._rightPanel.createTab('optionsTab', 'Options');
 
         this._layouts.createPanel('BabylonEditorMaterialEditorToolbar', 'top', 40, false).setContent(
             '<div id="BabylonEditorMaterialEditorToolbar"></div>'
         );
 
         this._layouts.buildElement('BabylonEditorMaterialEditorLayout');
-        this._layouts.on('resize', function () {
+
+        /// Rendering layouts
+        this._renderingLayouts = new BABYLON.Editor.GUILayout('BabylonEditorMaterialEditorRenderingLayout', this.core);
+        this._renderingLayouts.createPanel('BabylonEditorMaterialEditorRenderPreview', 'top', 250, true).setContent(
+            '<canvas id="materialEditorCanvas" style="height: 100%; width: 100%"></canvas>'
+        );
+        this._renderingLayouts.createPanel('BabylonEditorMaterialEditorRenderOptions', 'bottom', 250, true).setContent(
+            '<div id="BabylonEditorMaterialEditorOptionsLayout" style="height: 100%; width: 100%"></div>'
+        );
+
+        this._renderingLayouts.buildElement('BabylonEditorMaterialEditorRenderingLayout');
+        this._renderingLayouts.on('resize', function () {
             scope._engine.resize();
         });
+
+        /// Options layouts
+        this._optionsLayouts = new BABYLON.Editor.GUILayout('BabylonEditorMaterialEditorOptionsLayout', this.core);
+        this._optionsLayouts.createPanel('BabylonEditorMaterialEditorOptionsLayoutUniforms', 'left', 250, true).setContent(
+            '<div id="BabylonEditorMaterialEditorOptionsLayoutUniforms"></div>'
+        );
+        this._optionsLayouts.createPanel('BabylonEditorMaterialEditorOptionsLayoutConfiguration', 'right', 250, true).setContent(
+            '<div id="BabylonEditorMaterialEditorOptionsLayoutConfiguration"></div>'
+        );
+        this._optionsLayouts.buildElement('BabylonEditorMaterialEditorOptionsLayout');
 
         /// Create toolbar
         this._toolbar = new BABYLON.Editor.GUIToolbar('BabylonEditorMaterialEditorToolbar', this.core);
@@ -232,6 +296,11 @@ var MaterialCreator = (function (_super) {
         menu = this._toolbar.createMenu('menu', 'MainEdit', 'Edit', 'icon-edit');
         menu.createItem('button', 'eval-callback', 'Re-eval callback', 'icon-filters');
         menu.createItem('button', 'set-custom-texture', 'Set custom texture...', 'icon-textures');
+
+        menu = this._toolbar.createMenu('menu', 'MainObject', 'Object', 'icon-primitives');
+        menu.createItem('button', 'set-object-box', 'Box', 'icon-add-cube');
+        menu.createItem('button', 'set-object-torus', 'Torus', 'icon-add-sphere');
+        menu.createItem('button', 'set-object-torus-knot', 'Torus Knot', 'icon-add-billboard');
 
         this._toolbar.createMenu('break');
         this._toolbar.createMenu('button', 'BuildAll', 'Build !', 'icon-shaders');
@@ -257,24 +326,6 @@ var MaterialCreator = (function (_super) {
 
         this._consoleOutput = ace.edit('BabylonEditorMaterialEditorConsoleOutput');
 
-        /// Create preview mesh list
-        BabylonEditorUICreator.createCustomField('materialEditorCanvas', 'PreviewMeshList',
-            '<br><span class="legend">Mesh Type : </span><input type="list" id="PreviewMeshList" style="width: 89%;"></input>',
-            this.core, null, false
-        );
-
-        this._previewMeshList = new BABYLON.Editor.GUIList('PreviewMeshList', this.core);
-        this._previewMeshList.addItem('Box').addItem('Torus').addItem('Torus Knot');
-        this._previewMeshList.buildElement('PreviewMeshList');
-
-        /// Create right button (to compile shader)
-        this._compileShaderButton = BabylonEditorUICreator.createCustomField('PreviewMeshList', 'CompileShader',
-            '<br><button type="button" id="CompileShader" style="width: 100%;">Compile !</button>',
-            this.core, function (event) {
-                BABYLON.Editor.Utils.sendEventButtonClicked(scope._compileShaderButton, scope.core);
-            }, false
-        );
-
         /// Load default shader
         BABYLON.Tools.LoadFile('Babylon/Shaders/basic.vertex.fx', function (result) {
             scope._vertexShader = result;
@@ -294,6 +345,7 @@ var MaterialCreator = (function (_super) {
         this._canvas = document.getElementById("materialEditorCanvas");
 
         this._engine = new BABYLON.Engine(this._canvas, true);
+
         this._scene = new BABYLON.Scene(this._engine);
         this._scene.clearColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 
@@ -309,17 +361,27 @@ var MaterialCreator = (function (_super) {
         });
 
         /// Configure window
-        this._window.removeElementsOnClose(['BabylonEditorMaterialEditorLayout', 'BabylonEditorMaterialEditorToolbar']);
         this._window.onClose(function () {
             _super.prototype.close.call(scope);
             scope._engine.dispose();
+            scope._toolbar.destroy();
+            if (scope._generalForm) scope._generalForm.destroy();
+            if (scope._uniformsForm) scope._uniformsForm.destroy();
+            if (scope._texturesForm) scope._texturesForm.destroy();
+            scope._optionsLayouts.destroy();
+            scope._renderingLayouts.destroy();
+            scope._layouts.destroy();
         });
 
         this._window.addElementsToResize([this._layouts]);
+
         this._window.onToggle(function (maximized, width, height) {
             scope._layouts.setSize('left', width / 2 - 15);
             scope._layouts.setSize('right', width / 2 - 15);
-            scope._engine.resize();
+            scope._renderingLayouts.setSize('top', height / 2);
+            scope._renderingLayouts.setSize('bottom', height / 3 - 15);
+            scope._optionsLayouts.setSize('left', (width / 2) / 2 - 30);
+            scope._optionsLayouts.setSize('right', (width / 2) / 2 - 15);
             scope._codeEditor.setOptions({
                 maxLines: (height - height / 4) / scope._codeEditor.renderer.lineHeight,
                 minLines: (height - height / 4) / scope._codeEditor.renderer.lineHeight - 10
@@ -333,11 +395,80 @@ var MaterialCreator = (function (_super) {
         this._window.on('open', function (event) {
             scope._window.maximize();
         });
+        this._window.on('keydown', function (event) {
+            event = window.event ? window.event : event
+            if (event.keyCode == 17 && event.ctrlKey) {
+                event.stopPropagation
+                scope._createMaterial();
+            }
+        });
 
         /// Configure shader manager
         this._shaderManager = new MaterialCreatorManager(this._consoleOutput);
         this._shaderManager.scene = this._scene;
 
+    }
+
+    MaterialCreator.prototype._createForms = function () {
+        if (this._generalForm) this._generalForm.destroy();
+        if (this._texturesForm) this._texturesForm.destroy();
+        if (this._uniformsForm) this._uniformsForm.destroy();
+
+        if (this._material == null)
+            return;
+
+        BabylonEditorUICreator.Form.createDivsForForms([
+            'BabylonEditorMaterialEditorRenderOptionsTextures',
+            'BabylonEditorMaterialEditorRenderOptionsUniforms'
+        ], 'BabylonEditorMaterialEditorOptionsLayoutUniforms', true);
+        BabylonEditorUICreator.Form.createDivsForForms([
+            'BabylonEditorMaterialEditorOptionsLayoutConfiguration'
+        ], 'BabylonEditorMaterialEditorRenderOptions', true);
+
+        /// General
+        this._generalForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsGeneral', this._core, 'General');
+
+        this._generalForm.createField('GeneralMaterialName', 'text', 'Name :', 6);
+        this._generalForm.createField('GeneralMaterialBacKFaceCulling', 'checkbox', 'Back Face Culling :', 6);
+        this._generalForm.createField('GeneralMaterialWireframe', 'checkbox', 'Wireframe :', 6);
+        this._generalForm.createField('GeneralMaterialAlpha', 'text', 'Alpha :', 6);
+
+        this._generalForm.buildElement('BabylonEditorMaterialEditorOptionsLayoutConfiguration');
+
+        this._generalForm.fillFields([this._material.name]);
+
+        /// Textures
+        this._texturesForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsTextures', this._core, 'Textures');
+        var texturesNames = new Array();
+        texturesNames.push('None');
+        for (var i = 0; i < this._scene.textures.length; i++) {
+            var tex = this._scene.textures[i];
+            texturesNames.push(tex.name);
+        }
+
+        for (var i = 0; i < this._textures.length; i++)
+            this._texturesForm.createFieldWithItems(this._textures[i], 'list', this._textures[i], texturesNames, 6);
+
+        this._texturesForm.buildElement('BabylonEditorMaterialEditorRenderOptionsTextures');
+
+        texturesNames = new Array();
+        for (var i = 0; i < this._textures.length; i++) {
+            var tex = this._material._textures[this._textures[i]];
+            if (tex)
+                texturesNames.push(tex.name);
+            else
+                texturesNames.push('None');
+        }
+        this._texturesForm.fillFields(texturesNames);
+
+        /// Uniforms
+        this._uniformsForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsUniforms', this._core, 'Uniforms');
+
+        for (var i = 0; i < this._uniforms.length; i++) {
+            this._uniformsForm.createField(this._uniforms[i], 'text', this._uniforms[i], 6);
+        }
+
+        this._uniformsForm.buildElement('BabylonEditorMaterialEditorRenderOptionsUniforms');
     }
 
     return MaterialCreator;

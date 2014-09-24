@@ -504,6 +504,8 @@ var Editor;
         }
         GUIWindow.prototype.onClose = function (callback) {
             this.onCloseCallback = callback;
+            if (this.element.onClose == null)
+                this.element.onClose = callback;
         }
         GUIWindow.prototype.close = function () {
             this.element.close();

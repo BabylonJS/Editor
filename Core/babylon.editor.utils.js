@@ -127,6 +127,27 @@ var Utils = (function () {
             return texture.name;
     }
 
+    Utils.GetTextureFromFile = function (file, scene, callback) {
+        var name = file.name;
+        var extension = name.substr(name.length - 4, 4).toLowerCase();
+        var isDDS = scene.getEngine().getCaps().s3tc && (extension === ".dds");
+        var isTGA = (extension === ".tga");
+
+        var cb = function (name) {
+            return function (result) {
+                var url = 'data:' + name + ':';
+                var tex = new BABYLON.Texture(url, scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
+                tex.name = name;
+                callback(tex);
+            }
+        };
+
+        if (isDDS || isTGA)
+            BABYLON.Tools.ReadFile(file, cb(name), null, true);
+        else
+            BABYLON.Tools.ReadFileAsDataURL(file, cb(name), null);
+    }
+
     /// -----------------------------------------------------------------------------------------------------
 
     /// -----------------------------------------------------------------------------------------------------

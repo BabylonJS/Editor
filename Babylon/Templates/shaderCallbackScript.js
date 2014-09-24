@@ -3,7 +3,7 @@
     var time = 0;
 
     var init = function (manager) {
-        manager.material.setTexture("textureSampler", new BABYLON.Texture('Tests/textures/diffuse.tga', manager.scene));
+        //manager.material.setTexture("textureSampler", new BABYLON.Texture('Tests/textures/diffuse.tga', manager.scene));
     }
 
     var update = function (manager) {

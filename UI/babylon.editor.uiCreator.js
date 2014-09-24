@@ -76,6 +76,14 @@ BabylonEditorUICreator.fillElementWithText = function (elementId, text) {
     $('#' + elementId).text(text);
 }
 
+BabylonEditorUICreator.createFileSelector = function (multiple) {
+    var fileSelector = document.createElement('input');
+    fileSelector.setAttribute('type', 'file');
+    if (multiple || multiple == null)
+        fileSelector.setAttribute('multiple', '1');
+    return fileSelector;
+}
+
 //------------------------------------------------------------------------------------------------------------------
 /* Layouts */
 //------------------------------------------------------------------------------------------------------------------
