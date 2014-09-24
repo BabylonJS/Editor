@@ -2,14 +2,15 @@
 (function () {
     var time = 0;
 
-    var init = function (material, scene) {
-        material.setTexture("textureSampler", new BABYLON.Texture('Tests/textures/diffuse.tga', scene));
+    var init = function (manager) {
+        manager.material.setTexture("textureSampler", new BABYLON.Texture('Tests/textures/diffuse.tga', manager.scene));
     }
 
-    var update = function (material, scene) {
-        time += 0.02;
+    var update = function (manager) {
+        time += 0.09;
         // Example :
-        material.setFloat("time", time);
+        manager.material.setFloat("time", time);
+        manager.log(time);
     }
 
     return {

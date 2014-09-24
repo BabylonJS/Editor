@@ -60,10 +60,12 @@ BabylonEditorUICreator.createCustomField = function (element, name, field, core,
         caller = $('#' + element).before(field);
 
     $('#' + name).change(function (event) {
-        callback(event);
+        if (callback)
+            callback(event);
     });
     $('#' + name).click(function (event) {
-        callback(event);
+        if (callback)
+            callback(event);
     });
 
     return caller;

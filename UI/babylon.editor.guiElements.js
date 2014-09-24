@@ -74,6 +74,7 @@ var Editor;
             this.maxSize = false;
             this.style = BabylonEditorUICreator.Layout.Style;
             this.content = '';
+            this.toolbar = null;
         }
 
         GUIPanel.prototype.createTab = function (id, caption) {
@@ -113,6 +114,7 @@ var Editor;
                 content: this.content,
                 minSize: this.minSize,
                 maxSize: this.maxSize,
+                toolbar: this.toolbar,
             };
 
             if (this.tabs.length > 0) {
@@ -618,6 +620,17 @@ var Editor;
         GUIList.prototype.buildElement = function (parent) {
             this.element = $('input[type=list]' + '#' + parent).w2field('list', { items: this.items, selected: this.items[0] });
             this.element.items = this.items;
+            
+            var scope = this;
+            this.element.change(function () {
+                var ev = new BABYLON.Editor.Event();
+                ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                ev.event = new BABYLON.Editor.Event.GUIEvent();
+                ev.event.eventType = BABYLON.Editor.Event.GUIEvent.LIST_SELECTED;
+                ev.event.caller = scope;
+                ev.event.result = scope.getSelected();
+                core.sendEvent(ev);
+            });
         }
 
         return GUIList;

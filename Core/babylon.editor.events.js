@@ -44,9 +44,10 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.GRID_SELECTED = 6;
         BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 7;
         BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 8;
+        BABYLON.Editor.Event.GUIEvent.LIST_SELECTED = 9;
 
         /// Plugins related
-        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONDED = 9;
+        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONDED = 10;
     }
 
     /// Scene event

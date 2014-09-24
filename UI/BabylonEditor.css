@@ -22,6 +22,9 @@
 .w2ui-icon.icon-filters {
     background: url("images/render.png");
 }
+.w2ui-icon.icon-console {
+    background: url("images/console.png");
+}
 
 /* Files */
 .w2ui-icon.icon-open-file {
