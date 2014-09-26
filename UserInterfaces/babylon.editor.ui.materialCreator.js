@@ -11,6 +11,7 @@ var MaterialCreator = (function (_super) {
 
         this._codeEditor = codeEditor;
         this._enableLogs = false;
+        this._enableSpies = false;
     }
     MaterialCreatorManager.prototype.log = function (text) {
         if (this._enableLogs)
@@ -42,8 +43,8 @@ var MaterialCreator = (function (_super) {
 
         this._material = null;
         this._shaderManager = null;
-        this._textures = new Array();
-        this._uniforms = new Array();
+        this._samplers = new Array();
+        this._spies = new Array();
 
         /// UI
         this._window = null;
@@ -65,7 +66,20 @@ var MaterialCreator = (function (_super) {
     MaterialCreator.prototype.configure = function (core) {
         _super.prototype.configure.call(this, core);
         this.core.eventReceivers.push(this);
+        this.core.customUpdates.push(this);
         this._createUI();
+    }
+
+    MaterialCreator.prototype.update = function () {
+        if (this._material && this._shaderManager._enableSpies) {
+            var spies = new Array();
+            for (var i = 0; i < this._spies.length; i++) {
+                var value = BABYLON.Editor.Utils.GetValueFromShaderMaterial(this._spies[i], this._material);
+                spies.push(BABYLON.Editor.Utils.GetStringFromValue(value, true, 10000));
+            }
+            this._uniformsForm.fillFields(spies);
+            this._uniformsForm.refresh();
+        }
     }
 
     MaterialCreator.prototype.onEvent = function (ev) {
@@ -98,9 +112,9 @@ var MaterialCreator = (function (_super) {
 
                 if (ev.event.caller == this._texturesForm) {
                     var textures = this._texturesForm.getElements();
-                    for (var i = 0; i < this._textures.length; i++) {
-                        var name = textures[this._textures[i]].value;
-                        this._material.setTexture(this._textures[i], BABYLON.Editor.Utils.GetTextureFromName(name, this._scene));
+                    for (var i = 0; i < this._samplers.length; i++) {
+                        var name = textures[this._samplers[i]].value;
+                        this._material.setTexture(this._samplers[i], BABYLON.Editor.Utils.GetTextureFromName(name, this._scene));
                     }
                 }
 
@@ -113,6 +127,10 @@ var MaterialCreator = (function (_super) {
                     if (ev.event.result == 'EnableLogs') {
                         this._shaderManager._enableLogs = !this._toolbar.isItemChecked('EnableLogs');
                         this._toolbar.setAutoItemChecked('EnableLogs');
+                    }
+                    else if (ev.event.result == 'EnableSpies') {
+                        this._shaderManager._enableSpies = !this._toolbar.isItemChecked('EnableSpies');
+                        this._toolbar.setAutoItemChecked('EnableSpies');
                     }
                     else if (ev.event.result == 'BuildAll') {
                         this._createMaterial();
@@ -225,8 +243,8 @@ var MaterialCreator = (function (_super) {
         this._object.material = this._material;
 
         /// Create forms
-        this._textures = textures;
-        this._uniforms = uniforms;
+        this._samplers = textures;
+        this._spies = buildScriptResult.spies;
         this._createForms();
     }
 
@@ -305,12 +323,13 @@ var MaterialCreator = (function (_super) {
         this._toolbar.createMenu('break');
         this._toolbar.createMenu('button', 'BuildAll', 'Build !', 'icon-shaders');
         this._toolbar.createMenu('button', 'EnableLogs', 'Enable Logs', 'icon-console');
+        this._toolbar.createMenu('button', 'EnableSpies', 'Enable Spies', 'icon-filters');
 
         this._toolbar.buildElement('BabylonEditorMaterialEditorToolbar');
 
         /// Create editors
         this._codeEditor = ace.edit('BabylonEditorMaterialEditorCodeZone');
-        this._codeEditor.setTheme("ace/theme/twilight");
+        this._codeEditor.setTheme("ace/theme/clouds");
         this._codeEditor.getSession().setMode("ace/mode/glsl");
 
         this._codeEditor.on('change', function (event) {
@@ -347,7 +366,6 @@ var MaterialCreator = (function (_super) {
         this._engine = new BABYLON.Engine(this._canvas, true);
 
         this._scene = new BABYLON.Scene(this._engine);
-        this._scene.clearColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 
         this._camera = new BABYLON.ArcRotateCamera("AddMeshCamera", 1, 1.3, 100, new BABYLON.Vector3(0, 0, 0), this._scene);
         this._camera.attachControl(this._canvas, false);
@@ -379,7 +397,7 @@ var MaterialCreator = (function (_super) {
             scope._layouts.setSize('left', width / 2 - 15);
             scope._layouts.setSize('right', width / 2 - 15);
             scope._renderingLayouts.setSize('top', height / 2);
-            scope._renderingLayouts.setSize('bottom', height / 3 - 15);
+            scope._renderingLayouts.setSize('bottom', height / 3);
             scope._optionsLayouts.setSize('left', (width / 2) / 2 - 30);
             scope._optionsLayouts.setSize('right', (width / 2) / 2 - 15);
             scope._codeEditor.setOptions({
@@ -395,11 +413,12 @@ var MaterialCreator = (function (_super) {
         this._window.on('open', function (event) {
             scope._window.maximize();
         });
+        
         this._window.on('keydown', function (event) {
             event = window.event ? window.event : event
-            if (event.keyCode == 17 && event.ctrlKey) {
-                event.stopPropagation
+            if (event.keyCode == 66 && event.ctrlKey) {
                 scope._createMaterial();
+                event.preventDefault();
             }
         });
 
@@ -446,14 +465,14 @@ var MaterialCreator = (function (_super) {
             texturesNames.push(tex.name);
         }
 
-        for (var i = 0; i < this._textures.length; i++)
-            this._texturesForm.createFieldWithItems(this._textures[i], 'list', this._textures[i], texturesNames, 6);
+        for (var i = 0; i < this._samplers.length; i++)
+            this._texturesForm.createFieldWithItems(this._samplers[i], 'list', this._samplers[i], texturesNames, 6);
 
         this._texturesForm.buildElement('BabylonEditorMaterialEditorRenderOptionsTextures');
 
         texturesNames = new Array();
-        for (var i = 0; i < this._textures.length; i++) {
-            var tex = this._material._textures[this._textures[i]];
+        for (var i = 0; i < this._samplers.length; i++) {
+            var tex = this._material._textures[this._samplers[i]];
             if (tex)
                 texturesNames.push(tex.name);
             else
@@ -462,10 +481,10 @@ var MaterialCreator = (function (_super) {
         this._texturesForm.fillFields(texturesNames);
 
         /// Uniforms
-        this._uniformsForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsUniforms', this._core, 'Uniforms');
+        this._uniformsForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsUniforms', this._core, 'Uniforms - Spies');
 
-        for (var i = 0; i < this._uniforms.length; i++) {
-            this._uniformsForm.createField(this._uniforms[i], 'text', this._uniforms[i], 6);
+        for (var i = 0; i < this._spies.length; i++) {
+            this._uniformsForm.createField(this._spies[i], 'text', this._spies[i], 6);
         }
 
         this._uniformsForm.buildElement('BabylonEditorMaterialEditorRenderOptionsUniforms');

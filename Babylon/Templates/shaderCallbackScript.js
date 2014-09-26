@@ -8,8 +8,8 @@
 
     var update = function (manager) {
         time += 0.09;
-        // Example :
-        manager.material.setFloat("time", time);
+
+        manager.material.setFloat('time', time);
         manager.log(time);
     }
 

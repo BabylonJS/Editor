@@ -60,6 +60,12 @@ var Core = (function () {
             this.eventReceivers.splice(index, 1);
     }
 
+    Core.prototype.removeCustomUpdate = function (updater) {
+        var index = this.customUpdates.indexOf(updater);
+        if (index !== -1)
+            this.customUpdates.splice(index, 1);
+    }
+
     Core.prototype.getPickedMesh = function (event, sendEvent, optionalScene) {
         var scene = (optionalScene != null) ? optionalScene : this.currentScene;
         if (!scene) return null;

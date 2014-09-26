@@ -34,7 +34,49 @@ var Utils = (function () {
     Utils.toFloat = function (string) {
         return parseFloat(string.replace(',', '.'));
     }
+
+    Utils.GetStringFromValue = function (value, round, factor) {
+        var string = '';
+        factor = factor == null ? 1000 : factor;
+
+        if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Vector2) {
+            string += (round ? Math.round(value.x) / factor : value.x) + ', ' + (round ? Math.round(value.y) / factor : value.y);
+            if (value instanceof BABYLON.Vector3)
+                string += ', ' + (round ? Math.round(value.z) / factor : value.z);
+        }
+        else if (value instanceof String) {
+            return value;
+        }
+        else if (value instanceof BABYLON.Color3 || value instanceof BABYLON.Color4) {
+            string += (round ? Math.round(value.r) / factor : value.r) + ', ' + (round ? Math.round(value.g) / factor : value.g) + ', ' + (round ? Math.round(value.b) / factor : value.b);
+            if (value instanceof BABYLON.Color4)
+                string += ', ' + (round ? Math.round(value.a) / factor : value.a);
+        } else {
+            string += value; /// Float
+        }
+
+        return string;
+    }
     /// -----------------------------------------------------------------------------------------------------
+
+    /// -----------------------------------------------------------------------------------------------------
+    /* Materials utils */
+    /// -----------------------------------------------------------------------------------------------------
+    /// name : string, material : BABYLON.ShaderMaterial
+    Utils.GetValueFromShaderMaterial = function (name, material) {
+        if (material._floats[name])
+            return material._floats[name];
+        else if (material._colors3[name])
+            return material._colors3[name];
+        else if (material._colors4[name])
+            return material._colors4[name];
+        else if (material._vectors2[name])
+            return material._vectors2[name];
+        else if (material._vectors3[name])
+            return material._vectors3[name];
+
+        return null;
+    }
 
     /// -----------------------------------------------------------------------------------------------------
     /* Core utils */
@@ -90,6 +132,7 @@ var Utils = (function () {
 
     /// -----------------------------------------------------------------------------------------------------
     /* Colors utils */
+    /// -----------------------------------------------------------------------------------------------------
     Utils.HexToRGBColor = function (hexColor) {
         if (hexColor == '#null')
             return null;
@@ -110,6 +153,7 @@ var Utils = (function () {
 
     /// -----------------------------------------------------------------------------------------------------
     /* Textures utils */
+    /// -----------------------------------------------------------------------------------------------------
     Utils.GetTextureFromName = function (name, scene) {
         for (var i = 0; i < scene.textures.length; i++) {
             if (scene.textures[i].name == name) {
@@ -151,9 +195,8 @@ var Utils = (function () {
     /// -----------------------------------------------------------------------------------------------------
 
     /// -----------------------------------------------------------------------------------------------------
-
-    /// -----------------------------------------------------------------------------------------------------
     /* Events utils */
+    /// -----------------------------------------------------------------------------------------------------
     Utils.sendEventObjectAdded = function (object, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.SceneEvent;

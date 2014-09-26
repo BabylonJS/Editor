@@ -19,6 +19,7 @@ var Plugin = (function () {
 
     Plugin.prototype.close = function () {
         this.core.removeEventReceiver(this);
+        this.core.removeCustomUpdate(this);
         delete this; /// Right in JS ?
     }
 
