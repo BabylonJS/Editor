@@ -21,7 +21,6 @@ var Core = (function () {
 
         /// Array that contains all the instances that need to be updated.
         /// Just declare "update" in your prototype
-        /// 
         /// It also allows you to create elements with custom behaviors like the
         /// BabylonEditorTransformer object that must draw its own scene
         this.customUpdates = new Array();
@@ -32,6 +31,10 @@ var Core = (function () {
         /// Each class you add to this array must implement
         /// myClass.prototype.onEvent = function(event);
         this.eventReceivers = new Array();
+
+        /// Class that handle custom datas like material shaders with
+        /// custom vertex, pixel, builds and callbacks programs etc.
+        this.coreData = new BABYLON.Editor.CoreData();
 
         this.canvas = null;
         this.engine = null;

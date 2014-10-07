@@ -86,7 +86,7 @@ var BabylonEditor = (function () {
         panel.createTab('GeneralTab', 'General');
         panel.createTab('MaterialTab', 'Material');
 
-        this._layouts.createPanel('BabylonEditorMainToolbar', 'top', 70, true).setContent(
+        this._layouts.createPanel('BabylonEditorMainToolbar', 'top', 70, false).setContent(
               '<div id="BabylonEditorMainToolbar" style="height: 50%"></div>'
             + '<div id="BabylonEditorToolsToolbar" style="height: 50%"></div>'
         );

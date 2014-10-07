@@ -41,7 +41,8 @@ var Editor;
 
         /// Destroy the element
         GUIElement.prototype.destroy = function () {
-            this.element.destroy();
+            if (this.element)
+                this.element.destroy();
             this.element = null;
         }
 

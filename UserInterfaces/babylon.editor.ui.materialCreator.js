@@ -135,6 +135,16 @@ var MaterialCreator = (function (_super) {
                     else if (ev.event.result == 'BuildAll') {
                         this._createMaterial();
                     }
+                    /// Files
+                    else if (ev.event.result == 'MainFiles:save-material') {
+                        this.core.coreData.addMaterial(this._material, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
+                        this._createMaterial(this.core.currentScene);
+                        if (this._material) {
+                            var configuration = this._generalForm.getElements();
+                            this._material.name = configuration['GeneralMaterialName'].value;
+                        }
+                        this._close();
+                    }
                     /// Edit
                     else if (ev.event.result == 'MainEdit:eval-callback') {
                         this._evalCallback();
@@ -191,7 +201,10 @@ var MaterialCreator = (function (_super) {
         this._customUpdate = customBuild.update;
     }
 
-    MaterialCreator.prototype._createMaterial = function () {
+    MaterialCreator.prototype._createMaterial = function (scene) {
+        if (scene == null)
+            scene = this._scene;
+
         var scope = this;
 
         if (this._material) {
@@ -220,7 +233,7 @@ var MaterialCreator = (function (_super) {
         var textures = buildScriptResult.samplers;
 
         /// Compile material
-        this._material = new BABYLON.ShaderMaterial("ShaderMaterial", this._scene,
+        this._material = new BABYLON.ShaderMaterial("ShaderMaterial", scene,
             { vertexElement: "BabylonEditorMaterialEditorVertexCodeZone", fragmentElement: "BabylonEditorMaterialEditorPixelCodeZone" },
             {attributes: attributes, uniforms: uniforms, samplers: textures}
         );
@@ -454,7 +467,7 @@ var MaterialCreator = (function (_super) {
 
         this._generalForm.buildElement('BabylonEditorMaterialEditorOptionsLayoutConfiguration');
 
-        this._generalForm.fillFields([this._material.name]);
+        this._generalForm.fillFields([this._material.name, this._material.backFaceCulling, this._material.wireframe, this._material.alpha]);
 
         /// Textures
         this._texturesForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsTextures', this._core, 'Textures');

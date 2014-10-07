@@ -78,6 +78,14 @@ var Utils = (function () {
         return null;
     }
 
+    Utils.GetMaterialByName = function (name, scene) {
+        for (var i = 0; i < scene.materials.length; i++) {
+            if (scene.materials[i].name == name)
+                return scene.materials[i].name;
+        }
+        return null;
+    }
+
     /// -----------------------------------------------------------------------------------------------------
     /* Core utils */
     /// -----------------------------------------------------------------------------------------------------
