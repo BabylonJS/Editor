@@ -210,7 +210,13 @@ var MaterialCreator = (function (_super) {
 
         var textures = buildScriptResult.samplers;
 
-        var material = new BABYLON.ShaderMaterial("ShaderMaterial", this.core.currentScene,
+        var name = 'ShaderMaterial', it = 0;
+        while (BABYLON.Editor.Utils.GetMaterialByName(name, this.core.currentScene)) {
+            name += it;
+            it++;
+        }
+
+        var material = new BABYLON.ShaderMaterial(name, this.core.currentScene,
             { vertexElement: domElements.vertexShaderId, fragmentElement: domElements.pixelShaderId },
             {attributes: attributes, uniforms: uniforms, samplers: textures}
         );
