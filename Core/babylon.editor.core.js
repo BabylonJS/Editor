@@ -45,8 +45,16 @@ var Core = (function () {
     }
 
     Core.prototype.update = function () {
+        /// Update custom updates
         for (var i = 0; i < this.customUpdates.length; i++) {
             this.customUpdates[i].update();
+        }
+
+        /// Update custom materials
+        for (var i = 0; i < this.coreData.materialShaders.length; i++) {
+            var mat = this.coreData.materialShaders[i];
+            if (mat.update && mat.isUpdating && mat.manager.material)
+                mat.update(mat.manager);
         }
     }
 

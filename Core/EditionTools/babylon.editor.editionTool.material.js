@@ -21,8 +21,12 @@ var EditionToolMaterial = (function () {
         this._removeMaterialButton = null;
         this._addMaterialButton = null;
         this._selectMaterialButton = null;
+
         this._addMaterialWindow = null;
         this._addMaterialList = null;
+
+        this._selectMaterialWindow = null;
+        this._selectMaterialList = null;
 
         this._colorsForm = null;
         this._materialParametersForm = null;
@@ -58,15 +62,30 @@ var EditionToolMaterial = (function () {
                         this.createUI();
                     }
                 }
+                else if (ev.event.caller == this._selectMaterialWindow) {
+                    if (ev.event.result == 'PopupButtonClose') {
+                        this._selectMaterialWindow.close();
+                    } else {
+                        /// Selected...
+                        var index = this._selectMaterialList.getSelected();
+                        this.object.material = this._core.currentScene.materials[index];
+
+                        this._selectMaterialWindow.close();
+                        this.clearUI();
+                        this.createUI();
+                    }
+                }
             }
+
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED) {
                 if (ev.event.caller == this._addMaterialButton) {
                     this._createWindowAddMaterial();
                 } else if (ev.event.caller == this._removeMaterialButton) {
-                    this.object.material.dispose();
                     this.object.material = null;
                     this.clearUI();
                     this.createUI();
+                } else if (ev.event.caller == this._selectMaterialButton) {
+                    this._createWindowSelectMaterial();
                 }
             }
         }
@@ -213,6 +232,22 @@ var EditionToolMaterial = (function () {
         this._addMaterialList.addItem('Standard Material').addItem('Shader Material').addItem('Multi Material');
         this._addMaterialList.buildElement('AddMaterialList');
 
+    }
+
+    EditionToolMaterial.prototype._createWindowSelectMaterial = function () {
+        var body = '<div id="AddMaterial" style="height: 100%">'
+            + '<span class="legend">Type : </span><input type="list" id="SelectMaterialList" style="width: 83%; margin-top: 20px;"></input>'
+            + '</div>';
+
+        this._selectMaterialWindow = new BABYLON.Editor.GUIWindow('BabylonEditorSelectMaterial', this._core, 'Select a material', body, new BABYLON.Vector2(400, 150), ['Select', 'Close']);
+        this._selectMaterialWindow.buildElement();
+
+        this._selectMaterialList = new BABYLON.Editor.GUIList('SelectMaterialList', this._core);
+        //this._addMaterialList.addItem('Standard Material').addItem('Shader Material').addItem('Multi Material');
+        for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+            this._selectMaterialList.addItem(this._core.currentScene.materials[i].name);
+        }
+        this._selectMaterialList.buildElement('SelectMaterialList');
     }
 
     return EditionToolMaterial;

@@ -24,7 +24,7 @@ function createReleaseScene(scene, core) {
     object.material.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, scene, true);
     object.material.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, -1.0, 0, 0.0);
     object.material.reflectionTexture.level = 0.6;
-    object.id = BABYLON.Editor.Utils.generateUUID();
+    object.id = BABYLON.Editor.Utils.GenerateUUID();
     object.isPickable = true;
     object.receiveShadows = true;
     BABYLON.Editor.Utils.sendEventObjectAdded(object, core);
@@ -33,7 +33,7 @@ function createReleaseScene(scene, core) {
     //box.material = createMaterial('sphere1m', './Tests/textures/diffuse.tga');
     box.scaling = new BABYLON.Vector3(4, 4, 4);
     box.position = new BABYLON.Vector3(0, 2, 0);
-    box.id = BABYLON.Editor.Utils.generateUUID();
+    box.id = BABYLON.Editor.Utils.GenerateUUID();
     shadows.getShadowMap().renderList.push(box);
     BABYLON.Editor.Utils.sendEventObjectAdded(box, core);
 
@@ -83,7 +83,7 @@ function createTestScene(scene, core) {
 }
 
 function runPlugin(core) {
-    var plugin = createPlugin();
+    var plugin = createPlugin({});
     plugin.configure(core);
     //delete createPlugin;
 }

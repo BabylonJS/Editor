@@ -57,6 +57,9 @@ var EditionToolGeneral = (function () {
     }
 
     EditionToolGeneral.prototype.applyChanges = function () {
+        if (!this._generalForm) /// Then, nothing loaded
+            return;
+
         /// Get elements of forms
         var general = this._generalForm.getElements();
         var transform = this._transformForm.getElements();

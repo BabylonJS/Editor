@@ -73,7 +73,7 @@ var EditionTool = (function () {
 
             /// Object changed
             else if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
-                if (ev.event.object == this.object) {
+                if (ev.event.object == this.object && this.object) {
                     this._objectChanged();
                 }
             }

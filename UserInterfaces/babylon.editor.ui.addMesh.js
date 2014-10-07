@@ -83,7 +83,7 @@ var AddMesh = (function (_super) {
                             /// Others
                             meshes[j].isPickable = true;
                             meshes[j].position = new BABYLON.Vector3(0, 0, 0);
-                            meshes[j].id = BABYLON.Editor.Utils.generateUUID();
+                            meshes[j].id = BABYLON.Editor.Utils.GenerateUUID();
                             BABYLON.Editor.Utils.sendEventObjectAdded(meshes[j], scope.core);
                         }
                     });

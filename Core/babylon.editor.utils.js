@@ -86,13 +86,35 @@ var Utils = (function () {
         return null;
     }
 
+    Utils.CreateMaterialShaderDiv = function (vertexShader, pixelShader) {
+        var uuid = Utils.GenerateUUID();
+
+        var vertexShaderElement = document.createElement('div');
+        vertexShaderElement.innerHTML = vertexShader;
+        vertexShaderElement.id = uuid;
+
+        uuid = Utils.GenerateUUID();
+        var pixelShaderElement = document.createElement('div');
+        pixelShaderElement.innerHTML = pixelShader;
+        pixelShaderElement.id = String(uuid);
+
+        var e = document.getElementById('BabylonEditorShaders');
+        e.appendChild(vertexShaderElement);
+        e.appendChild(pixelShaderElement);
+
+        return {
+            vertexShaderId: vertexShaderElement.id,
+            pixelShaderId: pixelShaderElement.id
+        }
+    }
+
     /// -----------------------------------------------------------------------------------------------------
     /* Core utils */
     /// -----------------------------------------------------------------------------------------------------
 
     /// Generates an UUID, inspired by
     /// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-    Utils.generateUUID = function () {
+    Utils.GenerateUUID = function () {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         }

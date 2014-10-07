@@ -4,19 +4,6 @@
 var __extends = this.__extends;
 
 var MaterialCreator = (function (_super) {
-    /// Material Creator Manager
-    function MaterialCreatorManager(codeEditor) {
-        this.scene = null;
-        this.material = null;
-
-        this._codeEditor = codeEditor;
-        this._enableLogs = false;
-        this._enableSpies = false;
-    }
-    MaterialCreatorManager.prototype.log = function (text) {
-        if (this._enableLogs)
-            this._codeEditor.setValue(this._codeEditor.getValue() + text + '\n');
-    }
 
     /// Material Creator
     __extends(MaterialCreator, _super);
@@ -137,13 +124,7 @@ var MaterialCreator = (function (_super) {
                     }
                     /// Files
                     else if (ev.event.result == 'MainFiles:save-material') {
-                        this.core.coreData.addMaterial(this._material, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
-                        this._createMaterial(this.core.currentScene);
-                        if (this._material) {
-                            var configuration = this._generalForm.getElements();
-                            this._material.name = configuration['GeneralMaterialName'].value;
-                        }
-                        this._close();
+                        this._createFinalMaterial();
                     }
                     /// Edit
                     else if (ev.event.result == 'MainEdit:eval-callback') {
@@ -181,6 +162,7 @@ var MaterialCreator = (function (_super) {
     }
 
     MaterialCreator.prototype._close = function () {
+        this._object.dispose();
         this._window.close();
     }
 
@@ -201,10 +183,50 @@ var MaterialCreator = (function (_super) {
         this._customUpdate = customBuild.update;
     }
 
-    MaterialCreator.prototype._createMaterial = function (scene) {
-        if (scene == null)
-            scene = this._scene;
+    MaterialCreator.prototype._createFinalMaterial = function () {
+        var scope = this;
 
+        var domElements = BABYLON.Editor.Utils.CreateMaterialShaderDiv(this._vertexShader, this._pixelShader);
+
+        /// Create and store data
+        var manager = new BABYLON.Editor.MaterialManager();
+        manager.scene = scope.core.currentScene;
+        var materialData = this.core.coreData.addMaterial(manager, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
+        materialData.isUpdating = true;
+
+        var buildScriptResult;
+        try {
+            buildScriptResult = eval(this._buildScript);
+        } catch (error) {
+            this._shaderManager.log(error.message);
+            return;
+        }
+
+        var uniforms = ["worldViewProjection"];
+        uniforms.push.apply(uniforms, buildScriptResult.uniforms);
+
+        var attributes = ["position", "uv"];
+        attributes.push.apply(attributes, buildScriptResult.attributes);
+
+        var textures = buildScriptResult.samplers;
+
+        var material = new BABYLON.ShaderMaterial("ShaderMaterial", this.core.currentScene,
+            { vertexElement: domElements.vertexShaderId, fragmentElement: domElements.pixelShaderId },
+            {attributes: attributes, uniforms: uniforms, samplers: textures}
+        );
+
+        this._shaderManager._enableLogs = true;
+        this._shaderManager.log('Creating final material...');
+        this._shaderManager._enableLogs = false;
+
+        material.onCompiled = function (m) {
+            manager.material = m;
+        };
+
+        this._close();
+    }
+
+    MaterialCreator.prototype._createMaterial = function () {
         var scope = this;
 
         if (this._material) {
@@ -233,7 +255,7 @@ var MaterialCreator = (function (_super) {
         var textures = buildScriptResult.samplers;
 
         /// Compile material
-        this._material = new BABYLON.ShaderMaterial("ShaderMaterial", scene,
+        this._material = new BABYLON.ShaderMaterial("ShaderMaterial", this._scene,
             { vertexElement: "BabylonEditorMaterialEditorVertexCodeZone", fragmentElement: "BabylonEditorMaterialEditorPixelCodeZone" },
             {attributes: attributes, uniforms: uniforms, samplers: textures}
         );
@@ -242,10 +264,11 @@ var MaterialCreator = (function (_super) {
         this._material.onError = function (sender, errors) {
             scope._consoleOutput.setValue(scope._consoleOutput.getValue() + errors + '\n', -1);
             scope._material = null;
-        }
+        };
+
         this._material.onCompiled = function () {
             scope._consoleOutput.setValue(scope._consoleOutput.getValue() + 'compiled successfully\n', -1);
-        }
+        };
 
         /// Set up init and update functions
         this._shaderManager.material = this._material;
@@ -384,7 +407,6 @@ var MaterialCreator = (function (_super) {
         this._camera.attachControl(this._canvas, false);
 
         this._object = BABYLON.Mesh.CreateBox("previewObject", 6.0, this._scene);
-
         this._engine.runRenderLoop(function () {
             scope._scene.render();
             if (scope._customUpdate && scope._material)
@@ -436,7 +458,7 @@ var MaterialCreator = (function (_super) {
         });
 
         /// Configure shader manager
-        this._shaderManager = new MaterialCreatorManager(this._consoleOutput);
+        this._shaderManager = new BABYLON.Editor.MaterialCreatorManager(this._consoleOutput);
         this._shaderManager.scene = this._scene;
 
     }
@@ -509,6 +531,6 @@ var MaterialCreator = (function (_super) {
 
 
 this.createPlugin = function (parameters) {
-    return new MaterialCreator();
+    return new MaterialCreator(parameters.material, parameters.object);
 }
 //# sourceMappingURL=babylon.editor.ui.editTextures.js.map

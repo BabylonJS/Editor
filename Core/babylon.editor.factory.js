@@ -16,7 +16,7 @@ var Factory = (function () {
 
 	Factory.addBox = function (core) {
 		var box = BABYLON.Mesh.CreateBox('New Cube', 1, core.currentScene, true);
-		box.id = BABYLON.Editor.Utils.generateUUID();
+		box.id = BABYLON.Editor.Utils.GenerateUUID();
 
 		BABYLON.Editor.Utils.sendEventObjectAdded(box, core);
 		return box;
@@ -24,7 +24,7 @@ var Factory = (function () {
 
 	Factory.addSphere = function (core) {
 		var sphere = BABYLON.Mesh.CreateSphere('New Sphere', 16, 1, core.currentScene, true);
-		sphere.id = BABYLON.Editor.Utils.generateUUID();
+		sphere.id = BABYLON.Editor.Utils.GenerateUUID();
 
 		BABYLON.Editor.Utils.sendEventObjectAdded(sphere, core);
 		return sphere;
@@ -32,7 +32,7 @@ var Factory = (function () {
 
 	Factory.addGround = function (core) {
 		var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, core.currentScene);
-		ground.id = BABYLON.Editor.Utils.generateUUID();
+		ground.id = BABYLON.Editor.Utils.GenerateUUID();
 
 		BABYLON.Editor.Utils.sendEventObjectAdded(ground, core);
 		return ground;
@@ -41,7 +41,7 @@ var Factory = (function () {
 	Factory.addLight = function (core) {
 		var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
 		light.position = new BABYLON.Vector3(0, 200, 0);
-		light.id = BABYLON.Editor.Utils.generateUUID();
+		light.id = BABYLON.Editor.Utils.GenerateUUID();
 
 		BABYLON.Editor.Utils.sendEventObjectAdded(light, core);
 		return light;

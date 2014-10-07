@@ -29,7 +29,7 @@ var Plugin = (function () {
         BABYLON.Tools.LoadFile(path, function (result) {
             eval.call(window, result);
 
-            var plugin = createPlugin(parameters);
+            var plugin = createPlugin(parameters == null ? {} : parameters);
             plugin.configure(core);
             delete createPlugin;
 
