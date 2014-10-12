@@ -28,12 +28,14 @@ var EditionToolMaterial = (function () {
         this._selectMaterialWindow = null;
         this._selectMaterialList = null;
 
+        this._generalForm = null;
         this._colorsForm = null;
         this._materialParametersForm = null;
         this._texturesForm = null;
 
         /// Others
         this._materialForms = [
+            'MainEditObjectMaterialGeneral',
             'MainEditObjectColors',
             'MainEditObjectMaterialParameters',
             'MainEditObjectMaterialTextures'
@@ -92,22 +94,32 @@ var EditionToolMaterial = (function () {
     }
 
     EditionToolMaterial.prototype.applyChanges = function () {
+        if (!this._generalForm)
+            return;
+
         /// Get elements of forms
+        var general = this._generalForm.getElements();
         var colors = this._colorsForm.getElements();
         var parameters = this._materialParametersForm.getElements();
         var textures = this._texturesForm.getElements();
 
-        this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectAmbiantColor'].value);
-        this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectDiffuseColor'].value);
-        this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectSpecularColor'].value);
-        this.object.material.emissiveColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectEmissiveColor'].value);
+        this.object.material.name = general['MainEditObjectMaterialName'].value;
+        this.object.material.alpha = BABYLON.Editor.Utils.toFloat(general['MainEditObjectMaterialAlpha'].value);
+        this.object.material.wireframe = general['MainEditObjectMaterialWireframe'].checked;
+        this.object.material.backFaceCulling = general['MainEditObjectMaterialBFCulling'].checked;
 
-        this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters['MainEditObjectSpecularPower'].value);
-        this.object.material.useAlphaFromDiffuseTexture = parameters['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
+        if (this.object.material instanceof BABYLON.StandardMaterial) {
+            this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectAmbiantColor'].value);
+            this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectDiffuseColor'].value);
+            this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectSpecularColor'].value);
+            this.object.material.emissiveColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectEmissiveColor'].value);
 
-        this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
-        this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+            this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters['MainEditObjectSpecularPower'].value);
+            this.object.material.useAlphaFromDiffuseTexture = parameters['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
 
+            this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
+            this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+        }
     }
 
     EditionToolMaterial.prototype.objectChanged = function () {
@@ -141,33 +153,74 @@ var EditionToolMaterial = (function () {
             BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'BabylonEditorEditObject', true);
 
             /// -----------------------------------------------------------------------------------------------------
-            /// Colors
-            this._colorsForm = new BABYLON.Editor.GUIForm('MainEditObjectColors', this._core, 'Colors');
-            this._colorsForm.createField('MainEditObjectAmbiantColor', 'color', 'Ambiant Color :', 5);
-            this._colorsForm.createField('MainEditObjectDiffuseColor', 'color', 'Diffuse Color :', 5);
-            this._colorsForm.createField('MainEditObjectSpecularColor', 'color', 'Specular Color :', 5);
-            this._colorsForm.createField('MainEditObjectEmissiveColor', 'color', 'Emissive Color :', 5);
+            /// General
+            this._generalForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialGeneral', this._core, 'General');
 
-            this._colorsForm.buildElement('MainEditObjectColors');
+            this._generalForm.createField('MainEditObjectMaterialName', 'text', 'Name : ', 5);
+            this._generalForm.createField('MainEditObjectMaterialAlpha', 'float', 'Alpha :', 5);
+            this._generalForm.createField('MainEditObjectMaterialWireframe', 'checkbox', 'Wireframe :', 5);
+            this._generalForm.createField('MainEditObjectMaterialBFCulling', 'checkbox', 'Backface culling', 5);
 
-            this._colorsForm.fillFields([
-                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.ambiantColor),
-                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.diffuseColor),
-                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.specularColor),
-                BABYLON.Editor.Utils.RGBToHexColor(this.object.material.emissiveColor)
+            this._generalForm.buildElement('MainEditObjectMaterialGeneral');
+
+            this._generalForm.fillFields([
+                this.object.material.name, this.object.material.alpha,
+                this.object.material.wireframe, this.object.material.backFaceCulling
             ]);
             /// -----------------------------------------------------------------------------------------------------
 
-            /// -----------------------------------------------------------------------------------------------------
-            /// Parameters
-            this._materialParametersForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialParameters', this._core, 'Parameters');
-            this._materialParametersForm.createField('MainEditObjectSpecularPower', 'text', 'Specular Power :', 5);
-            this._materialParametersForm.createField('MainEditObjectUseAlphaFromDiffuseTexture', 'checkbox', 'Use Alpha :', 5);
+            if (this.object.material && this.object.material instanceof BABYLON.StandardMaterial) {
+                /// -----------------------------------------------------------------------------------------------------
+                /// Colors
+                this._colorsForm = new BABYLON.Editor.GUIForm('MainEditObjectColors', this._core, 'Colors');
+                this._colorsForm.createField('MainEditObjectAmbiantColor', 'color', 'Ambiant Color :', 5);
+                this._colorsForm.createField('MainEditObjectDiffuseColor', 'color', 'Diffuse Color :', 5);
+                this._colorsForm.createField('MainEditObjectSpecularColor', 'color', 'Specular Color :', 5);
+                this._colorsForm.createField('MainEditObjectEmissiveColor', 'color', 'Emissive Color :', 5);
 
-            this._materialParametersForm.buildElement('MainEditObjectMaterialParameters');
+                this._colorsForm.buildElement('MainEditObjectColors');
 
-            this._materialParametersForm.fillFields([this.object.material.specularPower, this.object.material.useAlphaFromDiffuseTexture]);
-            /// -----------------------------------------------------------------------------------------------------
+                this._colorsForm.fillFields([
+                    BABYLON.Editor.Utils.RGBToHexColor(this.object.material.ambiantColor),
+                    BABYLON.Editor.Utils.RGBToHexColor(this.object.material.diffuseColor),
+                    BABYLON.Editor.Utils.RGBToHexColor(this.object.material.specularColor),
+                    BABYLON.Editor.Utils.RGBToHexColor(this.object.material.emissiveColor)
+                ]);
+                /// -----------------------------------------------------------------------------------------------------
+
+                /// -----------------------------------------------------------------------------------------------------
+                /// Parameters
+                this._materialParametersForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialParameters', this._core, 'Parameters');
+                this._materialParametersForm.createField('MainEditObjectSpecularPower', 'text', 'Specular Power :', 5);
+                this._materialParametersForm.createField('MainEditObjectUseAlphaFromDiffuseTexture', 'checkbox', 'Use Alpha :', 5);
+
+                this._materialParametersForm.buildElement('MainEditObjectMaterialParameters');
+
+                this._materialParametersForm.fillFields([this.object.material.specularPower, this.object.material.useAlphaFromDiffuseTexture]);
+                /// -----------------------------------------------------------------------------------------------------
+
+                /// -----------------------------------------------------------------------------------------------------
+                /// Textures
+                var textures = new Array();
+                textures.push('None');
+                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    var tex = this._core.currentScene.textures[i];
+                    textures.push(tex.name);
+                }
+
+                this._texturesForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialTextures', this._core, 'Textures');
+
+                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5);
+                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5);
+
+                this._texturesForm.buildElement('MainEditObjectMaterialTextures');
+
+                this._texturesForm.fillFields([
+                    BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
+                    BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture)
+                ]);
+                /// -----------------------------------------------------------------------------------------------------
+            }
 
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'BabylonEditorEditObject', false);
             this._removeMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectRemoveMaterial', 'EditionRemoveMaterial',
@@ -177,32 +230,12 @@ var EditionToolMaterial = (function () {
                 }, false
             );
 
-            /// -----------------------------------------------------------------------------------------------------
-            /// Textures
-            var textures = new Array();
-            textures.push('None');
-            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                var tex = this._core.currentScene.textures[i];
-                textures.push(tex.name);
-            }
-
-            this._texturesForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialTextures', this._core, 'Textures');
-
-            this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5);
-            this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5);
-
-            this._texturesForm.buildElement('MainEditObjectMaterialTextures');
-
-            this._texturesForm.fillFields([
-                BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
-                BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture)
-            ]);
-            /// -----------------------------------------------------------------------------------------------------
-
         }
     }
 
     EditionToolMaterial.prototype.clearUI = function () {
+        if (this._generalForm)
+            this._generalForm.destroy();
         if (this._colorsForm)
             this._colorsForm.destroy();
         if (this._materialParametersForm)

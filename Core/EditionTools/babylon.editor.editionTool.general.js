@@ -88,6 +88,12 @@ var EditionToolGeneral = (function () {
                 BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformScaleY'].value),
                 BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformScaleZ'].value)
             );
+        } else if (this.object.direction) {
+            this.object.direction = new BABYLON.Vector3(
+                BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformDirectionX'].value),
+                BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformDirectionY'].value),
+                BABYLON.Editor.Utils.toFloat(transform['MainEditMeshTransformDirectionZ'].value)
+            );
         }
 
         /// Options
@@ -95,6 +101,10 @@ var EditionToolGeneral = (function () {
             this.object.isVisible = options['MainEditMeshOptionsVisible'].checked;
             this.object.infiniteDistance = options['MainEditMeshOptionsInfiniteDistance'].checked;
             this.object.checkCollisions = options['MainEditMeshOptionsCheckCollisions'].checked;
+        } else if (this.object.direction) { /// It is a light
+            this.object.intensity = BABYLON.Editor.Utils.toFloat(options['MainEditMeshOptionsIntensity'].value);
+            this.object.diffuse = BABYLON.Editor.Utils.HexToRGBColor(options['MainEditMeshOptionsDiffuseColor'].value);
+            this.object.specular = BABYLON.Editor.Utils.HexToRGBColor(options['MainEditMeshOptionsSpecularColor'].value);
         }
 
         /// Rendering
@@ -121,6 +131,8 @@ var EditionToolGeneral = (function () {
         if (this.object instanceof BABYLON.Mesh) {
             BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformRotationX', 'MainEditMeshTransformRotationY', 'MainEditMeshTransformRotationZ'], this.object.rotation);
             BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformScaleX', 'MainEditMeshTransformScaleY', 'MainEditMeshTransformScaleZ'], this.object.scaling);
+        } else if (this.object.direction) {
+            BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformDirectionX', 'MainEditMeshTransformDirectionY', 'MainEditMeshTransformDirectionZ'], this.object.direction);
         }
         this._transformForm.refresh();
     }
@@ -145,17 +157,21 @@ var EditionToolGeneral = (function () {
         /// Transforms
         this._transformForm = new BABYLON.Editor.GUIForm('MainEditObjectTransform', this._core, 'Transforms');
 
-        this._transformForm.createField('MainEditObjectTransformPositionX', 'float', 'Position :', 3, '<img src="UI/images/position.png"></img>');
-        this._transformForm.createField('MainEditObjectTransformPositionY', 'float', ' ', 3);
-        this._transformForm.createField('MainEditObjectTransformPositionZ', 'float', ' ', 3);
+        this._transformForm.createField('MainEditObjectTransformPositionX', 'float', 'Position :', 3, '<a>x</a><img src="UI/images/position.png"></img>');
+        this._transformForm.createField('MainEditObjectTransformPositionY', 'float', ' ', 3, '<a>y</a>');
+        this._transformForm.createField('MainEditObjectTransformPositionZ', 'float', ' ', 3, '<a>z</a>');
         if (this.object instanceof BABYLON.Mesh) {
-            this._transformForm.createField('MainEditMeshTransformRotationX', 'float', 'Rotation :', 3, '<img src="UI/images/rotation.png"></img>');
-            this._transformForm.createField('MainEditMeshTransformRotationY', 'float', ' ', 3);
-            this._transformForm.createField('MainEditMeshTransformRotationZ', 'float', ' ', 3);
+            this._transformForm.createField('MainEditMeshTransformRotationX', 'float', 'Rotation :', 3, '<a>x</a><img src="UI/images/rotation.png"></img>');
+            this._transformForm.createField('MainEditMeshTransformRotationY', 'float', ' ', 3, '<a>y</a>');
+            this._transformForm.createField('MainEditMeshTransformRotationZ', 'float', ' ', 3, '<a>z</a>');
 
-            this._transformForm.createField('MainEditMeshTransformScaleX', 'float', 'Scaling :', 3, '<img src="UI/images/scale.png"></img>');
-            this._transformForm.createField('MainEditMeshTransformScaleY', 'float', ' ', 3);
-            this._transformForm.createField('MainEditMeshTransformScaleZ', 'float', ' ', 3);
+            this._transformForm.createField('MainEditMeshTransformScaleX', 'float', 'Scaling :', 3, '<a>x</a><img src="UI/images/scale.png"></img>');
+            this._transformForm.createField('MainEditMeshTransformScaleY', 'float', ' ', 3, '<a>y</a>');
+            this._transformForm.createField('MainEditMeshTransformScaleZ', 'float', ' ', 3, '<a>z</a>');
+        } else if (this.object.direction) { // it is a light with a direction (spot, directional, etc.)
+            this._transformForm.createField('MainEditMeshTransformDirectionX', 'float', 'Direction', 3, '<a>x</a><img src="UI/images/directional_light.png"></img>');
+            this._transformForm.createField('MainEditMeshTransformDirectionY', 'float', ' ', 3, '<a>y</a>');
+            this._transformForm.createField('MainEditMeshTransformDirectionZ', 'float', ' ', 3, '<a>z</a>');
         }
 
         this._transformForm.buildElement('MainEditObjectTransform');
@@ -164,6 +180,8 @@ var EditionToolGeneral = (function () {
         if (this.object instanceof BABYLON.Mesh) {
             BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformRotationX', 'MainEditMeshTransformRotationY', 'MainEditMeshTransformRotationZ'], this.object.rotation);
             BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformScaleX', 'MainEditMeshTransformScaleY', 'MainEditMeshTransformScaleZ'], this.object.scaling);
+        } else if (this.object.direction) {
+            BABYLON.Editor.GUIForm.UpdateFieldsFromVector3(this._transformForm, ['MainEditMeshTransformDirectionX', 'MainEditMeshTransformDirectionY', 'MainEditMeshTransformDirectionZ'], this.object.direction);
         }
 
         /// -----------------------------------------------------------------------------------------------------
@@ -176,11 +194,23 @@ var EditionToolGeneral = (function () {
             this._optionsForm.createField('MainEditMeshOptionsVisible', 'checkbox', 'Visible :', 6);
             this._optionsForm.createField('MainEditMeshOptionsInfiniteDistance', 'checkbox', 'Infinite Distance :', 6);
             this._optionsForm.createField('MainEditMeshOptionsCheckCollisions', 'checkbox', 'Check Collisions :', 6);
+        } else if (this.object instanceof BABYLON.Light) {
+            this._optionsForm.createField('MainEditMeshOptionsIntensity', 'float', 'Intensity :', 4);
+
+            this._optionsForm.createField('MainEditMeshOptionsDiffuseColor', 'color', 'Diffuse Color :', 4, '<img src="UI/images/diffuse_color.png"></img>');
+            this._optionsForm.createField('MainEditMeshOptionsSpecularColor', 'color', 'Specular Color :', 4, '<img src="UI/images/diffuse_color.png"></img>');
         }
 
         this._optionsForm.buildElement('MainEditObjectOptions');
 
-        this._optionsForm.fillFields([this.object.isVisible, this.object.infiniteDistance, this.object.checkCollisions]);
+        if (this.object instanceof BABYLON.Mesh)
+            this._optionsForm.fillFields([this.object.isVisible, this.object.infiniteDistance, this.object.checkCollisions]);
+        else if (this.object.direction)
+            this._optionsForm.fillFields([
+                this.object.intensity,
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.diffuse, false),
+                BABYLON.Editor.Utils.RGBToHexColor(this.object.specular, false)
+            ]);
         /// -----------------------------------------------------------------------------------------------------
 
         /// -----------------------------------------------------------------------------------------------------

@@ -244,7 +244,10 @@ var Editor;
                     } else if (this._transformerType == BabylonEditorTransformerType.Scaling) {
                         this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.scaling);
                     } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
-                        this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.rotation);
+                        if (this._nodeToTransform.rotation)
+                            this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.rotation);
+                        else if (this._nodeToTransform.direction)
+                            this._mousePosition = this._mousePosition.subtract(this._nodeToTransform.direction);
                     }
                     /// change color of the selected transformer
                     this._pickedInfos.pickedMesh.material.emissiveColor
@@ -280,12 +283,22 @@ var Editor;
             /// Update rotation
             } else if (this._transformerType == BabylonEditorTransformerType.Rotation) {
                 if (this._findMousePositionInPlane(this._pickedInfos)) {
-                    if (this._selectedTransform == 'x')
-                        this._nodeToTransform.rotation.x = (this._mousePositionInPlane.x - this._mousePosition.x);
-                    else if (this._selectedTransform == 'y')
-                        this._nodeToTransform.rotation.y = (this._mousePositionInPlane.y - this._mousePosition.y);
-                    else if (this._selectedTransform == 'z')
-                        this._nodeToTransform.rotation.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+                    if (this._selectedTransform == 'x') {
+                        if (this._nodeToTransform.rotation)
+                            this._nodeToTransform.rotation.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                        else if (this._nodeToTransform.direction)
+                            this._nodeToTransform.direction.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                    } else if (this._selectedTransform == 'y') {
+                        if (this._nodeToTransform.rotation)
+                            this._nodeToTransform.rotation.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                        else if (this._nodeToTransform.direction)
+                            this._nodeToTransform.direction.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                    } else if (this._selectedTransform == 'z') {
+                        if (this._nodeToTransform.rotation)
+                            this._nodeToTransform.rotation.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+                        else if (this._nodeToTransform.direction)
+                            this._nodeToTransform.direction.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+                    }
                 }
             }
 
@@ -303,7 +316,9 @@ var Editor;
 
             if (this._transformerType == BabylonEditorTransformerType.Position) {
                 this._setTransformersEnabled([this._positionTransformerX, this._positionTransformerY, this._positionTransformerZ], true);
-            } else if (this._transformerType == BabylonEditorTransformerType.Rotation && this._nodeToTransform instanceof BABYLON.AbstractMesh) {
+            } else if (this._transformerType == BabylonEditorTransformerType.Rotation
+                       && (this._nodeToTransform.rotation || this._nodeToTransform.direction))
+            {
                 this._setTransformersEnabled([this._rotationTransformerX, this._rotationTransformerY, this._rotationTransformerZ], true);
             } else if (this._transformerType == BabylonEditorTransformerType.Scaling && this._nodeToTransform instanceof BABYLON.AbstractMesh) {
                 this._setTransformersEnabled([this._scalingTransformerX, this._scalingTransformerY, this._scalingTransformerZ], true);

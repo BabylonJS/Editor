@@ -101,8 +101,12 @@ var BabylonEditor = (function () {
         var scope = this;
 
         /// FIXME: Must work on IE
-        canvas.addEventListener('dblclick', function(event) {
-            scope._core.getPickedMesh(event, true);
+        canvas.addEventListener('dblclick', function (event) {
+            scope._core.getPickedMesh({
+                layerX: scope._core.currentScene.pointerX,
+                layerY: scope._core.currentScene.pointerY
+            }, true);
+            //scope._core.getPickedMesh(event, true);
         });
 
         /// FIXME: events don't necessary call function(target, eventData);
