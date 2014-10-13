@@ -1,4 +1,4 @@
-﻿/// <reference path="./index.html" />
+﻿// <reference path="./index.html" />
 
 var BABYLON;
 (function (BABYLON) { /// namespace BAYBLON
@@ -82,7 +82,7 @@ var BabylonEditor = (function () {
 
         /// Create panels
         this._layouts = new BABYLON.Editor.GUILayout('BabylonEditorMainLayout', core);
-        var panel = this._layouts.createPanel('BabylonEditorEditionTool', 'left', 350, true).setContent('<div id="BabylonEditorEditObject"></div>');
+        var panel = this._layouts.createPanel('BabylonEditorEditionTool', 'left', 380, true).setContent('<div id="BabylonEditorEditObject"></div>');
         panel.createTab('GeneralTab', 'General');
         panel.createTab('MaterialTab', 'Material');
 
@@ -106,7 +106,14 @@ var BabylonEditor = (function () {
                 layerX: scope._core.currentScene.pointerX,
                 layerY: scope._core.currentScene.pointerY
             }, true);
-            //scope._core.getPickedMesh(event, true);
+        });
+        /*window.addEventListener('keydown', function (key) {
+            if (key.which == 27) /// Escape
+                BABYLON.Editor.Utils.ExitFullScreen(scope.engine, canvas);
+        }, true);*/
+        BabylonEditorUICreator.bindEvent(document, 'webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', function (event) {
+            if (scope.engine.isFullscreen)
+                BABYLON.Editor.Utils.ExitFullScreen(scope.engine, canvas);
         });
 
         /// FIXME: events don't necessary call function(target, eventData);

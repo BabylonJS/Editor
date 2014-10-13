@@ -62,6 +62,11 @@
     background: url("images/abstract_mesh.png");
 }
 
+/* Game */
+.w2ui-icon.icon-play-game {
+    background: url("images/play_game.png");
+}
+
 /* CSS */
 .block {
     padding-top: 20px; 

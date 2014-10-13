@@ -51,6 +51,11 @@ BabylonEditorUICreator.addEvent = function(element, event, callback) {
     });
 }
 
+/// Bind events using jQuery
+BabylonEditorUICreator.bindEvent = function (element, event, callback) {
+    $(element).bind(event, callback);
+}
+
 /// Create a custom type
 BabylonEditorUICreator.createCustomField = function (element, name, field, core, callback, before) {
     var caller = null;

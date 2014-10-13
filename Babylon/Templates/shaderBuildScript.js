@@ -8,6 +8,7 @@
     attributes.push('normal');
 
     samplers.push('textureSampler');
+    samplers.push('otherSampler');
 
     uniforms.push('time');
 

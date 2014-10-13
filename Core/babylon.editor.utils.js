@@ -121,6 +121,17 @@ var Utils = (function () {
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
 
+    Utils.ExitFullScreen = function (engine, canvas) {
+        var domElement = document.getElementById('layout_BabylonEditorMainLayout_panel_main');
+        for (var i = 0; i < domElement.children.length; i++) {
+            if (domElement.children[i].className == 'w2ui-panel-content') {
+                domElement.children[i].appendChild(canvas);
+                engine.resize();
+                break;
+            }
+        }
+    }
+
     Utils.isObjectCastingShadows = function (object, scene) {        
         return Utils._applyShadows(object, scene, { checkCast: true });
     }
@@ -220,6 +231,13 @@ var Utils = (function () {
             BABYLON.Tools.ReadFile(file, cb(name), null, true);
         else
             BABYLON.Tools.ReadFileAsDataURL(file, cb(name), null);
+    }
+
+    Utils.GetTextureScale = function (tex) {
+        if (tex)
+            return { u: tex.uScale, v: tex.vScale };
+        else
+            return { u: null, v: null };
     }
 
     /// -----------------------------------------------------------------------------------------------------

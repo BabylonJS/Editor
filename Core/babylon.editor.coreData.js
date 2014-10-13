@@ -73,10 +73,20 @@ var CoreData = (function () {
         this.materialShaders = new Array();
     }
 
+    /// Materials
     CoreData.prototype.addMaterial = function (manager, vertexProgram, pixelProgram, buildScript, callbackScript) {
         var m = new CoreDataMaterialShader(manager, vertexProgram, pixelProgram, buildScript, callbackScript);
         this.materialShaders.push(m);
         return m;
+    }
+    CoreData.prototype.getMaterialDataByRef = function (material) {
+        for (var i=0; i < this.materialShaders.length; i++) {
+            if (this.materialShaders[i].manager.material == material) {
+                return this.materialShaders[i];
+            }
+        }
+
+        return null;
     }
 
     return CoreData;

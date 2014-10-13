@@ -35,10 +35,17 @@ var Editor;
                             this._toolbar.setItemChecked(ev.event.result, !checked);
                             /// Set transformer
                             this.setTransformer(checked ? null : ev.event.result);
-                        } else if (ev.event.result == 'MainAddMesh') {
+                        }
+                        else if (ev.event.result == 'MainAddMesh') {
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.addMesh.js', this._core);
                         }
-                            /// MainEdit
+                        else if (ev.event.result == 'MainPlayGame') {
+                            this._core.engine.switchFullscreen(true);
+                            document.body.appendChild(this._core.canvas);
+                            this._core.engine.resize();
+                        }
+
+                        /// MainEdit
                         else if (ev.event.result == 'MainEdit:edit-textures') {
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', this._core);
                         }
@@ -105,6 +112,10 @@ var Editor;
             this._toolbar.createMenu('button', 'MainPosition', '', 'icon-position');
             this._toolbar.createMenu('button', 'MainRotation', '', 'icon-rotation');
             this._toolbar.createMenu('button', 'MainScale', '', 'icon-scale');
+
+            this._toolbar.createMenu('break');
+
+            this._toolbar.createMenu('button', 'MainPlayGame', 'Play Game', 'icon-play-game');
 
             this._toolbar.buildElement('BabylonEditorMainToolbar');
 

@@ -37,6 +37,7 @@ var Core = (function () {
         this.coreData = new BABYLON.Editor.CoreData();
 
         this.canvas = null;
+
         this.engine = null;
         this.currentScene = null;
         this.transformer = null;
@@ -53,8 +54,9 @@ var Core = (function () {
         /// Update custom materials
         for (var i = 0; i < this.coreData.materialShaders.length; i++) {
             var mat = this.coreData.materialShaders[i];
-            if (mat.update && mat.isUpdating && mat.manager.material)
+            if (mat.update && mat.isUpdating && mat.manager.material) {
                 mat.update(mat.manager);
+            }
         }
     }
 

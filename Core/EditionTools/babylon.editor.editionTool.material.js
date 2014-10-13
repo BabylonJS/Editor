@@ -99,8 +99,6 @@ var EditionToolMaterial = (function () {
 
         /// Get elements of forms
         var general = this._generalForm.getElements();
-        var colors = this._colorsForm.getElements();
-        var parameters = this._materialParametersForm.getElements();
         var textures = this._texturesForm.getElements();
 
         this.object.material.name = general['MainEditObjectMaterialName'].value;
@@ -109,6 +107,9 @@ var EditionToolMaterial = (function () {
         this.object.material.backFaceCulling = general['MainEditObjectMaterialBFCulling'].checked;
 
         if (this.object.material instanceof BABYLON.StandardMaterial) {
+            var colors = this._colorsForm.getElements();
+            var parameters = this._materialParametersForm.getElements();
+
             this.object.material.ambiantColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectAmbiantColor'].value);
             this.object.material.diffuseColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectDiffuseColor'].value);
             this.object.material.specularColor = BABYLON.Editor.Utils.HexToRGBColor('#' + colors['MainEditObjectSpecularColor'].value);
@@ -119,6 +120,22 @@ var EditionToolMaterial = (function () {
 
             this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
             this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+
+            /// Update diffuse and normal textures scales
+            this._texturesForm.fillSpecifiedFields([
+                'MainEditObjectMaterialTexturesDiffuseUVX', 'MainEditObjectMaterialTexturesDiffuseUVY',
+                'MainEditObjectMaterialTexturesNormalUVX', 'MainEditObjectMaterialTexturesNormalUVY'
+            ], [
+                BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).v,
+                BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).v,
+            ]);
+        }
+        else if (this.object.material instanceof BABYLON.ShaderMaterial) {
+            //MainEditObjectMaterialShaderSamplers
+            for (var i = 0; i < this.object.material._options.samplers.length; i++) {
+                var samplername = this.object.material._options.samplers[i];
+                this.object.material.setTexture(samplername, BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialShaderSamplers' + samplername].value, this._core.currentScene));
+            }
         }
     }
 
@@ -136,7 +153,7 @@ var EditionToolMaterial = (function () {
 
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial', 'MainEditorEditObjectSelectMaterial'], 'BabylonEditorEditObject', false);
             this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
-                '<button type="button" id="EditionAddMaterial" style="width: 100%;">Add one...</button>',
+                '<button type="button" id="EditionAddMaterial" style="width: 100%;">Create one...</button>',
                 this.core, function (event) {
                     BABYLON.Editor.Utils.sendEventButtonClicked(scope._addMaterialButton, scope._core);
                 }, false
@@ -167,9 +184,18 @@ var EditionToolMaterial = (function () {
                 this.object.material.name, this.object.material.alpha,
                 this.object.material.wireframe, this.object.material.backFaceCulling
             ]);
+
+            /// Get textures in an array
+            var textures = new Array();
+            textures.push('None');
+            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                var tex = this._core.currentScene.textures[i];
+                textures.push(tex.name);
+            }
+
             /// -----------------------------------------------------------------------------------------------------
 
-            if (this.object.material && this.object.material instanceof BABYLON.StandardMaterial) {
+            if (this.object.material instanceof BABYLON.StandardMaterial) {
                 /// -----------------------------------------------------------------------------------------------------
                 /// Colors
                 this._colorsForm = new BABYLON.Editor.GUIForm('MainEditObjectColors', this._core, 'Colors');
@@ -201,25 +227,45 @@ var EditionToolMaterial = (function () {
 
                 /// -----------------------------------------------------------------------------------------------------
                 /// Textures
-                var textures = new Array();
-                textures.push('None');
-                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    var tex = this._core.currentScene.textures[i];
-                    textures.push(tex.name);
-                }
-
                 this._texturesForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialTextures', this._core, 'Textures');
 
-                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 5);
-                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 5);
+                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesDiffuse', 'list', 'Diffuse Texture :', textures, 4);
+                this._texturesForm.createFieldWithItems('MainEditObjectMaterialTexturesNormal', 'list', 'Normal Texture :', textures, 4);
+
+                this._texturesForm.createField('MainEditObjectMaterialTexturesDiffuseUVX', 'float', 'Diffuse UV scale :', 4, '<a>x</a>');
+                this._texturesForm.createField('MainEditObjectMaterialTexturesDiffuseUVY', 'float', ' ', 4, '<a>y</a>');
+                this._texturesForm.createField('MainEditObjectMaterialTexturesNormalUVX', 'float', 'Normal UV scale :', 4, '<a>x</a>');
+                this._texturesForm.createField('MainEditObjectMaterialTexturesNormalUVY', 'float', ' ', 4, '<a>y</a>');
 
                 this._texturesForm.buildElement('MainEditObjectMaterialTextures');
 
                 this._texturesForm.fillFields([
                     BABYLON.Editor.Utils.GetTextureName(this.object.material.diffuseTexture),
-                    BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture)
+                    BABYLON.Editor.Utils.GetTextureName(this.object.material.bumpTexture),
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).u,
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).v,
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).u,
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).v,
                 ]);
                 /// -----------------------------------------------------------------------------------------------------
+            }
+            else if (this.object.material instanceof BABYLON.ShaderMaterial) {
+                /// Textures
+                this._texturesForm = new BABYLON.Editor.GUIForm('MainEditObjectMaterialTextures', this._core, 'Textures');
+
+                for (var i = 0; i < this.object.material._options.samplers.length; i++) {
+                    this._texturesForm.createFieldWithItems('MainEditObjectMaterialShaderSamplers' + this.object.material._options.samplers[i],
+                        'list', this.object.material._options.samplers[i], textures, 5
+                    );
+                }
+
+                this._texturesForm.buildElement('MainEditObjectMaterialTextures');
+
+                var fields = new Array();
+                for (var i = 0; i < this.object.material._options.samplers.length; i++) {
+                    fields.push(BABYLON.Editor.Utils.GetTextureName(this.object.material._textures[this.object.material._options.samplers[i]]));
+                }
+                this._texturesForm.fillFields(fields);
             }
 
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectRemoveMaterial'], 'BabylonEditorEditObject', false);

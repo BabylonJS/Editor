@@ -410,6 +410,7 @@ var Editor;
             for (var i = 0; i < fields.length; i++) {
                 this.element.record[fields[i]] = parameters[i];
             }
+            this.element.render();
         }
         GUIForm.prototype.setFieldChecked = function (field, checked) {
             var f = this.getElements();

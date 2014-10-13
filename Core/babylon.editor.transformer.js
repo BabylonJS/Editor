@@ -90,48 +90,50 @@ var Editor;
         }
 
         Transformer.prototype.update = function () {
-            this._scene.activeCamera = this._core.currentScene.activeCamera;
+            if (!this._core.engine.isFullscreen) {
+                this._scene.activeCamera = this._core.currentScene.activeCamera;
 
-            if (this._nodeToTransform != null) {
-                if (this._nodeToTransform instanceof BABYLON.AbstractMesh) {
-                    this._nodeToTransform.computeWorldMatrix(true);
-                    this._positionTransformerX.position = this._nodeToTransform.position.clone();
-                } else {
-                    this._positionTransformerX.position = this._nodeToTransform.position.clone();
+                if (this._nodeToTransform != null) {
+                    if (this._nodeToTransform instanceof BABYLON.AbstractMesh) {
+                        this._nodeToTransform.computeWorldMatrix(true);
+                        this._positionTransformerX.position = this._nodeToTransform.position.clone();
+                    } else {
+                        this._positionTransformerX.position = this._nodeToTransform.position.clone();
+                    }
+
+                    /// Update transformers scales
+                    var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._positionTransformerX.position) * 0.03;
+                    var transform = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
+                    this._transform.x = transform.x;
+                    this._transform.y = transform.y;
+                    this._transform.z = transform.z;
+
+                    /// Update transformers
+                    /// Position
+                    this._positionTransformerY.position = this._positionTransformerX.position.clone();
+                    this._positionTransformerZ.position = this._positionTransformerX.position.clone();
+                    this._positionTransformerY.position.y += distance * 1.3;
+                    this._positionTransformerZ.position.z += distance * 1.3;
+                    this._positionTransformerX.position.x += distance * 1.3;
+
+                    /// Rotation
+                    this._rotationTransformerX.position = this._nodeToTransform.position;
+                    this._rotationTransformerY.position = this._nodeToTransform.position;
+                    this._rotationTransformerZ.position = this._nodeToTransform.position;
+
+                    /// Scaling
+                    this._scalingTransformerX.position = this._positionTransformerX.position.clone();
+                    this._scalingTransformerY.position = this._positionTransformerY.position.clone();
+                    this._scalingTransformerZ.position = this._positionTransformerZ.position.clone();
+
+                    if (this._mouseDown)
+                        this._updateTransform(distance);
+                    else
+                        this._highlightTransformer();
+
+                    /// Finish
+                    this._scene.render();
                 }
-
-                /// Update transformers scales
-                var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._positionTransformerX.position) * 0.03;
-                var transform = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
-                this._transform.x = transform.x;
-                this._transform.y = transform.y;
-                this._transform.z = transform.z;
-
-                /// Update transformers
-                /// Position
-                this._positionTransformerY.position = this._positionTransformerX.position.clone();
-                this._positionTransformerZ.position = this._positionTransformerX.position.clone();
-                this._positionTransformerY.position.y += distance * 1.3;
-                this._positionTransformerZ.position.z += distance * 1.3;
-                this._positionTransformerX.position.x += distance * 1.3;
-
-                /// Rotation
-                this._rotationTransformerX.position = this._nodeToTransform.position;
-                this._rotationTransformerY.position = this._nodeToTransform.position;
-                this._rotationTransformerZ.position = this._nodeToTransform.position;
-
-                /// Scaling
-                this._scalingTransformerX.position = this._positionTransformerX.position.clone();
-                this._scalingTransformerY.position = this._positionTransformerY.position.clone();
-                this._scalingTransformerZ.position = this._positionTransformerZ.position.clone();
-
-                if (this._mouseDown)
-                    this._updateTransform(distance);
-                else
-                    this._highlightTransformer();
-
-                /// Finish
-                this._scene.render();
             }
         }
 

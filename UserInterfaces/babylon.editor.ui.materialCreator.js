@@ -132,7 +132,7 @@ var MaterialCreator = (function (_super) {
                     }
                     else if (ev.event.result == 'MainEdit:set-custom-texture') {
                         var scope = this;
-                        this._imageSelector = BabylonEditorUICreator.createFileSelector();
+                        this._imageSelector = BabylonEditorUICreator.createFileSelector(true);
                         this._imageSelector.onchange = function (event) {
                             for (var i = 0; i < event.target.files.length; i++) {
                                 var file = event.target.files[i];
@@ -221,12 +221,14 @@ var MaterialCreator = (function (_super) {
             {attributes: attributes, uniforms: uniforms, samplers: textures}
         );
 
+        manager.material = material;
+
         this._shaderManager._enableLogs = true;
         this._shaderManager.log('Creating final material...');
         this._shaderManager._enableLogs = false;
 
         material.onCompiled = function (m) {
-            manager.material = m;
+
         };
 
         this._close();
