@@ -40,7 +40,7 @@ var EditTextures = (function (_super) {
                             this._currentTexture.dispose();
 
                         var tex = this.core.currentScene.textures[ev.event.result];
-                        this._currentTexture = new BABYLON.Texture(tex.url, this._scene, tex._noMipMap, tex.invertY, tex._samplingMode, tex._buffer);
+                        this._currentTexture = new BABYLON.Texture(tex.url, this._scene, tex._noMipMap, tex.invertY, tex._samplingMode, null, null, tex._buffer);
                         this._plane.material.diffuseTexture = this._currentTexture;
                     }
                 }
@@ -55,9 +55,11 @@ var EditTextures = (function (_super) {
 
                 if (ev.event.caller == this._textureFiles) {
                     var scope = this;
-                    for (var i = 0; i < ev.event.result.target.files.length; i++) {
+                    var files = ev.event.result.target.files || ev.event.result.currentTarget.files;
 
-                        var file = ev.event.result.target.files[i];
+                    for (var i = 0; i < files.length; i++) {
+
+                        var file = files[i];
                         var name = file.name;
                         var extension = name.substr(name.length - 4, 4).toLowerCase();
                         var isDDS = this._engine.getCaps().s3tc && (extension === ".dds");
@@ -66,7 +68,7 @@ var EditTextures = (function (_super) {
                         var callback = function (name) {
                             return function (result) {
                                 var url = 'data:' + name + ':';
-                                var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
+                                var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, null, null, result);
                                 tex.name = name;
                                 scope._grid.addRow({ path: tex.name });
                             }

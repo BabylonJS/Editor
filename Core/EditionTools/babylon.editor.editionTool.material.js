@@ -118,17 +118,32 @@ var EditionToolMaterial = (function () {
             this.object.material.specularPower = BABYLON.Editor.Utils.toFloat(parameters['MainEditObjectSpecularPower'].value);
             this.object.material.useAlphaFromDiffuseTexture = parameters['MainEditObjectUseAlphaFromDiffuseTexture'].checked;
 
-            this.object.material.diffuseTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
-            this.object.material.bumpTexture = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+            var diffuse = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesDiffuse'].value, this._core.currentScene);
+            var normal = BABYLON.Editor.Utils.GetTextureFromName(textures['MainEditObjectMaterialTexturesNormal'].value, this._core.currentScene);
+            var textureChanged = diffuse != this.object.material.diffuseTexture || normal != this.object.material.bumpTexture;
+            this.object.material.diffuseTexture = diffuse;
+            this.object.material.bumpTexture = normal;
 
             /// Update diffuse and normal textures scales
-            this._texturesForm.fillSpecifiedFields([
-                'MainEditObjectMaterialTexturesDiffuseUVX', 'MainEditObjectMaterialTexturesDiffuseUVY',
-                'MainEditObjectMaterialTexturesNormalUVX', 'MainEditObjectMaterialTexturesNormalUVY'
-            ], [
-                BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).v,
-                BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).v,
-            ]);
+            if (textureChanged) {
+                this._texturesForm.fillSpecifiedFields([
+                    'MainEditObjectMaterialTexturesDiffuseUVX', 'MainEditObjectMaterialTexturesDiffuseUVY',
+                    'MainEditObjectMaterialTexturesNormalUVX', 'MainEditObjectMaterialTexturesNormalUVY'
+                ], [
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.diffuseTexture).v,
+                    BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).u, BABYLON.Editor.Utils.GetTextureScale(this.object.material.bumpTexture).v,
+                ]);
+            } else {
+                if (this.object.material.diffuseTexture) {
+                    this.object.material.diffuseTexture.uScale = BABYLON.Editor.Utils.toFloat(textures['MainEditObjectMaterialTexturesDiffuseUVX'].value);
+                    this.object.material.diffuseTexture.vScale = BABYLON.Editor.Utils.toFloat(textures['MainEditObjectMaterialTexturesDiffuseUVY'].value);
+                }
+                if (this.object.material.bumpTexture) {
+                    this.object.material.bumpTexture.uScale = BABYLON.Editor.Utils.toFloat(textures['MainEditObjectMaterialTexturesNormalUVX'].value);
+                    this.object.material.bumpTexture.vScale = BABYLON.Editor.Utils.toFloat(textures['MainEditObjectMaterialTexturesNormalUVY'].value);
+                }
+            }
+
         }
         else if (this.object.material instanceof BABYLON.ShaderMaterial) {
             //MainEditObjectMaterialShaderSamplers
@@ -255,7 +270,7 @@ var EditionToolMaterial = (function () {
 
                 for (var i = 0; i < this.object.material._options.samplers.length; i++) {
                     this._texturesForm.createFieldWithItems('MainEditObjectMaterialShaderSamplers' + this.object.material._options.samplers[i],
-                        'list', this.object.material._options.samplers[i], textures, 5
+                        'list', this.object.material._options.samplers[i] + ' :', textures, 5
                     );
                 }
 

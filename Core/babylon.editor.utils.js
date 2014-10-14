@@ -179,6 +179,8 @@ var Utils = (function () {
             return null;
 
         var color = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
+        if (!color) return new BABYLON.Color3(0, 0, 0);
+
         return new BABYLON.Color3(parseInt(color[1], 16), parseInt(color[2], 16), parseInt(color[3], 16));
     }
 
