@@ -45,13 +45,35 @@ var EditTextures = (function (_super) {
                     }
                 }
 
-            } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
+            }
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.GRID_ROW_REMOVED) {
+                var selectedRows = this._grid.getSelectedRows();
+                for (var i = 0; i < selectedRows.length; i++) {
+                    this.core.currentScene.textures[selectedRows[i]].dispose();
+                }
+            }
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW) {
+                this._textureFiles = document.getElementById('BabylonEditorEditTexturesFileInput');
+                var scope = this;
+                this._textureFiles.onchange = function (event) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.Event.GUIEvent();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FILE_SELECTED;
+                    ev.event.caller = scope._textureFiles;
+                    ev.event.result = event;
+                    scope.core.sendEvent(ev);
+                }
+                this._textureFiles.click();
+            }
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED) {
                 if (ev.event.caller == this._window) { /// It is the "Close" button
                     _super.prototype.close.call(this);
                     this._close();
                 }
 
-            } else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FILE_SELECTED) {
+            }
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FILE_SELECTED) {
 
                 if (ev.event.caller == this._textureFiles) {
                     var scope = this;
@@ -100,21 +122,18 @@ var EditTextures = (function (_super) {
 
         /// Create layouts
         this._layouts = new BABYLON.Editor.GUILayout('BabylonEditorEditTexturesLayout', this.core);
-        this._layouts.createPanel('TexturesList', 'left', 500, true).setContent('<div id="EditTexturesGrid" style="height: 100%;"></div>');
+        this._layouts.createPanel('TexturesList', 'left', 500, true).setContent(
+            '<div id="EditTexturesGrid" style="height: 100%;"></div>'
+            + '<input type="file" id="BabylonEditorEditTexturesFileInput" multiple style="display:none" />'
+        );
         this._layouts.createPanel('TexturePreview', 'right', 500, true).setContent('<canvas id="editTexturesCanvas" style="height: 100%; width: 100%"></canvas>');
         this._layouts.buildElement('BabylonEditorEditTexturesLayout');
-
-        /// Create buttons
-        this._textureFiles = BabylonEditorUICreator.createCustomField('EditTexturesGrid', 'AddTexturesFiles',
-            '<input class="file-input" id="AddTexturesFiles" type="file" name="attachment" multiple="" style="width: 100%;" tabindex="-1">',
-            this.core, function (event) {
-                BABYLON.Editor.Utils.sendEventFileSelected(scope._textureFiles, event, scope.core);
-            }, true
-        );
 
         /// Create grid
         this._grid = new BABYLON.Editor.GUIGrid('EditTexturesGrid', this.core, 'Textures');
         this._grid.createColumn('path', 'Texture Path', '100%');
+        this._grid.showDelete = true;
+        this._grid.showAdd = true;
         this._grid.buildElement('EditTexturesGrid');
 
         for (var i = 0; i < this.core.currentScene.textures.length; i++) {

@@ -42,12 +42,15 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.DIALOG_BUTTON_CLICKED = 4;
         BABYLON.Editor.Event.GUIEvent.FILE_SELECTED = 5;
         BABYLON.Editor.Event.GUIEvent.GRID_SELECTED = 6;
-        BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 7;
-        BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 8;
-        BABYLON.Editor.Event.GUIEvent.LIST_SELECTED = 9;
+        BABYLON.Editor.Event.GUIEvent.GRID_ROW_REMOVED = 7;
+        BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW = 8;
+        BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 9;
+        BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 10;
+        BABYLON.Editor.Event.GUIEvent.LIST_SELECTED = 11;
+        BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED = 12;
 
         /// Plugins related
-        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONDED = 10;
+        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONSE = 13;
     }
 
     /// Scene event

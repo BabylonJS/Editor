@@ -90,6 +90,7 @@ var MaterialCreator = (function (_super) {
                         this._codeEditor.setValue(this._callbackScript, -1);
                         this._codeEditor.getSession().setMode("ace/mode/javascript");
                     }
+                    return true;
                 }
 
             }
@@ -103,6 +104,7 @@ var MaterialCreator = (function (_super) {
                         var name = textures[this._samplers[i]].value;
                         this._material.setTexture(this._samplers[i], BABYLON.Editor.Utils.GetTextureFromName(name, this._scene));
                     }
+                    return true;
                 }
 
             }
@@ -114,25 +116,30 @@ var MaterialCreator = (function (_super) {
                     if (ev.event.result == 'EnableLogs') {
                         this._shaderManager._enableLogs = !this._toolbar.isItemChecked('EnableLogs');
                         this._toolbar.setAutoItemChecked('EnableLogs');
+                        return true;
                     }
                     else if (ev.event.result == 'EnableSpies') {
                         this._shaderManager._enableSpies = !this._toolbar.isItemChecked('EnableSpies');
                         this._toolbar.setAutoItemChecked('EnableSpies');
+                        return true;
                     }
                     else if (ev.event.result == 'BuildAll') {
                         this._createMaterial();
+                        return true;
                     }
                     /// Files
                     else if (ev.event.result == 'MainFiles:save-material') {
                         this._createFinalMaterial();
+                        return true;
                     }
                     /// Edit
                     else if (ev.event.result == 'MainEdit:eval-callback') {
                         this._evalCallback();
+                        return true;
                     }
                     else if (ev.event.result == 'MainEdit:set-custom-texture') {
                         var scope = this;
-                        this._imageSelector = BabylonEditorUICreator.createFileSelector(true);
+                        this._imageSelector = document.getElementById('BabylonEditorMaterialEditorFileInput');
                         this._imageSelector.onchange = function (event) {
                             for (var i = 0; i < event.target.files.length; i++) {
                                 var file = event.target.files[i];
@@ -142,6 +149,7 @@ var MaterialCreator = (function (_super) {
                             }
                         }
                         this._imageSelector.click();
+                        return true;
                     }
                     /// Object
                     else if (ev.event.result.indexOf('MainObject:') != -1) {
@@ -155,10 +163,13 @@ var MaterialCreator = (function (_super) {
                             this._object = BABYLON.Mesh.CreateTorusKnot("previewObject", 2, 0.5, 128, 64, 2, 3, this._scene);
 
                         this._object.material = this._material;
+                        return true;
                     }
                 }
             }
         }
+
+        return false;
     }
 
     MaterialCreator.prototype._close = function () {
@@ -316,6 +327,7 @@ var MaterialCreator = (function (_super) {
 
         (this._rightPanel = this._layouts.createPanel('BabylonEditorMaterialEditorRenderPreview', 'right', 500, true)).setContent(
               '<div id="BabylonEditorMaterialEditorRenderingLayout" style="height: 100%; width: 100%"></div>'
+              + '<input type="file" id="BabylonEditorMaterialEditorFileInput" multiple style="display:none" />'
         );
 
         this._layouts.createPanel('BabylonEditorMaterialEditorToolbar', 'top', 40, false).setContent(

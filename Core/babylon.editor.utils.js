@@ -223,7 +223,7 @@ var Utils = (function () {
         var cb = function (name) {
             return function (result) {
                 var url = 'data:' + name + ':';
-                var tex = new BABYLON.Texture(url, scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, result);
+                var tex = new BABYLON.Texture(url, scene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, null, null, result);
                 tex.name = name;
                 callback(tex);
             }
@@ -245,9 +245,37 @@ var Utils = (function () {
     /// -----------------------------------------------------------------------------------------------------
 
     /// -----------------------------------------------------------------------------------------------------
+    /* Meshes utils */
+    /// -----------------------------------------------------------------------------------------------------
+    Utils.GetMeshById = function (id, scene) {
+        for (var i = 0; i < scene.meshes.length; i++) {
+            if (scene.meshes[i].id == id)
+                return scene.meshes[i];
+        }
+        return null;
+    }
+
+    Utils.GetLightById = function (id, scene) {
+        for (var i = 0; i < scene.lights.length; i++) {
+            if (scene.lights[i].id == id)
+                return scene.lights[i];
+        }
+        return null;
+    }
+
+    Utils.GetNodeById = function (id, scene) {
+        var object = Utils.GetMeshById(id, scene);
+        if (!object)
+            object = Utils.GetLightById(id, scene)
+        return object;
+    }
+
+    /// -----------------------------------------------------------------------------------------------------
+
+    /// -----------------------------------------------------------------------------------------------------
     /* Events utils */
     /// -----------------------------------------------------------------------------------------------------
-    Utils.sendEventObjectAdded = function (object, core) {
+    Utils.SendEventObjectAdded = function (object, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.SceneEvent;
         ev.event = new BABYLON.Editor.Event.SceneEvent();
@@ -256,7 +284,7 @@ var Utils = (function () {
         core.sendEvent(ev);
     }
 
-    Utils.sendEventObjectRemoved = function (object, core) {
+    Utils.SendEventObjectRemoved = function (object, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.SceneEvent;
         ev.event = new BABYLON.Editor.Event.SceneEvent();
@@ -265,7 +293,7 @@ var Utils = (function () {
         core.sendEvent(ev);
     }
 
-    Utils.sendEventObjectChanged = function (object, core) {
+    Utils.SendEventObjectChanged = function (object, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.SceneEvent;
         ev.event = new BABYLON.Editor.Event.SceneEvent();
@@ -274,7 +302,7 @@ var Utils = (function () {
         core.sendEvent(ev);
     }
 
-    Utils.sendEventFileSelected = function (caller, event, core) {
+    Utils.SendEventFileSelected = function (caller, event, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.GUIEvent;
         ev.event = new BABYLON.Editor.Event.GUIEvent();
@@ -284,7 +312,7 @@ var Utils = (function () {
         core.sendEvent(ev);
     }
 
-    Utils.sendEventButtonClicked = function (caller, core) {
+    Utils.SendEventButtonClicked = function (caller, core) {
         var ev = new BABYLON.Editor.Event();
         ev.eventType = BABYLON.Editor.EventType.GUIEvent;
         ev.event = new BABYLON.Editor.Event.GUIEvent();

@@ -308,6 +308,11 @@ var Editor;
         __extends(GUISidebar, _super);
         function GUISidebar(name, core) {
             _super.call(this, name, core);
+            this.menus = new Array();
+        }
+
+        GUISidebar.prototype.addMenu = function (id, text, img) {
+            this.menus.push({ id: id, text: text, img: img, icon: img });
         }
 
         GUISidebar.prototype.createNode = function (id, text, img, data) {
@@ -335,6 +340,9 @@ var Editor;
 
             this.element.select(node);
         }
+        GUISidebar.prototype.getSelected = function () {
+            return this.element.selected;
+        }
 
         GUISidebar.prototype.clear = function () {
             var toRemove = [];
@@ -351,12 +359,22 @@ var Editor;
                 img: null,
                 keyboard: false,
                 nodes: [],
+                menu: this.menus,
                 onClick: function (event) {
                     var ev = new BABYLON.Editor.Event();
                     ev.eventType = BABYLON.Editor.EventType.SceneEvent;
                     ev.event = new BABYLON.Editor.Event.SceneEvent();
                     ev.event.eventType = BABYLON.Editor.Event.SceneEvent.OBJECT_PICKED;
                     ev.event.object = event.object.data;
+                    scope._core.sendEvent(ev);
+                },
+                onMenuClick: function (event) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.Event.GUIEvent();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED;
+                    ev.event.caller = scope;
+                    ev.event.result = event.menuItem.id;
                     scope._core.sendEvent(ev);
                 }
             });
@@ -445,7 +463,7 @@ var Editor;
                     ev.event = new BABYLON.Editor.Event.GUIEvent();
                     ev.event.eventType = BABYLON.Editor.Event.GUIEvent.FORM_CHANGED;
                     ev.event.caller = scope;
-                    if (this.get(event.target).type == 'file') {
+                    if (this.get(event.target).type == 'file' && event.value_new.length != 0) {
                         var contents = $('#' + event.target).data('selected');
                         for (var i = 0; i < contents.length; i++) {
                             contents[i].content = /*'file:' + */(contents[i].content);
@@ -650,6 +668,8 @@ var Editor;
             this.header = header;
             this.showToolbar = true;
             this.showFooter = true;
+            this.showDelete = false;
+            this.showAdd = false;
         }
 
         GUIGrid.prototype.createColumn = function (id, text, size) {
@@ -668,6 +688,17 @@ var Editor;
             return this.element.total;
         }
 
+        GUIGrid.prototype.getSelectedRows = function () {
+            /// Returns an array of selected indices
+            return this.element.getSelection();
+        }
+        GUIGrid.prototype.getRow = function (indice) {
+            if (indice >= 0 && indice < this.element.total) {
+                return this.element.get(indice);
+            }
+            return null;
+        }
+
         GUIGrid.prototype.buildElement = function (parent) {
             var scope = this;
 
@@ -675,7 +706,9 @@ var Editor;
                 name: this.name,
                 show: {
                     toolbar: this.showToolbar,
-                    footer: this.showFooter
+                    footer: this.showFooter,
+                    toolbarDelete: this.showDelete,
+                    toolbarAdd: this.showAdd
                 },
                 header: this.header,
                 columns: this.columns,
@@ -694,6 +727,26 @@ var Editor;
                             core.sendEvent(ev);
                         }
                     }
+                },
+                onDelete: function (event) {
+                    var gridScope = this;
+                    if (event.force) {
+                        var ev = new BABYLON.Editor.Event();
+                        ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                        ev.event = new BABYLON.Editor.GUIElement();
+                        ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_ROW_REMOVED;
+                        ev.event.caller = scope;
+                        ev.event.result = gridScope.getSelection();
+                        core.sendEvent(ev);
+                    }
+                },
+                onAdd: function (event) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.GUIElement();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW;
+                    ev.event.caller = scope;
+                    core.sendEvent(ev);
                 }
             });
         }

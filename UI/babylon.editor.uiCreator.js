@@ -123,7 +123,7 @@ BabylonEditorUICreator.Form.createInputFileField = function (element, name, core
     var caller = $('#' + element).after('<input class="file-input" id="' + name + '" type="file" name="attachment" multiple="" style="width: 100%;" tabindex="-1">');
 
     $('#' + name).change(function (event) {
-        BABYLON.Editor.Utils.sendEventFileSelected(caller, event, core);
+        BABYLON.Editor.Utils.SendEventFileSelected(caller, event, core);
     });
 
     return caller;

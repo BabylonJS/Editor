@@ -18,7 +18,7 @@ var Factory = (function () {
 		var box = BABYLON.Mesh.CreateBox('New Cube', 1, core.currentScene, true);
 		box.id = BABYLON.Editor.Utils.GenerateUUID();
 
-		BABYLON.Editor.Utils.sendEventObjectAdded(box, core);
+		BABYLON.Editor.Utils.SendEventObjectAdded(box, core);
 		return box;
 	}
 
@@ -26,7 +26,7 @@ var Factory = (function () {
 		var sphere = BABYLON.Mesh.CreateSphere('New Sphere', 16, 1, core.currentScene, true);
 		sphere.id = BABYLON.Editor.Utils.GenerateUUID();
 
-		BABYLON.Editor.Utils.sendEventObjectAdded(sphere, core);
+		BABYLON.Editor.Utils.SendEventObjectAdded(sphere, core);
 		return sphere;
 	}
 
@@ -34,7 +34,7 @@ var Factory = (function () {
 		var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, core.currentScene);
 		ground.id = BABYLON.Editor.Utils.GenerateUUID();
 
-		BABYLON.Editor.Utils.sendEventObjectAdded(ground, core);
+		BABYLON.Editor.Utils.SendEventObjectAdded(ground, core);
 		return ground;
 	}
 
@@ -43,7 +43,7 @@ var Factory = (function () {
 		light.position = new BABYLON.Vector3(0, 200, 0);
 		light.id = BABYLON.Editor.Utils.GenerateUUID();
 
-		BABYLON.Editor.Utils.sendEventObjectAdded(light, core);
+		BABYLON.Editor.Utils.SendEventObjectAdded(light, core);
 		return light;
 	}
 

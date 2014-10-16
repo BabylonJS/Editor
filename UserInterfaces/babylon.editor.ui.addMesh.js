@@ -38,9 +38,11 @@ var AddMesh = (function (_super) {
                     /// Close
                     if (ev.event.result == 'PopupButtonClose') {
                         this._close();
+                        return true;
                     }
                     else if (ev.event.result == "PopupButtonAdd") {
                         this._accept();
+                        return true;
                     }
                 }
             }
@@ -50,10 +52,13 @@ var AddMesh = (function (_super) {
                     if (ev.event.result && ev.event.result.caller === 'AddMeshFile') {
                         this._meshFiles = ev.event.result;
                         this._loadMesh(ev.event.result);
+                        return true;
                     }
                 }
             }
         }
+
+        return false;
     }
 
     AddMesh.prototype._accept = function () {
@@ -67,6 +72,11 @@ var AddMesh = (function (_super) {
                     var datas = 'data:' + atob(this._meshFiles.contents[i].content);
 
                     BABYLON.SceneLoader.ImportMesh(null, null, datas, this.core.currentScene, function (meshes) {
+                        if (scope._meshFiles == null) {
+                            for (var j = 0; j < meshes.length; j++)
+                                meshes[j].dispose();
+                            return;
+                        }
                         for (var j = 0; j < meshes.length; j++) {
                             /// Name
                             if (!meshes[j].parent)
@@ -84,8 +94,9 @@ var AddMesh = (function (_super) {
                             meshes[j].isPickable = true;
                             meshes[j].position = new BABYLON.Vector3(0, 0, 0);
                             meshes[j].id = BABYLON.Editor.Utils.GenerateUUID();
-                            BABYLON.Editor.Utils.sendEventObjectAdded(meshes[j], scope.core);
+                            BABYLON.Editor.Utils.SendEventObjectAdded(meshes[j], scope.core);
                         }
+                        scope._meshFiles = null;
                     });
 
                 }

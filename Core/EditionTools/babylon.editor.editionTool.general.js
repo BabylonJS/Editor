@@ -51,6 +51,7 @@ var EditionToolGeneral = (function () {
                         /// Restore checking
                         this._renderingForm.setFieldChecked('MainEditMeshRenderingCastShadows', true);
                     }
+                    return true;
                 }
             }
         }

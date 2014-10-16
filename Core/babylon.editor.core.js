@@ -63,7 +63,8 @@ var Core = (function () {
     /// Sends the event "event" to all other event receivers
     Core.prototype.sendEvent = function (event) {
         for (var i = 0; i < this.eventReceivers.length; i++) {
-            this.eventReceivers[i].onEvent(event);
+            if (this.eventReceivers[i].onEvent(event))
+                break;
         }
     }
 

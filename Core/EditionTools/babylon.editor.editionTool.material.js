@@ -63,6 +63,7 @@ var EditionToolMaterial = (function () {
                         this.clearUI();
                         this.createUI();
                     }
+                    return true;
                 }
                 else if (ev.event.caller == this._selectMaterialWindow) {
                     if (ev.event.result == 'PopupButtonClose') {
@@ -76,21 +77,27 @@ var EditionToolMaterial = (function () {
                         this.clearUI();
                         this.createUI();
                     }
+                    return true;
                 }
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED) {
                 if (ev.event.caller == this._addMaterialButton) {
                     this._createWindowAddMaterial();
+                    return true;
                 } else if (ev.event.caller == this._removeMaterialButton) {
                     this.object.material = null;
                     this.clearUI();
                     this.createUI();
+                    return true;
                 } else if (ev.event.caller == this._selectMaterialButton) {
                     this._createWindowSelectMaterial();
+                    return true;
                 }
             }
         }
+        
+        return false;
     }
 
     EditionToolMaterial.prototype.applyChanges = function () {
@@ -170,13 +177,13 @@ var EditionToolMaterial = (function () {
             this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
                 '<button type="button" id="EditionAddMaterial" style="width: 100%;">Create one...</button>',
                 this.core, function (event) {
-                    BABYLON.Editor.Utils.sendEventButtonClicked(scope._addMaterialButton, scope._core);
+                    BABYLON.Editor.Utils.SendEventButtonClicked(scope._addMaterialButton, scope._core);
                 }, false
             );
             this._selectMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectSelectMaterial', 'EditionSelectMaterial',
                 '<button type="button" id="EditionSelectMaterial" style="width: 100%;">Select one...</button>',
                 this.core, function (event) {
-                    BABYLON.Editor.Utils.sendEventButtonClicked(scope._selectMaterialButton, scope._core);
+                    BABYLON.Editor.Utils.SendEventButtonClicked(scope._selectMaterialButton, scope._core);
                 }, false
             );
 
@@ -287,7 +294,7 @@ var EditionToolMaterial = (function () {
             this._removeMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectRemoveMaterial', 'EditionRemoveMaterial',
                 '<button type="button" id="EditionRemoveMaterial" style="width: 100%;">Remove Material</button>',
                 this.core, function (event) {
-                    BABYLON.Editor.Utils.sendEventButtonClicked(scope._removeMaterialButton, scope._core);
+                    BABYLON.Editor.Utils.SendEventButtonClicked(scope._removeMaterialButton, scope._core);
                 }, false
             );
 

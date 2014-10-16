@@ -68,14 +68,25 @@ var EditionTool = (function () {
                     this._clearUI();
                     this.createEmptyForm('Empty', 'To edit an object, double click in the scene or select and object in the graph.');
                 }
-
+                return false;
             }
 
             /// Object changed
             else if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_CHANGED) {
                 if (ev.event.object == this.object && this.object) {
                     this._objectChanged();
+                    return false;
                 }
+            }
+
+            /// Object removed
+            else if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_REMOVED) {
+                if (ev.event.object == this.object) {
+                    this.object = null;
+                    this._clearUI();
+                    this.createEmptyForm('Empty', 'To edit an object, double click in the scene or select and object in the graph.');
+                }
+                return false;
             }
 
         }
@@ -84,7 +95,12 @@ var EditionTool = (function () {
 
         if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FORM_CHANGED) {
-                this._onChange();
+                if (this._generalForms._generalForms.indexOf(ev.event.result) != -1
+                    || this._materialForms._materialForms.indexOf(ev.event.result) != -1)
+                {
+                    this._onChange();
+                    return true;
+                }
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
@@ -92,10 +108,13 @@ var EditionTool = (function () {
                     this._clearUI();
                     this._activeTab = ev.event.result;
                     this._createUI();
+                    return true;
                 }
             }
 
         }
+
+        return false;
 
     }
 

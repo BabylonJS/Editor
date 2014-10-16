@@ -15,7 +15,7 @@ function createReleaseScene(scene, core) {
     var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), scene);
     light.position = new BABYLON.Vector3(10, 10, 0);
     var shadows = new BABYLON.ShadowGenerator(1024, light);
-    BABYLON.Editor.Utils.sendEventObjectAdded(light, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(light, core);
 
     var object = BABYLON.Mesh.CreateGround("New Ground", 60, 60, 20, scene);
     object.material = createMaterial('ground1m', './Tests/textures/tile.jpg');
@@ -27,7 +27,7 @@ function createReleaseScene(scene, core) {
     object.id = BABYLON.Editor.Utils.GenerateUUID();
     object.isPickable = true;
     object.receiveShadows = true;
-    BABYLON.Editor.Utils.sendEventObjectAdded(object, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(object, core);
 
     var box = BABYLON.Mesh.CreateBox('New Cube', 1, core.currentScene, true);
     //box.material = createMaterial('sphere1m', './Tests/textures/diffuse.tga');
@@ -35,7 +35,7 @@ function createReleaseScene(scene, core) {
     box.position = new BABYLON.Vector3(0, 2, 0);
     box.id = BABYLON.Editor.Utils.GenerateUUID();
     shadows.getShadowMap().renderList.push(box);
-    BABYLON.Editor.Utils.sendEventObjectAdded(box, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(box, core);
 
     object.material.reflectionTexture.renderList = [box];
 }
@@ -60,15 +60,15 @@ function createTestScene(scene, core) {
     object.isPickable = true;
     object.position.y = 1;
     shadows.getShadowMap().renderList.push(object);
-    BABYLON.Editor.Utils.sendEventObjectAdded(object, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(object, core);
     light.parent = object;
-    BABYLON.Editor.Utils.sendEventObjectAdded(light, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(light, core);
 
     var object2 = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene);
     object2.material = createMaterial('ground1m', './Tests/textures/tile.jpg');
     object2.isPickable = true;
     object2.receiveShadows = true;
-    BABYLON.Editor.Utils.sendEventObjectAdded(object2, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(object2, core);
 
     var object3 = BABYLON.Mesh.CreateSphere("sphere2", 16, 2, scene);
     object3.material = createMaterial('sphere2m', './Tests/textures/diffuse.tga');
@@ -78,7 +78,7 @@ function createTestScene(scene, core) {
     object3.position.y = 2;
     object3.parent = object2;
     shadows.getShadowMap().renderList.push(object3);
-    BABYLON.Editor.Utils.sendEventObjectAdded(object3, core);
+    BABYLON.Editor.Utils.SendEventObjectAdded(object3, core);
 
 }
 

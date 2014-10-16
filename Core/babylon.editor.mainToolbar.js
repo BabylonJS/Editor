@@ -53,6 +53,8 @@ var Editor;
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.materialCreator.js', this._core);
                         }
 
+                        return true;
+
                     } else if (ev.event.caller == this._toolsToolbar) {/// Tools Toolbar
 
                         if (ev.event.result == 'ToolsAddCube') {
@@ -66,10 +68,13 @@ var Editor;
                         } else if (ev.event.result == 'ToolsAddLight') {
                             BABYLON.Editor.Factory.addLight(this._core);
                         }
+
+                        return true;
                     }
                 }
             }
 
+            return false;
         }
 
         /// Sets the appropriate transformer, identified by its id (string)
@@ -100,11 +105,16 @@ var Editor;
 
             this._toolbar.createMenu('break');
 
-            menu = this._toolbar.createMenu('menu', 'MainPrimitives', 'Primitives', 'icon-primitives');
+            menu = this._toolbar.createMenu('menu', 'MainAdd', 'Add...', 'icon-primitives');
             menu.createItem('button', 'add-ground', 'Add Ground', 'icon-add-ground');
             menu.createItem('button', 'add-sphere', 'Add Sphere', 'icon-add-sphere');
             menu.createItem('button', 'add-cube', 'Add Cube', 'icon-add-cube');
             menu.createItem('button', 'add-billboard', 'Add Billboard', 'icon-add-billboard');
+            menu.createItem('break');
+            menu.createItem('button', 'add-directional-light', 'Directional Light', 'icon-directional-light');
+            menu.createItem('button', 'add-spot-light', 'Spot Light', 'icon-directional-light');
+            menu.createItem('button', 'add-point-light', 'Point Light', 'icon-add-light');
+
             this._toolbar.createMenu('button', 'MainAddMesh', 'Add Mesh...', 'icon-mesh');
 
             this._toolbar.createMenu('break');

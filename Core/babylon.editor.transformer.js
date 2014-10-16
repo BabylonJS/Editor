@@ -85,7 +85,7 @@ var Editor;
                     scope._restorTransformerColor();
                 scope._pickedInfos = null;
                 if (scope._nodeToTransform != null)
-                    BABYLON.Editor.Utils.sendEventObjectChanged(scope._nodeToTransform, scope._core);
+                    BABYLON.Editor.Utils.SendEventObjectChanged(scope._nodeToTransform, scope._core);
             };
         }
 
@@ -138,8 +138,15 @@ var Editor;
         }
 
         /// Receive events
-        Transformer.prototype.onEvent = function (event) {
+        Transformer.prototype.onEvent = function (ev) {
+            if (ev.eventType == BABYLON.Editor.EventType.SceneEvent) {
+                if (ev.event.eventType == BABYLON.Editor.Event.SceneEvent.OBJECT_REMOVED) {
+                    if (ev.event.object == this._nodeToTransform)
+                        this._nodeToTransform = null;
+                }
+            }
 
+            return false;
         }
 
         /// Returns if the line intersects the plane and updates this._mousePositionInPlane

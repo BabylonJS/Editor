@@ -33,10 +33,16 @@
 .w2ui-icon.icon-save-file {
     background: url("images/save.png");
 }
+.w2ui-icon.icon-error {
+    background: url("images/error.png");
+}
 
 /* Lights */
 .w2ui-icon.icon-add-light {
     background: url("images/light.png");
+}
+.w2ui-icon.icon-directional-light {
+    background: url("images/directional_light.png");
 }
 
 /* Primitives */

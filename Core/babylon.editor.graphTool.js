@@ -58,7 +58,22 @@ var GraphTool = (function () {
                 }
             }
         }
+        else if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
 
+            if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED) {
+                if (ev.event.caller == this._sidebar) {
+                    if (ev.event.result == 'BabylonEditorGraphToolRemoveNode') {
+                        var object = BABYLON.Editor.Utils.GetNodeById(this._sidebar.getSelected(), this._core.currentScene);
+                        BABYLON.Editor.Utils.SendEventObjectRemoved(object, this._core);
+                        object.dispose();
+                    }
+                    return true;
+                }
+            }
+
+        }
+
+        return false;
     }
 
     GraphTool.prototype._getObjectIcon = function (object) {
@@ -112,8 +127,10 @@ var GraphTool = (function () {
         if (object == null)
             return null;
 
-        if (element == null) {
+        if (element == null && !remove) {
             element = this._graphRootName;
+        } else if (remove) {
+            element = object.id;
         }
 
         if (!remove) {
@@ -130,6 +147,9 @@ var GraphTool = (function () {
             this._sidebar.destroy();
 
         this._sidebar = new BABYLON.Editor.GUISidebar('BabylonEditorGraphTool', this._core);
+
+        this._sidebar.addMenu('BabylonEditorGraphToolRemoveNode', 'Remove', 'icon-error');
+
         this._sidebar.buildElement('BabylonEditorGraphTool');
 
         /// Default node

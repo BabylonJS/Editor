@@ -58,10 +58,10 @@ var BabylonEditor = (function () {
             /// Send events
             for (var i = 0; i < scene.meshes.length; i++) {
                 scene.meshes[i].checkCollisions = true;
-                BABYLON.Editor.Utils.sendEventObjectAdded(scene.meshes[i], scope._core);
+                BABYLON.Editor.Utils.SendEventObjectAdded(scene.meshes[i], scope._core);
             }
             for (var i = 0; i < scene.lights; i++) {
-                BABYLON.Editor.Utils.sendEventObjectAdded(scene.lights[i], scope._core);
+                BABYLON.Editor.Utils.SendEventObjectAdded(scene.lights[i], scope._core);
             }
 
             /// Set as current scene
