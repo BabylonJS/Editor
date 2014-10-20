@@ -47,9 +47,13 @@ var EditTextures = (function (_super) {
 
             }
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.GRID_ROW_REMOVED) {
-                var selectedRows = this._grid.getSelectedRows();
-                for (var i = 0; i < selectedRows.length; i++) {
-                    this.core.currentScene.textures[selectedRows[i]].dispose();
+                if (ev.event.caller == this._grid) {
+                    var selectedRows = this._grid.getSelectedRows();
+                    var textures = new Array(); /// Fill a temp array
+                    for (var i = 0; i < selectedRows.length; i++)
+                        textures.push(this.core.currentScene.textures[selectedRows[i]]);
+                    for (var i = 0; i < textures.length; i++) /// Dispose textures
+                        textures[i].dispose();
                 }
             }
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW) {
@@ -91,7 +95,13 @@ var EditTextures = (function (_super) {
                             return function (result) {
                                 var url = 'data:' + name + ':';
                                 var tex = new BABYLON.Texture(url, scope.core.currentScene, false, false, BABYLON.Texture.TRILINEAR_SAMPLINGMOD, null, null, result);
-                                tex.name = name;
+                                tex.coordinatesMode = BABYLON.Texture.PROJECTION_MODE;
+                                /// Textures musn't have same name
+                                var j = 0;
+                                while (BABYLON.Editor.Utils.GetTextureFromName(name + (j == 0 ? '' : j), this.core.currentScene)) {
+                                    j++;
+                                }
+                                tex.name = j == 0 ? name : name + j;
                                 scope._grid.addRow({ path: tex.name });
                             }
                         };
@@ -102,6 +112,8 @@ var EditTextures = (function (_super) {
                             BABYLON.Tools.ReadFileAsDataURL(file, callback(name), null);
 
                     }
+
+                    ev.event.result.target.files = [];
 
                 }
             }

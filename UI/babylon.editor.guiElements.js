@@ -506,8 +506,15 @@ var Editor;
             this.modal = false;
             this.showClose = true;
             this.showMax = false;
-            this.onCloseCallback = null;
             this.onToggleCallback = null;
+
+            this._onCloseCallbacks = new Array();
+            var scope = this;
+            this._onCloseCallback = function () {
+                for (var i = 0; i < scope._onCloseCallbacks.length; i++) {
+                    scope._onCloseCallbacks[i]();
+                }
+            };
         }
 
         GUIWindow.prototype.removeElementsOnClose = function (elementsToRemove) {
@@ -516,16 +523,15 @@ var Editor;
                 if (elementsToRemove != null) {
                     BabylonEditorUICreator.clearUI(elementsToRemove);
                 }
-                if (scope.onCloseCallback != null)
-                    scope.onCloseCallback();
+                if (scope._onCloseCallback != null)
+                    scope._onCloseCallback();
             }
 
             this.element.onClose = close;
         }
         GUIWindow.prototype.onClose = function (callback) {
-            this.onCloseCallback = callback;
-            if (this.element.onClose == null)
-                this.element.onClose = callback;
+            this._onCloseCallbacks.push(callback);
+            this.element.onClose = this._onCloseCallback;
         }
         GUIWindow.prototype.close = function () {
             this.element.close();
@@ -608,12 +614,13 @@ var Editor;
         }
 
         GUIDialog.prototype.buildElement = function (parent) {
+            var scope = this;
             this.element = w2confirm(this.body, this.title, function (result) {
                 var ev = new BABYLON.Editor.Event();
                 ev.eventType = BABYLON.Editor.EventType.GUIEvent;
                 ev.event = new BABYLON.Editor.Event.GUIEvent();
                 ev.event.eventType = BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG;
-                ev.event.caller = this;
+                ev.event.caller = scope;
                 ev.event.result = result;
                 core.sendEvent(ev);
             });
@@ -670,6 +677,7 @@ var Editor;
             this.showFooter = true;
             this.showDelete = false;
             this.showAdd = false;
+            this.showEdit = false;
         }
 
         GUIGrid.prototype.createColumn = function (id, text, size) {
@@ -698,6 +706,9 @@ var Editor;
             }
             return null;
         }
+        GUIGrid.prototype.modifyRow = function (id, data) {
+            this.element.set(id, data);
+        }
 
         GUIGrid.prototype.buildElement = function (parent) {
             var scope = this;
@@ -708,7 +719,8 @@ var Editor;
                     toolbar: this.showToolbar,
                     footer: this.showFooter,
                     toolbarDelete: this.showDelete,
-                    toolbarAdd: this.showAdd
+                    toolbarAdd: this.showAdd,
+                    toolbarEdit: this.showEdit
                 },
                 header: this.header,
                 columns: this.columns,
@@ -746,6 +758,15 @@ var Editor;
                     ev.event = new BABYLON.Editor.GUIElement();
                     ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW;
                     ev.event.caller = scope;
+                    core.sendEvent(ev);
+                },
+                onEdit: function (event) {
+                    var ev = new BABYLON.Editor.Event();
+                    ev.eventType = BABYLON.Editor.EventType.GUIEvent;
+                    ev.event = new BABYLON.Editor.GUIElement();
+                    ev.event.eventType = BABYLON.Editor.Event.GUIEvent.GRID_EDIT_ROW;
+                    ev.event.caller = scope;
+                    ev.event.result = this.getSelection();
                     core.sendEvent(ev);
                 }
             });

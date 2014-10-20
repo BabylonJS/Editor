@@ -58,6 +58,7 @@ var GraphTool = (function () {
                 }
             }
         }
+
         else if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
 
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED) {
@@ -80,7 +81,11 @@ var GraphTool = (function () {
         var icon = '';
 
         if (object instanceof BABYLON.Mesh) icon = 'icon-mesh';
-        else if (object instanceof BABYLON.Light) icon = 'icon-add-light';
+        else if (object instanceof BABYLON.Light)
+        {
+            if (object instanceof BABYLON.DirectionalLight) icon = 'icon-directional-light';
+            else if (object instanceof BABYLON.PointLight)  icon = 'icon-add-light';
+        }
 
         return icon;
     }

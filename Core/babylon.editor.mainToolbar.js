@@ -50,6 +50,9 @@ var Editor;
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editTextures.js', this._core);
                         }
                         else if (ev.event.result == 'MainEdit:edit-material-shaders') {
+                            BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.editMaterials.js', this._core);
+                        }
+                        else if (ev.event.result == 'MainEdit:create-material-shader') {
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.materialCreator.js', this._core);
                         }
 
@@ -101,6 +104,7 @@ var Editor;
             menu = this._toolbar.createMenu('menu', 'MainEdit', 'Edit', 'icon-edit');
             menu.createItem('button', 'edit-textures', 'Edit textures...', 'icon-textures');
             menu.createItem('button', 'edit-material-shaders', 'Edit material shaders...', 'icon-shaders');
+            menu.createItem('button', 'create-material-shader', 'Create a material shader...', 'icon-shaders');
             menu.createItem('break');
 
             this._toolbar.createMenu('break');

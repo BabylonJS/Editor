@@ -61,9 +61,11 @@ var CoreData = (function () {
         this.callbackScript = callbackScript;
         
         var customBuild = eval(callbackScript);
-        this.update = customBuild.update;
+        this.update = customBuild == null ? null : customBuild.update;
 
         this.isUpdating = true;
+
+        this.name = 'New Custom Material';
     }
 
     /// -----------------------------------------------------------------------------------------------------
@@ -78,6 +80,12 @@ var CoreData = (function () {
         var m = new CoreDataMaterialShader(manager, vertexProgram, pixelProgram, buildScript, callbackScript);
         this.materialShaders.push(m);
         return m;
+    }
+    CoreData.prototype.removeMaterial = function (material) {
+        if (material instanceof CoreDataMaterialShader)
+            this.materialShaders.splice(this.materialShaders.indexOf(material), 1);
+        else
+            this.materialShaders.splice(material, 1);
     }
     CoreData.prototype.getMaterialDataByRef = function (material) {
         for (var i=0; i < this.materialShaders.length; i++) {

@@ -90,6 +90,10 @@ var AddMesh = (function (_super) {
                             if (parameters['AddMeshCastShadows'].checked) {
                                 BABYLON.Editor.Utils.addObjectInShadowsCalculations(meshes[j], scope.core.currentScene);
                             }
+                            /// Materials
+                            if (meshes[j].material)
+                                meshes[j].material.dispose(true);
+                            meshes[j].material = null;
                             /// Others
                             meshes[j].isPickable = true;
                             meshes[j].position = new BABYLON.Vector3(0, 0, 0);
@@ -117,8 +121,11 @@ var AddMesh = (function (_super) {
             var meshTask = assetsManager.addMeshTask(data.contents[i].name, '', '', datas);
 
             meshTask.onSuccess = function (task) {
-                for (var j = 0; j < task.loadedMeshes.length; j++)
+                for (var j = 0; j < task.loadedMeshes.length; j++) {
                     task.loadedMeshes[j].position = new BABYLON.Vector3(0, 0, 0);
+                    task.loadedMeshes[j].material.dispose(true);
+                    task.loadedMeshes[j].material = null;
+                }
             }
         }
 

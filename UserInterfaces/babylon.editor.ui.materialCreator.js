@@ -7,7 +7,7 @@ var MaterialCreator = (function (_super) {
 
     /// Material Creator
     __extends(MaterialCreator, _super);
-    function MaterialCreator() {
+    function MaterialCreator(materialShader) {
         /// Extend class
         _super.call(this);
 
@@ -18,6 +18,8 @@ var MaterialCreator = (function (_super) {
         this._object = null;
 
         /// Shaders
+        this._shaderData = materialShader;
+
         this._codeActiveTab = 'vertexShaderTab';
         this._codeEditor = null;
         this._consoleOutput = null;
@@ -48,6 +50,8 @@ var MaterialCreator = (function (_super) {
         this._generalForm = null;
         this._uniformsForm = null;
         this._texturesForm = null;
+
+        this._saveWindow = null;
     }
 
     MaterialCreator.prototype.configure = function (core) {
@@ -109,6 +113,22 @@ var MaterialCreator = (function (_super) {
 
             }
 
+            /// Confirm dialog
+            else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG) {
+
+                if (ev.event.caller == this._saveWindow) {
+                    if (ev.event.result == 'Yes') {
+                        var manager = new BABYLON.Editor.MaterialManager();
+                        manager.scene = this.core.currentScene;
+                        var materialData = this.core.coreData.addMaterial(manager, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
+                        materialData.isUpdating = false;
+                    }
+                    _super.prototype.close.call(this);
+                    return true;
+                }
+
+            }
+
             /// Toolbar selected
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TOOLBAR_SELECTED) {
                 if (ev.event.caller == this._toolbar) {
@@ -130,6 +150,13 @@ var MaterialCreator = (function (_super) {
                     /// Files
                     else if (ev.event.result == 'MainFiles:save-material') {
                         this._createFinalMaterial();
+                        return true;
+                    }
+                    else if (ev.event.result == 'MainFiles:close') {
+                        this._close(true);
+                        this._saveWindow = new BABYLON.Editor.GUIDialog('SaveMaterial', this.core, 'Save Material ?',
+                                                                        'Do you want to save the material ?', new BABYLON.Vector2(500, 500));
+                        this._saveWindow.buildElement();
                         return true;
                     }
                     /// Edit
@@ -172,9 +199,12 @@ var MaterialCreator = (function (_super) {
         return false;
     }
 
-    MaterialCreator.prototype._close = function () {
+    MaterialCreator.prototype._close = function (keepPlugin) {
         this._object.dispose();
         this._window.close();
+
+        if (!keepPlugin)
+            _super.prototype.close.call(this);
     }
 
     MaterialCreator.prototype._evalCallback = function () {
@@ -435,7 +465,6 @@ var MaterialCreator = (function (_super) {
 
         /// Configure window
         this._window.onClose(function () {
-            _super.prototype.close.call(scope);
             scope._engine.dispose();
             scope._toolbar.destroy();
             if (scope._generalForm) scope._generalForm.destroy();
@@ -469,7 +498,7 @@ var MaterialCreator = (function (_super) {
             scope._window.maximize();
         });
         
-        this._window.on('keydown', function (event) {
+        this._window.on('keydown', function (event) { /// CTRL + B
             event = window.event ? window.event : event
             if (event.keyCode == 66 && event.ctrlKey) {
                 scope._createMaterial();
@@ -551,6 +580,6 @@ var MaterialCreator = (function (_super) {
 
 
 this.createPlugin = function (parameters) {
-    return new MaterialCreator(parameters.material, parameters.object);
+    return new MaterialCreator(parameters.materialShader);
 }
 //# sourceMappingURL=babylon.editor.ui.editTextures.js.map

@@ -62,6 +62,9 @@ var Core = (function () {
 
     /// Sends the event "event" to all other event receivers
     Core.prototype.sendEvent = function (event) {
+        if (event.eventType == BABYLON.Editor.EventType.GUIEvent && event.event.caller == null)
+            return;
+
         for (var i = 0; i < this.eventReceivers.length; i++) {
             if (this.eventReceivers[i].onEvent(event))
                 break;

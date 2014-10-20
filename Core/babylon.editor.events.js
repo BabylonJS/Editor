@@ -44,13 +44,14 @@ var Event = (function () {
         BABYLON.Editor.Event.GUIEvent.GRID_SELECTED = 6;
         BABYLON.Editor.Event.GUIEvent.GRID_ROW_REMOVED = 7;
         BABYLON.Editor.Event.GUIEvent.GRID_ADD_ROW = 8;
-        BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 9;
-        BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 10;
-        BABYLON.Editor.Event.GUIEvent.LIST_SELECTED = 11;
-        BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED = 12;
+        BABYLON.Editor.Event.GUIEvent.GRID_EDIT_ROW = 9;
+        BABYLON.Editor.Event.GUIEvent.TAB_CHANGED = 10;
+        BABYLON.Editor.Event.GUIEvent.BUTTON_CLICKED = 11;
+        BABYLON.Editor.Event.GUIEvent.LIST_SELECTED = 12;
+        BABYLON.Editor.Event.GUIEvent.CONTEXT_MENU_SELECTED = 13;
 
         /// Plugins related
-        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONSE = 13;
+        BABYLON.Editor.Event.GUIEvent.PLUGIN_RESPONSE = 14;
     }
 
     /// Scene event

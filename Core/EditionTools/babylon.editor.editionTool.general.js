@@ -43,7 +43,7 @@ var EditionToolGeneral = (function () {
         if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.CONFIRM_DIALOG) {
                 /// Exclude object from shadows calculations
-                if (ev.event.caller = this._castDialog) {
+                if (ev.event.caller == this._castDialog) {
                     if (ev.event.result == "Yes") {
                         BABYLON.Editor.Utils.excludeObjectFromShadowsCalculations(this.object, this._core.currentScene);
                         this._objectCastingShadows = false;
