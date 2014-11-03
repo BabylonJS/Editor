@@ -118,10 +118,7 @@ var MaterialCreator = (function (_super) {
 
                 if (ev.event.caller == this._saveWindow) {
                     if (ev.event.result == 'Yes') {
-                        var manager = new BABYLON.Editor.MaterialManager();
-                        manager.scene = this.core.currentScene;
-                        var materialData = this.core.coreData.addMaterial(manager, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
-                        materialData.isUpdating = false;
+                        this._createFinalMaterial();
                     }
                     _super.prototype.close.call(this);
                     return true;
@@ -225,6 +222,16 @@ var MaterialCreator = (function (_super) {
     }
 
     MaterialCreator.prototype._createFinalMaterial = function () {
+        if (this._shaderData == null) {
+            this._shaderData = this.core.coreData.addMaterial(null, '', '', '', '');
+        }
+        else {
+            if (this._shaderData.manager && this._shaderData.manager.material) {
+                this._shaderData.manager.material._textures = [];
+                this._shaderData.manager.material.dispose(true);
+            }
+        }
+
         var scope = this;
 
         var domElements = BABYLON.Editor.Utils.CreateMaterialShaderDiv(this._vertexShader, this._pixelShader);
@@ -232,9 +239,14 @@ var MaterialCreator = (function (_super) {
         /// Create and store data
         var manager = new BABYLON.Editor.MaterialManager();
         manager.scene = scope.core.currentScene;
-        var materialData = this.core.coreData.addMaterial(manager, this._vertexShader, this._pixelShader, this._buildScript, this._callbackScript);
-        materialData.isUpdating = true;
+        this._shaderData.manager = manager;
+        this._shaderData.vertexProgram = this._vertexShader;
+        this._shaderData.pixelProgram = this._pixelShader;
+        this._shaderData.buildScript = this._buildScript;
+        this._shaderData.callbackScript = this._callbackScript;
+        this._shaderData.isUpdating = true;
 
+        /// Create custom build and update (callback)
         var buildScriptResult;
         try {
             buildScriptResult = eval(this._buildScript);
@@ -243,6 +255,10 @@ var MaterialCreator = (function (_super) {
             return;
         }
 
+        var customBuild = eval(this._callbackScript);
+        this._shaderData.update = customBuild == null ? null : customBuild.update;
+
+        /// Create material
         var uniforms = ["worldViewProjection"];
         uniforms.push.apply(uniforms, buildScriptResult.uniforms);
 
@@ -253,13 +269,13 @@ var MaterialCreator = (function (_super) {
 
         var name = 'ShaderMaterial', it = 0;
         while (BABYLON.Editor.Utils.GetMaterialByName(name, this.core.currentScene)) {
-            name += it;
+            name = name + it;
             it++;
         }
 
         var material = new BABYLON.ShaderMaterial(name, this.core.currentScene,
             { vertexElement: domElements.vertexShaderId, fragmentElement: domElements.pixelShaderId },
-            {attributes: attributes, uniforms: uniforms, samplers: textures}
+            { attributes: attributes, uniforms: uniforms, samplers: textures }
         );
 
         manager.material = material;
@@ -421,30 +437,43 @@ var MaterialCreator = (function (_super) {
         this._codeEditor.on('change', function (event) {
             if (scope._codeActiveTab == 'vertexShaderTab') {
                 scope._vertexShader = scope._codeEditor.getValue();
-            } else if (scope._codeActiveTab == 'pixelShaderTab') {
+            }
+            else if (scope._codeActiveTab == 'pixelShaderTab') {
                 scope._pixelShader = scope._codeEditor.getValue();
-            } else if (scope._codeActiveTab == 'buildScriptTab') {
+            }
+            else if (scope._codeActiveTab == 'buildScriptTab') {
                 scope._buildScript = scope._codeEditor.getValue();
-            } else if (scope._codeActiveTab == 'callbackTab')
+            }
+            else if (scope._codeActiveTab == 'callbackTab')
                 scope._callbackScript = scope._codeEditor.getValue();
         });
 
         this._consoleOutput = ace.edit('BabylonEditorMaterialEditorConsoleOutput');
 
-        /// Load default shader
-        BABYLON.Tools.LoadFile('Babylon/Shaders/basic.vertex.fx', function (result) {
-            scope._vertexShader = result;
-            scope._codeEditor.setValue(result, -1);
-        });
-        BABYLON.Tools.LoadFile('Babylon/Shaders/basic.pixel.fx', function (result) {
-            scope._pixelShader = result;
-        });
-        BABYLON.Tools.LoadFile('Babylon/Templates/shaderBuildScript.js', function (result) {
-            scope._buildScript = result;
-        });
-        BABYLON.Tools.LoadFile('Babylon/Templates/shaderCallbackScript.js', function (result) {
-            scope._callbackScript = result;
-        });
+        /// Load default shader if this._shaderData is null
+        if (this._shaderData == null || this._shaderData.manager == null) {
+            BABYLON.Tools.LoadFile('Babylon/Shaders/basic.vertex.fx', function (result) {
+                scope._vertexShader = result;
+                scope._codeEditor.setValue(result, -1);
+            });
+            BABYLON.Tools.LoadFile('Babylon/Shaders/basic.pixel.fx', function (result) {
+                scope._pixelShader = result;
+            });
+            BABYLON.Tools.LoadFile('Babylon/Templates/shaderBuildScript.js', function (result) {
+                scope._buildScript = result;
+            });
+            BABYLON.Tools.LoadFile('Babylon/Templates/shaderCallbackScript.js', function (result) {
+                scope._callbackScript = result;
+            });
+        }
+        else {
+            this._vertexShader = this._shaderData.vertexProgram;
+            this._pixelShader = this._shaderData.pixelProgram;
+            this._buildScript = this._shaderData.buildScript;
+            this._callbackScript = this._shaderData.callbackScript;
+
+            this._codeEditor.setValue(this._vertexShader, -1);
+        }
 
         /// Create scene
         this._canvas = document.getElementById("materialEditorCanvas");

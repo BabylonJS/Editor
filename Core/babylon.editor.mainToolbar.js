@@ -56,6 +56,13 @@ var Editor;
                             BABYLON.Editor.Plugin.executeScript('UserInterfaces/babylon.editor.ui.materialCreator.js', this._core);
                         }
 
+                        /// Main Add
+                        else if (ev.event.result == 'MainAdd:add-directional-light') {
+                            var light = new BABYLON.DirectionalLight('New Directional Light', BABYLON.Vector3.Zero(), this._core.currentScene);
+                            var shadows = new BABYLON.ShadowGenerator(1024, light);
+                            BABYLON.Editor.Utils.SendEventObjectAdded(light, this._core);
+                        }
+
                         return true;
 
                     } else if (ev.event.caller == this._toolsToolbar) {/// Tools Toolbar

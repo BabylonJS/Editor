@@ -172,8 +172,10 @@ var EditTextures = (function (_super) {
         });
 
         /// Configure window
-        this._window.removeElementsOnClose(['BabylonEditorEditTexturesLayout', 'EditTexturesGrid']);
         this._window.onClose(function () {
+            scope._grid.destroy();
+            scope._layouts.destroy();
+
             _super.prototype.close.call(scope);
             scope._engine.dispose();
         });
