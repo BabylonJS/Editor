@@ -46,8 +46,6 @@ var MaterialCreator = (function (_super) {
         this._imageSelector = null;
 
         this._renderingLayouts = null;
-        this._optionsLayouts = null;
-        this._generalForm = null;
         this._uniformsForm = null;
         this._texturesForm = null;
 
@@ -372,7 +370,7 @@ var MaterialCreator = (function (_super) {
         this._leftPanel.createTab('callbackTab', 'Callback');
 
         (this._rightPanel = this._layouts.createPanel('BabylonEditorMaterialEditorRenderPreview', 'right', 500, true)).setContent(
-              '<div id="BabylonEditorMaterialEditorRenderingLayout" style="height: 100%; width: 100%"></div>'
+                '<div id="BabylonEditorMaterialEditorRenderingLayout" style="height: 100%; width: 100%"></div>'
               + '<input type="file" id="BabylonEditorMaterialEditorFileInput" multiple style="display:none" />'
         );
 
@@ -395,16 +393,6 @@ var MaterialCreator = (function (_super) {
         this._renderingLayouts.on('resize', function () {
             scope._engine.resize();
         });
-
-        /// Options layouts
-        this._optionsLayouts = new BABYLON.Editor.GUILayout('BabylonEditorMaterialEditorOptionsLayout', this.core);
-        this._optionsLayouts.createPanel('BabylonEditorMaterialEditorOptionsLayoutUniforms', 'left', 250, true).setContent(
-            '<div id="BabylonEditorMaterialEditorOptionsLayoutUniforms"></div>'
-        );
-        this._optionsLayouts.createPanel('BabylonEditorMaterialEditorOptionsLayoutConfiguration', 'right', 250, true).setContent(
-            '<div id="BabylonEditorMaterialEditorOptionsLayoutConfiguration"></div>'
-        );
-        this._optionsLayouts.buildElement('BabylonEditorMaterialEditorOptionsLayout');
 
         /// Create toolbar
         this._toolbar = new BABYLON.Editor.GUIToolbar('BabylonEditorMaterialEditorToolbar', this.core);
@@ -511,8 +499,6 @@ var MaterialCreator = (function (_super) {
             scope._layouts.setSize('right', width / 2 - 15);
             scope._renderingLayouts.setSize('top', height / 2);
             scope._renderingLayouts.setSize('bottom', height / 3);
-            scope._optionsLayouts.setSize('left', (width / 2) / 2 - 30);
-            scope._optionsLayouts.setSize('right', (width / 2) / 2 - 15);
             scope._codeEditor.setOptions({
                 maxLines: (height - height / 4) / scope._codeEditor.renderer.lineHeight,
                 minLines: (height - height / 4) / scope._codeEditor.renderer.lineHeight - 10
@@ -542,7 +528,6 @@ var MaterialCreator = (function (_super) {
     }
 
     MaterialCreator.prototype._createForms = function () {
-        if (this._generalForm) this._generalForm.destroy();
         if (this._texturesForm) this._texturesForm.destroy();
         if (this._uniformsForm) this._uniformsForm.destroy();
 
@@ -552,22 +537,7 @@ var MaterialCreator = (function (_super) {
         BabylonEditorUICreator.Form.createDivsForForms([
             'BabylonEditorMaterialEditorRenderOptionsTextures',
             'BabylonEditorMaterialEditorRenderOptionsUniforms'
-        ], 'BabylonEditorMaterialEditorOptionsLayoutUniforms', true);
-        BabylonEditorUICreator.Form.createDivsForForms([
-            'BabylonEditorMaterialEditorOptionsLayoutConfiguration'
-        ], 'BabylonEditorMaterialEditorRenderOptions', true);
-
-        /// General
-        this._generalForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsGeneral', this._core, 'General');
-
-        this._generalForm.createField('GeneralMaterialName', 'text', 'Name :', 6);
-        this._generalForm.createField('GeneralMaterialBacKFaceCulling', 'checkbox', 'Back Face Culling :', 6);
-        this._generalForm.createField('GeneralMaterialWireframe', 'checkbox', 'Wireframe :', 6);
-        this._generalForm.createField('GeneralMaterialAlpha', 'text', 'Alpha :', 6);
-
-        this._generalForm.buildElement('BabylonEditorMaterialEditorOptionsLayoutConfiguration');
-
-        this._generalForm.fillFields([this._material.name, this._material.backFaceCulling, this._material.wireframe, this._material.alpha]);
+        ], 'BabylonEditorMaterialEditorOptionsLayout', true);
 
         /// Textures
         this._texturesForm = new BABYLON.Editor.GUIForm('BabylonEditorMaterialEditorRenderOptionsTextures', this._core, 'Textures');
