@@ -60,6 +60,45 @@ var Editor;
 
     })();
 
+    var GUITabs = (function (_super) {
+        /// GUIElement
+        __extends(GUIElement, _super);
+        function GUITabs(name, core, tabs, active) {
+            _super.call(this, name, core);
+            /// Members
+            this.tabs = (tabs == null) ? new Array() : tabs;
+            if (this.active == null)
+                this.active = '';
+            if (this.tabs.length > 0 && active == null)
+                this.active = tabs[0];
+        }
+
+        GUITabs.prototype.clearTabs = function () {
+            this.element.tabs.clear();
+        }
+        GUITabs.prototype.addTab = function (id, caption) {
+            this.tabs.push({ id: id, caption: caption });
+
+            if (this.element)
+                this.element.add({ id: id, caption: caption });
+
+            return this;
+        }
+
+        GUITabs.prototype.buildElement = function (parent) {
+            this.element = $('#' + parent).w2tabs({
+                name: this.name,
+                active: this.active,
+                tabs: this.tabs
+            });
+
+            return this;
+        }
+
+        return GUITabs;
+
+    })(GUIElement);
+
     var GUILayout = (function (_super) {
         ///Panel
         __extends(GUIPanel, _super);
@@ -777,6 +816,7 @@ var Editor;
     })(GUIElement);
 
     BABYLON.Editor.GUIElement = GUIElement;
+    BABYLON.Editor.GUITabCtrl = GUITabs;
     BABYLON.Editor.GUILayout = GUILayout;
     BABYLON.Editor.GUIToolbar = GUIToolbar;
     BABYLON.Editor.GUISidebar = GUISidebar;

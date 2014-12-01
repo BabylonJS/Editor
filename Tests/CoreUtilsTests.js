@@ -17,8 +17,6 @@ module('CoreUtils', {
 test('toFloat test', function () {
     equal(BABYLON.Editor.Utils.toFloat("3.14"), 3.14, 'dot : equals PI');
     equal(BABYLON.Editor.Utils.toFloat("3,14"), 3.14, 'coma : equals PI');
-    equal(BABYLON.Editor.Utils.toFloat('3.14'), 3.14, 'dot : equals PI');
-    equal(BABYLON.Editor.Utils.toFloat('3,14'), 3.14, 'coma : equals PI');
 });
 
 test('HexToRGBColor', function () {

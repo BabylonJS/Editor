@@ -487,7 +487,6 @@ var MaterialCreator = (function (_super) {
             if (scope._generalForm) scope._generalForm.destroy();
             if (scope._uniformsForm) scope._uniformsForm.destroy();
             if (scope._texturesForm) scope._texturesForm.destroy();
-            scope._optionsLayouts.destroy();
             scope._renderingLayouts.destroy();
             scope._layouts.destroy();
         });

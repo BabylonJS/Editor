@@ -1,5 +1,8 @@
 ﻿/// <reference path="../index.html" />
 
+/// Extends (already exists)
+var __extends = this.__extends;
+
 var BABYLON;
 (function (BABYLON) { /// namespace BAYBLON
 var Editor;
@@ -42,7 +45,30 @@ var Plugin = (function () {
     return Plugin;
 })();
 
+var EditionToolPlugin = (function (_super) {
+    __extends(EditionToolPlugin, _super);
+
+    function EditionToolPlugin() {
+        _super.call(this);
+    }
+
+    /// Apply changes to the object
+    EditionToolPlugin.prototype.applyChanges = null;
+
+    /// Creates the UI
+    EditionToolPlugin.prototype.clearUI = null;
+
+    /// Called if the object changed
+    EditionToolPlugin.prototype.objectChanged = null;
+
+    /// Clears the UI
+    EditionToolPlugin.prototype.clearUI = null;
+
+    return EditionToolPlugin;
+})(Plugin);
+
 BABYLON.Editor.Plugin = Plugin;
+BABYLON.Editor.EditionToolPlugin = EditionToolPlugin;
 
 })(BABYLON.Editor || (BABYLON.Editor = {})); /// End namespace Editor
 })(BABYLON || (BABYLON = {})); /// End namespace BABYLON

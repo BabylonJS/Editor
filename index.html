@@ -141,6 +141,8 @@
     <script src="hand.minified-1.2.js"></script>
 
     <!-- Babylon Editor Files -->
+    <script src="Core/babylon.editor.plugin.js"></script>
+
     <script src="Core/babylon.editor.utils.js"></script>
     <script src="Core/babylon.editor.factory.js"></script>
     <script src="Core/babylon.editor.events.js"></script>
@@ -154,8 +156,6 @@
 
     <script src="Core/babylon.editor.transformer.js"></script>
     <script src="babylon.editor.js"></script>
-
-    <script src="Core/babylon.editor.plugin.js"></script>
 
     <!-- Common Tests -->
     <script src="Tests/CommonTests.js"></script>
@@ -182,7 +182,7 @@
         /// -----------------------------------------------------------------------
         /// Create an instance of the core functions of the editor
         var core = new BABYLON.Editor.Core();
-
+        
         /// Create the editor (creates the GUI)
         var editor = new BABYLON.Editor.BabylonEditor(core);
         core.transformer = editor.transformer;
