@@ -4,14 +4,21 @@
 General forms for objects configuration
 */
 
+var __extends = this.__extends;
+
 var BABYLON;
 (function (BABYLON) { /// namespace BABYLON
 var Editor;
 (function (Editor) { /// namespace Editor
 
-var EditionToolGeneral = (function () {
-
+var EditionToolGeneral = (function (_super) {
+    __extends(EditionToolGeneral, _super);
     function EditionToolGeneral(core, parent) {
+        /// extends
+        _super.call(this);
+        this.EditionToolName = 'GeneralTab';
+        parent.editionTools.push(this);
+
         /// Core
         this._core = core;
         this.object = null;
@@ -27,7 +34,7 @@ var EditionToolGeneral = (function () {
         this._castDialog = null;
 
         /// Others
-        this._generalForms = [
+        this.forms = [
             'MainEditObjectGeneral',
             'MainEditObjectTransform',
             'MainEditObjectOptions',
@@ -138,10 +145,17 @@ var EditionToolGeneral = (function () {
         this._transformForm.refresh();
     }
 
+    EditionToolGeneral.prototype.isObjectSupported = function (object) {
+        if (!(object instanceof BABYLON.Mesh) && !(object instanceof BABYLON.Light))
+            return false;
+
+        return true;
+    }
+
     EditionToolGeneral.prototype.createUI = function () {
         /// Create divs for forms
         /// We use forms because the editor can work as a collaborative edition, why not.
-        BabylonEditorUICreator.Form.createDivsForForms(this._generalForms, 'BabylonEditorEditObject', true);
+        BabylonEditorUICreator.Form.createDivsForForms(this.forms, 'BabylonEditorEditObject', true);
 
         /// -----------------------------------------------------------------------------------------------------
         /// General
@@ -243,7 +257,7 @@ var EditionToolGeneral = (function () {
 
     return EditionToolGeneral;
 
-})();
+})(BABYLON.Editor.EditionToolPlugin);
 
 BABYLON.Editor.EditionToolGeneral = EditionToolGeneral;
 

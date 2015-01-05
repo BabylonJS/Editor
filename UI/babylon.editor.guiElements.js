@@ -115,10 +115,15 @@ var Editor;
             this.style = BabylonEditorUICreator.Layout.Style;
             this.content = '';
             this.toolbar = null;
+
+            this._panelElement = null;
         }
 
         GUIPanel.prototype.createTab = function (id, caption) {
             this.tabs.push({ id: id, caption: caption });
+            if (this._panelElement)
+                this._panelElement.tabs.insert(id, { caption: caption, id: id });
+
             return this;
         }
         GUIPanel.prototype.removeTab = function (id) {

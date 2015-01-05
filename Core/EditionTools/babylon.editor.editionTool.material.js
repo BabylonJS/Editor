@@ -4,14 +4,21 @@
 Materials forms for objects configuration
 */
 
+var __extends = this.__extends;
+
 var BABYLON;
 (function (BABYLON) { /// namespace BABYLON
 var Editor;
 (function (Editor) { /// namespace Editor
 
-var EditionToolMaterial = (function () {
-
+var EditionToolMaterial = (function (_super) {
+    __extends(EditionToolMaterial, _super);
     function EditionToolMaterial(core, parent) {
+        /// extends
+        _super.call(this);
+        this.EditionToolName = 'MaterialTab';
+        parent.editionTools.push(this);
+
         /// Core
         this._core = core;
         this.object = null;
@@ -34,7 +41,7 @@ var EditionToolMaterial = (function () {
         this._texturesForm = null;
 
         /// Others
-        this._materialForms = [
+        this.forms = [
             'MainEditObjectMaterialGeneral',
             'MainEditObjectColors',
             'MainEditObjectMaterialParameters',
@@ -165,13 +172,20 @@ var EditionToolMaterial = (function () {
         /// Nothing for the moment...
     }
 
+    EditionToolMaterial.prototype.isObjectSupported = function (object) {
+        if (!(object instanceof BABYLON.Mesh))
+            return false;
+
+        return true;
+    }
+
     EditionToolMaterial.prototype.createUI = function () {
         var scope = this;
 
         if (!this.object.material) {
             this.parent.createEmptyForm('No material', 'To edit material, please add one before.');
-            this.parent._panel.setTabEnabled('GeneralTab', true);
-            this.parent._panel.setTabEnabled('MaterialTab', true);
+            this.parent.panel.setTabEnabled('GeneralTab', true);
+            this.parent.panel.setTabEnabled('MaterialTab', true);
 
             BabylonEditorUICreator.Form.createDivsForForms(['MainEditorEditObjectAddMaterial', 'MainEditorEditObjectSelectMaterial'], 'BabylonEditorEditObject', false);
             this._addMaterialButton = BabylonEditorUICreator.createCustomField('MainEditorEditObjectAddMaterial', 'EditionAddMaterial',
@@ -189,7 +203,7 @@ var EditionToolMaterial = (function () {
 
         } else {
             /// cf. EditionTool._createGeneralUI()
-            BabylonEditorUICreator.Form.createDivsForForms(this._materialForms, 'BabylonEditorEditObject', true);
+            BabylonEditorUICreator.Form.createDivsForForms(this.forms, 'BabylonEditorEditObject', true);
 
             /// -----------------------------------------------------------------------------------------------------
             /// General
@@ -353,7 +367,7 @@ var EditionToolMaterial = (function () {
 
     return EditionToolMaterial;
 
-})();
+})(BABYLON.Editor.EditionToolPlugin);
 
 BABYLON.Editor.EditionToolMaterial = EditionToolMaterial;
 

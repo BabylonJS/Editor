@@ -21,7 +21,7 @@ varying vec3 vPositionW;
 varying vec3 vNormalW;
 
 #ifdef VERTEXCOLOR
-varying vec3 vColor;
+varying vec4 vColor;
 #endif
 
 // Lights
@@ -248,11 +248,11 @@ float computeShadowWithPCF(vec4 vPositionFromLight, sampler2D shadowSampler)
 	poissonDisk[3] = vec2(0.34495938, 0.29387760);
 
 	// Poisson Sampling
-	for (int i = 0; i<4; i++){
-		if (unpack(texture2D(shadowSampler, uv + poissonDisk[i] / 1500.0))  <  depth.z){
-			visibility -= 0.2;
-		}
-	}
+	if (unpack(texture2D(shadowSampler, uv + poissonDisk[0] / 1500.0))  <  depth.z) visibility -= 0.2;
+	if (unpack(texture2D(shadowSampler, uv + poissonDisk[1] / 1500.0))  <  depth.z) visibility -= 0.2;
+	if (unpack(texture2D(shadowSampler, uv + poissonDisk[2] / 1500.0))  <  depth.z) visibility -= 0.2;
+	if (unpack(texture2D(shadowSampler, uv + poissonDisk[3] / 1500.0))  <  depth.z) visibility -= 0.2;
+
 	return visibility;
 }
 
@@ -317,9 +317,9 @@ mat3 cotangent_frame(vec3 normal, vec3 p, vec2 uv)
 
 vec3 perturbNormal(vec3 viewDir)
 {
-	vec3 map = texture2D(bumpSampler, vBumpUV).xyz * vBumpInfos.y;
+	vec3 map = texture2D(bumpSampler, vBumpUV).xyz;
 	map = map * 255. / 127. - 128. / 127.;
-	mat3 TBN = cotangent_frame(vNormalW, -viewDir, vBumpUV);
+	mat3 TBN = cotangent_frame(vNormalW * vBumpInfos.y, -viewDir, vBumpUV);
 	return normalize(TBN * map);
 }
 #endif
@@ -473,7 +473,7 @@ void main(void) {
 	float alpha = vDiffuseColor.a;
 
 #ifdef VERTEXCOLOR
-	diffuseColor *= vColor;
+	baseColor.rgb *= vColor.rgb;
 #endif
 
 #ifdef DIFFUSE
@@ -659,6 +659,10 @@ void main(void) {
 	alpha *= opacityMap.a * vOpacityInfos.y;
 #endif
 
+#endif
+
+#ifdef VERTEXALPHA
+	alpha *= vColor.a;
 #endif
 
 #ifdef OPACITYFRESNEL

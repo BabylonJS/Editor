@@ -524,6 +524,10 @@ var MaterialCreator = (function (_super) {
         this._shaderManager = new BABYLON.Editor.MaterialCreatorManager(this._consoleOutput);
         this._shaderManager.scene = this._scene;
 
+        /// Add two default textures for tests
+        new BABYLON.Texture('Tests/textures/diffuse.tga', this._scene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+        new BABYLON.Texture('Tests/textures/normal.tga', this._scene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+
     }
 
     MaterialCreator.prototype._createForms = function () {

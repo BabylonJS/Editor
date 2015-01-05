@@ -21,10 +21,18 @@ var EditionTool = (function () {
             'MaterialTab'
         ];
 
-        this._panel = layouts.getPanelFromType('left');
-        this._activeTab = this._panel.getTabIDFromIndex(0);
+        this.panel = layouts.getPanelFromType('left');
+        this._activeTab = this.panel.getTabIDFromIndex(0);
         this._emptyForm = null;
 
+        //
+        // Edition tools
+        //
+        this.editionTools = new Array();
+
+        //
+        // Default edition tools (forms)
+        //
         /// Genral
         this._generalForms = new BABYLON.Editor.EditionToolGeneral(this._core, this);
         /// Material
@@ -48,8 +56,10 @@ var EditionTool = (function () {
                 }
 
                 this.object = ev.event.object;
-                this._generalForms.object = this.object;
-                this._materialForms.object = this.object;
+
+                /// Update edition tools
+                for (var i = 0; i < this.editionTools.length; i++)
+                    this.editionTools[i].object = this.object;
 
                 /// Test here for the moment...
                 this._core.transformer.setNodeToTransform(this.object);
@@ -95,16 +105,16 @@ var EditionTool = (function () {
 
         if (ev.eventType == BABYLON.Editor.EventType.GUIEvent) {
             if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.FORM_CHANGED) {
-                if (this._generalForms._generalForms.indexOf(ev.event.result) != -1
-                    || this._materialForms._materialForms.indexOf(ev.event.result) != -1)
-                {
-                    this._onChange();
-                    return true;
+                for (var i = 0; i < this.editionTools.length; i++) {
+                    if (this.editionTools[i].forms.indexOf(ev.event.result) != -1) {
+                        this._onChange();
+                        return true;
+                    }
                 }
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
-                if (ev.event.caller == this._panel && this._tabs.indexOf(ev.event.result) != -1 && this.object) {
+                if (ev.event.caller == this.panel && this._tabs.indexOf(ev.event.result) != -1 && this.object) {
                     this._clearUI();
                     this._activeTab = ev.event.result;
                     this._createUI();
@@ -135,10 +145,11 @@ var EditionTool = (function () {
 
     /// Clears the UI
     EditionTool.prototype._clearUI = function () {
-        this._panel.setTabEnabled('MaterialTab', false);
 
-        this._generalForms.clearUI();
-        this._materialForms.clearUI();
+        for (var i = 0; i < this.editionTools.length; i++) {
+            this.panel.setTabEnabled(this.editionTools[i].EditionToolName);
+            this.editionTools[i].clearUI();
+        }
 
         /// Can clear other forms or UI elements
         if (this._emptyForm)
@@ -146,19 +157,21 @@ var EditionTool = (function () {
     }
 
     EditionTool.prototype._objectChanged = function () {
-        if (this._activeTab == 'GeneralTab') {
-            /// Change general tab here
-            this._generalForms.objectChanged();
-            this._materialForms.objectChanged();
-        }
+
+        for (var i = 0; i < this.editionTools.length; i++)
+            if (this._activeTab == this.editionTools[i].EditionToolName) {
+                this.editionTools[i].objectChanged();
+                break;
+            }
     }
 
     EditionTool.prototype._onChange = function () {
-        if (this._activeTab == 'GeneralTab') {
-            this._generalForms.applyChanges();
-        }
-        else if (this._activeTab == 'MaterialTab') {
-            this._materialForms.applyChanges();
+
+        for (var i = 0; i < this.editionTools.length; i++) {
+            if (this._activeTab == this.editionTools[i].EditionToolName) {
+                this.editionTools[i].applyChanges();
+                break;
+            }
         }
 
         /// Send event because object changed
@@ -173,18 +186,15 @@ var EditionTool = (function () {
     EditionTool.prototype._createUI = function () {
         if (!this.object) return;
 
-        if (this.object instanceof BABYLON.Mesh)
-            this._panel.setTabEnabled('MaterialTab', true);
-        else
-            this._panel.setTabEnabled('MaterialTab', false);
+        for (var i = 0; i < this.editionTools.length; i++) {
+            if (this.editionTools[i].isObjectSupported(this.object)) {
+                this.panel.setTabEnabled(this.editionTools[i].EditionToolName, true);
 
-        if (this._activeTab == 'GeneralTab')
-            this._generalForms.createUI();
-        else if (this._activeTab == 'MaterialTab') {
-            if (this.object instanceof BABYLON.Mesh)
-                this._materialForms.createUI();
+                if (this._activeTab == this.editionTools[i].EditionToolName)
+                    this.editionTools[i].createUI();
+            }
             else
-                this.createEmptyForm('No material', 'This object cannot handle materials');
+                this.panel.setTabEnabled(this.editionTools[i].EditionToolName, false);
         }
 
     }

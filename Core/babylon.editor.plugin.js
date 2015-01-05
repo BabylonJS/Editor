@@ -49,7 +49,12 @@ var EditionToolPlugin = (function (_super) {
     __extends(EditionToolPlugin, _super);
 
     function EditionToolPlugin() {
+        /// Extends + this
         _super.call(this);
+
+        /// Members
+        this.EditionToolName = '';
+        this.forms = new Array();
     }
 
     /// Apply changes to the object
@@ -63,6 +68,9 @@ var EditionToolPlugin = (function (_super) {
 
     /// Clears the UI
     EditionToolPlugin.prototype.clearUI = null;
+
+    /// Object type is supported or not
+    EditionToolPlugin.prototype.isObjectSupported = null;
 
     return EditionToolPlugin;
 })(Plugin);

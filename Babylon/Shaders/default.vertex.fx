@@ -12,7 +12,7 @@ attribute vec2 uv;
 attribute vec2 uv2;
 #endif
 #ifdef VERTEXCOLOR
-attribute vec3 color;
+attribute vec4 color;
 #endif
 #ifdef BONES
 attribute vec4 matricesIndices;
@@ -73,12 +73,16 @@ uniform mat4 bumpMatrix;
 uniform mat4 mBones[BonesPerMesh];
 #endif
 
+#ifdef POINTSIZE
+uniform float pointSize;
+#endif
+
 // Output
 varying vec3 vPositionW;
 varying vec3 vNormalW;
 
 #ifdef VERTEXCOLOR
-varying vec3 vColor;
+varying vec4 vColor;
 #endif
 
 #ifdef CLIPPLANE
@@ -248,5 +252,10 @@ void main(void) {
 	// Vertex color
 #ifdef VERTEXCOLOR
 	vColor = color;
+#endif
+
+	// Point size
+#ifdef POINTSIZE
+	gl_PointSize = pointSize;
 #endif
 }
