@@ -57,9 +57,19 @@ var Editor;
                         }
 
                         /// Main Add
+                        /// Lights
                         else if (ev.event.result == 'MainAdd:add-directional-light') {
                             var light = new BABYLON.DirectionalLight('New Directional Light', BABYLON.Vector3.Zero(), this._core.currentScene);
                             var shadows = new BABYLON.ShadowGenerator(1024, light);
+                            BABYLON.Editor.Utils.SendEventObjectAdded(light, this._core);
+                        }
+                        else if (ev.event.result == 'MainAdd:add-spot-light') {
+                            var light = new BABYLON.SpotLight("New Spot Light", BABYLON.Vector3.Zero(), new BABYLON.Vector3(-1, -2, -1), Math.PI, 1, this._core.currentScene);
+                            var shadows = new BABYLON.ShadowGenerator(1024, light);
+                            BABYLON.Editor.Utils.SendEventObjectAdded(light, this._core);
+                        }
+                        else if (ev.event.result == 'MainAdd:add-point-light') {
+                            var light = new BABYLON.PointLight("New Point Light", BABYLON.Vector3.Zero(), this._core.currentScene);
                             BABYLON.Editor.Utils.SendEventObjectAdded(light, this._core);
                         }
 
@@ -135,7 +145,6 @@ var Editor;
             this._toolbar.createMenu('button', 'MainScale', '', 'icon-scale');
 
             this._toolbar.createMenu('break');
-
             this._toolbar.createMenu('button', 'MainPlayGame', 'Play Game', 'icon-play-game');
 
             this._toolbar.buildElement('BabylonEditorMainToolbar');

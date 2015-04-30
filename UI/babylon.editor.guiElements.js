@@ -122,11 +122,14 @@ var Editor;
         GUIPanel.prototype.createTab = function (id, caption) {
             this.tabs.push({ id: id, caption: caption });
             if (this._panelElement)
-                this._panelElement.tabs.insert(id, { caption: caption, id: id });
+                this._panelElement.tabs.add({ caption: caption, id: id });
 
             return this;
         }
         GUIPanel.prototype.removeTab = function (id) {
+            if (this._panelElement)
+                this._panelElement.tabs.remove(id);
+
             for (var i = 0; i < this.tabs.length; i++) {
                 if (this.tabs[i].id == id) {
                     this.tabs.splice(i, 1);
@@ -134,6 +137,9 @@ var Editor;
                 }
             }
             return false;
+        }
+        GUIPanel.prototype.getTabCount = function () {
+            return this.tabs.length;
         }
         GUIPanel.prototype.setTabEnabled = function(tab, enable) {
             enable ? this._panelElement.tabs.enable(tab) : this._panelElement.tabs.disable(tab);

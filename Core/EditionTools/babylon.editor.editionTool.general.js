@@ -153,6 +153,7 @@ var EditionToolGeneral = (function (_super) {
     }
 
     EditionToolGeneral.prototype.createUI = function () {
+
         /// Create divs for forms
         /// We use forms because the editor can work as a collaborative edition, why not.
         BabylonEditorUICreator.Form.createDivsForForms(this.forms, 'BabylonEditorEditObject', true);

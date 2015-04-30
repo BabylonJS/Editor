@@ -16,11 +16,6 @@ var EditionTool = (function () {
         this.object = null;
 
         /// GUI Elements
-        this._tabs = [
-            'GeneralTab',
-            'MaterialTab'
-        ];
-
         this.panel = layouts.getPanelFromType('left');
         this._activeTab = this.panel.getTabIDFromIndex(0);
         this._emptyForm = null;
@@ -114,11 +109,13 @@ var EditionTool = (function () {
             }
 
             else if (ev.event.eventType == BABYLON.Editor.Event.GUIEvent.TAB_CHANGED) {
-                if (ev.event.caller == this.panel && this._tabs.indexOf(ev.event.result) != -1 && this.object) {
-                    this._clearUI();
-                    this._activeTab = ev.event.result;
-                    this._createUI();
-                    return true;
+                for (var i = 0; i < this.editionTools.length; i++) {
+                    if (this.editionTools[i].EditionToolName == ev.event.result) {
+                        this._clearUI();
+                        this._activeTab = ev.event.result;
+                        this._createUI();
+                        return true;
+                    }
                 }
             }
 

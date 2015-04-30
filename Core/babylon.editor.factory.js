@@ -1,6 +1,8 @@
 ﻿/// <reference path="../index.html" />
 
 /*
+Factory that creates nodes for BabylonJS Editor.
+
 
 */
 
@@ -11,8 +13,8 @@ var Editor;
 
 var Factory = (function () {
 
-	/* UI utils */
-	Factory = Factory || {};
+    function Factory()
+    { }
 
 	Factory.addBox = function (core) {
 		var box = BABYLON.Mesh.CreateBox('New Cube', 1, core.currentScene, true);

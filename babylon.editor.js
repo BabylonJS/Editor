@@ -92,7 +92,7 @@ var BabylonEditor = (function () {
         );
         this._layouts.createPanel('BabylonEditorGraphTool', 'right', 350, true).setContent('<div id="BabylonEditorGraphTool" style="height: 100%"></div>');
         this._layouts.createPanel('BabylonEditorMainPanel', 'main').setContent('<canvas id="renderCanvas"></canvas>');
-        this._layouts.createPanel('BabylonEditorBottomPanel', 'bottom', 70, true).setContent('<div id="MainOptionsBar" style="height: 100%"></div>');
+        this._layouts.createPanel('BabylonEditorBottomPanel', 'preview', 70, true).setContent('<div id="MainOptionsBar" style="height: 100%"></div>');
         this._layouts.buildElement('BabylonEditorMainLayout');
 
         /// Create Babylon's engine here. Then, we'll be able to manage events like onClick, onResize, etc.
