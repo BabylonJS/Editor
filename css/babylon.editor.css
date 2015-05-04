@@ -1,0 +1,22 @@
+﻿/* Style sheet for custom icons etc. for the Babylon.js Editor */
+
+/* CSS */
+html, body {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#BABYLON-EDITOR-MAIN-CANVAS {
+    width: 100%;
+    height: 100%;
+}
+
+.block {
+    padding-top: 20px; 
+    padding-bottom: 10px; 
+    color: #999;
+}
+
