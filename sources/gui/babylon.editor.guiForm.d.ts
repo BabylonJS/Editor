@@ -8,7 +8,8 @@ declare module BABYLON.EDITOR.GUI {
         * @param header: form's header text
         */
         constructor(name: string, header?: string);
-        createField(name: string, type: string, caption: string, span: number, text: string): IGUIForm;
+        createField(name: string, type: string, caption: string, span?: number, text?: string, options?: any): IGUIForm;
+        setRecord(name: string, value: any): void;
         buildElement(parent: string): void;
     }
 }

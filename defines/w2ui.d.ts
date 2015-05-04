@@ -92,4 +92,14 @@
         */
         get(panelType: string): IPanelElement;
     }
+
+    /**
+    * Form element
+    */
+    interface IFormElement extends IElement {
+        /**
+        * Form's records
+        */
+        record: Map<string, any>;
+    }
 }

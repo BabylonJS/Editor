@@ -25,11 +25,18 @@ var BABYLON;
                     this.header = header;
                 }
                 // Create a field
-                GUIForm.prototype.createField = function (name, type, caption, span, text) {
+                GUIForm.prototype.createField = function (name, type, caption, span, text, options) {
+                    if (span === void 0) { span = undefined; }
+                    if (text === void 0) { text = ""; }
+                    if (options === void 0) { options = {}; }
                     span = (span === null) ? 6 : span;
-                    var field = { name: name, type: type, html: { caption: caption, span: span, text: text } };
+                    var field = { name: name, type: type, html: { caption: caption, span: span, text: text }, options: options };
                     this.fields.push(field);
                     return this;
+                };
+                // Set record
+                GUIForm.prototype.setRecord = function (name, value) {
+                    this.element.record[name] = value;
                 };
                 // Build element
                 GUIForm.prototype.buildElement = function (parent) {
@@ -38,7 +45,9 @@ var BABYLON;
                         focus: -1,
                         header: this.header,
                         formHTML: "",
-                        fields: this.fields
+                        fields: this.fields,
+                        onChange: function (event) {
+                        }
                     });
                 };
                 return GUIForm;

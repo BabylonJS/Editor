@@ -117,6 +117,10 @@
         /**
         * Create a field
         */
-        createField(id: string, type: string, caption: string, span: number, text: string): IGUIForm;
+        createField(id: string, type: string, caption: string, span: number, text: string, options: any): IGUIForm;
+        /**
+        * Updates given record
+        */
+        setRecord(name: string, value: any): void;
     }
 }

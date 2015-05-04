@@ -4,6 +4,7 @@ declare module BABYLON.EDITOR {
         containers: Array<string>;
         private _editionTool;
         private _generalForm;
+        private _transformsForm;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -11,5 +12,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
+        update(): void;
+        apply(): void;
     }
 }

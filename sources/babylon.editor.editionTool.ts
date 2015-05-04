@@ -57,7 +57,13 @@
 
                 for (var j = 0; j < tool.containers.length; j++) {
                     var element = $("#" + tool.containers[j]);
-                    supported ? element.show() : element.hide();
+                    if (supported) {
+                        element.show();
+                        tool.update();
+                    }
+                    else {
+                        element.hide();
+                    }
                 }
             }
             return false;
@@ -71,9 +77,13 @@
 
         // Adds a tool
         public addTool(tool: ICustomEditionTool): void {
-            for (var i = 0; i < tool.containers.length; i++) {
-                $("#" + this.container).append("<div id=\"" + tool.containers[i] + "\" style=\"display:none;\"><div>");
+            var currentForm = this.container;
+            $("#" + currentForm).append("<div id=\"" + tool.containers[0] + "\"></div>");
+            for (var i = 1; i < tool.containers.length; i++) {
+                $('#' + currentForm).after('<div id="' + tool.containers[i] + '"></div>');
+                currentForm = tool.containers[i];
             }
+
             tool.createUI();
             this.editionTools.push(tool);
         }

@@ -54,6 +54,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
+    <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
@@ -85,6 +86,8 @@
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
+    <DefineConstants>DEBUG</DefineConstants>
+    <TypeScriptTarget>ES6</TypeScriptTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>

@@ -17,13 +17,18 @@
         }
 
         // Create a field
-        public createField(name: string, type: string, caption: string, span: number, text: string): IGUIForm {
+        public createField(name: string, type: string, caption: string, span: number = undefined, text: string = "", options: any = {}): IGUIForm {
             span = (span === null) ? 6 : span;
 
-            var field = <GUI.IGUIFormField>{ name: name, type: type, html: { caption: caption, span: span, text: text } };
+            var field = <IGUIFormField>{ name: name, type: type, html: { caption: caption, span: span, text: text }, options: options };
             this.fields.push(field);
 
             return this;
+        }
+
+        // Set record
+        public setRecord(name: string, value: any): void {
+            (<W2UI.IFormElement>this.element).record[name] = value;
         }
 
         // Build element
@@ -33,7 +38,10 @@
                 focus: -1,
                 header: this.header,
                 formHTML: "",
-                fields: this.fields
+                fields: this.fields,
+                onChange: (event: Event) => {
+
+                }
             });
         }
     }

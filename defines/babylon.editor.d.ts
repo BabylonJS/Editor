@@ -56,6 +56,13 @@
         * Creates the tool's UI
         */
         createUI(): void;
-
+        /**
+        * Update forms
+        */
+        update(): void;
+        /**
+        * Apply values to object
+        */
+        apply(): void;
     }
 }
