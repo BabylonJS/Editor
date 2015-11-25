@@ -2,26 +2,30 @@ declare module BABYLON.EDITOR {
     /**
     * Event Type
     */
-    class EventType {
-        private static _SCENE_EVENT;
-        private static _GUI_EVENT;
-        static SCENE_EVENT: number;
-        static GUI_EVENT: number;
+    enum EventType {
+        SCENE_EVENT = 0,
+        GUI_EVENT = 1,
+        UNKNOWN = 2,
+    }
+    enum GUIEventType {
+        FORM_CHANGED = 0,
+        LAYOUT_CHANGED = 1,
+        PANEL_CHANGED = 2,
+        UNKNOWN = 3,
+    }
+    enum SceneEventType {
+        OBJECT_PICKED = 0,
+        OBJECT_ADDED = 1,
+        OBJECT_REMOVED = 2,
+        OBJECT_CHANGED = 3,
+        UNKNOWN = 4,
     }
     /**
     * Scene Event
     */
     class SceneEvent {
-        private static _OBJECT_PICKED;
-        private static _OBJECT_ADDED;
-        private static _OBJECT_REMOVED;
-        private static _OBJECT_CHANGED;
-        static OBJECT_PICKED: number;
-        static OBJECT_ADDED: number;
-        static OBJECT_REMOVED: number;
-        static OBJECT_CHANGED: number;
         object: any;
-        eventType: number;
+        eventType: SceneEventType;
         /**
         * Constructor
         * @param object: the object generating the event
@@ -32,10 +36,8 @@ declare module BABYLON.EDITOR {
     * GUI Event
     */
     class GUIEvent {
-        private static _EVENT_CHANGED;
-        static EVENT_CHANGED: number;
         caller: GUI.GUIElement;
-        eventType: number;
+        eventType: GUIEventType;
         /**
         * Constructor
         * @param caller: gui element calling the event
@@ -44,10 +46,10 @@ declare module BABYLON.EDITOR {
         constructor(caller: GUI.GUIElement, eventType: number);
     }
     /**
-    * IEvent interface
+    * IEvent implementation
     */
     class Event implements IEvent {
-        eventType: number;
+        eventType: EventType;
         sceneEvent: SceneEvent;
         guiEvent: GUIEvent;
     }

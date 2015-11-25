@@ -2,42 +2,37 @@
     /**
     * Event Type
     */
-    export class EventType {
-        private static _SCENE_EVENT = 0;
-        private static _GUI_EVENT = 1;
+    export enum EventType {
+        SCENE_EVENT = 0,
+        GUI_EVENT = 1,
 
-        public static get SCENE_EVENT(): number {
-            return EventType._SCENE_EVENT;
-        }
-        public static get GUI_EVENT(): number {
-            return EventType._GUI_EVENT;
-        }
+        UNKNOWN = 2
+    }
+
+    export enum GUIEventType {
+        FORM_CHANGED = 0,
+        LAYOUT_CHANGED = 1,
+        PANEL_CHANGED = 2,
+
+        UNKNOWN = 3
+    }
+
+    export enum SceneEventType {
+        OBJECT_PICKED = 0,
+        OBJECT_ADDED = 1,
+        OBJECT_REMOVED = 2,
+        OBJECT_CHANGED = 3,
+
+        UNKNOWN = 4
     }
 
     /**
     * Scene Event
     */
     export class SceneEvent {
-        private static _OBJECT_PICKED = 0;
-        private static _OBJECT_ADDED = 1;
-        private static _OBJECT_REMOVED = 2;
-        private static _OBJECT_CHANGED = 3;
-
-        public static get OBJECT_PICKED(): number {
-            return SceneEvent._OBJECT_PICKED;
-        }
-        public static get OBJECT_ADDED(): number {
-            return SceneEvent._OBJECT_ADDED;
-        }
-        public static get OBJECT_REMOVED(): number {
-            return SceneEvent._OBJECT_REMOVED;
-        }
-        public static get OBJECT_CHANGED(): number {
-            return SceneEvent._OBJECT_CHANGED;
-        }
-
         public object: any;
-        public eventType: number;
+        public eventType: SceneEventType;
+
         /**
         * Constructor
         * @param object: the object generating the event
@@ -52,14 +47,9 @@
     * GUI Event
     */
     export class GUIEvent {
-        private static _EVENT_CHANGED = 0;
-
-        public static get EVENT_CHANGED(): number {
-            return GUIEvent._EVENT_CHANGED;
-        }
-
         public caller: GUI.GUIElement;
-        public eventType: number;
+        public eventType: GUIEventType;
+
         /**
         * Constructor
         * @param caller: gui element calling the event
@@ -73,10 +63,10 @@
     }
 
     /**
-    * IEvent interface
+    * IEvent implementation
     */
     export class Event implements IEvent {
-        public eventType: number = null;
+        public eventType: EventType = EventType.UNKNOWN;
 
         public sceneEvent: SceneEvent = null;
         public guiEvent: GUIEvent = null;

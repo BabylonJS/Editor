@@ -1,8 +1,9 @@
 declare module BABYLON.EDITOR {
     class GeneralTool implements ICustomEditionTool {
-        object: any;
+        object: Node;
         containers: Array<string>;
         private _editionTool;
+        private _element;
         private _generalForm;
         private _transformsForm;
         /**

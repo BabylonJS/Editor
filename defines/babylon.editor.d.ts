@@ -31,7 +31,15 @@
     * IEvent interface
     */
     interface IEvent
-    { }
+    {
+        eventType: EventType;
+
+        // GUI
+        guiEvent: GUIEvent;
+
+        // Scene
+        sceneEvent: SceneEvent;
+    }
 
     /**
     * Event Receiver interface
@@ -44,6 +52,11 @@
     * Custom Edition Tools
     */
     interface ICustomEditionTool {
+        /**
+        * The object to modify
+        */
+        object: Object;
+
         /**
         * DOM element ID to create
         */

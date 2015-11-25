@@ -5,6 +5,10 @@ var BABYLON;
         var GUI;
         (function (GUI) {
             var GUIElement = (function () {
+                /**
+                * Constructor
+                * @param name: the gui element name
+                */
                 function GUIElement(name) {
                     // Public members
                     this.element = null;
@@ -20,8 +24,7 @@ var BABYLON;
                 GUIElement.prototype.on = function (event, callback) {
                     this.element.on(event, callback);
                 };
-                GUIElement.prototype.buildElement = function (parent) {
-                };
+                GUIElement.prototype.buildElement = function (parent) { };
                 return GUIElement;
             })();
             GUI.GUIElement = GUIElement;

@@ -123,4 +123,96 @@
         */
         setRecord(name: string, value: any): void;
     }
+
+    /**
+    * Graph element
+    */
+    interface IGraphNodeElement {
+        /**
+        * Node's id
+        */
+        id: string;
+        /**
+        * Node's text
+        */
+        text: string;
+        /**
+        * Node's image
+        */
+        img: string;
+        /**
+        * Node's data (any object)
+        */
+        data: Object;
+        /**
+        * Gets the node's parent
+        */
+        parent?: IGraphNodeElement;
+        /**
+        * Gets if the node is expanded or not
+        */
+        expanded?: boolean;
+    }
+
+    interface IGraphMenuElement {
+        /**
+        * Menu's id
+        */
+        id: string;
+        /**
+        * Menu's text
+        */
+        text: string;
+        /**
+        * Menu's image
+        */
+        img: string;
+    }
+
+    interface IGraphElement extends IGUIElement {
+        /**
+        * Menus associated to the graph (right-click)
+        */
+        menus: Array<IGraphMenuElement>;
+
+        /**
+        * Adds a menu (right-click)
+        */
+        addMenu(id: string, text: string, img: string): void;
+
+        /**
+        * Creates a new node and returns its reference
+        */
+        createNode(id: string, text: string, img: string, data?: Object): IGraphNodeElement;
+
+        /**
+        * Adds new nodes to the graph
+        */
+        addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;
+
+        /**
+        * Removes the provided node
+        */
+        removeNode(node: IGraphNodeElement): void;
+
+        /**
+        * Sets if the provided node is expanded or not
+        */
+        setNodeExpanded(node: string, expanded: boolean): void;
+
+        /**
+        * Sets the selected node
+        */
+        setSelected(node: IGraphNodeElement): void;
+
+        /**
+        * Returns the selected node
+        */
+        getSelected(): IGraphNodeElement;
+
+        /**
+        * Clears the graph
+        */
+        clear(): void;
+    }
 }

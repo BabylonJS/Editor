@@ -37,7 +37,7 @@
         // Event
         public onEvent(event: Event): boolean {
             if (event.eventType === EventType.SCENE_EVENT) {
-                if (event.sceneEvent.eventType === SceneEvent.OBJECT_PICKED) {
+                if (event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
                     this.object = event.sceneEvent.object;
 
                     if (this.object !== null) {
@@ -59,11 +59,11 @@
                     var element = $("#" + tool.containers[j]);
                     if (supported) {
                         element.show();
+                        tool.object = object;
                         tool.update();
                     }
-                    else {
+                    else
                         element.hide();
-                    }
                 }
             }
             return false;

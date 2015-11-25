@@ -9,14 +9,14 @@ var BABYLON;
     (function (EDITOR) {
         var GUI;
         (function (GUI) {
-            var GUIForm = (function (_super) {
-                __extends(GUIForm, _super);
+            var GUIEditForm = (function (_super) {
+                __extends(GUIEditForm, _super);
                 /**
                 * Constructor
                 * @param name: the form name
                 * @param header: form's header text
                 */
-                function GUIForm(name, header) {
+                function GUIEditForm(name, header) {
                     if (header === void 0) { header = ""; }
                     _super.call(this, name);
                     this.fields = new Array();
@@ -24,7 +24,7 @@ var BABYLON;
                     this.header = header;
                 }
                 // Create a field
-                GUIForm.prototype.createField = function (name, type, caption, span, text, options) {
+                GUIEditForm.prototype.createField = function (name, type, caption, span, text, options) {
                     if (span === void 0) { span = undefined; }
                     if (text === void 0) { text = ""; }
                     if (options === void 0) { options = {}; }
@@ -34,11 +34,11 @@ var BABYLON;
                     return this;
                 };
                 // Set record
-                GUIForm.prototype.setRecord = function (name, value) {
+                GUIEditForm.prototype.setRecord = function (name, value) {
                     this.element.record[name] = value;
                 };
                 // Build element
-                GUIForm.prototype.buildElement = function (parent) {
+                GUIEditForm.prototype.buildElement = function (parent) {
                     this.element = $("#" + parent).w2form({
                         name: this.name,
                         focus: -1,
@@ -49,9 +49,9 @@ var BABYLON;
                         }
                     });
                 };
-                return GUIForm;
+                return GUIEditForm;
             })(GUI.GUIElement);
-            GUI.GUIForm = GUIForm;
+            GUI.GUIEditForm = GUIEditForm;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

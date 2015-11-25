@@ -100,6 +100,93 @@
         /**
         * Form's records
         */
-        record: Map<string, any>;
+        record: Object;
     }
+
+    /**
+    * Graph element
+    */
+    interface IGraphNodeElement extends BABYLON.EDITOR.GUI.IGraphNodeElement {
+        /**
+        * Node's id
+        */
+        id: string;
+        /**
+        * Node's text
+        */
+        text: string;
+        /**
+        * Node's image
+        */
+        img: string;
+        /**
+        * Node's data (any object)
+        */
+        data: Object;
+        /**
+        * Gets the node's parent
+        */
+        parent?: IGraphNodeElement;
+        /**
+        * Gets if the node is expanded or not
+        */
+        expanded?: boolean;
+    }
+
+    interface IGraphMenuElement extends BABYLON.EDITOR.GUI.IGraphMenuElement {
+        /**
+        * Menu's id
+        */
+        id: string;
+        /**
+        * Menu's text
+        */
+        text: string;
+        /**
+        * Menu's image
+        */
+        img: string;
+    }
+
+    interface IGraphElement extends IElement {
+        /**
+        * Adds a new node to the graph (parent is root)
+        */
+        add(nodes: IGraphNodeElement[]): void;
+        /**
+        * Adds a new node to the graph with the provided parent has parent
+        */
+        add(parent: string, nodes: IGraphNodeElement[] | IGraphNodeElement): void;
+        /**
+        * Removes the provided node from the graph
+        */
+        remove(node: IGraphNodeElement): void;
+        /**
+        * Expands the provided node
+        */
+        expand(node: string): void;
+        /**
+        * Collapses the provided node
+        */
+        collapse(node: string): void;
+        /**
+        * Returns the nodes of the graph starting from the provided parent
+        * If parent is undefined (not required), the function returns all
+        * the nodes of the grpah
+        */
+        get(parent?: IGraphNodeElement): IGraphNodeElement;
+        /**
+        * Sets the provided node as selected
+        */
+        select(node: IGraphNodeElement): void;
+        /**
+        * Gets the selected node
+        */
+        selected: IGraphNodeElement;
+        /**
+        * Array of nodes in the graph
+        */
+        nodes: IGraphNodeElement[];
+    }
+
 }

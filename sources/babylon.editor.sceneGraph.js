@@ -2,12 +2,12 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var EditionTool = (function () {
+        var SceneGraphTool = (function () {
             /**
             * Constructor
             * @param core: the editor core instance
             */
-            function EditionTool(core) {
+            function SceneGraphTool(core) {
                 // Public members
                 this.object = null;
                 this.container = "BABYLON-EDITOR-EDITION-TOOL";
@@ -20,13 +20,13 @@ var BABYLON;
                 this.panel = this._editor.layouts.getPanelFromType("left");
             }
             // Pre update
-            EditionTool.prototype.onPreUpdate = function () {
+            SceneGraphTool.prototype.onPreUpdate = function () {
             };
             // Post update
-            EditionTool.prototype.onPostUpdate = function () {
+            SceneGraphTool.prototype.onPostUpdate = function () {
             };
             // Event
-            EditionTool.prototype.onEvent = function (event) {
+            SceneGraphTool.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
                         this.object = event.sceneEvent.object;
@@ -38,7 +38,7 @@ var BABYLON;
                 return false;
             };
             // Object supported
-            EditionTool.prototype.isObjectSupported = function (object) {
+            SceneGraphTool.prototype.isObjectSupported = function (object) {
                 for (var i = 0; i < this.editionTools.length; i++) {
                     var tool = this.editionTools[i];
                     var supported = tool.isObjectSupported(this.object);
@@ -46,33 +46,20 @@ var BABYLON;
                         var element = $("#" + tool.containers[j]);
                         if (supported) {
                             element.show();
-                            tool.object = object;
                             tool.update();
                         }
-                        else
+                        else {
                             element.hide();
+                        }
                     }
                 }
                 return false;
             };
             // Creates the UI
-            EditionTool.prototype.createUI = function () {
-                // Add default tools
-                this.addTool(new EDITOR.GeneralTool(this));
+            SceneGraphTool.prototype.createUI = function () {
             };
-            // Adds a tool
-            EditionTool.prototype.addTool = function (tool) {
-                var currentForm = this.container;
-                $("#" + currentForm).append("<div id=\"" + tool.containers[0] + "\"></div>");
-                for (var i = 1; i < tool.containers.length; i++) {
-                    $('#' + currentForm).after('<div id="' + tool.containers[i] + '"></div>');
-                    currentForm = tool.containers[i];
-                }
-                tool.createUI();
-                this.editionTools.push(tool);
-            };
-            return EditionTool;
+            return SceneGraphTool;
         })();
-        EDITOR.EditionTool = EditionTool;
+        EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

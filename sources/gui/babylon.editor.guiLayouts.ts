@@ -13,6 +13,7 @@
 
         public createPanel(name: string, type: string, size: number, resizable: boolean = true): IGUIPanel {
             var panel = new GUIPanel(name, type, size, resizable);
+
             this.panels.push(panel);
             return panel;
         }

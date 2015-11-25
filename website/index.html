@@ -3,11 +3,6 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Babylon.js Editor</title>
-
-    <!-- STYLE -->
-    <link rel="stylesheet" type="text/css" href="../css/w2ui-1.4.1.css" />
-    <link rel="stylesheet" type="text/css" href="../css/babylon.editor.css" />
-
 </head>
 <body>
 
@@ -17,16 +12,20 @@
     <script src="../libs/babylon.max.js" type="text/javascript"></script>
     <script src="../libs/jquery.min.js" type="text/javascript"></script>
     <script src="../libs/w2ui-1.4.1.js" type="text/javascript"></script>
+    <script src="../libs/dat.gui.min.js" type="text/javascript"></script>
 
     <!-- GUI ELEMENTS -->
     <script src="../sources/gui/babylon.editor.guiElement.js" type="text/javascript"></script>
     <script src="../sources/gui/babylon.editor.guiPanel.js" type="text/javascript"></script>
     <script src="../sources/gui/babylon.editor.guiLayouts.js" type="text/javascript"></script>
     <script src="../sources/gui/babylon.editor.guiForm.js" type="text/javascript"></script>
+    <script src="../sources/gui/babylon.editor.guiGraph.js" type="text/javascript"></script>
+    <script src="../sources/gui/babylon.editor.guiEdit.js" type="text/javascript"></script>
 
     <!-- STATIC FILES -->
     <script src="../sources/internal/babylon.editor.event.js" type="text/javascript"></script>
     <script src="../sources/internal/babylon.editor.tools.js" type="text/javascript"></script>
+    <script src="../sources/babylon.editor.sceneGraphTool.js" type="text/javascript"></script>
 
     <!-- MAIN FILES -->
     <script src="../sources/babylon.editor.main.js" type="text/javascript"></script>
@@ -35,6 +34,14 @@
     <!-- EDITION TOOLS -->
     <script src="../sources/babylon.editor.editionTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.general.js" type="text/javascript"></script>
+
+    <!-- MATERIALS -->
+    <script src="../libs/materials/babylon.pbrMaterial.js" type="text/javascript"></script>
+
+    <!-- STYLE -->
+    <link rel="stylesheet" type="text/css" href="../css/w2ui-1.4.1.css" />
+    <link rel="stylesheet" type="text/css" href="../css/babylon.editor.css" />
+    <link rel="stylesheet" type="text/css" href="../css/dat.gui.css" />
 
     <script type="text/javascript">
         
@@ -47,43 +54,86 @@
 
         // Create test scene
         function createReleaseScene() {
-            function createMaterial(name, path) {
-                var material = new BABYLON.StandardMaterial(name, core.currentScene);
-                material.diffuseColor = new BABYLON.Color3(1, 1, 1);
-                material.diffuseTexture = new BABYLON.Texture(path, core.currentScene);
-
-                return material;
-            }
-
-            /// Light
+            // Light
             var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
             light.position = new BABYLON.Vector3(10, 10, 0);
+
             var shadows = new BABYLON.ShadowGenerator(1024, light);
+            shadows.setDarkness(0.5);
 
-            var object = BABYLON.Mesh.CreateGround("New Ground", 60, 60, 20, core.currentScene);
-            object.material = createMaterial("ground1m", "./Tests/textures/tile.jpg");
-            object.material.diffuseTexture.uScale = 15.0;
-            object.material.diffuseTexture.vScale = 15.0;
-            object.material.reflectionTexture = new BABYLON.MirrorTexture("mirror", 512, core.currentScene, true);
-            object.material.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, -1.0, 0, 0.0);
-            object.material.reflectionTexture.level = 0.6;
-            object.isPickable = true;
-            object.receiveShadows = true;
+            // skybox
+            var skybox = BABYLON.Mesh.CreateBox("skybox", 1000.0, core.currentScene);
+            var skyboxMaterial = new BABYLON.StandardMaterial("skybox", core.currentScene);
+            skyboxMaterial.backFaceCulling = false;
+            skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/glacier", core.currentScene, ["_px.png", "_py.png", "_pz.png", "_nx.png", "_ny.png", "_nz.png"]);
+            skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+            skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+            skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+            skyboxMaterial.disableLighting = true;
+            skybox.material = skyboxMaterial;
 
-            var box = BABYLON.Mesh.CreateBox("New Cube", 1, core.currentScene, true);
-            box.material = createMaterial("sphere1m", "./Tests/textures/diffuse.tga");
-            box.material.normalTexture = new BABYLON.Texture("./Tests/textures/normal.tga", core.currentScene);
-            box.scaling = new BABYLON.Vector3(4, 4, 4);
-            box.position = new BABYLON.Vector3(0, 2, 0);
-            shadows.getShadowMap().renderList.push(box);
+            // Reflection probe
+            var rp = new BABYLON.ReflectionProbe("rp", 512, core.currentScene, true);
 
-            object.material.reflectionTexture.renderList = [box];
+            // Create material function
+            var pbrReflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/TropicalSunnyDay", core.currentScene);
+            function createMaterial(name, path) {
+                var pbr = new BABYLON.PBRMaterial(name, core.currentScene);
+                //pbr.diffuseTexture = new BABYLON.Texture(path, core.currentScene);
+                pbr.reflectionTexture = rp.cubeTexture;
+                pbr.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+                pbr.glossiness = 1.0;
+
+                return pbr;
+            }
+
+            // Plane
+            var plane = BABYLON.Mesh.CreateGround("New Ground", 60, 60, 20, core.currentScene);
+            plane.material = createMaterial("ground1m", "./Tests/textures/tile.jpg");
+
+            plane.material.diffuseTexture = new BABYLON.Texture("./Tests/textures/floor_diffuse.png", core.currentScene);
+            plane.material.diffuseTexture.uScale = plane.material.diffuseTexture.vScale = 10;
+
+            plane.material.bumpTexture = new BABYLON.Texture("./Tests/textures/floor_bump.png", core.currentScene);
+            plane.material.bumpTexture.uScale = plane.material.bumpTexture.vScale = 10;
+
+            plane.material.reflectionTexture = pbrReflectionTexture;
+            plane.material.environmentIntensity = 0.1;
+            plane.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+
+            plane.isPickable = true;
+            plane.receiveShadows = true;
+            rp.renderList.push(plane);
+
+            // Sphere
+            var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene);
+
+            sphere.material = createMaterial("sphere1m", "./Tests/textures/diffuse.tga");
+            sphere.material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+            sphere.material.bumpTexture = new BABYLON.Texture("./Tests/textures/normal.png", core.currentScene);
+            sphere.material.bumpTexture.uScale = sphere.material.bumpTexture.vScale = 5;
+            sphere.material.glossiness = 1;
+            sphere.material.directIntensity = 1.3439461727881254,
+            sphere.material.emissiveIntensity = 1,
+            sphere.material.environmentIntensity = 0.5685013699580344,
+            sphere.material.ShadowIntensity = 1,
+            sphere.material.ShadeIntensity = 1;
+            sphere.material.cameraExposure = 0.7153261887420668;
+            sphere.material.cameraContrast = 1.6474178892241538;
+            sphere.material.diffuseColorLevel = 0.0;
+
+            sphere.scaling = new BABYLON.Vector3(4, 4, 4);
+            sphere.position = new BABYLON.Vector3(0, 2, 0);
+            shadows.getShadowMap().renderList.push(sphere);
+            rp.position.y = 2;
+            rp.renderList.push(sphere);
 
             var ev = new BABYLON.EDITOR.Event();
             ev.eventType = BABYLON.EDITOR.EventType.SCENE_EVENT;
-            ev.sceneEvent = new BABYLON.EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEvent.OBJECT_PICKED);
+            ev.sceneEvent = new BABYLON.EDITOR.SceneEvent(plane, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
             editorMain.editionTool.onEvent(ev);
 
+            editorMain.sceneGraphTool.fillGraph();
         };
         createReleaseScene();
 

@@ -23,6 +23,9 @@ var BABYLON;
                 // Edition tool
                 this.editionTool = new EDITOR.EditionTool(this.core);
                 this.editionTool.createUI();
+                // Scene graph tool
+                this.sceneGraphTool = new EDITOR.SceneGraphTool(this.core);
+                this.sceneGraphTool.createUI();
             }
             /**
             * Creates the UI
@@ -31,7 +34,7 @@ var BABYLON;
                 this.layouts = new EDITOR.GUI.GUILayout(this.container);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("");
-                this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("");
+                this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
                 this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
                 this.layouts.buildElement(this.container);
@@ -54,6 +57,7 @@ var BABYLON;
             EditorMain.prototype.update = function () {
                 // Pre update
                 this.core.onPreUpdate();
+                // Scenes
                 for (var i = 0; i < this.core.scenes.length; i++) {
                     if (this.core.scenes[i].render) {
                         this.core.scenes[i].scene.render();

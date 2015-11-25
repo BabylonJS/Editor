@@ -2,7 +2,9 @@
     export class EditorMain implements IDisposable {
         // public members
         public core: EditorCore;
+
         public editionTool: EditionTool;
+        public sceneGraphTool: SceneGraphTool;
 
         public container: string;
         public antialias: boolean;
@@ -31,6 +33,10 @@
             // Edition tool
             this.editionTool = new EditionTool(this.core);
             this.editionTool.createUI();
+
+            // Scene graph tool
+            this.sceneGraphTool = new SceneGraphTool(this.core);
+            this.sceneGraphTool.createUI();
         }
 
         /**
@@ -41,7 +47,7 @@
 
             this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
             this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("");
-            this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("");
+            this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
             this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
             this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
 

@@ -4,6 +4,10 @@
         public element: W2UI.IElement = null;
         public name: string;
 
+        /**
+        * Constructor
+        * @param name: the gui element name
+        */
         constructor(name: string) {
             // Members
             this.name = name;
@@ -24,5 +28,6 @@
 
         public buildElement(parent: string): void
         { }
+
     }
 }

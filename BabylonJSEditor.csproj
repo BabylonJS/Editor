@@ -10,19 +10,23 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>1.4</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>1.6</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <ItemGroup>
     <Content Include="css\babylon.editor.css" />
+    <Content Include="css\dat.gui.css" />
     <Content Include="css\w2ui-1.4.1.css" />
     <Content Include="libs\babylon.js" />
     <Content Include="libs\babylon.max.js" />
+    <Content Include="libs\dat.gui.min.js" />
     <Content Include="libs\jquery.min.js" />
+    <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -42,15 +46,18 @@
     <TypeScriptCompile Include="defines\babylon.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.gui.d.ts" />
+    <TypeScriptCompile Include="defines\dat.gui.d.ts" />
     <TypeScriptCompile Include="defines\jQuery.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
-    <TypeScriptCompile Include="defines\waa.d.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.core.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.editionTool.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.general.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiElement.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiForm.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiGraph.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
@@ -87,7 +94,16 @@
     <TypeScriptSourceMap>False</TypeScriptSourceMap>
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <DefineConstants>DEBUG</DefineConstants>
-    <TypeScriptTarget>ES6</TypeScriptTarget>
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptModuleKind>None</TypeScriptModuleKind>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>

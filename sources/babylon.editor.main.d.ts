@@ -2,6 +2,7 @@ declare module BABYLON.EDITOR {
     class EditorMain implements IDisposable {
         core: EditorCore;
         editionTool: EditionTool;
+        sceneGraphTool: SceneGraphTool;
         container: string;
         antialias: boolean;
         options: any;
