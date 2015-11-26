@@ -52,3 +52,19 @@ html, body {
 .w2ui-icon.icon-camera {
     background: url("images/render.png");
 }
+
+.w2ui-icon.icon-open-file {
+    background: url("images/open.png");
+}
+
+.w2ui-icon.icon-edit {
+    background: url("images/edit.png");
+}
+
+.w2ui-icon.icon-primitives {
+    background: url("images/primitives.png");
+}
+
+.w2ui-icon.icon-add {
+    background: url("images/add.png");
+}

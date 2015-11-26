@@ -15,6 +15,7 @@
         PANEL_CHANGED = 2,
         GRAPH_SELECTED = 3,
         TAB_CHANGED = 4,
+        TOOLBAR_MENU_SELECTED = 5,
 
         UNKNOWN = 3
     }
@@ -87,5 +88,30 @@
 
         public sceneEvent: SceneEvent = null;
         public guiEvent: GUIEvent = null;
+
+        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void {
+            var ev = new Event();
+
+            ev.eventType = EventType.SCENE_EVENT;
+            ev.sceneEvent = new SceneEvent(object, type);
+
+            core.sendEvent(ev);
+        }
     }
+
+    /**
+    * Statics
+    */
+
+    /**
+    * Sends a scene event
+    */
+    var sendSceneEvent = (object: any, type: SceneEventType, core: EditorCore) => {
+        var ev = new Event();
+
+        ev.eventType = EventType.SCENE_EVENT;
+        ev.sceneEvent = new SceneEvent(object, type);
+
+        core.sendEvent(ev);
+    };
 }

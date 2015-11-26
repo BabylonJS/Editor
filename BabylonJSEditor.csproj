@@ -52,6 +52,7 @@
     <TypeScriptCompile Include="sources\babylon.editor.core.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.editionTool.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
@@ -62,6 +63,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiGraph.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiToolbar.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />

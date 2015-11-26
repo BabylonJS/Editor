@@ -1,6 +1,4 @@
 ﻿module BABYLON.EDITOR.GUI {
-
-
     export class GUIEditForm extends GUIElement {
         // Public members
 

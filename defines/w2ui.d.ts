@@ -212,4 +212,48 @@
         nodes: IGraphNodeElement[];
     }
 
+    /**
+    * Toolbar
+    */
+    interface IToolbarItem {
+        type: string;
+
+        id: string;
+
+        text: string;
+
+        icon: string;
+
+        checked: boolean;
+    }
+
+    interface IToolbarMenu {
+        items: Array<IToolbarItem>;
+
+        type: string;
+
+        id: string;
+
+        text: string;
+
+        icon: string;
+
+        checked: boolean;
+    }
+
+    interface IToolbarElement extends IElement {
+        /**
+        * Checks the toolbar item
+        */
+        check(item: string): void;
+        /**
+        * Unchecks the toolbar item
+        */
+        uncheck(item: string): void;
+        /**
+        * Returns a toolbar item
+        */
+        get(item: string): IToolbarItem;
+    }
+
 }

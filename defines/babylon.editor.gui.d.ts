@@ -181,7 +181,7 @@
         img: string;
     }
 
-    interface IGraphElement extends IGUIElement {
+    interface IGUIGraphElement extends IGUIElement {
         /**
         * Menus associated to the graph (right-click)
         */
@@ -226,5 +226,48 @@
         * Clears the graph
         */
         clear(): void;
+    }
+
+    /**
+    * Toolbar element
+    */
+    interface IToolbarElement {
+        type: string;
+        id: string;
+        text: string;
+        icon: string;
+        checked: boolean;
+    }
+
+    interface IToolbarMenuElement {
+        items: Array<IToolbarElement>;
+        type: string;
+        id: string;
+        text: string;
+        img: string;
+        checked: boolean;
+    }
+
+    interface IGUIToolbarElement extends IGUIElement {
+        /**
+        * Adds a new menu
+        */
+        createMenu(type: string, id: string, text: string, icon: string): IToolbarMenuElement;
+        /**
+        * Creates a menu item
+        */
+        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string): IToolbarElement;
+        /**
+        * Sets item checked
+        */
+        setItemChecked(item: IToolbarElement, checked: boolean): void;
+        /**
+        * sets item auto checked
+        */
+        setItemAutoChecked(item: IToolbarElement, checked: boolean): void;
+        /**
+        * Returns if the item is cheked
+        */
+        isItemChecked(item: IToolbarElement): boolean;
     }
 }

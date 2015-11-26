@@ -3,6 +3,7 @@ declare module BABYLON.EDITOR {
         core: EditorCore;
         editionTool: EditionTool;
         sceneGraphTool: SceneGraphTool;
+        mainToolbar: MainToolbar;
         container: string;
         antialias: boolean;
         options: any;

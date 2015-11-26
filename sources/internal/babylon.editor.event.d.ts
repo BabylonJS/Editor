@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         PANEL_CHANGED = 2,
         GRAPH_SELECTED = 3,
         TAB_CHANGED = 4,
+        TOOLBAR_MENU_SELECTED = 5,
         UNKNOWN = 3,
     }
     enum SceneEventType {
@@ -61,5 +62,6 @@ declare module BABYLON.EDITOR {
         eventType: EventType;
         sceneEvent: SceneEvent;
         guiEvent: GUIEvent;
+        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
     }
 }

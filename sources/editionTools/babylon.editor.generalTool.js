@@ -45,6 +45,8 @@ var BABYLON;
                     this._element.remove();
                     this._element = null;
                 }
+                if (!object)
+                    return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 var generalFolder = this._element.addFolder("Common");
@@ -52,21 +54,21 @@ var BABYLON;
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
-                    positionFolder.add(object.position, "x").name("Position X").step(0.1);
-                    positionFolder.add(object.position, "y").name("Position Y").step(0.1);
-                    positionFolder.add(object.position, "z").name("Position Z").step(0.1);
+                    positionFolder.add(object.position, "x").name("x").step(0.1);
+                    positionFolder.add(object.position, "y").name("y").step(0.1);
+                    positionFolder.add(object.position, "z").name("z").step(0.1);
                 }
                 if (object.rotation) {
                     var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                    rotationFolder.add(object.rotation, "x").name("Rotation X").step(0.1);
-                    rotationFolder.add(object.rotation, "y").name("Rotation Y").step(0.1);
-                    rotationFolder.add(object.rotation, "z").name("Rotation Z").step(0.1);
+                    rotationFolder.add(object.rotation, "x").name("x").step(0.1);
+                    rotationFolder.add(object.rotation, "y").name("y").step(0.1);
+                    rotationFolder.add(object.rotation, "z").name("z").step(0.1);
                 }
                 if (object.scaling) {
                     var scalingFolder = this._element.addFolder("Scaling", transformFolder);
-                    scalingFolder.add(object.scaling, "x").name("Scaling X").step(0.1);
-                    scalingFolder.add(object.scaling, "y").name("Scaling Y").step(0.1);
-                    scalingFolder.add(object.scaling, "z").name("Scaling Z").step(0.1);
+                    scalingFolder.add(object.scaling, "x").name("x").step(0.1);
+                    scalingFolder.add(object.scaling, "y").name("y").step(0.1);
+                    scalingFolder.add(object.scaling, "z").name("z").step(0.1);
                 }
             };
             // Resize

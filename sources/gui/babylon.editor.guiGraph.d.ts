@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIGraph extends GUIElement implements IGraphElement {
+    class GUIGraph extends GUIElement implements IGUIGraphElement {
         menus: Array<IGraphMenuElement>;
         /**
         * Constructor

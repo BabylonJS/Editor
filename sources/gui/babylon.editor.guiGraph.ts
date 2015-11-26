@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIGraph extends GUIElement implements IGraphElement {
+    export class GUIGraph extends GUIElement implements IGUIGraphElement {
         // Public members
         public menus: Array<IGraphMenuElement> = new Array<IGraphNodeElement>();
 

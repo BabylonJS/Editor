@@ -27,7 +27,23 @@
                 "sideOrientation",
                 "alphaMode",
                 "zOffset",
-                "fillMode"
+                "fillMode",
+
+                // PBR
+                "overloadedAmbientIntensity",
+                "overloadedDiffuseIntensity",
+                "overloadedSpecularIntensity",
+                "overloadedEmissiveIntensity",
+                "overloadedAmbient",
+                "overloadedDiffuse",
+                "overloadedSpecular",
+                "overloadedEmissive",
+                "overloadedReflection",
+                "overloadedGlossiness",
+                "overloadedGlossinessIntensity",
+                "overloadedReflectionIntensity",
+                "overloadedShadowIntensity",
+                "overloadedShadeIntensity",
             ];
         }
 
@@ -68,7 +84,6 @@
             this._addNumberFields(propertiesFolder, object);
 
             var colorsFolder = this._element.addFolder("Colors");
-            colorsFolder.close();
             this._addColorFields(colorsFolder, object);
         }
 
@@ -94,9 +109,9 @@
                 if (value instanceof Color3 && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
                     var colorFolder = this._element.addFolder(thing, folder);
                     colorFolder.close();
-                    colorFolder.add(object[thing], "r").name(thing + "R").min(0.0).max(1.0).step(0.001);
-                    colorFolder.add(object[thing], "g").name(thing + "G").min(0.0).max(1.0).step(0.01);
-                    colorFolder.add(object[thing], "b").name(thing + "B").min(0.0).max(1.0).step(0.01);
+                    colorFolder.add(object[thing], "r").name("r").min(0.0).max(1.0).step(0.001);
+                    colorFolder.add(object[thing], "g").name("g").min(0.0).max(1.0).step(0.001);
+                    colorFolder.add(object[thing], "b").name("b").min(0.0).max(1.0).step(0.001);
                 }
             }
         }

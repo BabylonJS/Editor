@@ -22,6 +22,7 @@ var BABYLON;
             GUIEventType[GUIEventType["PANEL_CHANGED"] = 2] = "PANEL_CHANGED";
             GUIEventType[GUIEventType["GRAPH_SELECTED"] = 3] = "GRAPH_SELECTED";
             GUIEventType[GUIEventType["TAB_CHANGED"] = 4] = "TAB_CHANGED";
+            GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 5] = "TOOLBAR_MENU_SELECTED";
             GUIEventType[GUIEventType["UNKNOWN"] = 3] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
@@ -87,8 +88,26 @@ var BABYLON;
                 this.sceneEvent = null;
                 this.guiEvent = null;
             }
+            Event.sendSceneEvent = function (object, type, core) {
+                var ev = new Event();
+                ev.eventType = EventType.SCENE_EVENT;
+                ev.sceneEvent = new SceneEvent(object, type);
+                core.sendEvent(ev);
+            };
             return Event;
         })();
         EDITOR.Event = Event;
+        /**
+        * Statics
+        */
+        /**
+        * Sends a scene event
+        */
+        var sendSceneEvent = function (object, type, core) {
+            var ev = new Event();
+            ev.eventType = EventType.SCENE_EVENT;
+            ev.sceneEvent = new SceneEvent(object, type);
+            core.sendEvent(ev);
+        };
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

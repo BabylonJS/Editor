@@ -5,6 +5,7 @@
 
         public editionTool: EditionTool;
         public sceneGraphTool: SceneGraphTool;
+        public mainToolbar: MainToolbar;
 
         public container: string;
         public antialias: boolean;
@@ -40,6 +41,10 @@
             // Scene graph tool
             this.sceneGraphTool = new SceneGraphTool(this.core);
             this.sceneGraphTool.createUI();
+
+            // Toolbars
+            this.mainToolbar = new MainToolbar(this.core);
+            this.mainToolbar.createUI();
         }
 
         /**
@@ -63,7 +68,7 @@
             this.layouts = new GUI.GUILayout(this.container, this.core);
 
             this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
-            this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("");
+            this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50 %\"></div>");
             this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
             this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
             this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");

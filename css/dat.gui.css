@@ -42,6 +42,11 @@
 .dg li.cr {
     font-size: 12px;
     font-family:'MS Reference Sans Serif';
+    margin-left: 20px;
+}
+
+.dg title {
+    margin-left: 0px;
 }
 
 .dg .cr.function:hover,.dg .cr.boolean:hover {
