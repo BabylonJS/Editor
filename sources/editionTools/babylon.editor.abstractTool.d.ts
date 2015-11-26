@@ -1,8 +1,9 @@
 declare module BABYLON.EDITOR {
-    class GeneralTool extends AbstractTool {
+    class AbstractTool implements ICustomEditionTool {
         object: Node;
+        containers: Array<string>;
         tab: string;
-        private _element;
+        protected _editionTool: EditionTool;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -11,6 +12,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        apply(): void;
         resize(): void;
     }
 }

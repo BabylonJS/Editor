@@ -19,9 +19,10 @@
         * @param type: panel type (left, right, etc.)
         * @param size: panel size
         * @param resizable: if the panel is resizable
+        * @param core: the editor core
         */
-        constructor(name: string, type: string, size: number, resizable: boolean) {
-            super(name);
+        constructor(name: string, type: string, size: number, resizable: boolean, core: EditorCore) {
+            super(name, core);
 
             this.type = type;
             this.size = size;
@@ -30,6 +31,15 @@
 
         // Create tab
         public createTab(tab: IGUITab): IGUIPanel {
+            // Configure event
+            (<any>tab).onClick = (event) => {
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT
+                ev.guiEvent = new GUIEvent(this, GUIEventType.TAB_CHANGED, event.target);
+                this.core.sendEvent(ev);
+            };
+
+            // Add tab
             this.tabs.push(tab);
 
             if (this._panelElement !== null) {
@@ -53,6 +63,14 @@
             }
 
             return false;
+        }
+
+        // Set width
+        public get width() {
+            if (this._panelElement)
+                return this._panelElement.width;
+
+            return 0;
         }
 
         // Return tab count
@@ -84,6 +102,16 @@
         public setContent(content: string): IGUIPanel {
             this.content = content;
             return this;
+        }
+
+        // Hides a tab
+        public hideTab(id: string): boolean {
+            return this._panelElement.tabs.hide(id) === 1;
+        }
+
+        // Show tab
+        public showTab(id: string): boolean {
+            return this._panelElement.tabs.show(id) === 1;
         }
     }
 }

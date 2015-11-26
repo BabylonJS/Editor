@@ -74,6 +74,18 @@
         * Sets the HTML content into the panel
         */
         setContent(content: string): IGUIPanel;
+        /**
+        * Hide tab
+        */
+        hideTab(id: string): boolean;
+        /**
+        * Show tab
+        */
+        showTab(id: string): boolean;
+        /**
+        *
+        */
+        width: number;
     }
 
     /**

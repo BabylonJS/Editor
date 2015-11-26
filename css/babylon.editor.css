@@ -19,3 +19,36 @@ html, body {
     padding-bottom: 10px; 
     color: #999;
 }
+
+.w2ui-tab {
+    font-size: 12px;
+    font-weight: normal;
+    font-family:'MS Reference Sans Serif';
+}
+
+.w2ui-node {
+    font-size: 12px;
+    font-family:'MS Reference Sans Serif';
+}
+
+/*
+    ICONS
+*/
+.w2ui-icon.icon-error {
+    background: url("images/error.png");
+}
+
+.w2ui-icon.icon-add-light {
+    background: url("images/light.png");
+}
+.w2ui-icon.icon-directional-light {
+    background: url("images/directional_light.png");
+}
+
+.w2ui-icon.icon-mesh {
+    background: url("images/abstract_mesh.png");
+}
+
+.w2ui-icon.icon-camera {
+    background: url("images/render.png");
+}

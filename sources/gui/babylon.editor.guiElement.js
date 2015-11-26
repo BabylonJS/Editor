@@ -8,12 +8,16 @@ var BABYLON;
                 /**
                 * Constructor
                 * @param name: the gui element name
+                * @param core: the editor core
                 */
-                function GUIElement(name) {
+                function GUIElement(name, core) {
                     // Public members
                     this.element = null;
+                    this.name = "";
+                    this.core = null;
                     // Members
                     this.name = name;
+                    this.core = core;
                 }
                 GUIElement.prototype.destroy = function () {
                     this.element.destroy();

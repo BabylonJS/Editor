@@ -9,8 +9,8 @@
         * @param name: the form name
         * @param header: form's header text
         */
-        constructor(name: string, header: string = "") {
-            super(name);
+        constructor(name: string, header: string = "", core: EditorCore) {
+            super(name, core);
 
             // Initialize
             this.header = header;
@@ -40,7 +40,10 @@
                 formHTML: "",
                 fields: this.fields,
                 onChange: (event: Event) => {
-
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.FORM_CHANGED);
+                    this.core.sendEvent(ev);
                 }
             });
         }

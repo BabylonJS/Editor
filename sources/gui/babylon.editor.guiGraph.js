@@ -16,8 +16,8 @@ var BABYLON;
                 * @param name: the form name
                 * @param header: form's header text
                 */
-                function GUIGraph(name) {
-                    _super.call(this, name);
+                function GUIGraph(name, core) {
+                    _super.call(this, name, core);
                     // Public members
                     this.menus = new Array();
                 }
@@ -79,6 +79,7 @@ var BABYLON;
                 };
                 // Build element
                 GUIGraph.prototype.buildElement = function (parent) {
+                    var _this = this;
                     this.element = $("#" + parent).w2sidebar({
                         name: this.name,
                         img: null,
@@ -86,6 +87,11 @@ var BABYLON;
                         nodes: [],
                         menu: this.menus,
                         onClick: function (event) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_SELECTED);
+                            ev.guiEvent.data = event.object.data;
+                            _this.core.sendEvent(ev);
                         },
                         onMenuClick: function (event) {
                         }

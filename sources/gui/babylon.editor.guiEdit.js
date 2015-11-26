@@ -15,17 +15,47 @@ var BABYLON;
                 * Constructor
                 * @param name: the form name
                 */
-                function GUIEditForm(name) {
-                    _super.call(this, name);
+                function GUIEditForm(name, core) {
+                    _super.call(this, name, core);
                 }
+                // Removes the element
+                GUIEditForm.prototype.remove = function () {
+                    this._datElement.domElement.remove();
+                };
                 // Add a folder
-                GUIEditForm.prototype.addFolder = function (name) {
-                    return this._datElement.addFolder(name);
+                GUIEditForm.prototype.addFolder = function (name, parent) {
+                    var parentFolder = parent ? parent : this._datElement;
+                    var folder = parentFolder.addFolder(name);
+                    folder.open();
+                    return folder;
                 };
                 // Add a field
                 GUIEditForm.prototype.add = function (object, propertyPath, name) {
-                    return this._datElement.add(object, propertyPath).name(name);
+                    return this._datElement.add(object, propertyPath).name(name).onchange(function () {
+                    });
                 };
+                Object.defineProperty(GUIEditForm.prototype, "width", {
+                    get: function () {
+                        return this._datElement.width;
+                    },
+                    // Get / Set width
+                    set: function (width) {
+                        this._datElement.width = width;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(GUIEditForm.prototype, "height", {
+                    get: function () {
+                        return this._datElement.height;
+                    },
+                    // Get / Set height
+                    set: function (height) {
+                        this._datElement.height = height;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 // Build element
                 GUIEditForm.prototype.buildElement = function (parent) {
                     var parentElement = $("#" + parent);

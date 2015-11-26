@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class EditorMain implements IDisposable {
+    export class EditorMain implements IDisposable, IEventReceiver {
         // public members
         public core: EditorCore;
 
@@ -30,6 +30,9 @@
             this._createUI();
             this._createBabylonEngine();
 
+            // Register this
+            this.core.eventReceivers.push(this);
+
             // Edition tool
             this.editionTool = new EditionTool(this.core);
             this.editionTool.createUI();
@@ -40,10 +43,24 @@
         }
 
         /**
+        * Event receiver
+        */
+        public onEvent(event: Event): boolean {
+            if (event.eventType === EventType.GUI_EVENT) {
+                if (event.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED) {
+                    this.core.engine.resize();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
         * Creates the UI
         */
         private _createUI() {
-            this.layouts = new GUI.GUILayout(this.container);
+            this.layouts = new GUI.GUILayout(this.container, this.core);
 
             this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
             this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("");

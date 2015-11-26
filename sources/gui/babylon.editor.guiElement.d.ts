@@ -2,11 +2,13 @@ declare module BABYLON.EDITOR.GUI {
     class GUIElement implements IGUIElement {
         element: W2UI.IElement;
         name: string;
+        core: EditorCore;
         /**
         * Constructor
         * @param name: the gui element name
+        * @param core: the editor core
         */
-        constructor(name: string);
+        constructor(name: string, core: EditorCore);
         destroy(): void;
         refresh(): void;
         on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void;

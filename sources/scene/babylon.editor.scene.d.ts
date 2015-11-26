@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR {
-    class EditorCore implements ICustomUpdate, IDisposable {
+    class SceneManager implements ICustomUpdate, IDisposable {
         engine: Engine;
         canvas: HTMLCanvasElement;
         scenes: Array<ICustomScene>;

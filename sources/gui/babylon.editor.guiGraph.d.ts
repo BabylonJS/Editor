@@ -6,7 +6,7 @@ declare module BABYLON.EDITOR.GUI {
         * @param name: the form name
         * @param header: form's header text
         */
-        constructor(name: string);
+        constructor(name: string, core: EditorCore);
         addMenu(id: string, text: string, img?: string): void;
         createNode(id: string, text: string, img?: string, data?: Object): IGraphNodeElement;
         addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;

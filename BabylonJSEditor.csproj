@@ -53,7 +53,9 @@
     <TypeScriptCompile Include="sources\babylon.editor.editionTool.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
-    <TypeScriptCompile Include="sources\editionTools\babylon.editor.general.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiElement.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiForm.ts" />
@@ -62,6 +64,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
+    <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR {
-    class EditorMain implements IDisposable {
+    class EditorMain implements IDisposable, IEventReceiver {
         core: EditorCore;
         editionTool: EditionTool;
         sceneGraphTool: SceneGraphTool;
@@ -11,6 +11,10 @@ declare module BABYLON.EDITOR {
         * Constructor
         */
         constructor(containerID: string, antialias?: boolean, options?: any);
+        /**
+        * Event receiver
+        */
+        onEvent(event: Event): boolean;
         /**
         * Creates the UI
         */

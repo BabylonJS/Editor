@@ -13,6 +13,8 @@
         FORM_CHANGED = 0,
         LAYOUT_CHANGED = 1,
         PANEL_CHANGED = 2,
+        GRAPH_SELECTED = 3,
+        TAB_CHANGED = 4,
 
         UNKNOWN = 3
     }
@@ -27,9 +29,20 @@
     }
 
     /**
+    * Base Event
+    */
+    export class BaseEvent {
+        public data: Object;
+
+        constructor(data?: Object) {
+            this.data = data;
+        }
+    }
+
+    /**
     * Scene Event
     */
-    export class SceneEvent {
+    export class SceneEvent extends BaseEvent {
         public object: any;
         public eventType: SceneEventType;
 
@@ -37,7 +50,9 @@
         * Constructor
         * @param object: the object generating the event
         */
-        constructor(object: any, eventType: number) {
+        constructor(object: any, eventType: number, data?: Object) {
+            super(data);
+
             this.object = object;
             this.eventType = eventType
         }
@@ -46,8 +61,8 @@
     /**
     * GUI Event
     */
-    export class GUIEvent {
-        public caller: GUI.GUIElement;
+    export class GUIEvent extends BaseEvent {
+        public caller: GUI.IGUIElement;
         public eventType: GUIEventType;
 
         /**
@@ -55,8 +70,10 @@
         * @param caller: gui element calling the event
         * @param eventType: the gui event type
         */
-        constructor(caller: GUI.GUIElement, eventType: number)
+        constructor(caller: GUI.GUIElement, eventType: number, data?: Object)
         {
+            super(data);
+
             this.caller = caller;
             this.eventType = eventType;
         }

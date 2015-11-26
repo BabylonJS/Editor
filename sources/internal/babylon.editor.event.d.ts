@@ -11,6 +11,8 @@ declare module BABYLON.EDITOR {
         FORM_CHANGED = 0,
         LAYOUT_CHANGED = 1,
         PANEL_CHANGED = 2,
+        GRAPH_SELECTED = 3,
+        TAB_CHANGED = 4,
         UNKNOWN = 3,
     }
     enum SceneEventType {
@@ -21,29 +23,36 @@ declare module BABYLON.EDITOR {
         UNKNOWN = 4,
     }
     /**
+    * Base Event
+    */
+    class BaseEvent {
+        data: Object;
+        constructor(data?: Object);
+    }
+    /**
     * Scene Event
     */
-    class SceneEvent {
+    class SceneEvent extends BaseEvent {
         object: any;
         eventType: SceneEventType;
         /**
         * Constructor
         * @param object: the object generating the event
         */
-        constructor(object: any, eventType: number);
+        constructor(object: any, eventType: number, data?: Object);
     }
     /**
     * GUI Event
     */
-    class GUIEvent {
-        caller: GUI.GUIElement;
+    class GUIEvent extends BaseEvent {
+        caller: GUI.IGUIElement;
         eventType: GUIEventType;
         /**
         * Constructor
         * @param caller: gui element calling the event
         * @param eventType: the gui event type
         */
-        constructor(caller: GUI.GUIElement, eventType: number);
+        constructor(caller: GUI.GUIElement, eventType: number, data?: Object);
     }
     /**
     * IEvent implementation

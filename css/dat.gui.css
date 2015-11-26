@@ -34,6 +34,14 @@
 
 .dg li.title {
     background: #e8e8e8 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;
+    font-size: 12px;
+    font-weight: bold;
+    font-family:'MS Reference Sans Serif';
+}
+
+.dg li.cr {
+    font-size: 12px;
+    font-family:'MS Reference Sans Serif';
 }
 
 .dg .cr.function:hover,.dg .cr.boolean:hover {

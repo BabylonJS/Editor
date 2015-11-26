@@ -17,9 +17,10 @@ var BABYLON;
                 * @param type: panel type (left, right, etc.)
                 * @param size: panel size
                 * @param resizable: if the panel is resizable
+                * @param core: the editor core
                 */
-                function GUIPanel(name, type, size, resizable) {
-                    _super.call(this, name);
+                function GUIPanel(name, type, size, resizable, core) {
+                    _super.call(this, name, core);
                     // Public memebers
                     this.tabs = new Array();
                     this.size = 70;
@@ -33,6 +34,15 @@ var BABYLON;
                 }
                 // Create tab
                 GUIPanel.prototype.createTab = function (tab) {
+                    var _this = this;
+                    // Configure event
+                    tab.onClick = function (event) {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CHANGED, event.target);
+                        _this.core.sendEvent(ev);
+                    };
+                    // Add tab
                     this.tabs.push(tab);
                     if (this._panelElement !== null) {
                         this._panelElement.tabs.add(tab);
@@ -52,6 +62,16 @@ var BABYLON;
                     }
                     return false;
                 };
+                Object.defineProperty(GUIPanel.prototype, "width", {
+                    // Set width
+                    get: function () {
+                        if (this._panelElement)
+                            return this._panelElement.width;
+                        return 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 // Return tab count
                 GUIPanel.prototype.getTabCount = function () {
                     return this.tabs.length;
@@ -75,6 +95,14 @@ var BABYLON;
                 GUIPanel.prototype.setContent = function (content) {
                     this.content = content;
                     return this;
+                };
+                // Hides a tab
+                GUIPanel.prototype.hideTab = function (id) {
+                    return this._panelElement.tabs.hide(id) === 1;
+                };
+                // Show tab
+                GUIPanel.prototype.showTab = function (id) {
+                    return this._panelElement.tabs.show(id) === 1;
                 };
                 return GUIPanel;
             })(GUI.GUIElement);

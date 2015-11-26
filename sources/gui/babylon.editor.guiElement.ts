@@ -2,16 +2,20 @@
     export class GUIElement implements IGUIElement {
         // Public members
         public element: W2UI.IElement = null;
-        public name: string;
+
+        public name: string = "";
+
+        public core: EditorCore = null;
 
         /**
         * Constructor
         * @param name: the gui element name
+        * @param core: the editor core
         */
-        constructor(name: string) {
+        constructor(name: string, core: EditorCore) {
             // Members
             this.name = name;
-
+            this.core = core;
         }
 
         public destroy(): void {

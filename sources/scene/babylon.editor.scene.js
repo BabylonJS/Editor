@@ -2,12 +2,12 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var EditorCore = (function () {
+        var SceneManager = (function () {
             /**
             * Constructor
             * @param canvasID: the id of the canvas to render the editor scenes
             */
-            function EditorCore() {
+            function SceneManager() {
                 // Public members
                 this.engine = null;
                 this.canvas = null;
@@ -19,7 +19,7 @@ var BABYLON;
             /**
             * On pre update
             */
-            EditorCore.prototype.onPreUpdate = function () {
+            SceneManager.prototype.onPreUpdate = function () {
                 for (var i = 0; i < this.updates.length; i++) {
                     this.updates[i].onPreUpdate();
                 }
@@ -27,7 +27,7 @@ var BABYLON;
             /**
             * On post update
             */
-            EditorCore.prototype.onPostUpdate = function () {
+            SceneManager.prototype.onPostUpdate = function () {
                 for (var i = 0; i < this.updates.length; i++) {
                     this.updates[i].onPostUpdate();
                 }
@@ -35,17 +35,17 @@ var BABYLON;
             /**
             * Send an event to the event receivers
             */
-            EditorCore.prototype.sendEvent = function (event) {
+            SceneManager.prototype.sendEvent = function (event) {
                 for (var i = 0; i < this.eventReceivers.length; i++)
                     this.eventReceivers[i].onEvent(event);
             };
             /**
             * IDisposable
             */
-            EditorCore.prototype.dispose = function () {
+            SceneManager.prototype.dispose = function () {
             };
-            return EditorCore;
+            return SceneManager;
         })();
-        EDITOR.EditorCore = EditorCore;
+        EDITOR.SceneManager = SceneManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

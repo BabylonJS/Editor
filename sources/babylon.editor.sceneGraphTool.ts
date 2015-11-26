@@ -19,9 +19,12 @@
             // Initialize
             this._editor = core.editor;
             this._core = core;
-            this._core.updates.push(this);
 
             this.panel = this._editor.layouts.getPanelFromType("right");
+
+            // Register this
+            this._core.updates.push(this);
+            this._core.eventReceivers.push(this);
         }
 
         // Pre update
@@ -36,6 +39,15 @@
 
         // Event
         public onEvent(event: Event): boolean {
+            if (event.eventType === EventType.GUI_EVENT) {
+                if (event.guiEvent.caller === this.sidebar && event.guiEvent.eventType === GUIEventType.GRAPH_SELECTED) {
+
+                    var ev = new Event();
+                    ev.eventType = EventType.SCENE_EVENT;
+                    ev.sceneEvent = new SceneEvent(event.guiEvent.data, SceneEventType.OBJECT_PICKED);
+                    this._core.editor.editionTool.onEvent(ev);
+                }
+            }
 
             return false;
         }
@@ -90,7 +102,7 @@
             if (this.sidebar != null)
                 this.sidebar.destroy();
 
-            this.sidebar = new GUI.GUIGraph(this.container);
+            this.sidebar = new GUI.GUIGraph(this.container, this._core);
 
             // Set menus
             this.sidebar.addMenu("BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE", 'Remove', 'icon-error');
@@ -128,6 +140,8 @@
                 else if (node instanceof BABYLON.PointLight)
                     return "icon-add-light";
             }
+            else if (node instanceof BABYLON.Camera)
+                return "icon-camera";
 
             return "";
         }

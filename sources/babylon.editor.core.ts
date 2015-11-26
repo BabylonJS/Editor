@@ -6,7 +6,9 @@
 
         public scenes: Array<ICustomScene> = new Array<ICustomScene>();
         public currentScene: Scene;
+
         public updates: Array<ICustomUpdate> = new Array<ICustomUpdate>();
+        public eventReceivers: Array<IEventReceiver> = new Array<IEventReceiver>();
 
         public editor: EditorMain = null;
 
@@ -34,6 +36,14 @@
             for (var i = 0; i < this.updates.length; i++) {
                 this.updates[i].onPostUpdate();
             }
+        }
+
+        /**
+        * Send an event to the event receivers
+        */
+        public sendEvent(event: IEvent) {
+            for (var i = 0; i < this.eventReceivers.length; i++)
+                this.eventReceivers[i].onEvent(event);
         }
 
         /**

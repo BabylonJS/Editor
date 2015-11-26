@@ -5,7 +5,7 @@ declare module BABYLON.EDITOR.GUI {
         * Constructor
         * @param name: layouts name
         */
-        constructor(name: string);
+        constructor(name: string, core: EditorCore);
         createPanel(name: string, type: string, size: number, resizable?: boolean): IGUIPanel;
         getPanelFromType(type: string): IGUIPanel;
         getPanelFromName(name: string): IGUIPanel;

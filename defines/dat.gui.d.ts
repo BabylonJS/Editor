@@ -1,14 +1,24 @@
 ﻿declare module dat {
 
+    /**
+    * GUI creation
+    */
     interface IGUIOptions {
         autoPlace?: boolean;
         width?: number | string;
     }
 
+    interface IFolderCreator {
+        /**
+        * Adds a new folder
+        */
+        addFolder(name: string): IFolderElement;
+    }
+
     /**
     * Creates a new dat.GUI object
     */
-    class GUI {
+    class GUI implements IFolderCreator {
         /**
         * Constructor
         */
@@ -22,7 +32,7 @@
         /**
         * Interface's height
         */
-        height: string;
+        height: number;
 
         /**
         * Adds a field
@@ -40,15 +50,19 @@
         domElement: HTMLElement;
     }
 
-    interface IFolderElement {
+    interface IFolderElement extends IFolderCreator {
         /**
         * Adds a new element
         */
         add(object: Object, propertyPath: string): IGUIElement;
-
-        destroy(): void;
-
-        remove(): void;
+        /**
+        * Opens folder
+        */
+        open(): void;
+        /**
+        * Closes folder
+        */
+        close(): void;
     }
 
     /**

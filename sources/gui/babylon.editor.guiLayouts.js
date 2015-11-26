@@ -15,14 +15,14 @@ var BABYLON;
                 * Constructor
                 * @param name: layouts name
                 */
-                function GUILayout(name) {
-                    _super.call(this, name);
+                function GUILayout(name, core) {
+                    _super.call(this, name, core);
                     // Public members
                     this.panels = new Array();
                 }
                 GUILayout.prototype.createPanel = function (name, type, size, resizable) {
                     if (resizable === void 0) { resizable = true; }
-                    var panel = new GUI.GUIPanel(name, type, size, resizable);
+                    var panel = new GUI.GUIPanel(name, type, size, resizable, this.core);
                     this.panels.push(panel);
                     return panel;
                 };
@@ -46,10 +46,18 @@ var BABYLON;
                     this.element.sizeTo(panelType, size);
                 };
                 GUILayout.prototype.buildElement = function (parent) {
+                    var _this = this;
                     this.element = $("#" + parent).w2layout({
                         name: this.name,
                         panels: this.panels
                     });
+                    this.element.on({ type: "resize", execute: "after" }, function () {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.LAYOUT_CHANGED);
+                        _this.core.sendEvent(ev);
+                    });
+                    // Set panels
                     for (var i = 0; i < this.panels.length; i++) {
                         this.panels[i]._panelElement = this.element.get(this.panels[i].type);
                     }

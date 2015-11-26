@@ -8,8 +8,8 @@
         * @param name: the form name
         * @param header: form's header text
         */
-        constructor(name: string) {
-            super(name);
+        constructor(name: string, core: EditorCore) {
+            super(name, core);
         }
 
         public addMenu(id: string, text: string, img: string = ""): void {
@@ -87,8 +87,12 @@
                 keyboard: false,
                 nodes: [],
                 menu: this.menus,
-                onClick: (event: Event) => {
-
+                onClick: (event: any) => {
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_SELECTED);
+                    ev.guiEvent.data = event.object.data;
+                    this.core.sendEvent(ev);
                 },
                 onMenuClick: (event: Event) => {
 

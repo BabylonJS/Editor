@@ -16,9 +16,9 @@ var BABYLON;
                 * @param name: the form name
                 * @param header: form's header text
                 */
-                function GUIForm(name, header) {
+                function GUIForm(name, header, core) {
                     if (header === void 0) { header = ""; }
-                    _super.call(this, name);
+                    _super.call(this, name, core);
                     this.fields = new Array();
                     // Initialize
                     this.header = header;
@@ -39,6 +39,7 @@ var BABYLON;
                 };
                 // Build element
                 GUIForm.prototype.buildElement = function (parent) {
+                    var _this = this;
                     this.element = $("#" + parent).w2form({
                         name: this.name,
                         focus: -1,
@@ -46,6 +47,10 @@ var BABYLON;
                         formHTML: "",
                         fields: this.fields,
                         onChange: function (event) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
+                            _this.core.sendEvent(ev);
                         }
                     });
                 };

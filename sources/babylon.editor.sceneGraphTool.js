@@ -16,8 +16,10 @@ var BABYLON;
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
-                this._core.updates.push(this);
                 this.panel = this._editor.layouts.getPanelFromType("right");
+                // Register this
+                this._core.updates.push(this);
+                this._core.eventReceivers.push(this);
             }
             // Pre update
             SceneGraphTool.prototype.onPreUpdate = function () {
@@ -27,6 +29,14 @@ var BABYLON;
             };
             // Event
             SceneGraphTool.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT) {
+                    if (event.guiEvent.caller === this.sidebar && event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED) {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.SCENE_EVENT;
+                        ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
+                        this._core.editor.editionTool.onEvent(ev);
+                    }
+                }
                 return false;
             };
             // Fills the graph of nodes (meshes, lights, cameras, etc.)
@@ -65,7 +75,7 @@ var BABYLON;
             SceneGraphTool.prototype.createUI = function () {
                 if (this.sidebar != null)
                     this.sidebar.destroy();
-                this.sidebar = new EDITOR.GUI.GUIGraph(this.container);
+                this.sidebar = new EDITOR.GUI.GUIGraph(this.container, this._core);
                 // Set menus
                 this.sidebar.addMenu("BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE", 'Remove', 'icon-error');
                 // Build element
@@ -97,6 +107,8 @@ var BABYLON;
                     else if (node instanceof BABYLON.PointLight)
                         return "icon-add-light";
                 }
+                else if (node instanceof BABYLON.Camera)
+                    return "icon-camera";
                 return "";
             };
             return SceneGraphTool;

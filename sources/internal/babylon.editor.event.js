@@ -1,3 +1,8 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -15,6 +20,8 @@ var BABYLON;
             GUIEventType[GUIEventType["FORM_CHANGED"] = 0] = "FORM_CHANGED";
             GUIEventType[GUIEventType["LAYOUT_CHANGED"] = 1] = "LAYOUT_CHANGED";
             GUIEventType[GUIEventType["PANEL_CHANGED"] = 2] = "PANEL_CHANGED";
+            GUIEventType[GUIEventType["GRAPH_SELECTED"] = 3] = "GRAPH_SELECTED";
+            GUIEventType[GUIEventType["TAB_CHANGED"] = 4] = "TAB_CHANGED";
             GUIEventType[GUIEventType["UNKNOWN"] = 3] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
@@ -27,35 +34,49 @@ var BABYLON;
         })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
         var SceneEventType = EDITOR.SceneEventType;
         /**
+        * Base Event
+        */
+        var BaseEvent = (function () {
+            function BaseEvent(data) {
+                this.data = data;
+            }
+            return BaseEvent;
+        })();
+        EDITOR.BaseEvent = BaseEvent;
+        /**
         * Scene Event
         */
-        var SceneEvent = (function () {
+        var SceneEvent = (function (_super) {
+            __extends(SceneEvent, _super);
             /**
             * Constructor
             * @param object: the object generating the event
             */
-            function SceneEvent(object, eventType) {
+            function SceneEvent(object, eventType, data) {
+                _super.call(this, data);
                 this.object = object;
                 this.eventType = eventType;
             }
             return SceneEvent;
-        })();
+        })(BaseEvent);
         EDITOR.SceneEvent = SceneEvent;
         /**
         * GUI Event
         */
-        var GUIEvent = (function () {
+        var GUIEvent = (function (_super) {
+            __extends(GUIEvent, _super);
             /**
             * Constructor
             * @param caller: gui element calling the event
             * @param eventType: the gui event type
             */
-            function GUIEvent(caller, eventType) {
+            function GUIEvent(caller, eventType, data) {
+                _super.call(this, data);
                 this.caller = caller;
                 this.eventType = eventType;
             }
             return GUIEvent;
-        })();
+        })(BaseEvent);
         EDITOR.GUIEvent = GUIEvent;
         /**
         * IEvent implementation

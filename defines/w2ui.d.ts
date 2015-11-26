@@ -11,7 +11,7 @@
         /**
         * Execute type: after, before
         */
-        execute: string;
+        execute?: string;
     }
 
     /**
@@ -63,6 +63,14 @@
         * Disable tab
         */
         disable(id: string);
+        /**
+        * Hide tab
+        */
+        hide(id: string): number;
+        /**
+        * Show tab
+        */
+        show(id: string): number;
     }
 
     /**
@@ -77,6 +85,17 @@
         * Panel type
         */
         type: string;
+        /**
+        *
+        */
+        width: number;
+    }
+
+    interface IPanelTabController {
+        /**
+        * on click event
+        */
+        onClick: (event: any) => void;
     }
 
     /**
@@ -91,6 +110,10 @@
         * Returns panel element from type
         */
         get(panelType: string): IPanelElement;
+        /**
+        * Gets the tabs of the panel
+        */
+        tabs: IPanelTabController;
     }
 
     /**

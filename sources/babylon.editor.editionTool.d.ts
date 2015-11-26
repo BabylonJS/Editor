@@ -4,8 +4,9 @@ declare module BABYLON.EDITOR {
         container: string;
         editionTools: Array<ICustomEditionTool>;
         panel: GUI.IGUIPanel;
-        private _core;
+        core: EditorCore;
         private _editor;
+        private _currentTab;
         /**
         * Constructor
         * @param core: the editor core instance

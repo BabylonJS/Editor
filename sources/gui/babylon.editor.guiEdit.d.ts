@@ -5,9 +5,12 @@ declare module BABYLON.EDITOR.GUI {
         * Constructor
         * @param name: the form name
         */
-        constructor(name: string);
-        addFolder(name: any): dat.IFolderElement;
+        constructor(name: string, core: EditorCore);
+        remove(): void;
+        addFolder(name: any, parent?: dat.IFolderElement): dat.IFolderElement;
         add(object: Object, propertyPath: string, name: string): dat.IGUIElement;
+        width: number;
+        height: number;
         buildElement(parent: string): void;
     }
 }

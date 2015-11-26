@@ -62,6 +62,10 @@
         */
         containers: Array<string>;
         /**
+        * Tabs ids
+        */
+        tab: string;
+        /**
         * Returns if the object is supported by the tool
         */
         isObjectSupported(object: any): boolean;
@@ -77,5 +81,9 @@
         * Apply values to object
         */
         apply(): void;
+        /**
+        *
+        */
+        resize(): void;
     }
 }

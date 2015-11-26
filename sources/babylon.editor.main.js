@@ -20,6 +20,8 @@ var BABYLON;
                 // Create Main UI
                 this._createUI();
                 this._createBabylonEngine();
+                // Register this
+                this.core.eventReceivers.push(this);
                 // Edition tool
                 this.editionTool = new EDITOR.EditionTool(this.core);
                 this.editionTool.createUI();
@@ -28,10 +30,22 @@ var BABYLON;
                 this.sceneGraphTool.createUI();
             }
             /**
+            * Event receiver
+            */
+            EditorMain.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT) {
+                    if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                        this.core.engine.resize();
+                        return true;
+                    }
+                }
+                return false;
+            };
+            /**
             * Creates the UI
             */
             EditorMain.prototype._createUI = function () {
-                this.layouts = new EDITOR.GUI.GUILayout(this.container);
+                this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("");
                 this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
