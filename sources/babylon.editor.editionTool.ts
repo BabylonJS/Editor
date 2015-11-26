@@ -89,31 +89,44 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            var foundTab = false;
+            var tabAlreadyShown = false;
+            var supportedTools: ICustomEditionTool[] = [];
 
             for (var i = 0; i < this.editionTools.length; i++) {
                 var tool = this.editionTools[i];
                 var supported = tool.isObjectSupported(this.object);
+                
+                if (supported) {
+                    supportedTools.push(tool);
+                    this.panel.showTab(tool.tab);
 
-                for (var j = 0; j < tool.containers.length; j++) {
-                    var element = $("#" + tool.containers[j]);
-                    if (supported) {
-                        if (!foundTab) {
-                            element.show();
-                            foundTab = true;
-                            this._currentTab = tool.tab;
-                        }
-
-                        this.panel.showTab(tool.tab);
-
-                        tool.object = object;
-                        tool.update();
-                    }
-                    else {
-                        element.hide();
+                    if (!tabAlreadyShown)
+                        tabAlreadyShown = tool.tab === this._currentTab;
+                }
+                else {
+                    for (var j = 0; j < tool.containers.length; j++) {
+                        $("#" + tool.containers[j]).hide();
                         this.panel.hideTab(tool.tab);
                     }
                 }
+            }
+
+            // Activate tools
+            for (var i = 0; i < supportedTools.length; i++) {
+                var tool = supportedTools[i];
+
+                if (!tabAlreadyShown) {
+                    for (var j = 0; j < tool.containers.length; j++) {
+                        $("#" + tool.containers[j]).show();
+                    }
+                    tabAlreadyShown = true;
+                    this._currentTab = tool.tab;
+                }
+                else {
+
+                }
+
+                tool.update();
             }
 
             return false;
