@@ -14,13 +14,13 @@
         }
 
         // Creates a new menu
-        public createMenu(type: string, id: string, text: string, icon: string): IToolbarMenuElement {
+        public createMenu(type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarMenuElement {
             var menu = {
                 type: type,
                 id: id,
                 text: text,
                 img: icon,
-                checked: false,
+                checked: checked || false,
                 items: []
             };
             this.menus.push(menu);
@@ -29,13 +29,13 @@
         }
 
         // Creates a new menu item
-        public createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string): IToolbarElement {
+        public createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarElement {
             var item = {
                 type: type,
                 id: id,
                 text: text,
                 icon: icon,
-                checked: false
+                checked: checked || false
             };
             menu.items.push(item);
 
@@ -43,19 +43,53 @@
         }
         
         // Sets the item checked
-        public setItemChecked(item: IToolbarElement, checked: boolean): void {
+        public setItemChecked(item: IToolbarBaseElement, checked: boolean, menu?: IToolbarMenuElement): void {
             var element = <W2UI.IToolbarElement>this.element;
-            checked ? element.check(item.id) : element.uncheck(item.id);
+            var id = menu ? menu.id + ":" + item.id : item.id;
+
+            checked ? element.check(id) : element.uncheck(id);
         }
         
         // Sets the item auto checked (true to false, false to true)
-        public setItemAutoChecked(item: IToolbarElement, checked: boolean): void {
+        public setItemAutoChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): void {
+            var element = <W2UI.IToolbarElement>this.element;
+            var result = element.get(menu ? menu.id + ":" + item.id : item.id);
 
+            var checked = result ? result.checked : false;
+
+            if (!checked)
+                element.check(item.id);
+            else
+                element.uncheck(item.id);
         }
 
         // Returns if the item is checked
-        public isItemChecked(item: IToolbarElement): boolean {
-            return (<W2UI.IToolbarElement>this.element).get(item.id).checked;
+        public isItemChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): boolean {
+            var result = (<W2UI.IToolbarElement>this.element).get(menu ? menu.id + ":" + item.id : item.id);
+
+            if (result !== null)
+                result.checked;
+
+            return false;
+        }
+
+        // Returns an item by its ID
+        public getItemByID(id: string): IToolbarBaseElement {
+            for (var i = 0; i < this.menus.length; i++) {
+                var menu = this.menus[i];
+                
+                if (menu.id === id)
+                    return menu;
+                
+                for (var j = 0; j < menu.items.length; j++) {
+                    var item = menu.items[j];
+
+                    if (item.id === id)
+                        return item;
+                }
+            }
+
+            return null;
         }
 
         // Build element

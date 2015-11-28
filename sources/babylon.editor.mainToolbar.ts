@@ -9,6 +9,10 @@
         private _core: EditorCore;
         private _editor: EditorMain;
 
+        private _mainRendring: string = "MAIN-RENDERING";
+        private _enablePostProcesses: string = "ENABLE-POST-PROCESSES";
+        private _enableShadows: string = "ENABLE-SHADOWS";
+
         /**
         * Constructor
         * @param core: the editor core instance
@@ -37,6 +41,28 @@
 
         // Event
         public onEvent(event: Event): boolean {
+            if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.TOOLBAR_MENU_SELECTED) {
+                if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
+                    return false;
+                }
+
+                var id: string = event.guiEvent.data;
+                var finalID = id.split(":");
+                var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+
+                if (item === null)
+                    return false;
+
+                // Rendering
+                if (id.indexOf(this._mainRendring) !== -1) {
+                    if (id.indexOf(this._enablePostProcesses) !== -1) {
+                        this._core.currentScene.postProcessesEnabled = !this._core.currentScene.postProcessesEnabled;
+                    }
+                    else if (id.indexOf(this._enableShadows) !== -1) {
+                        this._core.currentScene.shadowsEnabled = !this._core.currentScene.shadowsEnabled;
+                    }
+                }
+            }
 
             return false;
         }
@@ -57,8 +83,9 @@
             menu = this.toolbar.createMenu("menu", "MAIN-ADD", "Add", "icon-add");
             //...
 
-            menu = this.toolbar.createMenu("menu", "MAIN-RENDERING", "Rendering", "icon-camera");
-            this.toolbar.createMenuItem(menu, "button", "MAIN-RENDERINGèPOST-PROCESSES", "Manage Post-Processes", "icon-camera");
+            menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");
+            this.toolbar.createMenuItem(menu, "check", this._enablePostProcesses, "Enable Post-Processes", "icon-shaders", true);
+            this.toolbar.createMenuItem(menu, "check", this._enableShadows, "Enable Shadows", "icon-light", true);
             //...
 
             // Build element

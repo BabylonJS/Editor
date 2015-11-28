@@ -231,43 +231,95 @@
     /**
     * Toolbar element
     */
-    interface IToolbarElement {
-        type: string;
+    interface IToolbarBaseElement {
+        /**
+        * The item's id
+        */
         id: string;
+        /**
+        * The item's type
+        */
+        type: string;
+        /**
+        * The item's text
+        */
         text: string;
-        icon: string;
+        /**
+        * If the item is checked or not
+        */
         checked: boolean;
     }
 
-    interface IToolbarMenuElement {
+    interface IToolbarElement extends IToolbarBaseElement {
+        /**
+        * The item's icon
+        */
+        icon: string;
+    }
+
+    interface IToolbarMenuElement extends IToolbarBaseElement {
+        /**
+        * List of menu's items
+        */
         items: Array<IToolbarElement>;
-        type: string;
-        id: string;
-        text: string;
+        /**
+        * The menu's image
+        */
         img: string;
-        checked: boolean;
     }
 
     interface IGUIToolbarElement extends IGUIElement {
         /**
         * Adds a new menu
         */
-        createMenu(type: string, id: string, text: string, icon: string): IToolbarMenuElement;
+        createMenu(type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarMenuElement;
         /**
         * Creates a menu item
         */
-        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string): IToolbarElement;
+        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarElement;
         /**
         * Sets item checked
         */
-        setItemChecked(item: IToolbarElement, checked: boolean): void;
+        setItemChecked(item: IToolbarBaseElement, checked: boolean, menu?: IToolbarMenuElement): void;
         /**
         * sets item auto checked
         */
-        setItemAutoChecked(item: IToolbarElement, checked: boolean): void;
+        setItemAutoChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): void;
         /**
         * Returns if the item is cheked
         */
-        isItemChecked(item: IToolbarElement): boolean;
+        isItemChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): boolean;
+        /**
+        * Returns an item by id
+        */
+        getItemByID(id: string, menu?: IToolbarMenuElement): IToolbarBaseElement;
+    }
+
+    /**
+    * List element
+    */
+    interface IGUIListElement extends IGUIElement {
+        /**
+        * Adds a list item
+        */
+        addItem(name: string): IGUIListElement;
+        /**
+        * Returns the selected item
+        */
+        getSelected(): number;
+    }
+
+    /**
+    * Dialog element
+    */
+    interface IGUIDialogElement extends IGUIElement {
+        /**
+        * The dialog's title
+        */
+        title: string;
+        /**
+        * The dialog's body
+        */
+        body: string;
     }
 }

@@ -33,7 +33,7 @@
     * Base Event
     */
     export class BaseEvent {
-        public data: Object;
+        public data: any;
 
         constructor(data?: Object) {
             this.data = data;
@@ -94,6 +94,15 @@
 
             ev.eventType = EventType.SCENE_EVENT;
             ev.sceneEvent = new SceneEvent(object, type);
+
+            core.sendEvent(ev);
+        }
+
+        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void {
+            var ev = new Event();
+
+            ev.eventType = EventType.GUI_EVENT;
+            ev.guiEvent = new GUIEvent(object, type);
 
             core.sendEvent(ev);
         }

@@ -85,6 +85,9 @@
 
             var colorsFolder = this._element.addFolder("Colors");
             this._addColorFields(colorsFolder, object);
+
+            var vectorsFolder = this._element.addFolder("Vectors");
+            this._addVectorFields(vectorsFolder, object);
         }
 
         // Resize
@@ -112,6 +115,26 @@
                     colorFolder.add(object[thing], "r").name("r").min(0.0).max(1.0).step(0.001);
                     colorFolder.add(object[thing], "g").name("g").min(0.0).max(1.0).step(0.001);
                     colorFolder.add(object[thing], "b").name("b").min(0.0).max(1.0).step(0.001);
+                }
+            }
+        }
+
+        // Adds vectors
+        private _addVectorFields(folder: dat.IFolderElement, object: any): void {
+            for (var thing in object) {
+                var value = object[thing];
+
+                if (thing[0] === "_" || this._forbiddenElements.indexOf(thing) === -1)
+                    continue;
+
+                if (value instanceof Vector3 || value instanceof Vector2) {
+                    var vectorFolder = this._element.addFolder(thing, folder);
+                    vectorFolder.close();
+                    vectorFolder.add(object[thing], "x").name("x").step(0.01);
+                    vectorFolder.add(object[thing], "y").name("y").step(0.01);
+
+                    if (value instanceof Vector3)
+                        vectorFolder.add(object[thing], "z").name("z").step(0.01);
                 }
             }
         }

@@ -38,7 +38,7 @@ html, body {
     background: url("images/error.png");
 }
 
-.w2ui-icon.icon-add-light {
+.w2ui-icon.icon-light {
     background: url("images/light.png");
 }
 .w2ui-icon.icon-directional-light {
@@ -67,4 +67,8 @@ html, body {
 
 .w2ui-icon.icon-add {
     background: url("images/add.png");
+}
+
+.w2ui-icon.icon-shaders {
+    background: url("images/shaders.png");
 }

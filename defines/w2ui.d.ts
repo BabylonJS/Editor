@@ -188,7 +188,7 @@
         * Expands the provided node
         */
         expand(node: string): void;
-        /**
+        /* *
         * Collapses the provided node
         */
         collapse(node: string): void;
@@ -216,28 +216,52 @@
     * Toolbar
     */
     interface IToolbarItem {
+        /**
+        * The item's type
+        */
         type: string;
-
+        /**
+        * The item's id
+        */
         id: string;
-
+        /**
+        * The item's text
+        */
         text: string;
-
+        /**
+        * The icon of the item
+        */
         icon: string;
-
+        /**
+        * If the item is checked or not
+        */
         checked: boolean;
     }
 
     interface IToolbarMenu {
+        /**
+        * The list of items
+        */
         items: Array<IToolbarItem>;
-
+        /**
+        * The menu's type. Can be a button
+        */
         type: string;
-
+        /**
+        * The menu's id
+        */
         id: string;
-
+        /**
+        * The menu's text
+        */
         text: string;
-
+        /**
+        * The menu's icon
+        */
         icon: string;
-
+        /**
+        * If the menu is checked or not
+        */
         checked: boolean;
     }
 
@@ -256,4 +280,45 @@
         get(item: string): IToolbarItem;
     }
 
+    /**
+    * Dialog element
+    */
+    interface IDialogElement extends IElement {
+        /**
+        * The dialog's title
+        */
+        title: string;
+        /**
+        * The dialog's body
+        */
+        body: string;
+    }
+
+    /**
+    * List element
+    */
+    interface IListElement extends IElement {
+        /**
+        * List of items
+        */
+        items: Array<string>;
+        /**
+        * Returns the selected item
+        */
+        val(): string;
+    }
+
+    /**
+    * Grid element
+    */
+    interface IGridElement extends IElement {
+        total: number;
+    }
+}
+
+/**
+* Declares
+*/
+declare var w2confirm: {
+    (body: string, title: string, callback: (result: any) => void): W2UI.IElement;
 }

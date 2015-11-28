@@ -42,7 +42,7 @@
 
         // Update
         public update(): void {
-            var object: any = this._editionTool.object;
+            var object: AbstractMesh = this.object = this._editionTool.object;
 
             if (this._element) {
                 this._element.remove();
@@ -55,9 +55,11 @@
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
 
+            // General
             var generalFolder = this._element.addFolder("Common");
             generalFolder.add(object, "name").name("Name");
 
+            // Transforms
             var transformFolder = this._element.addFolder("Transforms");
 
             if (object.position) {
@@ -79,6 +81,14 @@
                 scalingFolder.add(object.scaling, "x").name("x").step(0.1);
                 scalingFolder.add(object.scaling, "y").name("y").step(0.1);
                 scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+            }
+
+            // Rendering
+            if (object instanceof AbstractMesh) {
+                var renderingFolder = this._element.addFolder("Rendering");
+                renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
+                renderingFolder.add(object, "applyFog").name("Apply Fog");
+                renderingFolder.add(object, "isVisible").name("Is Visible");
             }
         }
 

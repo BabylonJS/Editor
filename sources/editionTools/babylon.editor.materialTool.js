@@ -74,6 +74,8 @@ var BABYLON;
                 this._addNumberFields(propertiesFolder, object);
                 var colorsFolder = this._element.addFolder("Colors");
                 this._addColorFields(colorsFolder, object);
+                var vectorsFolder = this._element.addFolder("Vectors");
+                this._addVectorFields(vectorsFolder, object);
             };
             // Resize
             MaterialTool.prototype.resize = function () {
@@ -101,8 +103,25 @@ var BABYLON;
                     }
                 }
             };
+            // Adds vectors
+            MaterialTool.prototype._addVectorFields = function (folder, object) {
+                for (var thing in object) {
+                    var value = object[thing];
+                    if (thing[0] === "_" || this._forbiddenElements.indexOf(thing) === -1)
+                        continue;
+                    if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Vector2) {
+                        var vectorFolder = this._element.addFolder(thing, folder);
+                        vectorFolder.close();
+                        vectorFolder.add(object[thing], "x").name("x").step(0.01);
+                        vectorFolder.add(object[thing], "y").name("y").step(0.01);
+                        if (value instanceof BABYLON.Vector3)
+                            vectorFolder.add(object[thing], "z").name("z").step(0.01);
+                    }
+                }
+            };
             return MaterialTool;
         })(EDITOR.AbstractTool);
         EDITOR.MaterialTool = MaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.materialTool.js.map

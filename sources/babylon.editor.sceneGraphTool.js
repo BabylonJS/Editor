@@ -45,7 +45,7 @@ var BABYLON;
                 var root = null;
                 if (!graphNodeID) {
                     this.sidebar.clear();
-                    var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "");
+                    var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
                     this.sidebar.addNodes(rootNode);
                     root = this._graphRootName;
                 }
@@ -81,7 +81,7 @@ var BABYLON;
                 // Build element
                 this.sidebar.buildElement(this.container);
                 /// Default node
-                var node = this.sidebar.createNode(this._graphRootName, "Root", "");
+                var node = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
                 this.sidebar.addNodes(node);
             };
             // Fills the result array of nodes when the node hasn't any parent
@@ -116,3 +116,4 @@ var BABYLON;
         EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.sceneGraphTool.js.map

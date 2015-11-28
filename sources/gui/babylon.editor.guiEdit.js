@@ -20,7 +20,7 @@ var BABYLON;
                 }
                 // Removes the element
                 GUIEditForm.prototype.remove = function () {
-                    this._datElement.domElement.remove();
+                    this._datElement.domElement.parentNode.removeChild(this._datElement.domElement);
                 };
                 // Add a folder
                 GUIEditForm.prototype.addFolder = function (name, parent) {
@@ -30,9 +30,8 @@ var BABYLON;
                     return folder;
                 };
                 // Add a field
-                GUIEditForm.prototype.add = function (object, propertyPath, name) {
-                    return this._datElement.add(object, propertyPath).name(name).onchange(function () {
-                    });
+                GUIEditForm.prototype.add = function (object, propertyPath, name, items) {
+                    return this._datElement.add(object, propertyPath, items).name(name);
                 };
                 Object.defineProperty(GUIEditForm.prototype, "width", {
                     get: function () {
@@ -56,6 +55,10 @@ var BABYLON;
                     enumerable: true,
                     configurable: true
                 });
+                // Remember initial
+                GUIEditForm.prototype.remember = function (object) {
+                    this._datElement.remember(object);
+                };
                 // Build element
                 GUIEditForm.prototype.buildElement = function (parent) {
                     var parentElement = $("#" + parent);
@@ -71,3 +74,4 @@ var BABYLON;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.guiEdit.js.map

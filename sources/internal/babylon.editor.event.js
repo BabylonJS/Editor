@@ -94,6 +94,12 @@ var BABYLON;
                 ev.sceneEvent = new SceneEvent(object, type);
                 core.sendEvent(ev);
             };
+            Event.sendGUIEvent = function (object, type, core) {
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT;
+                ev.guiEvent = new GUIEvent(object, type);
+                core.sendEvent(ev);
+            };
             return Event;
         })();
         EDITOR.Event = Event;
@@ -111,3 +117,4 @@ var BABYLON;
         };
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.event.js.map

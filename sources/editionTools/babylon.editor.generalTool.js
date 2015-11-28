@@ -40,7 +40,7 @@ var BABYLON;
             };
             // Update
             GeneralTool.prototype.update = function () {
-                var object = this._editionTool.object;
+                var object = this.object = this._editionTool.object;
                 if (this._element) {
                     this._element.remove();
                     this._element = null;
@@ -49,8 +49,10 @@ var BABYLON;
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
+                // General
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name");
+                // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
@@ -70,6 +72,13 @@ var BABYLON;
                     scalingFolder.add(object.scaling, "y").name("y").step(0.1);
                     scalingFolder.add(object.scaling, "z").name("z").step(0.1);
                 }
+                // Rendering
+                if (object instanceof BABYLON.AbstractMesh) {
+                    var renderingFolder = this._element.addFolder("Rendering");
+                    renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
+                    renderingFolder.add(object, "applyFog").name("Apply Fog");
+                    renderingFolder.add(object, "isVisible").name("Is Visible");
+                }
             };
             // Resize
             GeneralTool.prototype.resize = function () {
@@ -80,3 +89,4 @@ var BABYLON;
         EDITOR.GeneralTool = GeneralTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.generalTool.js.map

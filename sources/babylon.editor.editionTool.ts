@@ -137,6 +137,7 @@
             // Add default tools
             this.addTool(new GeneralTool(this));
             this.addTool(new MaterialTool(this));
+            this.addTool(new SceneTool(this));
         }
 
         // Adds a tool

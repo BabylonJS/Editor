@@ -22,41 +22,66 @@ var BABYLON;
                     this.menus = new Array();
                 }
                 // Creates a new menu
-                GUIToolbar.prototype.createMenu = function (type, id, text, icon) {
+                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
                     var menu = {
                         type: type,
                         id: id,
                         text: text,
                         img: icon,
-                        checked: false,
+                        checked: checked || false,
                         items: []
                     };
                     this.menus.push(menu);
                     return menu;
                 };
                 // Creates a new menu item
-                GUIToolbar.prototype.createMenuItem = function (menu, type, id, text, icon) {
+                GUIToolbar.prototype.createMenuItem = function (menu, type, id, text, icon, checked) {
                     var item = {
                         type: type,
                         id: id,
                         text: text,
                         icon: icon,
-                        checked: false
+                        checked: checked || false
                     };
                     menu.items.push(item);
                     return item;
                 };
                 // Sets the item checked
-                GUIToolbar.prototype.setItemChecked = function (item, checked) {
+                GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
                     var element = this.element;
-                    checked ? element.check(item.id) : element.uncheck(item.id);
+                    var id = menu ? menu.id + ":" + item.id : item.id;
+                    checked ? element.check(id) : element.uncheck(id);
                 };
                 // Sets the item auto checked (true to false, false to true)
-                GUIToolbar.prototype.setItemAutoChecked = function (item, checked) {
+                GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
+                    var element = this.element;
+                    var result = element.get(menu ? menu.id + ":" + item.id : item.id);
+                    var checked = result ? result.checked : false;
+                    if (!checked)
+                        element.check(item.id);
+                    else
+                        element.uncheck(item.id);
                 };
                 // Returns if the item is checked
-                GUIToolbar.prototype.isItemChecked = function (item) {
-                    return this.element.get(item.id).checked;
+                GUIToolbar.prototype.isItemChecked = function (item, menu) {
+                    var result = this.element.get(menu ? menu.id + ":" + item.id : item.id);
+                    if (result !== null)
+                        result.checked;
+                    return false;
+                };
+                // Returns an item by its ID
+                GUIToolbar.prototype.getItemByID = function (id) {
+                    for (var i = 0; i < this.menus.length; i++) {
+                        var menu = this.menus[i];
+                        if (menu.id === id)
+                            return menu;
+                        for (var j = 0; j < menu.items.length; j++) {
+                            var item = menu.items[j];
+                            if (item.id === id)
+                                return item;
+                        }
+                    }
+                    return null;
                 };
                 // Build element
                 GUIToolbar.prototype.buildElement = function (parent) {
@@ -79,3 +104,4 @@ var BABYLON;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.guiToolbar.js.map

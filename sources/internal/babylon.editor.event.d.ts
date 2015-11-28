@@ -27,7 +27,7 @@ declare module BABYLON.EDITOR {
     * Base Event
     */
     class BaseEvent {
-        data: Object;
+        data: any;
         constructor(data?: Object);
     }
     /**
@@ -63,5 +63,6 @@ declare module BABYLON.EDITOR {
         sceneEvent: SceneEvent;
         guiEvent: GUIEvent;
         static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
+        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
     }
 }

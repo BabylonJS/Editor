@@ -57,10 +57,13 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiElement.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiForm.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiGraph.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiList.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiToolbar.ts" />
@@ -96,7 +99,7 @@
   </ProjectExtensions>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
-    <TypeScriptSourceMap>False</TypeScriptSourceMap>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <DefineConstants>DEBUG</DefineConstants>
     <TypeScriptTarget>ES5</TypeScriptTarget>

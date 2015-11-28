@@ -7,6 +7,6 @@ declare module BABYLON.EDITOR {
         updates: Array<ICustomUpdate>;
         eventReceivers: Array<IEventReceiver>;
         editor: EditorMain;
-        static configureMesh(mesh: AbstractMesh, core: EditorCore): void;
+        static configureObject(object: AbstractMesh | Scene, core: EditorCore): void;
     }
 }

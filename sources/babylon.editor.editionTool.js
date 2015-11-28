@@ -109,6 +109,7 @@ var BABYLON;
                 // Add default tools
                 this.addTool(new EDITOR.GeneralTool(this));
                 this.addTool(new EDITOR.MaterialTool(this));
+                this.addTool(new EDITOR.SceneTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {
@@ -128,3 +129,4 @@ var BABYLON;
         EDITOR.EditionTool = EditionTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.editionTool.js.map

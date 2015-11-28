@@ -15,7 +15,7 @@
 
         // Removes the element
         public remove(): void {
-            this._datElement.domElement.remove();
+            this._datElement.domElement.parentNode.removeChild(this._datElement.domElement);
         }
 
         // Add a folder
@@ -29,10 +29,8 @@
         }
 
         // Add a field
-        public add(object: Object, propertyPath: string, name: string): dat.IGUIElement {
-            return this._datElement.add(object, propertyPath).name(name).onchange(() => {
-
-            });
+        public add(object: Object, propertyPath: string, name: string, items?: Array<string>): dat.IGUIElement {
+            return this._datElement.add(object, propertyPath, items).name(name);
         }
 
         // Get / Set width
@@ -51,6 +49,11 @@
 
         public get height() {
             return this._datElement.height;
+        }
+
+        // Remember initial
+        public remember(object: any): void {
+            this._datElement.remember(object);
         }
 
         // Build element

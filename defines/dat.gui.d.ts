@@ -37,7 +37,7 @@
         /**
         * Adds a field
         */
-        add(object: Object, propertyPath: string): IGUIElement;
+        add(object: Object, propertyPath: string, items?: Array<string>): IGUIElement;
 
         /**
         * Adds a new folder
@@ -48,13 +48,17 @@
         * Gets the domElement created by dat.gui
         */
         domElement: HTMLElement;
+        /**
+        * Remember initial object
+        */
+        remember(object: any): void;
     }
 
     interface IFolderElement extends IFolderCreator {
         /**
         * Adds a new element
         */
-        add(object: Object, propertyPath: string): IGUIElement;
+        add(object: Object, propertyPath: string, items?: Array<string>): IGUIElement;
         /**
         * Opens folder
         */
@@ -77,7 +81,12 @@
         /**
         * When the element changed
         */
-        onchange(callback: () => void): IGUIElement;
+        onChange(callback: (result?: any) => void): IGUIElement;
+
+        /**
+        * When change finished
+        */
+        onFinishChange(callback: (result?: any) => void): IGUIElement;
 
         /**
         * Sets the minimum value

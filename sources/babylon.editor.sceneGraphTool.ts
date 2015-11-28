@@ -60,7 +60,7 @@
             if (!graphNodeID) {
                 this.sidebar.clear();
 
-                var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "");
+                var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
                 this.sidebar.addNodes(rootNode);
 
                 root = this._graphRootName;
@@ -111,7 +111,7 @@
             this.sidebar.buildElement(this.container);
 
             /// Default node
-            var node = this.sidebar.createNode(this._graphRootName, "Root", "");
+            var node = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
             this.sidebar.addNodes(node);
         }
 
