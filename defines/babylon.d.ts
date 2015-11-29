@@ -5820,6 +5820,7 @@ declare module BABYLON {
 
 declare module BABYLON {
     class FilesInput {
+        public appendScene: boolean;
         private _engine;
         private _currentScene;
         private _canvas;

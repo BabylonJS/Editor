@@ -56,6 +56,7 @@
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.lightTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />

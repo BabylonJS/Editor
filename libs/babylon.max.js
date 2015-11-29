@@ -6993,6 +6993,7 @@ var BABYLON;
         /// Register to core BabylonJS object: engine, scene, rendering canvas, callback function when the scene will be loaded,
         /// loading progress callback and optionnal addionnal logic to call in the rendering loop
         function FilesInput(p_engine, p_scene, p_canvas, p_sceneLoadedCallback, p_progressCallback, p_additionnalRenderLoopLogicCallback, p_textureLoadingCallback, p_startingProcessingFilesCallback) {
+            this.appendScene = false;
             this._engine = p_engine;
             this._canvas = p_canvas;
             this._currentScene = p_scene;
@@ -7084,7 +7085,7 @@ var BABYLON;
             var that = this;
             // If a ".babylon" file has been provided
             if (this._sceneFileToLoad) {
-                if (this._currentScene) {
+                if (this._currentScene && !this.appendScene) {
                     if (BABYLON.Tools.errorsCount > 0) {
                         BABYLON.Tools.ClearLogCache();
                         BABYLON.Tools.Log("Babylon.js engine (v" + BABYLON.Engine.Version + ") launched");
@@ -7092,7 +7093,7 @@ var BABYLON;
                     this._engine.stopRenderLoop();
                     this._currentScene.dispose();
                 }
-                BABYLON.SceneLoader.Load("file:", this._sceneFileToLoad, this._engine, function (newScene) {
+                var successCallback = function (newScene) {
                     that._currentScene = newScene;
                     // Wait for textures and shaders to be ready
                     that._currentScene.executeWhenReady(function () {
@@ -7106,11 +7107,23 @@ var BABYLON;
                         }
                         that._engine.runRenderLoop(function () { that.renderFunction(); });
                     });
-                }, function (progress) {
+                };
+                var progressCallback = function (progress) {
                     if (_this._progressCallback) {
                         _this._progressCallback(progress);
                     }
-                });
+                };
+                if (this.appendScene) {
+                    if (this._currentScene) {
+                        BABYLON.SceneLoader.Append("file:", this._sceneFileToLoad, this._currentScene, successCallback, progressCallback);
+                    }
+                    else {
+                        BABYLON.Tools.Error("Please provide a scene to append.");
+                    }
+                }
+                else {
+                    BABYLON.SceneLoader.Load("file:", this._sceneFileToLoad, this._engine, successCallback, progressCallback);
+                }
             }
             else {
                 BABYLON.Tools.Error("Please provide a valid .babylon file.");

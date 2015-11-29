@@ -1,7 +1,8 @@
 declare module BABYLON.EDITOR {
-    class SceneTool extends AbstractTool {
+    class LightTool extends AbstractTool {
         tab: string;
         private _element;
+        private _customShadowsGeneratorSize;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -11,5 +12,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): void;
         resize(): void;
+        private _createShadowsGenerator();
+        private _removeShadowGenerator();
     }
 }

@@ -2,6 +2,7 @@ declare module BABYLON.EDITOR {
     class EditorCore implements ICustomUpdate, IDisposable {
         engine: Engine;
         canvas: HTMLCanvasElement;
+        camera: Camera;
         scenes: Array<ICustomScene>;
         currentScene: Scene;
         updates: Array<ICustomUpdate>;

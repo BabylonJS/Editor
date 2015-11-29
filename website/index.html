@@ -45,6 +45,7 @@
     <script src="../sources/editionTools/babylon.editor.generalTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.materialTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.sceneTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/babylon.editor.lightTool.js" type="text/javascript"></script>
 
     <!-- MATERIALS -->
     <script src="../libs/materials/babylon.pbrMaterial.js" type="text/javascript"></script>
@@ -86,6 +87,7 @@
 
             // Reflection probe
             var rp = new BABYLON.ReflectionProbe("rp", 512, core.currentScene, true);
+            rp.renderList.push(skybox);
 
             // Create material function
             var pbrReflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/TropicalSunnyDay", core.currentScene);
@@ -143,6 +145,7 @@
             // Configure
             BABYLON.EDITOR.SceneManager.configureObject(plane, core);
             BABYLON.EDITOR.SceneManager.configureObject(sphere, core);
+            BABYLON.EDITOR.SceneManager.configureObject(light, core);
             BABYLON.EDITOR.SceneManager.configureObject(core.currentScene, core);
 
             /*

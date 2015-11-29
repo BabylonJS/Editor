@@ -31,6 +31,8 @@ var BABYLON;
                 };
                 // Add a field
                 GUIEditForm.prototype.add = function (object, propertyPath, name, items) {
+                    if (!object || !object[propertyPath])
+                        return this._datElement.add(null, "");
                     return this._datElement.add(object, propertyPath, items).name(name);
                 };
                 Object.defineProperty(GUIEditForm.prototype, "width", {

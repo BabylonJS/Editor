@@ -54,6 +54,7 @@
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
+            this._element.remember(object);
 
             // General
             var generalFolder = this._element.addFolder("Common");

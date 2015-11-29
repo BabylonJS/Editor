@@ -30,6 +30,9 @@
 
         // Add a field
         public add(object: Object, propertyPath: string, name: string, items?: Array<string>): dat.IGUIElement {
+            if (!object || !object[propertyPath])
+                return this._datElement.add(null, "");
+
             return this._datElement.add(object, propertyPath, items).name(name);
         }
 

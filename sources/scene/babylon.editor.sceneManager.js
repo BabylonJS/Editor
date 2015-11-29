@@ -12,10 +12,15 @@ var BABYLON;
                 this.eventReceivers = new Array();
                 this.editor = null;
             }
-            SceneManager.configureObject = function (object, core) {
-                if (object instanceof BABYLON.Mesh) {
+            // Configures and object
+            SceneManager.configureObject = function (object, core, parentNode) {
+                if (object instanceof BABYLON.AbstractMesh) {
                     var mesh = object;
                     var scene = mesh.getScene();
+                    if (this._alreadyConfiguredObjectsIDs[mesh.id])
+                        return;
+                    if (mesh instanceof BABYLON.Mesh && !mesh.geometry)
+                        return;
                     if (!mesh.actionManager) {
                         mesh.actionManager = new BABYLON.ActionManager(scene);
                     }
@@ -34,6 +39,11 @@ var BABYLON;
                             EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
                         }
                     }));
+                    if (parentNode && mesh.parent === null) {
+                        mesh.parent = parentNode;
+                    }
+                    // Finish
+                    this._alreadyConfiguredObjectsIDs[mesh.id] = mesh;
                 }
                 // Send event configured
                 var ev = new EDITOR.Event();
@@ -41,6 +51,10 @@ var BABYLON;
                 ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
                 core.sendEvent(ev);
             };
+            /**
+            * Objects configuration
+            */
+            SceneManager._alreadyConfiguredObjectsIDs = {};
             return SceneManager;
         })();
         EDITOR.SceneManager = SceneManager;

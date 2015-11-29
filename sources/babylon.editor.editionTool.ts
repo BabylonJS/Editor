@@ -138,6 +138,7 @@
             this.addTool(new GeneralTool(this));
             this.addTool(new MaterialTool(this));
             this.addTool(new SceneTool(this));
+            this.addTool(new LightTool(this));
         }
 
         // Adds a tool

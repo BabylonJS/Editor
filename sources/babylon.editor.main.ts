@@ -13,6 +13,8 @@
 
         public layouts: GUI.IGUILayout = null;
 
+        public filesInput: FilesInput = null;
+
         // private members
 
         /**
@@ -45,6 +47,11 @@
             // Toolbars
             this.mainToolbar = new MainToolbar(this.core);
             this.mainToolbar.createUI();
+
+            // Files input
+            this.filesInput = new FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
+            this.filesInput.monitorElementForDragNDrop(this.core.canvas);
+            this.filesInput.appendScene = true;
         }
 
         /**
@@ -77,6 +84,29 @@
         }
 
         /**
+        * Handles just opened scenes
+        */
+        private _handleSceneLoaded(): (file, scene: Scene) => void {
+            return (file, scene: Scene) => {
+
+                // Set active camera
+                this.core.currentScene.activeCamera = this.core.camera;
+
+                // Create parent node
+                var parent = new Mesh(file.name, scene, null, null, true);
+
+                // Configure meshes
+                for (var i = 0; i < scene.meshes.length; i++) {
+                    SceneManager.configureObject(scene.meshes[i], this.core, parent);
+                }
+
+                // Reset UI
+                this.sceneGraphTool.createUI();
+                this.sceneGraphTool.fillGraph();
+            };
+        }
+
+        /**
         * Creates the babylon engine
         */
         private _createBabylonEngine(): void {
@@ -89,6 +119,7 @@
             var camera = new FreeCamera("MainCamera", new Vector3(10, 10, 10), this.core.currentScene);
             camera.setTarget(new Vector3(0, 0, 0));
             camera.attachControl(this.core.canvas);
+            this.core.camera = camera;
         }
 
         /**

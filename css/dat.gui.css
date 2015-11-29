@@ -28,9 +28,35 @@
     border-bottom: 1px solid #ddd;
 }
  
+/*
 .dg li.save-row .button {
     text-shadow: none !important;
-    margin-left: 50px;
+    margin-left: 5px;
+}
+*/
+
+.dg li.save-row select {
+    visibility: hidden;
+}
+
+.dg li.save-row .button.gears {
+    visibility: hidden;
+}
+
+.dg li.save-row .button.save {
+    visibility: hidden;
+}
+
+.dg li.save-row .button.save-as {
+    visibility: hidden;
+}
+
+.dg li.save-row .button.revert {
+    float: left;
+    margin-left: 0px;
+    font-size: 12px;
+    font-weight: bold;
+    font-family:'MS Reference Sans Serif';
 }
 
 .dg li.folder .folder {

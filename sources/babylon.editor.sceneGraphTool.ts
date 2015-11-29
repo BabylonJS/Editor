@@ -82,16 +82,21 @@
 
             // If children, then fill the graph recursively
             if (children !== null) {
+                // Set elements before
                 for (var i = 0; i < children.length; i++) {
-
                     var object = children[i];
                     var icon = this._getObjectIcon(object);
 
                     var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                     this.sidebar.addNodes(childNode, root);
 
-                    this.fillGraph(object, object.id);
+                    //this.fillGraph(object, object.id);
+                }
 
+                // Add children
+                for (var i = 0; i < children.length; i++) {
+                    var object = children[i];
+                    this.fillGraph(object, object.id);
                 }
             }
 

@@ -11,6 +11,7 @@ var BABYLON;
                 // Public members
                 this.engine = null;
                 this.canvas = null;
+                this.camera = null;
                 this.scenes = new Array();
                 this.updates = new Array();
                 this.eventReceivers = new Array();

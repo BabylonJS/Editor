@@ -102,5 +102,10 @@
         * Defines the step when using the cursor
         */
         step(step: number): IGUIElement;
+
+        /**
+        * Listen the property
+        */
+        listen(): IGUIElement;
     }
 }

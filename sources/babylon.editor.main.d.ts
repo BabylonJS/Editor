@@ -8,6 +8,7 @@ declare module BABYLON.EDITOR {
         antialias: boolean;
         options: any;
         layouts: GUI.IGUILayout;
+        filesInput: FilesInput;
         /**
         * Constructor
         */
@@ -20,6 +21,10 @@ declare module BABYLON.EDITOR {
         * Creates the UI
         */
         private _createUI();
+        /**
+        * Handles just opened scenes
+        */
+        private _handleSceneLoaded();
         /**
         * Creates the babylon engine
         */

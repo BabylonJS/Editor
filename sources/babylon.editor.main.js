@@ -11,6 +11,7 @@ var BABYLON;
                 if (antialias === void 0) { antialias = false; }
                 if (options === void 0) { options = null; }
                 this.layouts = null;
+                this.filesInput = null;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -31,6 +32,10 @@ var BABYLON;
                 // Toolbars
                 this.mainToolbar = new EDITOR.MainToolbar(this.core);
                 this.mainToolbar.createUI();
+                // Files input
+                this.filesInput = new BABYLON.FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
+                this.filesInput.monitorElementForDragNDrop(this.core.canvas);
+                this.filesInput.appendScene = true;
             }
             /**
             * Event receiver
@@ -57,6 +62,25 @@ var BABYLON;
                 this.layouts.buildElement(this.container);
             };
             /**
+            * Handles just opened scenes
+            */
+            EditorMain.prototype._handleSceneLoaded = function () {
+                var _this = this;
+                return function (file, scene) {
+                    // Set active camera
+                    _this.core.currentScene.activeCamera = _this.core.camera;
+                    // Create parent node
+                    var parent = new BABYLON.Mesh(file.name, scene, null, null, true);
+                    // Configure meshes
+                    for (var i = 0; i < scene.meshes.length; i++) {
+                        EDITOR.SceneManager.configureObject(scene.meshes[i], _this.core, parent);
+                    }
+                    // Reset UI
+                    _this.sceneGraphTool.createUI();
+                    _this.sceneGraphTool.fillGraph();
+                };
+            };
+            /**
             * Creates the babylon engine
             */
             EditorMain.prototype._createBabylonEngine = function () {
@@ -67,6 +91,7 @@ var BABYLON;
                 var camera = new BABYLON.FreeCamera("MainCamera", new BABYLON.Vector3(10, 10, 10), this.core.currentScene);
                 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
                 camera.attachControl(this.core.canvas);
+                this.core.camera = camera;
             };
             /**
             * Simply update the scenes and updates

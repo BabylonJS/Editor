@@ -12,10 +12,22 @@
 
         public editor: EditorMain = null;
 
-        static configureObject(object: AbstractMesh | Scene, core: EditorCore): void {
-            if (object instanceof Mesh) {
+        /**
+        * Objects configuration
+        */
+        private static _alreadyConfiguredObjectsIDs: Object = { };
+
+        // Configures and object
+        static configureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
+            if (object instanceof AbstractMesh) {
                 var mesh: AbstractMesh = object;
                 var scene = mesh.getScene();
+
+                if (this._alreadyConfiguredObjectsIDs[mesh.id])
+                    return;
+
+                if (mesh instanceof Mesh && !mesh.geometry)
+                    return;
 
                 if (!mesh.actionManager) {
                     mesh.actionManager = new ActionManager(scene);
@@ -39,6 +51,13 @@
                         Event.sendSceneEvent(mesh, SceneEventType.OBJECT_PICKED, core);
                     }
                 }));
+
+                if (parentNode && mesh.parent === null) {
+                    mesh.parent = parentNode;
+                }
+
+                // Finish
+                this._alreadyConfiguredObjectsIDs[mesh.id] = mesh;
             }
 
             // Send event configured

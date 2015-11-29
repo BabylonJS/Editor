@@ -16,7 +16,6 @@ var BABYLON;
             function SceneTool(editionTool) {
                 _super.call(this, editionTool);
                 // Public members
-                this.scene = null;
                 this.tab = "SCENE.TAB";
                 // Initialize
                 this.containers = [
@@ -49,10 +48,12 @@ var BABYLON;
                 // Colors
                 var colorsFolder = this._element.addFolder("Colors");
                 var ambientColorFolder = colorsFolder.addFolder("Ambient Color");
+                ambientColorFolder.open();
                 ambientColorFolder.add(object.ambientColor, "r").min(0.0).max(1.0).step(0.001);
                 ambientColorFolder.add(object.ambientColor, "g").min(0.0).max(1.0).step(0.001);
                 ambientColorFolder.add(object.ambientColor, "b").min(0.0).max(1.0).step(0.001);
                 var clearColorFolder = colorsFolder.addFolder("Clear Color");
+                clearColorFolder.open();
                 clearColorFolder.add(object.clearColor, "r").min(0.0).max(1.0).step(0.001);
                 clearColorFolder.add(object.clearColor, "g").min(0.0).max(1.0).step(0.001);
                 clearColorFolder.add(object.clearColor, "b").min(0.0).max(1.0).step(0.001);
@@ -99,6 +100,18 @@ var BABYLON;
                 fogColorFolder.add(object.fogColor, "b").min(0.0).max(1.0).step(0.001);
                 // Capacities
                 var capacitiesFolder = this._element.addFolder("Capacities");
+                capacitiesFolder.close();
+                capacitiesFolder.add(object, "postProcessesEnabled").name("Post-Processes Enabled");
+                capacitiesFolder.add(object, "shadowsEnabled").name("Shadows Enabled");
+                capacitiesFolder.add(object, "fogEnabled").name("Fog Enabled");
+                capacitiesFolder.add(object, "lensFlaresEnabled").name("Lens Flares Enabled");
+                capacitiesFolder.add(object, "lightsEnabled").name("Lights Enabled");
+                capacitiesFolder.add(object, "particlesEnabled").name("Particles Enabled");
+                capacitiesFolder.add(object, "probesEnabled").name("Reflection Probes Enabled");
+                capacitiesFolder.add(object, "proceduralTexturesEnabled").name("Procedural Textures Enabled");
+                capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
+                capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
+                capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
                 /*
                 object.audioEnabled;
                 object.collisionsEnabled;
