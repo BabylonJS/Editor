@@ -41,6 +41,26 @@
 
             return item;
         }
+
+        // Adds a break
+        public addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement {
+            var item = {
+                type: "break",
+                id: undefined,
+                text: undefined,
+                img: undefined,
+                icon: undefined,
+                checked: undefined,
+                items: undefined
+            };
+
+            if (menu)
+                menu.items.push(item);
+            else
+                this.menus.push(item);
+
+            return item;
+        }
         
         // Sets the item checked
         public setItemChecked(item: IToolbarBaseElement, checked: boolean, menu?: IToolbarMenuElement): void {

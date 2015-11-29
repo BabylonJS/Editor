@@ -4,13 +4,6 @@ var BABYLON;
     (function (EDITOR) {
         var SceneManager = (function () {
             function SceneManager() {
-                // Public members
-                this.engine = null;
-                this.canvas = null;
-                this.scenes = new Array();
-                this.updates = new Array();
-                this.eventReceivers = new Array();
-                this.editor = null;
             }
             // Configures and object
             SceneManager.configureObject = function (object, core, parentNode) {
@@ -51,6 +44,7 @@ var BABYLON;
                 ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
                 core.sendEvent(ev);
             };
+            // Public members
             /**
             * Objects configuration
             */

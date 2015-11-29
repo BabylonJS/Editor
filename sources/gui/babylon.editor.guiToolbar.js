@@ -46,6 +46,23 @@ var BABYLON;
                     menu.items.push(item);
                     return item;
                 };
+                // Adds a break
+                GUIToolbar.prototype.addBreak = function (menu) {
+                    var item = {
+                        type: "break",
+                        id: undefined,
+                        text: undefined,
+                        img: undefined,
+                        icon: undefined,
+                        checked: undefined,
+                        items: undefined
+                    };
+                    if (menu)
+                        menu.items.push(item);
+                    else
+                        this.menus.push(item);
+                    return item;
+                };
                 // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
                     var element = this.element;

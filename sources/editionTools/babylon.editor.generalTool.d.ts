@@ -12,5 +12,6 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): void;
         resize(): void;
+        private _castShadows;
     }
 }

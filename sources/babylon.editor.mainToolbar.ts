@@ -9,9 +9,11 @@
         private _core: EditorCore;
         private _editor: EditorMain;
 
-        private _mainRendring: string = "MAIN-RENDERING";
-        private _enablePostProcesses: string = "ENABLE-POST-PROCESSES";
-        private _enableShadows: string = "ENABLE-SHADOWS";
+        private _mainAdd: string = "MAIN-ADD";
+        private _addPointLight: string = "ADD-POINT-LIGHT";
+        private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
+        private _addSpotLight: string = "ADD-SPOT-LIGHT";
+        private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
 
         /**
         * Constructor
@@ -53,14 +55,22 @@
                 if (item === null)
                     return false;
 
-                // Rendering
-                if (id.indexOf(this._mainRendring) !== -1) {
-                    if (id.indexOf(this._enablePostProcesses) !== -1) {
-                        this._core.currentScene.postProcessesEnabled = !this._core.currentScene.postProcessesEnabled;
+                // Add
+                if (id.indexOf(this._mainAdd) !== -1) {
+                    if (id.indexOf(this._addPointLight) !== -1) {
+                        SceneFactory.AddPointLight(this._core);
                     }
-                    else if (id.indexOf(this._enableShadows) !== -1) {
-                        this._core.currentScene.shadowsEnabled = !this._core.currentScene.shadowsEnabled;
+                    else if (id.indexOf(this._addDirectionalLight) !== -1) {
+                        SceneFactory.AddDirectionalLight(this._core);
                     }
+                    else if (id.indexOf(this._addSpotLight) !== -1) {
+                        SceneFactory.AddSpotLight(this._core);
+                    }
+                    else if (id.indexOf(this._addHemisphericLight) !== -1) {
+                        SceneFactory.AddHemisphericLight(this._core);
+                    }
+
+                    return true;
                 }
             }
 
@@ -80,12 +90,15 @@
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
             //...
 
-            menu = this.toolbar.createMenu("menu", "MAIN-ADD", "Add", "icon-add");
+            menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
+            this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
+            this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
+            this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
+            this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
+            this.toolbar.addBreak(menu);
             //...
 
-            menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");
-            this.toolbar.createMenuItem(menu, "check", this._enablePostProcesses, "Enable Post-Processes", "icon-shaders", true);
-            this.toolbar.createMenuItem(menu, "check", this._enableShadows, "Enable Shadows", "icon-light", true);
+            //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;
             //...
 
             // Build element

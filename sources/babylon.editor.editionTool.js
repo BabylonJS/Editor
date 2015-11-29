@@ -111,6 +111,8 @@ var BABYLON;
                 this.addTool(new EDITOR.MaterialTool(this));
                 this.addTool(new EDITOR.SceneTool(this));
                 this.addTool(new EDITOR.LightTool(this));
+                this.addTool(new EDITOR.AnimationTool(this));
+                this.addTool(new EDITOR.PostProcessesTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {

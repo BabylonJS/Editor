@@ -1,10 +1,7 @@
 declare module BABYLON.EDITOR {
-    class MaterialTool extends AbstractTool {
-        object: Node;
+    class AnimationTool extends AbstractTool {
         tab: string;
         private _element;
-        private _forbiddenElements;
-        private _dummyProperty;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -14,9 +11,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): void;
         resize(): void;
-        private _addNumberFields(folder, object);
-        private _addColorFields(folder, object);
-        private _addVectorFields(folder, object);
-        private _convertToPBR();
+        private _playAnimations();
+        private _playSkeletonAnimations();
     }
 }

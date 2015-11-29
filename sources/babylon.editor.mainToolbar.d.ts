@@ -5,9 +5,11 @@ declare module BABYLON.EDITOR {
         panel: GUI.IGUIPanel;
         private _core;
         private _editor;
-        private _mainRendring;
-        private _enablePostProcesses;
-        private _enableShadows;
+        private _mainAdd;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
         /**
         * Constructor
         * @param core: the editor core instance

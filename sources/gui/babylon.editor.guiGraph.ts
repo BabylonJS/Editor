@@ -41,7 +41,7 @@
         }
         
         // Removes the provided node
-        public removeNode(node: IGraphNodeElement): void {
+        public removeNode(node: IGraphNodeElement | string): void {
             (<W2UI.IGraphElement>this.element).remove(node);
         }
         
@@ -64,7 +64,7 @@
         }
 
         // Returns the selected node
-        public getSelected(): IGraphNodeElement {
+        public getSelected(): string {
             return (<W2UI.IGraphElement>this.element).selected;
         }
 
@@ -94,8 +94,12 @@
                     ev.guiEvent.data = event.object.data;
                     this.core.sendEvent(ev);
                 },
-                onMenuClick: (event: Event) => {
-
+                onMenuClick: (event: any) => {
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_MENU_SELECTED);
+                    ev.guiEvent.data = event.menuItem.id;
+                    this.core.sendEvent(ev);
                 }
             });
         }

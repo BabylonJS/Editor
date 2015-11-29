@@ -23,6 +23,7 @@ var BABYLON;
             GUIEventType[GUIEventType["GRAPH_SELECTED"] = 3] = "GRAPH_SELECTED";
             GUIEventType[GUIEventType["TAB_CHANGED"] = 4] = "TAB_CHANGED";
             GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 5] = "TOOLBAR_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 6] = "GRAPH_MENU_SELECTED";
             GUIEventType[GUIEventType["UNKNOWN"] = 3] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;

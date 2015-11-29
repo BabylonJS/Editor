@@ -205,7 +205,7 @@
         /**
         * Removes the provided node
         */
-        removeNode(node: IGraphNodeElement): void;
+        removeNode(node: IGraphNodeElement | string): void;
 
         /**
         * Sets if the provided node is expanded or not
@@ -220,7 +220,7 @@
         /**
         * Returns the selected node
         */
-        getSelected(): IGraphNodeElement;
+        getSelected(): string;
 
         /**
         * Clears the graph
@@ -293,6 +293,10 @@
         * Returns an item by id
         */
         getItemByID(id: string, menu?: IToolbarMenuElement): IToolbarBaseElement;
+        /**
+        * Adds a break
+        */
+        addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;
     }
 
     /**

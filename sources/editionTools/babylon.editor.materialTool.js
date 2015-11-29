@@ -18,6 +18,7 @@ var BABYLON;
                 // Public members
                 this.object = null;
                 this.tab = "MATERIAL.TAB";
+                this._dummyProperty = "";
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
@@ -59,7 +60,9 @@ var BABYLON;
             };
             // Update
             MaterialTool.prototype.update = function () {
+                var _this = this;
                 var object = this._editionTool.object.material;
+                var scene = this._editionTool.core.currentScene;
                 if (this._element) {
                     this._element.remove();
                     this._element = null;
@@ -69,6 +72,21 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
+                // Material
+                var materialFolder = this._element.addFolder("Material");
+                var materials = [];
+                for (var i = 0; i < scene.materials.length; i++)
+                    materials.push(scene.materials[i].name);
+                this._dummyProperty = object.name;
+                materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
+                    var material = scene.getMaterialByName(result);
+                    _this._editionTool.object.material = material;
+                    _this.update();
+                });
+                if (object instanceof BABYLON.StandardMaterial) {
+                    materialFolder.add(this, "_convertToPBR").name("Convert Standard to PBR");
+                }
+                // Values
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name");
                 var propertiesFolder = this._element.addFolder("Properties");
@@ -119,6 +137,32 @@ var BABYLON;
                             vectorFolder.add(object[thing], "z").name("z").step(0.01);
                     }
                 }
+            };
+            // Converts a standard material to PBR
+            MaterialTool.prototype._convertToPBR = function () {
+                var object = this._editionTool.object.material;
+                var scene = this._editionTool.core.currentScene;
+                var pbr = new BABYLON.PBRMaterial("New PBR Material", scene);
+                // Textures
+                pbr.diffuseTexture = object.diffuseTexture;
+                pbr.bumpTexture = object.bumpTexture;
+                pbr.ambientTexture = object.ambientTexture;
+                pbr.emissiveTexture = object.emissiveTexture;
+                pbr.lightmapTexture = object.lightmapTexture;
+                pbr.reflectionTexture = object.reflectionTexture || scene.reflectionProbes[0].cubeTexture;
+                pbr.specularTexture = object.specularTexture;
+                pbr.useAlphaFromDiffuseTexture = object.useAlphaFromDiffuseTexture;
+                // Colors
+                pbr.diffuseColor = object.diffuseColor;
+                pbr.emissiveColor = object.emissiveColor;
+                pbr.specularColor = object.specularColor;
+                pbr.ambientColor = object.ambientColor;
+                pbr.glossiness = object.specularPower;
+                pbr.alpha = object.alpha;
+                pbr.alphaMode = object.alphaMode;
+                // Finish
+                this._editionTool.object.material = pbr;
+                this.update();
             };
             return MaterialTool;
         })(EDITOR.AbstractTool);

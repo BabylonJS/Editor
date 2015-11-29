@@ -30,11 +30,33 @@ var BABYLON;
             // Event
             SceneGraphTool.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
-                    if (event.guiEvent.caller === this.sidebar && event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED) {
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.SCENE_EVENT;
-                        ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
-                        this._core.editor.editionTool.onEvent(ev);
+                    if (event.guiEvent.caller === this.sidebar) {
+                        if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.SCENE_EVENT;
+                            ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
+                            this._core.editor.editionTool.onEvent(ev);
+                            return true;
+                        }
+                        else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {
+                            var object = this._core.currentScene.getNodeByID(this.sidebar.getSelected());
+                            if (object && object.dispose) {
+                                var parent = object.parent;
+                                this._modifyElement(object, parent || this._graphRootName, true);
+                                object.dispose();
+                            }
+                            return true;
+                        }
+                    }
+                }
+                else if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
+                    if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_ADDED) {
+                        this._modifyElement(event.sceneEvent.object, null);
+                        return false;
+                    }
+                    else if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
+                        this._modifyElement(event.sceneEvent.object, object.parent, true);
+                        return false;
                     }
                 }
                 return false;
@@ -115,6 +137,20 @@ var BABYLON;
                 else if (node instanceof BABYLON.Camera)
                     return "icon-camera";
                 return "";
+            };
+            // Removes or adds a node from/to the graph
+            SceneGraphTool.prototype._modifyElement = function (node, parentNode, remove) {
+                if (remove === void 0) { remove = false; }
+                if (!node)
+                    return;
+                if (!remove) {
+                    // Add node
+                    var icon = this._getObjectIcon(node);
+                    this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+                }
+                else
+                    this.sidebar.removeNode(node.id);
+                this.sidebar.refresh();
             };
             return SceneGraphTool;
         })();

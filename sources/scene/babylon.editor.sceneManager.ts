@@ -1,16 +1,6 @@
 ﻿module BABYLON.EDITOR {
     export class SceneManager {
         // Public members
-        public engine: Engine = null;
-        public canvas: HTMLCanvasElement = null;
-
-        public scenes: Array<ICustomScene> = new Array<ICustomScene>();
-        public currentScene: Scene;
-
-        public updates: Array<ICustomUpdate> = new Array<ICustomUpdate>();
-        public eventReceivers: Array<IEventReceiver> = new Array<IEventReceiver>();
-
-        public editor: EditorMain = null;
 
         /**
         * Objects configuration

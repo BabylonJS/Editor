@@ -94,6 +94,11 @@ var BABYLON;
                             _this.core.sendEvent(ev);
                         },
                         onMenuClick: function (event) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_MENU_SELECTED);
+                            ev.guiEvent.data = event.menuItem.id;
+                            _this.core.sendEvent(ev);
                         }
                     });
                 };

@@ -9,6 +9,7 @@
         private _element: GUI.GUIEditForm;
 
         private _forbiddenElements: Array<string>;
+        private _dummyProperty: any = "";
 
         /**
         * Constructor
@@ -65,6 +66,7 @@
         // Update
         public update(): void {
             var object: any = this._editionTool.object.material;
+            var scene = this._editionTool.core.currentScene;
 
             if (this._element) {
                 this._element.remove();
@@ -78,6 +80,25 @@
             this._element.buildElement(this.containers[0]);
             this._element.remember(object);
 
+            // Material
+            var materialFolder = this._element.addFolder("Material");
+
+            var materials: string[] = [];
+            for (var i = 0; i < scene.materials.length; i++)
+                materials.push(scene.materials[i].name);
+
+            this._dummyProperty = object.name;
+            materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
+                var material = scene.getMaterialByName(result);
+                this._editionTool.object.material = material;
+                this.update();
+            });
+
+            if (object instanceof StandardMaterial) {
+                materialFolder.add(this, "_convertToPBR").name("Convert Standard to PBR");
+            }
+
+            // Values
             var generalFolder = this._element.addFolder("Common");
             generalFolder.add(object, "name").name("Name");
 
@@ -138,6 +159,36 @@
                         vectorFolder.add(object[thing], "z").name("z").step(0.01);
                 }
             }
+        }
+
+        // Converts a standard material to PBR
+        private _convertToPBR(): void {
+            var object: StandardMaterial = this._editionTool.object.material;
+            var scene = this._editionTool.core.currentScene;
+            var pbr: PBRMaterial = new PBRMaterial("New PBR Material", scene);
+
+            // Textures
+            pbr.diffuseTexture = object.diffuseTexture;
+            pbr.bumpTexture = object.bumpTexture;
+            pbr.ambientTexture = object.ambientTexture;
+            pbr.emissiveTexture = object.emissiveTexture;
+            pbr.lightmapTexture = object.lightmapTexture;
+            pbr.reflectionTexture = object.reflectionTexture || scene.reflectionProbes[0].cubeTexture;
+            pbr.specularTexture = object.specularTexture;
+            pbr.useAlphaFromDiffuseTexture = object.useAlphaFromDiffuseTexture;
+
+            // Colors
+            pbr.diffuseColor = object.diffuseColor;
+            pbr.emissiveColor = object.emissiveColor;
+            pbr.specularColor = object.specularColor;
+            pbr.ambientColor = object.ambientColor;
+            pbr.glossiness = object.specularPower;
+            pbr.alpha = object.alpha;
+            pbr.alphaMode = object.alphaMode;
+
+            // Finish
+            this._editionTool.object.material = pbr;
+            this.update();
         }
     }
 }

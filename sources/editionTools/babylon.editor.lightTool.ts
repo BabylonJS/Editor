@@ -63,6 +63,13 @@
                 directionFolder.add(object.direction, "z").step(0.1);
             }
 
+            // Spot light
+            if (object instanceof SpotLight) {
+                var spotFolder = this._element.addFolder("Spot Light");
+                spotFolder.add(object, "exponent").min(0.0).name("Exponent");
+                spotFolder.add(object, "angle").min(0.0).name("Angle");
+            }
+
             // Colors
             var colorsFolder = this._element.addFolder("Colors");
 

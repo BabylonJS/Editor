@@ -183,7 +183,7 @@
         /**
         * Removes the provided node from the graph
         */
-        remove(node: IGraphNodeElement): void;
+        remove(node: IGraphNodeElement | string): void;
         /**
         * Expands the provided node
         */
@@ -205,11 +205,15 @@
         /**
         * Gets the selected node
         */
-        selected: IGraphNodeElement;
+        selected: string;
         /**
         * Array of nodes in the graph
         */
         nodes: IGraphNodeElement[];
+        /**
+        * Returns the sidebar element
+        */
+        sidebar: any;
     }
 
     /**
@@ -312,7 +316,14 @@
     * Grid element
     */
     interface IGridElement extends IElement {
+        /**
+        * Returns total of rows
+        */
         total: number;
+        /**
+        * Returns a row
+        */
+        get(indice: number): void;
     }
 }
 

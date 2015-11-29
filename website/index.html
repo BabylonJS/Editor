@@ -30,6 +30,7 @@
 
     <!-- SCENE -->
     <script src="../sources/scene/babylon.editor.sceneManager.js" type="text/javascript"></script>
+    <script src="../sources/scene/babylon.editor.sceneFactory.js" type="text/javascript"></script>
 
     <!-- TOOLS -->
     <script src="../sources/babylon.editor.sceneGraphTool.js" type="text/javascript"></script>
@@ -46,6 +47,8 @@
     <script src="../sources/editionTools/babylon.editor.materialTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.sceneTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.lightTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/babylon.editor.animationTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/babylon.editor.postProcesses.js" type="text/javascript"></script>
 
     <!-- MATERIALS -->
     <script src="../libs/materials/babylon.pbrMaterial.js" type="text/javascript"></script>
@@ -68,6 +71,7 @@
         function createReleaseScene() {
             // Light
             var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
+            light.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
             light.position = new BABYLON.Vector3(10, 10, 0);
 
             var shadows = new BABYLON.ShadowGenerator(1024, light);
@@ -76,6 +80,7 @@
 
             // skybox
             var skybox = BABYLON.Mesh.CreateBox("skybox", 1000.0, core.currentScene);
+            skybox.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
             var skyboxMaterial = new BABYLON.StandardMaterial("skybox", core.currentScene);
             skyboxMaterial.backFaceCulling = false;
             skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/glacier", core.currentScene, ["_px.png", "_py.png", "_pz.png", "_nx.png", "_ny.png", "_nz.png"]);
@@ -103,6 +108,7 @@
 
             // Plane
             var plane = BABYLON.Mesh.CreateGround("New Ground", 60, 60, 20, core.currentScene);
+            plane.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
             plane.material = createMaterial("ground1m", "./Tests/textures/tile.jpg");
 
             plane.material.diffuseTexture = new BABYLON.Texture("./Tests/textures/floor_diffuse.png", core.currentScene);
@@ -121,11 +127,14 @@
 
             // Sphere
             var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene);
+            sphere.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
 
             sphere.material = createMaterial("sphere1m", "./Tests/textures/diffuse.tga");
             sphere.material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
             sphere.material.bumpTexture = new BABYLON.Texture("./Tests/textures/normal.png", core.currentScene);
             sphere.material.bumpTexture.uScale = sphere.material.bumpTexture.vScale = 5;
+
             sphere.material.glossiness = 1;
             sphere.material.directIntensity = 1.3439461727881254,
             sphere.material.emissiveIntensity = 1,

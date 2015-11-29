@@ -16,6 +16,7 @@
         GRAPH_SELECTED = 3,
         TAB_CHANGED = 4,
         TOOLBAR_MENU_SELECTED = 5,
+        GRAPH_MENU_SELECTED = 6,
 
         UNKNOWN = 3
     }

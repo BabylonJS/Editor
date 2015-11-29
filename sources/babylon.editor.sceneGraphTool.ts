@@ -40,12 +40,35 @@
         // Event
         public onEvent(event: Event): boolean {
             if (event.eventType === EventType.GUI_EVENT) {
-                if (event.guiEvent.caller === this.sidebar && event.guiEvent.eventType === GUIEventType.GRAPH_SELECTED) {
+                if (event.guiEvent.caller === this.sidebar) {
+                    if (event.guiEvent.eventType === GUIEventType.GRAPH_SELECTED) {
+                        var ev = new Event();
+                        ev.eventType = EventType.SCENE_EVENT;
+                        ev.sceneEvent = new SceneEvent(event.guiEvent.data, SceneEventType.OBJECT_PICKED);
+                        this._core.editor.editionTool.onEvent(ev);
+                        return true;
+                    }
+                    else if (event.guiEvent.eventType === GUIEventType.GRAPH_MENU_SELECTED) {
+                        var object: any = this._core.currentScene.getNodeByID(this.sidebar.getSelected());
 
-                    var ev = new Event();
-                    ev.eventType = EventType.SCENE_EVENT;
-                    ev.sceneEvent = new SceneEvent(event.guiEvent.data, SceneEventType.OBJECT_PICKED);
-                    this._core.editor.editionTool.onEvent(ev);
+                        if (object && object.dispose) {
+                            var parent = object.parent;
+
+                            this._modifyElement(object, parent || this._graphRootName, true);
+                            object.dispose();
+                        }
+                        return true;
+                    }
+                }
+            }
+            else if (event.eventType === EventType.SCENE_EVENT) {
+                if (event.sceneEvent.eventType === SceneEventType.OBJECT_ADDED) {
+                    this._modifyElement(event.sceneEvent.object, null);
+                    return false;
+                }
+                else if (event.sceneEvent.eventType === SceneEventType.OBJECT_REMOVED) {
+                    this._modifyElement(event.sceneEvent.object, object.parent, true);
+                    return false;
                 }
             }
 
@@ -149,6 +172,22 @@
                 return "icon-camera";
 
             return "";
+        }
+
+        // Removes or adds a node from/to the graph
+        private _modifyElement(node: Node, parentNode: Node, remove: boolean = false): void {
+            if (!node)
+                return;
+
+            if (!remove) {
+                // Add node
+                var icon = this._getObjectIcon(node);
+                this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+            }
+            else
+                this.sidebar.removeNode(node.id);
+
+            this.sidebar.refresh();
         }
     }
 }

@@ -79,12 +79,53 @@ var BABYLON;
                     renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
                     renderingFolder.add(object, "applyFog").name("Apply Fog");
                     renderingFolder.add(object, "isVisible").name("Is Visible");
+                    renderingFolder.add(this, "_castShadows").name("Cast Shadows");
                 }
             };
             // Resize
             GeneralTool.prototype.resize = function () {
                 this._element.width = this._editionTool.panel.width - 15;
             };
+            Object.defineProperty(GeneralTool.prototype, "_castShadows", {
+                // If object casts shadows or not
+                get: function () {
+                    var scene = this.object.getScene();
+                    for (var i = 0; i < scene.lights.length; i++) {
+                        var light = scene.lights[i];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        for (var j = 0; j < shadowMap.renderList.length; j++) {
+                            var mesh = shadowMap.renderList[j];
+                            if (mesh === this.object)
+                                return true;
+                        }
+                    }
+                    return false;
+                },
+                // Sets if object casts shadows or not
+                set: function (cast) {
+                    var scene = this.object.getScene();
+                    var object = this.object;
+                    for (var i = 0; i < scene.lights.length; i++) {
+                        var light = scene.lights[i];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        if (cast)
+                            shadowMap.renderList.push(object);
+                        else {
+                            var index = shadowMap.renderList.indexOf(object);
+                            if (index !== -1)
+                                shadowMap.renderList.splice(index, 1);
+                        }
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
             return GeneralTool;
         })(EDITOR.AbstractTool);
         EDITOR.GeneralTool = GeneralTool;

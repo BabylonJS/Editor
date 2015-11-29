@@ -139,6 +139,8 @@
             this.addTool(new MaterialTool(this));
             this.addTool(new SceneTool(this));
             this.addTool(new LightTool(this));
+            this.addTool(new AnimationTool(this));
+            this.addTool(new PostProcessesTool(this));
         }
 
         // Adds a tool
