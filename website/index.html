@@ -81,6 +81,7 @@
             // skybox
             var skybox = BABYLON.Mesh.CreateBox("skybox", 1000.0, core.currentScene);
             skybox.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
+            BABYLON.EDITOR.SceneManager._alreadyConfiguredObjectsIDs[skybox.id] = skybox;
             var skyboxMaterial = new BABYLON.StandardMaterial("skybox", core.currentScene);
             skyboxMaterial.backFaceCulling = false;
             skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/glacier", core.currentScene, ["_px.png", "_py.png", "_pz.png", "_nx.png", "_ny.png", "_nz.png"]);
@@ -156,6 +157,8 @@
             BABYLON.EDITOR.SceneManager.configureObject(sphere, core);
             BABYLON.EDITOR.SceneManager.configureObject(light, core);
             BABYLON.EDITOR.SceneManager.configureObject(core.currentScene, core);
+
+            light.parent = sphere;
 
             /*
             var ev = new BABYLON.EDITOR.Event();

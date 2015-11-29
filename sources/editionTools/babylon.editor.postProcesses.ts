@@ -74,15 +74,15 @@
             });
 
             if (this._enabledPostProcesses.hdr) {
-                hdrFolder.add(this._hdrPipeline, 'exposure').min(0).max(30).step(0.01).name("Exposure");
-                hdrFolder.add(this._hdrPipeline, 'brightThreshold').min(0).max(1).step(0.01).name("Bright Threshold");
+                hdrFolder.add(this._hdrPipeline, 'exposure').min(0).max(10).step(0.01).name("Exposure");
+                hdrFolder.add(this._hdrPipeline, 'brightThreshold').min(0).max(10).step(0.01).name("Bright Threshold");
                 hdrFolder.add(this._hdrPipeline, 'minimumLuminance').min(0).max(10).step(0.01).name("Minimum Luminance");
                 hdrFolder.add(this._hdrPipeline, 'luminanceDecreaseRate').min(0).max(5).step(0.01).name("Luminance Decrease Rate");
                 hdrFolder.add(this._hdrPipeline, 'luminanceIncreaserate').min(0).max(1).step(0.01).name("Luminance Increase Rate");
                 hdrFolder.add(this._hdrPipeline, 'gaussCoeff').min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange((result: any) => {
                     this._hdrPipeline.update();
                 });
-                hdrFolder.add(this._hdrPipeline, 'gaussMean').min(0).max(3).step(0.01).name("Gaussian Mean").onChange((result: any) => {
+                hdrFolder.add(this._hdrPipeline, 'gaussMean').min(0).max(30).step(0.01).name("Gaussian Mean").onChange((result: any) => {
                     this._hdrPipeline.update();
                 });
                 hdrFolder.add(this._hdrPipeline, 'gaussStandDev').min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange((result: any) => {
@@ -105,7 +105,7 @@
                 ssaoFolder.add(this._ssaoPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                 ssaoFolder.add(this._ssaoPipeline, "area").min(0).max(1).step(0.001).name("Area");
                 ssaoFolder.add(this._ssaoPipeline, "radius").min(0).max(1).step(0.001).name("Radius");
-                ssaoFolder.add(this._ssaoPipeline, "fallOff").min(0).max(1).step(0.001).name("Fall Off");
+                ssaoFolder.add(this._ssaoPipeline, "fallOff").min(0).step(0.0001).name("Fall Off");
                 ssaoFolder.add(this._ssaoPipeline, "base").min(0).max(1).step(0.001).name("Base");
 
                 var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");

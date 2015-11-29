@@ -18,6 +18,7 @@ var BABYLON;
                 */
                 function GUIDialog(name, core, title, body) {
                     _super.call(this, name, core);
+                    this.callback = null;
                     // Initialize
                     this.title = title;
                     this.body = body;
@@ -30,6 +31,8 @@ var BABYLON;
                         ev.eventType = EDITOR.EventType.GUI_EVENT;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.UNKNOWN, result);
                         _this.core.sendEvent(ev);
+                        if (_this.callback)
+                            _this.callback(result);
                     });
                 };
                 return GUIDialog;

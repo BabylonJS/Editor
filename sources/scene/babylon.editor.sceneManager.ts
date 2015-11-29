@@ -23,6 +23,9 @@
                     mesh.actionManager = new ActionManager(scene);
                 }
 
+                // Configure mesh
+                mesh.isPickable = true;
+
                 // Pointer over / out
                 mesh.actionManager.registerAction(new SetValueAction(ActionManager.OnPointerOverTrigger, mesh, "showBoundingBox", true));
                 mesh.actionManager.registerAction(new SetValueAction(ActionManager.OnPointerOutTrigger, mesh, "showBoundingBox", false));
@@ -42,7 +45,7 @@
                     }
                 }));
 
-                if (parentNode && mesh.parent === null) {
+                if (parentNode && !mesh.parent) {
                     mesh.parent = parentNode;
                 }
 

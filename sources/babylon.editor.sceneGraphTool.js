@@ -89,11 +89,7 @@ var BABYLON;
                         var object = children[i];
                         var icon = this._getObjectIcon(object);
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-                        this.sidebar.addNodes(childNode, root);
-                    }
-                    // Add children
-                    for (var i = 0; i < children.length; i++) {
-                        var object = children[i];
+                        this.sidebar.addNodes(childNode, root ? root : node.id);
                         this.fillGraph(object, object.id);
                     }
                 }

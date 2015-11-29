@@ -4,6 +4,8 @@
         public title: string;
         public body: string;
 
+        public callback: (data: string) => void = null;
+
         // Private members
 
         /**
@@ -24,8 +26,10 @@
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
                 ev.guiEvent = new GUIEvent(this, GUIEventType.UNKNOWN, result);
-
                 this.core.sendEvent(ev);
+
+                if (this.callback)
+                    this.callback(result);
             });
         }
     }

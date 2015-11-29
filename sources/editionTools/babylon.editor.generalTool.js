@@ -40,6 +40,7 @@ var BABYLON;
             };
             // Update
             GeneralTool.prototype.update = function () {
+                var _this = this;
                 var object = this.object = this._editionTool.object;
                 if (this._element) {
                     this._element.remove();
@@ -79,7 +80,17 @@ var BABYLON;
                     renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
                     renderingFolder.add(object, "applyFog").name("Apply Fog");
                     renderingFolder.add(object, "isVisible").name("Is Visible");
-                    renderingFolder.add(this, "_castShadows").name("Cast Shadows");
+                    renderingFolder.add(this, "_castShadows").name("Cast Shadows").onChange(function (result) {
+                        if (result === true) {
+                            var dialog = new EDITOR.GUI.GUIDialog("CastShadowsDialog", _this._editionTool.core, "Shadows Generator", "Make children to cast shadows");
+                            dialog.callback = function (data) {
+                                if (data === "Yes") {
+                                    _this._setChildrenCastingShadows(object);
+                                }
+                            };
+                            dialog.buildElement(null);
+                        }
+                    });
                 }
             };
             // Resize
@@ -126,6 +137,26 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
+            // Sets children casting shadows
+            GeneralTool.prototype._setChildrenCastingShadows = function (node) {
+                var scene = node.getScene();
+                for (var i = 0; i < node.getDescendants().length; i++) {
+                    var object = node.getDescendants()[i];
+                    if (!(object instanceof BABYLON.AbstractMesh))
+                        continue;
+                    for (var j = 0; j < scene.lights.length; j++) {
+                        var light = scene.lights[j];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        var index = shadowMap.renderList.indexOf(object);
+                        if (index === -1)
+                            shadowMap.renderList.push(object);
+                    }
+                    this._setChildrenCastingShadows(object);
+                }
+            };
             return GeneralTool;
         })(EDITOR.AbstractTool);
         EDITOR.GeneralTool = GeneralTool;

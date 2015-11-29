@@ -17,6 +17,8 @@ var BABYLON;
                     if (!mesh.actionManager) {
                         mesh.actionManager = new BABYLON.ActionManager(scene);
                     }
+                    // Configure mesh
+                    mesh.isPickable = true;
                     // Pointer over / out
                     mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh, "showBoundingBox", true));
                     mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh, "showBoundingBox", false));
@@ -32,7 +34,7 @@ var BABYLON;
                             EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
                         }
                     }));
-                    if (parentNode && mesh.parent === null) {
+                    if (parentNode && !mesh.parent) {
                         mesh.parent = parentNode;
                     }
                     // Finish

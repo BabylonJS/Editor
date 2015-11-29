@@ -90,7 +90,17 @@
                 renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
                 renderingFolder.add(object, "applyFog").name("Apply Fog");
                 renderingFolder.add(object, "isVisible").name("Is Visible");
-                renderingFolder.add(this, "_castShadows").name("Cast Shadows");
+                renderingFolder.add(this, "_castShadows").name("Cast Shadows").onChange((result: any) => {
+                    if (result === true) {
+                        var dialog = new GUI.GUIDialog("CastShadowsDialog", this._editionTool.core, "Shadows Generator", "Make children to cast shadows");
+                        dialog.callback = (data: string) => {
+                            if (data === "Yes") {
+                                this._setChildrenCastingShadows(object);
+                            }
+                        };
+                        dialog.buildElement(null);
+                    }
+                });
             }
         }
 
@@ -144,6 +154,34 @@
                     if (index !== -1)
                         shadowMap.renderList.splice(index, 1);
                 }
+            }
+        }
+
+        // Sets children casting shadows
+        private _setChildrenCastingShadows(node: AbstractMesh): void {
+            var scene = node.getScene();
+
+            for (var i = 0; i < node.getDescendants().length; i++) {
+                var object: AbstractMesh = <AbstractMesh>node.getDescendants()[i];
+
+                if (!(object instanceof AbstractMesh))
+                    continue;
+
+                for (var j = 0; j < scene.lights.length; j++) {
+                    var light = scene.lights[j];
+                    var shadows = light.getShadowGenerator();
+
+                    if (!shadows)
+                        continue;
+
+                    var shadowMap = shadows.getShadowMap();
+                    var index = shadowMap.renderList.indexOf(object);
+
+                    if (index === -1)
+                        shadowMap.renderList.push(object);
+                }
+
+                this._setChildrenCastingShadows(object);
             }
         }
     }

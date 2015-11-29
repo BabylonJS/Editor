@@ -111,14 +111,8 @@
                     var icon = this._getObjectIcon(object);
 
                     var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-                    this.sidebar.addNodes(childNode, root);
+                    this.sidebar.addNodes(childNode, root ? root : node.id);
 
-                    //this.fillGraph(object, object.id);
-                }
-
-                // Add children
-                for (var i = 0; i < children.length; i++) {
-                    var object = children[i];
                     this.fillGraph(object, object.id);
                 }
             }

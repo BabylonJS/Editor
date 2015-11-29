@@ -13,5 +13,6 @@ declare module BABYLON.EDITOR {
         update(): void;
         resize(): void;
         private _castShadows;
+        private _setChildrenCastingShadows(node);
     }
 }
