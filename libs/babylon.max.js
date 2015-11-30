@@ -30226,7 +30226,8 @@ var BABYLON;
             var material;
             for (index = 0; index < scene.materials.length; index++) {
                 material = scene.materials[index];
-                serializationObject.materials.push(serializeMaterial(material));
+                if (material instanceof BABYLON.StandardMaterial)
+                    serializationObject.materials.push(serializeMaterial(material));
             }
             // MultiMaterials
             serializationObject.multiMaterials = [];

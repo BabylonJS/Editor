@@ -16,6 +16,10 @@
         */
         on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void);
         /**
+        * The element's style
+        */
+        style?: string;
+        /**
         * Build the element
         */
         buildElement(parent: string): void;
@@ -325,5 +329,74 @@
         * The dialog's body
         */
         body: string;
+    }
+
+    /**
+    * Grid element
+    */
+    interface IGridRowData {
+        /**
+        * The id of the row (line number)
+        */
+        recid: number;
+    }
+
+    interface IGridColumnData extends W2UI.IGridColumnData
+    { }
+
+    interface IGUIGridElement<T> extends IGUIElement {
+        /**
+        * List of columns
+        */
+        columns: Array<IGridColumnData>;
+        /**
+        * Grid's header
+        */
+        header: string;
+        /**
+        * If show toolbar
+        */
+        showToolbar: boolean;
+        /**
+        * If show footer
+        */
+        showFooter: boolean;
+        /**
+        * If show delete button
+        */
+        showDelete: boolean;
+        /**
+        * If show add button
+        */
+        showAdd: boolean;
+        /**
+        * If show edit button
+        */
+        showEdit: boolean;
+
+        /**
+        * Creates a column
+        */
+        createColumn(id: string, text: string, size?: string): void;
+        /**
+        * Adds a row
+        */
+        addRow(data: T): void;
+        /**
+        * Returns the number of rows
+        */
+        getRowCount(): number;
+        /**
+        * Returns the selected rows
+        */
+        getSelectedRows(): string[] | string;
+        /**
+        * Returns the row at indice
+        */
+        getRow(indice: number): T;
+        /**
+        * Modifies the row at indice
+        */
+        modifyRow(indice: number, data: T): void;
     }
 }

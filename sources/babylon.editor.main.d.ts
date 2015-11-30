@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR {
         options: any;
         layouts: GUI.IGUILayout;
         filesInput: FilesInput;
+        exporter: Exporter;
         /**
         * Constructor
         */

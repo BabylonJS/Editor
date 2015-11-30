@@ -62,11 +62,13 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.postProcesses.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
+    <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiElement.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiForm.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiGraph.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiGrid.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiList.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />

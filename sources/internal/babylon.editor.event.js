@@ -24,7 +24,11 @@ var BABYLON;
             GUIEventType[GUIEventType["TAB_CHANGED"] = 4] = "TAB_CHANGED";
             GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 5] = "TOOLBAR_MENU_SELECTED";
             GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 6] = "GRAPH_MENU_SELECTED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 3] = "UNKNOWN";
+            GUIEventType[GUIEventType["GRID_SELECTED"] = 7] = "GRID_SELECTED";
+            GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 8] = "GRID_ROW_REMOVED";
+            GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 9] = "GRID_ROW_ADDED";
+            GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 10] = "GRID_ROW_EDITED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 11] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {

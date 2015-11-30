@@ -36,6 +36,8 @@ var BABYLON;
                 this.filesInput = new BABYLON.FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
                 this.filesInput.appendScene = true;
+                // Exporter
+                this.exporter = new EDITOR.Exporter(this.core);
             }
             /**
             * Event receiver
@@ -87,6 +89,7 @@ var BABYLON;
             * Creates the babylon engine
             */
             EditorMain.prototype._createBabylonEngine = function () {
+                var _this = this;
                 this.core.canvas = document.getElementById("BABYLON-EDITOR-MAIN-CANVAS");
                 this.core.engine = new BABYLON.Engine(this.core.canvas, this.antialias, this.options);
                 this.core.currentScene = new BABYLON.Scene(this.core.engine);
@@ -95,6 +98,9 @@ var BABYLON;
                 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
                 camera.attachControl(this.core.canvas);
                 this.core.camera = camera;
+                window.addEventListener("resize", function (ev) {
+                    _this.core.engine.resize();
+                });
             };
             /**
             * Simply update the scenes and updates

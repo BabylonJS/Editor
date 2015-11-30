@@ -15,6 +15,8 @@
 
         public filesInput: FilesInput = null;
 
+        public exporter: Exporter;
+
         // private members
 
         /**
@@ -52,6 +54,9 @@
             this.filesInput = new FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
             this.filesInput.appendScene = true;
+
+            // Exporter
+            this.exporter = new Exporter(this.core);
         }
 
         /**
@@ -123,6 +128,10 @@
             camera.setTarget(new Vector3(0, 0, 0));
             camera.attachControl(this.core.canvas);
             this.core.camera = camera;
+
+            window.addEventListener("resize", (ev: UIEvent) => {
+                this.core.engine.resize();
+            });
         }
 
         /**

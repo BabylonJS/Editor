@@ -1,4 +1,8 @@
 ﻿module BABYLON.EDITOR {
+    interface IAnimationRow extends GUI.IGridRowData {
+        name: string;
+    }
+
     export class AnimationTool extends AbstractTool {
         // Public members
         public tab: string = "ANIMATION.TAB";
@@ -35,8 +39,8 @@
 
         // Update
         public update(): void {
-            var object: AbstractMesh = this.object = this._editionTool.object;
-
+            var object: Node = this.object = this._editionTool.object;
+            
             if (this._element) {
                 this._element.remove();
                 this._element = null;
@@ -53,7 +57,7 @@
             var animationsFolder = this._element.addFolder("Animations");
             animationsFolder.add(this, "_playAnimations").name("Play Animations");
 
-            if (object.skeleton) {
+            if (object instanceof AbstractMesh && object.skeleton) {
                 var skeletonFolder = this._element.addFolder("Skeleton");
                 skeletonFolder.add(this, "_playAnimations").name("Play Animations");
             }
@@ -61,7 +65,8 @@
 
         // Resize
         public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
+            //this._element.width = this._editionTool.panel.width - 15;
+            $("#" + this.containers[0]).width("100%").height("100%");
         }
 
         // Plays animations

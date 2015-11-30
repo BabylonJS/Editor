@@ -30,6 +30,10 @@
         * Add an event
         */
         on(event: IEvent, callback: (target: any, eventData: any) => void);
+        /**
+        * The element's style
+        */
+        style?: string;
     }
 
     /**
@@ -315,7 +319,29 @@
     /**
     * Grid element
     */
-    interface IGridElement extends IElement {
+    interface IGridRowData {
+        /**
+        * The id of the row (line number)
+        */
+        recid: number;
+    }
+
+    interface IGridColumnData {
+        /**
+        * The column ID
+        */
+        field: string;
+        /**
+        * The column's caption
+        */
+        caption: string;
+        /**
+        * The columns size
+        */
+        size: string;
+    }
+
+    interface IGridElement<T> extends IElement {
         /**
         * Returns total of rows
         */
@@ -323,7 +349,19 @@
         /**
         * Returns a row
         */
-        get(indice: number): void;
+        get(indice: number): T;
+        /**
+        * Sets the row
+        */
+        set(indice: number, data: T): void;
+        /**
+        * Adds a row to the grid
+        */
+        add(data: T): void;
+        /**
+        * Returns the selection
+        */
+        getSelection(): string[] | string;
     }
 }
 

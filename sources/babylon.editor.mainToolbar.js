@@ -12,6 +12,8 @@ var BABYLON;
                 this.container = "BABYLON-EDITOR-MAIN-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
+                this._mainProject = "MAIN-PROJECT";
+                this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
@@ -42,6 +44,13 @@ var BABYLON;
                     var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
                     if (item === null)
                         return false;
+                    // Project
+                    if (id.indexOf(this._mainProject) !== -1) {
+                        if (id.indexOf(this._projectExportCode) !== -1) {
+                            this._editor.exporter.exportScene();
+                        }
+                        return true;
+                    }
                     // Add
                     if (id.indexOf(this._mainAdd) !== -1) {
                         if (id.indexOf(this._addPointLight) !== -1) {
@@ -66,7 +75,8 @@ var BABYLON;
                 if (this.toolbar != null)
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
-                var menu = this.toolbar.createMenu("menu", "MAIN-FILES", "File", "icon-folder");
+                var menu = this.toolbar.createMenu("menu", this._mainProject, "File", "icon-folder");
+                this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 //...

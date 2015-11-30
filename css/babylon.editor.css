@@ -14,6 +14,11 @@ html, body {
     height: 100%;
 }
 
+#BABYLON-EDITOR-EDITION-TOOL {
+    width: 98%;
+    height: 98%;
+}
+
 .block {
     padding-top: 20px; 
     padding-bottom: 10px; 

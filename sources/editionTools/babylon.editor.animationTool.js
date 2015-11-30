@@ -48,14 +48,15 @@ var BABYLON;
                 // Animations
                 var animationsFolder = this._element.addFolder("Animations");
                 animationsFolder.add(this, "_playAnimations").name("Play Animations");
-                if (object.skeleton) {
+                if (object instanceof BABYLON.AbstractMesh && object.skeleton) {
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playAnimations").name("Play Animations");
                 }
             };
             // Resize
             AnimationTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
+                //this._element.width = this._editionTool.panel.width - 15;
+                $("#" + this.containers[0]).width("100%").height("100%");
             };
             // Plays animations
             AnimationTool.prototype._playAnimations = function () {

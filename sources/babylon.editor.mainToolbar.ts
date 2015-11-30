@@ -9,6 +9,9 @@
         private _core: EditorCore;
         private _editor: EditorMain;
 
+        private _mainProject = "MAIN-PROJECT";
+        private _projectExportCode = "PROJECT-EXPORT-CODE";
+
         private _mainAdd: string = "MAIN-ADD";
         private _addPointLight: string = "ADD-POINT-LIGHT";
         private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
@@ -55,6 +58,15 @@
                 if (item === null)
                     return false;
 
+                // Project
+                if (id.indexOf(this._mainProject) !== -1) {
+                    if (id.indexOf(this._projectExportCode) !== -1) {
+                        this._editor.exporter.exportScene();
+                    }
+
+                    return true;
+                }
+
                 // Add
                 if (id.indexOf(this._mainAdd) !== -1) {
                     if (id.indexOf(this._addPointLight) !== -1) {
@@ -84,7 +96,8 @@
 
             this.toolbar = new GUI.GUIToolbar(this.container, this._core);
 
-            var menu = this.toolbar.createMenu("menu", "MAIN-FILES", "File", "icon-folder");
+            var menu = this.toolbar.createMenu("menu", this._mainProject, "File", "icon-folder");
+            this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

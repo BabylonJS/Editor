@@ -5,6 +5,8 @@ declare module BABYLON.EDITOR {
         panel: GUI.IGUIPanel;
         private _core;
         private _editor;
+        private _mainProject;
+        private _projectExportCode;
         private _mainAdd;
         private _addPointLight;
         private _addDirectionalLight;
