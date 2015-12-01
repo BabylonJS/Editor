@@ -12,8 +12,11 @@ var BABYLON;
                 this.core = core;
             }
             Exporter.prototype.exportScene = function () {
-                var scene = BABYLON.SceneSerializer.Serialize(this.core.currentScene);
-                var string = JSON.stringify(scene);
+                //var scene = SceneSerializer.Serialize(this.core.currentScene);
+                //var string = JSON.stringify(scene);
+                var window = new EDITOR.GUI.GUIWindow("WindowExport", this.core, "Export Project", "");
+                window.buttons = ["Export", "Cancel"];
+                window.buildElement(null);
             };
             return Exporter;
         })();

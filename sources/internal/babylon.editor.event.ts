@@ -23,7 +23,9 @@
         GRID_ROW_ADDED = 9,
         GRID_ROW_EDITED = 10,
 
-        UNKNOWN = 11
+        WINDOW_BUTTON_CLICKED = 11,
+
+        UNKNOWN = 12
     }
 
     export enum SceneEventType {

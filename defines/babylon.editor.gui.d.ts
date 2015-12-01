@@ -399,4 +399,55 @@
         */
         modifyRow(indice: number, data: T): void;
     }
+
+    /**
+    * Window element
+    */
+    interface IGUIWindowElement extends IGUIElement {
+        /**
+        * Window's title
+        */
+        title: string;
+        /**
+        * Window's body. Example: HTML code
+        */
+        body: string;
+        /**
+        * Window's size (width, height)
+        */ 
+        size: Vector2;
+        /**
+        * Window's buttons
+        */
+        buttons: Array<string>;
+        /**
+        * If the window is modal
+        */
+        modal: boolean;
+        /**
+        * If show the close button
+        */
+        showClose: boolean;
+        /**
+        * If show the maximize button
+        */
+        showMax: boolean;
+        /**
+        * Toggle callback
+        */
+        onToggle: () => void;
+
+        /**
+        * Set the on close callback
+        */
+        setOnCloseCallback(callback: () => void): void;
+        /**
+        * Close the window
+        */
+        close(): void;
+        /**
+        * Maximize the window
+        */
+        maximize(): void;
+    }
 }

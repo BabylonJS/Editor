@@ -363,6 +363,36 @@
         */
         getSelection(): string[] | string;
     }
+
+    /**
+    * Window element
+    */
+    interface IWindowElement extends IElement {
+        /**
+        * Close window
+        */
+        close(): void;
+        /**
+        * On close event
+        */
+        onClose: () => void;
+        /**
+        * Maximize the window
+        */
+        max(): void;
+        /**
+        * On maximize event
+        */
+        onMax: () => void;
+        /**
+        * On minimize event
+        */
+        onMin: () => void;
+        /**
+        * On toggle event
+        */
+        onToggle: () => void;
+    }
 }
 
 /**
@@ -370,4 +400,8 @@
 */
 declare var w2confirm: {
     (body: string, title: string, callback: (result: any) => void): W2UI.IElement;
+}
+
+declare var w2popup: {
+    open(data: any): W2UI.IWindowElement;
 }

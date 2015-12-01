@@ -14,10 +14,12 @@
         }
 
         public exportScene(): void {
-            var scene = SceneSerializer.Serialize(this.core.currentScene);
-            var string = JSON.stringify(scene);
+            //var scene = SceneSerializer.Serialize(this.core.currentScene);
+            //var string = JSON.stringify(scene);
 
-
+            var window = new GUI.GUIWindow("WindowExport", this.core, "Export Project", "");
+            window.buttons = ["Export", "Cancel"];
+            window.buildElement(null);
         }
     }
 }

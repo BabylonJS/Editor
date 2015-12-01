@@ -19,7 +19,8 @@ declare module BABYLON.EDITOR {
         GRID_ROW_REMOVED = 8,
         GRID_ROW_ADDED = 9,
         GRID_ROW_EDITED = 10,
-        UNKNOWN = 11,
+        WINDOW_BUTTON_CLICKED = 11,
+        UNKNOWN = 12,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,

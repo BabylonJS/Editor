@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>1.6</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>1.7</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -73,6 +73,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiPanel.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiLayouts.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiToolbar.ts" />
+    <TypeScriptCompile Include="sources\gui\babylon.editor.guiWindow.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
