@@ -7,6 +7,8 @@
 
         public core: EditorCore = null;
 
+        // Private members
+
         /**
         * Constructor
         * @param name: the gui element name
@@ -18,20 +20,31 @@
             this.core = core;
         }
 
+        // Destroy the element (W2UI)
         public destroy(): void {
             this.element.destroy();
         }
 
+        // Refresh the element (W2UI)
         public refresh(): void {
             this.element.refresh();
         }
 
+        // Add callback on an event
         public on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void {
             this.element.on(event, callback);
         }
 
+        // Build the element
         public buildElement(parent: string): void
         { }
 
+        /**
+        * Static methods
+        */ 
+        // Creates a div element (string)
+        static CreateDivElement(id: string, style?: string): string {
+            return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
+        }
     }
 }

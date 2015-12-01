@@ -47,7 +47,7 @@ var BABYLON;
                     // Project
                     if (id.indexOf(this._mainProject) !== -1) {
                         if (id.indexOf(this._projectExportCode) !== -1) {
-                            this._editor.exporter.exportScene();
+                            this._editor.exporter.openSceneExporter();
                         }
                         return true;
                     }

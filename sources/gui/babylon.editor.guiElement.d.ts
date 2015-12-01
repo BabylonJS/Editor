@@ -13,5 +13,9 @@ declare module BABYLON.EDITOR.GUI {
         refresh(): void;
         on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void;
         buildElement(parent: string): void;
+        /**
+        * Static methods
+        */
+        static CreateDivElement(id: string, style?: string): string;
     }
 }
