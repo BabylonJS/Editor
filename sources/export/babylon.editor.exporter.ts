@@ -171,6 +171,47 @@
             return finalString + "\n";
         }
 
+        private _exportParticleSystem(particleSystem: ParticleSystem): string {
+            var node = particleSystem.emitter;
+
+            var finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
+            finalString += "\tvar particleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n"
+            finalString += "\tparticleSystem.emitter = node;\n";
+
+            for (var thing in particleSystem) {
+                if (thing[0] === "_")
+                    continue;
+
+                var value = particleSystem[thing];
+                var result = "";
+                
+                if (typeof value === "number" || typeof value === "boolean") {
+                    result += value;
+                }
+                else if (typeof value === "string") {
+                    result += "\"" + value + "\"";
+                }
+                else if (value instanceof Vector3) {
+                    result = this._exportVector3(value);
+                }
+                else if (value instanceof Color4) {
+                    result += this._exportColor4(value);
+                }
+                else if (value instanceof Texture) {
+                    result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
+                }
+                else
+                    continue;
+
+                finalString += "\tparticleSystem." + thing + " = " + result + ";\n";
+            }
+
+            if (!(<any>particleSystem)._stopped)
+                finalString += "\tparticleSystem.start();\n";
+
+            return finalString;
+        }
+
         // Exports a BABYLON.Vector2
         private _exportVector2(vector: Vector2): string {
             return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
@@ -217,7 +258,18 @@
 
                 if (node.id.indexOf(EditorMain.DummyNodeID) === -1) {
                     finalString = "\t// Configure node " + node.name + "\n";
-                    finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
+
+                    var foundParticleSystems = false;
+                    for (var i = 0; i < scene.particleSystems.length; i++) {
+                        var ps = scene.particleSystems[i];
+                        if (ps.emitter === node) {
+                            finalString += "\n" + this._exportParticleSystem(ps);
+                            foundParticleSystems = true;
+                        }
+                    }
+
+                    if (!foundParticleSystems)
+                        finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
 
                     // TODO: Check if node exists.
                     // If not, export geometry and see performances

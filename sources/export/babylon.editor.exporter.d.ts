@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         private _exportNodeTransform(node);
         private _getTextureByName(name, scene);
         private _exportNodeMaterial(node);
+        private _exportParticleSystem(particleSystem);
         private _exportVector2(vector);
         private _exportVector3(vector);
         private _exportQuaternion(quaternion);

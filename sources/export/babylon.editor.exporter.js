@@ -135,6 +135,39 @@ var BABYLON;
                 }
                 return finalString + "\n";
             };
+            Exporter.prototype._exportParticleSystem = function (particleSystem) {
+                var node = particleSystem.emitter;
+                var finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
+                finalString += "\tvar particleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n";
+                finalString += "\tparticleSystem.emitter = node;\n";
+                for (var thing in particleSystem) {
+                    if (thing[0] === "_")
+                        continue;
+                    var value = particleSystem[thing];
+                    var result = "";
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
+                    }
+                    else if (typeof value === "string") {
+                        result += "\"" + value + "\"";
+                    }
+                    else if (value instanceof BABYLON.Vector3) {
+                        result = this._exportVector3(value);
+                    }
+                    else if (value instanceof BABYLON.Color4) {
+                        result += this._exportColor4(value);
+                    }
+                    else if (value instanceof BABYLON.Texture) {
+                        result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
+                    }
+                    else
+                        continue;
+                    finalString += "\tparticleSystem." + thing + " = " + result + ";\n";
+                }
+                if (!particleSystem._stopped)
+                    finalString += "\tparticleSystem.start();\n";
+                return finalString;
+            };
             // Exports a BABYLON.Vector2
             Exporter.prototype._exportVector2 = function (vector) {
                 return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
@@ -171,7 +204,16 @@ var BABYLON;
                     var finalString = "";
                     if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1) {
                         finalString = "\t// Configure node " + node.name + "\n";
-                        finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
+                        var foundParticleSystems = false;
+                        for (var i = 0; i < scene.particleSystems.length; i++) {
+                            var ps = scene.particleSystems[i];
+                            if (ps.emitter === node) {
+                                finalString += "\n" + this._exportParticleSystem(ps);
+                                foundParticleSystems = true;
+                            }
+                        }
+                        if (!foundParticleSystems)
+                            finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
                         // TODO: Check if node exists.
                         // If not, export geometry and see performances
                         // Transformation

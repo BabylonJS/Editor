@@ -222,6 +222,8 @@ var BABYLON;
                         this._particleSystemToEdit[thing] = value;
                     if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Color4)
                         this._particleSystemToEdit[thing] = value;
+                    if (value instanceof BABYLON.Texture)
+                        this._particleSystemToEdit[thing] = BABYLON.Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
                 }
             };
             // Set the particle texture

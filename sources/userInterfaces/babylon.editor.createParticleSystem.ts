@@ -281,6 +281,9 @@
 
                 if (value instanceof Vector3 || value instanceof Color4)
                     this._particleSystemToEdit[thing] = value;
+
+                if (value instanceof Texture)
+                    this._particleSystemToEdit[thing] = Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
             }
         }
 
@@ -305,7 +308,7 @@
             particleSystem = particleSystem || <ParticleSystem>{ };
 
             var dummy = new Mesh("New Particle System", scene, null, null, true);
-            var ps = new BABYLON.ParticleSystem("New Particle System", particleSystem.getCapacity ? particleSystem.getCapacity() : capacity, scene);
+            var ps = new ParticleSystem("New Particle System", particleSystem.getCapacity ? particleSystem.getCapacity() : capacity, scene);
 
             ps.emitter = dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
