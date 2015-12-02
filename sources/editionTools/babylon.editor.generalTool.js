@@ -18,6 +18,7 @@ var BABYLON;
                 // Public members
                 this.object = null;
                 this.tab = "GENERAL.TAB";
+                this._particleSystem = null;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
@@ -27,8 +28,7 @@ var BABYLON;
             GeneralTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.Mesh
                     || object instanceof BABYLON.Light
-                    || object instanceof BABYLON.Camera
-                    || object instanceof BABYLON.ParticleSystem) {
+                    || object instanceof BABYLON.Camera) {
                     return true;
                 }
                 return false;
@@ -42,6 +42,7 @@ var BABYLON;
             GeneralTool.prototype.update = function () {
                 var _this = this;
                 var object = this.object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
                 if (this._element) {
                     this._element.remove();
                     this._element = null;
@@ -54,6 +55,22 @@ var BABYLON;
                 // General
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name");
+                // Particle system
+                var particleSystem = null;
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    var ps = scene.particleSystems[i];
+                    if (ps.emitter === object) {
+                        particleSystem = ps;
+                        break;
+                    }
+                }
+                if (particleSystem !== null) {
+                    var particleSystemFolder = this._element.addFolder("Particle System");
+                    particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
+                    particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
+                    particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");
+                    this._particleSystem = particleSystem;
+                }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
@@ -96,6 +113,18 @@ var BABYLON;
             // Resize
             GeneralTool.prototype.resize = function () {
                 this._element.width = this._editionTool.panel.width - 15;
+            };
+            // Start particle system
+            GeneralTool.prototype._startParticleSystem = function () {
+                this._particleSystem.start();
+            };
+            // Stop particle system
+            GeneralTool.prototype._stopParticleSystem = function () {
+                this._particleSystem.stop();
+            };
+            // Edit particle system
+            GeneralTool.prototype._editParticleSystem = function () {
+                var psEditor = new EDITOR.GUICreateParticleSystem(this._editionTool.core, this._particleSystem);
             };
             Object.defineProperty(GeneralTool.prototype, "_castShadows", {
                 // If object casts shadows or not

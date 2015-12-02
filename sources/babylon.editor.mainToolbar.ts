@@ -17,6 +17,7 @@
         private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
         private _addSpotLight: string = "ADD-SPOT-LIGHT";
         private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
+        private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
 
         /**
         * Constructor
@@ -82,6 +83,10 @@
                         SceneFactory.AddHemisphericLight(this._core);
                     }
 
+                    else if (id.indexOf(this._addParticleSystem) !== -1) {
+                        SceneFactory.AddParticleSystem(this._core);
+                    }
+
                     return true;
                 }
             }
@@ -109,6 +114,7 @@
             this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
             this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
             this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
             //...
 
             //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;

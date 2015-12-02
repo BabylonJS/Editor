@@ -36,20 +36,48 @@ var BABYLON;
                     if (buttons)
                         this.buttons = buttons;
                     this._onCloseCallback = function () {
+                        _this.core.editor.renderMainScene = true;
                         for (var i = 0; i < _this._onCloseCallbacks.length; i++) {
                             _this._onCloseCallbacks[i]();
                         }
                     };
                 }
+                // Destroy the element (W2UI)
+                GUIWindow.prototype.destroy = function () {
+                    this.element.clear();
+                };
+                // Sets the on close callback
                 GUIWindow.prototype.setOnCloseCallback = function (callback) {
                     this._onCloseCallbacks.push(callback);
                 };
+                // Closes the window
                 GUIWindow.prototype.close = function () {
                     this.element.close();
                 };
+                // Maximizes the window
                 GUIWindow.prototype.maximize = function () {
                     this.element.max();
                 };
+                Object.defineProperty(GUIWindow.prototype, "onToggle", {
+                    // Toggle callback
+                    get: function () {
+                        return this._onToggle;
+                    },
+                    // Toggle callback
+                    set: function (callback) {
+                        var window = this.element;
+                        var windowEvent = function (event) {
+                            event.onComplete = function (eventData) {
+                                callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                            };
+                        };
+                        window.onMax = windowEvent;
+                        window.onMin = windowEvent;
+                        this._onToggle = callback;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 // Build element
                 GUIWindow.prototype.buildElement = function (parent) {
                     var _this = this;
@@ -83,6 +111,8 @@ var BABYLON;
                     // Configure window
                     var window = this.element;
                     window.onClose = this._onCloseCallback;
+                    // Configure editor
+                    this.core.editor.renderMainScene = false;
                 };
                 return GUIWindow;
             })(GUI.GUIElement);

@@ -5,7 +5,6 @@ var BABYLON;
         var EditorCore = (function () {
             /**
             * Constructor
-            * @param canvasID: the id of the canvas to render the editor scenes
             */
             function EditorCore() {
                 // Public members

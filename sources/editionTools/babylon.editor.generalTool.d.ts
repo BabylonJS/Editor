@@ -3,6 +3,7 @@ declare module BABYLON.EDITOR {
         object: Node;
         tab: string;
         private _element;
+        private _particleSystem;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -12,6 +13,9 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): void;
         resize(): void;
+        private _startParticleSystem();
+        private _stopParticleSystem();
+        private _editParticleSystem();
         private _castShadows;
         private _setChildrenCastingShadows(node);
     }

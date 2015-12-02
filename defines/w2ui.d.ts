@@ -34,6 +34,10 @@
         * The element's style
         */
         style?: string;
+        /**
+        * Resize element
+        */
+        resize(): void;
     }
 
     /**
@@ -373,6 +377,10 @@
         */
         close(): void;
         /**
+        * Clear the window
+        */
+        clear(): void
+        /**
         * On close event
         */
         onClose: () => void;
@@ -383,15 +391,15 @@
         /**
         * On maximize event
         */
-        onMax: () => void;
+        onMax: (event: any) => void;
         /**
         * On minimize event
         */
-        onMin: () => void;
+        onMin: (event: any) => void;
         /**
         * On toggle event
         */
-        onToggle: () => void;
+        onToggle: (maximized: boolean, width: number, height: number) => void;
     }
 }
 

@@ -97,5 +97,14 @@
 
             return light;
         }
+
+        static AddParticleSystem(core: EditorCore): ParticleSystem {
+            var ps = GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
+            ps.emitter.id = this.GenerateUUID();
+
+            Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
+
+            return ps;
+        }
     }
 }

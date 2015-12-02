@@ -30,7 +30,7 @@
         }
 
         // Create tab
-        public createTab(tab: IGUITab): IGUIPanel {
+        public createTab(tab: IGUITab): GUIPanel {
             // Configure event
             (<any>tab).onClick = (event) => {
                 var ev = new Event();
@@ -79,7 +79,7 @@
         }
 
         // Set tab enabled
-        public setTabEnabled(id: string, enable: boolean): IGUIPanel {
+        public setTabEnabled(id: string, enable: boolean): GUIPanel {
             if (this._panelElement === null) {
                 return this;
             }
@@ -99,7 +99,7 @@
         }
 
         // Sets panel content (HTML)
-        public setContent(content: string): IGUIPanel {
+        public setContent(content: string): GUIPanel {
             this.content = content;
             return this;
         }

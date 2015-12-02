@@ -84,6 +84,7 @@
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.createParticleSystem.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

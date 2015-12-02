@@ -11,6 +11,7 @@ var BABYLON;
                 if (options === void 0) { options = null; }
                 this.layouts = null;
                 this.filesInput = null;
+                this.renderMainScene = true;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -115,9 +116,11 @@ var BABYLON;
                 // Pre update
                 this.core.onPreUpdate();
                 // Scenes
-                for (var i = 0; i < this.core.scenes.length; i++) {
-                    if (this.core.scenes[i].render) {
-                        this.core.scenes[i].scene.render();
+                if (this.renderMainScene) {
+                    for (var i = 0; i < this.core.scenes.length; i++) {
+                        if (this.core.scenes[i].render) {
+                            this.core.scenes[i].scene.render();
+                        }
                     }
                 }
                 // Post update

@@ -80,6 +80,12 @@ var BABYLON;
                 EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return light;
             };
+            SceneFactory.AddParticleSystem = function (core) {
+                var ps = EDITOR.GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
+                ps.emitter.id = this.GenerateUUID();
+                EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return ps;
+            };
             // Private members
             SceneFactory._hdrPipeline = null;
             SceneFactory._ssaoPipeline = null;

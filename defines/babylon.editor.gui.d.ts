@@ -12,6 +12,10 @@
         */
         refresh(): void;
         /**
+        * Resize element
+        */
+        resize(): void;
+        /**
         * Add an event
         */
         on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void);
@@ -53,6 +57,17 @@
     /**
     * GUI Panel
     */
+    interface IGUIPanelTabChangedEvent {
+        /**
+        * The tab's id
+        */
+        tabID: string;
+        /**
+        * The called
+        */
+        caller: IGUIElement;
+    }
+
     interface IGUIPanel extends IGUIElement {
         /**
         * Creates a tab
@@ -435,7 +450,7 @@
         /**
         * Toggle callback
         */
-        onToggle: () => void;
+        onToggle: (maximized: boolean, width: number, height: number) => void;
 
         /**
         * Set the on close callback

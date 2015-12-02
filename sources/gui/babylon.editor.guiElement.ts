@@ -30,6 +30,11 @@
             this.element.refresh();
         }
 
+        // Resize the element (W2UI)
+        public resize(): void {
+            this.element.resize();
+        }
+
         // Add callback on an event
         public on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void {
             this.element.on(event, callback);
@@ -45,6 +50,11 @@
         // Creates a div element (string)
         static CreateDivElement(id: string, style?: string): string {
             return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
+        }
+
+        // Creates a custom element (string)
+        static CreateElement(type: string, id: string, style: string = "width: 100%; height: 100%;"): string {
+            return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
         }
     }
 }

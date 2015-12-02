@@ -75,11 +75,10 @@ var BABYLON;
                     children = [];
                     this._getRootNodes(children, "meshes");
                     this._getRootNodes(children, "lights");
-                    this._getRootNodes(children, "particleSystems");
                     this._getRootNodes(children, "cameras");
                 }
                 else
-                    children = node.getDescendants();
+                    children = node.getDescendants ? node.getDescendants() : [];
                 if (root === this._graphRootName)
                     this.sidebar.setNodeExpanded(root, true);
                 // If children, then fill the graph recursively
@@ -119,6 +118,15 @@ var BABYLON;
             // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
             SceneGraphTool.prototype._getObjectIcon = function (node) {
                 if (node instanceof BABYLON.Mesh) {
+                    // Check particles
+                    if (!node.geometry) {
+                        var scene = node.getScene();
+                        for (var i = 0; i < scene.particleSystems.length; i++) {
+                            if (scene.particleSystems[i].emitter === node)
+                                return "icon-particles";
+                        }
+                    }
+                    // Else...
                     if (node.skeleton)
                         return "icon-animated-mesh";
                     else

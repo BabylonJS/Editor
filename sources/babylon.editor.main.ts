@@ -14,8 +14,9 @@
         public layouts: GUI.IGUILayout = null;
 
         public filesInput: FilesInput = null;
-
         public exporter: Exporter;
+
+        public renderMainScene: boolean = true;
 
         // private members
 
@@ -145,9 +146,11 @@
             this.core.onPreUpdate();
 
             // Scenes
-            for (var i = 0; i < this.core.scenes.length; i++) {
-                if (this.core.scenes[i].render) {
-                    this.core.scenes[i].scene.render();
+            if (this.renderMainScene) {
+                for (var i = 0; i < this.core.scenes.length; i++) {
+                    if (this.core.scenes[i].render) {
+                        this.core.scenes[i].scene.render();
+                    }
                 }
             }
 

@@ -15,5 +15,6 @@ declare module BABYLON.EDITOR {
         static AddDirectionalLight(core: EditorCore): DirectionalLight;
         static AddSpotLight(core: EditorCore): SpotLight;
         static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddParticleSystem(core: EditorCore): ParticleSystem;
     }
 }

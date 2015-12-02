@@ -77,3 +77,7 @@ html, body {
 .w2ui-icon.icon-shaders {
     background: url("images/shaders.png");
 }
+
+.w2ui-icon.icon-particles {
+    background: url("images/particles.png");
+}

@@ -7,17 +7,19 @@ declare module BABYLON.EDITOR.GUI {
         modal: boolean;
         showClose: boolean;
         showMax: boolean;
-        onToggle: () => void;
         private _onCloseCallbacks;
         private _onCloseCallback;
+        private _onToggle;
         /**
         * Constructor
         * @param name: the form name
         */
         constructor(name: string, core: EditorCore, title: string, body: string, size?: Vector2, buttons?: Array<string>);
+        destroy(): void;
         setOnCloseCallback(callback: () => void): void;
         close(): void;
         maximize(): void;
+        onToggle: (maximized: boolean, width: number, height: number) => void;
         buildElement(parent: string): void;
     }
 }

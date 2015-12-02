@@ -31,7 +31,7 @@ var BABYLON;
             EditionTool.prototype.onEvent = function (event) {
                 // GUI Event
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED) {
+                    if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this.panel) {
                         var tabID = event.guiEvent.data;
                         if (this._currentTab !== tabID) {
                             this._currentTab = tabID;

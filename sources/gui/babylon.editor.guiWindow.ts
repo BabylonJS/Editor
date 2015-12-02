@@ -8,11 +8,11 @@
         public modal: boolean = true;
         public showClose: boolean = true;
         public showMax: boolean = true;
-        public onToggle: () => void;
 
         // Private members
         private _onCloseCallbacks: Array<() => void> = new Array<() => void>();
         private _onCloseCallback: () => void;
+        private _onToggle: (maximized: boolean, width: number, height: number) => void;
 
         /**
         * Constructor
@@ -32,22 +32,52 @@
                 this.buttons = buttons;
 
             this._onCloseCallback = () => {
+                this.core.editor.renderMainScene = true;
+
                 for (var i = 0; i < this._onCloseCallbacks.length; i++) {
                     this._onCloseCallbacks[i]();
                 }
             };
         }
 
+        // Destroy the element (W2UI)
+        public destroy(): void {
+            (<W2UI.IWindowElement>this.element).clear();
+        }
+
+        // Sets the on close callback
         public setOnCloseCallback(callback: () => void): void {
             this._onCloseCallbacks.push(callback);
         }
 
+        // Closes the window
         public close(): void {
             (<W2UI.IWindowElement>this.element).close();
         }
 
+        // Maximizes the window
         public maximize(): void {
             (<W2UI.IWindowElement>this.element).max();
+        }
+
+        // Toggle callback
+        public set onToggle(callback: (maximized: boolean, width: number, height: number) => void) {
+            var window = <W2UI.IWindowElement>this.element;
+            var windowEvent = (event: any) => {
+                event.onComplete = (eventData) => {
+                    callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                };
+            };
+
+            window.onMax = windowEvent;
+            window.onMin = windowEvent;
+
+            this._onToggle = callback;
+        }
+
+        // Toggle callback
+        public get onToggle(): (maximized: boolean, width: number, height: number) => void {
+            return this._onToggle;
         }
 
         // Build element
@@ -85,6 +115,9 @@
             // Configure window
             var window = <W2UI.IWindowElement>this.element;
             window.onClose = this._onCloseCallback;
+
+            // Configure editor
+            this.core.editor.renderMainScene = false;
         }
     }
 }

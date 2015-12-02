@@ -44,7 +44,7 @@
         public onEvent(event: Event): boolean {
             // GUI Event
             if (event.eventType === EventType.GUI_EVENT) {
-                if (event.guiEvent.eventType === GUIEventType.TAB_CHANGED) {
+                if (event.guiEvent.eventType === GUIEventType.TAB_CHANGED && event.guiEvent.caller === this.panel) {
                     var tabID = event.guiEvent.data;
                     if (this._currentTab !== tabID) {
                         this._currentTab = <string>tabID;

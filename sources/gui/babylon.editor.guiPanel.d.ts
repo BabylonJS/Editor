@@ -19,13 +19,13 @@ declare module BABYLON.EDITOR.GUI {
         * @param core: the editor core
         */
         constructor(name: string, type: string, size: number, resizable: boolean, core: EditorCore);
-        createTab(tab: IGUITab): IGUIPanel;
+        createTab(tab: IGUITab): GUIPanel;
         removeTab(id: string): boolean;
         width: number;
         getTabCount(): number;
-        setTabEnabled(id: string, enable: boolean): IGUIPanel;
+        setTabEnabled(id: string, enable: boolean): GUIPanel;
         getTabIDFromIndex(index: number): string;
-        setContent(content: string): IGUIPanel;
+        setContent(content: string): GUIPanel;
         hideTab(id: string): boolean;
         showTab(id: string): boolean;
     }

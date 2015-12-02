@@ -16,11 +16,9 @@
 
         /**
         * Constructor
-        * @param canvasID: the id of the canvas to render the editor scenes
         */
-        constructor() {
-            
-        }
+        constructor()
+        { }
 
         /**
         * On pre update

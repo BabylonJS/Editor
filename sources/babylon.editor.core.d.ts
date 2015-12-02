@@ -10,7 +10,6 @@ declare module BABYLON.EDITOR {
         editor: EditorMain;
         /**
         * Constructor
-        * @param canvasID: the id of the canvas to render the editor scenes
         */
         constructor();
         /**

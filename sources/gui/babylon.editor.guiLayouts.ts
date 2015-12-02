@@ -11,14 +11,14 @@
             super(name, core);
         }
 
-        public createPanel(name: string, type: string, size: number, resizable: boolean = true): IGUIPanel {
+        public createPanel(name: string, type: string, size: number, resizable: boolean = true): GUIPanel {
             var panel = new GUIPanel(name, type, size, resizable, this.core);
 
             this.panels.push(panel);
             return panel;
         }
 
-        public getPanelFromType(type: string): IGUIPanel {
+        public getPanelFromType(type: string): GUIPanel {
             for (var i = 0; i < this.panels.length; i++) {
                 if (this.panels[i].type === type) {
                     return this.panels[i];
@@ -28,7 +28,7 @@
             return null;
         }
 
-        public getPanelFromName(name: string): IGUIPanel {
+        public getPanelFromName(name: string): GUIPanel {
             for (var i = 0; i < this.panels.length; i++) {
                 if (this.panels[i].name === name) {
                     return this.panels[i];

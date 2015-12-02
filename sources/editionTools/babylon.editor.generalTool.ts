@@ -8,6 +8,8 @@
         // Private members
         private _element: GUI.GUIEditForm;
 
+        private _particleSystem: ParticleSystem = null;
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -25,8 +27,7 @@
         public isObjectSupported(object: any): boolean {
             if (object instanceof Mesh
                 || object instanceof Light
-                || object instanceof Camera
-                || object instanceof ParticleSystem)
+                || object instanceof Camera)
             {
                 return true;
             }
@@ -43,6 +44,7 @@
         // Update
         public update(): void {
             var object: AbstractMesh = this.object = this._editionTool.object;
+            var scene = this._editionTool.core.currentScene;
 
             if (this._element) {
                 this._element.remove();
@@ -59,6 +61,26 @@
             // General
             var generalFolder = this._element.addFolder("Common");
             generalFolder.add(object, "name").name("Name");
+
+            // Particle system
+            var particleSystem: ParticleSystem = null;
+            for (var i = 0; i < scene.particleSystems.length; i++) {
+                var ps = scene.particleSystems[i];
+                if (ps.emitter === object) {
+                    particleSystem = ps;
+                    break;
+                }
+            }
+
+            if (particleSystem !== null) {
+                var particleSystemFolder = this._element.addFolder("Particle System");
+
+                particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
+                particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
+                particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");
+
+                this._particleSystem = particleSystem;
+            }
 
             // Transforms
             var transformFolder = this._element.addFolder("Transforms");
@@ -107,6 +129,21 @@
         // Resize
         public resize(): void {
             this._element.width = this._editionTool.panel.width - 15;
+        }
+
+        // Start particle system
+        private _startParticleSystem(): void {
+            this._particleSystem.start();
+        }
+
+        // Stop particle system
+        private _stopParticleSystem(): void {
+            this._particleSystem.stop();
+        }
+
+        // Edit particle system
+        private _editParticleSystem(): void {
+            var psEditor = new GUICreateParticleSystem(this._editionTool.core, this._particleSystem);
         }
 
         // If object casts shadows or not
