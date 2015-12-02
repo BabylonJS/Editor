@@ -104,6 +104,7 @@
 
             var propertiesFolder = this._element.addFolder("Properties");
             this._addNumberFields(propertiesFolder, object);
+            this._addBooleanFields(propertiesFolder, object);
 
             var colorsFolder = this._element.addFolder("Colors");
             this._addColorFields(colorsFolder, object);
@@ -123,6 +124,16 @@
                 var value = object[thing];
                 if (typeof value === "number" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
                     folder.add(object, thing).name(thing).step(0.01);
+                }
+            }
+        }
+
+        // Adds booleans
+        private _addBooleanFields(folder: dat.IFolderElement, object: any): void {
+            for (var thing in object) {
+                var value = object[thing];
+                if (typeof value === "boolean" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
+                    folder.add(object, thing).name(thing);
                 }
             }
         }

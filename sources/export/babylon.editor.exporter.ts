@@ -41,14 +41,44 @@
         private _generateCode(): string {
             var scene = this.core.currentScene;
             var finalString = [
+                "var getTextureByName = " + this._getTextureByName + "\n",
                 "function CreateBabylonScene(scene) {",
                 "\tvar engine = scene.getEngine();",
                 "\tvar node = null;\n",
+                this._exportReflectionProbes(),
                 this._traverseNodes(),
                 "}\n"
             ].join("\n");
 
             this._editor.setValue(finalString, -1);
+
+            return finalString;
+        }
+        
+        // Export reflection probes
+        private _exportReflectionProbes(): string {
+            var scene = this.core.currentScene;
+
+            var finalString = "\t// Export reflection probes\n";
+            finalString += "\t var reflectionProbe = null;";
+
+            var t = new ReflectionProbe("", 512, scene, false);
+
+            for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                var rp = scene.reflectionProbes[i];
+                var texture = rp.cubeTexture;
+
+                if (rp.name === "")
+                    continue;
+
+                finalString = "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
+
+                // Render list
+                for (var j = 0; j < rp.renderList.length; j++) {
+                    var node = rp.renderList[j];
+                    finalString += "\treflectionProbe.renderList.push(scene.getNodeByName(\"" + node.name + "\"));\n";
+                }
+            }
 
             return finalString;
         }
@@ -76,6 +106,20 @@
             return finalString;
         }
 
+        // Returns a BaseTexture from its name
+        private _getTextureByName(name: string, scene: Scene): BaseTexture {
+            // "this" is forbidden since this code is exported directly
+            for (var i = 0; i < scene.textures.length; i++) {
+                var texture = scene.textures[i];
+                
+                if (texture.name === name) {
+                    return texture;
+                }
+            }
+
+            return null;
+        }
+
         // Export node's material
         private _exportNodeMaterial(node: AbstractMesh): string {
             var finalString = "\n";
@@ -97,7 +141,10 @@
                 var value = material[thing];
                 var result = "";
 
-                if (typeof value === "number" && thing[0] !== "_") {
+                if (thing[0] === "_")
+                    continue;
+
+                if (typeof value === "number" || typeof value === "boolean") {
                     result += value;
                 }
                 else if (value instanceof Vector3) {
@@ -113,7 +160,7 @@
                     result += this._exportColor4(value);
                 }
                 else if (value instanceof BaseTexture) {
-                    // TODO
+                    result += "getTextureByName(\"" + value.name + "\", scene)";
                 }
                 else
                     continue;
@@ -166,18 +213,22 @@
                 return finalString;
             }
             else {
-                var finalString = "\t// Configure node " + node.name + "\n";
-                finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
+                var finalString = "";
 
-                // TODO: Check if node exists.
-                // If not, export geometry and see performances
+                if (node.id.indexOf(EditorMain.DummyNodeID) === -1) {
+                    finalString = "\t// Configure node " + node.name + "\n";
+                    finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
 
-                // Transformation
-                finalString += this._exportNodeTransform(node);
+                    // TODO: Check if node exists.
+                    // If not, export geometry and see performances
 
-                if (node instanceof AbstractMesh) {
-                    // Material
-                    finalString += this._exportNodeMaterial(node);
+                    // Transformation
+                    finalString += this._exportNodeTransform(node);
+
+                    if (node instanceof AbstractMesh) {
+                        // Material
+                        finalString += this._exportNodeMaterial(node);
+                    }
                 }
 
                 for (var i = 0; i < node.getDescendants().length; i++) {

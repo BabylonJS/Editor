@@ -105,7 +105,7 @@
                 ssaoFolder.add(this._ssaoPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                 ssaoFolder.add(this._ssaoPipeline, "area").min(0).max(1).step(0.001).name("Area");
                 ssaoFolder.add(this._ssaoPipeline, "radius").min(0).max(1).step(0.001).name("Radius");
-                ssaoFolder.add(this._ssaoPipeline, "fallOff").min(0).step(0.0001).name("Fall Off");
+                ssaoFolder.add(this._ssaoPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
                 ssaoFolder.add(this._ssaoPipeline, "base").min(0).max(1).step(0.001).name("Base");
 
                 var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");

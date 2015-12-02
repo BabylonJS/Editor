@@ -91,6 +91,7 @@ var BABYLON;
                 generalFolder.add(object, "name").name("Name");
                 var propertiesFolder = this._element.addFolder("Properties");
                 this._addNumberFields(propertiesFolder, object);
+                this._addBooleanFields(propertiesFolder, object);
                 var colorsFolder = this._element.addFolder("Colors");
                 this._addColorFields(colorsFolder, object);
                 var vectorsFolder = this._element.addFolder("Vectors");
@@ -106,6 +107,15 @@ var BABYLON;
                     var value = object[thing];
                     if (typeof value === "number" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
                         folder.add(object, thing).name(thing).step(0.01);
+                    }
+                }
+            };
+            // Adds booleans
+            MaterialTool.prototype._addBooleanFields = function (folder, object) {
+                for (var thing in object) {
+                    var value = object[thing];
+                    if (typeof value === "boolean" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
+                        folder.add(object, thing).name(thing);
                     }
                 }
             };

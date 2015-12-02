@@ -31,6 +31,8 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
+    <Content Include="website\exportedTest\exportedCode.js" />
+    <Content Include="website\test.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
   </ItemGroup>

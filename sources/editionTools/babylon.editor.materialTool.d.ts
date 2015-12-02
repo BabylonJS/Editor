@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         update(): void;
         resize(): void;
         private _addNumberFields(folder, object);
+        private _addBooleanFields(folder, object);
         private _addColorFields(folder, object);
         private _addVectorFields(folder, object);
         private _convertToPBR();

@@ -11,7 +11,9 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         openSceneExporter(): void;
         private _generateCode();
+        private _exportReflectionProbes();
         private _exportNodeTransform(node);
+        private _getTextureByName(name, scene);
         private _exportNodeMaterial(node);
         private _exportVector2(vector);
         private _exportVector3(vector);

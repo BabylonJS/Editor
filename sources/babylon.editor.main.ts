@@ -19,6 +19,11 @@
 
         // private members
 
+        // Statics
+        public static get DummyNodeID(): string {
+            return "BABYLON-EDITOR-DUMMY-NODE";
+        }
+
         /**
         * Constructor
         */
@@ -99,9 +104,7 @@
 
                 // Create parent node
                 var parent = new Mesh(file.name, scene, null, null, true);
-                parent.id = SceneFactory.GenerateUUID();
-                //var parent = Mesh.CreateBox(file.name, 1, scene, false);
-                //parent.isVisible = false;
+                parent.id = EditorMain.DummyNodeID + SceneFactory.GenerateUUID();
 
                 // Configure meshes
                 for (var i = 0; i < scene.meshes.length; i++) {

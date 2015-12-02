@@ -3,7 +3,6 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // private members
             /**
             * Constructor
             */
@@ -39,6 +38,15 @@ var BABYLON;
                 // Exporter
                 this.exporter = new EDITOR.Exporter(this.core);
             }
+            Object.defineProperty(EditorMain, "DummyNodeID", {
+                // private members
+                // Statics
+                get: function () {
+                    return "BABYLON-EDITOR-DUMMY-NODE";
+                },
+                enumerable: true,
+                configurable: true
+            });
             /**
             * Event receiver
             */
@@ -73,9 +81,7 @@ var BABYLON;
                     _this.core.currentScene.activeCamera = _this.core.camera;
                     // Create parent node
                     var parent = new BABYLON.Mesh(file.name, scene, null, null, true);
-                    parent.id = EDITOR.SceneFactory.GenerateUUID();
-                    //var parent = Mesh.CreateBox(file.name, 1, scene, false);
-                    //parent.isVisible = false;
+                    parent.id = EditorMain.DummyNodeID + EDITOR.SceneFactory.GenerateUUID();
                     // Configure meshes
                     for (var i = 0; i < scene.meshes.length; i++) {
                         EDITOR.SceneManager.configureObject(scene.meshes[i], _this.core, parent);

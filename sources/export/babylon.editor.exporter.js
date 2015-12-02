@@ -33,13 +33,35 @@ var BABYLON;
             Exporter.prototype._generateCode = function () {
                 var scene = this.core.currentScene;
                 var finalString = [
+                    "var getTextureByName = " + this._getTextureByName + "\n",
                     "function CreateBabylonScene(scene) {",
                     "\tvar engine = scene.getEngine();",
                     "\tvar node = null;\n",
+                    this._exportReflectionProbes(),
                     this._traverseNodes(),
                     "}\n"
                 ].join("\n");
                 this._editor.setValue(finalString, -1);
+                return finalString;
+            };
+            // Export reflection probes
+            Exporter.prototype._exportReflectionProbes = function () {
+                var scene = this.core.currentScene;
+                var finalString = "\t// Export reflection probes\n";
+                finalString += "\t var reflectionProbe = null;";
+                var t = new BABYLON.ReflectionProbe("", 512, scene, false);
+                for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                    var rp = scene.reflectionProbes[i];
+                    var texture = rp.cubeTexture;
+                    if (rp.name === "")
+                        continue;
+                    finalString = "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
+                    // Render list
+                    for (var j = 0; j < rp.renderList.length; j++) {
+                        var node = rp.renderList[j];
+                        finalString += "\treflectionProbe.renderList.push(scene.getNodeByName(\"" + node.name + "\"));\n";
+                    }
+                }
                 return finalString;
             };
             // Export node's transformation
@@ -59,6 +81,17 @@ var BABYLON;
                 }
                 return finalString;
             };
+            // Returns a BaseTexture from its name
+            Exporter.prototype._getTextureByName = function (name, scene) {
+                // "this" is forbidden since this code is exported directly
+                for (var i = 0; i < scene.textures.length; i++) {
+                    var texture = scene.textures[i];
+                    if (texture.name === name) {
+                        return texture;
+                    }
+                }
+                return null;
+            };
             // Export node's material
             Exporter.prototype._exportNodeMaterial = function (node) {
                 var finalString = "\n";
@@ -76,7 +109,9 @@ var BABYLON;
                 for (var thing in material) {
                     var value = material[thing];
                     var result = "";
-                    if (typeof value === "number" && thing[0] !== "_") {
+                    if (thing[0] === "_")
+                        continue;
+                    if (typeof value === "number" || typeof value === "boolean") {
                         result += value;
                     }
                     else if (value instanceof BABYLON.Vector3) {
@@ -92,6 +127,7 @@ var BABYLON;
                         result += this._exportColor4(value);
                     }
                     else if (value instanceof BABYLON.BaseTexture) {
+                        result += "getTextureByName(\"" + value.name + "\", scene)";
                     }
                     else
                         continue;
@@ -132,15 +168,18 @@ var BABYLON;
                     return finalString;
                 }
                 else {
-                    var finalString = "\t// Configure node " + node.name + "\n";
-                    finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
-                    // TODO: Check if node exists.
-                    // If not, export geometry and see performances
-                    // Transformation
-                    finalString += this._exportNodeTransform(node);
-                    if (node instanceof BABYLON.AbstractMesh) {
-                        // Material
-                        finalString += this._exportNodeMaterial(node);
+                    var finalString = "";
+                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1) {
+                        finalString = "\t// Configure node " + node.name + "\n";
+                        finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
+                        // TODO: Check if node exists.
+                        // If not, export geometry and see performances
+                        // Transformation
+                        finalString += this._exportNodeTransform(node);
+                        if (node instanceof BABYLON.AbstractMesh) {
+                            // Material
+                            finalString += this._exportNodeMaterial(node);
+                        }
                     }
                     for (var i = 0; i < node.getDescendants().length; i++) {
                         finalString += this._traverseNodes(node.getDescendants()[i]);

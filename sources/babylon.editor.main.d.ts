@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR {
         layouts: GUI.IGUILayout;
         filesInput: FilesInput;
         exporter: Exporter;
+        static DummyNodeID: string;
         /**
         * Constructor
         */
