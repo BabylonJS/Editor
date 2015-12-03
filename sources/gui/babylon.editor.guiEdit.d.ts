@@ -8,7 +8,7 @@ declare module BABYLON.EDITOR.GUI {
         constructor(name: string, core: EditorCore);
         remove(): void;
         addFolder(name: any, parent?: dat.IFolderElement): dat.IFolderElement;
-        add(object: Object, propertyPath: string, name: string, items?: Array<string>): dat.IGUIElement;
+        add(object: Object, propertyPath: string, items?: Array<string>, name?: string): dat.IGUIElement;
         width: number;
         height: number;
         remember(object: any): void;

@@ -68,6 +68,12 @@
             return (<W2UI.IGraphElement>this.element).selected;
         }
 
+        // Returns the selected data
+        public getSelectedData(): Object {
+            var selected = this.getSelected();
+            return (<W2UI.IGraphElement>this.element).get(selected).data;
+        }
+
         // Clears the graph
         public clear(): void {
             var toRemove = [];

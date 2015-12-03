@@ -9,6 +9,7 @@ var BABYLON;
     (function (EDITOR) {
         var AnimationTool = (function (_super) {
             __extends(AnimationTool, _super);
+            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -36,10 +37,7 @@ var BABYLON;
             // Update
             AnimationTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object)
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -52,11 +50,6 @@ var BABYLON;
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playAnimations").name("Play Animations");
                 }
-            };
-            // Resize
-            AnimationTool.prototype.resize = function () {
-                //this._element.width = this._editionTool.panel.width - 15;
-                $("#" + this.containers[0]).width("100%").height("100%");
             };
             // Plays animations
             AnimationTool.prototype._playAnimations = function () {
@@ -71,7 +64,7 @@ var BABYLON;
                 scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, false, 0.05);
             };
             return AnimationTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.AnimationTool = AnimationTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

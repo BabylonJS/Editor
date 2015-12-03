@@ -69,6 +69,11 @@ var BABYLON;
                 GUIGraph.prototype.getSelected = function () {
                     return this.element.selected;
                 };
+                // Returns the selected data
+                GUIGraph.prototype.getSelectedData = function () {
+                    var selected = this.getSelected();
+                    return this.element.get(selected).data;
+                };
                 // Clears the graph
                 GUIGraph.prototype.clear = function () {
                     var toRemove = [];

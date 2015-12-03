@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         private _addSpotLight;
         private _addHemisphericLight;
         private _addParticleSystem;
+        private _addReflectionProbe;
         /**
         * Constructor
         * @param core: the editor core instance

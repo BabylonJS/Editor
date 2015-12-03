@@ -92,7 +92,7 @@ var BABYLON;
                 this._window.buildElement(null);
                 this._window.onToggle = function (maximized, width, height) {
                     _this._layouts.setPanelSize("left", width / 2);
-                    _this._layouts.setPanelSize("right", width / 2);
+                    _this._layouts.setPanelSize("main", width / 2);
                 };
                 this._window.on({ type: "open" }, function () {
                     _this._window.maximize();
@@ -108,7 +108,7 @@ var BABYLON;
                 var rightDiv = EDITOR.GUI.GUIElement.CreateElement("canvas", this._layoutID + "CANVAS");
                 this._layouts = new EDITOR.GUI.GUILayout(this._layoutID, this.core);
                 this._leftPanel = this._layouts.createPanel(leftDiv, "left", 380, true).setContent(leftDiv);
-                this._layouts.createPanel(rightDiv, "right", 380, true).setContent(rightDiv);
+                this._layouts.createPanel(rightDiv, "main", 380, true).setContent(rightDiv);
                 this._layouts.buildElement(this._layoutID);
                 var leftPanel = this._layouts.getPanelFromType("left");
                 var editTabID = this._layoutID + "TAB-EDIT";
@@ -149,7 +149,18 @@ var BABYLON;
                 var ps = this._particleSystem;
                 this._editElement.remember(ps);
                 // Texture
-                this._editElement.add(this, "_setParticleTexture", "Choose Texture...");
+                this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
+                this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange(function (result) {
+                    switch (result) {
+                        case "ONEONE":
+                            ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+                            break;
+                        case "STANDARD":
+                            ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                            break;
+                        default: break;
+                    }
+                });
                 // Emitter
                 var emitterFolder = this._editElement.addFolder("Emitter");
                 var minEmitBoxFolder = emitterFolder.addFolder("Min Emitter");
@@ -162,22 +173,18 @@ var BABYLON;
                 minEmitBoxFolder.add(ps.maxEmitBox, "x").step(0.01);
                 minEmitBoxFolder.add(ps.maxEmitBox, "y").step(0.01);
                 minEmitBoxFolder.add(ps.maxEmitBox, "z").step(0.01);
-                // Sizes
-                var sizeFolder = this._editElement.addFolder("Size");
-                sizeFolder.add(ps, "minSize").name("Min Size").min(0.0).step(0.01);
-                sizeFolder.add(ps, "maxSize").name("Max Size").min(0.0).step(0.01);
                 // Emission
                 var emissionFolder = this._editElement.addFolder("Emission");
+                emissionFolder.add(ps, "minSize").name("Min Size").min(0.0).step(0.01);
+                emissionFolder.add(ps, "maxSize").name("Max Size").min(0.0).step(0.01);
                 emissionFolder.add(ps, "minLifeTime").name("Min Life Time").min(0.0).step(0.01);
                 emissionFolder.add(ps, "maxLifeTime").name("Max Life Time").min(0.0).step(0.01);
                 emissionFolder.add(ps, "emitRate").name("Emit Rate").min(0.0).step(1);
                 emissionFolder.add(ps, "minEmitPower").name("Min Emit Power").min(0.0).step(0.01);
                 emissionFolder.add(ps, "maxEmitPower").name("Man Emit Power").min(0.0).step(0.01);
                 emissionFolder.add(ps, "updateSpeed").name("Update Speed").min(0.0).step(0.001);
-                // Angular speed
-                var angularSpeedFolder = this._editElement.addFolder("Angular Speed");
-                angularSpeedFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
-                angularSpeedFolder.add(ps, "maxAngularSpeed").name("Man Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+                emissionFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+                emissionFolder.add(ps, "maxAngularSpeed").name("Max Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
                 // Gravity
                 var gravityDirectionFolder = this._editElement.addFolder("Gravity and directions");
                 var gravityFolder = gravityDirectionFolder.addFolder("Gravity");

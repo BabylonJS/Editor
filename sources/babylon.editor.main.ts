@@ -57,9 +57,9 @@
             this.mainToolbar.createUI();
 
             // Files input
-            this.filesInput = new FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
+            this.filesInput = new FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
-            this.filesInput.appendScene = true;
+            this.filesInput.appendScene = false;
 
             // Exporter
             this.exporter = new Exporter(this.core);
@@ -98,14 +98,23 @@
         * Handles just opened scenes
         */
         private _handleSceneLoaded(): (file, scene: Scene) => void {
-            return (file, scene: Scene) => {
+            return (file: File, scene: Scene) => {
+                // Set active scene
+                this.core.removeScene(this.core.currentScene);
+                this.core.scenes.push({ scene: scene, render: true });
+                this.core.currentScene = scene;
 
                 // Set active camera
+                this._createBabylonCamera();
                 this.core.currentScene.activeCamera = this.core.camera;
 
+                // Create render loop
+                this.core.engine.stopRenderLoop();
+                this.createRenderLoop();
+
                 // Create parent node
-                var parent = new Mesh(file.name, scene, null, null, true);
-                parent.id = EditorMain.DummyNodeID + SceneFactory.GenerateUUID();
+                var parent = null;//new Mesh(file.name, scene, null, null, true);
+                //parent.id = EditorMain.DummyNodeID + SceneFactory.GenerateUUID();
 
                 // Configure meshes
                 for (var i = 0; i < scene.meshes.length; i++) {
@@ -128,13 +137,29 @@
             this.core.currentScene = new Scene(this.core.engine);
             this.core.scenes.push({ render: true, scene: this.core.currentScene });
 
-            var camera = new FreeCamera("MainCamera", new Vector3(10, 10, 10), this.core.currentScene);
-            camera.setTarget(new Vector3(0, 0, 0));
-            camera.attachControl(this.core.canvas);
-            this.core.camera = camera;
+            this._createBabylonCamera();
 
             window.addEventListener("resize", (ev: UIEvent) => {
                 this.core.engine.resize();
+            });
+        }
+
+        /**
+        * Creates the editor camera
+        */
+        private _createBabylonCamera(): void {
+            var camera = new FreeCamera("EditorCamera", new Vector3(10, 10, 10), this.core.currentScene);
+            camera.setTarget(new Vector3(0, 0, 0));
+            camera.attachControl(this.core.canvas);
+            this.core.camera = camera;
+        }
+
+        /**
+        * Creates the render loop
+        */
+        public createRenderLoop(): void {
+            this.core.engine.runRenderLoop(() => {
+                this.update();
             });
         }
 

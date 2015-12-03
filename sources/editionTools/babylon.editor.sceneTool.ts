@@ -1,10 +1,9 @@
 ﻿module BABYLON.EDITOR {
-    export class SceneTool extends AbstractTool {
+    export class SceneTool extends AbstractDatTool {
         // Public members
         public tab: string = "SCENE.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
 
         /**
         * Constructor
@@ -37,10 +36,7 @@
         public update(): void {
             var object: Scene = this.object = this._editionTool.object;
 
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+            super.update();
 
             if (!object)
                 return;
@@ -116,20 +112,6 @@
             capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
             capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
             capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
-
-            /*
-            object.audioEnabled;
-            object.collisionsEnabled;
-            object.gravity;
-            object.headphone;
-            */
-
-            // Capacities
-        }
-
-        // Resize
-        public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
         }
     }
 }

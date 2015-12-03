@@ -29,8 +29,8 @@
         }
 
         // Add a field
-        public add(object: Object, propertyPath: string, name: string, items?: Array<string>): dat.IGUIElement {
-            if (!object || !object[propertyPath])
+        public add(object: Object, propertyPath: string, items?: Array<string>, name?: string): dat.IGUIElement {
+            if (!object || object[propertyPath] === undefined || object[propertyPath] === null)
                 return this._datElement.add(null, "");
 
             return this._datElement.add(object, propertyPath, items).name(name);

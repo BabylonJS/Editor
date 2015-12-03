@@ -112,7 +112,7 @@
 
             this._window.onToggle = (maximized: boolean, width: number, height: number) => {
                 this._layouts.setPanelSize("left", width / 2);
-                this._layouts.setPanelSize("right", width / 2);
+                this._layouts.setPanelSize("main", width / 2);
             };
 
             this._window.on({ type: "open" }, () => {
@@ -132,7 +132,7 @@
 
             this._layouts = new GUI.GUILayout(this._layoutID, this.core);
             this._leftPanel = this._layouts.createPanel(leftDiv, "left", 380, true).setContent(leftDiv);
-            this._layouts.createPanel(rightDiv, "right", 380, true).setContent(rightDiv);
+            this._layouts.createPanel(rightDiv, "main", 380, true).setContent(rightDiv);
             this._layouts.buildElement(this._layoutID);
 
             var leftPanel = this._layouts.getPanelFromType("left");
@@ -188,7 +188,14 @@
             this._editElement.remember(ps);
 
             // Texture
-            this._editElement.add(this, "_setParticleTexture", "Choose Texture...");
+            this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
+            this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange((result: any) => {
+                switch (result) {
+                    case "ONEONE": ps.blendMode = ParticleSystem.BLENDMODE_ONEONE; break;
+                    case "STANDARD": ps.blendMode = ParticleSystem.BLENDMODE_STANDARD; break;
+                    default: break;
+                }
+            });
 
             // Emitter
             var emitterFolder = this._editElement.addFolder("Emitter");
@@ -205,24 +212,18 @@
             minEmitBoxFolder.add(ps.maxEmitBox, "y").step(0.01);
             minEmitBoxFolder.add(ps.maxEmitBox, "z").step(0.01);
 
-            // Sizes
-            var sizeFolder = this._editElement.addFolder("Size");
-            sizeFolder.add(ps, "minSize").name("Min Size").min(0.0).step(0.01);
-            sizeFolder.add(ps, "maxSize").name("Max Size").min(0.0).step(0.01);
-
             // Emission
             var emissionFolder = this._editElement.addFolder("Emission");
+            emissionFolder.add(ps, "minSize").name("Min Size").min(0.0).step(0.01);
+            emissionFolder.add(ps, "maxSize").name("Max Size").min(0.0).step(0.01);
             emissionFolder.add(ps, "minLifeTime").name("Min Life Time").min(0.0).step(0.01);
             emissionFolder.add(ps, "maxLifeTime").name("Max Life Time").min(0.0).step(0.01);
             emissionFolder.add(ps, "emitRate").name("Emit Rate").min(0.0).step(1);
             emissionFolder.add(ps, "minEmitPower").name("Min Emit Power").min(0.0).step(0.01);
             emissionFolder.add(ps, "maxEmitPower").name("Man Emit Power").min(0.0).step(0.01);
             emissionFolder.add(ps, "updateSpeed").name("Update Speed").min(0.0).step(0.001);
-
-            // Angular speed
-            var angularSpeedFolder = this._editElement.addFolder("Angular Speed");
-            angularSpeedFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
-            angularSpeedFolder.add(ps, "maxAngularSpeed").name("Man Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+            emissionFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+            emissionFolder.add(ps, "maxAngularSpeed").name("Max Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
 
             // Gravity
             var gravityDirectionFolder = this._editElement.addFolder("Gravity and directions");
@@ -245,7 +246,7 @@
 
             // Colors
             var colorFolder = this._editElement.addFolder("Colors");
-
+            
             var color1Folder = colorFolder.addFolder("Color 1");
             color1Folder.add(ps.color1, "r").step(0.01).min(0.0).max(1.0);
             color1Folder.add(ps.color1, "g").step(0.01).min(0.0).max(1.0);
@@ -304,7 +305,7 @@
             input.click();
         }
 
-        static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem): ParticleSystem {
+        public static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem): ParticleSystem {
             particleSystem = particleSystem || <ParticleSystem>{ };
 
             var dummy = new Mesh("New Particle System", scene, null, null, true);

@@ -63,10 +63,7 @@ var BABYLON;
                 var _this = this;
                 var object = this._editionTool.object.material;
                 var scene = this._editionTool.core.currentScene;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object || !(object instanceof BABYLON.Material))
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -96,10 +93,6 @@ var BABYLON;
                 this._addColorFields(colorsFolder, object);
                 var vectorsFolder = this._element.addFolder("Vectors");
                 this._addVectorFields(vectorsFolder, object);
-            };
-            // Resize
-            MaterialTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
             };
             // Adds a number
             MaterialTool.prototype._addNumberFields = function (folder, object) {
@@ -175,7 +168,7 @@ var BABYLON;
                 this.update();
             };
             return MaterialTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.MaterialTool = MaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

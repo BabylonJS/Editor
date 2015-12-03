@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _editor;
         private _graphRootName;
+        private _menuDeleteId;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -18,6 +19,6 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         private _getRootNodes(result, entities);
         private _getObjectIcon(node);
-        private _modifyElement(node, parentNode, remove?);
+        private _modifyElement(node, parentNode);
     }
 }

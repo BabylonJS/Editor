@@ -18,6 +18,7 @@
         private _addSpotLight: string = "ADD-SPOT-LIGHT";
         private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
+        private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
 
         /**
         * Constructor
@@ -87,6 +88,10 @@
                         SceneFactory.AddParticleSystem(this._core);
                     }
 
+                    else if (id.indexOf(this._addReflectionProbe) !== -1) {
+                        SceneFactory.AddReflectionProbe(this._core);
+                    }
+
                     return true;
                 }
             }
@@ -101,7 +106,7 @@
 
             this.toolbar = new GUI.GUIToolbar(this.container, this._core);
 
-            var menu = this.toolbar.createMenu("menu", this._mainProject, "File", "icon-folder");
+            var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
             //...
 
@@ -115,6 +120,8 @@
             this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+            this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
             //...
 
             //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;

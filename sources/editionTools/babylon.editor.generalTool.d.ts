@@ -1,8 +1,7 @@
 declare module BABYLON.EDITOR {
-    class GeneralTool extends AbstractTool {
+    class GeneralTool extends AbstractDatTool {
         object: Node;
         tab: string;
-        private _element;
         private _particleSystem;
         /**
         * Constructor
@@ -12,7 +11,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
-        resize(): void;
         private _startParticleSystem();
         private _stopParticleSystem();
         private _editParticleSystem();

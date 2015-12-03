@@ -11,6 +11,8 @@
 
         private _graphRootName: string = "RootScene";
 
+        private _menuDeleteId: string = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
+
         /**
         * Constructor
         * @param core: the editor core instance
@@ -49,13 +51,15 @@
                         return true;
                     }
                     else if (event.guiEvent.eventType === GUIEventType.GRAPH_MENU_SELECTED) {
-                        var object: any = this._core.currentScene.getNodeByID(this.sidebar.getSelected());
+                        var id: string = event.guiEvent.data;
+                        var object: any = this.sidebar.getSelectedData();
 
-                        if (object && object.dispose) {
+                        if (object && object.dispose && object !== this._editor.core.camera) {
                             var parent = object.parent;
-
-                            this._modifyElement(object, parent || this._graphRootName, true);
                             object.dispose();
+
+                            this.sidebar.removeNode(this.sidebar.getSelected());
+                            this.sidebar.refresh();
                         }
                         return true;
                     }
@@ -63,11 +67,20 @@
             }
             else if (event.eventType === EventType.SCENE_EVENT) {
                 if (event.sceneEvent.eventType === SceneEventType.OBJECT_ADDED) {
-                    this._modifyElement(event.sceneEvent.object, null);
+                    var object = event.sceneEvent.object;
+
+                    if (object instanceof ReflectionProbe) {
+                        var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
+                        this.sidebar.addNodes(rpNode, this._graphRootName + "PROBES");
+                    }
+                    else
+                        this._modifyElement(event.sceneEvent.object, null);
+
                     return false;
                 }
                 else if (event.sceneEvent.eventType === SceneEventType.OBJECT_REMOVED) {
-                    this._modifyElement(event.sceneEvent.object, object.parent, true);
+                    this.sidebar.removeNode(event.sceneEvent.object.id);
+                    this.sidebar.refresh();
                     return false;
                 }
             }
@@ -79,14 +92,27 @@
         public fillGraph(node?: Node, graphNodeID?: string): void {
             var children: Node[] = null;
             var root: string = null;
+            var scene = this._core.currentScene;
 
             if (!graphNodeID) {
                 this.sidebar.clear();
 
+                // Add root
                 var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
                 this.sidebar.addNodes(rootNode);
 
                 root = this._graphRootName;
+
+                // Add other elements
+                if (scene.reflectionProbes.length > 0) {
+                    var rpNode = this.sidebar.createNode(this._graphRootName + "PROBES", "Reflection Probes", "icon-folder");
+                    this.sidebar.addNodes(rpNode, this._graphRootName);
+
+                    for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                        var rp = scene.reflectionProbes[i];
+                        this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
+                    }
+                }
             }
 
             if (!node) {
@@ -126,7 +152,7 @@
             this.sidebar = new GUI.GUIGraph(this.container, this._core);
 
             // Set menus
-            this.sidebar.addMenu("BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE", 'Remove', 'icon-error');
+            this.sidebar.addMenu(this._menuDeleteId, 'Remove', 'icon-error');
 
             // Build element
             this.sidebar.buildElement(this.container);
@@ -179,17 +205,13 @@
         }
 
         // Removes or adds a node from/to the graph
-        private _modifyElement(node: Node, parentNode: Node, remove: boolean = false): void {
+        private _modifyElement(node: Node, parentNode: Node): void {
             if (!node)
                 return;
 
-            if (!remove) {
                 // Add node
-                var icon = this._getObjectIcon(node);
-                this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
-            }
-            else
-                this.sidebar.removeNode(node.id);
+            var icon = this._getObjectIcon(node);
+            this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
 
             this.sidebar.refresh();
         }

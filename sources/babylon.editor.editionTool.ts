@@ -141,6 +141,7 @@
             this.addTool(new LightTool(this));
             this.addTool(new AnimationTool(this));
             this.addTool(new PostProcessesTool(this));
+            this.addTool(new ReflectionProbeTool(this));
         }
 
         // Adds a tool

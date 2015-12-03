@@ -25,8 +25,11 @@
             var windowBody = GUI.GUIElement.CreateDivElement(this._editorID, "width: 100%; height: 100%");
 
             this._window = new GUI.GUIWindow("WindowExport", this.core, "Export Project", windowBody);
-            this._window.buttons = ["Generate", "Cancel"];
             this._window.buildElement(null);
+
+            this._window.onToggle = (maximized: boolean, width: number, height: number) => {
+                this._editor.resize();
+            };
 
             // Create ace editor
             this._editor = ace.edit(this._editorID);
@@ -71,7 +74,7 @@
                 if (rp.name === "")
                     continue;
 
-                finalString = "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
+                finalString += "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
 
                 // Render list
                 for (var j = 0; j < rp.renderList.length; j++) {
@@ -212,6 +215,19 @@
             return finalString;
         }
 
+        // Exports a light
+        private _exportLight(light: Light): string {
+            var finalString = "";
+            var shadows = light.getShadowGenerator();
+
+            if (!shadows)
+                return finalString;
+
+
+
+            return finalString;
+        }
+
         // Exports a BABYLON.Vector2
         private _exportVector2(vector: Vector2): string {
             return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
@@ -246,6 +262,7 @@
                 var finalString = "";
 
                 this._fillRootNodes(rootNodes, "meshes");
+                this._fillRootNodes(rootNodes, "lights");
 
                 for (var i = 0; i < rootNodes.length; i++) {
                     finalString += this._traverseNodes(rootNodes[i]);
@@ -271,15 +288,15 @@
                     if (!foundParticleSystems)
                         finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
 
-                    // TODO: Check if node exists.
-                    // If not, export geometry and see performances
-
                     // Transformation
                     finalString += this._exportNodeTransform(node);
 
                     if (node instanceof AbstractMesh) {
                         // Material
                         finalString += this._exportNodeMaterial(node);
+                    }
+                    else if (node instanceof Light) {
+                        finalString += this._exportLight(node);
                     }
                 }
 

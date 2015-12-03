@@ -1,13 +1,11 @@
 ﻿module BABYLON.EDITOR {
-    export class GeneralTool extends AbstractTool {
+    export class GeneralTool extends AbstractDatTool {
         // Public members
         public object: Node = null;
 
         public tab: string = "GENERAL.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
-
         private _particleSystem: ParticleSystem = null;
 
         /**
@@ -46,10 +44,7 @@
             var object: AbstractMesh = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
 
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+            super.update();
 
             if (!object)
                 return;
@@ -124,11 +119,6 @@
                     }
                 });
             }
-        }
-
-        // Resize
-        public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
         }
 
         // Start particle system

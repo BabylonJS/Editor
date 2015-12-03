@@ -21,6 +21,20 @@
         { }
 
         /**
+        * Removes a scene
+        */
+        public removeScene(scene: Scene): boolean {
+            for (var i = 0; i < this.scenes.length; i++) {
+                if (this.scenes[i].scene === scene) {
+                    this.scenes.splice(i, 1);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
         * On pre update
         */
         public onPreUpdate(): void {

@@ -17,6 +17,7 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "LIGHT.TAB";
+                // Private members
                 this._customShadowsGeneratorSize = 512;
                 // Initialize
                 this.containers = [
@@ -37,10 +38,7 @@ var BABYLON;
             // Update
             LightTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object)
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -85,7 +83,7 @@ var BABYLON;
                     shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
                     shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                     shadowsFolder.add(shadows, "bias").name("Bias");
-                    shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).name("Blur Box Offset");
+                    shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");
                     shadowsFolder.add(shadows, "blurScale").min(0.0).max(10.0).name("Blur Scale");
                     shadowsFolder.add(this, "_removeShadowGenerator").name("Remove Shadows Generator");
                 }
@@ -95,10 +93,6 @@ var BABYLON;
                         shadowsFolder.add(this, "_customShadowsGeneratorSize").min(0).name("Shadow Map Size");
                     }
                 }
-            };
-            // Resize
-            LightTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
             };
             // Creates a new shadows generator
             LightTool.prototype._createShadowsGenerator = function () {
@@ -120,7 +114,7 @@ var BABYLON;
                 this.update();
             };
             return LightTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.LightTool = LightTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

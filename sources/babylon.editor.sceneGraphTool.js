@@ -13,6 +13,7 @@ var BABYLON;
                 this.sidebar = null;
                 this.panel = null;
                 this._graphRootName = "RootScene";
+                this._menuDeleteId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -39,11 +40,13 @@ var BABYLON;
                             return true;
                         }
                         else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {
-                            var object = this._core.currentScene.getNodeByID(this.sidebar.getSelected());
-                            if (object && object.dispose) {
+                            var id = event.guiEvent.data;
+                            var object = this.sidebar.getSelectedData();
+                            if (object && object.dispose && object !== this._editor.core.camera) {
                                 var parent = object.parent;
-                                this._modifyElement(object, parent || this._graphRootName, true);
                                 object.dispose();
+                                this.sidebar.removeNode(this.sidebar.getSelected());
+                                this.sidebar.refresh();
                             }
                             return true;
                         }
@@ -51,11 +54,18 @@ var BABYLON;
                 }
                 else if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_ADDED) {
-                        this._modifyElement(event.sceneEvent.object, null);
+                        var object = event.sceneEvent.object;
+                        if (object instanceof BABYLON.ReflectionProbe) {
+                            var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
+                            this.sidebar.addNodes(rpNode, this._graphRootName + "PROBES");
+                        }
+                        else
+                            this._modifyElement(event.sceneEvent.object, null);
                         return false;
                     }
                     else if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
-                        this._modifyElement(event.sceneEvent.object, object.parent, true);
+                        this.sidebar.removeNode(event.sceneEvent.object.id);
+                        this.sidebar.refresh();
                         return false;
                     }
                 }
@@ -65,11 +75,22 @@ var BABYLON;
             SceneGraphTool.prototype.fillGraph = function (node, graphNodeID) {
                 var children = null;
                 var root = null;
+                var scene = this._core.currentScene;
                 if (!graphNodeID) {
                     this.sidebar.clear();
+                    // Add root
                     var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
                     this.sidebar.addNodes(rootNode);
                     root = this._graphRootName;
+                    // Add other elements
+                    if (scene.reflectionProbes.length > 0) {
+                        var rpNode = this.sidebar.createNode(this._graphRootName + "PROBES", "Reflection Probes", "icon-folder");
+                        this.sidebar.addNodes(rpNode, this._graphRootName);
+                        for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                            var rp = scene.reflectionProbes[i];
+                            this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
+                        }
+                    }
                 }
                 if (!node) {
                     children = [];
@@ -99,7 +120,7 @@ var BABYLON;
                     this.sidebar.destroy();
                 this.sidebar = new EDITOR.GUI.GUIGraph(this.container, this._core);
                 // Set menus
-                this.sidebar.addMenu("BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE", 'Remove', 'icon-error');
+                this.sidebar.addMenu(this._menuDeleteId, 'Remove', 'icon-error');
                 // Build element
                 this.sidebar.buildElement(this.container);
                 /// Default node
@@ -143,17 +164,12 @@ var BABYLON;
                 return "";
             };
             // Removes or adds a node from/to the graph
-            SceneGraphTool.prototype._modifyElement = function (node, parentNode, remove) {
-                if (remove === void 0) { remove = false; }
+            SceneGraphTool.prototype._modifyElement = function (node, parentNode) {
                 if (!node)
                     return;
-                if (!remove) {
-                    // Add node
-                    var icon = this._getObjectIcon(node);
-                    this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
-                }
-                else
-                    this.sidebar.removeNode(node.id);
+                // Add node
+                var icon = this._getObjectIcon(node);
+                this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
                 this.sidebar.refresh();
             };
             return SceneGraphTool;

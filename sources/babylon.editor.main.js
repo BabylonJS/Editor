@@ -33,9 +33,9 @@ var BABYLON;
                 this.mainToolbar = new EDITOR.MainToolbar(this.core);
                 this.mainToolbar.createUI();
                 // Files input
-                this.filesInput = new BABYLON.FilesInput(this.core.engine, this.core.currentScene, this.core.canvas, this._handleSceneLoaded(), null, null, null, null);
+                this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
-                this.filesInput.appendScene = true;
+                this.filesInput.appendScene = false;
                 // Exporter
                 this.exporter = new EDITOR.Exporter(this.core);
             }
@@ -78,11 +78,19 @@ var BABYLON;
             EditorMain.prototype._handleSceneLoaded = function () {
                 var _this = this;
                 return function (file, scene) {
+                    // Set active scene
+                    _this.core.removeScene(_this.core.currentScene);
+                    _this.core.scenes.push({ scene: scene, render: true });
+                    _this.core.currentScene = scene;
                     // Set active camera
+                    _this._createBabylonCamera();
                     _this.core.currentScene.activeCamera = _this.core.camera;
+                    // Create render loop
+                    _this.core.engine.stopRenderLoop();
+                    _this.createRenderLoop();
                     // Create parent node
-                    var parent = new BABYLON.Mesh(file.name, scene, null, null, true);
-                    parent.id = EditorMain.DummyNodeID + EDITOR.SceneFactory.GenerateUUID();
+                    var parent = null; //new Mesh(file.name, scene, null, null, true);
+                    //parent.id = EditorMain.DummyNodeID + SceneFactory.GenerateUUID();
                     // Configure meshes
                     for (var i = 0; i < scene.meshes.length; i++) {
                         EDITOR.SceneManager.configureObject(scene.meshes[i], _this.core, parent);
@@ -101,12 +109,27 @@ var BABYLON;
                 this.core.engine = new BABYLON.Engine(this.core.canvas, this.antialias, this.options);
                 this.core.currentScene = new BABYLON.Scene(this.core.engine);
                 this.core.scenes.push({ render: true, scene: this.core.currentScene });
-                var camera = new BABYLON.FreeCamera("MainCamera", new BABYLON.Vector3(10, 10, 10), this.core.currentScene);
+                this._createBabylonCamera();
+                window.addEventListener("resize", function (ev) {
+                    _this.core.engine.resize();
+                });
+            };
+            /**
+            * Creates the editor camera
+            */
+            EditorMain.prototype._createBabylonCamera = function () {
+                var camera = new BABYLON.FreeCamera("EditorCamera", new BABYLON.Vector3(10, 10, 10), this.core.currentScene);
                 camera.setTarget(new BABYLON.Vector3(0, 0, 0));
                 camera.attachControl(this.core.canvas);
                 this.core.camera = camera;
-                window.addEventListener("resize", function (ev) {
-                    _this.core.engine.resize();
+            };
+            /**
+            * Creates the render loop
+            */
+            EditorMain.prototype.createRenderLoop = function () {
+                var _this = this;
+                this.core.engine.runRenderLoop(function () {
+                    _this.update();
                 });
             };
             /**

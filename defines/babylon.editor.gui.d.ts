@@ -242,6 +242,11 @@
         getSelected(): string;
 
         /**
+        * Return the selected node's data
+        */
+        getSelectedData(): Object;
+
+        /**
         * Clears the graph
         */
         clear(): void;

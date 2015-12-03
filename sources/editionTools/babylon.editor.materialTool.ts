@@ -1,13 +1,11 @@
 ﻿module BABYLON.EDITOR {
-    export class MaterialTool extends AbstractTool {
+    export class MaterialTool extends AbstractDatTool {
         // Public members
         public object: Node = null;
 
         public tab: string = "MATERIAL.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
-
         private _forbiddenElements: Array<string>;
         private _dummyProperty: any = "";
 
@@ -68,10 +66,7 @@
             var object: any = this._editionTool.object.material;
             var scene = this._editionTool.core.currentScene;
 
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+            super.update();
 
             if (!object || !(object instanceof Material))
                 return;
@@ -111,11 +106,6 @@
 
             var vectorsFolder = this._element.addFolder("Vectors");
             this._addVectorFields(vectorsFolder, object);
-        }
-
-        // Resize
-        public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
         }
 
         // Adds a number

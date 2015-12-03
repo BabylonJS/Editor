@@ -60,6 +60,10 @@
         */
         add(object: Object, propertyPath: string, items?: Array<string>): IGUIElement;
         /**
+        * Adds a new color element
+        */
+        addColor(object: Object, propertyPath: string): IGUIElement;
+        /**
         * Opens folder
         */
         open(): void;

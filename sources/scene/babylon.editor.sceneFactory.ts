@@ -98,6 +98,7 @@
             return light;
         }
 
+        // Adds a particle system
         static AddParticleSystem(core: EditorCore): ParticleSystem {
             var ps = GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
             ps.emitter.id = this.GenerateUUID();
@@ -105,6 +106,15 @@
             Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
 
             return ps;
+        }
+
+        // Adds a reflection probe
+        static AddReflectionProbe(core: EditorCore): ReflectionProbe {
+            var rp = new ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
+
+            Event.sendSceneEvent(rp, SceneEventType.OBJECT_ADDED, core);
+
+            return rp;
         }
     }
 }

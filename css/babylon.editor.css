@@ -81,3 +81,7 @@ html, body {
 .w2ui-icon.icon-particles {
     background: url("images/particles.png");
 }
+
+.w2ui-icon.icon-effects {
+    background: url("images/effects.png");
+}

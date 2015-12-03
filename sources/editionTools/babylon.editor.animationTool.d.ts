@@ -1,7 +1,6 @@
 declare module BABYLON.EDITOR {
-    class AnimationTool extends AbstractTool {
+    class AnimationTool extends AbstractDatTool {
         tab: string;
-        private _element;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -10,7 +9,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
-        resize(): void;
         private _playAnimations();
         private _playSkeletonAnimations();
     }

@@ -33,6 +33,14 @@ declare module BABYLON.EDITOR {
         */
         private _createBabylonEngine();
         /**
+        * Creates the editor camera
+        */
+        private _createBabylonCamera();
+        /**
+        * Creates the render loop
+        */
+        createRenderLoop(): void;
+        /**
         * Simply update the scenes and updates
         */
         update(): void;

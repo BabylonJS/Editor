@@ -80,11 +80,18 @@ var BABYLON;
                 EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return light;
             };
+            // Adds a particle system
             SceneFactory.AddParticleSystem = function (core) {
                 var ps = EDITOR.GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
                 ps.emitter.id = this.GenerateUUID();
                 EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return ps;
+            };
+            // Adds a reflection probe
+            SceneFactory.AddReflectionProbe = function (core) {
+                var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
+                EDITOR.Event.sendSceneEvent(rp, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return rp;
             };
             // Private members
             SceneFactory._hdrPipeline = null;

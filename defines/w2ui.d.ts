@@ -205,7 +205,7 @@
         * If parent is undefined (not required), the function returns all
         * the nodes of the grpah
         */
-        get(parent?: IGraphNodeElement): IGraphNodeElement;
+        get(parent?: IGraphNodeElement | string): IGraphNodeElement;
         /**
         * Sets the provided node as selected
         */

@@ -4,12 +4,11 @@
         ssao: boolean;
     }
 
-    export class PostProcessesTool extends AbstractTool {
+    export class PostProcessesTool extends AbstractDatTool {
         // Public members
         public tab: string = "POSTPROCESSES.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
         private _enabledPostProcesses: IEnabledPostProcesses = null;
 
         private _hdrPipeline: HDRRenderingPipeline = null;
@@ -51,10 +50,7 @@
         public update(): void {
             var object: Scene = this.object = this._editionTool.object;
 
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+            super.update();
 
             if (!object)
                 return;
@@ -118,11 +114,6 @@
                 vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                 vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
             }
-        }
-
-        // Resize
-        public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
         }
     }
 }

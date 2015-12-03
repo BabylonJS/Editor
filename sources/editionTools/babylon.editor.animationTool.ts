@@ -3,12 +3,11 @@
         name: string;
     }
 
-    export class AnimationTool extends AbstractTool {
+    export class AnimationTool extends AbstractDatTool {
         // Public members
         public tab: string = "ANIMATION.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
 
         /**
         * Constructor
@@ -40,11 +39,8 @@
         // Update
         public update(): void {
             var object: Node = this.object = this._editionTool.object;
-            
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+
+            super.update();
 
             if (!object)
                 return;
@@ -61,12 +57,6 @@
                 var skeletonFolder = this._element.addFolder("Skeleton");
                 skeletonFolder.add(this, "_playAnimations").name("Play Animations");
             }
-        }
-
-        // Resize
-        public resize(): void {
-            //this._element.width = this._editionTool.panel.width - 15;
-            $("#" + this.containers[0]).width("100%").height("100%");
         }
 
         // Plays animations

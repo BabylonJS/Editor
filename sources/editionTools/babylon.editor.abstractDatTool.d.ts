@@ -1,13 +1,12 @@
 declare module BABYLON.EDITOR {
-    class SceneTool extends AbstractDatTool {
-        tab: string;
+    class AbstractDatTool extends AbstractTool {
+        protected _element: GUI.GUIEditForm;
         /**
         * Constructor
         * @param editionTool: edition tool instance
         */
         constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
         update(): void;
+        resize(): void;
     }
 }

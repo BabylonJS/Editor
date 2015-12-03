@@ -18,6 +18,7 @@ var BABYLON;
                 // Public members
                 this.object = null;
                 this.tab = "GENERAL.TAB";
+                // Private members
                 this._particleSystem = null;
                 // Initialize
                 this.containers = [
@@ -43,10 +44,7 @@ var BABYLON;
                 var _this = this;
                 var object = this.object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object)
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -109,10 +107,6 @@ var BABYLON;
                         }
                     });
                 }
-            };
-            // Resize
-            GeneralTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
             };
             // Start particle system
             GeneralTool.prototype._startParticleSystem = function () {
@@ -187,7 +181,7 @@ var BABYLON;
                 }
             };
             return GeneralTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.GeneralTool = GeneralTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

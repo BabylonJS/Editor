@@ -1,11 +1,9 @@
 ﻿module BABYLON.EDITOR {
-    export class LightTool extends AbstractTool {
+    export class LightTool extends AbstractDatTool {
         // Public members
         public tab: string = "LIGHT.TAB";
 
         // Private members
-        private _element: GUI.GUIEditForm;
-
         private _customShadowsGeneratorSize: number = 512;
 
         /**
@@ -39,10 +37,7 @@
         public update(): void {
             var object: Light = this.object = this._editionTool.object;
 
-            if (this._element) {
-                this._element.remove();
-                this._element = null;
-            }
+            super.update();
 
             if (!object)
                 return;
@@ -98,7 +93,7 @@
                 shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                 shadowsFolder.add(shadows, "bias").name("Bias");
 
-                shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).name("Blur Box Offset");
+                shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");
                 shadowsFolder.add(shadows, "blurScale").min(0.0).max(10.0).name("Blur Scale");
 
                 shadowsFolder.add(this, "_removeShadowGenerator").name("Remove Shadows Generator");
@@ -109,11 +104,6 @@
                     shadowsFolder.add(this, "_customShadowsGeneratorSize").min(0).name("Shadow Map Size");
                 }
             }
-        }
-
-        // Resize
-        public resize(): void {
-            this._element.width = this._editionTool.panel.width - 15;
         }
 
         // Creates a new shadows generator

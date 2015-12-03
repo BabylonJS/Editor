@@ -20,6 +20,7 @@ var BABYLON;
                 this._addSpotLight = "ADD-SPOT-LIGHT";
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
+                this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -69,6 +70,9 @@ var BABYLON;
                         else if (id.indexOf(this._addParticleSystem) !== -1) {
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
+                        else if (id.indexOf(this._addReflectionProbe) !== -1) {
+                            EDITOR.SceneFactory.AddReflectionProbe(this._core);
+                        }
                         return true;
                     }
                 }
@@ -79,7 +83,7 @@ var BABYLON;
                 if (this.toolbar != null)
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
-                var menu = this.toolbar.createMenu("menu", this._mainProject, "File", "icon-folder");
+                var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
                 this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
@@ -91,6 +95,8 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+                this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 //...
                 //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;
                 //...

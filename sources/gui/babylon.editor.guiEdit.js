@@ -30,8 +30,8 @@ var BABYLON;
                     return folder;
                 };
                 // Add a field
-                GUIEditForm.prototype.add = function (object, propertyPath, name, items) {
-                    if (!object || !object[propertyPath])
+                GUIEditForm.prototype.add = function (object, propertyPath, items, name) {
+                    if (!object || object[propertyPath] === undefined || object[propertyPath] === null)
                         return this._datElement.add(null, "");
                     return this._datElement.add(object, propertyPath, items).name(name);
                 };

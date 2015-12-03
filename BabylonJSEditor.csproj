@@ -31,7 +31,8 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
-    <Content Include="website\exportedTest\exportedCode.js" />
+    <Content Include="website\exportedTest\DanceMoves\exportedCode.js" />
+    <Content Include="website\exportedTest\Viper\exportedCode.js" />
     <Content Include="website\test.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -61,12 +62,14 @@
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractDatTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.animationTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.lightTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.postProcesses.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />
@@ -82,6 +85,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiWindow.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
+    <TypeScriptCompile Include="sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.createParticleSystem.ts" />

@@ -17,6 +17,7 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
+                // Private members
                 this._enabledPostProcesses = null;
                 this._hdrPipeline = null;
                 this._ssaoPipeline = null;
@@ -44,10 +45,7 @@ var BABYLON;
             PostProcessesTool.prototype.update = function () {
                 var _this = this;
                 var object = this.object = this._editionTool.object;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object)
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -104,12 +102,8 @@ var BABYLON;
                     vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
                 }
             };
-            // Resize
-            PostProcessesTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
-            };
             return PostProcessesTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.PostProcessesTool = PostProcessesTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

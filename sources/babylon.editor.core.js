@@ -17,6 +17,18 @@ var BABYLON;
                 this.editor = null;
             }
             /**
+            * Removes a scene
+            */
+            EditorCore.prototype.removeScene = function (scene) {
+                for (var i = 0; i < this.scenes.length; i++) {
+                    if (this.scenes[i].scene === scene) {
+                        this.scenes.splice(i, 1);
+                        return true;
+                    }
+                }
+                return false;
+            };
+            /**
             * On pre update
             */
             EditorCore.prototype.onPreUpdate = function () {

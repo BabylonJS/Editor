@@ -17,11 +17,14 @@ var BABYLON;
             }
             // Opens the scene exporter
             Exporter.prototype.openSceneExporter = function () {
+                var _this = this;
                 // Create window
                 var windowBody = EDITOR.GUI.GUIElement.CreateDivElement(this._editorID, "width: 100%; height: 100%");
                 this._window = new EDITOR.GUI.GUIWindow("WindowExport", this.core, "Export Project", windowBody);
-                this._window.buttons = ["Generate", "Cancel"];
                 this._window.buildElement(null);
+                this._window.onToggle = function (maximized, width, height) {
+                    _this._editor.resize();
+                };
                 // Create ace editor
                 this._editor = ace.edit(this._editorID);
                 this._editor.setTheme("ace/theme/clouds");
@@ -55,7 +58,7 @@ var BABYLON;
                     var texture = rp.cubeTexture;
                     if (rp.name === "")
                         continue;
-                    finalString = "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
+                    finalString += "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
                     // Render list
                     for (var j = 0; j < rp.renderList.length; j++) {
                         var node = rp.renderList[j];
@@ -168,6 +171,14 @@ var BABYLON;
                     finalString += "\tparticleSystem.start();\n";
                 return finalString;
             };
+            // Exports a light
+            Exporter.prototype._exportLight = function (light) {
+                var finalString = "";
+                var shadows = light.getShadowGenerator();
+                if (!shadows)
+                    return finalString;
+                return finalString;
+            };
             // Exports a BABYLON.Vector2
             Exporter.prototype._exportVector2 = function (vector) {
                 return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
@@ -195,6 +206,7 @@ var BABYLON;
                     var rootNodes = [];
                     var finalString = "";
                     this._fillRootNodes(rootNodes, "meshes");
+                    this._fillRootNodes(rootNodes, "lights");
                     for (var i = 0; i < rootNodes.length; i++) {
                         finalString += this._traverseNodes(rootNodes[i]);
                     }
@@ -214,13 +226,14 @@ var BABYLON;
                         }
                         if (!foundParticleSystems)
                             finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
-                        // TODO: Check if node exists.
-                        // If not, export geometry and see performances
                         // Transformation
                         finalString += this._exportNodeTransform(node);
                         if (node instanceof BABYLON.AbstractMesh) {
                             // Material
                             finalString += this._exportNodeMaterial(node);
+                        }
+                        else if (node instanceof BABYLON.Light) {
+                            finalString += this._exportLight(node);
                         }
                     }
                     for (var i = 0; i < node.getDescendants().length; i++) {

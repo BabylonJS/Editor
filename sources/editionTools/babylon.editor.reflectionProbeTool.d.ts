@@ -1,9 +1,11 @@
 declare module BABYLON.EDITOR {
-    class PostProcessesTool extends AbstractDatTool {
+    class ReflectionProbeTool extends AbstractDatTool {
+        object: Node;
         tab: string;
-        private _enabledPostProcesses;
-        private _hdrPipeline;
-        private _ssaoPipeline;
+        private _window;
+        private _excludedMeshesList;
+        private _includedMeshesList;
+        private _layout;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -12,5 +14,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _setIncludedMeshes();
     }
 }

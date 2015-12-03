@@ -9,6 +9,7 @@ var BABYLON;
     (function (EDITOR) {
         var SceneTool = (function (_super) {
             __extends(SceneTool, _super);
+            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -36,10 +37,7 @@ var BABYLON;
             // Update
             SceneTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
-                if (this._element) {
-                    this._element.remove();
-                    this._element = null;
-                }
+                _super.prototype.update.call(this);
                 if (!object)
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -112,20 +110,9 @@ var BABYLON;
                 capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
                 capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
                 capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
-                /*
-                object.audioEnabled;
-                object.collisionsEnabled;
-                object.gravity;
-                object.headphone;
-                */
-                // Capacities
-            };
-            // Resize
-            SceneTool.prototype.resize = function () {
-                this._element.width = this._editionTool.panel.width - 15;
             };
             return SceneTool;
-        })(EDITOR.AbstractTool);
+        })(EDITOR.AbstractDatTool);
         EDITOR.SceneTool = SceneTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

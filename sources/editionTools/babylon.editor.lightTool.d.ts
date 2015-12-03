@@ -1,7 +1,6 @@
 declare module BABYLON.EDITOR {
-    class LightTool extends AbstractTool {
+    class LightTool extends AbstractDatTool {
         tab: string;
-        private _element;
         private _customShadowsGeneratorSize;
         /**
         * Constructor
@@ -11,7 +10,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
-        resize(): void;
         private _createShadowsGenerator();
         private _removeShadowGenerator();
     }

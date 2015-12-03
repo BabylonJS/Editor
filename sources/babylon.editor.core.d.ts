@@ -13,6 +13,10 @@ declare module BABYLON.EDITOR {
         */
         constructor();
         /**
+        * Removes a scene
+        */
+        removeScene(scene: Scene): boolean;
+        /**
         * On pre update
         */
         onPreUpdate(): void;
