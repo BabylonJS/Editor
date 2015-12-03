@@ -403,13 +403,17 @@
         */
         addRow(data: T): void;
         /**
+        * Removes a row
+        */
+        removeRow(recid: number): void;
+        /**
         * Returns the number of rows
         */
         getRowCount(): number;
         /**
         * Returns the selected rows
         */
-        getSelectedRows(): string[] | string;
+        getSelectedRows(): number[];
         /**
         * Returns the row at indice
         */

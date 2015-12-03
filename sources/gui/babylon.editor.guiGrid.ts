@@ -34,19 +34,24 @@
             (<W2UI.IGridElement<T>>this.element).add(data);
         }
 
+        // Removes a row
+        public removeRow(recid: number): void {
+            (<W2UI.IGridElement<T>>this.element).remove(recid);
+        }
+
         // Returns the number of rows
         public getRowCount(): number {
             return (<W2UI.IGridElement<T>>this.element).total;
         }
 
         // Returns the selected rows
-        public getSelectedRows(): string[] | string {
+        public getSelectedRows(): number[] {
             return (<W2UI.IGridElement<T>>this.element).getSelection();
         }
 
         // Returns the row at indice
         public getRow(indice: number): T {
-            if (indice >= 0 && indice < this.getRowCount()) {
+            if (indice >= 0) {
                 return (<W2UI.IGridElement<T>>this.element).get(indice);
             }
 

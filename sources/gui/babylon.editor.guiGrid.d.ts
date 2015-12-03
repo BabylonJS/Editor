@@ -15,8 +15,9 @@ declare module BABYLON.EDITOR.GUI {
         constructor(name: string, core: EditorCore);
         createColumn(id: string, text: string, size?: string): void;
         addRow(data: T): void;
+        removeRow(recid: number): void;
         getRowCount(): number;
-        getSelectedRows(): string[] | string;
+        getSelectedRows(): number[];
         getRow(indice: number): T;
         modifyRow(indice: number, data: T): void;
         buildElement(parent: string): void;

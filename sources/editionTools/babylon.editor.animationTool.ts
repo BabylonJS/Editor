@@ -1,8 +1,4 @@
 ﻿module BABYLON.EDITOR {
-    interface IAnimationRow extends GUI.IGridRowData {
-        name: string;
-    }
-
     export class AnimationTool extends AbstractDatTool {
         // Public members
         public tab: string = "ANIMATION.TAB";

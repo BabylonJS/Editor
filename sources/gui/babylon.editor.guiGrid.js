@@ -39,6 +39,10 @@ var BABYLON;
                     data.recid = this.getRowCount();
                     this.element.add(data);
                 };
+                // Removes a row
+                GUIGrid.prototype.removeRow = function (recid) {
+                    this.element.remove(recid);
+                };
                 // Returns the number of rows
                 GUIGrid.prototype.getRowCount = function () {
                     return this.element.total;
@@ -49,7 +53,7 @@ var BABYLON;
                 };
                 // Returns the row at indice
                 GUIGrid.prototype.getRow = function (indice) {
-                    if (indice >= 0 && indice < this.getRowCount()) {
+                    if (indice >= 0) {
                         return this.element.get(indice);
                     }
                     return null;

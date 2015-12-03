@@ -363,9 +363,13 @@
         */
         add(data: T): void;
         /**
+        * Removes a row
+        */
+        remove(recid: number): void;
+        /**
         * Returns the selection
         */
-        getSelection(): string[] | string;
+        getSelection(): number[];
     }
 
     /**
