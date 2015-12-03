@@ -103,16 +103,18 @@
 
                 root = this._graphRootName;
 
-                // Add other elements
-                if (scene.reflectionProbes.length > 0) {
-                    var rpNode = this.sidebar.createNode(this._graphRootName + "PROBES", "Reflection Probes", "icon-folder");
-                    this.sidebar.addNodes(rpNode, this._graphRootName);
+                // Reflection probes
+                var rpNode = this.sidebar.createNode(this._graphRootName + "PROBES", "Reflection Probes", "icon-folder");
+                this.sidebar.addNodes(rpNode, this._graphRootName);
 
-                    for (var i = 0; i < scene.reflectionProbes.length; i++) {
-                        var rp = scene.reflectionProbes[i];
-                        this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
-                    }
+                for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                    var rp = scene.reflectionProbes[i];
+                    this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
                 }
+
+                // Audio
+                var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
+                this.sidebar.addNodes(audioNode, this._graphRootName);
             }
 
             if (!node) {
@@ -127,6 +129,18 @@
 
             if (root === this._graphRootName)
                 this.sidebar.setNodeExpanded(root, true);
+
+            // If submeshes
+            if (node instanceof AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
+                var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
+                this.sidebar.addNodes(subMeshesNode, node.id);
+
+                for (var i = 0; i < node.subMeshes.length; i++) {
+                    var subMesh = node.subMeshes[i];
+                    var subMeshNode = this.sidebar.createNode(node.id + "SubMesh" + i, subMesh.getMaterial().name, "icon-mesh", subMesh);
+                    this.sidebar.addNodes(subMeshNode, subMeshesNode.id);
+                }
+            }
 
             // If children, then fill the graph recursively
             if (children !== null) {
@@ -187,10 +201,10 @@
                 }
 
                 // Else...
-                if (node.skeleton)
-                    return "icon-animated-mesh";
-                else
-                    return "icon-mesh";
+                return "icon-animated-mesh";
+            }
+            else if (node instanceof SubMesh) {
+                return "icon-mesh";
             }
             else if (node instanceof BABYLON.Light) {
                 if (node instanceof BABYLON.DirectionalLight)

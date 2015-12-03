@@ -48,7 +48,8 @@ var BABYLON;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh) {
+                if (object instanceof BABYLON.Mesh
+                    || object instanceof BABYLON.SubMesh) {
                     return true;
                 }
                 return false;
@@ -61,9 +62,15 @@ var BABYLON;
             // Update
             MaterialTool.prototype.update = function () {
                 var _this = this;
-                var object = this._editionTool.object.material;
+                var object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
                 _super.prototype.update.call(this);
+                if (object instanceof BABYLON.AbstractMesh) {
+                    object = object.material;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    object = object.getMaterial();
+                }
                 if (!object || !(object instanceof BABYLON.Material))
                     return;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -143,7 +150,16 @@ var BABYLON;
             };
             // Converts a standard material to PBR
             MaterialTool.prototype._convertToPBR = function () {
-                var object = this._editionTool.object.material;
+                var object = null;
+                var mesh = this._editionTool.object;
+                if (mesh instanceof BABYLON.AbstractMesh) {
+                    object = mesh.material;
+                }
+                else if (mesh instanceof BABYLON.SubMesh) {
+                    object = mesh.getMaterial();
+                }
+                if (!object)
+                    return;
                 var scene = this._editionTool.core.currentScene;
                 var pbr = new BABYLON.PBRMaterial("New PBR Material", scene);
                 // Textures
@@ -164,7 +180,18 @@ var BABYLON;
                 pbr.alpha = object.alpha;
                 pbr.alphaMode = object.alphaMode;
                 // Finish
-                this._editionTool.object.material = pbr;
+                if (mesh instanceof BABYLON.AbstractMesh) {
+                    mesh.material = pbr;
+                }
+                else if (mesh instanceof BABYLON.SubMesh) {
+                    var subMesh = mesh;
+                    var material = subMesh.getMesh().material;
+                    if (material instanceof BABYLON.MultiMaterial) {
+                        var materialIndex = material.subMaterials.indexOf(subMesh.getMaterial());
+                        if (materialIndex !== -1)
+                            material.subMaterials[materialIndex] = pbr;
+                    }
+                }
                 this.update();
             };
             return MaterialTool;

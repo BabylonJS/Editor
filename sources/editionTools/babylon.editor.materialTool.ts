@@ -48,7 +48,9 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof Mesh) {
+            if (object instanceof Mesh
+                || object instanceof SubMesh)
+            {
                 return true;
             }
 
@@ -63,10 +65,17 @@
 
         // Update
         public update(): void {
-            var object: any = this._editionTool.object.material;
+            var object: any = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
 
             super.update();
+
+            if (object instanceof AbstractMesh) {
+                object = object.material;
+            }
+            else if (object instanceof SubMesh) {
+                object = object.getMaterial();
+            }
 
             if (!object || !(object instanceof Material))
                 return;
@@ -164,7 +173,19 @@
 
         // Converts a standard material to PBR
         private _convertToPBR(): void {
-            var object: StandardMaterial = this._editionTool.object.material;
+            var object: StandardMaterial = null;
+            var mesh = this._editionTool.object;
+
+            if (mesh instanceof AbstractMesh) {
+                object = mesh.material;
+            }
+            else if (mesh instanceof SubMesh) {
+                object = mesh.getMaterial();
+            }
+
+            if (!object)
+                return;
+
             var scene = this._editionTool.core.currentScene;
             var pbr: PBRMaterial = new PBRMaterial("New PBR Material", scene);
 
@@ -188,7 +209,21 @@
             pbr.alphaMode = object.alphaMode;
 
             // Finish
-            this._editionTool.object.material = pbr;
+            if (mesh instanceof AbstractMesh) {
+                mesh.material = pbr;
+            }
+            else if (mesh instanceof SubMesh) {
+                var subMesh = <SubMesh>mesh;
+                var material = subMesh.getMesh().material;
+
+                if (material instanceof MultiMaterial) {
+                    var materialIndex = material.subMaterials.indexOf(subMesh.getMaterial());
+
+                    if (materialIndex !== -1)
+                        material.subMaterials[materialIndex] = pbr;
+                }
+            }
+
             this.update();
         }
     }

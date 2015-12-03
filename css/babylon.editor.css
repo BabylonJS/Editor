@@ -85,3 +85,7 @@ html, body {
 .w2ui-icon.icon-effects {
     background: url("images/effects.png");
 }
+
+.w2ui-icon.icon-animated-mesh {
+    background: url("images/pointcloud.png");
+}

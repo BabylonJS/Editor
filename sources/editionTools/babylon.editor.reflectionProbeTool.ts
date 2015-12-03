@@ -106,7 +106,9 @@
 
             // General
             var generalFolder = this._element.addFolder("Common");
-            generalFolder.add(object, "name").name("Name");
+            generalFolder.add(object, "name").name("Name").onChange((result: any) => {
+                object.cubeTexture.name = result;
+            });
             generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
             generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
 
