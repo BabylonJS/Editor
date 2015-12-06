@@ -9,6 +9,7 @@ var BABYLON;
             function EditorMain(containerID, antialias, options) {
                 if (antialias === void 0) { antialias = false; }
                 if (options === void 0) { options = null; }
+                this.transformer = null;
                 this.layouts = null;
                 this.filesInput = null;
                 this.renderMainScene = true;
@@ -32,10 +33,13 @@ var BABYLON;
                 // Toolbars
                 this.mainToolbar = new EDITOR.MainToolbar(this.core);
                 this.mainToolbar.createUI();
+                this.toolsToolbar = new EDITOR.ToolsToolbar(this.core);
+                this.toolsToolbar.createUI();
+                // Transformer
+                this.transformer = new EDITOR.Transformer(this.core);
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
-                this.filesInput.appendScene = false;
                 // Exporter
                 this.exporter = new EDITOR.Exporter(this.core);
             }
@@ -66,7 +70,8 @@ var BABYLON;
             EditorMain.prototype._createUI = function () {
                 this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
-                this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50 %\"></div>");
+                this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50 %\"></div>" +
+                    "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 50 %\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
                 this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
@@ -146,6 +151,8 @@ var BABYLON;
                         }
                     }
                 }
+                // Render transformer
+                this.transformer.getScene().render();
                 // Post update
                 this.core.onPostUpdate();
             };

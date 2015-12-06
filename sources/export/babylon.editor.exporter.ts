@@ -124,19 +124,32 @@
         }
 
         // Export node's material
-        private _exportNodeMaterial(node: AbstractMesh): string {
+        private _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string {
             var finalString = "\n";
-            var material = node.material;
+            var material: Material = null;
+
+            //node.material;
+            if (node instanceof AbstractMesh) {
+                material = node.material;
+            }
+            else if (node instanceof SubMesh) {
+                material = node.getMaterial();
+            }
 
             if (!material)
                 return finalString;
 
             // Set constructor
+            var materialString = "\tnode.material";
+            if (node instanceof SubMesh) {
+                materialString = "\tnode.material.subMaterials[" + subMeshId + "]";
+            }
+
             if (material instanceof StandardMaterial) {
-                finalString += "\tnode.material = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
+                finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
             }
             else if (material instanceof PBRMaterial) {
-                finalString += "\tnode.material = new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
+                finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
             }
 
             // Set values
@@ -168,7 +181,12 @@
                 else
                     continue;
 
-                finalString += "\tnode.material." + thing + " = " + result + ";\n";
+                if (node instanceof AbstractMesh) {
+                    finalString += "\tnode.material." + thing + " = " + result + ";\n";
+                }
+                else if (node instanceof SubMesh) {
+                    finalString += "\tnode.material.subMaterials[" + subMeshId + "]." + thing + " = " + result + ";\n";
+                }
             }
 
             return finalString + "\n";
@@ -222,8 +240,74 @@
 
             if (!shadows)
                 return finalString;
+            
+            for (var thing in light) {
+                if (thing[0] === "_")
+                    continue;
 
+                var value = light[thing];
+                var result = "";
 
+                if (typeof value === "number" || typeof value === "boolean") {
+                    result += value;
+                }
+                else if (typeof value === "string") {
+                    result += "\"" + value + "\"";
+                }
+                else if (value instanceof Vector3) {
+                    result += this._exportVector3(value);
+                }
+                else if (value instanceof Vector2) {
+                    result += this._exportVector2(value);
+                }
+                else if (value instanceof Color3) {
+                    result += this._exportColor3(value);
+                }
+                else
+                    continue;
+
+                finalString += "\tnode." + thing + " = " + result + ";\n";
+            }
+
+            finalString += "\n";
+
+            // Shadow generator
+            var shadowsGenerator = light.getShadowGenerator();
+            if (!shadowsGenerator)
+                return finalString;
+
+            var serializationObject = shadowsGenerator.serialize();
+
+            finalString +=
+                "\tvar shadowGenerator = node.getShadowGenerator();\n"
+                + "\tif (!shadowGenerator) {\n" // Do not create another
+                + "\t\tshadowGenerator = new BABYLON.ShadowGenerator(" + serializationObject.mapSize + ", node);\n";
+
+            for (var i = 0; i < serializationObject.renderList.length; i++) {
+                var mesh = serializationObject.renderList[i];
+                finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshById(\"" + mesh.id + "\"));\n";
+            }
+
+            finalString += "\t}\n";
+
+            for (var thing in shadowsGenerator) {
+                if (thing[0] === "_")
+                    continue;
+
+                var value = shadowsGenerator[thing];
+                var result = "";
+
+                if (typeof value === "number" || typeof value === "boolean") {
+                    result += value;
+                }
+                else if (typeof value === "string") {
+                    result += "\"" + value + "\"";
+                }
+                else
+                    continue;
+
+                finalString += "\tshadowGenerator." + thing + " = " + result + ";\n";
+            }
 
             return finalString;
         }
@@ -293,7 +377,13 @@
 
                     if (node instanceof AbstractMesh) {
                         // Material
-                        finalString += this._exportNodeMaterial(node);
+                        if (node.material instanceof MultiMaterial) {
+                            for (var i = 0; i < node.subMeshes.length; i++) {
+                                finalString += this._exportNodeMaterial(node.subMeshes[i], i);
+                            }
+                        } else {
+                            finalString += this._exportNodeMaterial(node);
+                        }
                     }
                     else if (node instanceof Light) {
                         finalString += this._exportLight(node);

@@ -1,0 +1,75 @@
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ToolsToolbar = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
+            function ToolsToolbar(core) {
+                // Public members
+                this.container = "BABYLON-EDITOR-TOOLS-TOOLBAR";
+                this.toolbar = null;
+                this.panel = null;
+                this._playGameID = "PLAY-GAME";
+                this._transformerPositionID = "TRANSFORMER-POSITION";
+                this._transformerRotationID = "TRANSFORMER-ROTATION";
+                this._transformerScalingID = "TRANSFORMER-SCALING";
+                // Initialize
+                this._editor = core.editor;
+                this._core = core;
+                this.panel = this._editor.layouts.getPanelFromType("top");
+                // Register this
+                this._core.updates.push(this);
+                this._core.eventReceivers.push(this);
+            }
+            // Pre update
+            ToolsToolbar.prototype.onPreUpdate = function () {
+            };
+            // Post update
+            ToolsToolbar.prototype.onPostUpdate = function () {
+            };
+            // Event
+            ToolsToolbar.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
+                    if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
+                        return false;
+                    }
+                    var id = event.guiEvent.data;
+                    var finalID = id.split(":");
+                    var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+                    if (item === null)
+                        return false;
+                    if (id.indexOf(this._transformerPositionID) !== -1) {
+                        this._editor.transformer.transformerType = EDITOR.TransformerType.POSITION;
+                    }
+                    else if (id.indexOf(this._transformerRotationID) !== -1) {
+                        this._editor.transformer.transformerType = EDITOR.TransformerType.ROTATION;
+                    }
+                    else if (id.indexOf(this._transformerScalingID) !== -1) {
+                        this._editor.transformer.transformerType = EDITOR.TransformerType.SCALING;
+                    }
+                }
+                return false;
+            };
+            // Creates the UI
+            ToolsToolbar.prototype.createUI = function () {
+                if (this.toolbar != null)
+                    this.toolbar.destroy();
+                this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
+                // Play game
+                this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game");
+                this.toolbar.addBreak();
+                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position");
+                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation");
+                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling");
+                // Build element
+                this.toolbar.buildElement(this.container);
+            };
+            return ToolsToolbar;
+        })();
+        EDITOR.ToolsToolbar = ToolsToolbar;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.toolsToolbar.js.map

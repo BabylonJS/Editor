@@ -31,8 +31,8 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
-    <Content Include="website\exportedTest\DanceMoves\exportedCode.js" />
-    <Content Include="website\exportedTest\Viper\exportedCode.js" />
+    <Content Include="website\exportedTest\statue\exportedTest.js" />
+    <Content Include="website\exportedTest\statue\statue_d.dds" />
     <Content Include="website\test.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -44,6 +44,7 @@
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
+    <Content Include="website\exportedTest\statue\statue.babylon" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />
@@ -62,6 +63,8 @@
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.toolsToolbar.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.transformer.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractDatTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.animationTool.ts" />

@@ -97,6 +97,9 @@
         public getItemByID(id: string): IToolbarBaseElement {
             for (var i = 0; i < this.menus.length; i++) {
                 var menu = this.menus[i];
+
+                if (menu.type === "break")
+                    continue;
                 
                 if (menu.id === id)
                     return menu;

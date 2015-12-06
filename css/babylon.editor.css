@@ -89,3 +89,19 @@ html, body {
 .w2ui-icon.icon-animated-mesh {
     background: url("images/pointcloud.png");
 }
+
+.w2ui-icon.icon-play-game {
+    background: url("images/play_game.png");
+}
+
+.w2ui-icon.icon-position {
+    background: url("images/position.png");
+}
+
+.w2ui-icon.icon-rotation {
+    background: url("images/rotation.png");
+}
+
+.w2ui-icon.icon-scaling {
+    background: url("images/scale.png");
+}

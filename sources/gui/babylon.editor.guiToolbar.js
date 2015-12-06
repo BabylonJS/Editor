@@ -90,6 +90,8 @@ var BABYLON;
                 GUIToolbar.prototype.getItemByID = function (id) {
                     for (var i = 0; i < this.menus.length; i++) {
                         var menu = this.menus[i];
+                        if (menu.type === "break")
+                            continue;
                         if (menu.id === id)
                             return menu;
                         for (var j = 0; j < menu.items.length; j++) {

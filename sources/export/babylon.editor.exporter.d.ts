@@ -14,7 +14,7 @@ declare module BABYLON.EDITOR {
         private _exportReflectionProbes();
         private _exportNodeTransform(node);
         private _getTextureByName(name, scene);
-        private _exportNodeMaterial(node);
+        private _exportNodeMaterial(node, subMeshId?);
         private _exportParticleSystem(particleSystem);
         private _exportLight(light);
         private _exportVector2(vector);
