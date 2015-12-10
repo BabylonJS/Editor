@@ -52,15 +52,21 @@
         }
 
         // Sets the selected node
-        public setSelected(node: IGraphNodeElement): void {
+        public setSelected(node: string): void {
             var element = (<W2UI.IGraphElement>this.element).get(node);
 
-            while (element.parent != null) {
+            if (!element)
+                return;
+
+            while (element.parent !== null) {
                 element = element.parent;
-                element.expanded = true;
+
+                if (element && element.id)
+                    (<W2UI.IGraphElement>this.element).expand(element.id);
             }
 
             (<W2UI.IGraphElement>this.element).select(node);
+            (<W2UI.IGraphElement>this.element).scrollIntoView(node);
         }
 
         // Returns the selected node

@@ -59,11 +59,15 @@ var BABYLON;
                 // Sets the selected node
                 GUIGraph.prototype.setSelected = function (node) {
                     var element = this.element.get(node);
-                    while (element.parent != null) {
+                    if (!element)
+                        return;
+                    while (element.parent !== null) {
                         element = element.parent;
-                        element.expanded = true;
+                        if (element && element.id)
+                            this.element.expand(element.id);
                     }
                     this.element.select(node);
+                    this.element.scrollIntoView(node);
                 };
                 // Returns the selected node
                 GUIGraph.prototype.getSelected = function () {

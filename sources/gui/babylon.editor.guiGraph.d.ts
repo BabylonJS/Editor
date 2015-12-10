@@ -12,7 +12,7 @@ declare module BABYLON.EDITOR.GUI {
         addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;
         removeNode(node: IGraphNodeElement | string): void;
         setNodeExpanded(node: string, expanded: boolean): void;
-        setSelected(node: IGraphNodeElement): void;
+        setSelected(node: string): void;
         getSelected(): string;
         getSelectedData(): Object;
         clear(): void;

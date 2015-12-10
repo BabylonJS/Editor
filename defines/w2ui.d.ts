@@ -209,7 +209,11 @@
         /**
         * Sets the provided node as selected
         */
-        select(node: IGraphNodeElement): void;
+        select(node: string): void;
+        /**
+        * Scrolls info view
+        */
+        scrollIntoView(node: string): void;
         /**
         * Gets the selected node
         */

@@ -32,6 +32,7 @@ var BABYLON;
                     mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, function (evt) {
                         if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
                             EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
+                            core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
                         }
                     }));
                     if (parentNode && !mesh.parent) {

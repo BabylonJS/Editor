@@ -95,6 +95,7 @@ var BABYLON;
                     for (var i = 0; i < scene.soundTracks.length; i++) {
                         var soundTrack = scene.soundTracks[i];
                         var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+                        soundTrackNode.count = soundTrack.soundCollection.length;
                         this.sidebar.addNodes(soundTrackNode, audioNode.id);
                         for (var j = 0; j < soundTrack.soundCollection.length; j++) {
                             var sound = soundTrack.soundCollection[j];
@@ -115,6 +116,7 @@ var BABYLON;
                 // If submeshes
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                     var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
+                    subMeshesNode.count = node.subMeshes.length;
                     this.sidebar.addNodes(subMeshesNode, node.id);
                     for (var i = 0; i < node.subMeshes.length; i++) {
                         var subMesh = node.subMeshes[i];
@@ -127,8 +129,11 @@ var BABYLON;
                     // Set elements before
                     for (var i = 0; i < children.length; i++) {
                         var object = children[i];
+                        var childrenLength = object.getDescendants().length;
                         var icon = this._getObjectIcon(object);
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                        if (childrenLength > 0)
+                            childNode.count = childrenLength;
                         this.sidebar.addNodes(childNode, root ? root : node.id);
                         this.fillGraph(object, object.id);
                     }

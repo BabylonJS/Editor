@@ -183,6 +183,10 @@
         * Gets if the node is expanded or not
         */
         expanded?: boolean;
+        /**
+        * Count of elements in it
+        */
+        count?: number;
     }
 
     interface IGraphMenuElement {
@@ -234,7 +238,7 @@
         /**
         * Sets the selected node
         */
-        setSelected(node: IGraphNodeElement): void;
+        setSelected(node: string): void;
 
         /**
         * Returns the selected node

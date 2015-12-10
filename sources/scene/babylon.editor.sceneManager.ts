@@ -42,6 +42,7 @@
                 mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, (evt: ActionEvent) => {
                     if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
                         Event.sendSceneEvent(mesh, SceneEventType.OBJECT_PICKED, core);
+                        core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
                     }
                 }));
 
