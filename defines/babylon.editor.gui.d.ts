@@ -251,6 +251,11 @@
         getSelectedData(): Object;
 
         /**
+        * Returns the selected node
+        */
+        getSelectedNode(): IGraphNodeElement;
+
+        /**
         * Clears the graph
         */
         clear(): void;

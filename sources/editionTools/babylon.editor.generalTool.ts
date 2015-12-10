@@ -55,7 +55,15 @@
 
             // General
             var generalFolder = this._element.addFolder("Common");
-            generalFolder.add(object, "name").name("Name");
+            generalFolder.add(object, "name").name("Name").onChange((result: any) => {
+                var sidebar = this._editionTool.core.editor.sceneGraphTool.sidebar;
+                var element = sidebar.getSelectedNode();
+
+                if (element) {
+                    element.text = result;
+                    sidebar.refresh();
+                }
+            });
 
             // Particle system
             var particleSystem: ParticleSystem = null;

@@ -82,8 +82,8 @@ var BABYLON;
                 // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
                     var result = this.element.get(menu ? menu + ":" + item : item);
-                    if (result !== null)
-                        result.checked;
+                    if (result)
+                        return result.checked;
                     return false;
                 };
                 // Returns an item by its ID

@@ -88,7 +88,7 @@ var BABYLON;
                     _this.update();
                 });
                 if (object instanceof BABYLON.StandardMaterial) {
-                    materialFolder.add(this, "_convertToPBR").name("Convert Standard to PBR");
+                    materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
                 }
                 // Values
                 var generalFolder = this._element.addFolder("Common");

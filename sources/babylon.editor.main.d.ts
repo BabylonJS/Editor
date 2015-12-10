@@ -5,6 +5,7 @@ declare module BABYLON.EDITOR {
         sceneGraphTool: SceneGraphTool;
         mainToolbar: MainToolbar;
         toolsToolbar: ToolsToolbar;
+        sceneToolbar: SceneToolbar;
         transformer: Transformer;
         container: string;
         antialias: boolean;

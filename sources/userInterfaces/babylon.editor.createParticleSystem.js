@@ -74,6 +74,8 @@ var BABYLON;
                     }
                     else if (tabID === this._editorTabID) {
                         editor.show();
+                        var exporter = this.core.editor.exporter;
+                        this._editor.setValue("var " + exporter._exportParticleSystem(this._particleSystemToEdit), -1);
                     }
                     return true;
                 }
@@ -113,7 +115,7 @@ var BABYLON;
                 var leftPanel = this._layouts.getPanelFromType("left");
                 var editTabID = this._layoutID + "TAB-EDIT";
                 leftPanel.createTab({ id: this._formTabID, caption: "Edit" });
-                leftPanel.createTab({ id: this._editorTabID, caption: "Update Function" });
+                leftPanel.createTab({ id: this._editorTabID, caption: "Generated Code" });
                 this._layouts.on({ type: "resize" }, function () {
                     _this._engine.resize();
                     _this._editElement.width = leftPanel.width - 30;

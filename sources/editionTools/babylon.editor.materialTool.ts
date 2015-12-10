@@ -99,7 +99,7 @@
             });
 
             if (object instanceof StandardMaterial) {
-                materialFolder.add(this, "_convertToPBR").name("Convert Standard to PBR");
+                materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
             }
 
             // Values

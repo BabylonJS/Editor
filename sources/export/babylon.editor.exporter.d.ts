@@ -11,17 +11,17 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         openSceneExporter(): void;
         private _generateCode();
-        private _exportReflectionProbes();
-        private _exportNodeTransform(node);
-        private _getTextureByName(name, scene);
-        private _exportNodeMaterial(node, subMeshId?);
-        private _exportParticleSystem(particleSystem);
-        private _exportLight(light);
-        private _exportVector2(vector);
-        private _exportVector3(vector);
-        private _exportQuaternion(quaternion);
-        private _exportColor3(color);
-        private _exportColor4(color);
+        _exportReflectionProbes(): string;
+        _exportNodeTransform(node: any): string;
+        _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
+        _exportParticleSystem(particleSystem: ParticleSystem): string;
+        _exportLight(light: Light): string;
+        _exportVector2(vector: Vector2): string;
+        _exportVector3(vector: Vector3): string;
+        _exportQuaternion(quaternion: Quaternion): string;
+        _exportColor3(color: Color3): string;
+        _exportColor4(color: Color4): string;
         private _traverseNodes(node?);
         private _fillRootNodes(data, propertyPath);
     }

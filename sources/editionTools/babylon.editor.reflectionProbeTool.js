@@ -75,6 +75,7 @@ var BABYLON;
             };
             // Update
             ReflectionProbeTool.prototype.update = function () {
+                var _this = this;
                 _super.prototype.update.call(this);
                 var object = this.object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
@@ -86,7 +87,12 @@ var BABYLON;
                 // General
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name").onChange(function (result) {
-                    object.cubeTexture.name = result;
+                    var sidebar = _this._editionTool.core.editor.sceneGraphTool.sidebar;
+                    var element = sidebar.getSelectedNode();
+                    if (element) {
+                        element.text = result;
+                        sidebar.refresh();
+                    }
                 });
                 generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
                 generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");

@@ -7,6 +7,7 @@
         public sceneGraphTool: SceneGraphTool;
         public mainToolbar: MainToolbar;
         public toolsToolbar: ToolsToolbar;
+        public sceneToolbar: SceneToolbar;
         public transformer: Transformer = null;
 
         public container: string;
@@ -61,6 +62,9 @@
             this.toolsToolbar = new ToolsToolbar(this.core);
             this.toolsToolbar.createUI();
 
+            this.sceneToolbar = new SceneToolbar(this.core);
+            this.sceneToolbar.createUI();
+
             // Transformer
             this.transformer = new Transformer(this.core);
 
@@ -100,7 +104,11 @@
                 "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 49%\"></div>"
             );
             this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
-            this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
+            var mainPanel = this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent(
+                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
+            );
+            mainPanel.style = "overflow: hidden;";
             this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
 
             this.layouts.buildElement(this.container);

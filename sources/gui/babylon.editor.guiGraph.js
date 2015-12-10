@@ -73,6 +73,13 @@ var BABYLON;
                 GUIGraph.prototype.getSelected = function () {
                     return this.element.selected;
                 };
+                // Returns the selected node
+                GUIGraph.prototype.getSelectedNode = function () {
+                    var element = this.element.get(this.getSelected());
+                    if (element)
+                        return element;
+                    return null;
+                };
                 // Returns the selected data
                 GUIGraph.prototype.getSelectedData = function () {
                     var selected = this.getSelected();

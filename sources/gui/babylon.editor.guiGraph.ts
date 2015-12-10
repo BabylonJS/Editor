@@ -74,6 +74,16 @@
             return (<W2UI.IGraphElement>this.element).selected;
         }
 
+        // Returns the selected node
+        public getSelectedNode(): IGraphNodeElement {
+            var element = (<W2UI.IGraphElement>this.element).get(this.getSelected());
+
+            if (element)
+                return element;
+
+            return null;
+        }
+
         // Returns the selected data
         public getSelectedData(): Object {
             var selected = this.getSelected();

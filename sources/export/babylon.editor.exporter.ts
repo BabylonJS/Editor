@@ -59,7 +59,7 @@
         }
         
         // Export reflection probes
-        private _exportReflectionProbes(): string {
+        public _exportReflectionProbes(): string {
             var scene = this.core.currentScene;
 
             var finalString = "\t// Export reflection probes\n";
@@ -87,7 +87,7 @@
         }
 
         // Export node's transformation
-        private _exportNodeTransform(node: any): string {
+        public _exportNodeTransform(node: any): string {
             var finalString = "";
 
             if (node.position) {
@@ -110,7 +110,7 @@
         }
 
         // Returns a BaseTexture from its name
-        private _getTextureByName(name: string, scene: Scene): BaseTexture {
+        public _getTextureByName(name: string, scene: Scene): BaseTexture {
             // "this" is forbidden since this code is exported directly
             for (var i = 0; i < scene.textures.length; i++) {
                 var texture = scene.textures[i];
@@ -124,7 +124,7 @@
         }
 
         // Export node's material
-        private _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string {
+        public _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string {
             var finalString = "\n";
             var material: Material = null;
 
@@ -192,7 +192,7 @@
             return finalString + "\n";
         }
 
-        private _exportParticleSystem(particleSystem: ParticleSystem): string {
+        public _exportParticleSystem(particleSystem: ParticleSystem): string {
             var node = particleSystem.emitter;
 
             var finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
@@ -234,7 +234,7 @@
         }
 
         // Exports a light
-        private _exportLight(light: Light): string {
+        public _exportLight(light: Light): string {
             var finalString = "";
             var shadows = light.getShadowGenerator();
 
@@ -313,27 +313,27 @@
         }
 
         // Exports a BABYLON.Vector2
-        private _exportVector2(vector: Vector2): string {
+        public _exportVector2(vector: Vector2): string {
             return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
         }
 
         // Exports a BABYLON.Vector3
-        private _exportVector3(vector: Vector3): string {
+        public _exportVector3(vector: Vector3): string {
             return "new BABYLON.Vector3(" + vector.x + ", " + vector.y + ", " + vector.z + ")";
         }
 
         // Exports a BABYLON.Quaternion
-        private _exportQuaternion(quaternion: Quaternion): string {
+        public _exportQuaternion(quaternion: Quaternion): string {
             return "new BABYLON.Quaternion(" + quaternion.x + ", " + quaternion.y + ", " + quaternion.z + ", " + quaternion.w + ")";
         }
 
         // Exports a BABYLON.Color3
-        private _exportColor3(color: Color3): string {
+        public _exportColor3(color: Color3): string {
             return "new BABYLON.Color3(" + color.r + ", " + color.g + ", " + color.b + ")";
         }
 
         // Exports a BABYLON.Color4
-        private _exportColor4(color: Color4): string {
+        public _exportColor4(color: Color4): string {
             return "new BABYLON.Color4(" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ")";
         }
 

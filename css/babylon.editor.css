@@ -129,3 +129,11 @@ html, body {
 .w2ui-icon.icon-sound {
     background: url("images/sound.png");
 }
+
+.w2ui-icon.icon-wireframe {
+    background: url("images/wireframe.png");
+}
+
+.w2ui-icon.icon-focus {
+    background: url("images/focus.png");
+}

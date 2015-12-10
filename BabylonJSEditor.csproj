@@ -31,8 +31,10 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
-    <Content Include="website\exportedTest\statue\exportedTest.js" />
-    <Content Include="website\exportedTest\statue\statue_d.dds" />
+    <Content Include="website\exportedTest\floor_ao.PNG" />
+    <Content Include="website\exportedTest\floor_bump.PNG" />
+    <Content Include="website\exportedTest\floor_diffuse.PNG" />
+    <Content Include="website\exportedTest\normal.png" />
     <Content Include="website\test.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -44,7 +46,7 @@
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
-    <Content Include="website\exportedTest\statue\statue.babylon" />
+    <Content Include="website\exportedTest\main.babylon" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tests\" />
@@ -63,6 +65,7 @@
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.sceneToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.toolsToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.transformer.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractDatTool.ts" />
@@ -91,7 +94,10 @@
     <TypeScriptCompile Include="sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
+    <TypeScriptCompile Include="sources\storage\babylon.editor.oneDriveStorage.ts" />
+    <TypeScriptCompile Include="sources\storage\babylon.editor.storage.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.createParticleSystem.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.objectPicker.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

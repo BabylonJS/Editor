@@ -4,7 +4,7 @@
         public engine: Engine = null;
         public canvas: HTMLCanvasElement = null;
 
-        public camera: Camera = null;
+        public camera: ArcRotateCamera = null;
 
         public scenes: Array<ICustomScene> = new Array<ICustomScene>();
         public currentScene: Scene;

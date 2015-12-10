@@ -87,8 +87,8 @@
         public isItemChecked(item: string, menu?: string): boolean {
             var result = (<W2UI.IToolbarElement>this.element).get(menu ? menu + ":" + item : item);
 
-            if (result !== null)
-                result.checked;
+            if (result)
+                return result.checked;
 
             return false;
         }
