@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR {
         private _editor;
         private _mainProject;
         private _projectExportCode;
+        private _projectConnectStorage;
         private _mainAdd;
         private _addPointLight;
         private _addDirectionalLight;

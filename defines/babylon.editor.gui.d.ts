@@ -304,15 +304,15 @@
         /**
         * Sets item checked
         */
-        setItemChecked(item: IToolbarBaseElement, checked: boolean, menu?: IToolbarMenuElement): void;
+        setItemChecked(item: string, checked: boolean, menu?: string): void;
         /**
         * sets item auto checked
         */
-        setItemAutoChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): void;
+        setItemAutoChecked(item: string, menu?: string): void;
         /**
         * Returns if the item is cheked
         */
-        isItemChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): boolean;
+        isItemChecked(item: string, menu?: string): boolean;
         /**
         * Returns an item by id
         */
@@ -358,7 +358,7 @@
         /**
         * The id of the row (line number)
         */
-        recid: number;
+        recid?: number;
     }
 
     interface IGridColumnData extends W2UI.IGridColumnData

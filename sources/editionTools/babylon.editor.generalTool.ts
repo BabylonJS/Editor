@@ -82,23 +82,23 @@
 
             if (object.position) {
                 var positionFolder = this._element.addFolder("Position", transformFolder);
-                positionFolder.add(object.position, "x").name("x").step(0.1);
-                positionFolder.add(object.position, "y").name("y").step(0.1);
-                positionFolder.add(object.position, "z").name("z").step(0.1);
+                positionFolder.add(object.position, "x").name("x").step(0.1).listen();
+                positionFolder.add(object.position, "y").name("y").step(0.1).listen();
+                positionFolder.add(object.position, "z").name("z").step(0.1).listen();
             }
 
             if (object.rotation) {
                 var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                rotationFolder.add(object.rotation, "x").name("x").step(0.1);
-                rotationFolder.add(object.rotation, "y").name("y").step(0.1);
-                rotationFolder.add(object.rotation, "z").name("z").step(0.1);
+                rotationFolder.add(object.rotation, "x").name("x").step(0.1).listen();
+                rotationFolder.add(object.rotation, "y").name("y").step(0.1).listen();
+                rotationFolder.add(object.rotation, "z").name("z").step(0.1).listen();
             }
 
             if (object.scaling) {
                 var scalingFolder = this._element.addFolder("Scaling", transformFolder);
-                scalingFolder.add(object.scaling, "x").name("x").step(0.1);
-                scalingFolder.add(object.scaling, "y").name("y").step(0.1);
-                scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+                scalingFolder.add(object.scaling, "x").name("x").step(0.1).listen();
+                scalingFolder.add(object.scaling, "y").name("y").step(0.1).listen();
+                scalingFolder.add(object.scaling, "z").name("z").step(0.1).listen();
             }
 
             // Rendering

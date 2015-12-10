@@ -81,6 +81,8 @@
 
                     if (this.object !== null)
                         this.isObjectSupported(this.object);
+
+                    return false;
                 }
             }
 

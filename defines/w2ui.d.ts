@@ -416,4 +416,5 @@ declare var w2confirm: {
 
 declare var w2popup: {
     open(data: any): W2UI.IWindowElement;
+    message(data: any): W2UI.IWindowElement;
 }

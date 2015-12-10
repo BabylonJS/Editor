@@ -15,11 +15,20 @@
         private _node: Node = null;
 
         private _transformerType: TransformerType = TransformerType.POSITION;
-        private _xTransformers: Mesh[] = new Array<Mesh>();
-        private _yTransformers: Mesh[] = new Array<Mesh>();
-        private _zTransformers: Mesh[] = new Array<Mesh>();
+        private _xTransformers: AbstractMesh[] = new Array<AbstractMesh>();
+        private _yTransformers: AbstractMesh[] = new Array<AbstractMesh>();
+        private _zTransformers: AbstractMesh[] = new Array<AbstractMesh>();
 
         private _sharedScale: Vector3 = Vector3.Zero();
+
+        private _pickingPlane: Plane = Plane.FromPositionAndNormal(Vector3.Zero(), Vector3.Up());
+        private _mousePositionInPlane: Vector3;
+        private _mousePosition: Vector3 = Vector3.Zero();
+        private _mouseDown: boolean = false;
+        private _pickPosition: boolean = true;
+        private _pickingInfo: PickingInfo = null;
+        private _vectorToModify: Vector3 = null;
+        private _selectedTransform: string = "";
 
         /**
         * Constructor
@@ -34,6 +43,28 @@
             // Create scene
             this._scene = new Scene(core.engine);
             this._scene.autoClear = false;
+            this._scene.postProcessesEnabled = false;
+
+            // Create events
+            core.canvas.addEventListener("mousedown", (ev: UIEvent) => {
+                this._mouseDown = true;
+            });
+
+            core.canvas.addEventListener("mouseup", (ev: UIEvent) => {
+                this._mouseDown = false;
+                this._pickPosition = true;
+
+                if (this._pickingInfo) {
+                    var material: StandardMaterial = <StandardMaterial>this._pickingInfo.pickedMesh.material;
+                    material.emissiveColor = material.emissiveColor.multiply(new Color3(1.5, 1.5, 1.5));
+                }
+
+                this._pickingInfo = null;
+                core.currentScene.activeCamera.attachControl(core.canvas);
+
+                if (this._node)
+                    Event.sendSceneEvent(this._node, SceneEventType.OBJECT_CHANGED, core);
+            });
 
             // Finish
             this._createTransformers();
@@ -43,8 +74,17 @@
         public onEvent(event: Event): boolean {
             if (event.eventType === EventType.SCENE_EVENT) {
                 if (event.sceneEvent.eventType === SceneEventType.OBJECT_REMOVED) {
-                    if (event.sceneEvent.data === this._node)
+                    if (event.sceneEvent.data === this._node) {
                         this._node = null;
+                        return false;
+                    }
+                }
+                else if (event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
+                    if (event.sceneEvent.object)
+                        this._node = event.sceneEvent.object;
+                    else
+                        this._node = null;
+                    return false;
                 }
             }
 
@@ -56,6 +96,12 @@
             // Update camera
             this._scene.activeCamera = this.core.currentScene.activeCamera;
 
+            // Compute node
+            var node: any = this._node;
+
+            if (!node || !node.position)
+                return;
+
             // Set transformer scale
             var distance = Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
             var scale = new Vector3(distance, distance, distance).divide(new Vector3(3, 3, 3));
@@ -64,20 +110,24 @@
             this._sharedScale.z = scale.z;
 
             // Update transformer (position is particular)
-            this._xTransformers[0].position.copyFrom(Vector3.Zero());
+            this._xTransformers[0].position.copyFrom(node.position);
             this._yTransformers[0].position.copyFrom(this._xTransformers[0].position);
             this._zTransformers[0].position.copyFrom(this._xTransformers[0].position);
             this._yTransformers[0].position.y += distance * 1.3;
             this._zTransformers[0].position.z += distance * 1.3;
             this._xTransformers[0].position.x += distance * 1.3;
 
-            this._xTransformers[1].position.copyFrom(Vector3.Zero());
-            this._yTransformers[1].position.copyFrom(Vector3.Zero());
-            this._zTransformers[1].position.copyFrom(Vector3.Zero());
+            this._xTransformers[1].position.copyFrom(node.position);
+            this._yTransformers[1].position.copyFrom(node.position);
+            this._zTransformers[1].position.copyFrom(node.position);
 
             this._xTransformers[2].position.copyFrom(this._xTransformers[0].position);
             this._yTransformers[2].position.copyFrom(this._yTransformers[0].position);
             this._zTransformers[2].position.copyFrom(this._zTransformers[0].position);
+
+            // Finish
+            if (this._mouseDown)
+                this._updateTransform(distance);
         }
 
         // On post update
@@ -121,6 +171,104 @@
         // Returns the scene
         public getScene(): Scene {
             return this._scene;
+        }
+
+        // Updates the transformer (picking + manage movements)
+        private _updateTransform(distance: number): void {
+            if (this._pickingInfo === null) {
+                // Pick
+                var pickInfo = this._scene.pick(this._scene.pointerX, this._scene.pointerY);
+
+                if (!pickInfo.hit && this._pickingInfo === null)
+                    return;
+
+                if (pickInfo.hit && this._pickingInfo === null)
+                    this._pickingInfo = pickInfo;
+            }
+
+            var mesh = <AbstractMesh>this._pickingInfo.pickedMesh.parent || this._pickingInfo.pickedMesh;
+            var node: any = this._node;
+
+            if (this._pickPosition) {
+                // Setup planes
+                if (this._xTransformers.indexOf(mesh) !== -1) {
+                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, -1, 0));
+                    this._selectedTransform = "x";
+                }
+                else if (this._yTransformers.indexOf(mesh) !== -1) {
+                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(-1, 0, 0));
+                    this._selectedTransform = "y";
+                }
+                else if (this._zTransformers.indexOf(mesh) !== -1) {
+                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, 1, 0));
+                    this._selectedTransform = "z";
+                }
+
+                this.core.currentScene.activeCamera.detachControl(this.core.canvas);
+
+                if (this._findMousePositionInPlane(this._pickingInfo)) {
+                    this._mousePosition.copyFrom(this._mousePositionInPlane);
+
+                    if (this._transformerType === TransformerType.POSITION) {
+                        this._mousePosition = this._mousePosition.subtract(node.position);
+                        this._vectorToModify = node.position;
+                    }
+                    else if (this._transformerType === TransformerType.SCALING) {
+                        this._mousePosition = this._mousePosition.subtract(node.scaling);
+                        this._vectorToModify = node.scaling;
+                    }
+                    else if (this._transformerType === TransformerType.ROTATION) {
+                        this._vectorToModify = node.direction || node.rotation;
+                        this._mousePosition = this._mousePosition.subtract(this._vectorToModify);
+                    }
+                    else {
+                        this._vectorToModify = null;
+                    }
+
+                    // TODO
+                    // Change transformer color...
+                    (<StandardMaterial>mesh.material).emissiveColor = (<StandardMaterial>mesh.material).emissiveColor.multiply(new Color3(0.5, 0.5, 0.5));
+
+                    this._pickPosition = false;
+                }
+            }
+
+            // Now, time to update
+            if (!this._vectorToModify)
+                return;
+
+            if (this._findMousePositionInPlane(this._pickingInfo)) {
+                if (this._selectedTransform === "x") {
+                    this._vectorToModify.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                }
+                else if (this._selectedTransform === "y") {
+                    this._vectorToModify.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                }
+                else if (this._selectedTransform === "z") {
+                    this._vectorToModify.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+                }
+            }
+        }
+
+        // Returns if the ray intersects the transformer plane
+        private _getIntersectionWithLine(linePoint: Vector3, lineVect: Vector3): boolean {
+            var t2 = Vector3.Dot(this._pickingPlane.normal, lineVect);
+            if (t2 === 0)
+                return false;
+
+            var t = -(Vector3.Dot(this._pickingPlane.normal, linePoint) + this._pickingPlane.d) / t2;
+            this._mousePositionInPlane = linePoint.add(lineVect).multiply(new Vector3(t, t, t));
+            return true;
+        }
+
+        // Fins the mouse position in plane
+        private _findMousePositionInPlane(pickingInfos: PickingInfo): boolean {
+            var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, Matrix.Identity(), this._scene.activeCamera);
+
+            if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+                return true;
+
+            return false;
         }
 
         // Create transformers

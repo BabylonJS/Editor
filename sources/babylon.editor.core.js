@@ -29,6 +29,18 @@ var BABYLON;
                 return false;
             };
             /**
+            * Removes an event receiver
+            */
+            EditorCore.prototype.removeEventReceiver = function (receiver) {
+                for (var i = 0; i < this.eventReceivers.length; i++) {
+                    if (this.eventReceivers[i] === receiver) {
+                        this.eventReceivers.splice(i, 1);
+                        return true;
+                    }
+                }
+                return false;
+            };
+            /**
             * On pre update
             */
             EditorCore.prototype.onPreUpdate = function () {

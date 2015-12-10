@@ -66,22 +66,22 @@ var BABYLON;
                 // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
                     var element = this.element;
-                    var id = menu ? menu.id + ":" + item.id : item.id;
+                    var id = menu ? menu + ":" + item : item;
                     checked ? element.check(id) : element.uncheck(id);
                 };
                 // Sets the item auto checked (true to false, false to true)
                 GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
                     var element = this.element;
-                    var result = element.get(menu ? menu.id + ":" + item.id : item.id);
+                    var result = element.get(menu ? menu + ":" + item : item);
                     var checked = result ? result.checked : false;
                     if (!checked)
-                        element.check(item.id);
+                        element.check(item);
                     else
-                        element.uncheck(item.id);
+                        element.uncheck(item);
                 };
                 // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
-                    var result = this.element.get(menu ? menu.id + ":" + item.id : item.id);
+                    var result = this.element.get(menu ? menu + ":" + item : item);
                     if (result !== null)
                         result.checked;
                     return false;

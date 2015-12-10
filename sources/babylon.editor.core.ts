@@ -35,6 +35,19 @@
         }
 
         /**
+        * Removes an event receiver
+        */
+        public removeEventReceiver(receiver: IEventReceiver): boolean {
+            for (var i = 0; i < this.eventReceivers.length; i++) {
+                if (this.eventReceivers[i] === receiver) {
+                    this.eventReceivers.splice(i, 1);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
         * On pre update
         */
         public onPreUpdate(): void {

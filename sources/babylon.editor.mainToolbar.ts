@@ -11,6 +11,7 @@
 
         private _mainProject = "MAIN-PROJECT";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
+        private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
 
         private _mainAdd: string = "MAIN-ADD";
         private _addPointLight: string = "ADD-POINT-LIGHT";
@@ -107,7 +108,9 @@
             this.toolbar = new GUI.GUIToolbar(this.container, this._core);
 
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
-            this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
+            this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
+            this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Connect Storage...", "");
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
@@ -122,9 +125,6 @@
             this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
-            //...
-
-            //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;
             //...
 
             // Build element

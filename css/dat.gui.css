@@ -27,13 +27,6 @@
     background: #fafafa;
     border-bottom: 1px solid #ddd;
 }
- 
-/*
-.dg li.save-row .button {
-    text-shadow: none !important;
-    margin-left: 5px;
-}
-*/
 
 .dg li.save-row select {
     visibility: hidden;
@@ -97,6 +90,10 @@
 .dg .c input[type=text]:focus {
     background: #eee;
     color: #555;
+}
+
+.dg .c input[type=checkbox] {
+    margin-left: 50px;
 }
  
 .dg .c .slider {

@@ -63,29 +63,29 @@
         }
         
         // Sets the item checked
-        public setItemChecked(item: IToolbarBaseElement, checked: boolean, menu?: IToolbarMenuElement): void {
+        public setItemChecked(item: string, checked: boolean, menu?: string): void {
             var element = <W2UI.IToolbarElement>this.element;
-            var id = menu ? menu.id + ":" + item.id : item.id;
+            var id = menu ? menu + ":" + item : item;
 
             checked ? element.check(id) : element.uncheck(id);
         }
         
         // Sets the item auto checked (true to false, false to true)
-        public setItemAutoChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): void {
+        public setItemAutoChecked(item: string, menu?: string): void {
             var element = <W2UI.IToolbarElement>this.element;
-            var result = element.get(menu ? menu.id + ":" + item.id : item.id);
+            var result = element.get(menu ? menu + ":" + item : item);
 
             var checked = result ? result.checked : false;
 
             if (!checked)
-                element.check(item.id);
+                element.check(item);
             else
-                element.uncheck(item.id);
+                element.uncheck(item);
         }
 
         // Returns if the item is checked
-        public isItemChecked(item: IToolbarBaseElement, menu?: IToolbarMenuElement): boolean {
-            var result = (<W2UI.IToolbarElement>this.element).get(menu ? menu.id + ":" + item.id : item.id);
+        public isItemChecked(item: string, menu?: string): boolean {
+            var result = (<W2UI.IToolbarElement>this.element).get(menu ? menu + ":" + item : item);
 
             if (result !== null)
                 result.checked;

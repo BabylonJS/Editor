@@ -36,6 +36,14 @@ html, body {
     font-family:'MS Reference Sans Serif';
 }
 
+.w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
+    width: 16px;
+}
+
+#BABYLON-EDITOR-TOP-TOOLBAR-PANEL {
+    overflow: hidden;
+}
+
 /*
     ICONS
 */
@@ -55,7 +63,7 @@ html, body {
 }
 
 .w2ui-icon.icon-camera {
-    background: url("images/render.png");
+    background: url("images/camera.png");
 }
 
 .w2ui-icon.icon-open-file {
@@ -104,4 +112,20 @@ html, body {
 
 .w2ui-icon.icon-scaling {
     background: url("images/scale.png");
+}
+
+.w2ui-icon.icon-console {
+    background: url("images/console.png");
+}
+
+.w2ui-icon.icon-scene {
+    background: url("images/scene.png");
+}
+
+.w2ui-icon.icon-export {
+    background: url("images/export.png");
+}
+
+.w2ui-icon.icon-sound {
+    background: url("images/sound.png");
 }

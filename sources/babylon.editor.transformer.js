@@ -15,6 +15,7 @@ var BABYLON;
             * @param core: the editor core instance
             */
             function Transformer(core) {
+                var _this = this;
                 // Public members
                 this.core = null;
                 // Private members
@@ -25,6 +26,13 @@ var BABYLON;
                 this._yTransformers = new Array();
                 this._zTransformers = new Array();
                 this._sharedScale = BABYLON.Vector3.Zero();
+                this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(BABYLON.Vector3.Zero(), BABYLON.Vector3.Up());
+                this._mousePosition = BABYLON.Vector3.Zero();
+                this._mouseDown = false;
+                this._pickPosition = true;
+                this._pickingInfo = null;
+                this._vectorToModify = null;
+                this._selectedTransform = "";
                 //Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -32,6 +40,23 @@ var BABYLON;
                 // Create scene
                 this._scene = new BABYLON.Scene(core.engine);
                 this._scene.autoClear = false;
+                this._scene.postProcessesEnabled = false;
+                // Create events
+                core.canvas.addEventListener("mousedown", function (ev) {
+                    _this._mouseDown = true;
+                });
+                core.canvas.addEventListener("mouseup", function (ev) {
+                    _this._mouseDown = false;
+                    _this._pickPosition = true;
+                    if (_this._pickingInfo) {
+                        var material = _this._pickingInfo.pickedMesh.material;
+                        material.emissiveColor = material.emissiveColor.multiply(new BABYLON.Color3(1.5, 1.5, 1.5));
+                    }
+                    _this._pickingInfo = null;
+                    core.currentScene.activeCamera.attachControl(core.canvas);
+                    if (_this._node)
+                        EDITOR.Event.sendSceneEvent(_this._node, EDITOR.SceneEventType.OBJECT_CHANGED, core);
+                });
                 // Finish
                 this._createTransformers();
             }
@@ -39,8 +64,17 @@ var BABYLON;
             Transformer.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
-                        if (event.sceneEvent.data === this._node)
+                        if (event.sceneEvent.data === this._node) {
                             this._node = null;
+                            return false;
+                        }
+                    }
+                    else if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                        if (event.sceneEvent.object)
+                            this._node = event.sceneEvent.object;
+                        else
+                            this._node = null;
+                        return false;
                     }
                 }
                 return false;
@@ -49,6 +83,10 @@ var BABYLON;
             Transformer.prototype.onPreUpdate = function () {
                 // Update camera
                 this._scene.activeCamera = this.core.currentScene.activeCamera;
+                // Compute node
+                var node = this._node;
+                if (!node || !node.position)
+                    return;
                 // Set transformer scale
                 var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
                 var scale = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
@@ -56,18 +94,21 @@ var BABYLON;
                 this._sharedScale.y = scale.y;
                 this._sharedScale.z = scale.z;
                 // Update transformer (position is particular)
-                this._xTransformers[0].position.copyFrom(BABYLON.Vector3.Zero());
+                this._xTransformers[0].position.copyFrom(node.position);
                 this._yTransformers[0].position.copyFrom(this._xTransformers[0].position);
                 this._zTransformers[0].position.copyFrom(this._xTransformers[0].position);
                 this._yTransformers[0].position.y += distance * 1.3;
                 this._zTransformers[0].position.z += distance * 1.3;
                 this._xTransformers[0].position.x += distance * 1.3;
-                this._xTransformers[1].position.copyFrom(BABYLON.Vector3.Zero());
-                this._yTransformers[1].position.copyFrom(BABYLON.Vector3.Zero());
-                this._zTransformers[1].position.copyFrom(BABYLON.Vector3.Zero());
+                this._xTransformers[1].position.copyFrom(node.position);
+                this._yTransformers[1].position.copyFrom(node.position);
+                this._zTransformers[1].position.copyFrom(node.position);
                 this._xTransformers[2].position.copyFrom(this._xTransformers[0].position);
                 this._yTransformers[2].position.copyFrom(this._yTransformers[0].position);
                 this._zTransformers[2].position.copyFrom(this._zTransformers[0].position);
+                // Finish
+                if (this._mouseDown)
+                    this._updateTransform(distance);
             };
             // On post update
             Transformer.prototype.onPostUpdate = function () {
@@ -110,6 +151,87 @@ var BABYLON;
             // Returns the scene
             Transformer.prototype.getScene = function () {
                 return this._scene;
+            };
+            // Updates the transformer (picking + manage movements)
+            Transformer.prototype._updateTransform = function (distance) {
+                if (this._pickingInfo === null) {
+                    // Pick
+                    var pickInfo = this._scene.pick(this._scene.pointerX, this._scene.pointerY);
+                    if (!pickInfo.hit && this._pickingInfo === null)
+                        return;
+                    if (pickInfo.hit && this._pickingInfo === null)
+                        this._pickingInfo = pickInfo;
+                }
+                var mesh = this._pickingInfo.pickedMesh.parent || this._pickingInfo.pickedMesh;
+                var node = this._node;
+                if (this._pickPosition) {
+                    // Setup planes
+                    if (this._xTransformers.indexOf(mesh) !== -1) {
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, -1, 0));
+                        this._selectedTransform = "x";
+                    }
+                    else if (this._yTransformers.indexOf(mesh) !== -1) {
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(-1, 0, 0));
+                        this._selectedTransform = "y";
+                    }
+                    else if (this._zTransformers.indexOf(mesh) !== -1) {
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, 1, 0));
+                        this._selectedTransform = "z";
+                    }
+                    this.core.currentScene.activeCamera.detachControl(this.core.canvas);
+                    if (this._findMousePositionInPlane(this._pickingInfo)) {
+                        this._mousePosition.copyFrom(this._mousePositionInPlane);
+                        if (this._transformerType === TransformerType.POSITION) {
+                            this._mousePosition = this._mousePosition.subtract(node.position);
+                            this._vectorToModify = node.position;
+                        }
+                        else if (this._transformerType === TransformerType.SCALING) {
+                            this._mousePosition = this._mousePosition.subtract(node.scaling);
+                            this._vectorToModify = node.scaling;
+                        }
+                        else if (this._transformerType === TransformerType.ROTATION) {
+                            this._vectorToModify = node.direction || node.rotation;
+                            this._mousePosition = this._mousePosition.subtract(this._vectorToModify);
+                        }
+                        else {
+                            this._vectorToModify = null;
+                        }
+                        // TODO
+                        // Change transformer color...
+                        mesh.material.emissiveColor = mesh.material.emissiveColor.multiply(new BABYLON.Color3(0.5, 0.5, 0.5));
+                        this._pickPosition = false;
+                    }
+                }
+                // Now, time to update
+                if (!this._vectorToModify)
+                    return;
+                if (this._findMousePositionInPlane(this._pickingInfo)) {
+                    if (this._selectedTransform === "x") {
+                        this._vectorToModify.x = (this._mousePositionInPlane.x - this._mousePosition.x);
+                    }
+                    else if (this._selectedTransform === "y") {
+                        this._vectorToModify.y = (this._mousePositionInPlane.y - this._mousePosition.y);
+                    }
+                    else if (this._selectedTransform === "z") {
+                        this._vectorToModify.z = (this._mousePositionInPlane.z - this._mousePosition.z);
+                    }
+                }
+            };
+            // Returns if the ray intersects the transformer plane
+            Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect) {
+                var t2 = BABYLON.Vector3.Dot(this._pickingPlane.normal, lineVect);
+                if (t2 === 0)
+                    return false;
+                var t = -(BABYLON.Vector3.Dot(this._pickingPlane.normal, linePoint) + this._pickingPlane.d) / t2;
+                this._mousePositionInPlane = linePoint.add(lineVect).multiply(new BABYLON.Vector3(t, t, t));
+                return true;
+            };
+            // Fins the mouse position in plane
+            Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
+                var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity(), this._scene.activeCamera);
+                if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+                    return true;
+                return false;
             };
             // Create transformers
             Transformer.prototype._createTransformers = function () {

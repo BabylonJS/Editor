@@ -36,7 +36,7 @@ var BABYLON;
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.SCENE_EVENT;
                             ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
-                            this._core.editor.editionTool.onEvent(ev);
+                            this._core.sendEvent(ev);
                             return true;
                         }
                         else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {
@@ -79,7 +79,7 @@ var BABYLON;
                 if (!graphNodeID) {
                     this.sidebar.clear();
                     // Add root
-                    var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
+                    var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "icon-scene", this._core.currentScene);
                     this.sidebar.addNodes(rootNode);
                     root = this._graphRootName;
                     // Reflection probes
@@ -92,6 +92,15 @@ var BABYLON;
                     // Audio
                     var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
                     this.sidebar.addNodes(audioNode, this._graphRootName);
+                    for (var i = 0; i < scene.soundTracks.length; i++) {
+                        var soundTrack = scene.soundTracks[i];
+                        var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+                        this.sidebar.addNodes(soundTrackNode, audioNode.id);
+                        for (var j = 0; j < soundTrack.soundCollection.length; j++) {
+                            var sound = soundTrack.soundCollection[j];
+                            this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id);
+                        }
+                    }
                 }
                 if (!node) {
                     children = [];
@@ -167,11 +176,15 @@ var BABYLON;
                 else if (node instanceof BABYLON.Light) {
                     if (node instanceof BABYLON.DirectionalLight)
                         return "icon-directional-light";
-                    else if (node instanceof BABYLON.PointLight)
-                        return "icon-add-light";
+                    else
+                        return "icon-light";
                 }
-                else if (node instanceof BABYLON.Camera)
+                else if (node instanceof BABYLON.Camera) {
                     return "icon-camera";
+                }
+                else if (node instanceof BABYLON.Sound) {
+                    return "icon-sound";
+                }
                 return "";
             };
             // Removes or adds a node from/to the graph

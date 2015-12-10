@@ -78,6 +78,15 @@ var BABYLON;
                     enumerable: true,
                     configurable: true
                 });
+                // Notify a message
+                GUIWindow.prototype.notify = function (message) {
+                    w2popup.message({
+                        width: 400,
+                        height: 180,
+                        html: "<div style=\"padding: 60px; text-align: center\">" + message + "</div>\"" +
+                            "<div style=\"text- align: center\"><button class=\"btn\" onclick=\"w2popup.message()\">Close</button>"
+                    });
+                };
                 // Build element
                 GUIWindow.prototype.buildElement = function (parent) {
                     var _this = this;

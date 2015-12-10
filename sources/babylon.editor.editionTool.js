@@ -64,6 +64,7 @@ var BABYLON;
                         this.object = event.sceneEvent.object;
                         if (this.object !== null)
                             this.isObjectSupported(this.object);
+                        return false;
                     }
                 }
                 return false;

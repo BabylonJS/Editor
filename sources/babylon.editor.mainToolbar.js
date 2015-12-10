@@ -14,6 +14,7 @@ var BABYLON;
                 this.panel = null;
                 this._mainProject = "MAIN-PROJECT";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
+                this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
@@ -84,7 +85,9 @@ var BABYLON;
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
-                this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "");
+                this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
+                this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Connect Storage...", "");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 //...
@@ -97,8 +100,6 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
-                //...
-                //menu = this.toolbar.createMenu("menu", this._mainRendring, "Rendering", "icon-camera");;
                 //...
                 // Build element
                 this.toolbar.buildElement(this.container);

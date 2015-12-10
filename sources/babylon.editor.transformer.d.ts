@@ -14,6 +14,14 @@ declare module BABYLON.EDITOR {
         private _yTransformers;
         private _zTransformers;
         private _sharedScale;
+        private _pickingPlane;
+        private _mousePositionInPlane;
+        private _mousePosition;
+        private _mouseDown;
+        private _pickPosition;
+        private _pickingInfo;
+        private _vectorToModify;
+        private _selectedTransform;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -25,6 +33,9 @@ declare module BABYLON.EDITOR {
         transformerType: TransformerType;
         node: Node;
         getScene(): Scene;
+        private _updateTransform(distance);
+        private _getIntersectionWithLine(linePoint, lineVect);
+        private _findMousePositionInPlane(pickingInfos);
         private _createTransformers();
         private _createPositionTransformer(color, id);
         private _createRotationTransformer(color, id);

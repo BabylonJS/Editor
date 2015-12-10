@@ -40,6 +40,8 @@ var BABYLON;
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
+                // Override renderFunction to get full control on the render function
+                this.filesInput.renderFunction = function () { };
                 // Exporter
                 this.exporter = new EDITOR.Exporter(this.core);
             }
@@ -70,8 +72,8 @@ var BABYLON;
             EditorMain.prototype._createUI = function () {
                 this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
-                this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50 %\"></div>" +
-                    "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 50 %\"></div>");
+                this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50%\"></div>" +
+                    "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 49%\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent('<canvas id="BABYLON-EDITOR-MAIN-CANVAS"></canvas>');
                 this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
@@ -88,14 +90,19 @@ var BABYLON;
                     _this.core.scenes.push({ scene: scene, render: true });
                     _this.core.currentScene = scene;
                     // Set active camera
+                    var camera = scene.activeCamera;
                     _this._createBabylonCamera();
+                    if (camera) {
+                        if (camera.speed) {
+                            _this.core.camera.speed = camera.speed;
+                        }
+                    }
                     _this.core.currentScene.activeCamera = _this.core.camera;
                     // Create render loop
                     _this.core.engine.stopRenderLoop();
                     _this.createRenderLoop();
                     // Create parent node
-                    var parent = null; //new Mesh(file.name, scene, null, null, true);
-                    //parent.id = EditorMain.DummyNodeID + SceneFactory.GenerateUUID();
+                    var parent = null;
                     // Configure meshes
                     for (var i = 0; i < scene.meshes.length; i++) {
                         EDITOR.SceneManager.configureObject(scene.meshes[i], _this.core, parent);
@@ -123,9 +130,11 @@ var BABYLON;
             * Creates the editor camera
             */
             EditorMain.prototype._createBabylonCamera = function () {
-                var camera = new BABYLON.FreeCamera("EditorCamera", new BABYLON.Vector3(10, 10, 10), this.core.currentScene);
-                camera.setTarget(new BABYLON.Vector3(0, 0, 0));
-                camera.attachControl(this.core.canvas);
+                //var camera = new FreeCamera("EditorCamera", new Vector3(10, 10, 10), this.core.currentScene);
+                //camera.setTarget(new Vector3(0, 0, 0));
+                //camera.attachControl(this.core.canvas);
+                var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
+                camera.attachControl(this.core.canvas, true, false);
                 this.core.camera = camera;
             };
             /**

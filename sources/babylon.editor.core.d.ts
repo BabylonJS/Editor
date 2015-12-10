@@ -17,6 +17,10 @@ declare module BABYLON.EDITOR {
         */
         removeScene(scene: Scene): boolean;
         /**
+        * Removes an event receiver
+        */
+        removeEventReceiver(receiver: IEventReceiver): boolean;
+        /**
         * On pre update
         */
         onPreUpdate(): void;

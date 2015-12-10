@@ -41,14 +41,14 @@ var BABYLON;
                     var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
                     if (item === null)
                         return false;
-                    if (id.indexOf(this._transformerPositionID) !== -1) {
-                        this._editor.transformer.transformerType = EDITOR.TransformerType.POSITION;
-                    }
-                    else if (id.indexOf(this._transformerRotationID) !== -1) {
-                        this._editor.transformer.transformerType = EDITOR.TransformerType.ROTATION;
-                    }
-                    else if (id.indexOf(this._transformerScalingID) !== -1) {
-                        this._editor.transformer.transformerType = EDITOR.TransformerType.SCALING;
+                    var transformerIndex = [this._transformerPositionID, this._transformerRotationID, this._transformerScalingID].indexOf(id);
+                    if (transformerIndex !== -1) {
+                        var checked = this.toolbar.isItemChecked(id);
+                        this.toolbar.setItemChecked(this._transformerPositionID, false);
+                        this.toolbar.setItemChecked(this._transformerRotationID, false);
+                        this.toolbar.setItemChecked(this._transformerScalingID, false);
+                        this.toolbar.setItemChecked(id, !checked);
+                        this._editor.transformer.transformerType = checked ? EDITOR.TransformerType.NOTHING : transformerIndex;
                     }
                 }
                 return false;

@@ -20,6 +20,7 @@ declare module BABYLON.EDITOR.GUI {
         close(): void;
         maximize(): void;
         onToggle: (maximized: boolean, width: number, height: number) => void;
+        notify(message: string): void;
         buildElement(parent: string): void;
     }
 }

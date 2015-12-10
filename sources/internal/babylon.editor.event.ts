@@ -25,7 +25,9 @@
 
         WINDOW_BUTTON_CLICKED = 11,
 
-        UNKNOWN = 12
+        OBJECT_PICKED = 12,
+
+        UNKNOWN = 13
     }
 
     export enum SceneEventType {

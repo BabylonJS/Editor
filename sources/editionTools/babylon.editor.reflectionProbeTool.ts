@@ -53,7 +53,7 @@
                     if (index !== -1)
                         object.renderList.splice(index, 1);
 
-                    this._excludedMeshesList.addRow({ name: mesh.name, recid: -1 });
+                    this._excludedMeshesList.addRow({ name: mesh.name });
                 }
                 return true;
             }
@@ -65,7 +65,7 @@
                     var mesh = <AbstractMesh>this._editionTool.core.currentScene.getMeshByName(this._excludedMeshesList.getRow(selected[i]).name);
                     object.renderList.push(mesh);
 
-                    this._includedMeshesList.addRow({ name: mesh.name, recid: -1 });
+                    this._includedMeshesList.addRow({ name: mesh.name });
                     this._excludedMeshesList.removeRow(selected[i]);
                 }
 
@@ -172,8 +172,7 @@
             for (var i = 0; i < scene.meshes.length; i++) {
                 if (object.renderList.indexOf(scene.meshes[i]) === -1)
                     this._excludedMeshesList.addRow({
-                        name: scene.meshes[i].name,
-                        recid: -1
+                        name: scene.meshes[i].name
                     });
             }
 
@@ -185,8 +184,7 @@
 
             for (var i = 0; i < object.renderList.length; i++) {
                 this._includedMeshesList.addRow({
-                    name: object.renderList[i].name,
-                    recid: -1
+                    name: object.renderList[i].name
                 });
             }
         }
