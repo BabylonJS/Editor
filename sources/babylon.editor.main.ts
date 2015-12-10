@@ -135,6 +135,7 @@
                 }
 
                 this.core.currentScene.activeCamera = this.core.camera;
+                this.core.playCamera = camera;
 
                 // Create render loop
                 this.core.engine.stopRenderLoop();
@@ -167,6 +168,11 @@
             this._createBabylonCamera();
 
             window.addEventListener("resize", (ev: UIEvent) => {
+                if (this.core.isPlaying) {
+                    //$("#BABYLON-EDITOR-SCENE-TOOLBAR").after(this.core.canvas);
+                    this.core.isPlaying = false;
+                }
+
                 this.core.engine.resize();
             });
         }

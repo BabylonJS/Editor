@@ -31,10 +31,6 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
-    <Content Include="website\exportedTest\floor_ao.PNG" />
-    <Content Include="website\exportedTest\floor_bump.PNG" />
-    <Content Include="website\exportedTest\floor_diffuse.PNG" />
-    <Content Include="website\exportedTest\normal.png" />
     <Content Include="website\test.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -46,11 +42,8 @@
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
-    <Content Include="website\exportedTest\main.babylon" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tests\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <TypeScriptCompile Include="defines\babylon.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.d.ts" />

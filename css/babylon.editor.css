@@ -137,3 +137,7 @@ html, body {
 .w2ui-icon.icon-focus {
     background: url("images/focus.png");
 }
+
+.w2ui-icon.icon-clone {
+    background: url("images/clone.png");
+}

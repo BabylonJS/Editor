@@ -42,11 +42,8 @@ var BABYLON;
                         return false;
                     if (id.indexOf(this._wireframeID) !== -1) {
                         var checked = !this.toolbar.isItemChecked(id);
-                        var wireframe = false;
-                        if (checked)
-                            wireframe = true;
                         for (var i = 0; i < scene.materials.length; i++) {
-                            scene.materials[i].wireframe = wireframe;
+                            scene.materials[i].wireframe = checked;
                         }
                         this.toolbar.setItemChecked(id, checked);
                         return true;

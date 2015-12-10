@@ -49,6 +49,21 @@ var BABYLON;
                         this.toolbar.setItemChecked(this._transformerScalingID, false);
                         this.toolbar.setItemChecked(id, !checked);
                         this._editor.transformer.transformerType = checked ? EDITOR.TransformerType.NOTHING : transformerIndex;
+                        return true;
+                    }
+                    else if (id.indexOf(this._playGameID) !== -1) {
+                        var checked = !this.toolbar.isItemChecked(id);
+                        if (this._core.playCamera) {
+                            this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
+                            if (checked) {
+                                //document.body.appendChild(this._core.canvas);
+                                //this._core.engine.switchFullscreen(true);
+                                this._core.engine.resize();
+                                this._core.isPlaying = true;
+                            }
+                            this.toolbar.setItemChecked(id, checked);
+                        }
+                        return true;
                     }
                 }
                 return false;

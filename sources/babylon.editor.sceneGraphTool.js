@@ -14,6 +14,7 @@ var BABYLON;
                 this.panel = null;
                 this._graphRootName = "RootScene";
                 this._menuDeleteId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
+                this._menuCloneId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -42,13 +43,39 @@ var BABYLON;
                         else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {
                             var id = event.guiEvent.data;
                             var object = this.sidebar.getSelectedData();
-                            if (object && object.dispose && object !== this._editor.core.camera) {
-                                var parent = object.parent;
-                                object.dispose();
-                                this.sidebar.removeNode(this.sidebar.getSelected());
-                                this.sidebar.refresh();
+                            var scene = this._core.currentScene;
+                            if (!object)
+                                return false;
+                            if (id === this._menuDeleteId) {
+                                if (object && object.dispose && object !== this._core.camera) {
+                                    var parent = object.parent;
+                                    object.dispose();
+                                    this.sidebar.removeNode(this.sidebar.getSelected());
+                                    this.sidebar.refresh();
+                                }
+                                return true;
                             }
-                            return true;
+                            else if (id === this._menuCloneId) {
+                                if (!(object instanceof BABYLON.Mesh))
+                                    return true;
+                                if (!object.geometry) {
+                                    var emitter = object.clone(object.name + "Cloned", object.parent);
+                                    EDITOR.Event.sendSceneEvent(emitter, EDITOR.SceneEventType.OBJECT_ADDED, this._core);
+                                    EDITOR.Event.sendSceneEvent(emitter, EDITOR.SceneEventType.OBJECT_PICKED, this._core);
+                                    this.sidebar.setSelected(emitter.id);
+                                    var buffer = null;
+                                    for (var i = 0; i < scene.particleSystems.length; i++) {
+                                        if (scene.particleSystems[i].emitter === object) {
+                                            buffer = scene.particleSystems[i].particleTexture._buffer;
+                                        }
+                                        else if (scene.particleSystems[i].emitter === emitter) {
+                                            scene.particleSystems[i].particleTexture = BABYLON.Texture.CreateFromBase64String(buffer, scene.particleSystems[i].particleTexture.name + "Cloned", scene);
+                                            break;
+                                        }
+                                    }
+                                }
+                                return true;
+                            }
                         }
                     }
                 }
@@ -145,7 +172,8 @@ var BABYLON;
                     this.sidebar.destroy();
                 this.sidebar = new EDITOR.GUI.GUIGraph(this.container, this._core);
                 // Set menus
-                this.sidebar.addMenu(this._menuDeleteId, 'Remove', 'icon-error');
+                this.sidebar.addMenu(this._menuDeleteId, "Remove", "icon-error");
+                this.sidebar.addMenu(this._menuCloneId, "Clone", "icon-clone");
                 // Build element
                 this.sidebar.buildElement(this.container);
                 /// Default node

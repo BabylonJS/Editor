@@ -11,6 +11,8 @@ var BABYLON;
                 this.engine = null;
                 this.canvas = null;
                 this.camera = null;
+                this.playCamera = null;
+                this.isPlaying = false;
                 this.scenes = new Array();
                 this.updates = new Array();
                 this.eventReceivers = new Array();

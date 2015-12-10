@@ -6,6 +6,9 @@
 
         public camera: ArcRotateCamera = null;
 
+        public playCamera: Camera = null;
+        public isPlaying: boolean = false;
+
         public scenes: Array<ICustomScene> = new Array<ICustomScene>();
         public currentScene: Scene;
 

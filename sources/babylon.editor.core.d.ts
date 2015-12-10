@@ -3,6 +3,8 @@ declare module BABYLON.EDITOR {
         engine: Engine;
         canvas: HTMLCanvasElement;
         camera: ArcRotateCamera;
+        playCamera: Camera;
+        isPlaying: boolean;
         scenes: Array<ICustomScene>;
         currentScene: Scene;
         updates: Array<ICustomUpdate>;

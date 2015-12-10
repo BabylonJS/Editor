@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR {
         private _editor;
         private _graphRootName;
         private _menuDeleteId;
+        private _menuCloneId;
         /**
         * Constructor
         * @param core: the editor core instance

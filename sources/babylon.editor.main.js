@@ -102,6 +102,7 @@ var BABYLON;
                         }
                     }
                     _this.core.currentScene.activeCamera = _this.core.camera;
+                    _this.core.playCamera = camera;
                     // Create render loop
                     _this.core.engine.stopRenderLoop();
                     _this.createRenderLoop();
@@ -127,6 +128,10 @@ var BABYLON;
                 this.core.scenes.push({ render: true, scene: this.core.currentScene });
                 this._createBabylonCamera();
                 window.addEventListener("resize", function (ev) {
+                    if (_this.core.isPlaying) {
+                        //$("#BABYLON-EDITOR-SCENE-TOOLBAR").after(this.core.canvas);
+                        _this.core.isPlaying = false;
+                    }
                     _this.core.engine.resize();
                 });
             };

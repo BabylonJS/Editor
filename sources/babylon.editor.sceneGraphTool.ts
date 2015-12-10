@@ -12,6 +12,7 @@
         private _graphRootName: string = "RootScene";
 
         private _menuDeleteId: string = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
+        private _menuCloneId: string = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
 
         /**
         * Constructor
@@ -53,15 +54,48 @@
                     else if (event.guiEvent.eventType === GUIEventType.GRAPH_MENU_SELECTED) {
                         var id: string = event.guiEvent.data;
                         var object: any = this.sidebar.getSelectedData();
+                        var scene = this._core.currentScene;
 
-                        if (object && object.dispose && object !== this._editor.core.camera) {
-                            var parent = object.parent;
-                            object.dispose();
+                        if (!object)
+                            return false;
 
-                            this.sidebar.removeNode(this.sidebar.getSelected());
-                            this.sidebar.refresh();
+                        if (id === this._menuDeleteId) {
+                            if (object && object.dispose && object !== this._core.camera) {
+                                var parent = object.parent;
+                                object.dispose();
+
+                                this.sidebar.removeNode(this.sidebar.getSelected());
+                                this.sidebar.refresh();
+                            }
+                            return true;
                         }
-                        return true;
+                        else if (id === this._menuCloneId) {
+                            if (!(object instanceof Mesh))
+                                return true;
+
+                            if (!object.geometry) {
+                                var emitter = object.clone(object.name + "Cloned", object.parent);
+                                Event.sendSceneEvent(emitter, SceneEventType.OBJECT_ADDED, this._core);
+
+                                Event.sendSceneEvent(emitter, SceneEventType.OBJECT_PICKED, this._core);
+                                this.sidebar.setSelected(emitter.id);
+                                
+                                var buffer = null;
+
+                                for (var i = 0; i < scene.particleSystems.length; i++) {
+                                    if (scene.particleSystems[i].emitter === object) {
+                                        buffer = (<any>scene.particleSystems[i].particleTexture)._buffer;
+                                    }
+                                    else if (scene.particleSystems[i].emitter === emitter) {
+                                        scene.particleSystems[i].particleTexture = Texture.CreateFromBase64String(buffer, scene.particleSystems[i].particleTexture.name + "Cloned", scene);
+                                        break;
+                                    }
+
+                                }
+                            }
+
+                            return true;
+                        }
                     }
                 }
             }
@@ -185,7 +219,8 @@
             this.sidebar = new GUI.GUIGraph(this.container, this._core);
 
             // Set menus
-            this.sidebar.addMenu(this._menuDeleteId, 'Remove', 'icon-error');
+            this.sidebar.addMenu(this._menuDeleteId, "Remove", "icon-error");
+            this.sidebar.addMenu(this._menuCloneId, "Clone", "icon-clone");
 
             // Build element
             this.sidebar.buildElement(this.container);
