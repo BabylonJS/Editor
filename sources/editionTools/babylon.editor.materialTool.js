@@ -48,9 +48,15 @@ var BABYLON;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh
-                    || object instanceof BABYLON.SubMesh) {
-                    return true;
+                if (object instanceof BABYLON.Mesh) {
+                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial))
+                        return true;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    var subMesh = object;
+                    var multiMaterial = subMesh.getMesh().material;
+                    if (multiMaterial instanceof BABYLON.MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
+                        return true;
                 }
                 return false;
             };
@@ -101,12 +107,27 @@ var BABYLON;
                 var vectorsFolder = this._element.addFolder("Vectors");
                 this._addVectorFields(vectorsFolder, object);
             };
+            // Beautify property name
+            MaterialTool.prototype._beautifyName = function (name) {
+                var result = name[0].toUpperCase(); // + name.substring(1, name.length);
+                for (var i = 1; i < name.length; i++) {
+                    var char = name[i];
+                    if (char === char.toUpperCase())
+                        result += " ";
+                    result += name[i];
+                }
+                return result;
+            };
             // Adds a number
             MaterialTool.prototype._addNumberFields = function (folder, object) {
                 for (var thing in object) {
                     var value = object[thing];
                     if (typeof value === "number" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                        folder.add(object, thing).name(thing).step(0.01);
+                        var item = folder.add(object, thing);
+                        if (thing === "alpha") {
+                            item.min(0.0).max(1.0).step(0.01);
+                        }
+                        item.step(0.01).name(this._beautifyName(thing));
                     }
                 }
             };
@@ -115,7 +136,7 @@ var BABYLON;
                 for (var thing in object) {
                     var value = object[thing];
                     if (typeof value === "boolean" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                        folder.add(object, thing).name(thing);
+                        folder.add(object, thing).name(this._beautifyName(thing));
                     }
                 }
             };
@@ -124,7 +145,7 @@ var BABYLON;
                 for (var thing in object) {
                     var value = object[thing];
                     if (value instanceof BABYLON.Color3 && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                        var colorFolder = this._element.addFolder(thing, folder);
+                        var colorFolder = this._element.addFolder(this._beautifyName(thing), folder);
                         colorFolder.close();
                         colorFolder.add(object[thing], "r").name("r").min(0.0).max(1.0).step(0.001);
                         colorFolder.add(object[thing], "g").name("g").min(0.0).max(1.0).step(0.001);
@@ -139,7 +160,7 @@ var BABYLON;
                     if (thing[0] === "_" || this._forbiddenElements.indexOf(thing) === -1)
                         continue;
                     if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Vector2) {
-                        var vectorFolder = this._element.addFolder(thing, folder);
+                        var vectorFolder = this._element.addFolder(this._beautifyName(thing), folder);
                         vectorFolder.close();
                         vectorFolder.add(object[thing], "x").name("x").step(0.01);
                         vectorFolder.add(object[thing], "y").name("y").step(0.01);

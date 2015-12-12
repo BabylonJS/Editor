@@ -75,7 +75,7 @@ var BABYLON;
                 this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50%\"></div>" +
-                    "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 49%\"></div>");
+                    "<div id=\"BABYLON-EDITOR-TOOLS-TOOLBAR\" style=\"height: 50%\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
                 var mainPanel = this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>");
@@ -110,7 +110,7 @@ var BABYLON;
                     var parent = null;
                     // Configure meshes
                     for (var i = 0; i < scene.meshes.length; i++) {
-                        EDITOR.SceneManager.configureObject(scene.meshes[i], _this.core, parent);
+                        EDITOR.SceneManager.ConfigureObject(scene.meshes[i], _this.core, parent);
                     }
                     // Reset UI
                     _this.sceneGraphTool.createUI();

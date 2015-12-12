@@ -76,13 +76,19 @@
                         this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
 
                         if (checked) {
-                            //document.body.appendChild(this._core.canvas);
-                            //this._core.engine.switchFullscreen(true);
                             this._core.engine.resize();
                             this._core.isPlaying = true;
                         }
+                        else {
+                            this._core.engine.resize();
+                        }
 
                         this.toolbar.setItemChecked(id, checked);
+
+                        SceneManager.SwitchActionManager();
+
+                        for (var i = 0; i < this._core.currentScene.meshes.length; i++)
+                            this._core.currentScene.meshes[i].showBoundingBox = false;
                     }
 
                     return true;

@@ -10,6 +10,7 @@
         private _editor: EditorMain;
 
         private _wireframeID: string = "WIREFRAME";
+        private _boundingBoxID: string = "BOUNDINGBOX";
         private _centerOnObjectID: string = "CENTER-ON-OBJECT";
 
         /**
@@ -55,11 +56,16 @@
 
                 if (id.indexOf(this._wireframeID) !== -1) {
                     var checked = !this.toolbar.isItemChecked(id);
+                    
+                    scene.forceWireframe = checked;
+                    this.toolbar.setItemChecked(id, checked);
 
-                    for (var i = 0; i < scene.materials.length; i++) {
-                        scene.materials[i].wireframe = checked;
-                    }
+                    return true;
+                }
+                else if (id.indexOf(this._boundingBoxID) !== -1) {
+                    var checked = !this.toolbar.isItemChecked(id);
 
+                    scene.forceShowBoundingBoxes = checked;
                     this.toolbar.setItemChecked(id, checked);
 
                     return true;
@@ -70,6 +76,13 @@
                         return true;
 
                     var camera = this._core.camera;
+                    var position = object.position;
+
+                    if (object.getAbsolutePosition)
+                        position = object.getAbsolutePosition();
+
+                    if (object.getBoundingInfo)
+                        position = object.getBoundingInfo().boundingSphere.centerWorld;
 
                     var keys = [
                         {
@@ -77,7 +90,7 @@
                             value: camera.target
                         }, {
                             frame: 1,
-                            value: object.getAbsolutePosition ? object.getAbsolutePosition() : object.position
+                            value: position
                         }
                     ];
 
@@ -101,6 +114,8 @@
 
             // Play game
             this.toolbar.createMenu("button", this._wireframeID, "Wireframe", "icon-wireframe");
+            this.toolbar.addBreak();
+            this.toolbar.createMenu("button", this._boundingBoxID, "Bounding Box", "icon-bounding-box");
             this.toolbar.addBreak();
             this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
             this.toolbar.addBreak();

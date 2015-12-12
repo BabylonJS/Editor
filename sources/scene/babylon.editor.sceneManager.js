@@ -5,8 +5,21 @@ var BABYLON;
         var SceneManager = (function () {
             function SceneManager() {
             }
+            // Reset configured objects
+            SceneManager.ResetConfiguredObjects = function () {
+                this._alreadyConfiguredObjectsIDs = {};
+            };
+            // Switch action manager (editor and scene itself)
+            SceneManager.SwitchActionManager = function () {
+                for (var thing in this._alreadyConfiguredObjectsIDs) {
+                    var obj = this._alreadyConfiguredObjectsIDs[thing];
+                    var actionManager = obj.mesh.actionManager;
+                    obj.mesh.actionManager = obj.actionManager;
+                    obj.actionManager = actionManager;
+                }
+            };
             // Configures and object
-            SceneManager.configureObject = function (object, core, parentNode) {
+            SceneManager.ConfigureObject = function (object, core, parentNode) {
                 if (object instanceof BABYLON.AbstractMesh) {
                     var mesh = object;
                     var scene = mesh.getScene();
@@ -14,10 +27,12 @@ var BABYLON;
                         return;
                     if (mesh instanceof BABYLON.Mesh && !mesh.geometry)
                         return;
-                    if (!mesh.actionManager) {
-                        mesh.actionManager = new BABYLON.ActionManager(scene);
-                    }
+                    this._alreadyConfiguredObjectsIDs[mesh.id] = {
+                        mesh: mesh,
+                        actionManager: mesh.actionManager
+                    };
                     // Configure mesh
+                    mesh.actionManager = new BABYLON.ActionManager(scene);
                     mesh.isPickable = true;
                     // Pointer over / out
                     mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh, "showBoundingBox", true));
@@ -38,8 +53,6 @@ var BABYLON;
                     if (parentNode && !mesh.parent) {
                         mesh.parent = parentNode;
                     }
-                    // Finish
-                    this._alreadyConfiguredObjectsIDs[mesh.id] = mesh;
                 }
                 // Send event configured
                 var ev = new EDITOR.Event();

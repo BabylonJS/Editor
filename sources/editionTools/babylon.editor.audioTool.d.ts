@@ -1,9 +1,9 @@
 declare module BABYLON.EDITOR {
-    class AbstractTool implements ICustomEditionTool {
-        object: any;
-        containers: Array<string>;
+    class AudioTool extends AbstractDatTool {
         tab: string;
-        protected _editionTool: EditionTool;
+        private _volume;
+        private _playbackRate;
+        private _position;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -12,7 +12,9 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
-        apply(): void;
-        resize(): void;
+        private _positionCallback(sound);
+        private _pauseSound();
+        private _playSound();
+        private _stopSound();
     }
 }

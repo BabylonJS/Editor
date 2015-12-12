@@ -201,7 +201,9 @@ var BABYLON;
                         }
                     }
                     // Else...
-                    return "icon-animated-mesh";
+                    if (node.skeleton)
+                        return "icon-animated-mesh";
+                    return "icon-mesh";
                 }
                 else if (node instanceof BABYLON.SubMesh) {
                     return "icon-mesh";

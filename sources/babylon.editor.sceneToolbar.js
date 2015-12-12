@@ -13,6 +13,7 @@ var BABYLON;
                 this.toolbar = null;
                 this.panel = null;
                 this._wireframeID = "WIREFRAME";
+                this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 // Initialize
                 this._editor = core.editor;
@@ -42,9 +43,13 @@ var BABYLON;
                         return false;
                     if (id.indexOf(this._wireframeID) !== -1) {
                         var checked = !this.toolbar.isItemChecked(id);
-                        for (var i = 0; i < scene.materials.length; i++) {
-                            scene.materials[i].wireframe = checked;
-                        }
+                        scene.forceWireframe = checked;
+                        this.toolbar.setItemChecked(id, checked);
+                        return true;
+                    }
+                    else if (id.indexOf(this._boundingBoxID) !== -1) {
+                        var checked = !this.toolbar.isItemChecked(id);
+                        scene.forceShowBoundingBoxes = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
@@ -53,13 +58,18 @@ var BABYLON;
                         if (!object || !object.position)
                             return true;
                         var camera = this._core.camera;
+                        var position = object.position;
+                        if (object.getAbsolutePosition)
+                            position = object.getAbsolutePosition();
+                        if (object.getBoundingInfo)
+                            position = object.getBoundingInfo().boundingSphere.centerWorld;
                         var keys = [
                             {
                                 frame: 0,
                                 value: camera.target
                             }, {
                                 frame: 1,
-                                value: object.getAbsolutePosition ? object.getAbsolutePosition() : object.position
+                                value: position
                             }
                         ];
                         var animation = new BABYLON.Animation("FocusOnObjectAnimation", "target", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
@@ -77,6 +87,8 @@ var BABYLON;
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 // Play game
                 this.toolbar.createMenu("button", this._wireframeID, "Wireframe", "icon-wireframe");
+                this.toolbar.addBreak();
+                this.toolbar.createMenu("button", this._boundingBoxID, "Bounding Box", "icon-bounding-box");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();

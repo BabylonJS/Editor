@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR {
     export class AbstractTool implements ICustomEditionTool {
         // Public members
-        public object: Node = null;
+        public object: any = null;
 
         public containers: Array<string>;
         public tab: string = "";

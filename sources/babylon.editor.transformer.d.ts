@@ -9,6 +9,12 @@ declare module BABYLON.EDITOR {
         core: EditorCore;
         private _scene;
         private _node;
+        private _helperPlane;
+        private _planeMaterial;
+        private _subMesh;
+        private _batch;
+        private _cameraTexture;
+        private _soundTexture;
         private _transformerType;
         private _xTransformers;
         private _yTransformers;
@@ -22,6 +28,7 @@ declare module BABYLON.EDITOR {
         private _pickingInfo;
         private _vectorToModify;
         private _selectedTransform;
+        private _distance;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -33,6 +40,7 @@ declare module BABYLON.EDITOR {
         transformerType: TransformerType;
         node: Node;
         getScene(): Scene;
+        private _renderHelperPlane(array, onConfigure);
         private _updateTransform(distance);
         private _getIntersectionWithLine(linePoint, lineVect);
         private _findMousePositionInPlane(pickingInfos);

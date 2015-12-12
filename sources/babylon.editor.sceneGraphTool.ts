@@ -255,7 +255,10 @@
                 }
 
                 // Else...
-                return "icon-animated-mesh";
+                if (node.skeleton)
+                    return "icon-animated-mesh";
+
+                return "icon-mesh";
             }
             else if (node instanceof SubMesh) {
                 return "icon-mesh";

@@ -144,6 +144,7 @@
             this.addTool(new AnimationTool(this));
             this.addTool(new PostProcessesTool(this));
             this.addTool(new ReflectionProbeTool(this));
+            this.addTool(new AudioTool(this));
         }
 
         // Adds a tool

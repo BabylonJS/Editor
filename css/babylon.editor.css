@@ -94,8 +94,12 @@ html, body {
     background: url("images/effects.png");
 }
 
-.w2ui-icon.icon-animated-mesh {
+.w2ui-icon.icon-mesh {
     background: url("images/pointcloud.png");
+}
+
+.w2ui-icon.icon-animated-mesh {
+    background: url("images/animated_mesh.png");
 }
 
 .w2ui-icon.icon-play-game {
@@ -140,4 +144,8 @@ html, body {
 
 .w2ui-icon.icon-clone {
     background: url("images/clone.png");
+}
+
+.w2ui-icon.icon-bounding-box {
+    background: url("images/bounding_box.png");
 }

@@ -14,6 +14,13 @@
         private _scene: Scene = null;
         private _node: Node = null;
 
+        private _helperPlane: Mesh = null;
+        private _planeMaterial: StandardMaterial = null;
+        private _subMesh: SubMesh = null;
+        private _batch: _InstancesBatch = null;
+        private _cameraTexture: Texture = null;
+        private _soundTexture: Texture = null;
+
         private _transformerType: TransformerType = TransformerType.POSITION;
         private _xTransformers: AbstractMesh[] = new Array<AbstractMesh>();
         private _yTransformers: AbstractMesh[] = new Array<AbstractMesh>();
@@ -29,6 +36,7 @@
         private _pickingInfo: PickingInfo = null;
         private _vectorToModify: Vector3 = null;
         private _selectedTransform: string = "";
+        private _distance: number = 0;
 
         /**
         * Constructor
@@ -66,8 +74,24 @@
                     Event.sendSceneEvent(this._node, SceneEventType.OBJECT_CHANGED, core);
             });
 
-            // Finish
+            // Create Transformers
             this._createTransformers();
+
+            // Helper
+            this._planeMaterial = new StandardMaterial("HelperPlaneMaterial", this._scene);
+            this._planeMaterial.emissiveColor = Color3.White();
+            this._planeMaterial.useAlphaFromDiffuseTexture = true;
+            this._planeMaterial.disableDepthWrite = false;
+
+            this._cameraTexture = new Texture("../css/images/camera.png", this._scene);
+            this._cameraTexture.hasAlpha = true;
+            this._soundTexture = new Texture("../css/images/sound.png", this._scene);
+            this._soundTexture.hasAlpha = true;
+
+            this._helperPlane = Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
+            this._helperPlane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+            this._scene.meshes.pop();
+            this._helperPlane.material = this._planeMaterial;
         }
 
         // Event receiver
@@ -99,7 +123,7 @@
             // Compute node
             var node: any = this._node;
 
-            if (!node || !node.position)
+            if (!node)
                 return;
 
             // Set transformer scale
@@ -108,31 +132,76 @@
             this._sharedScale.x = scale.x;
             this._sharedScale.y = scale.y;
             this._sharedScale.z = scale.z;
+            this._distance = distance;
 
             // Update transformer (position is particular)
-            this._xTransformers[0].position.copyFrom(node.position);
+            var position = node.position;
+            if (node.getBoundingInfo) {
+                position = node.getBoundingInfo().boundingSphere.centerWorld;
+            }
+            else if (node._position) {
+                position = node._position;
+            }
+
+            if (!position)
+                return;
+
+            this._xTransformers[0].position.copyFrom(position);
             this._yTransformers[0].position.copyFrom(this._xTransformers[0].position);
             this._zTransformers[0].position.copyFrom(this._xTransformers[0].position);
             this._yTransformers[0].position.y += distance * 1.3;
             this._zTransformers[0].position.z += distance * 1.3;
             this._xTransformers[0].position.x += distance * 1.3;
 
-            this._xTransformers[1].position.copyFrom(node.position);
-            this._yTransformers[1].position.copyFrom(node.position);
-            this._zTransformers[1].position.copyFrom(node.position);
+            this._xTransformers[1].position.copyFrom(position);
+            this._yTransformers[1].position.copyFrom(position);
+            this._zTransformers[1].position.copyFrom(position);
 
             this._xTransformers[2].position.copyFrom(this._xTransformers[0].position);
             this._yTransformers[2].position.copyFrom(this._yTransformers[0].position);
             this._zTransformers[2].position.copyFrom(this._zTransformers[0].position);
 
-            // Finish
+            // Finish Transformer
             if (this._mouseDown)
                 this._updateTransform(distance);
         }
 
         // On post update
         public onPostUpdate(): void {
+            this._helperPlane.setEnabled(!this.core.isPlaying);
 
+            if (this._planeMaterial.isReady(this._helperPlane)) {
+                this._subMesh = this._helperPlane.subMeshes[0];
+                var effect = this._planeMaterial.getEffect();
+                var engine = this._scene.getEngine();
+                this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
+
+                engine.enableEffect(effect);
+                this._helperPlane._bind(this._subMesh, effect, Material.TriangleFillMode);
+
+                // Cameras
+                this._planeMaterial.diffuseTexture = this._cameraTexture;
+                this._renderHelperPlane(this.core.currentScene.cameras, (obj: Camera) => {
+                    if (obj === this.core.camera)
+                        return false;
+
+                    this._helperPlane.position.copyFrom(obj.position);
+                    return true;
+                });
+
+                // Sounds
+                this._planeMaterial.diffuseTexture = this._soundTexture;
+                for (var i = 0; i < this.core.currentScene.soundTracks.length; i++) {
+                    var soundTrack = this.core.currentScene.soundTracks[i];
+                    this._renderHelperPlane(soundTrack.soundCollection, (obj: Sound) => {
+                        if (!obj.spatialSound)
+                            return false;
+
+                        this._helperPlane.position.copyFrom((<any>obj)._position);
+                        return true;
+                    });
+                }
+            }
         }
 
         // Get transformer type (POSITION, ROTATION or SCALING)
@@ -173,6 +242,29 @@
             return this._scene;
         }
 
+        // Render planes
+        private _renderHelperPlane(array: any[], onConfigure: (obj: any) => boolean): void {
+            var effect = this._planeMaterial.getEffect();
+
+            for (var i = 0; i < array.length; i++) {
+                var obj = array[i];
+
+                if (!onConfigure(obj))
+                    continue;
+
+                var distance = Vector3.Distance(this.core.camera.position, this._helperPlane.position) * 0.03;
+                this._helperPlane.scaling = new Vector3(distance, distance, distance), 
+                this._helperPlane.computeWorldMatrix(true);
+
+                this._scene._cachedMaterial = null;
+                this._planeMaterial.bind(this._helperPlane.getWorldMatrix(), this._helperPlane);
+
+                this._helperPlane._processRendering(this._subMesh, effect, Material.TriangleFillMode, this._batch, false, (isInstance, world) => {
+                    effect.setMatrix("world", world);
+                });
+            }
+        }
+
         // Updates the transformer (picking + manage movements)
         private _updateTransform(distance: number): void {
             if (this._pickingInfo === null) {
@@ -192,7 +284,7 @@
             if (this._pickPosition) {
                 // Setup planes
                 if (this._xTransformers.indexOf(mesh) !== -1) {
-                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, -1, 0));
+                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, 0, -1));
                     this._selectedTransform = "x";
                 }
                 else if (this._yTransformers.indexOf(mesh) !== -1) {
@@ -200,7 +292,7 @@
                     this._selectedTransform = "y";
                 }
                 else if (this._zTransformers.indexOf(mesh) !== -1) {
-                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, 1, 0));
+                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, -1, 0));
                     this._selectedTransform = "z";
                 }
 
@@ -247,6 +339,10 @@
                 else if (this._selectedTransform === "z") {
                     this._vectorToModify.z = (this._mousePositionInPlane.z - this._mousePosition.z);
                 }
+
+                if (this._node instanceof Sound) {
+                    (<any>this._node).setPosition(this._vectorToModify);
+                }
             }
         }
 
@@ -265,7 +361,8 @@
         private _findMousePositionInPlane(pickingInfos: PickingInfo): boolean {
             var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, Matrix.Identity(), this._scene.activeCamera);
 
-            if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+            //if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+            if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint))
                 return true;
 
             return false;

@@ -12,6 +12,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _beautifyName(name);
         private _addNumberFields(folder, object);
         private _addBooleanFields(folder, object);
         private _addColorFields(folder, object);

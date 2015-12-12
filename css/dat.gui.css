@@ -93,7 +93,15 @@
 }
 
 .dg .c input[type=checkbox] {
-    margin-left: 50px;
+    /*
+    margin-left: 100px;
+    */
+    float: right;
+    margin-right: 20px;
+}
+
+.dg .cr.boolean.property-name {
+    width: 90%;
 }
  
 .dg .c .slider {

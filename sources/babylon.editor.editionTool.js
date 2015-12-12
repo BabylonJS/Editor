@@ -115,6 +115,7 @@ var BABYLON;
                 this.addTool(new EDITOR.AnimationTool(this));
                 this.addTool(new EDITOR.PostProcessesTool(this));
                 this.addTool(new EDITOR.ReflectionProbeTool(this));
+                this.addTool(new EDITOR.AudioTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {

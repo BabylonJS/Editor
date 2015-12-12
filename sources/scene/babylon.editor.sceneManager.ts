@@ -1,4 +1,10 @@
 ﻿module BABYLON.EDITOR {
+    // Configured object interface
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
+
     export class SceneManager {
         // Public members
 
@@ -7,8 +13,23 @@
         */
         private static _alreadyConfiguredObjectsIDs: Object = { };
 
+        // Reset configured objects
+        static ResetConfiguredObjects(): void {
+            this._alreadyConfiguredObjectsIDs = { };
+        }
+
+        // Switch action manager (editor and scene itself)
+        static SwitchActionManager(): void {
+            for (var thing in this._alreadyConfiguredObjectsIDs) {
+                var obj: IObjectConfiguration = this._alreadyConfiguredObjectsIDs[thing];
+                var actionManager = obj.mesh.actionManager;
+                obj.mesh.actionManager = obj.actionManager;
+                obj.actionManager = actionManager;
+            }
+        }
+
         // Configures and object
-        static configureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
             if (object instanceof AbstractMesh) {
                 var mesh: AbstractMesh = object;
                 var scene = mesh.getScene();
@@ -19,11 +40,14 @@
                 if (mesh instanceof Mesh && !mesh.geometry)
                     return;
 
-                if (!mesh.actionManager) {
-                    mesh.actionManager = new ActionManager(scene);
-                }
+                this._alreadyConfiguredObjectsIDs[mesh.id] = <IObjectConfiguration>{
+                    mesh: mesh,
+                    actionManager: mesh.actionManager
+                };
 
                 // Configure mesh
+                mesh.actionManager = new ActionManager(scene);
+
                 mesh.isPickable = true;
 
                 // Pointer over / out
@@ -49,9 +73,6 @@
                 if (parentNode && !mesh.parent) {
                     mesh.parent = parentNode;
                 }
-
-                // Finish
-                this._alreadyConfiguredObjectsIDs[mesh.id] = mesh;
             }
 
             // Send event configured

@@ -21,6 +21,12 @@ var BABYLON;
                 // Private members
                 this._scene = null;
                 this._node = null;
+                this._helperPlane = null;
+                this._planeMaterial = null;
+                this._subMesh = null;
+                this._batch = null;
+                this._cameraTexture = null;
+                this._soundTexture = null;
                 this._transformerType = TransformerType.POSITION;
                 this._xTransformers = new Array();
                 this._yTransformers = new Array();
@@ -33,6 +39,7 @@ var BABYLON;
                 this._pickingInfo = null;
                 this._vectorToModify = null;
                 this._selectedTransform = "";
+                this._distance = 0;
                 //Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -57,8 +64,21 @@ var BABYLON;
                     if (_this._node)
                         EDITOR.Event.sendSceneEvent(_this._node, EDITOR.SceneEventType.OBJECT_CHANGED, core);
                 });
-                // Finish
+                // Create Transformers
                 this._createTransformers();
+                // Helper
+                this._planeMaterial = new BABYLON.StandardMaterial("HelperPlaneMaterial", this._scene);
+                this._planeMaterial.emissiveColor = BABYLON.Color3.White();
+                this._planeMaterial.useAlphaFromDiffuseTexture = true;
+                this._planeMaterial.disableDepthWrite = false;
+                this._cameraTexture = new BABYLON.Texture("../css/images/camera.png", this._scene);
+                this._cameraTexture.hasAlpha = true;
+                this._soundTexture = new BABYLON.Texture("../css/images/sound.png", this._scene);
+                this._soundTexture.hasAlpha = true;
+                this._helperPlane = BABYLON.Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
+                this._helperPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                this._scene.meshes.pop();
+                this._helperPlane.material = this._planeMaterial;
             }
             // Event receiver
             Transformer.prototype.onEvent = function (event) {
@@ -85,7 +105,7 @@ var BABYLON;
                 this._scene.activeCamera = this.core.currentScene.activeCamera;
                 // Compute node
                 var node = this._node;
-                if (!node || !node.position)
+                if (!node)
                     return;
                 // Set transformer scale
                 var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
@@ -93,25 +113,64 @@ var BABYLON;
                 this._sharedScale.x = scale.x;
                 this._sharedScale.y = scale.y;
                 this._sharedScale.z = scale.z;
+                this._distance = distance;
                 // Update transformer (position is particular)
-                this._xTransformers[0].position.copyFrom(node.position);
+                var position = node.position;
+                if (node.getBoundingInfo) {
+                    position = node.getBoundingInfo().boundingSphere.centerWorld;
+                }
+                else if (node._position) {
+                    position = node._position;
+                }
+                if (!position)
+                    return;
+                this._xTransformers[0].position.copyFrom(position);
                 this._yTransformers[0].position.copyFrom(this._xTransformers[0].position);
                 this._zTransformers[0].position.copyFrom(this._xTransformers[0].position);
                 this._yTransformers[0].position.y += distance * 1.3;
                 this._zTransformers[0].position.z += distance * 1.3;
                 this._xTransformers[0].position.x += distance * 1.3;
-                this._xTransformers[1].position.copyFrom(node.position);
-                this._yTransformers[1].position.copyFrom(node.position);
-                this._zTransformers[1].position.copyFrom(node.position);
+                this._xTransformers[1].position.copyFrom(position);
+                this._yTransformers[1].position.copyFrom(position);
+                this._zTransformers[1].position.copyFrom(position);
                 this._xTransformers[2].position.copyFrom(this._xTransformers[0].position);
                 this._yTransformers[2].position.copyFrom(this._yTransformers[0].position);
                 this._zTransformers[2].position.copyFrom(this._zTransformers[0].position);
-                // Finish
+                // Finish Transformer
                 if (this._mouseDown)
                     this._updateTransform(distance);
             };
             // On post update
             Transformer.prototype.onPostUpdate = function () {
+                var _this = this;
+                this._helperPlane.setEnabled(!this.core.isPlaying);
+                if (this._planeMaterial.isReady(this._helperPlane)) {
+                    this._subMesh = this._helperPlane.subMeshes[0];
+                    var effect = this._planeMaterial.getEffect();
+                    var engine = this._scene.getEngine();
+                    this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
+                    engine.enableEffect(effect);
+                    this._helperPlane._bind(this._subMesh, effect, BABYLON.Material.TriangleFillMode);
+                    // Cameras
+                    this._planeMaterial.diffuseTexture = this._cameraTexture;
+                    this._renderHelperPlane(this.core.currentScene.cameras, function (obj) {
+                        if (obj === _this.core.camera)
+                            return false;
+                        _this._helperPlane.position.copyFrom(obj.position);
+                        return true;
+                    });
+                    // Sounds
+                    this._planeMaterial.diffuseTexture = this._soundTexture;
+                    for (var i = 0; i < this.core.currentScene.soundTracks.length; i++) {
+                        var soundTrack = this.core.currentScene.soundTracks[i];
+                        this._renderHelperPlane(soundTrack.soundCollection, function (obj) {
+                            if (!obj.spatialSound)
+                                return false;
+                            _this._helperPlane.position.copyFrom(obj._position);
+                            return true;
+                        });
+                    }
+                }
             };
             Object.defineProperty(Transformer.prototype, "transformerType", {
                 // Get transformer type (POSITION, ROTATION or SCALING)
@@ -152,6 +211,23 @@ var BABYLON;
             Transformer.prototype.getScene = function () {
                 return this._scene;
             };
+            // Render planes
+            Transformer.prototype._renderHelperPlane = function (array, onConfigure) {
+                var effect = this._planeMaterial.getEffect();
+                for (var i = 0; i < array.length; i++) {
+                    var obj = array[i];
+                    if (!onConfigure(obj))
+                        continue;
+                    var distance = BABYLON.Vector3.Distance(this.core.camera.position, this._helperPlane.position) * 0.03;
+                    this._helperPlane.scaling = new BABYLON.Vector3(distance, distance, distance),
+                        this._helperPlane.computeWorldMatrix(true);
+                    this._scene._cachedMaterial = null;
+                    this._planeMaterial.bind(this._helperPlane.getWorldMatrix(), this._helperPlane);
+                    this._helperPlane._processRendering(this._subMesh, effect, BABYLON.Material.TriangleFillMode, this._batch, false, function (isInstance, world) {
+                        effect.setMatrix("world", world);
+                    });
+                }
+            };
             // Updates the transformer (picking + manage movements)
             Transformer.prototype._updateTransform = function (distance) {
                 if (this._pickingInfo === null) {
@@ -167,7 +243,7 @@ var BABYLON;
                 if (this._pickPosition) {
                     // Setup planes
                     if (this._xTransformers.indexOf(mesh) !== -1) {
-                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, -1, 0));
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, 0, -1));
                         this._selectedTransform = "x";
                     }
                     else if (this._yTransformers.indexOf(mesh) !== -1) {
@@ -175,7 +251,7 @@ var BABYLON;
                         this._selectedTransform = "y";
                     }
                     else if (this._zTransformers.indexOf(mesh) !== -1) {
-                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, 1, 0));
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, -1, 0));
                         this._selectedTransform = "z";
                     }
                     this.core.currentScene.activeCamera.detachControl(this.core.canvas);
@@ -215,6 +291,9 @@ var BABYLON;
                     else if (this._selectedTransform === "z") {
                         this._vectorToModify.z = (this._mousePositionInPlane.z - this._mousePosition.z);
                     }
+                    if (this._node instanceof BABYLON.Sound) {
+                        this._node.setPosition(this._vectorToModify);
+                    }
                 }
             };
             // Returns if the ray intersects the transformer plane
@@ -229,7 +308,8 @@ var BABYLON;
             // Fins the mouse position in plane
             Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
                 var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity(), this._scene.activeCamera);
-                if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+                //if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
+                if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint))
                     return true;
                 return false;
             };

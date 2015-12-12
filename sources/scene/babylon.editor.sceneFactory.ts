@@ -22,7 +22,11 @@
                 this._hdrPipeline = null;
             }
 
-            var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, 1.0, null, [core.camera]);
+            var cameras: Camera[] = [core.camera];
+            if (core.playCamera)
+                cameras.push(core.playCamera);
+
+            var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, 1.0, null, cameras);
             hdr.brightThreshold = 0.5;
             hdr.gaussCoeff = 0.3;
             hdr.gaussMean = 1.0;
@@ -44,7 +48,11 @@
                 this._ssaoPipeline = null;
             }
 
-            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, [core.camera]);
+            var cameras: Camera[] = [core.camera];
+            if (core.playCamera)
+                cameras.push(core.playCamera);
+
+            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
             ssao.fallOff = 0.000001;
             ssao.area = 0.0075;
             ssao.radius = 0.0002;

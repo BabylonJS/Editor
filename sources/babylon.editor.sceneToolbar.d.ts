@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _editor;
         private _wireframeID;
+        private _boundingBoxID;
         private _centerOnObjectID;
         /**
         * Constructor
