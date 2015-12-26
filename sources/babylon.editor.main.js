@@ -13,6 +13,7 @@ var BABYLON;
                 this.layouts = null;
                 this.filesInput = null;
                 this.renderMainScene = true;
+                this.renderHelpers = true;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;

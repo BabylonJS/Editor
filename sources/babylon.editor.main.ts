@@ -20,6 +20,7 @@
         public exporter: Exporter;
 
         public renderMainScene: boolean = true;
+        public renderHelpers: boolean = true;
 
         // private members
 

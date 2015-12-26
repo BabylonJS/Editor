@@ -14,6 +14,7 @@ declare module BABYLON.EDITOR {
         filesInput: FilesInput;
         exporter: Exporter;
         renderMainScene: boolean;
+        renderHelpers: boolean;
         static DummyNodeID: string;
         /**
         * Constructor

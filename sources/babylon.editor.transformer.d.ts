@@ -40,6 +40,7 @@ declare module BABYLON.EDITOR {
         transformerType: TransformerType;
         node: Node;
         getScene(): Scene;
+        private _getNodePosition();
         private _renderHelperPlane(array, onConfigure);
         private _updateTransform(distance);
         private _getIntersectionWithLine(linePoint, lineVect);

@@ -12,7 +12,7 @@
 
         // Private members
         private _scene: Scene = null;
-        private _node: Node = null;
+        private _node: any = null;
 
         private _helperPlane: Mesh = null;
         private _planeMaterial: StandardMaterial = null;
@@ -127,7 +127,12 @@
                 return;
 
             // Set transformer scale
-            var distance = Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
+            var distance = 0;
+
+            if (!this.core.isPlaying) {
+                distance = Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
+            }
+
             var scale = new Vector3(distance, distance, distance).divide(new Vector3(3, 3, 3));
             this._sharedScale.x = scale.x;
             this._sharedScale.y = scale.y;
@@ -135,14 +140,7 @@
             this._distance = distance;
 
             // Update transformer (position is particular)
-            var position = node.position;
-            if (node.getBoundingInfo) {
-                position = node.getBoundingInfo().boundingSphere.centerWorld;
-            }
-            else if (node._position) {
-                position = node._position;
-            }
-
+            var position = this._getNodePosition();
             if (!position)
                 return;
 
@@ -168,7 +166,10 @@
 
         // On post update
         public onPostUpdate(): void {
-            this._helperPlane.setEnabled(!this.core.isPlaying);
+            //this._helperPlane.setEnabled(!this.core.isPlaying && this.core.editor.renderHelpers);
+
+            if (this.core.isPlaying || !this.core.editor.renderHelpers)
+                return;
 
             if (this._planeMaterial.isReady(this._helperPlane)) {
                 this._subMesh = this._helperPlane.subMeshes[0];
@@ -242,6 +243,21 @@
             return this._scene;
         }
 
+        // Returns the node position
+        private _getNodePosition(): Vector3 {
+            var node: any = this._node;
+            var position: Vector3 = node.position;
+
+            if (node.getBoundingInfo && node.geometry) {
+                position = node.getBoundingInfo().boundingSphere.centerWorld;
+            }
+            else if (node._position) {
+                position = node._position;
+            }
+
+            return position;
+        }
+
         // Render planes
         private _renderHelperPlane(array: any[], onConfigure: (obj: any) => boolean): void {
             var effect = this._planeMaterial.getEffect();
@@ -280,19 +296,20 @@
 
             var mesh = <AbstractMesh>this._pickingInfo.pickedMesh.parent || this._pickingInfo.pickedMesh;
             var node: any = this._node;
+            var position = this._getNodePosition();
 
             if (this._pickPosition) {
                 // Setup planes
                 if (this._xTransformers.indexOf(mesh) !== -1) {
-                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, 0, -1));
+                    this._pickingPlane = Plane.FromPositionAndNormal(position, new Vector3(0, 0, -1));
                     this._selectedTransform = "x";
                 }
                 else if (this._yTransformers.indexOf(mesh) !== -1) {
-                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(-1, 0, 0));
+                    this._pickingPlane = Plane.FromPositionAndNormal(position, new Vector3(-1, 0, 0));
                     this._selectedTransform = "y";
                 }
                 else if (this._zTransformers.indexOf(mesh) !== -1) {
-                    this._pickingPlane = Plane.FromPositionAndNormal(node.position, new Vector3(0, -1, 0));
+                    this._pickingPlane = Plane.FromPositionAndNormal(position, new Vector3(0, -1, 0));
                     this._selectedTransform = "z";
                 }
 
@@ -302,14 +319,14 @@
                     this._mousePosition.copyFrom(this._mousePositionInPlane);
 
                     if (this._transformerType === TransformerType.POSITION) {
-                        this._mousePosition = this._mousePosition.subtract(node.position);
-                        this._vectorToModify = node.position;
+                        this._mousePosition = this._mousePosition.subtract(position);
+                        this._vectorToModify = this._getNodePosition();
                     }
-                    else if (this._transformerType === TransformerType.SCALING) {
+                    else if (this._transformerType === TransformerType.SCALING && node.scaling) {
                         this._mousePosition = this._mousePosition.subtract(node.scaling);
                         this._vectorToModify = node.scaling;
                     }
-                    else if (this._transformerType === TransformerType.ROTATION) {
+                    else if (this._transformerType === TransformerType.ROTATION && (node.rotation || node.direction)) {
                         this._vectorToModify = node.direction || node.rotation;
                         this._mousePosition = this._mousePosition.subtract(this._vectorToModify);
                     }
@@ -342,6 +359,9 @@
 
                 if (this._node instanceof Sound) {
                     (<any>this._node).setPosition(this._vectorToModify);
+                }
+                else if (node.position) {
+                    node.position.copyFrom(this._vectorToModify);
                 }
             }
         }

@@ -15,6 +15,7 @@ var BABYLON;
                 this._wireframeID = "WIREFRAME";
                 this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
+                this._renderHelpersID = "RENDER-HELPERS";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -50,6 +51,12 @@ var BABYLON;
                     else if (id.indexOf(this._boundingBoxID) !== -1) {
                         var checked = !this.toolbar.isItemChecked(id);
                         scene.forceShowBoundingBoxes = checked;
+                        this.toolbar.setItemChecked(id, checked);
+                        return true;
+                    }
+                    else if (id.indexOf(this._renderHelpersID) !== -1) {
+                        var checked = !this.toolbar.isItemChecked(id);
+                        this._core.editor.renderHelpers = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
@@ -89,6 +96,8 @@ var BABYLON;
                 this.toolbar.createMenu("button", this._wireframeID, "Wireframe", "icon-wireframe");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._boundingBoxID, "Bounding Box", "icon-bounding-box");
+                this.toolbar.addBreak();
+                this.toolbar.createMenu("button", this._renderHelpersID, "Helpers", "icon-helpers", true);
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();

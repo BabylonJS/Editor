@@ -21,12 +21,12 @@ declare module BABYLON.EDITOR {
         * Constructor
         * @param core: the editor core
         */
-        constructor(core: EditorCore, particleSystem?: ParticleSystem);
+        constructor(core: EditorCore, particleSystem?: ParticleSystem, createUI?: boolean);
         onEvent(event: Event): boolean;
         private _createUI();
-        private _createEditor();
+        _createEditor(container?: string): GUI.GUIEditForm;
         private _setParticleSystem();
         private _setParticleTexture();
-        static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem): ParticleSystem;
+        static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem;
     }
 }

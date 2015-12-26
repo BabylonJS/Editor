@@ -7,6 +7,8 @@
 
         // Private members
         private _particleSystem: ParticleSystem = null;
+        private _particleSystemCapacity: string = "";
+        private _particleSystemTabId: string = "PARTICLE.TAB";
 
         /**
         * Constructor
@@ -78,6 +80,17 @@
             if (particleSystem !== null) {
                 var particleSystemFolder = this._element.addFolder("Particle System");
 
+                this._particleSystemCapacity = "" + particleSystem.getCapacity();
+                particleSystemFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange((result: any) => {
+                    result = parseFloat(result);
+
+                    var emitter = particleSystem.emitter;
+                    particleSystem.emitter = null;
+                    var newParticleSystem = GUICreateParticleSystem.CreateParticleSystem(scene, result, particleSystem, emitter);
+                    particleSystem.dispose();
+                    particleSystem = newParticleSystem;
+                    this.update();
+                });
                 particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
                 particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
                 particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");

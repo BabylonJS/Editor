@@ -3,6 +3,8 @@ declare module BABYLON.EDITOR {
         object: Node;
         tab: string;
         private _particleSystem;
+        private _particleSystemCapacity;
+        private _particleSystemTabId;
         /**
         * Constructor
         * @param editionTool: edition tool instance

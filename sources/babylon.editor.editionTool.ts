@@ -145,6 +145,7 @@
             this.addTool(new PostProcessesTool(this));
             this.addTool(new ReflectionProbeTool(this));
             this.addTool(new AudioTool(this));
+            this.addTool(new ParticleSystemTool(this));
         }
 
         // Adds a tool

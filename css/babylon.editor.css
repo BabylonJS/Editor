@@ -149,3 +149,7 @@ html, body {
 .w2ui-icon.icon-bounding-box {
     background: url("images/bounding_box.png");
 }
+
+.w2ui-icon.icon-helpers {
+    background: url("images/helpers.png");
+}

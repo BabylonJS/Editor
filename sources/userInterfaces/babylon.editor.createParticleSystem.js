@@ -7,8 +7,9 @@ var BABYLON;
             * Constructor
             * @param core: the editor core
             */
-            function GUICreateParticleSystem(core, particleSystem) {
+            function GUICreateParticleSystem(core, particleSystem, createUI) {
                 var _this = this;
+                if (createUI === void 0) { createUI = true; }
                 // Public members
                 this.core = null;
                 // Private members
@@ -30,21 +31,28 @@ var BABYLON;
                 this._particleSystemToEdit = null;
                 // Initialize
                 this.core = core;
-                // UI
-                this._createUI();
-                // Scene
-                this._engine = new BABYLON.Engine(document.getElementById(this._layoutID + "CANVAS"));
-                this._scene = new BABYLON.Scene(this._engine);
-                this._camera = new BABYLON.ArcRotateCamera("Camera", 1, 1.3, 30, new BABYLON.Vector3(0, 0, 0), this._scene);
-                this._camera.attachControl(this._engine.getRenderingCanvas(), false);
-                this._engine.runRenderLoop(function () {
-                    _this._scene.render();
-                });
-                this._particleSystem = GUICreateParticleSystem.CreateParticleSystem(this._scene, 1000, particleSystem);
-                this._particleSystemToEdit = particleSystem;
-                // Finish
-                core.eventReceivers.push(this);
-                this._createEditor();
+                if (createUI) {
+                    // UI
+                    this._createUI();
+                    // Scene
+                    this._engine = new BABYLON.Engine(document.getElementById(this._layoutID + "CANVAS"));
+                    this._scene = new BABYLON.Scene(this._engine);
+                    this._camera = new BABYLON.ArcRotateCamera("Camera", 1, 1.3, 30, new BABYLON.Vector3(0, 0, 0), this._scene);
+                    this._camera.attachControl(this._engine.getRenderingCanvas(), false);
+                    this._engine.runRenderLoop(function () {
+                        _this._scene.render();
+                    });
+                    this._particleSystem = GUICreateParticleSystem.CreateParticleSystem(this._scene, particleSystem.getCapacity(), particleSystem);
+                    this._particleSystemToEdit = particleSystem;
+                    // Finish
+                    core.eventReceivers.push(this);
+                    this._createEditor();
+                }
+                else {
+                    // Assume that particleSystem isn't null
+                    this._particleSystem = particleSystem;
+                    this._scene = particleSystem._scene;
+                }
             }
             // On event
             GUICreateParticleSystem.prototype.onEvent = function (event) {
@@ -86,13 +94,17 @@ var BABYLON;
                 var _this = this;
                 // Window
                 var layoutDiv = EDITOR.GUI.GUIElement.CreateDivElement(this._layoutID, "width: 100%; height: 100%;");
-                this._window = new EDITOR.GUI.GUIWindow("EditParticleSystem", this.core, "Edit Particle System", layoutDiv);
+                this._window = new EDITOR.GUI.GUIWindow("EditParticleSystem", this.core, "Edit Particle System", layoutDiv, new BABYLON.Vector2(800, 600));
                 this._window.modal = true;
                 this._window.showMax = true;
                 this._window.showClose = true;
                 this._window.buttons = ["Apply", "Cancel"];
                 this._window.buildElement(null);
                 this._window.onToggle = function (maximized, width, height) {
+                    if (!maximized) {
+                        width = _this._window.size.x;
+                        height = _this._window.size.y;
+                    }
                     _this._layouts.setPanelSize("left", width / 2);
                     _this._layouts.setPanelSize("main", width / 2);
                 };
@@ -144,8 +156,8 @@ var BABYLON;
                 $(this._editor.container).hide();
             };
             // Creates the editor
-            GUICreateParticleSystem.prototype._createEditor = function () {
-                var elementId = this._layoutID + "FORM";
+            GUICreateParticleSystem.prototype._createEditor = function (container) {
+                var elementId = container ? container : this._layoutID + "FORM";
                 this._editElement = new EDITOR.GUI.GUIEditForm(elementId, this.core);
                 this._editElement.buildElement(elementId);
                 var ps = this._particleSystem;
@@ -219,6 +231,7 @@ var BABYLON;
                 colorDeadFolder.add(ps.colorDead, "g").step(0.01).min(0.0).max(1.0);
                 colorDeadFolder.add(ps.colorDead, "b").step(0.01).min(0.0).max(1.0);
                 colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
+                return this._editElement;
             };
             // Set the particle system
             GUICreateParticleSystem.prototype._setParticleSystem = function () {
@@ -239,6 +252,9 @@ var BABYLON;
             GUICreateParticleSystem.prototype._setParticleTexture = function () {
                 var _this = this;
                 var input = $("#" + this._inputElementID);
+                if (!input[0])
+                    $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", this._inputElementID, "display: none;"));
+                input = $("#" + this._inputElementID);
                 input.change(function (data) {
                     var files = data.target.files || data.currentTarget.files;
                     if (files.length < 1)
@@ -246,14 +262,19 @@ var BABYLON;
                     var file = files[0];
                     BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
                         _this._particleSystem.particleTexture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._scene);
+                        input.remove();
                     }, null);
                 });
                 input.click();
             };
-            GUICreateParticleSystem.CreateParticleSystem = function (scene, capacity, particleSystem) {
+            GUICreateParticleSystem.CreateParticleSystem = function (scene, capacity, particleSystem, emitter) {
                 particleSystem = particleSystem || {};
-                var dummy = new BABYLON.Mesh("New Particle System", scene, null, null, true);
-                var ps = new BABYLON.ParticleSystem("New Particle System", particleSystem.getCapacity ? particleSystem.getCapacity() : capacity, scene);
+                var dummy = null;
+                if (emitter)
+                    dummy = emitter;
+                else
+                    dummy = new BABYLON.Mesh("New Particle System", scene, null, null, true);
+                var ps = new BABYLON.ParticleSystem("New Particle System", capacity, scene);
                 ps.emitter = dummy;
                 ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);
                 ps.maxEmitBox = particleSystem.maxEmitBox || new BABYLON.Vector3(1, 0, 0);

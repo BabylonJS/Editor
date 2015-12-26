@@ -12,6 +12,7 @@
         private _wireframeID: string = "WIREFRAME";
         private _boundingBoxID: string = "BOUNDINGBOX";
         private _centerOnObjectID: string = "CENTER-ON-OBJECT";
+        private _renderHelpersID: string = "RENDER-HELPERS";
 
         /**
         * Constructor
@@ -70,6 +71,14 @@
 
                     return true;
                 }
+                else if (id.indexOf(this._renderHelpersID) !== -1) {
+                    var checked = !this.toolbar.isItemChecked(id);
+
+                    this._core.editor.renderHelpers = checked;
+                    this.toolbar.setItemChecked(id, checked);
+
+                    return true;
+                }
                 else if (id.indexOf(this._centerOnObjectID) !== -1) {
                     var object: any = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
                     if (!object || !object.position)
@@ -116,6 +125,8 @@
             this.toolbar.createMenu("button", this._wireframeID, "Wireframe", "icon-wireframe");
             this.toolbar.addBreak();
             this.toolbar.createMenu("button", this._boundingBoxID, "Bounding Box", "icon-bounding-box");
+            this.toolbar.addBreak();
+            this.toolbar.createMenu("button", this._renderHelpersID, "Helpers", "icon-helpers", true);
             this.toolbar.addBreak();
             this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
             this.toolbar.addBreak();

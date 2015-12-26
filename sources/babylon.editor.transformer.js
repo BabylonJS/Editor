@@ -108,20 +108,17 @@ var BABYLON;
                 if (!node)
                     return;
                 // Set transformer scale
-                var distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
+                var distance = 0;
+                if (!this.core.isPlaying) {
+                    distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
+                }
                 var scale = new BABYLON.Vector3(distance, distance, distance).divide(new BABYLON.Vector3(3, 3, 3));
                 this._sharedScale.x = scale.x;
                 this._sharedScale.y = scale.y;
                 this._sharedScale.z = scale.z;
                 this._distance = distance;
                 // Update transformer (position is particular)
-                var position = node.position;
-                if (node.getBoundingInfo) {
-                    position = node.getBoundingInfo().boundingSphere.centerWorld;
-                }
-                else if (node._position) {
-                    position = node._position;
-                }
+                var position = this._getNodePosition();
                 if (!position)
                     return;
                 this._xTransformers[0].position.copyFrom(position);
@@ -142,8 +139,10 @@ var BABYLON;
             };
             // On post update
             Transformer.prototype.onPostUpdate = function () {
+                //this._helperPlane.setEnabled(!this.core.isPlaying && this.core.editor.renderHelpers);
                 var _this = this;
-                this._helperPlane.setEnabled(!this.core.isPlaying);
+                if (this.core.isPlaying || !this.core.editor.renderHelpers)
+                    return;
                 if (this._planeMaterial.isReady(this._helperPlane)) {
                     this._subMesh = this._helperPlane.subMeshes[0];
                     var effect = this._planeMaterial.getEffect();
@@ -211,6 +210,18 @@ var BABYLON;
             Transformer.prototype.getScene = function () {
                 return this._scene;
             };
+            // Returns the node position
+            Transformer.prototype._getNodePosition = function () {
+                var node = this._node;
+                var position = node.position;
+                if (node.getBoundingInfo && node.geometry) {
+                    position = node.getBoundingInfo().boundingSphere.centerWorld;
+                }
+                else if (node._position) {
+                    position = node._position;
+                }
+                return position;
+            };
             // Render planes
             Transformer.prototype._renderHelperPlane = function (array, onConfigure) {
                 var effect = this._planeMaterial.getEffect();
@@ -240,32 +251,33 @@ var BABYLON;
                 }
                 var mesh = this._pickingInfo.pickedMesh.parent || this._pickingInfo.pickedMesh;
                 var node = this._node;
+                var position = this._getNodePosition();
                 if (this._pickPosition) {
                     // Setup planes
                     if (this._xTransformers.indexOf(mesh) !== -1) {
-                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, 0, -1));
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(position, new BABYLON.Vector3(0, 0, -1));
                         this._selectedTransform = "x";
                     }
                     else if (this._yTransformers.indexOf(mesh) !== -1) {
-                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(-1, 0, 0));
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(position, new BABYLON.Vector3(-1, 0, 0));
                         this._selectedTransform = "y";
                     }
                     else if (this._zTransformers.indexOf(mesh) !== -1) {
-                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(node.position, new BABYLON.Vector3(0, -1, 0));
+                        this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(position, new BABYLON.Vector3(0, -1, 0));
                         this._selectedTransform = "z";
                     }
                     this.core.currentScene.activeCamera.detachControl(this.core.canvas);
                     if (this._findMousePositionInPlane(this._pickingInfo)) {
                         this._mousePosition.copyFrom(this._mousePositionInPlane);
                         if (this._transformerType === TransformerType.POSITION) {
-                            this._mousePosition = this._mousePosition.subtract(node.position);
-                            this._vectorToModify = node.position;
+                            this._mousePosition = this._mousePosition.subtract(position);
+                            this._vectorToModify = this._getNodePosition();
                         }
-                        else if (this._transformerType === TransformerType.SCALING) {
+                        else if (this._transformerType === TransformerType.SCALING && node.scaling) {
                             this._mousePosition = this._mousePosition.subtract(node.scaling);
                             this._vectorToModify = node.scaling;
                         }
-                        else if (this._transformerType === TransformerType.ROTATION) {
+                        else if (this._transformerType === TransformerType.ROTATION && (node.rotation || node.direction)) {
                             this._vectorToModify = node.direction || node.rotation;
                             this._mousePosition = this._mousePosition.subtract(this._vectorToModify);
                         }
@@ -293,6 +305,9 @@ var BABYLON;
                     }
                     if (this._node instanceof BABYLON.Sound) {
                         this._node.setPosition(this._vectorToModify);
+                    }
+                    else if (node.position) {
+                        node.position.copyFrom(this._vectorToModify);
                     }
                 }
             };

@@ -31,29 +31,36 @@
         * Constructor
         * @param core: the editor core
         */
-        constructor(core: EditorCore, particleSystem?: ParticleSystem) {
+        constructor(core: EditorCore, particleSystem?: ParticleSystem, createUI: boolean = true) {
             // Initialize
             this.core = core;
 
-            // UI
-            this._createUI();
+            if (createUI) {
+                // UI
+                this._createUI();
 
-            // Scene
-            this._engine = new Engine(<HTMLCanvasElement>document.getElementById(this._layoutID + "CANVAS"));
-            this._scene = new Scene(this._engine);
-            this._camera = new ArcRotateCamera("Camera", 1, 1.3, 30, new Vector3(0, 0, 0), this._scene);
-            this._camera.attachControl(this._engine.getRenderingCanvas(), false);
+                // Scene
+                this._engine = new Engine(<HTMLCanvasElement>document.getElementById(this._layoutID + "CANVAS"));
+                this._scene = new Scene(this._engine);
+                this._camera = new ArcRotateCamera("Camera", 1, 1.3, 30, new Vector3(0, 0, 0), this._scene);
+                this._camera.attachControl(this._engine.getRenderingCanvas(), false);
 
-            this._engine.runRenderLoop(() => {
-                this._scene.render();
-            });
+                this._engine.runRenderLoop(() => {
+                    this._scene.render();
+                });
 
-            this._particleSystem = GUICreateParticleSystem.CreateParticleSystem(this._scene, 1000, particleSystem);
-            this._particleSystemToEdit = particleSystem;
+                this._particleSystem = GUICreateParticleSystem.CreateParticleSystem(this._scene, particleSystem.getCapacity(), particleSystem);
+                this._particleSystemToEdit = particleSystem;
 
-            // Finish
-            core.eventReceivers.push(this);
-            this._createEditor();
+                // Finish
+                core.eventReceivers.push(this);
+                this._createEditor();
+            }
+            else {
+                // Assume that particleSystem isn't null
+                this._particleSystem = particleSystem;
+                this._scene = (<any>particleSystem)._scene;
+            }
         }
 
         // On event
@@ -105,7 +112,7 @@
         private _createUI(): void {
             // Window
             var layoutDiv = GUI.GUIElement.CreateDivElement(this._layoutID, "width: 100%; height: 100%;");
-            this._window = new GUI.GUIWindow("EditParticleSystem", this.core, "Edit Particle System", layoutDiv);
+            this._window = new GUI.GUIWindow("EditParticleSystem", this.core, "Edit Particle System", layoutDiv, new Vector2(800, 600));
             this._window.modal = true;
             this._window.showMax = true;
             this._window.showClose = true;
@@ -114,6 +121,10 @@
             this._window.buildElement(null);
 
             this._window.onToggle = (maximized: boolean, width: number, height: number) => {
+                if (!maximized) {
+                    width = this._window.size.x;
+                    height = this._window.size.y;
+                }
                 this._layouts.setPanelSize("left", width / 2);
                 this._layouts.setPanelSize("main", width / 2);
             };
@@ -181,8 +192,8 @@
         }
 
         // Creates the editor
-        private _createEditor(): void {
-            var elementId = this._layoutID + "FORM";
+        public _createEditor(container?: string): GUI.GUIEditForm {
+            var elementId = container ? container : this._layoutID + "FORM";
             this._editElement = new GUI.GUIEditForm(elementId, this.core);
             this._editElement.buildElement(elementId);
 
@@ -267,6 +278,8 @@
             colorDeadFolder.add(ps.colorDead, "g").step(0.01).min(0.0).max(1.0);
             colorDeadFolder.add(ps.colorDead, "b").step(0.01).min(0.0).max(1.0);
             colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
+
+            return this._editElement;
         }
 
         // Set the particle system
@@ -294,6 +307,12 @@
         // Set the particle texture
         private _setParticleTexture(): void {
             var input = $("#" + this._inputElementID);
+
+            if (!input[0])
+                $("#BABYLON-EDITOR-UTILS").append(GUI.GUIElement.CreateElement("input type=\"file\"", this._inputElementID, "display: none;"));
+
+            input = $("#" + this._inputElementID);
+
             input.change((data: any) => {
                 var files: File[] = data.target.files || data.currentTarget.files;
 
@@ -303,16 +322,22 @@
                 var file = files[0];
                 BABYLON.Tools.ReadFileAsDataURL(file, (result: string) => {
                     this._particleSystem.particleTexture = Texture.CreateFromBase64String(result, file.name, this._scene);
+                    input.remove();
                 }, null);
             });
             input.click();
         }
 
-        public static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem): ParticleSystem {
+        public static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem {
             particleSystem = particleSystem || <ParticleSystem>{ };
+            var dummy: Node = null;
 
-            var dummy = new Mesh("New Particle System", scene, null, null, true);
-            var ps = new ParticleSystem("New Particle System", particleSystem.getCapacity ? particleSystem.getCapacity() : capacity, scene);
+            if (emitter)
+                dummy = emitter;
+            else
+                dummy = new Mesh("New Particle System", scene, null, null, true);
+
+            var ps = new ParticleSystem("New Particle System", capacity, scene);
 
             ps.emitter = dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);

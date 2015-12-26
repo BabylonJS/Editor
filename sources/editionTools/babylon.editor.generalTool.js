@@ -20,6 +20,8 @@ var BABYLON;
                 this.tab = "GENERAL.TAB";
                 // Private members
                 this._particleSystem = null;
+                this._particleSystemCapacity = "";
+                this._particleSystemTabId = "PARTICLE.TAB";
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
@@ -71,6 +73,16 @@ var BABYLON;
                 }
                 if (particleSystem !== null) {
                     var particleSystemFolder = this._element.addFolder("Particle System");
+                    this._particleSystemCapacity = "" + particleSystem.getCapacity();
+                    particleSystemFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
+                        result = parseFloat(result);
+                        var emitter = particleSystem.emitter;
+                        particleSystem.emitter = null;
+                        var newParticleSystem = EDITOR.GUICreateParticleSystem.CreateParticleSystem(scene, result, particleSystem, emitter);
+                        particleSystem.dispose();
+                        particleSystem = newParticleSystem;
+                        _this.update();
+                    });
                     particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
                     particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
                     particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");
