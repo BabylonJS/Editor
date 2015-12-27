@@ -12,5 +12,8 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _ssaoOnly(result);
+        private _attachDetachPipeline(attach, pipeline);
+        private _getPipelineCameras();
     }
 }
