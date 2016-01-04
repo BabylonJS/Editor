@@ -114,10 +114,12 @@ var BABYLON;
                     materialString = "\tnode.material.subMaterials[" + subMeshId + "]";
                 }
                 if (material instanceof BABYLON.StandardMaterial) {
-                    finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
                 }
                 else if (material instanceof BABYLON.PBRMaterial) {
                     finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
+                }
+                else if (material instanceof BABYLON.SkyMaterial) {
+                    finalString += materialString + " =  new BABYLON.SkyMaterial(\"" + material.name + "\", scene);\n";
                 }
                 // Set values
                 for (var thing in material) {
@@ -153,6 +155,11 @@ var BABYLON;
                     }
                 }
                 return finalString + "\n";
+            };
+            Exporter.prototype._exportSky = function (node) {
+                var finalString = "\tnode = new BABYLON.Mesh.CreateBox(\"" + node.name + "\", 1000, scene);\n";
+                //Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+                return finalString;
             };
             Exporter.prototype._exportParticleSystem = function (particleSystem) {
                 var node = particleSystem.emitter;
@@ -229,7 +236,7 @@ var BABYLON;
                         + "\t\tshadowGenerator = new BABYLON.ShadowGenerator(" + serializationObject.mapSize + ", node);\n";
                 for (var i = 0; i < serializationObject.renderList.length; i++) {
                     var mesh = serializationObject.renderList[i];
-                    finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshById(\"" + mesh.id + "\"));\n";
+                    finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshByID(\"" + mesh + "\"));\n";
                 }
                 finalString += "\t}\n";
                 for (var thing in shadowsGenerator) {
@@ -294,7 +301,14 @@ var BABYLON;
                                 foundParticleSystems = true;
                             }
                         }
-                        if (!foundParticleSystems)
+                        var foundSky = false;
+                        if (!foundParticleSystems) {
+                            if (node instanceof BABYLON.Mesh && node.material instanceof BABYLON.SkyMaterial) {
+                                finalString += "\n" + this._exportSky(node);
+                                foundSky = true;
+                            }
+                        }
+                        if (!foundSky)
                             finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
                         // Transformation
                         finalString += this._exportNodeTransform(node);

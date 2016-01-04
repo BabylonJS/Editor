@@ -9,7 +9,6 @@ var BABYLON;
     (function (EDITOR) {
         var AnimationTool = (function (_super) {
             __extends(AnimationTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -18,6 +17,9 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "ANIMATION.TAB";
+                // Private members
+                this._animationSpeed = 1.0;
+                this._loopAnimation = true;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
@@ -46,9 +48,11 @@ var BABYLON;
                 // Animations
                 var animationsFolder = this._element.addFolder("Animations");
                 animationsFolder.add(this, "_playAnimations").name("Play Animations");
+                animationsFolder.add(this, "_animationSpeed").min(0).name("Speed");
+                animationsFolder.add(this, "_loopAnimation").name("Loop");
                 if (object instanceof BABYLON.AbstractMesh && object.skeleton) {
                     var skeletonFolder = this._element.addFolder("Skeleton");
-                    skeletonFolder.add(this, "_playAnimations").name("Play Animations");
+                    skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
                 }
             };
             // Plays animations
@@ -61,7 +65,7 @@ var BABYLON;
             AnimationTool.prototype._playSkeletonAnimations = function () {
                 var object = this.object = this._editionTool.object;
                 var scene = object.getScene();
-                scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, false, 0.05);
+                scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
             };
             return AnimationTool;
         })(EDITOR.AbstractDatTool);

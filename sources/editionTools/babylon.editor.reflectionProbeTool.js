@@ -16,7 +16,6 @@ var BABYLON;
             function ReflectionProbeTool(editionTool) {
                 _super.call(this, editionTool);
                 // Public members
-                this.object = null;
                 this.tab = "REFLECTION.PROBE.TAB";
                 // Private members
                 this._window = null;
@@ -96,12 +95,29 @@ var BABYLON;
                 });
                 generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
                 generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
+                generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
                 // Position
                 var positionFolder = this._element.addFolder("Position");
                 positionFolder.add(object.position, "x").step(0.01);
                 positionFolder.add(object.position, "y").step(0.01);
                 positionFolder.add(object.position, "z").step(0.01);
             };
+            // Attaches to a mesh
+            ReflectionProbeTool.prototype._attachToMesh = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(picker.core.currentScene.meshes);
+                picker.onObjectPicked = function (names) {
+                    if (names.length > 1) {
+                        var dialog = new EDITOR.GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning", "A Reflection Probe can be attached to only one mesh.\n" +
+                            "The first was considered as the mesh.");
+                        dialog.buildElement(null);
+                    }
+                    _this.object.attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
+                };
+                picker.open();
+            };
+            // Sets the included/excluded meshes
             ReflectionProbeTool.prototype._setIncludedMeshes = function () {
                 var _this = this;
                 // IDs

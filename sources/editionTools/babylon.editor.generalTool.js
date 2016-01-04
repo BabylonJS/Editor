@@ -21,7 +21,7 @@ var BABYLON;
                 // Private members
                 this._particleSystem = null;
                 this._particleSystemCapacity = "";
-                this._particleSystemTabId = "PARTICLE.TAB";
+                this._isActivePlayCamera = false;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
@@ -46,6 +46,7 @@ var BABYLON;
                 var _this = this;
                 var object = this.object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
+                var core = this._editionTool.core;
                 _super.prototype.update.call(this);
                 if (!object)
                     return;
@@ -62,6 +63,21 @@ var BABYLON;
                         sidebar.refresh();
                     }
                 });
+                // Camera
+                if (object instanceof BABYLON.Camera && object !== core.camera) {
+                    var cameraFolder = this._element.addFolder("Camera");
+                    this._isActivePlayCamera = object === core.playCamera;
+                    cameraFolder.add(this, "_isActivePlayCamera").name("Set Active Camera").listen().onFinishChange(function (result) {
+                        if (result === true) {
+                            core.playCamera = object;
+                            if (core.isPlaying)
+                                core.currentScene.activeCamera = object;
+                        }
+                        else {
+                            result = true;
+                        }
+                    });
+                }
                 // Particle system
                 var particleSystem = null;
                 for (var i = 0; i < scene.particleSystems.length; i++) {

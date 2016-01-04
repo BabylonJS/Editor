@@ -20,6 +20,7 @@
         private _batch: _InstancesBatch = null;
         private _cameraTexture: Texture = null;
         private _soundTexture: Texture = null;
+        private _lightTexture: Texture = null;
 
         private _transformerType: TransformerType = TransformerType.POSITION;
         private _xTransformers: AbstractMesh[] = new Array<AbstractMesh>();
@@ -78,15 +79,28 @@
             this._createTransformers();
 
             // Helper
+            this.createHelpers(core);
+        }
+
+        // Create helpers
+        public createHelpers(core: EditorCore): void {
             this._planeMaterial = new StandardMaterial("HelperPlaneMaterial", this._scene);
             this._planeMaterial.emissiveColor = Color3.White();
             this._planeMaterial.useAlphaFromDiffuseTexture = true;
             this._planeMaterial.disableDepthWrite = false;
+            this._scene.materials.pop();
 
             this._cameraTexture = new Texture("../css/images/camera.png", this._scene);
             this._cameraTexture.hasAlpha = true;
+            this._scene.textures.pop();
+
             this._soundTexture = new Texture("../css/images/sound.png", this._scene);
             this._soundTexture.hasAlpha = true;
+            this._scene.textures.pop();
+
+            this._lightTexture = new Texture("../css/images/light.png", this._scene);
+            this._lightTexture.hasAlpha = true;
+            this._scene.textures.pop();
 
             this._helperPlane = Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
             this._helperPlane.billboardMode = Mesh.BILLBOARDMODE_ALL;
@@ -178,6 +192,7 @@
                 this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
 
                 engine.enableEffect(effect);
+                engine.setAlphaTesting(true);
                 this._helperPlane._bind(this._subMesh, effect, Material.TriangleFillMode);
 
                 // Cameras
@@ -202,6 +217,16 @@
                         return true;
                     });
                 }
+
+                // Lights
+                this._planeMaterial.diffuseTexture = this._lightTexture;
+                this._renderHelperPlane(this.core.currentScene.lights, (obj: Light) => {
+                    if (!obj.getAbsolutePosition)
+                        return false;
+
+                    this._helperPlane.position.copyFrom(obj.getAbsolutePosition());
+                    return true;
+                });
             }
         }
 

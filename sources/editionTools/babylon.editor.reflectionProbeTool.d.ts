@@ -1,6 +1,5 @@
 declare module BABYLON.EDITOR {
     class ReflectionProbeTool extends AbstractDatTool implements IEventReceiver {
-        object: Node;
         tab: string;
         private _window;
         private _excludedMeshesList;
@@ -15,6 +14,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _attachToMesh();
         private _setIncludedMeshes();
     }
 }

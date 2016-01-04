@@ -146,10 +146,13 @@
             }
 
             if (material instanceof StandardMaterial) {
-                finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
+                //finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
             }
             else if (material instanceof PBRMaterial) {
                 finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
+            }
+            else if (material instanceof SkyMaterial) {
+                finalString += materialString + " =  new BABYLON.SkyMaterial(\"" + material.name + "\", scene);\n";
             }
 
             // Set values
@@ -190,6 +193,12 @@
             }
 
             return finalString + "\n";
+        }
+
+        public _exportSky(node: Node): string {
+            var finalString = "\tnode = new BABYLON.Mesh.CreateBox(\"" + node.name + "\", 1000, scene);\n";
+            //Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+            return finalString;
         }
 
         public _exportParticleSystem(particleSystem: ParticleSystem): string {
@@ -285,7 +294,7 @@
 
             for (var i = 0; i < serializationObject.renderList.length; i++) {
                 var mesh = serializationObject.renderList[i];
-                finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshById(\"" + mesh.id + "\"));\n";
+                finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshByID(\"" + mesh + "\"));\n";
             }
 
             finalString += "\t}\n";
@@ -369,7 +378,15 @@
                         }
                     }
 
-                    if (!foundParticleSystems)
+                    var foundSky = false;
+                    if (!foundParticleSystems) {
+                        if (node instanceof Mesh && node.material instanceof SkyMaterial) {
+                            finalString += "\n" + this._exportSky(node);
+                            foundSky = true;
+                        }
+                    }
+
+                    if (!foundSky)
                         finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
 
                     // Transformation

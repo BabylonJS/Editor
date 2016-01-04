@@ -1,6 +1,8 @@
 declare module BABYLON.EDITOR {
     class AnimationTool extends AbstractDatTool {
         tab: string;
+        private _animationSpeed;
+        private _loopAnimation;
         /**
         * Constructor
         * @param editionTool: edition tool instance

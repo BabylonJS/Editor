@@ -12,6 +12,8 @@
         private static _hdrPipeline: HDRRenderingPipeline = null;
         private static _ssaoPipeline: SSAORenderingPipeline = null;
 
+        // Public members
+
         /**
         * Post-Processes
         */
@@ -22,19 +24,22 @@
                 this._hdrPipeline = null;
             }
 
-            var cameras: Camera[] = [core.camera];
-            if (core.playCamera)
-                cameras.push(core.playCamera);
+            var cameras: Camera[] = core.currentScene.cameras;
 
-            var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, 1.0, null, cameras);
-            hdr.brightThreshold = 0.5;
-            hdr.gaussCoeff = 0.3;
-            hdr.gaussMean = 1.0;
-            hdr.gaussStandDev = 6.0;
-            hdr.minimumLuminance = 0.7;
-            hdr.luminanceDecreaseRate = 1.0;
-            hdr.luminanceIncreaserate = 1.0;
-            hdr.exposure = 1.3;
+            var ratio: any = {
+                finalRatio: 1.0,
+                blurRatio: 1.0
+            };
+
+            var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras);
+            hdr.brightThreshold = 1.0;
+            hdr.gaussCoeff = 0.4;
+            hdr.gaussMean = 0.0;
+            hdr.gaussStandDev = 9.0;
+            hdr.minimumLuminance = 0.5;
+            hdr.luminanceDecreaseRate = 0.5;
+            hdr.luminanceIncreaserate = 0.5;
+            hdr.exposure = 1;
             hdr.gaussMultiplier = 4;
 
             this._hdrPipeline = hdr;
@@ -48,15 +53,14 @@
                 this._ssaoPipeline = null;
             }
 
-            var cameras: Camera[] = [core.camera];
-            if (core.playCamera)
-                cameras.push(core.playCamera);
+            var cameras: Camera[] = core.currentScene.cameras;
 
             var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
             ssao.fallOff = 0.000001;
             ssao.area = 0.0075;
-            ssao.radius = 0.0002;
-            ssao.totalStrength = 1;
+            ssao.radius = 0.0001;
+            ssao.totalStrength = 2;
+            ssao.base = 1;
 
             this._ssaoPipeline = ssao;
             return ssao;
@@ -123,6 +127,28 @@
             Event.sendSceneEvent(rp, SceneEventType.OBJECT_ADDED, core);
 
             return rp;
+        }
+
+        // Adds a render target
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture {
+            var rt = new RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
+
+            Event.sendSceneEvent(rt, SceneEventType.OBJECT_ADDED, core);
+
+            return rt;
+        }
+
+        // Adds a skynode
+        static AddSkyMesh(core: EditorCore): Mesh {
+            var skyboxMaterial = new SkyMaterial("skyMaterial", core.currentScene);
+            skyboxMaterial.backFaceCulling = false;
+
+            var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+            skybox.material = skyboxMaterial;
+
+            Event.sendSceneEvent(skybox, SceneEventType.OBJECT_ADDED, core);
+
+            return skybox;
         }
     }
 }

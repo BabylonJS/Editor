@@ -5,8 +5,6 @@
 
     export class ReflectionProbeTool extends AbstractDatTool implements IEventReceiver {
         // Public members
-        public object: Node = null;
-
         public tab: string = "REFLECTION.PROBE.TAB";
 
         // Private members
@@ -117,6 +115,7 @@
             });
             generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
             generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
+            generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
 
             // Position
             var positionFolder = this._element.addFolder("Position");
@@ -125,6 +124,27 @@
             positionFolder.add(object.position, "z").step(0.01);
         }
 
+        // Attaches to a mesh
+        private _attachToMesh(): void {
+            var picker = new ObjectPicker(this._editionTool.core);
+            picker.objectLists.push(picker.core.currentScene.meshes);
+
+            picker.onObjectPicked = (names: string[]) => {
+                if (names.length > 1) {
+                    var dialog = new GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning",
+                        "A Reflection Probe can be attached to only one mesh.\n" +
+                        "The first was considered as the mesh."
+                    );
+                    dialog.buildElement(null);
+                }
+
+                (<ReflectionProbe>this.object).attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
+            };
+
+            picker.open();
+        }
+
+        // Sets the included/excluded meshes
         private _setIncludedMeshes(): void {
             // IDs
             var bodyID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT";

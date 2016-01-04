@@ -50,15 +50,15 @@
 
             var ambientColorFolder = colorsFolder.addFolder("Ambient Color");
             ambientColorFolder.open();
-            ambientColorFolder.add(object.ambientColor, "r").min(0.0).max(1.0).step(0.001);
-            ambientColorFolder.add(object.ambientColor, "g").min(0.0).max(1.0).step(0.001);
-            ambientColorFolder.add(object.ambientColor, "b").min(0.0).max(1.0).step(0.001);
+            ambientColorFolder.add(object.ambientColor, "r").min(0.0).max(1.0).step(0.01);
+            ambientColorFolder.add(object.ambientColor, "g").min(0.0).max(1.0).step(0.01);
+            ambientColorFolder.add(object.ambientColor, "b").min(0.0).max(1.0).step(0.01);
 
             var clearColorFolder = colorsFolder.addFolder("Clear Color");
             clearColorFolder.open();
-            clearColorFolder.add(object.clearColor, "r").min(0.0).max(1.0).step(0.001);
-            clearColorFolder.add(object.clearColor, "g").min(0.0).max(1.0).step(0.001);
-            clearColorFolder.add(object.clearColor, "b").min(0.0).max(1.0).step(0.001);
+            clearColorFolder.add(object.clearColor, "r").min(0.0).max(1.0).step(0.01);
+            clearColorFolder.add(object.clearColor, "g").min(0.0).max(1.0).step(0.01);
+            clearColorFolder.add(object.clearColor, "b").min(0.0).max(1.0).step(0.01);
 
             // Collisions
             var collisionsFolder = this._element.addFolder("Collisions");

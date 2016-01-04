@@ -9,7 +9,8 @@
         public onSelectCallback: (objectId: string) => void;
         
         public objectLists: Array<any[]> = new Array<any[]>();
-        public propertyToDraw: string = "name";
+
+        public onObjectPicked: (names: string[]) => void;
 
         // Private members
         private _window: GUI.GUIWindow = null;
@@ -46,6 +47,14 @@
                         this._window.notify("Please select at least 1 object...");
                     }
                     else {
+                        if (this.onObjectPicked) {
+                            var selectedNames: string[] = [];
+                            for (var i = 0; i < selected.length; i++) {
+                                selectedNames.push(this._list.getRow(selected[i]).name);
+                            }
+                            this.onObjectPicked(selectedNames);
+                        }
+
                         this._window.close();
                     }
                 }
@@ -63,7 +72,7 @@
             var listDiv = GUI.GUIElement.CreateElement("div", listID);
 
             // Create window
-            this._window = new GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, "Select Object...", "");
+            this._window = new GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, "Select Object...", listDiv);
             this._window.modal = true;
             this._window.showMax = false;
             this._window.buttons = [
@@ -89,7 +98,7 @@
 
                 for (var j = 0; j < list.length; j++) {
                     this._list.addRow({
-                        name: list[j][this.propertyToDraw]
+                        name: list[j].name
                     });
                 }
             }

@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         _exportNodeTransform(node: any): string;
         _getTextureByName(name: string, scene: Scene): BaseTexture;
         _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
+        _exportSky(node: Node): string;
         _exportParticleSystem(particleSystem: ParticleSystem): string;
         _exportLight(light: Light): string;
         _exportVector2(vector: Vector2): string;

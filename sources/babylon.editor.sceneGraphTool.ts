@@ -105,7 +105,11 @@
 
                     if (object instanceof ReflectionProbe) {
                         var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
-                        this.sidebar.addNodes(rpNode, this._graphRootName + "PROBES");
+                        this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
+                    }
+                    else if (object instanceof RenderTargetTexture) {
+                        var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.customRenderTargets.length, object.name, "icon-camera", object);
+                        this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
                     }
                     else
                         this._modifyElement(event.sceneEvent.object, null);
@@ -138,12 +142,17 @@
                 root = this._graphRootName;
 
                 // Reflection probes
-                var rpNode = this.sidebar.createNode(this._graphRootName + "PROBES", "Reflection Probes", "icon-folder");
+                var rpNode = this.sidebar.createNode(this._graphRootName + "TARGETS", "Render Targets", "icon-folder");
                 this.sidebar.addNodes(rpNode, this._graphRootName);
 
                 for (var i = 0; i < scene.reflectionProbes.length; i++) {
                     var rp = scene.reflectionProbes[i];
                     this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
+                }
+
+                for (var i = 0; i < scene.customRenderTargets.length; i++) {
+                    var rt = scene.customRenderTargets[i];
+                    this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
                 }
 
                 // Audio

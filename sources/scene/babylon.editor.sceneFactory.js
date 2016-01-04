@@ -12,6 +12,7 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
+            // Public members
             /**
             * Post-Processes
             */
@@ -21,18 +22,20 @@ var BABYLON;
                     this._hdrPipeline.dispose();
                     this._hdrPipeline = null;
                 }
-                var cameras = [core.camera];
-                if (core.playCamera)
-                    cameras.push(core.playCamera);
-                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, 1.0, null, cameras);
-                hdr.brightThreshold = 0.5;
-                hdr.gaussCoeff = 0.3;
-                hdr.gaussMean = 1.0;
-                hdr.gaussStandDev = 6.0;
-                hdr.minimumLuminance = 0.7;
-                hdr.luminanceDecreaseRate = 1.0;
-                hdr.luminanceIncreaserate = 1.0;
-                hdr.exposure = 1.3;
+                var cameras = core.currentScene.cameras;
+                var ratio = {
+                    finalRatio: 1.0,
+                    blurRatio: 1.0
+                };
+                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras);
+                hdr.brightThreshold = 1.0;
+                hdr.gaussCoeff = 0.4;
+                hdr.gaussMean = 0.0;
+                hdr.gaussStandDev = 9.0;
+                hdr.minimumLuminance = 0.5;
+                hdr.luminanceDecreaseRate = 0.5;
+                hdr.luminanceIncreaserate = 0.5;
+                hdr.exposure = 1;
                 hdr.gaussMultiplier = 4;
                 this._hdrPipeline = hdr;
                 return hdr;
@@ -43,14 +46,13 @@ var BABYLON;
                     this._ssaoPipeline.dispose();
                     this._ssaoPipeline = null;
                 }
-                var cameras = [core.camera];
-                if (core.playCamera)
-                    cameras.push(core.playCamera);
+                var cameras = core.currentScene.cameras;
                 var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
                 ssao.fallOff = 0.000001;
                 ssao.area = 0.0075;
-                ssao.radius = 0.0002;
-                ssao.totalStrength = 1;
+                ssao.radius = 0.0001;
+                ssao.totalStrength = 2;
+                ssao.base = 1;
                 this._ssaoPipeline = ssao;
                 return ssao;
             };
@@ -98,6 +100,21 @@ var BABYLON;
                 var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
                 EDITOR.Event.sendSceneEvent(rp, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return rp;
+            };
+            // Adds a render target
+            SceneFactory.AddRenderTargetTexture = function (core) {
+                var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
+                EDITOR.Event.sendSceneEvent(rt, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return rt;
+            };
+            // Adds a skynode
+            SceneFactory.AddSkyMesh = function (core) {
+                var skyboxMaterial = new BABYLON.SkyMaterial("skyMaterial", core.currentScene);
+                skyboxMaterial.backFaceCulling = false;
+                var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+                skybox.material = skyboxMaterial;
+                EDITOR.Event.sendSceneEvent(skybox, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return skybox;
             };
             // Private members
             SceneFactory._hdrPipeline = null;

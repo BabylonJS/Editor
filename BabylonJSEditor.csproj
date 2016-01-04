@@ -64,6 +64,7 @@
     <Content Include="libs\dat.gui.min.js" />
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
+    <Content Include="libs\materials\babylon.skyMaterial.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
     <Content Include="website\test.html" />
     <Content Include="website\index.html" />
@@ -85,6 +86,7 @@
     <TypeScriptCompile Include="defines\dat.gui.d.ts" />
     <TypeScriptCompile Include="defines\jQuery.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.pbrMaterial.d.ts" />
+    <TypeScriptCompile Include="defines\materials\babylon.skyMaterial.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.core.ts" />

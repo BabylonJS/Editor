@@ -4,6 +4,8 @@
         public tab: string = "ANIMATION.TAB";
 
         // Private members
+        private _animationSpeed: number = 1.0;
+        private _loopAnimation: boolean = true;
 
         /**
         * Constructor
@@ -48,10 +50,12 @@
             // Animations
             var animationsFolder = this._element.addFolder("Animations");
             animationsFolder.add(this, "_playAnimations").name("Play Animations");
+            animationsFolder.add(this, "_animationSpeed").min(0).name("Speed");
+            animationsFolder.add(this, "_loopAnimation").name("Loop");
 
             if (object instanceof AbstractMesh && object.skeleton) {
                 var skeletonFolder = this._element.addFolder("Skeleton");
-                skeletonFolder.add(this, "_playAnimations").name("Play Animations");
+                skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
             }
         }
 
@@ -68,7 +72,7 @@
             var object: AbstractMesh = this.object = this._editionTool.object;
             var scene = object.getScene();
 
-            scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, false, 0.05);
+            scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
         }
     }
 }

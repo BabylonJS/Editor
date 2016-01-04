@@ -3,7 +3,7 @@ declare module BABYLON.EDITOR {
         core: EditorCore;
         onSelectCallback: (objectId: string) => void;
         objectLists: Array<any[]>;
-        propertyToDraw: string;
+        onObjectPicked: (names: string[]) => void;
         private _window;
         private _list;
         /**

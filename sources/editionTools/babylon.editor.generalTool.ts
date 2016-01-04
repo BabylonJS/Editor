@@ -8,7 +8,8 @@
         // Private members
         private _particleSystem: ParticleSystem = null;
         private _particleSystemCapacity: string = "";
-        private _particleSystemTabId: string = "PARTICLE.TAB";
+
+        private _isActivePlayCamera: boolean = false;
 
         /**
         * Constructor
@@ -43,8 +44,9 @@
 
         // Update
         public update(): void {
-            var object: AbstractMesh = this.object = this._editionTool.object;
+            var object = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
+            var core = this._editionTool.core;
 
             super.update();
 
@@ -66,6 +68,25 @@
                     sidebar.refresh();
                 }
             });
+
+            // Camera
+            if (object instanceof Camera && object !== core.camera) {
+                var cameraFolder = this._element.addFolder("Camera");
+
+                this._isActivePlayCamera = object === core.playCamera;
+
+                cameraFolder.add(this, "_isActivePlayCamera").name("Set Active Camera").listen().onFinishChange((result: any) => {
+                    if (result === true) {
+                        core.playCamera = object;
+
+                        if (core.isPlaying)
+                            core.currentScene.activeCamera = object;
+                    }
+                    else {
+                        result = true;
+                    }
+                });
+            }
 
             // Particle system
             var particleSystem: ParticleSystem = null;

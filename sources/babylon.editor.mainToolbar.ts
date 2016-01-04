@@ -19,7 +19,9 @@
         private _addSpotLight: string = "ADD-SPOT-LIGHT";
         private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
+        private _addSkyMesh: string = "ADD-SKY-MESH";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
+        private _addRenderTarget: string = "ADD-RENDER-TARGET";
 
         /**
         * Constructor
@@ -89,8 +91,15 @@
                         SceneFactory.AddParticleSystem(this._core);
                     }
 
+                    else if (id.indexOf(this._addSkyMesh) !== -1) {
+                        SceneFactory.AddSkyMesh(this._core);
+                    }
+
                     else if (id.indexOf(this._addReflectionProbe) !== -1) {
                         SceneFactory.AddReflectionProbe(this._core);
+                    }
+                    else if (id.indexOf(this._addRenderTarget) !== -1) {
+                        SceneFactory.AddRenderTargetTexture(this._core);
                     }
 
                     return true;
@@ -124,7 +133,10 @@
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
             this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
+            this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
+            this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
             //...
 
             // Build element

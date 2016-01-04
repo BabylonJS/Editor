@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         private _batch;
         private _cameraTexture;
         private _soundTexture;
+        private _lightTexture;
         private _transformerType;
         private _xTransformers;
         private _yTransformers;
@@ -34,6 +35,7 @@ declare module BABYLON.EDITOR {
         * @param core: the editor core instance
         */
         constructor(core: EditorCore);
+        createHelpers(core: EditorCore): void;
         onEvent(event: Event): boolean;
         onPreUpdate(): void;
         onPostUpdate(): void;

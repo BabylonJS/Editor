@@ -86,7 +86,7 @@
                 hdrFolder.add(this._hdrPipeline, 'brightThreshold').min(0).max(10).step(0.01).name("Bright Threshold");
                 hdrFolder.add(this._hdrPipeline, 'minimumLuminance').min(0).max(10).step(0.01).name("Minimum Luminance");
                 hdrFolder.add(this._hdrPipeline, 'luminanceDecreaseRate').min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                hdrFolder.add(this._hdrPipeline, 'luminanceIncreaserate').min(0).max(1).step(0.01).name("Luminance Increase Rate");
+                hdrFolder.add(this._hdrPipeline, 'luminanceIncreaserate').min(0).max(5).step(0.01).name("Luminance Increase Rate");
                 hdrFolder.add(this._hdrPipeline, 'gaussCoeff').min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange((result: any) => {
                     this._hdrPipeline.update();
                 });

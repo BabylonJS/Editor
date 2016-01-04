@@ -201,6 +201,9 @@
 
             this._editElement.remember(ps);
 
+            // Name
+            this._editElement.add(ps, "id").name("ID");
+
             // Texture
             this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
             this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange((result: any) => {

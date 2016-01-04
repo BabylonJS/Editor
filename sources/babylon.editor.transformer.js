@@ -27,6 +27,7 @@ var BABYLON;
                 this._batch = null;
                 this._cameraTexture = null;
                 this._soundTexture = null;
+                this._lightTexture = null;
                 this._transformerType = TransformerType.POSITION;
                 this._xTransformers = new Array();
                 this._yTransformers = new Array();
@@ -67,19 +68,29 @@ var BABYLON;
                 // Create Transformers
                 this._createTransformers();
                 // Helper
+                this.createHelpers(core);
+            }
+            // Create helpers
+            Transformer.prototype.createHelpers = function (core) {
                 this._planeMaterial = new BABYLON.StandardMaterial("HelperPlaneMaterial", this._scene);
                 this._planeMaterial.emissiveColor = BABYLON.Color3.White();
                 this._planeMaterial.useAlphaFromDiffuseTexture = true;
                 this._planeMaterial.disableDepthWrite = false;
+                this._scene.materials.pop();
                 this._cameraTexture = new BABYLON.Texture("../css/images/camera.png", this._scene);
                 this._cameraTexture.hasAlpha = true;
+                this._scene.textures.pop();
                 this._soundTexture = new BABYLON.Texture("../css/images/sound.png", this._scene);
                 this._soundTexture.hasAlpha = true;
+                this._scene.textures.pop();
+                this._lightTexture = new BABYLON.Texture("../css/images/light.png", this._scene);
+                this._lightTexture.hasAlpha = true;
+                this._scene.textures.pop();
                 this._helperPlane = BABYLON.Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
                 this._helperPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                 this._scene.meshes.pop();
                 this._helperPlane.material = this._planeMaterial;
-            }
+            };
             // Event receiver
             Transformer.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
@@ -149,6 +160,7 @@ var BABYLON;
                     var engine = this._scene.getEngine();
                     this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
                     engine.enableEffect(effect);
+                    engine.setAlphaTesting(true);
                     this._helperPlane._bind(this._subMesh, effect, BABYLON.Material.TriangleFillMode);
                     // Cameras
                     this._planeMaterial.diffuseTexture = this._cameraTexture;
@@ -169,6 +181,14 @@ var BABYLON;
                             return true;
                         });
                     }
+                    // Lights
+                    this._planeMaterial.diffuseTexture = this._lightTexture;
+                    this._renderHelperPlane(this.core.currentScene.lights, function (obj) {
+                        if (!obj.getAbsolutePosition)
+                            return false;
+                        _this._helperPlane.position.copyFrom(obj.getAbsolutePosition());
+                        return true;
+                    });
                 }
             };
             Object.defineProperty(Transformer.prototype, "transformerType", {

@@ -17,5 +17,7 @@ declare module BABYLON.EDITOR {
         static AddHemisphericLight(core: EditorCore): HemisphericLight;
         static AddParticleSystem(core: EditorCore): ParticleSystem;
         static AddReflectionProbe(core: EditorCore): ReflectionProbe;
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
+        static AddSkyMesh(core: EditorCore): Mesh;
     }
 }

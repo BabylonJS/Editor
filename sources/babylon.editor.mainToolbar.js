@@ -21,7 +21,9 @@ var BABYLON;
                 this._addSpotLight = "ADD-SPOT-LIGHT";
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
+                this._addSkyMesh = "ADD-SKY-MESH";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
+                this._addRenderTarget = "ADD-RENDER-TARGET";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -71,8 +73,14 @@ var BABYLON;
                         else if (id.indexOf(this._addParticleSystem) !== -1) {
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
+                        else if (id.indexOf(this._addSkyMesh) !== -1) {
+                            EDITOR.SceneFactory.AddSkyMesh(this._core);
+                        }
                         else if (id.indexOf(this._addReflectionProbe) !== -1) {
                             EDITOR.SceneFactory.AddReflectionProbe(this._core);
+                        }
+                        else if (id.indexOf(this._addRenderTarget) !== -1) {
+                            EDITOR.SceneFactory.AddRenderTargetTexture(this._core);
                         }
                         return true;
                     }
@@ -99,7 +107,10 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
                 this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
+                this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
+                this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
                 //...
                 // Build element
                 this.toolbar.buildElement(this.container);
