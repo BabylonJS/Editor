@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class GUICreateParticleSystem implements IEventReceiver {
+    export class GUIParticleSystemEditor implements IEventReceiver {
         // Public members
         public core: EditorCore = null;
 
@@ -49,7 +49,7 @@
                     this._scene.render();
                 });
 
-                this._particleSystem = GUICreateParticleSystem.CreateParticleSystem(this._scene, particleSystem.getCapacity(), particleSystem);
+                this._particleSystem = GUIParticleSystemEditor.CreateParticleSystem(this._scene, particleSystem.getCapacity(), particleSystem);
                 this._particleSystemToEdit = particleSystem;
 
                 // Finish
@@ -375,6 +375,8 @@
             ps.updateSpeed = particleSystem.updateSpeed || 0.005;
 
             ps.start();
+
+            (<any>dummy).attachedParticleSystem = ps;
 
             return ps;
         }

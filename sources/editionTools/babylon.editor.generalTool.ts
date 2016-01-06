@@ -107,7 +107,7 @@
 
                     var emitter = particleSystem.emitter;
                     particleSystem.emitter = null;
-                    var newParticleSystem = GUICreateParticleSystem.CreateParticleSystem(scene, result, particleSystem, emitter);
+                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, particleSystem, emitter);
                     particleSystem.dispose();
                     particleSystem = newParticleSystem;
                     this.update();
@@ -175,7 +175,7 @@
 
         // Edit particle system
         private _editParticleSystem(): void {
-            var psEditor = new GUICreateParticleSystem(this._editionTool.core, this._particleSystem);
+            var psEditor = new GUIParticleSystemEditor(this._editionTool.core, this._particleSystem);
         }
 
         // If object casts shadows or not

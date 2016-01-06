@@ -31,6 +31,11 @@
             (<W2UI.IFormElement>this.element).record[name] = value;
         }
 
+        // Get record
+        public getRecord(name: string): any {
+            return (<W2UI.IFormElement>this.element).record[name];
+        }
+
         // Build element
         public buildElement(parent: string): void {
             this.element = (<any>$("#" + parent)).w2form({
@@ -38,13 +43,14 @@
                 focus: -1,
                 header: this.header,
                 formHTML: "",
-                fields: this.fields,
-                onChange: (event: Event) => {
-                    var ev = new Event();
-                    ev.eventType = EventType.GUI_EVENT;
-                    ev.guiEvent = new GUIEvent(this, GUIEventType.FORM_CHANGED);
-                    this.core.sendEvent(ev);
-                }
+                fields: this.fields
+            });
+
+            this.element.on({ type: "change", execute: "after" }, () => {
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT;
+                ev.guiEvent = new GUIEvent(this, GUIEventType.FORM_CHANGED);
+                this.core.sendEvent(ev);
             });
         }
     }

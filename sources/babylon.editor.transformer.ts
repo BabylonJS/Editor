@@ -385,9 +385,6 @@
                 if (this._node instanceof Sound) {
                     (<any>this._node).setPosition(this._vectorToModify);
                 }
-                else if (node.position) {
-                    node.position.copyFrom(this._vectorToModify);
-                }
             }
         }
 

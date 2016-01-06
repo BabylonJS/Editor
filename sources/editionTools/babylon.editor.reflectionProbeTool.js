@@ -24,7 +24,7 @@ var BABYLON;
                 this._layouts = null;
                 // Initialize
                 this.containers = [
-                    "BABYLON-EDITOR-EDITION-TOOL-REFLECTION-PROBE"
+                    "BABYLON-EDITOR-EDITION-TOOL-RENDER-TARGET"
                 ];
                 this._editionTool.core.eventReceivers.push(this);
             }
@@ -62,7 +62,7 @@ var BABYLON;
             };
             // Object supported
             ReflectionProbeTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.ReflectionProbe) {
+                if (object instanceof BABYLON.ReflectionProbe || object instanceof BABYLON.RenderTargetTexture) {
                     return true;
                 }
                 return false;
@@ -70,7 +70,7 @@ var BABYLON;
             // Creates the UI
             ReflectionProbeTool.prototype.createUI = function () {
                 // Tabs
-                this._editionTool.panel.createTab({ id: this.tab, caption: "Reflection Probe" });
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Render Target" });
             };
             // Update
             ReflectionProbeTool.prototype.update = function () {
@@ -95,12 +95,15 @@ var BABYLON;
                 });
                 generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
                 generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
-                generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
+                if (object instanceof BABYLON.ReflectionProbe)
+                    generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
                 // Position
-                var positionFolder = this._element.addFolder("Position");
-                positionFolder.add(object.position, "x").step(0.01);
-                positionFolder.add(object.position, "y").step(0.01);
-                positionFolder.add(object.position, "z").step(0.01);
+                if (object instanceof BABYLON.ReflectionProbe) {
+                    var positionFolder = this._element.addFolder("Position");
+                    positionFolder.add(object.position, "x").step(0.01);
+                    positionFolder.add(object.position, "y").step(0.01);
+                    positionFolder.add(object.position, "z").step(0.01);
+                }
             };
             // Attaches to a mesh
             ReflectionProbeTool.prototype._attachToMesh = function () {

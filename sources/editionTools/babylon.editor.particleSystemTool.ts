@@ -60,7 +60,7 @@
             if (!object || !particleSystem)
                 return;
 
-            var psEditor = new GUICreateParticleSystem(this._editionTool.core, particleSystem, false);
+            var psEditor = new GUIParticleSystemEditor(this._editionTool.core, particleSystem, false);
             this._element = psEditor._createEditor(this.containers[0]);
         }
     }

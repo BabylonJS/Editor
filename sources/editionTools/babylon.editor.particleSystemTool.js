@@ -56,7 +56,7 @@ var BABYLON;
                 _super.prototype.update.call(this);
                 if (!object || !particleSystem)
                     return;
-                var psEditor = new EDITOR.GUICreateParticleSystem(this._editionTool.core, particleSystem, false);
+                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, particleSystem, false);
                 this._element = psEditor._createEditor(this.containers[0]);
             };
             return ParticleSystemTool;

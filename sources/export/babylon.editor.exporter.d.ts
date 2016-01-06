@@ -11,9 +11,11 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         openSceneExporter(): void;
         private _generateCode();
+        _exportScene(): string;
         _exportReflectionProbes(): string;
         _exportNodeTransform(node: any): string;
         _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportAnimations(node: IAnimatable): string;
         _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
         _exportSky(node: Node): string;
         _exportParticleSystem(particleSystem: ParticleSystem): string;

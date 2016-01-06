@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR.GUI {
         constructor(name: string, header: string, core: EditorCore);
         createField(name: string, type: string, caption: string, span?: number, text?: string, options?: any): IGUIForm;
         setRecord(name: string, value: any): void;
+        getRecord(name: string): any;
         buildElement(parent: string): void;
     }
 }

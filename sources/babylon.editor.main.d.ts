@@ -7,10 +7,11 @@ declare module BABYLON.EDITOR {
         toolsToolbar: ToolsToolbar;
         sceneToolbar: SceneToolbar;
         transformer: Transformer;
+        editPanel: EditPanel;
         container: string;
         antialias: boolean;
         options: any;
-        layouts: GUI.IGUILayout;
+        layouts: GUI.GUILayout;
         filesInput: FilesInput;
         exporter: Exporter;
         renderMainScene: boolean;

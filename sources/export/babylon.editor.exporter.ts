@@ -48,6 +48,7 @@
                 "function CreateBabylonScene(scene) {",
                 "\tvar engine = scene.getEngine();",
                 "\tvar node = null;\n",
+                this._exportScene(),
                 this._exportReflectionProbes(),
                 this._traverseNodes(),
                 "}\n"
@@ -57,13 +58,47 @@
 
             return finalString;
         }
+
+        // Export scene
+        public _exportScene(): string {
+            var scene = this.core.currentScene;
+            var finalString = "// Export scene";
+
+            // Set values
+            for (var thing in scene) {
+                var value = scene[thing];
+                var result = "";
+
+                if (thing[0] === "_")
+                    continue;
+
+                if (typeof value === "number" || typeof value === "boolean") {
+                    result += value;
+                }
+                else if (value instanceof Color3) {
+                    result += this._exportColor3(value);
+                }
+                else
+                    continue;
+
+                finalString += "\tscene." + thing + " = " + result + ";\n";
+            }
+
+            if ((<any>scene).animations.length > 0) {
+                finalString += "\tscene.animations = [];\n";
+                finalString += "\tnode = scene;\n";
+                finalString += this._exportAnimations(<any>scene);
+            }
+
+            return finalString;
+        }
         
         // Export reflection probes
         public _exportReflectionProbes(): string {
             var scene = this.core.currentScene;
 
             var finalString = "\t// Export reflection probes\n";
-            finalString += "\t var reflectionProbe = null;";
+            finalString += "\tvar reflectionProbe = null;";
 
             var t = new ReflectionProbe("", 512, scene, false);
 
@@ -123,9 +158,53 @@
             return null;
         }
 
+        // Export node's animations
+        public _exportAnimations(node: IAnimatable): string {
+            var finalString = "\n";
+
+            for (var i = 0; i < node.animations.length; i++) {
+                var anim = node.animations[i];
+
+                // Check tags here
+                // ....
+                if (!BABYLON.Tags.HasTags(anim) || !BABYLON.Tags.MatchesQuery(anim, "modified"))
+                    continue;
+
+                var keys = anim.getKeys();
+
+                finalString += "\tvar keys = []\n";
+                finalString += "\tvar animation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
+                finalString += "\tBABYLON.Tags.AddTagsTo(animation, \"modified\");\n";
+                
+                if (!keys)
+                    continue;
+
+                for (var j = 0; j < keys.length; j++) {
+                    var value = keys[j].value;
+                    var result = value.toString();
+
+                    if (value instanceof Vector3) {
+                        result = this._exportVector3(value);
+                    }
+                    else if (value instanceof Vector2) {
+                        result = this._exportVector2(value);
+                    }
+                    else if (value instanceof Color3) {
+                        result = this._exportColor3(value);
+                    }
+
+                    finalString += "\tkeys.push({ frame: " + keys[j].frame + ", value: " + result + " });\n";
+                }
+
+                finalString += "\tanimation.setKeys(keys);\n";
+                finalString += "\tnode.animations.push(animation);\n";
+            }
+
+            return finalString;
+        }
+
         // Export node's material
         public _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string {
-            var finalString = "\n";
             var material: Material = null;
 
             //node.material;
@@ -136,8 +215,10 @@
                 material = node.getMaterial();
             }
 
-            if (!material)
-                return finalString;
+            if (!material || material instanceof StandardMaterial)
+                return "";
+
+            var finalString = "\n";
 
             // Set constructor
             var materialString = "\tnode.material";
@@ -146,7 +227,7 @@
             }
 
             if (material instanceof StandardMaterial) {
-                //finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
+                finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
             }
             else if (material instanceof PBRMaterial) {
                 finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
@@ -196,8 +277,7 @@
         }
 
         public _exportSky(node: Node): string {
-            var finalString = "\tnode = new BABYLON.Mesh.CreateBox(\"" + node.name + "\", 1000, scene);\n";
-            //Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+            var finalString = "\tnode = BABYLON.Mesh.CreateBox(\"" + node.name + "\", 1000, scene);\n";
             return finalString;
         }
 
@@ -235,6 +315,8 @@
 
                 finalString += "\tparticleSystem." + thing + " = " + result + ";\n";
             }
+
+            finalString += "\tnode.attachedParticleSystem = particleSystem;\n";
 
             if (!(<any>particleSystem)._stopped)
                 finalString += "\tparticleSystem.start();\n";
@@ -356,6 +438,7 @@
 
                 this._fillRootNodes(rootNodes, "meshes");
                 this._fillRootNodes(rootNodes, "lights");
+                this._fillRootNodes(rootNodes, "cameras");
 
                 for (var i = 0; i < rootNodes.length; i++) {
                     finalString += this._traverseNodes(rootNodes[i]);
@@ -404,6 +487,10 @@
                     }
                     else if (node instanceof Light) {
                         finalString += this._exportLight(node);
+                    }
+
+                    if (node.animations.length > 0) {
+                        finalString += this._exportAnimations(node);
                     }
                 }
 

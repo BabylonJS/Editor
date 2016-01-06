@@ -12,15 +12,14 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
-            // Public members
             /**
             * Post-Processes
             */
             // Creates HDR pipeline
             SceneFactory.CreateHDRPipeline = function (core) {
-                if (this._hdrPipeline) {
-                    this._hdrPipeline.dispose();
-                    this._hdrPipeline = null;
+                if (this.hdrPipeline) {
+                    this.hdrPipeline.dispose();
+                    this.hdrPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var ratio = {
@@ -37,14 +36,14 @@ var BABYLON;
                 hdr.luminanceIncreaserate = 0.5;
                 hdr.exposure = 1;
                 hdr.gaussMultiplier = 4;
-                this._hdrPipeline = hdr;
+                this.hdrPipeline = hdr;
                 return hdr;
             };
             // Creates SSAO pipeline
             SceneFactory.CreateSSAOPipeline = function (core) {
-                if (this._ssaoPipeline) {
-                    this._ssaoPipeline.dispose();
-                    this._ssaoPipeline = null;
+                if (this.ssaoPipeline) {
+                    this.ssaoPipeline.dispose();
+                    this.ssaoPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
@@ -53,7 +52,7 @@ var BABYLON;
                 ssao.radius = 0.0001;
                 ssao.totalStrength = 2;
                 ssao.base = 1;
-                this._ssaoPipeline = ssao;
+                this.ssaoPipeline = ssao;
                 return ssao;
             };
             /**
@@ -90,7 +89,7 @@ var BABYLON;
             };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core) {
-                var ps = EDITOR.GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
+                var ps = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
                 ps.emitter.id = this.GenerateUUID();
                 EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return ps;
@@ -117,8 +116,11 @@ var BABYLON;
                 return skybox;
             };
             // Private members
-            SceneFactory._hdrPipeline = null;
-            SceneFactory._ssaoPipeline = null;
+            // Public members
+            SceneFactory.hdrPipeline = null;
+            SceneFactory.ssaoPipeline = null;
+            SceneFactory.ParticleSystemsToStart = [];
+            SceneFactory.NodesToStart = [];
             return SceneFactory;
         })();
         EDITOR.SceneFactory = SceneFactory;

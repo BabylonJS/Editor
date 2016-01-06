@@ -15,6 +15,7 @@ var BABYLON;
                 this._mainProject = "MAIN-PROJECT";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+                this._mainEditLaunch = "EDIT-LAUNCH";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
@@ -98,6 +99,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Connect Storage...", "");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
+                this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
                 this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");

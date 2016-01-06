@@ -27,7 +27,7 @@ var BABYLON;
             }
             // Object supported
             AnimationTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Node)
+                if (object instanceof BABYLON.Node || object instanceof BABYLON.Scene)
                     return true;
                 return false;
             };
@@ -45,8 +45,10 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
+                // Edit animations
+                this._element.add(this, "_editAnimations").name("Edit Animations");
                 // Animations
-                var animationsFolder = this._element.addFolder("Animations");
+                var animationsFolder = this._element.addFolder("Play Animations");
                 animationsFolder.add(this, "_playAnimations").name("Play Animations");
                 animationsFolder.add(this, "_animationSpeed").min(0).name("Speed");
                 animationsFolder.add(this, "_loopAnimation").name("Loop");
@@ -55,11 +57,15 @@ var BABYLON;
                     skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
                 }
             };
+            // Loads the animations tool
+            AnimationTool.prototype._editAnimations = function () {
+                var animCreator = new EDITOR.GUIAnimationEditor(this._editionTool.core, this.object);
+            };
             // Plays animations
             AnimationTool.prototype._playAnimations = function () {
                 var object = this.object = this._editionTool.object;
-                var scene = object.getScene();
-                scene.beginAnimation(object, 0, Number.MAX_VALUE, false, 0.05);
+                var scene = (this.object instanceof BABYLON.Scene) ? this.object : object.getScene();
+                scene.beginAnimation(object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
             };
             // Plays animations of skeleton
             AnimationTool.prototype._playSkeletonAnimations = function () {

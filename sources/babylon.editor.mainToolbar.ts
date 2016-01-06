@@ -13,6 +13,8 @@
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
 
+        private _mainEditLaunch = "EDIT-LAUNCH";
+
         private _mainAdd: string = "MAIN-ADD";
         private _addPointLight: string = "ADD-POINT-LIGHT";
         private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
@@ -123,6 +125,7 @@
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
+            this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");
             //...
 
             menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");

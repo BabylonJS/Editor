@@ -9,7 +9,6 @@ var BABYLON;
             function EditorMain(containerID, antialias, options) {
                 if (antialias === void 0) { antialias = false; }
                 if (options === void 0) { options = null; }
-                this.transformer = null;
                 this.layouts = null;
                 this.filesInput = null;
                 this.renderMainScene = true;
@@ -40,6 +39,8 @@ var BABYLON;
                 this.sceneToolbar.createUI();
                 // Transformer
                 this.transformer = new EDITOR.Transformer(this.core);
+                // Edit panel
+                this.editPanel = new EDITOR.EditPanel(this.core);
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
@@ -81,7 +82,7 @@ var BABYLON;
                 var mainPanel = this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>");
                 mainPanel.style = "overflow: hidden;";
-                this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
+                this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>");
                 this.layouts.buildElement(this.container);
             };
             /**
@@ -94,6 +95,9 @@ var BABYLON;
                     _this.core.removeScene(_this.core.currentScene);
                     _this.core.scenes.push({ scene: scene, render: true });
                     _this.core.currentScene = scene;
+                    // Set scene as IAnimatable
+                    if (!scene.animations)
+                        scene.animations = [];
                     // Set active camera
                     var camera = scene.activeCamera;
                     _this._createBabylonCamera();

@@ -37,6 +37,10 @@ var BABYLON;
                 GUIForm.prototype.setRecord = function (name, value) {
                     this.element.record[name] = value;
                 };
+                // Get record
+                GUIForm.prototype.getRecord = function (name) {
+                    return this.element.record[name];
+                };
                 // Build element
                 GUIForm.prototype.buildElement = function (parent) {
                     var _this = this;
@@ -45,13 +49,13 @@ var BABYLON;
                         focus: -1,
                         header: this.header,
                         formHTML: "",
-                        fields: this.fields,
-                        onChange: function (event) {
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
-                            _this.core.sendEvent(ev);
-                        }
+                        fields: this.fields
+                    });
+                    this.element.on({ type: "change", execute: "after" }, function () {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
+                        _this.core.sendEvent(ev);
                     });
                 };
                 return GUIForm;

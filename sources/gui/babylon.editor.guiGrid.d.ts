@@ -7,6 +7,8 @@ declare module BABYLON.EDITOR.GUI {
         showDelete: boolean;
         showAdd: boolean;
         showEdit: boolean;
+        showOptions: boolean;
+        showSearch: boolean;
         /**
         * Constructor
         * @param name: the form name
@@ -17,6 +19,7 @@ declare module BABYLON.EDITOR.GUI {
         addRow(data: T): void;
         removeRow(recid: number): void;
         getRowCount(): number;
+        clear(): void;
         getSelectedRows(): number[];
         getRow(indice: number): T;
         modifyRow(indice: number, data: T): void;

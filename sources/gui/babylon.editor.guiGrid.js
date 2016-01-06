@@ -9,6 +9,9 @@ var BABYLON;
     (function (EDITOR) {
         var GUI;
         (function (GUI) {
+            var gridButtons = w2obj.grid.prototype.buttons;
+            gridButtons["add"].caption = w2utils.lang("");
+            gridButtons["delete"].caption = w2utils.lang("");
             var GUIGrid = (function (_super) {
                 __extends(GUIGrid, _super);
                 // Private members
@@ -27,6 +30,8 @@ var BABYLON;
                     this.showDelete = false;
                     this.showAdd = false;
                     this.showEdit = false;
+                    this.showOptions = true;
+                    this.showSearch = true;
                 }
                 // Creates a column
                 GUIGrid.prototype.createColumn = function (id, text, size) {
@@ -46,6 +51,11 @@ var BABYLON;
                 // Returns the number of rows
                 GUIGrid.prototype.getRowCount = function () {
                     return this.element.total;
+                };
+                // Clear
+                GUIGrid.prototype.clear = function () {
+                    this.element.clear();
+                    this.element.total = 0;
                 };
                 // Returns the selected rows
                 GUIGrid.prototype.getSelectedRows = function () {
@@ -73,6 +83,8 @@ var BABYLON;
                             toolbarDelete: this.showDelete,
                             toolbarAdd: this.showAdd,
                             toolbarEdit: this.showEdit,
+                            toolbarSearch: this.showSearch,
+                            toolbarColumns: this.showOptions,
                             header: !(this.header === "")
                         },
                         header: this.header,

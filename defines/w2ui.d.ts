@@ -94,9 +94,13 @@
         */
         type: string;
         /**
-        *
+        * The panel width
         */
         width: number;
+        /**
+        * The panel height
+        */
+        height: number;
     }
 
     interface IPanelTabController {
@@ -367,6 +371,10 @@
         */
         add(data: T): void;
         /**
+        * Clear the grid
+        */
+        clear(): void;
+        /**
         * Removes a row
         */
         remove(recid: number): void;
@@ -421,4 +429,12 @@ declare var w2confirm: {
 declare var w2popup: {
     open(data: any): W2UI.IWindowElement;
     message(data: any): W2UI.IWindowElement;
+}
+
+declare var w2obj: {
+    grid: Function;
+}
+
+declare var w2utils: {
+    lang(text: string): string;
 }

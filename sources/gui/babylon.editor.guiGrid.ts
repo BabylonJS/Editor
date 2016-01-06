@@ -1,4 +1,9 @@
 ﻿module BABYLON.EDITOR.GUI {
+
+    var gridButtons = w2obj.grid.prototype.buttons;
+    gridButtons["add"].caption = w2utils.lang("");
+    gridButtons["delete"].caption = w2utils.lang("");
+
     export class GUIGrid<T> extends GUIElement implements IGUIGridElement<T> {
         // Public members
         public columns: Array<W2UI.IGridColumnData> = new Array<W2UI.IGridColumnData>();
@@ -8,6 +13,8 @@
         public showDelete: boolean = false;
         public showAdd: boolean = false;
         public showEdit: boolean = false;
+        public showOptions: boolean = true;
+        public showSearch: boolean = true;
 
         // Private members
 
@@ -44,6 +51,12 @@
             return (<W2UI.IGridElement<T>>this.element).total;
         }
 
+        // Clear
+        public clear(): void {
+            (<W2UI.IGridElement<T>>this.element).clear();
+            (<W2UI.IGridElement<T>>this.element).total = 0;
+        }
+
         // Returns the selected rows
         public getSelectedRows(): number[] {
             return (<W2UI.IGridElement<T>>this.element).getSelection();
@@ -74,6 +87,8 @@
                     toolbarDelete: this.showDelete,
                     toolbarAdd: this.showAdd,
                     toolbarEdit: this.showEdit,
+                    toolbarSearch: this.showSearch,
+                    toolbarColumns: this.showOptions,
                     header: !(this.header === "")
                 },
 

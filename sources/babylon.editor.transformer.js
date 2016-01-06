@@ -326,9 +326,6 @@ var BABYLON;
                     if (this._node instanceof BABYLON.Sound) {
                         this._node.setPosition(this._vectorToModify);
                     }
-                    else if (node.position) {
-                        node.position.copyFrom(this._vectorToModify);
-                    }
                 }
             };
             // Returns if the ray intersects the transformer plane

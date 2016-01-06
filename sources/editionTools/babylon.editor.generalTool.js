@@ -94,7 +94,7 @@ var BABYLON;
                         result = parseFloat(result);
                         var emitter = particleSystem.emitter;
                         particleSystem.emitter = null;
-                        var newParticleSystem = EDITOR.GUICreateParticleSystem.CreateParticleSystem(scene, result, particleSystem, emitter);
+                        var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(scene, result, particleSystem, emitter);
                         particleSystem.dispose();
                         particleSystem = newParticleSystem;
                         _this.update();
@@ -153,7 +153,7 @@ var BABYLON;
             };
             // Edit particle system
             GeneralTool.prototype._editParticleSystem = function () {
-                var psEditor = new EDITOR.GUICreateParticleSystem(this._editionTool.core, this._particleSystem);
+                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, this._particleSystem);
             };
             Object.defineProperty(GeneralTool.prototype, "_castShadows", {
                 // If object casts shadows or not

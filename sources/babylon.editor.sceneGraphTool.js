@@ -110,7 +110,7 @@ var BABYLON;
                 if (!graphNodeID) {
                     this.sidebar.clear();
                     // Add root
-                    var rootNode = this.sidebar.createNode(this._graphRootName, "Root", "icon-scene", this._core.currentScene);
+                    var rootNode = this.sidebar.createNode(this._graphRootName, "Scene", "icon-scene", this._core.currentScene);
                     this.sidebar.addNodes(rootNode);
                     root = this._graphRootName;
                     // Reflection probes
@@ -185,7 +185,7 @@ var BABYLON;
                 // Build element
                 this.sidebar.buildElement(this.container);
                 /// Default node
-                var node = this.sidebar.createNode(this._graphRootName, "Root", "", this._core.currentScene);
+                var node = this.sidebar.createNode(this._graphRootName, "Scene", "icon-scene", this._core.currentScene);
                 this.sidebar.addNodes(node);
             };
             // Fills the result array of nodes when the node hasn't any parent

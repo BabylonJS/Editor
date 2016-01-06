@@ -9,19 +9,22 @@
         }
 
         // Private members
-        private static _hdrPipeline: HDRRenderingPipeline = null;
-        private static _ssaoPipeline: SSAORenderingPipeline = null;
 
         // Public members
+        public static hdrPipeline: HDRRenderingPipeline = null;
+        public static ssaoPipeline: SSAORenderingPipeline = null;
+
+        public static ParticleSystemsToStart: ParticleSystem[] = [];
+        public static NodesToStart: Node[] = [];
 
         /**
         * Post-Processes
         */
         // Creates HDR pipeline
         static CreateHDRPipeline(core: EditorCore): HDRRenderingPipeline {
-            if (this._hdrPipeline) {
-                this._hdrPipeline.dispose();
-                this._hdrPipeline = null;
+            if (this.hdrPipeline) {
+                this.hdrPipeline.dispose();
+                this.hdrPipeline = null;
             }
 
             var cameras: Camera[] = core.currentScene.cameras;
@@ -42,15 +45,15 @@
             hdr.exposure = 1;
             hdr.gaussMultiplier = 4;
 
-            this._hdrPipeline = hdr;
+            this.hdrPipeline = hdr;
             return hdr;
         }
 
         // Creates SSAO pipeline
         static CreateSSAOPipeline(core: EditorCore): SSAORenderingPipeline {
-            if (this._ssaoPipeline) {
-                this._ssaoPipeline.dispose();
-                this._ssaoPipeline = null;
+            if (this.ssaoPipeline) {
+                this.ssaoPipeline.dispose();
+                this.ssaoPipeline = null;
             }
 
             var cameras: Camera[] = core.currentScene.cameras;
@@ -62,7 +65,7 @@
             ssao.totalStrength = 2;
             ssao.base = 1;
 
-            this._ssaoPipeline = ssao;
+            this.ssaoPipeline = ssao;
             return ssao;
         }
 
@@ -112,7 +115,7 @@
 
         // Adds a particle system
         static AddParticleSystem(core: EditorCore): ParticleSystem {
-            var ps = GUICreateParticleSystem.CreateParticleSystem(core.currentScene, 1000);
+            var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
             ps.emitter.id = this.GenerateUUID();
 
             Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);

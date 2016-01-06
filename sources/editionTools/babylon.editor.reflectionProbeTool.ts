@@ -23,7 +23,7 @@
 
             // Initialize
             this.containers = [
-                "BABYLON-EDITOR-EDITION-TOOL-REFLECTION-PROBE"
+                "BABYLON-EDITOR-EDITION-TOOL-RENDER-TARGET"
             ];
 
             this._editionTool.core.eventReceivers.push(this);
@@ -38,7 +38,7 @@
             if (event.guiEvent.eventType !== GUIEventType.GRID_ROW_ADDED && event.guiEvent.eventType !== GUIEventType.GRID_ROW_REMOVED)
                 return false;
 
-            var object: ReflectionProbe = this._editionTool.object;
+            var object: ReflectionProbe | RenderTargetTexture = this._editionTool.object;
 
             // Manage lists
             if (event.guiEvent.caller === this._includedMeshesList) {
@@ -75,7 +75,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof ReflectionProbe) {
+            if (object instanceof ReflectionProbe || object instanceof RenderTargetTexture) {
                 return true;
             }
 
@@ -85,14 +85,14 @@
         // Creates the UI
         public createUI(): void {
             // Tabs
-            this._editionTool.panel.createTab({ id: this.tab, caption: "Reflection Probe" });
+            this._editionTool.panel.createTab({ id: this.tab, caption: "Render Target" });
         }
 
         // Update
         public update(): void {
             super.update();
 
-            var object: ReflectionProbe = this.object = this._editionTool.object;
+            var object: ReflectionProbe | RenderTargetTexture = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
 
             if (!object)
@@ -115,13 +115,17 @@
             });
             generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
             generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
-            generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
+
+            if (object instanceof ReflectionProbe)
+                generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
 
             // Position
-            var positionFolder = this._element.addFolder("Position");
-            positionFolder.add(object.position, "x").step(0.01);
-            positionFolder.add(object.position, "y").step(0.01);
-            positionFolder.add(object.position, "z").step(0.01);
+            if (object instanceof ReflectionProbe) {
+                var positionFolder = this._element.addFolder("Position");
+                positionFolder.add(object.position, "x").step(0.01);
+                positionFolder.add(object.position, "y").step(0.01);
+                positionFolder.add(object.position, "z").step(0.01);
+            }
         }
 
         // Attaches to a mesh

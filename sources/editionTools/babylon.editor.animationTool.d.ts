@@ -11,6 +11,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _editAnimations();
         private _playAnimations();
         private _playSkeletonAnimations();
     }

@@ -8,13 +8,14 @@
         public mainToolbar: MainToolbar;
         public toolsToolbar: ToolsToolbar;
         public sceneToolbar: SceneToolbar;
-        public transformer: Transformer = null;
+        public transformer: Transformer;
+        public editPanel: EditPanel;
 
         public container: string;
         public antialias: boolean;
         public options: any;
 
-        public layouts: GUI.IGUILayout = null;
+        public layouts: GUI.GUILayout = null;
 
         public filesInput: FilesInput = null;
         public exporter: Exporter;
@@ -69,6 +70,9 @@
             // Transformer
             this.transformer = new Transformer(this.core);
 
+            // Edit panel
+            this.editPanel = new EditPanel(this.core);
+
             // Files input
             this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
@@ -110,7 +114,7 @@
                 "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
             );
             mainPanel.style = "overflow: hidden;";
-            this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("");
+            this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>");
 
             this.layouts.buildElement(this.container);
         }
@@ -124,6 +128,10 @@
                 this.core.removeScene(this.core.currentScene);
                 this.core.scenes.push({ scene: scene, render: true });
                 this.core.currentScene = scene;
+
+                // Set scene as IAnimatable
+                if (!(<any>scene).animations)
+                    (<any>scene).animations = [];
 
                 // Set active camera
                 var camera: any = scene.activeCamera;

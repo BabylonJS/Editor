@@ -91,6 +91,7 @@
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.core.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.editionTool.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.editPanel.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
@@ -127,7 +128,8 @@
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.oneDriveStorage.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.storage.ts" />
-    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.createParticleSystem.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.animationEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.objectPicker.ts" />
   </ItemGroup>
   <PropertyGroup>

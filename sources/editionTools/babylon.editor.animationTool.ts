@@ -22,7 +22,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof Node)
+            if (object instanceof Node || object instanceof Scene)
                 return true;
 
             return false;
@@ -47,8 +47,11 @@
             this._element.buildElement(this.containers[0]);
             this._element.remember(object);
 
+            // Edit animations
+            this._element.add(this, "_editAnimations").name("Edit Animations");
+
             // Animations
-            var animationsFolder = this._element.addFolder("Animations");
+            var animationsFolder = this._element.addFolder("Play Animations");
             animationsFolder.add(this, "_playAnimations").name("Play Animations");
             animationsFolder.add(this, "_animationSpeed").min(0).name("Speed");
             animationsFolder.add(this, "_loopAnimation").name("Loop");
@@ -59,12 +62,17 @@
             }
         }
 
+        // Loads the animations tool
+        private _editAnimations(): void {
+            var animCreator = new GUIAnimationEditor(this._editionTool.core, this.object);
+        }
+
         // Plays animations
         private _playAnimations(): void {
             var object: AbstractMesh = this.object = this._editionTool.object;
-            var scene = object.getScene();
+            var scene = (this.object instanceof Scene) ? this.object : object.getScene();
 
-            scene.beginAnimation(object, 0, Number.MAX_VALUE, false, 0.05);
+            scene.beginAnimation(object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
         }
 
         // Plays animations of skeleton

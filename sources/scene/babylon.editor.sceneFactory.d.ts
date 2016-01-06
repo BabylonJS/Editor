@@ -1,8 +1,10 @@
 declare module BABYLON.EDITOR {
     class SceneFactory {
         static GenerateUUID(): string;
-        private static _hdrPipeline;
-        private static _ssaoPipeline;
+        static hdrPipeline: HDRRenderingPipeline;
+        static ssaoPipeline: SSAORenderingPipeline;
+        static ParticleSystemsToStart: ParticleSystem[];
+        static NodesToStart: Node[];
         /**
         * Post-Processes
         */
