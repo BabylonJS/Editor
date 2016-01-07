@@ -153,3 +153,7 @@ html, body {
 .w2ui-icon.icon-helpers {
     background: url("images/helpers.png");
 }
+
+.w2ui-icon.icon-one-drive {
+    background: url("images/onedrive.png");
+}

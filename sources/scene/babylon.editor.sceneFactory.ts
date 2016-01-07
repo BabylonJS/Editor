@@ -114,11 +114,38 @@
         }
 
         // Adds a particle system
-        static AddParticleSystem(core: EditorCore): ParticleSystem {
+        static AddParticleSystem(core: EditorCore, chooseEmitter: boolean = true): ParticleSystem {
             var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
             ps.emitter.id = this.GenerateUUID();
 
             Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
+
+            // Pick emitter
+            if (chooseEmitter) {
+                var picker = new ObjectPicker(core);
+                picker.objectLists.push(core.currentScene.meshes);
+
+                picker.onObjectPicked = (names: string[]) => {
+                    if (names.length > 1) {
+                        var dialog = new GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning",
+                            "A Reflection Probe can be attached to only one mesh.\n" +
+                            "The first was considered as the mesh."
+                        );
+                        dialog.buildElement(null);
+                    }
+
+                    //(<ReflectionProbe>this.object).attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
+                    var emitter = ps.emitter;
+                    emitter.dispose(true);
+
+                    Event.sendSceneEvent(emitter, SceneEventType.OBJECT_REMOVED, core);
+
+                    ps.emitter = core.currentScene.getMeshByName(names[0]);
+                    ps.emitter.attachedParticleSystem = ps;
+                };
+
+                picker.open();
+            }
 
             return ps;
         }

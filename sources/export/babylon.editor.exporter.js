@@ -39,7 +39,10 @@ var BABYLON;
                     "var getTextureByName = " + this._getTextureByName + "\n",
                     "function CreateBabylonScene(scene) {",
                     "\tvar engine = scene.getEngine();",
-                    "\tvar node = null;\n",
+                    "\tvar node = null;",
+                    "\tvar animation = null;",
+                    "\tvar keys = null;",
+                    "\tvar particleSystem = null;",
                     this._exportScene(),
                     this._exportReflectionProbes(),
                     this._traverseNodes(),
@@ -51,7 +54,7 @@ var BABYLON;
             // Export scene
             Exporter.prototype._exportScene = function () {
                 var scene = this.core.currentScene;
-                var finalString = "// Export scene";
+                var finalString = "\n\t// Export scene";
                 // Set values
                 for (var thing in scene) {
                     var value = scene[thing];
@@ -68,7 +71,8 @@ var BABYLON;
                         continue;
                     finalString += "\tscene." + thing + " = " + result + ";\n";
                 }
-                if (scene.animations.length > 0) {
+                var animations = scene.animations;
+                if (animations && animations.length > 0) {
                     finalString += "\tscene.animations = [];\n";
                     finalString += "\tnode = scene;\n";
                     finalString += this._exportAnimations(scene);
@@ -133,8 +137,8 @@ var BABYLON;
                     if (!BABYLON.Tags.HasTags(anim) || !BABYLON.Tags.MatchesQuery(anim, "modified"))
                         continue;
                     var keys = anim.getKeys();
-                    finalString += "\tvar keys = []\n";
-                    finalString += "\tvar animation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
+                    finalString += "\tkeys = [];\n";
+                    finalString += "\tanimation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
                     finalString += "\tBABYLON.Tags.AddTagsTo(animation, \"modified\");\n";
                     if (!keys)
                         continue;
@@ -225,8 +229,12 @@ var BABYLON;
             };
             Exporter.prototype._exportParticleSystem = function (particleSystem) {
                 var node = particleSystem.emitter;
-                var finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
-                finalString += "\tvar particleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n";
+                var finalString = "";
+                if (!node.geometry)
+                    finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
+                else
+                    finalString = "\tnode = scene.getMeshByName(\"" + node.name + "\");\n";
+                finalString += "\tparticleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n";
                 finalString += "\tparticleSystem.emitter = node;\n";
                 for (var thing in particleSystem) {
                     if (thing[0] === "_")
@@ -244,6 +252,9 @@ var BABYLON;
                     }
                     else if (value instanceof BABYLON.Color4) {
                         result += this._exportColor4(value);
+                    }
+                    else if (value instanceof BABYLON.Color3) {
+                        result += this._exportColor3(value);
                     }
                     else if (value instanceof BABYLON.Texture) {
                         result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
@@ -345,9 +356,9 @@ var BABYLON;
                 if (!node) {
                     var rootNodes = [];
                     var finalString = "";
-                    this._fillRootNodes(rootNodes, "meshes");
                     this._fillRootNodes(rootNodes, "lights");
                     this._fillRootNodes(rootNodes, "cameras");
+                    this._fillRootNodes(rootNodes, "meshes");
                     for (var i = 0; i < rootNodes.length; i++) {
                         finalString += this._traverseNodes(rootNodes[i]);
                     }
@@ -355,7 +366,7 @@ var BABYLON;
                 }
                 else {
                     var finalString = "";
-                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1) {
+                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
                         finalString = "\t// Configure node " + node.name + "\n";
                         var foundParticleSystems = false;
                         for (var i = 0; i < scene.particleSystems.length; i++) {
@@ -375,7 +386,8 @@ var BABYLON;
                         if (!foundSky)
                             finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
                         // Transformation
-                        finalString += this._exportNodeTransform(node);
+                        if (foundParticleSystems || foundSky)
+                            finalString += this._exportNodeTransform(node);
                         if (node instanceof BABYLON.AbstractMesh) {
                             // Material
                             if (node.material instanceof BABYLON.MultiMaterial) {

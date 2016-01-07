@@ -4,6 +4,7 @@ declare module BABYLON.EDITOR {
         tab: string;
         private _particleSystem;
         private _particleSystemCapacity;
+        private _isActiveCamera;
         private _isActivePlayCamera;
         /**
         * Constructor

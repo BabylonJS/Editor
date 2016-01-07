@@ -114,6 +114,7 @@ var BABYLON;
                 this._window.setOnCloseCallback(function () {
                     _this._window.destroy();
                     _this._layouts.destroy();
+                    _this.core.removeEventReceiver(_this);
                 });
                 // Layout
                 var leftDiv = EDITOR.GUI.GUIElement.CreateDivElement(this._editElementID)
@@ -222,17 +223,17 @@ var BABYLON;
                 color1Folder.add(ps.color1, "r").step(0.01).min(0.0).max(1.0);
                 color1Folder.add(ps.color1, "g").step(0.01).min(0.0).max(1.0);
                 color1Folder.add(ps.color1, "b").step(0.01).min(0.0).max(1.0);
-                color1Folder.add(ps.color1, "a").step(0.01).min(0.0).max(1.0);
+                //color1Folder.add(ps.color1, "a").step(0.01).min(0.0).max(1.0);
                 var color2Folder = colorFolder.addFolder("Color 2");
                 color2Folder.add(ps.color2, "r").step(0.01).min(0.0).max(1.0);
                 color2Folder.add(ps.color2, "g").step(0.01).min(0.0).max(1.0);
                 color2Folder.add(ps.color2, "b").step(0.01).min(0.0).max(1.0);
-                color2Folder.add(ps.color2, "a").step(0.01).min(0.0).max(1.0);
+                //color2Folder.add(ps.color2, "a").step(0.01).min(0.0).max(1.0);
                 var colorDeadFolder = colorFolder.addFolder("Color Dead");
                 colorDeadFolder.add(ps.colorDead, "r").step(0.01).min(0.0).max(1.0);
                 colorDeadFolder.add(ps.colorDead, "g").step(0.01).min(0.0).max(1.0);
                 colorDeadFolder.add(ps.colorDead, "b").step(0.01).min(0.0).max(1.0);
-                colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
+                //colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
                 return this._editElement;
             };
             // Set the particle system
@@ -280,9 +281,9 @@ var BABYLON;
                 ps.emitter = dummy;
                 ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);
                 ps.maxEmitBox = particleSystem.maxEmitBox || new BABYLON.Vector3(1, 0, 0);
-                ps.color1 = particleSystem.color1 || new BABYLON.Color4(0.7, 0.8, 1.0, 1.0);
-                ps.color2 = particleSystem.color2 || new BABYLON.Color4(0.2, 0.5, 1.0, 1.0);
-                ps.colorDead = particleSystem.colorDead || new BABYLON.Color4(0, 0, 0.2, 0.0);
+                ps.color1 = particleSystem.color1 || new BABYLON.Color3(0.7, 0.8, 1.0);
+                ps.color2 = particleSystem.color2 || new BABYLON.Color3(0.2, 0.5, 1.0);
+                ps.colorDead = particleSystem.colorDead || new BABYLON.Color3(0, 0, 0.2);
                 ps.minSize = particleSystem.minSize || 0.1;
                 ps.maxSize = particleSystem.maxSize || 0.5;
                 ps.minLifeTime = particleSystem.minLifeTime || 0.3;

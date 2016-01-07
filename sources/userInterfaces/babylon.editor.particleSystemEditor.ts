@@ -136,6 +136,7 @@
             this._window.setOnCloseCallback(() => {
                 this._window.destroy();
                 this._layouts.destroy();
+                this.core.removeEventReceiver(this);
             });
 
             // Layout
@@ -268,19 +269,19 @@
             color1Folder.add(ps.color1, "r").step(0.01).min(0.0).max(1.0);
             color1Folder.add(ps.color1, "g").step(0.01).min(0.0).max(1.0);
             color1Folder.add(ps.color1, "b").step(0.01).min(0.0).max(1.0);
-            color1Folder.add(ps.color1, "a").step(0.01).min(0.0).max(1.0);
+            //color1Folder.add(ps.color1, "a").step(0.01).min(0.0).max(1.0);
 
             var color2Folder = colorFolder.addFolder("Color 2");
             color2Folder.add(ps.color2, "r").step(0.01).min(0.0).max(1.0);
             color2Folder.add(ps.color2, "g").step(0.01).min(0.0).max(1.0);
             color2Folder.add(ps.color2, "b").step(0.01).min(0.0).max(1.0);
-            color2Folder.add(ps.color2, "a").step(0.01).min(0.0).max(1.0);
+            //color2Folder.add(ps.color2, "a").step(0.01).min(0.0).max(1.0);
 
             var colorDeadFolder = colorFolder.addFolder("Color Dead");
             colorDeadFolder.add(ps.colorDead, "r").step(0.01).min(0.0).max(1.0);
             colorDeadFolder.add(ps.colorDead, "g").step(0.01).min(0.0).max(1.0);
             colorDeadFolder.add(ps.colorDead, "b").step(0.01).min(0.0).max(1.0);
-            colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
+            //colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
 
             return this._editElement;
         }
@@ -346,9 +347,9 @@
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
             ps.maxEmitBox = particleSystem.maxEmitBox || new Vector3(1, 0, 0);
 
-            ps.color1 = particleSystem.color1 || new Color4(0.7, 0.8, 1.0, 1.0);
-            ps.color2 = particleSystem.color2 || new Color4(0.2, 0.5, 1.0, 1.0);
-            ps.colorDead = particleSystem.colorDead || new Color4(0, 0, 0.2, 0.0);
+            ps.color1 = particleSystem.color1 || <any>new Color3(0.7, 0.8, 1.0);
+            ps.color2 = particleSystem.color2 || <any>new Color3(0.2, 0.5, 1.0);
+            ps.colorDead = particleSystem.colorDead || <any>new Color3(0, 0, 0.2);
 
             ps.minSize = particleSystem.minSize || 0.1;
             ps.maxSize = particleSystem.maxSize || 0.5;

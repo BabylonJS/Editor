@@ -1,9 +1,13 @@
 declare module BABYLON.EDITOR {
+    interface IStorageOpenOptions {
+    }
+    interface IStorageSaveOptions {
+    }
     interface IStorage {
-        /**
-        * Authentificate to storage
-        */
-        authenticate(): void;
+        open(options?: IStorageOpenOptions): void;
+        save(options?: IStorageSaveOptions): void;
+    }
+    interface IStorageResults {
     }
     class Storage {
         core: EditorCore;

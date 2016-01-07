@@ -26,7 +26,7 @@
         private _addAnimationGraph: GUI.GUIGraph = null;
         private _addAnimationForm: GUI.GUIEditForm = null;
         private _addAnimationName: string = "New Animation";
-        private _addAnimationFramesPerSecond: number = 60;
+        private _addAnimationFramesPerSecond: number = 1;
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
 
         /**
@@ -81,7 +81,7 @@
                 switch (constructorName) {
                     case "Number": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
                     case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
-                    case "Color3": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
+                    case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
                     case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
                     default: return true; break;
                 }
@@ -125,7 +125,7 @@
                     for (var i = 0; i < keys.length; i++) {
                         this._keysList.addRow({
                             key: keys[i].frame.toString(),
-                            value: keys[i].value.toString(),
+                            value: this._getFrameTime(keys[i].frame),
                             recid: i
                         });
                     }
@@ -157,6 +157,8 @@
 
                     this._currentKey = key;
                     this._setRecords(key.frame, key.value);
+
+                    var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
                 }
                 else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_ADDED) {
                     var keys = this._currentAnimation.getKeys();
@@ -165,11 +167,7 @@
                     var frame = lastKey ? lastKey.frame + 1 : 0;
                     var value = 0;
 
-                    var effectiveTarget: any = this.object;
-
-                    for (var i = 0; i < this._currentAnimation.targetPropertyPath.length; i++) {
-                        effectiveTarget = effectiveTarget[this._currentAnimation.targetPropertyPath[i]];
-                    }
+                    var effectiveTarget = this._getEffectiveTarget();
 
                     if (typeof effectiveTarget !== "number")
                         value = effectiveTarget.clone();
@@ -183,7 +181,7 @@
 
                     this._keysList.addRow({
                         key: frame,
-                        value: value.toString(),
+                        value: this._getFrameTime(frame),
                         recid: keys.length
                     });
                 }
@@ -204,7 +202,7 @@
                 this._setFrameValue();
 
                 var indice = this._keysList.getSelectedRows()[0];
-                this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._currentKey.value.toString() });
+                this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
 
                 return true;
             }
@@ -319,6 +317,35 @@
             addProperties(this.object, "");
         }
 
+        // Returns the effective target
+        public _getEffectiveTarget(value?: any): any {
+            var effectiveTarget: any = this.object;
+
+            for (var i = 0; i < this._currentAnimation.targetPropertyPath.length - (value ? 1 : 0); i++) {
+                effectiveTarget = effectiveTarget[this._currentAnimation.targetPropertyPath[i]];
+            }
+
+            if (value) {
+                effectiveTarget[this._currentAnimation.targetPropertyPath[this._currentAnimation.targetPropertyPath.length - 1]] = value;
+            }
+
+            return effectiveTarget;
+        }
+
+        // Gets frame time (min,s,ms)
+        private _getFrameTime(frame: number): string {
+            if (frame === 0)
+                return "0mins 0secs";
+
+            var fps = this._currentAnimation.framePerSecond;
+            var seconds = frame / fps;
+
+            var mins = Math.floor(seconds / 60);
+            var secs = seconds % 60;
+
+            return "" + mins + "mins " + secs + "secs";
+        }
+
         // Sets the records
         private _setRecords(frame: number, value: any): void {
             this._valuesForm.setRecord("frame", frame.toString());
@@ -431,6 +458,7 @@
                 this._animationsList.destroy();
                 this._keysList.destroy();
                 this._valuesForm.destroy();
+                this.core.removeEventReceiver(this);
             };
         }
     }

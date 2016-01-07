@@ -9,6 +9,7 @@
         private _particleSystem: ParticleSystem = null;
         private _particleSystemCapacity: string = "";
 
+        private _isActiveCamera: boolean = false;
         private _isActivePlayCamera: boolean = false;
 
         /**
@@ -70,17 +71,28 @@
             });
 
             // Camera
-            if (object instanceof Camera && object !== core.camera) {
+            if (object instanceof Camera) {
                 var cameraFolder = this._element.addFolder("Camera");
 
-                this._isActivePlayCamera = object === core.playCamera;
+                if (object !== core.camera) {
+                    this._isActivePlayCamera = object === core.playCamera;
+                    cameraFolder.add(this, "_isActivePlayCamera").name("Set Play Camera").listen().onFinishChange((result: any) => {
+                        if (result === true) {
+                            core.playCamera = object;
 
-                cameraFolder.add(this, "_isActivePlayCamera").name("Set Active Camera").listen().onFinishChange((result: any) => {
+                            if (core.isPlaying)
+                                core.currentScene.activeCamera = object;
+                        }
+                        else {
+                            result = true;
+                        }
+                    });
+                }
+
+                this._isActiveCamera = object === core.currentScene.activeCamera;
+                cameraFolder.add(this, "_isActiveCamera").name("Active Camera").listen().onFinishChange((result: any) => {
                     if (result === true) {
-                        core.playCamera = object;
-
-                        if (core.isPlaying)
-                            core.currentScene.activeCamera = object;
+                        core.currentScene.activeCamera = object;
                     }
                     else {
                         result = true;

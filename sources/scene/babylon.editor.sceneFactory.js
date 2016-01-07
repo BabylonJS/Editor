@@ -88,10 +88,30 @@ var BABYLON;
                 return light;
             };
             // Adds a particle system
-            SceneFactory.AddParticleSystem = function (core) {
+            SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
+                if (chooseEmitter === void 0) { chooseEmitter = true; }
                 var ps = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
                 ps.emitter.id = this.GenerateUUID();
                 EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                // Pick emitter
+                if (chooseEmitter) {
+                    var picker = new EDITOR.ObjectPicker(core);
+                    picker.objectLists.push(core.currentScene.meshes);
+                    picker.onObjectPicked = function (names) {
+                        if (names.length > 1) {
+                            var dialog = new EDITOR.GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning", "A Reflection Probe can be attached to only one mesh.\n" +
+                                "The first was considered as the mesh.");
+                            dialog.buildElement(null);
+                        }
+                        //(<ReflectionProbe>this.object).attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
+                        var emitter = ps.emitter;
+                        emitter.dispose(true);
+                        EDITOR.Event.sendSceneEvent(emitter, EDITOR.SceneEventType.OBJECT_REMOVED, core);
+                        ps.emitter = core.currentScene.getMeshByName(names[0]);
+                        ps.emitter.attachedParticleSystem = ps;
+                    };
+                    picker.open();
+                }
                 return ps;
             };
             // Adds a reflection probe

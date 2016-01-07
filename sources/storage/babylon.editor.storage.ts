@@ -1,10 +1,20 @@
 ﻿module BABYLON.EDITOR {
+    export interface IStorageOpenOptions
+    { }
+
+    export interface IStorageSaveOptions
+    { }
+
     export interface IStorage {
-        /**
-        * Authentificate to storage
-        */
-        authenticate(): void;
+        // Open files (TODO)
+        open(options?: IStorageOpenOptions): void;
+
+        // Save files
+        save(options?: IStorageSaveOptions): void;
     }
+
+    export interface IStorageResults
+    { }
 
     export class Storage {
         // Public members

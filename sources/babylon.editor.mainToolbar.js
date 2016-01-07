@@ -55,6 +55,10 @@ var BABYLON;
                         if (id.indexOf(this._projectExportCode) !== -1) {
                             this._editor.exporter.openSceneExporter();
                         }
+                        else if (id.indexOf(this._projectConnectStorage) !== -1) {
+                            var oneDriveStorage = new EDITOR.OneDriveStorage(this._core);
+                            oneDriveStorage.open();
+                        }
                         return true;
                     }
                     // Add
@@ -96,7 +100,7 @@ var BABYLON;
                 var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
                 this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
                 this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Connect Storage...", "");
+                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Synchronize on OneDrive", "icon-one-drive");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");

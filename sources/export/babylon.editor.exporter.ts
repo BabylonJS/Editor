@@ -47,7 +47,10 @@
                 "var getTextureByName = " + this._getTextureByName + "\n",
                 "function CreateBabylonScene(scene) {",
                 "\tvar engine = scene.getEngine();",
-                "\tvar node = null;\n",
+                "\tvar node = null;",
+                "\tvar animation = null;",
+                "\tvar keys = null;",
+                "\tvar particleSystem = null;",
                 this._exportScene(),
                 this._exportReflectionProbes(),
                 this._traverseNodes(),
@@ -62,7 +65,7 @@
         // Export scene
         public _exportScene(): string {
             var scene = this.core.currentScene;
-            var finalString = "// Export scene";
+            var finalString = "\n\t// Export scene";
 
             // Set values
             for (var thing in scene) {
@@ -84,7 +87,9 @@
                 finalString += "\tscene." + thing + " = " + result + ";\n";
             }
 
-            if ((<any>scene).animations.length > 0) {
+            var animations = (<any>scene).animations;
+
+            if (animations && animations.length > 0) {
                 finalString += "\tscene.animations = [];\n";
                 finalString += "\tnode = scene;\n";
                 finalString += this._exportAnimations(<any>scene);
@@ -172,8 +177,8 @@
 
                 var keys = anim.getKeys();
 
-                finalString += "\tvar keys = []\n";
-                finalString += "\tvar animation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
+                finalString += "\tkeys = [];\n";
+                finalString += "\tanimation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
                 finalString += "\tBABYLON.Tags.AddTagsTo(animation, \"modified\");\n";
                 
                 if (!keys)
@@ -284,8 +289,14 @@
         public _exportParticleSystem(particleSystem: ParticleSystem): string {
             var node = particleSystem.emitter;
 
-            var finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
-            finalString += "\tvar particleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n"
+            var finalString = "";
+
+            if (!node.geometry)
+                finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
+            else
+                finalString = "\tnode = scene.getMeshByName(\"" + node.name + "\");\n";
+
+            finalString += "\tparticleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n"
             finalString += "\tparticleSystem.emitter = node;\n";
 
             for (var thing in particleSystem) {
@@ -306,6 +317,9 @@
                 }
                 else if (value instanceof Color4) {
                     result += this._exportColor4(value);
+                }
+                else if (value instanceof Color3) {
+                    result += this._exportColor3(value);
                 }
                 else if (value instanceof Texture) {
                     result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
@@ -436,9 +450,9 @@
                 var rootNodes: Node[] = [];
                 var finalString = "";
 
-                this._fillRootNodes(rootNodes, "meshes");
                 this._fillRootNodes(rootNodes, "lights");
                 this._fillRootNodes(rootNodes, "cameras");
+                this._fillRootNodes(rootNodes, "meshes");
 
                 for (var i = 0; i < rootNodes.length; i++) {
                     finalString += this._traverseNodes(rootNodes[i]);
@@ -449,7 +463,7 @@
             else {
                 var finalString = "";
 
-                if (node.id.indexOf(EditorMain.DummyNodeID) === -1) {
+                if (node.id.indexOf(EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
                     finalString = "\t// Configure node " + node.name + "\n";
 
                     var foundParticleSystems = false;
@@ -473,7 +487,8 @@
                         finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
 
                     // Transformation
-                    finalString += this._exportNodeTransform(node);
+                    if (foundParticleSystems || foundSky)
+                        finalString += this._exportNodeTransform(node);
 
                     if (node instanceof AbstractMesh) {
                         // Material

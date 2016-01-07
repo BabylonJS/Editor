@@ -21,6 +21,7 @@ var BABYLON;
                 // Private members
                 this._particleSystem = null;
                 this._particleSystemCapacity = "";
+                this._isActiveCamera = false;
                 this._isActivePlayCamera = false;
                 // Initialize
                 this.containers = [
@@ -64,14 +65,25 @@ var BABYLON;
                     }
                 });
                 // Camera
-                if (object instanceof BABYLON.Camera && object !== core.camera) {
+                if (object instanceof BABYLON.Camera) {
                     var cameraFolder = this._element.addFolder("Camera");
-                    this._isActivePlayCamera = object === core.playCamera;
-                    cameraFolder.add(this, "_isActivePlayCamera").name("Set Active Camera").listen().onFinishChange(function (result) {
+                    if (object !== core.camera) {
+                        this._isActivePlayCamera = object === core.playCamera;
+                        cameraFolder.add(this, "_isActivePlayCamera").name("Set Play Camera").listen().onFinishChange(function (result) {
+                            if (result === true) {
+                                core.playCamera = object;
+                                if (core.isPlaying)
+                                    core.currentScene.activeCamera = object;
+                            }
+                            else {
+                                result = true;
+                            }
+                        });
+                    }
+                    this._isActiveCamera = object === core.currentScene.activeCamera;
+                    cameraFolder.add(this, "_isActiveCamera").name("Active Camera").listen().onFinishChange(function (result) {
                         if (result === true) {
-                            core.playCamera = object;
-                            if (core.isPlaying)
-                                core.currentScene.activeCamera = object;
+                            core.currentScene.activeCamera = object;
                         }
                         else {
                             result = true;

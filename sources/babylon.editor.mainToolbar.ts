@@ -71,6 +71,11 @@
                         this._editor.exporter.openSceneExporter();
                     }
 
+                    else if (id.indexOf(this._projectConnectStorage) !== -1) {
+                        var oneDriveStorage = new OneDriveStorage(this._core);
+                        oneDriveStorage.open();
+                    }
+
                     return true;
                 }
 
@@ -121,7 +126,7 @@
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
             this.toolbar.addBreak(menu);
-            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Connect Storage...", "");
+            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Synchronize on OneDrive", "icon-one-drive");
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

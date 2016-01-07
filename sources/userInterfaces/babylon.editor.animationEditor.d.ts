@@ -21,6 +21,8 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore, object: Node);
         onEvent(event: Event): boolean;
         private _createAnimation();
+        _getEffectiveTarget(value?: any): any;
+        private _getFrameTime(frame);
         private _setRecords(frame, value);
         private _setFrameValue();
         private _getFrameValue();

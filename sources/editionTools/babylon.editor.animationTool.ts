@@ -5,7 +5,7 @@
 
         // Private members
         private _animationSpeed: number = 1.0;
-        private _loopAnimation: boolean = true;
+        private _loopAnimation: boolean = false;
 
         /**
         * Constructor

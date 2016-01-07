@@ -19,7 +19,7 @@ var BABYLON;
                 this.tab = "ANIMATION.TAB";
                 // Private members
                 this._animationSpeed = 1.0;
-                this._loopAnimation = true;
+                this._loopAnimation = false;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
