@@ -14,6 +14,14 @@ var BABYLON;
                 // Initialize
                 this.core = core;
             }
+            // Creates folders
+            Storage.prototype.createFolders = function (folders, parentFolder, success, failed) { };
+            // Gets children files
+            Storage.prototype.getFiles = function (folder, success) { };
+            // Create files
+            Storage.prototype.createFiles = function (files, folder, success, failed) { };
+            // Select folder
+            Storage.prototype.selectFolder = function (success) { };
             return Storage;
         })();
         EDITOR.Storage = Storage;

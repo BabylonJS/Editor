@@ -126,6 +126,14 @@
         * Gets the tabs of the panel
         */
         tabs: IPanelTabController;
+        /**
+        * Lock the given panel
+        */
+        lock(type: string, message?: string, spinner?: boolean): void;
+        /**
+        * Unlock the given panel
+        */
+        unlock(type: string): void;
     }
 
     /**

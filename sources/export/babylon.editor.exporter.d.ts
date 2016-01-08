@@ -10,7 +10,7 @@ declare module BABYLON.EDITOR {
         */
         constructor(core: EditorCore);
         openSceneExporter(): void;
-        private _generateCode();
+        generateCode(): string;
         _exportScene(): string;
         _exportReflectionProbes(): string;
         _exportNodeTransform(node: any): string;

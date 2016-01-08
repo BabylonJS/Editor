@@ -27,6 +27,8 @@
                             BABYLON.Tools.Error("An error occured in the script " + jsFile.name);
                         }
 
+                        (<any>window).CreateBabylonScene = undefined;
+
                         core.editor.sceneGraphTool.createUI();
                         core.editor.sceneGraphTool.fillGraph();
                     }

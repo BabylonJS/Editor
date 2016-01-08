@@ -15,6 +15,7 @@ var BABYLON;
                 this._mainProject = "MAIN-PROJECT";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+                this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEditLaunch = "EDIT-LAUNCH";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
@@ -53,11 +54,17 @@ var BABYLON;
                     // Project
                     if (id.indexOf(this._mainProject) !== -1) {
                         if (id.indexOf(this._projectExportCode) !== -1) {
-                            this._editor.exporter.openSceneExporter();
+                            //this._editor.exporter.openSceneExporter();
+                            var exporter = new EDITOR.Exporter(this._core);
+                            exporter.openSceneExporter();
                         }
                         else if (id.indexOf(this._projectConnectStorage) !== -1) {
-                            var oneDriveStorage = new EDITOR.OneDriveStorage(this._core);
-                            oneDriveStorage.open();
+                            var storageExporter = new EDITOR.StorageExporter(this._core);
+                            storageExporter.export();
+                        }
+                        else if (id.indexOf(this._projectTemplateStorage) !== -1) {
+                            var storageExporter = new EDITOR.StorageExporter(this._core);
+                            storageExporter.createTemplate();
                         }
                         return true;
                     }
@@ -100,7 +107,8 @@ var BABYLON;
                 var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
                 this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
                 this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Synchronize on OneDrive", "icon-one-drive");
+                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");

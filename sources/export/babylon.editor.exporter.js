@@ -30,10 +30,10 @@ var BABYLON;
                 this._editor.setTheme("ace/theme/clouds");
                 this._editor.getSession().setMode("ace/mode/javascript");
                 // Finish
-                this._generatedCode = this._generateCode();
+                this._generatedCode = this.generateCode();
             };
             // Generates the code
-            Exporter.prototype._generateCode = function () {
+            Exporter.prototype.generateCode = function () {
                 var scene = this.core.currentScene;
                 var finalString = [
                     "var getTextureByName = " + this._getTextureByName + "\n",
@@ -48,7 +48,9 @@ var BABYLON;
                     this._traverseNodes(),
                     "}\n"
                 ].join("\n");
-                this._editor.setValue(finalString, -1);
+                if (this._editor) {
+                    this._editor.setValue(finalString, -1);
+                }
                 return finalString;
             };
             // Export scene

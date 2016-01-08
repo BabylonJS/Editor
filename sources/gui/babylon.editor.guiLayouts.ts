@@ -18,6 +18,14 @@
             return panel;
         }
 
+        public lockPanel(type: string, message?: string, spinner?: boolean): void {
+            (<W2UI.ILayoutsElement>this.element).lock(type, message, spinner);
+        }
+
+        public unlockPanel(type: string): void {
+            (<W2UI.ILayoutsElement>this.element).unlock(type);
+        }
+
         public getPanelFromType(type: string): GUIPanel {
             for (var i = 0; i < this.panels.length; i++) {
                 if (this.panels[i].type === type) {

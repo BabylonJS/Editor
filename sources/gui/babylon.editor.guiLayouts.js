@@ -26,6 +26,12 @@ var BABYLON;
                     this.panels.push(panel);
                     return panel;
                 };
+                GUILayout.prototype.lockPanel = function (type, message, spinner) {
+                    this.element.lock(type, message, spinner);
+                };
+                GUILayout.prototype.unlockPanel = function (type) {
+                    this.element.unlock(type);
+                };
                 GUILayout.prototype.getPanelFromType = function (type) {
                     for (var i = 0; i < this.panels.length; i++) {
                         if (this.panels[i].type === type) {

@@ -12,6 +12,7 @@
         private _mainProject = "MAIN-PROJECT";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+        private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
         private _mainEditLaunch = "EDIT-LAUNCH";
 
@@ -68,12 +69,18 @@
                 // Project
                 if (id.indexOf(this._mainProject) !== -1) {
                     if (id.indexOf(this._projectExportCode) !== -1) {
-                        this._editor.exporter.openSceneExporter();
+                        //this._editor.exporter.openSceneExporter();
+                        var exporter = new Exporter(this._core);
+                        exporter.openSceneExporter();
                     }
 
                     else if (id.indexOf(this._projectConnectStorage) !== -1) {
-                        var oneDriveStorage = new OneDriveStorage(this._core);
-                        oneDriveStorage.open();
+                        var storageExporter = new StorageExporter(this._core);
+                        storageExporter.export();
+                    }
+                    else if (id.indexOf(this._projectTemplateStorage) !== -1) {
+                        var storageExporter = new StorageExporter(this._core);
+                        storageExporter.createTemplate();
                     }
 
                     return true;
@@ -126,7 +133,8 @@
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
             this.toolbar.addBreak(menu);
-            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Synchronize on OneDrive", "icon-one-drive");
+            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+            this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

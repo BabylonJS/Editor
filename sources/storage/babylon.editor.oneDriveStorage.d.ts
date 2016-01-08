@@ -1,17 +1,14 @@
 declare module BABYLON.EDITOR {
-    interface OneDriveOpenOptions extends IStorageOpenOptions {
-    }
-    class OneDriveStorage implements IStorage {
-        onLoadedCallback: (results: IStorageResults[]) => void;
+    class OneDriveStorage extends Storage {
         private _editor;
         /**
         * Constructor
         * @param core: the editor core instance
         */
         constructor(core: EditorCore);
-        save(files: string[], options?: IStorageSaveOptions): void;
-        open(options?: OneDriveOpenOptions): void;
-        private _downloadFiles(files, callback?);
-        private _downloadFolders(folders);
+        createFolders(folders: string[], parentFolder: IStorageFolder, success?: () => void, failed?: () => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFolder, success?: () => void, failed?: () => void): void;
+        selectFolder(success: (folder: IStorageFolder, folderChildren: IStorageFile[], canceled: boolean) => void): void;
+        getFiles(folder: IStorageFolder, success?: (children: IStorageFile[]) => void): void;
     }
 }

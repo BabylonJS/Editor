@@ -1,11 +1,6 @@
 ﻿module BABYLON.EDITOR {
-    export interface OneDriveOpenOptions extends IStorageOpenOptions {
-
-    }
-
-    export class OneDriveStorage implements IStorage {
+    export class OneDriveStorage extends Storage {
         // Public members
-        public onLoadedCallback: (results: IStorageResults[]) => void = null;
 
         // Private members
         private _editor: EditorMain;
@@ -16,6 +11,8 @@
         */
         constructor(core: EditorCore)
         {
+            super(core);
+
             this._editor = core.editor;
 
             // OneDrive
@@ -27,66 +24,117 @@
             });
         }
 
-        // Save files
-        public save(files: string[], options?: IStorageSaveOptions): void {
+        // Creates folders
+        public createFolders(folders: string[], parentFolder: IStorageFolder, success?: () => void, failed?: () => void) {
+            var count = 0;
 
+            WL.login({
+                scope: "wl.skydrive_update"
+            }).then((response: Microsoft.Live.ILoginStatus) => {
+                // Create folders
+                for (var i = 0; i < folders.length; i++) {
+                    WL.api({
+                        path: parentFolder.folder.id,
+                        method: "POST",
+                        body: {
+                            "name": folders[i],
+                            "description": "Babylon.js Editor Template Folder"
+                        }
+                    }).then(
+                        (response: any) => {
+                            count++;
+
+                            if (count === folders.length) {
+                                success();
+                            }
+                        },
+                        (response: any) => {
+                            var errorDialog = new GUI.GUIDialog("ErrorDialog", this.core, "Error when creating template", response.error.message);
+                            errorDialog.buildElement(null);
+                        }
+                    );
+                }
+            });
         }
 
-        // Open files
-        public open(options?: OneDriveOpenOptions): void {
+        // Creates files
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFolder, success?: () => void, failed?: () => void) {
+            var count = 0;
+
+            WL.login({
+                scope: "wl.skydrive_update"
+            }).then((response: Microsoft.Live.ILoginStatus) => {
+
+                for (var i = 0; i < files.length; i++) {
+                    var request = "--A300x\r\n"
+                        + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
+                        + "Content-Type: application/octet-stream\r\n"
+                        + "\r\n"
+                        + "" + files[i].content + "\r\n"
+                        + "\r\n"
+                        + "--A300x--\r\n";
+                    var url = "https://apis.live.net/v5.0/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.folder.id);
+
+                    $.ajax({
+                        type: "POST",
+                        contentType: "multipart/form-data; boundary=A300x",
+                        processData: false,
+                        url: url + "/files?access_token=" + WL.getSession().access_token,
+                        data: request,
+                        success: () => {
+                            count++;
+
+                            if (count === files.length) {
+                                success();
+                            }
+                        },
+                        error: (err: any) => {
+                            BABYLON.Tools.Error("Cannot sync file");
+                        }
+                    });
+                }
+
+            });
+        }
+
+        // Select folder
+        public selectFolder(success: (folder: IStorageFolder, folderChildren: IStorageFile[], canceled: boolean) => void): void {
             WL.login({ scope: ["wl.signin", "wl.basic"] }).then((response: Microsoft.Live.ILoginStatus) => {
+                // Get selected folder
                 WL.fileDialog({ mode: "open", select: "multi" }).then((response: Microsoft.Live.IFilePickerResult) => {
-                    this._downloadFiles(response.data.files || [])();
-                    this._downloadFolders(response.data.folders || [])();
+
+                    // Get children files
+                    if (response.data.folders.length > 0) {
+                        var folder = { folder: response.data.folders[0], name: response.data.folders[0].name }
+
+                        this.getFiles(folder, (children: IStorageFile[]) => {
+                            success(folder, children, false);
+                        });
+                    }
+                    else {
+                        success(null, null, true);
+                    }
                 });
             });
         }
 
-        // Download all files
-        private _downloadFiles(files: Microsoft.Live.IFile[], callback?: (results: IStorageResults | { }) => void): () => void {
-            var count = 0;
-            var results: IStorageResults[] = [];
+        // Gets the children files of a folder
+        public getFiles(folder: IStorageFolder, success?: (children: IStorageFile[]) => void) {
+            WL.api({
+                path: folder.folder.id + "/files",
+                method: "GET"
+            }).then(
+                (childrenResponse: { data: Microsoft.Live.IFile[] }) => {
 
-            return () => {
-                for (var i = 0; i < files.length; i++) {
-                    WL.api({
-                        path: files[i].id + "/content"
-                    }).then((response: Object) => {
-                        count++;
-                        results.push(response);
+                    var children: IStorageFile[] = [];
 
-                        if (count >= files.length) {
-                            if (callback) {
-                                callback(results);
-                            }
-                            else if (this.onLoadedCallback) {
-                                this.onLoadedCallback(results);
-                            }
-                        }
-                    });
+                    for (var i = 0; i < childrenResponse.data.length; i++)
+                        children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
+
+                    success(children);
+
                 }
-            };
-        };
-
-        // Downloads all folders
-        private _downloadFolders(folders: Microsoft.Live.IFolder[]): () => void {
-            var count = 0;
-            var results: IStorageResults[] = [];
-
-            return () => {
-                for (var i = 0; i < folders.length; i++) {
-                    WL.api({
-                        path: folders[i].id + "/files"
-                    }).then((response: any) => {
-                        count++;
-                        results.push(response);
-
-                        if (count >= folders.length) {
-                            this._downloadFiles(response.data)();
-                        }
-                    });
-                }
-            };
+            );
         }
     }
 }

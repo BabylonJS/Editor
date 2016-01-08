@@ -37,11 +37,11 @@
             this._editor.getSession().setMode("ace/mode/javascript");
 
             // Finish
-            this._generatedCode = this._generateCode();
+            this._generatedCode = this.generateCode();
         }
 
         // Generates the code
-        private _generateCode(): string {
+        public generateCode(): string {
             var scene = this.core.currentScene;
             var finalString = [
                 "var getTextureByName = " + this._getTextureByName + "\n",
@@ -57,7 +57,9 @@
                 "}\n"
             ].join("\n");
 
-            this._editor.setValue(finalString, -1);
+            if (this._editor) {
+                this._editor.setValue(finalString, -1);
+            }
 
             return finalString;
         }

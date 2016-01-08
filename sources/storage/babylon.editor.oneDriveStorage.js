@@ -1,15 +1,20 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var OneDriveStorage = (function () {
+        var OneDriveStorage = (function (_super) {
+            __extends(OneDriveStorage, _super);
             /**
             * Constructor
             * @param core: the editor core instance
             */
             function OneDriveStorage(core) {
-                // Public members
-                this.onLoadedCallback = null;
+                _super.call(this, core);
                 this._editor = core.editor;
                 // OneDrive
                 WL.init({
@@ -19,65 +24,101 @@ var BABYLON;
                     response_type: "token"
                 });
             }
-            // Save files
-            OneDriveStorage.prototype.save = function (files, options) {
+            // Creates folders
+            OneDriveStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
+                var _this = this;
+                var count = 0;
+                WL.login({
+                    scope: "wl.skydrive_update"
+                }).then(function (response) {
+                    // Create folders
+                    for (var i = 0; i < folders.length; i++) {
+                        WL.api({
+                            path: parentFolder.folder.id,
+                            method: "POST",
+                            body: {
+                                "name": folders[i],
+                                "description": "Babylon.js Editor Template Folder"
+                            }
+                        }).then(function (response) {
+                            count++;
+                            if (count === folders.length) {
+                                success();
+                            }
+                        }, function (response) {
+                            var errorDialog = new EDITOR.GUI.GUIDialog("ErrorDialog", _this.core, "Error when creating template", response.error.message);
+                            errorDialog.buildElement(null);
+                        });
+                    }
+                });
             };
-            // Open files
-            OneDriveStorage.prototype.open = function (options) {
+            // Creates files
+            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
+                var count = 0;
+                WL.login({
+                    scope: "wl.skydrive_update"
+                }).then(function (response) {
+                    for (var i = 0; i < files.length; i++) {
+                        var request = "--A300x\r\n"
+                            + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
+                            + "Content-Type: application/octet-stream\r\n"
+                            + "\r\n"
+                            + "" + files[i].content + "\r\n"
+                            + "\r\n"
+                            + "--A300x--\r\n";
+                        var url = "https://apis.live.net/v5.0/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.folder.id);
+                        $.ajax({
+                            type: "POST",
+                            contentType: "multipart/form-data; boundary=A300x",
+                            processData: false,
+                            url: url + "/files?access_token=" + WL.getSession().access_token,
+                            data: request,
+                            success: function () {
+                                count++;
+                                if (count === files.length) {
+                                    success();
+                                }
+                            },
+                            error: function (err) {
+                                BABYLON.Tools.Error("Cannot sync file");
+                            }
+                        });
+                    }
+                });
+            };
+            // Select folder
+            OneDriveStorage.prototype.selectFolder = function (success) {
                 var _this = this;
                 WL.login({ scope: ["wl.signin", "wl.basic"] }).then(function (response) {
+                    // Get selected folder
                     WL.fileDialog({ mode: "open", select: "multi" }).then(function (response) {
-                        _this._downloadFiles(response.data.files || [])();
-                        _this._downloadFolders(response.data.folders || [])();
+                        // Get children files
+                        if (response.data.folders.length > 0) {
+                            var folder = { folder: response.data.folders[0], name: response.data.folders[0].name };
+                            _this.getFiles(folder, function (children) {
+                                success(folder, children, false);
+                            });
+                        }
+                        else {
+                            success(null, null, true);
+                        }
                     });
                 });
             };
-            // Download all files
-            OneDriveStorage.prototype._downloadFiles = function (files, callback) {
-                var _this = this;
-                var count = 0;
-                var results = [];
-                return function () {
-                    for (var i = 0; i < files.length; i++) {
-                        WL.api({
-                            path: files[i].id + "/content"
-                        }).then(function (response) {
-                            count++;
-                            results.push(response);
-                            if (count >= files.length) {
-                                if (callback) {
-                                    callback(results);
-                                }
-                                else if (_this.onLoadedCallback) {
-                                    _this.onLoadedCallback(results);
-                                }
-                            }
-                        });
-                    }
-                };
-            };
-            ;
-            // Downloads all folders
-            OneDriveStorage.prototype._downloadFolders = function (folders) {
-                var _this = this;
-                var count = 0;
-                var results = [];
-                return function () {
-                    for (var i = 0; i < folders.length; i++) {
-                        WL.api({
-                            path: folders[i].id + "/files"
-                        }).then(function (response) {
-                            count++;
-                            results.push(response);
-                            if (count >= folders.length) {
-                                _this._downloadFiles(response.data)();
-                            }
-                        });
-                    }
-                };
+            // Gets the children files of a folder
+            OneDriveStorage.prototype.getFiles = function (folder, success) {
+                WL.api({
+                    path: folder.folder.id + "/files",
+                    method: "GET"
+                }).then(function (childrenResponse) {
+                    var children = [];
+                    for (var i = 0; i < childrenResponse.data.length; i++)
+                        children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
+                    success(children);
+                });
             };
             return OneDriveStorage;
-        })();
+        })(EDITOR.Storage);
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
