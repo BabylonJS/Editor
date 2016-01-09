@@ -145,6 +145,8 @@
                 if (typeof value === "number" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
                     var item = folder.add(object, thing);
 
+                    this._element.tagObjectIfChanged(item, object, thing);
+
                     if (thing === "alpha") {
                         item.min(0.0).max(1.0).step(0.01);
                     }
@@ -159,7 +161,9 @@
             for (var thing in object) {
                 var value = object[thing];
                 if (typeof value === "boolean" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                    folder.add(object, thing).name(this._beautifyName(thing));
+                    var item = folder.add(object, thing).name(this._beautifyName(thing));
+
+                    this._element.tagObjectIfChanged(item, object, thing);
                 }
             }
         }

@@ -6,9 +6,9 @@
     export class ObjectPicker implements IEventReceiver {
         // Public members
         public core: EditorCore = null;
-        public onSelectCallback: (objectId: string) => void;
         
         public objectLists: Array<any[]> = new Array<any[]>();
+        public selectedObjects: Array<any> = new Array<any>();
 
         public onObjectPicked: (names: string[]) => void;
 
@@ -91,17 +91,34 @@
             this._list = new GUI.GUIGrid<IObjectPickerRow>(listID, this.core);
             this._list.header = "Objects";
             this._list.createColumn("name", "name", "100%");
+
             this._list.buildElement(listID);
+
+            var selected: number[] = [];
+            var recid = 0;
 
             for (var i = 0; i < this.objectLists.length; i++) {
                 var list = this.objectLists[i];
 
                 for (var j = 0; j < list.length; j++) {
+                    if (list[j] === this.core.camera)
+                        continue;
+
                     this._list.addRow({
-                        name: list[j].name
+                        name: list[j].name || "Scene",
+                        recid: recid
                     });
+
+                    if (this.selectedObjects.indexOf(list[j]) !== -1)
+                        selected.push(recid);
+
+                    recid++;
                 }
             }
+
+            // Set selected
+            if (selected.length > 0)
+                this._list.setSelected(selected);
         }
     }
 }

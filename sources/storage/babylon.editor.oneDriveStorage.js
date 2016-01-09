@@ -55,10 +55,10 @@ var BABYLON;
             // Creates files
             OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
                 var count = 0;
-                WL.login({
-                    scope: "wl.skydrive_update"
-                }).then(function (response) {
+                WL.login({ scope: "wl.skydrive_update" }).then(function (response) {
+                    // Create files
                     for (var i = 0; i < files.length; i++) {
+                        // Create the request on the fly (using jQuery)
                         var request = "--A300x\r\n"
                             + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
                             + "Content-Type: application/octet-stream\r\n"
@@ -66,7 +66,9 @@ var BABYLON;
                             + "" + files[i].content + "\r\n"
                             + "\r\n"
                             + "--A300x--\r\n";
+                        // Build url (until 1 level of folders, check parentFolder else projectFolder)
                         var url = "https://apis.live.net/v5.0/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.folder.id);
+                        // Request
                         $.ajax({
                             type: "POST",
                             contentType: "multipart/form-data; boundary=A300x",
@@ -107,14 +109,17 @@ var BABYLON;
             };
             // Gets the children files of a folder
             OneDriveStorage.prototype.getFiles = function (folder, success) {
-                WL.api({
-                    path: folder.folder.id + "/files",
-                    method: "GET"
-                }).then(function (childrenResponse) {
-                    var children = [];
-                    for (var i = 0; i < childrenResponse.data.length; i++)
-                        children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
-                    success(children);
+                WL.login({ scope: ["wl.signin", "wl.basic"] }).then(function (response) {
+                    // Get files
+                    WL.api({
+                        path: folder.folder.id + "/files",
+                        method: "GET"
+                    }).then(function (childrenResponse) {
+                        var children = [];
+                        for (var i = 0; i < childrenResponse.data.length; i++)
+                            children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
+                        success(children);
+                    });
                 });
             };
             return OneDriveStorage;

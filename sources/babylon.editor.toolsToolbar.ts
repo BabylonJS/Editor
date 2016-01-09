@@ -72,12 +72,20 @@
                 else if (id.indexOf(this._playGameID) !== -1) {
                     var checked = !this.toolbar.isItemChecked(id);
 
-                    if (this._core.playCamera) {
-                        this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
+                    //if (this._core.playCamera) {
+                        //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
 
                         if (checked) {
                             this._core.engine.resize();
                             this._core.isPlaying = true;
+
+                            // Animate at launch
+                            for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
+                                var node = SceneFactory.NodesToStart[i];
+
+                                this._core.currentScene.stopAnimation(node);
+                                this._core.currentScene.beginAnimation(node, 0, Number.MAX_VALUE, false, SceneFactory.AnimationSpeed);
+                            }
                         }
                         else {
                             this._core.engine.resize();
@@ -89,7 +97,7 @@
 
                         for (var i = 0; i < this._core.currentScene.meshes.length; i++)
                             this._core.currentScene.meshes[i].showBoundingBox = false;
-                    }
+                    //}
 
                     return true;
                 }

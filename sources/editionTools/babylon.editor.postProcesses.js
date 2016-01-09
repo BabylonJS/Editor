@@ -67,21 +67,22 @@ var BABYLON;
                     hdrFolder.add(this._enabledPostProcesses, "attachHDR").name("Attach HDR").onChange(function (result) {
                         _this._attachDetachPipeline(result, "hdr");
                     });
-                    hdrFolder.add(this._hdrPipeline, 'exposure').min(0).max(10).step(0.01).name("Exposure");
-                    hdrFolder.add(this._hdrPipeline, 'brightThreshold').min(0).max(10).step(0.01).name("Bright Threshold");
-                    hdrFolder.add(this._hdrPipeline, 'minimumLuminance').min(0).max(10).step(0.01).name("Minimum Luminance");
-                    hdrFolder.add(this._hdrPipeline, 'luminanceDecreaseRate').min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                    hdrFolder.add(this._hdrPipeline, 'luminanceIncreaserate').min(0).max(5).step(0.01).name("Luminance Increase Rate");
-                    hdrFolder.add(this._hdrPipeline, 'gaussCoeff').min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
+                    hdrFolder.add(this._hdrPipeline._originalPostProcess, "_exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
+                    hdrFolder.add(this._hdrPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    hdrFolder.add(this._hdrPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    hdrFolder.add(this._hdrPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
+                    hdrFolder.add(this._hdrPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
+                    hdrFolder.add(this._hdrPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
+                    hdrFolder.add(this._hdrPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
                         _this._hdrPipeline.update();
                     });
-                    hdrFolder.add(this._hdrPipeline, 'gaussMean').min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
+                    hdrFolder.add(this._hdrPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
                         _this._hdrPipeline.update();
                     });
-                    hdrFolder.add(this._hdrPipeline, 'gaussStandDev').min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
+                    hdrFolder.add(this._hdrPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
                         _this._hdrPipeline.update();
                     });
-                    hdrFolder.add(this._hdrPipeline, 'gaussMultiplier').min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                    hdrFolder.add(this._hdrPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");

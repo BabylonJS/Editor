@@ -139,8 +139,8 @@ var BABYLON;
             // Public members
             SceneFactory.hdrPipeline = null;
             SceneFactory.ssaoPipeline = null;
-            SceneFactory.ParticleSystemsToStart = [];
             SceneFactory.NodesToStart = [];
+            SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;
         })();
         EDITOR.SceneFactory = SceneFactory;

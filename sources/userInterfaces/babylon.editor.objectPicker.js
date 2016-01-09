@@ -11,6 +11,7 @@ var BABYLON;
                 // Public members
                 this.core = null;
                 this.objectLists = new Array();
+                this.selectedObjects = new Array();
                 // Private members
                 this._window = null;
                 this._list = null;
@@ -74,14 +75,25 @@ var BABYLON;
                 this._list.header = "Objects";
                 this._list.createColumn("name", "name", "100%");
                 this._list.buildElement(listID);
+                var selected = [];
+                var recid = 0;
                 for (var i = 0; i < this.objectLists.length; i++) {
                     var list = this.objectLists[i];
                     for (var j = 0; j < list.length; j++) {
+                        if (list[j] === this.core.camera)
+                            continue;
                         this._list.addRow({
-                            name: list[j].name
+                            name: list[j].name || "Scene",
+                            recid: recid
                         });
+                        if (this.selectedObjects.indexOf(list[j]) !== -1)
+                            selected.push(recid);
+                        recid++;
                     }
                 }
+                // Set selected
+                if (selected.length > 0)
+                    this._list.setSelected(selected);
             };
             return ObjectPicker;
         })();

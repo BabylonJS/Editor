@@ -54,6 +54,7 @@
                 this._exportScene(),
                 this._exportReflectionProbes(),
                 this._traverseNodes(),
+                this._exportSceneValues(),
                 "}\n"
             ].join("\n");
 
@@ -64,10 +65,43 @@
             return finalString;
         }
 
+        // Export the scene values
+        public _exportSceneValues(): string {
+            // Common values
+            var finalString = "\n" +
+                "\tif (BABYLON.EDITOR) {\n" +
+                "\t    BABYLON.EDITOR.SceneFactory.AnimationSpeed = " + SceneFactory.AnimationSpeed + ";\n";
+
+            for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
+                var node: any = SceneFactory.NodesToStart[i];
+
+                if (node instanceof Scene)
+                    finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene);\n";
+                else
+                    finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene.getNodeByName(\"" + node.name + "\"));\n";
+            }
+
+            finalString += "\t}\n";
+            finalString += "\telse {\n"
+
+            for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
+                var node: any = SceneFactory.NodesToStart[i];
+
+                if (node instanceof Scene)
+                    finalString += "\t    scene.beginAnimation(scene, 0, Number.MAX_VALUE, false, " + SceneFactory.AnimationSpeed + "); \n";
+                else
+                    finalString += "\t    scene.beginAnimation(scene.getNodeByName(\"" + node.name + "\"), 0, Number.MAX_VALUE, false, " + SceneFactory.AnimationSpeed + ");\n";
+            }
+
+            finalString += "\t}\n";
+
+            return finalString;
+        }
+
         // Export scene
         public _exportScene(): string {
             var scene = this.core.currentScene;
-            var finalString = "\n\t// Export scene";
+            var finalString = "\n\t// Export scene\n";
 
             // Set values
             for (var thing in scene) {
@@ -222,7 +256,9 @@
                 material = node.getMaterial();
             }
 
-            if (!material || material instanceof StandardMaterial)
+            var isStandard = material instanceof StandardMaterial;
+
+            if (!material || (isStandard && !BABYLON.Tags.HasTags(material)))
                 return "";
 
             var finalString = "\n";
@@ -234,7 +270,7 @@
             }
 
             if (material instanceof StandardMaterial) {
-                finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
+                //finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
             }
             else if (material instanceof PBRMaterial) {
                 finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
@@ -248,7 +284,10 @@
                 var value = material[thing];
                 var result = "";
 
-                if (thing[0] === "_")
+                if (thing[0] === "_" || value === null)
+                    continue;
+
+                if (isStandard && !BABYLON.Tags.MatchesQuery(material, thing))
                     continue;
 
                 if (typeof value === "number" || typeof value === "boolean") {
@@ -267,7 +306,7 @@
                     result += this._exportColor4(value);
                 }
                 else if (value instanceof BaseTexture) {
-                    result += "getTextureByName(\"" + value.name + "\", scene)";
+                    result += "getTextureByName(\"" + value.name + "\", scene);";
                 }
                 else
                     continue;

@@ -14,6 +14,7 @@
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
         private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
+        private _mainEdit = "MAIN-EDIT";
         private _mainEditLaunch = "EDIT-LAUNCH";
 
         private _mainAdd: string = "MAIN-ADD";
@@ -86,6 +87,15 @@
                     return true;
                 }
 
+                // Edit
+                if (id.indexOf(this._mainEdit) !== -1) {
+                    if (id.indexOf(this._mainEditLaunch) !== -1) {
+                        var launchEditor = new LaunchEditor(this._core);
+                    }
+
+                    return true;
+                }
+
                 // Add
                 if (id.indexOf(this._mainAdd) !== -1) {
                     if (id.indexOf(this._addPointLight) !== -1) {
@@ -138,7 +148,7 @@
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
-            this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");
+            this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
             //...
 
             menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");

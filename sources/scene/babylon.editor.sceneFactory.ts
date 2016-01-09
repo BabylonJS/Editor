@@ -14,8 +14,8 @@
         public static hdrPipeline: HDRRenderingPipeline = null;
         public static ssaoPipeline: SSAORenderingPipeline = null;
 
-        public static ParticleSystemsToStart: ParticleSystem[] = [];
-        public static NodesToStart: Node[] = [];
+        public static NodesToStart: IAnimatable[] = [];
+        public static AnimationSpeed: number = 1.0;
 
         /**
         * Post-Processes

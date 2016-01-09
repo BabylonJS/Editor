@@ -35,6 +35,17 @@ var BABYLON;
                         return this._datElement.add(null, "");
                     return this._datElement.add(object, propertyPath, items).name(name);
                 };
+                // Adds tags to object if property changed
+                GUIEditForm.prototype.tagObjectIfChanged = function (element, object, property) {
+                    element.onFinishChange(function (result) {
+                        if (!BABYLON.Tags.HasTags(object)) {
+                            BABYLON.Tags.EnableFor(object);
+                        }
+                        if (!BABYLON.Tags.MatchesQuery(object, property)) {
+                            BABYLON.Tags.AddTagsTo(object, property);
+                        }
+                    });
+                };
                 Object.defineProperty(GUIEditForm.prototype, "width", {
                     get: function () {
                         return this._datElement.width;

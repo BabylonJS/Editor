@@ -16,6 +16,7 @@ var BABYLON;
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
+                this._mainEdit = "MAIN-EDIT";
                 this._mainEditLaunch = "EDIT-LAUNCH";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
@@ -68,6 +69,13 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // Edit
+                    if (id.indexOf(this._mainEdit) !== -1) {
+                        if (id.indexOf(this._mainEditLaunch) !== -1) {
+                            var launchEditor = new EDITOR.LaunchEditor(this._core);
+                        }
+                        return true;
+                    }
                     // Add
                     if (id.indexOf(this._mainAdd) !== -1) {
                         if (id.indexOf(this._addPointLight) !== -1) {
@@ -111,7 +119,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
-                this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Edit Launch...", "icon-play-game");
+                this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
                 this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");

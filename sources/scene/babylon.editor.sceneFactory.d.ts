@@ -3,8 +3,8 @@ declare module BABYLON.EDITOR {
         static GenerateUUID(): string;
         static hdrPipeline: HDRRenderingPipeline;
         static ssaoPipeline: SSAORenderingPipeline;
-        static ParticleSystemsToStart: ParticleSystem[];
-        static NodesToStart: Node[];
+        static NodesToStart: IAnimatable[];
+        static AnimationSpeed: number;
         /**
         * Post-Processes
         */

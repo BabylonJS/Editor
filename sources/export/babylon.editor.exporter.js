@@ -46,6 +46,7 @@ var BABYLON;
                     this._exportScene(),
                     this._exportReflectionProbes(),
                     this._traverseNodes(),
+                    this._exportSceneValues(),
                     "}\n"
                 ].join("\n");
                 if (this._editor) {
@@ -53,10 +54,35 @@ var BABYLON;
                 }
                 return finalString;
             };
+            // Export the scene values
+            Exporter.prototype._exportSceneValues = function () {
+                // Common values
+                var finalString = "\n" +
+                    "\tif (BABYLON.EDITOR) {\n" +
+                    "\t    BABYLON.EDITOR.SceneFactory.AnimationSpeed = " + EDITOR.SceneFactory.AnimationSpeed + ";\n";
+                for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                    var node = EDITOR.SceneFactory.NodesToStart[i];
+                    if (node instanceof BABYLON.Scene)
+                        finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene);\n";
+                    else
+                        finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene.getNodeByName(\"" + node.name + "\"));\n";
+                }
+                finalString += "\t}\n";
+                finalString += "\telse {\n";
+                for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                    var node = EDITOR.SceneFactory.NodesToStart[i];
+                    if (node instanceof BABYLON.Scene)
+                        finalString += "\t    scene.beginAnimation(scene, 0, Number.MAX_VALUE, false, " + EDITOR.SceneFactory.AnimationSpeed + "); \n";
+                    else
+                        finalString += "\t    scene.beginAnimation(scene.getNodeByName(\"" + node.name + "\"), 0, Number.MAX_VALUE, false, " + EDITOR.SceneFactory.AnimationSpeed + ");\n";
+                }
+                finalString += "\t}\n";
+                return finalString;
+            };
             // Export scene
             Exporter.prototype._exportScene = function () {
                 var scene = this.core.currentScene;
-                var finalString = "\n\t// Export scene";
+                var finalString = "\n\t// Export scene\n";
                 // Set values
                 for (var thing in scene) {
                     var value = scene[thing];
@@ -173,7 +199,8 @@ var BABYLON;
                 else if (node instanceof BABYLON.SubMesh) {
                     material = node.getMaterial();
                 }
-                if (!material || material instanceof BABYLON.StandardMaterial)
+                var isStandard = material instanceof BABYLON.StandardMaterial;
+                if (!material || (isStandard && !BABYLON.Tags.HasTags(material)))
                     return "";
                 var finalString = "\n";
                 // Set constructor
@@ -182,7 +209,6 @@ var BABYLON;
                     materialString = "\tnode.material.subMaterials[" + subMeshId + "]";
                 }
                 if (material instanceof BABYLON.StandardMaterial) {
-                    finalString += materialString + " = new BABYLON.StandardMaterial(\"" + material.name + "\", scene);\n";
                 }
                 else if (material instanceof BABYLON.PBRMaterial) {
                     finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
@@ -194,7 +220,9 @@ var BABYLON;
                 for (var thing in material) {
                     var value = material[thing];
                     var result = "";
-                    if (thing[0] === "_")
+                    if (thing[0] === "_" || value === null)
+                        continue;
+                    if (isStandard && !BABYLON.Tags.MatchesQuery(material, thing))
                         continue;
                     if (typeof value === "number" || typeof value === "boolean") {
                         result += value;
@@ -212,7 +240,7 @@ var BABYLON;
                         result += this._exportColor4(value);
                     }
                     else if (value instanceof BABYLON.BaseTexture) {
-                        result += "getTextureByName(\"" + value.name + "\", scene)";
+                        result += "getTextureByName(\"" + value.name + "\", scene);";
                     }
                     else
                         continue;

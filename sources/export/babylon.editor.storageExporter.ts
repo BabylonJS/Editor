@@ -100,7 +100,7 @@
 
         // Locks the panel
         private _lockPanel(message: string): void {
-            this.core.editor.layouts.setPanelSize("bottom", 100);
+            this.core.editor.layouts.setPanelSize("bottom", 0);
             this.core.editor.layouts.lockPanel("bottom", message, true);
         }
 

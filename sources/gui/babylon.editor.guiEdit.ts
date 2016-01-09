@@ -36,6 +36,19 @@
             return this._datElement.add(object, propertyPath, items).name(name);
         }
 
+        // Adds tags to object if property changed
+        public tagObjectIfChanged(element: dat.IGUIElement, object: any, property: string): void {
+            element.onFinishChange((result: any) => {
+                if (!BABYLON.Tags.HasTags(object)) {
+                    BABYLON.Tags.EnableFor(object);
+                }
+
+                if (!BABYLON.Tags.MatchesQuery(object, property)) {
+                    BABYLON.Tags.AddTagsTo(object, property);
+                }
+            });
+        }
+
         // Get / Set width
         public set width(width: number) {
             this._datElement.width = width;

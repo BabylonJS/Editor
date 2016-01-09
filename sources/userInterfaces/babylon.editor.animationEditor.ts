@@ -8,6 +8,12 @@
         value: string;
     }
 
+    enum EContextMenuID {
+        COPY = 0,
+        PASTE = 1,
+        PASTE_KEYS = 2
+    }
+
     export class GUIAnimationEditor implements IEventReceiver {
         // Public members
         public core: EditorCore = null;
@@ -28,6 +34,8 @@
         private _addAnimationName: string = "New Animation";
         private _addAnimationFramesPerSecond: number = 1;
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
+
+        private static _CopiedAnimations: Animation[] = [];
 
         /**
         * Constructor
@@ -108,7 +116,8 @@
 
             // Lists
             if (event.guiEvent.eventType !== GUIEventType.GRID_SELECTED && event.guiEvent.eventType !== GUIEventType.GRID_ROW_ADDED
-                && event.guiEvent.eventType !== GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== GUIEventType.FORM_CHANGED) {
+                && event.guiEvent.eventType !== GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== GUIEventType.FORM_CHANGED
+                && event.guiEvent.eventType !== GUIEventType.GRID_MENU_SELECTED) {
                 return false;
             }
 
@@ -144,6 +153,68 @@
                 }
                 else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_ADDED) {
                     this._createAnimation();
+                }
+                else if (event.guiEvent.eventType === GUIEventType.GRID_MENU_SELECTED) {
+                    var id: number = event.guiEvent.data;
+
+                    if (id === EContextMenuID.COPY) {
+                        GUIAnimationEditor._CopiedAnimations = [];
+                        var selected = this._animationsList.getSelectedRows();
+
+                        for (var i = 0; i < selected.length; i++) {
+                            GUIAnimationEditor._CopiedAnimations.push(this.object.animations[selected[i]]);
+                        }
+                    }
+                    else if (id === EContextMenuID.PASTE) {
+                        for (var i = 0; i < GUIAnimationEditor._CopiedAnimations.length; i++) {
+                            var anim = GUIAnimationEditor._CopiedAnimations[i];
+                            var animKeys = anim.getKeys();
+
+                            var animation = new Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
+                            var keys = [];
+
+                            for (var j = 0; j < animKeys.length; j++) {
+                                keys.push({
+                                    frame: animKeys[j].frame,
+                                    value: animKeys[j].value
+                                });
+                            }
+
+                            animation.setKeys(keys);
+
+                            this.object.animations.push(animation);
+                            BABYLON.Tags.AddTagsTo(animation, "modified");
+
+                            this._animationsList.addRow({
+                                name: anim.name
+                            });
+                        }
+                    }
+                    else if (id === EContextMenuID.PASTE_KEYS) {
+                        var selected = this._animationsList.getSelectedRows();
+
+                        if (GUIAnimationEditor._CopiedAnimations.length === 1 && selected.length === 1) {
+                            var animation = this.object.animations[selected[0]];
+                            var anim = GUIAnimationEditor._CopiedAnimations[0];
+                            var keys = anim.getKeys();
+                            var length = animation.getKeys().length;
+
+                            for (var i = 0; i < keys.length; i++) {
+                                animation.getKeys().push({
+                                    frame: keys[i].frame,
+                                    value: keys[i].value
+                                });
+
+                                this._keysList.addRow({
+                                    key: keys[i].frame,
+                                    value: this._getFrameTime(keys[i].frame),
+                                    recid: length
+                                });
+
+                                length++;
+                            }
+                        }
+                    }
                 }
 
                 this._setRecords(0, "");
@@ -428,6 +499,9 @@
             this._animationsList.showOptions = false;
             this._animationsList.showDelete = true;
             this._animationsList.showAdd = true;
+            this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "");
+            this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "");
+            this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "");
             this._animationsList.buildElement(animationsListID);
 
             for (var i = 0; i < this.object.animations.length; i++) {

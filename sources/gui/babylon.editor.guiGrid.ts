@@ -15,6 +15,7 @@
         public showEdit: boolean = false;
         public showOptions: boolean = true;
         public showSearch: boolean = true;
+        public menus: W2UI.IGridMenu[] = [];
 
         // Private members
 
@@ -25,6 +26,15 @@
         */
         constructor(name: string, core: EditorCore) {
             super(name, core);
+        }
+
+        // Adds a menu
+        public addMenu(id: number, text: string, icon: string): void {
+            this.menus.push({
+                id: id,
+                text: text,
+                icon: icon
+            });
         }
 
         // Creates a column
@@ -62,6 +72,15 @@
             return (<W2UI.IGridElement<T>>this.element).getSelection();
         }
 
+        // sets the selected rows
+        public setSelected(selected: number[]): void {
+            //(<any>this.element).last = this.getRow(0);
+            //(<W2UI.IGridElement<T>>this.element).select.call(this.element, selected);
+            for (var i = 0; i < selected.length; i++) {
+                (<W2UI.IGridElement<T>>this.element).select(selected[i]);
+            }
+        }
+
         // Returns the row at indice
         public getRow(indice: number): T {
             if (indice >= 0) {
@@ -92,6 +111,8 @@
                     header: !(this.header === "")
                 },
 
+                menu: this.menus,
+
                 header: this.header,
                 columns: this.columns,
                 records: [],
@@ -109,6 +130,13 @@
                 },
 
                 keyboard: false,
+
+                onMenuClick: (event: any) => {
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
+                    this.core.sendEvent(ev);
+                },
 
                 onDelete: (event: any) => {
                     if (event.force) {

@@ -152,7 +152,7 @@ var BABYLON;
             Transformer.prototype.onPostUpdate = function () {
                 //this._helperPlane.setEnabled(!this.core.isPlaying && this.core.editor.renderHelpers);
                 var _this = this;
-                if (this.core.isPlaying || !this.core.editor.renderHelpers)
+                if ((this.core.isPlaying && this.core.currentScene.activeCamera !== this.core.camera) || !this.core.editor.renderHelpers)
                     return;
                 if (this._planeMaterial.isReady(this._helperPlane)) {
                     this._subMesh = this._helperPlane.subMeshes[0];

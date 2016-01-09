@@ -339,6 +339,21 @@
     /**
     * Grid element
     */
+    interface IGridMenu {
+        /**
+        * Menu id
+        */
+        id: number;
+        /**
+        * Menu text
+        */
+        text: string;
+        /**
+        * Menu icon
+        */
+        icon: string;
+    }
+
     interface IGridRowData {
         /**
         * The id of the row (line number)
@@ -390,6 +405,10 @@
         * Returns the selection
         */
         getSelection(): number[];
+        /**
+        * Set the selected
+        */
+        select(...args: any[]): void;
     }
 
     /**

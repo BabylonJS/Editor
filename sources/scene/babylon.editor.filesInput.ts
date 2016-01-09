@@ -5,12 +5,13 @@
             startingProcessingFilesCallback) {
             super(core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, this),
                 progressCallback, additionnalRenderLoopLogicCallback,
-                textureLoadingCallback, FilesInput._callbackStart(core.engine));
+                textureLoadingCallback, FilesInput._callbackStart(core));
         }
 
-        private static _callbackStart(engine: Engine): () => void {
+        private static _callbackStart(core: EditorCore): () => void {
             return () => {
-                engine.displayLoadingUI();
+                //core.engine.displayLoadingUI();
+                core.editor.layouts.lockPanel("main", "Loading...", true);
             };
         }
 
@@ -53,6 +54,8 @@
 
                 if (callback)
                     callback(file, scene);
+
+                core.editor.layouts.unlockPanel("main");
             };
         }
     }

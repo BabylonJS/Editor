@@ -111,6 +111,7 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
+    <TypeScriptCompile Include="sources\export\babylon.editor.storageExporter.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiElement.ts" />
@@ -129,6 +130,7 @@
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.oneDriveStorage.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.storage.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.launchEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.animationEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.objectPicker.ts" />

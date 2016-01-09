@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR {
         private _projectExportCode;
         private _projectConnectStorage;
         private _projectTemplateStorage;
+        private _mainEdit;
         private _mainEditLaunch;
         private _mainAdd;
         private _addPointLight;

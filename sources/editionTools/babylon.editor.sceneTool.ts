@@ -45,6 +45,9 @@
             this._element.buildElement(this.containers[0]);
             this._element.remember(object);
 
+            // Common
+            this._element.add(SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
+
             // Colors
             var colorsFolder = this._element.addFolder("Colors");
 

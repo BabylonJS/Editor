@@ -61,11 +61,11 @@
         public createFiles(files: IStorageUploadFile[], folder: IStorageFolder, success?: () => void, failed?: () => void) {
             var count = 0;
 
-            WL.login({
-                scope: "wl.skydrive_update"
-            }).then((response: Microsoft.Live.ILoginStatus) => {
-
+            WL.login({ scope: "wl.skydrive_update" }).then((response: Microsoft.Live.ILoginStatus) => {
+                // Create files
                 for (var i = 0; i < files.length; i++) {
+
+                    // Create the request on the fly (using jQuery)
                     var request = "--A300x\r\n"
                         + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
                         + "Content-Type: application/octet-stream\r\n"
@@ -73,8 +73,12 @@
                         + "" + files[i].content + "\r\n"
                         + "\r\n"
                         + "--A300x--\r\n";
+
+                    // Build url (until 1 level of folders, check parentFolder else projectFolder)
                     var url = "https://apis.live.net/v5.0/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.folder.id);
 
+
+                    // Request
                     $.ajax({
                         type: "POST",
                         contentType: "multipart/form-data; boundary=A300x",
@@ -120,21 +124,24 @@
 
         // Gets the children files of a folder
         public getFiles(folder: IStorageFolder, success?: (children: IStorageFile[]) => void) {
-            WL.api({
-                path: folder.folder.id + "/files",
-                method: "GET"
-            }).then(
-                (childrenResponse: { data: Microsoft.Live.IFile[] }) => {
+            WL.login({ scope: ["wl.signin", "wl.basic"] }).then((response: Microsoft.Live.ILoginStatus) => {
+                // Get files
+                WL.api({
+                    path: folder.folder.id + "/files",
+                    method: "GET"
+                }).then(
+                    (childrenResponse: { data: Microsoft.Live.IFile[] }) => {
 
-                    var children: IStorageFile[] = [];
+                        var children: IStorageFile[] = [];
 
-                    for (var i = 0; i < childrenResponse.data.length; i++)
-                        children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
+                        for (var i = 0; i < childrenResponse.data.length; i++)
+                            children.push({ file: childrenResponse.data[i], name: childrenResponse.data[i].name });
 
-                    success(children);
+                        success(children);
 
-                }
-            );
+                    }
+                );
+            })
         }
     }
 }

@@ -84,7 +84,7 @@ var BABYLON;
             };
             // Locks the panel
             StorageExporter.prototype._lockPanel = function (message) {
-                this.core.editor.layouts.setPanelSize("bottom", 100);
+                this.core.editor.layouts.setPanelSize("bottom", 0);
                 this.core.editor.layouts.lockPanel("bottom", message, true);
             };
             // Unlocks the panel

@@ -1,8 +1,8 @@
 declare module BABYLON.EDITOR {
     class ObjectPicker implements IEventReceiver {
         core: EditorCore;
-        onSelectCallback: (objectId: string) => void;
         objectLists: Array<any[]>;
+        selectedObjects: Array<any>;
         onObjectPicked: (names: string[]) => void;
         private _window;
         private _list;

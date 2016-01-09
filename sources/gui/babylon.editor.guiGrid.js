@@ -32,7 +32,16 @@ var BABYLON;
                     this.showEdit = false;
                     this.showOptions = true;
                     this.showSearch = true;
+                    this.menus = [];
                 }
+                // Adds a menu
+                GUIGrid.prototype.addMenu = function (id, text, icon) {
+                    this.menus.push({
+                        id: id,
+                        text: text,
+                        icon: icon
+                    });
+                };
                 // Creates a column
                 GUIGrid.prototype.createColumn = function (id, text, size) {
                     if (!size)
@@ -61,6 +70,14 @@ var BABYLON;
                 GUIGrid.prototype.getSelectedRows = function () {
                     return this.element.getSelection();
                 };
+                // sets the selected rows
+                GUIGrid.prototype.setSelected = function (selected) {
+                    //(<any>this.element).last = this.getRow(0);
+                    //(<W2UI.IGridElement<T>>this.element).select.call(this.element, selected);
+                    for (var i = 0; i < selected.length; i++) {
+                        this.element.select(selected[i]);
+                    }
+                };
                 // Returns the row at indice
                 GUIGrid.prototype.getRow = function (indice) {
                     if (indice >= 0) {
@@ -87,6 +104,7 @@ var BABYLON;
                             toolbarColumns: this.showOptions,
                             header: !(this.header === "")
                         },
+                        menu: this.menus,
                         header: this.header,
                         columns: this.columns,
                         records: [],
@@ -102,6 +120,12 @@ var BABYLON;
                             };
                         },
                         keyboard: false,
+                        onMenuClick: function (event) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
+                            _this.core.sendEvent(ev);
+                        },
                         onDelete: function (event) {
                             if (event.force) {
                                 var ev = new EDITOR.Event();

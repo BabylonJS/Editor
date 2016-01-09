@@ -43,6 +43,8 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
+                // Common
+                this._element.add(EDITOR.SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
                 // Colors
                 var colorsFolder = this._element.addFolder("Colors");
                 var ambientColorFolder = colorsFolder.addFolder("Ambient Color");

@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR.GUI {
         remove(): void;
         addFolder(name: any, parent?: dat.IFolderElement): dat.IFolderElement;
         add(object: Object, propertyPath: string, items?: Array<string>, name?: string): dat.IGUIElement;
+        tagObjectIfChanged(element: dat.IGUIElement, object: any, property: string): void;
         width: number;
         height: number;
         remember(object: any): void;
