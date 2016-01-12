@@ -264,6 +264,10 @@
         * If the item is checked or not
         */
         checked: boolean;
+        /**
+        * If item is disabled
+        */
+        disabled: boolean;
     }
 
     interface IToolbarMenu {
@@ -291,6 +295,10 @@
         * If the menu is checked or not
         */
         checked: boolean;
+        /**
+        * If item is disabled
+        */
+        disabled: boolean;
     }
 
     interface IToolbarElement extends IElement {
@@ -306,6 +314,14 @@
         * Returns a toolbar item
         */
         get(item: string): IToolbarItem;
+        /**
+        * Enable an item
+        */
+        enable(...args: string[]): void;
+        /**
+        * Disable items
+        */
+        disable(...args: string[]): void;
     }
 
     /**
@@ -464,4 +480,9 @@ declare var w2obj: {
 
 declare var w2utils: {
     lang(text: string): string;
+
+    lock(box: HTMLElement | JQuery, message: string, showSpinner: boolean): void;
+    lock(box: HTMLElement | JQuery, options: { msg: string; spinner: boolean; opacity: number; });
+
+    unlock(box: HTMLElement | JQuery): void;
 }

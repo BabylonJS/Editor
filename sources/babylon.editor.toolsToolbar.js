@@ -61,12 +61,25 @@ var BABYLON;
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
                                 var node = EDITOR.SceneFactory.NodesToStart[i];
+                                if (node instanceof BABYLON.Sound) {
+                                    node.stop();
+                                    node.play();
+                                    continue;
+                                }
                                 this._core.currentScene.stopAnimation(node);
-                                this._core.currentScene.beginAnimation(node, 0, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
+                                this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
                         }
                         else {
                             this._core.engine.resize();
+                            // Animate at launch
+                            for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                                var node = EDITOR.SceneFactory.NodesToStart[i];
+                                this._core.currentScene.stopAnimation(node);
+                                if (node instanceof BABYLON.Sound) {
+                                    node.stop();
+                                }
+                            }
                         }
                         this.toolbar.setItemChecked(id, checked);
                         EDITOR.SceneManager.SwitchActionManager();

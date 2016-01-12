@@ -8,9 +8,10 @@ declare module BABYLON.EDITOR {
         name: string;
     }
     interface IStorageUploadFile {
-        content: string;
+        content: string | ArrayBuffer;
         name: string;
         parentFolder?: Microsoft.Live.IFile;
+        type?: string;
     }
     interface IStorage {
         createFolders(folders: string[], parentFolder: IStorageFolder, success?: () => void, failed?: () => void): void;

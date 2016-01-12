@@ -157,3 +157,7 @@ html, body {
 .w2ui-icon.icon-one-drive {
     background: url("images/onedrive.png");
 }
+
+.w2ui-icon.icon-copy {
+    background: url("images/copy.png");
+}

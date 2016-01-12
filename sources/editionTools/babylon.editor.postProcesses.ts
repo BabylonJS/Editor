@@ -15,9 +15,6 @@
         // Private members
         private _enabledPostProcesses: IEnabledPostProcesses = null;
 
-        private _hdrPipeline: HDRRenderingPipeline = null;
-        private _ssaoPipeline: SSAORenderingPipeline = null;
-
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -67,50 +64,58 @@
             this._element.buildElement(this.containers[0]);
             this._element.remember(object);
 
+            // Ckeck checkboxes
+            this._enabledPostProcesses.hdr = SceneFactory.hdrPipeline !== null;
+            this._enabledPostProcesses.ssao = SceneFactory.ssaoPipeline !== null;
+
             // HDR
             var hdrFolder = this._element.addFolder("HDR");
             hdrFolder.add(this._enabledPostProcesses, "hdr").name("Enabled HDR").onChange((result: any) => {
                 if (result === true)
-                    this._hdrPipeline = SceneFactory.CreateHDRPipeline(this._editionTool.core);
-                else
-                    this._hdrPipeline.dispose();
+                    SceneFactory.CreateHDRPipeline(this._editionTool.core);
+                else {
+                    SceneFactory.hdrPipeline.dispose();
+                    SceneFactory.hdrPipeline = null;
+                }
                 this.update();
             });
 
-            if (this._enabledPostProcesses.hdr) {
+            if (SceneFactory.hdrPipeline) {
                 hdrFolder.add(this._enabledPostProcesses, "attachHDR").name("Attach HDR").onChange((result: any) => {
                     this._attachDetachPipeline(result, "hdr");
                 });
 
-                hdrFolder.add((<any>this._hdrPipeline)._originalPostProcess, "_exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
-                hdrFolder.add(this._hdrPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                hdrFolder.add(this._hdrPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                hdrFolder.add(this._hdrPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
-                hdrFolder.add(this._hdrPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                hdrFolder.add(this._hdrPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
-                hdrFolder.add(this._hdrPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange((result: any) => {
-                    this._hdrPipeline.update();
+                hdrFolder.add((<any>SceneFactory.hdrPipeline)._originalPostProcess, "_exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
+                hdrFolder.add(SceneFactory.hdrPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                hdrFolder.add(SceneFactory.hdrPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                hdrFolder.add(SceneFactory.hdrPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
+                hdrFolder.add(SceneFactory.hdrPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
+                hdrFolder.add(SceneFactory.hdrPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
+                hdrFolder.add(SceneFactory.hdrPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange((result: any) => {
+                    SceneFactory.hdrPipeline.update();
                 });
-                hdrFolder.add(this._hdrPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange((result: any) => {
-                    this._hdrPipeline.update();
+                hdrFolder.add(SceneFactory.hdrPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange((result: any) => {
+                    SceneFactory.hdrPipeline.update();
                 });
-                hdrFolder.add(this._hdrPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange((result: any) => {
-                    this._hdrPipeline.update();
+                hdrFolder.add(SceneFactory.hdrPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange((result: any) => {
+                    SceneFactory.hdrPipeline.update();
                 });
-                hdrFolder.add(this._hdrPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                hdrFolder.add(SceneFactory.hdrPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
             }
 
             // SSAO
             var ssaoFolder = this._element.addFolder("SSAO");
             ssaoFolder.add(this._enabledPostProcesses, "ssao").name("Enable SSAO").onChange((result: any) => {
                 if (result === true)
-                    this._ssaoPipeline = SceneFactory.CreateSSAOPipeline(this._editionTool.core);
-                else
-                    this._ssaoPipeline.dispose();
+                    SceneFactory.ssaoPipeline = SceneFactory.CreateSSAOPipeline(this._editionTool.core);
+                else {
+                    SceneFactory.ssaoPipeline.dispose();
+                    SceneFactory.ssaoPipeline = null;
+                }
                 this.update();
             });
 
-            if (this._enabledPostProcesses.ssao) {
+            if (SceneFactory.ssaoPipeline) {
                 ssaoFolder.add(this._enabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange((result: any) => {
                     this._ssaoOnly(result);
                 });
@@ -119,30 +124,30 @@
                     this._attachDetachPipeline(result, "ssao");
                 });
 
-                ssaoFolder.add(this._ssaoPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
-                ssaoFolder.add(this._ssaoPipeline, "area").min(0).max(1).step(0.0001).name("Area");
-                ssaoFolder.add(this._ssaoPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
-                ssaoFolder.add(this._ssaoPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
-                ssaoFolder.add(this._ssaoPipeline, "base").min(0).max(1).step(0.001).name("Base");
+                ssaoFolder.add(SceneFactory.ssaoPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                ssaoFolder.add(SceneFactory.ssaoPipeline, "area").min(0).max(1).step(0.0001).name("Area");
+                ssaoFolder.add(SceneFactory.ssaoPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
+                ssaoFolder.add(SceneFactory.ssaoPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
+                ssaoFolder.add(SceneFactory.ssaoPipeline, "base").min(0).max(1).step(0.001).name("Base");
 
                 var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
-                hBlurFolder.add(this._ssaoPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                hBlurFolder.add(this._ssaoPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                hBlurFolder.add(this._ssaoPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                hBlurFolder.add(SceneFactory.ssaoPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                hBlurFolder.add(SceneFactory.ssaoPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                hBlurFolder.add(SceneFactory.ssaoPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
 
                 var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
-                vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                vBlurFolder.add(this._ssaoPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                vBlurFolder.add(SceneFactory.ssaoPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                vBlurFolder.add(SceneFactory.ssaoPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                vBlurFolder.add(SceneFactory.ssaoPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
             }
         }
 
         // Draws SSAO only
         private _ssaoOnly(result: boolean): void {
             if (result)
-                this._ssaoPipeline._disableEffect(this._ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+                SceneFactory.ssaoPipeline._disableEffect(SceneFactory.ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
             else
-                this._ssaoPipeline._enableEffect(this._ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+                SceneFactory.ssaoPipeline._enableEffect(SceneFactory.ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
         }
 
         // Attach/detach pipeline

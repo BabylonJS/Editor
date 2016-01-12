@@ -2,7 +2,10 @@ declare module BABYLON.EDITOR {
     class MainToolbar implements ICustomUpdate, IEventReceiver {
         container: string;
         toolbar: GUI.GUIToolbar;
-        panel: GUI.IGUIPanel;
+        panel: GUI.GUIPanel;
+        particleSystemMenu: GUI.IToolbarMenuElement;
+        particleSystemCopyItem: GUI.IToolbarElement;
+        particleSystemPasteItem: GUI.IToolbarElement;
         private _core;
         private _editor;
         private _mainProject;
@@ -20,6 +23,11 @@ declare module BABYLON.EDITOR {
         private _addSkyMesh;
         private _addReflectionProbe;
         private _addRenderTarget;
+        private _particlesMain;
+        private _particlesCopy;
+        private _particlesPaste;
+        private _particlesPlay;
+        private _particlesStop;
         /**
         * Constructor
         * @param core: the editor core instance

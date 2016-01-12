@@ -8,10 +8,12 @@ declare module BABYLON.EDITOR {
         sceneToolbar: SceneToolbar;
         transformer: Transformer;
         editPanel: EditPanel;
+        timeline: Timeline;
         container: string;
         antialias: boolean;
         options: any;
         layouts: GUI.GUILayout;
+        playLayouts: GUI.GUILayout;
         filesInput: FilesInput;
         exporter: Exporter;
         renderMainScene: boolean;

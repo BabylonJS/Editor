@@ -270,6 +270,18 @@ var BABYLON;
                 });
                 input.click();
             };
+            // Plays all particle systems
+            GUIParticleSystemEditor.PlayStopAllParticleSystems = function (scene, play) {
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    if (play)
+                        scene.particleSystems[i].start();
+                    else
+                        scene.particleSystems[i].stop();
+                }
+            };
+            // Creates a new particle system
+            // particleSystem = the original particle system to copy
+            // emitter = if null, creates a dummy node as emitter
             GUIParticleSystemEditor.CreateParticleSystem = function (scene, capacity, particleSystem, emitter) {
                 particleSystem = particleSystem || {};
                 var dummy = null;
@@ -305,6 +317,9 @@ var BABYLON;
                 dummy.attachedParticleSystem = ps;
                 return ps;
             };
+            // Static members
+            GUIParticleSystemEditor._CurrentParticleSystem = null;
+            GUIParticleSystemEditor._CopiedParticleSystem = null;
             return GUIParticleSystemEditor;
         })();
         EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;

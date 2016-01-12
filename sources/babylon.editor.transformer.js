@@ -165,7 +165,7 @@ var BABYLON;
                     // Cameras
                     this._planeMaterial.diffuseTexture = this._cameraTexture;
                     this._renderHelperPlane(this.core.currentScene.cameras, function (obj) {
-                        if (obj === _this.core.camera)
+                        if (obj === _this.core.currentScene.activeCamera)
                             return false;
                         _this._helperPlane.position.copyFrom(obj.position);
                         return true;

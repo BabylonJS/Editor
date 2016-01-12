@@ -29,13 +29,14 @@
         }
 
         // Creates a new menu item
-        public createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarElement {
+        public createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement {
             var item = {
                 type: type,
                 id: id,
                 text: text,
                 icon: icon,
-                checked: checked || false
+                checked: checked || false,
+                disabled: disabled || false
             };
             menu.items.push(item);
 
@@ -89,6 +90,36 @@
 
             if (result)
                 return result.checked;
+
+            return false;
+        }
+
+        // Sets an item enabled or not
+        public setItemEnabled(item: string, enabled: boolean, menu?: string): boolean {
+            var finalID = menu ? menu + ":" + item : item;
+
+            var result = null;
+            if (menu)
+                result = (<W2UI.IToolbarElement>this.element).get(menu);
+
+            if (result) {
+                for (var i = 0; i < result.items.length; i++) {
+                    if (result.items[i].id === item) {
+                        result.items[i].disabled = !enabled;
+                        this.refresh();
+                        break;
+                    }
+                }
+            }
+            else {
+                if (enabled)
+                    (<W2UI.IToolbarElement>this.element).enable(finalID);
+                else
+                    (<W2UI.IToolbarElement>this.element).disable(finalID);
+            }
+
+            if (result)
+                return true;
 
             return false;
         }

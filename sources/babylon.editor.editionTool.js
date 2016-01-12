@@ -69,6 +69,9 @@ var BABYLON;
                 }
                 return false;
             };
+            EditionTool.prototype.updateEditionTool = function () {
+                this.isObjectSupported(this.object);
+            };
             // Object supported
             EditionTool.prototype.isObjectSupported = function (object) {
                 var tabAlreadyShown = false;

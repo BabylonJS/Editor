@@ -99,7 +99,14 @@ var BABYLON;
                         break;
                     }
                 }
+                // Configure main toolbar
+                var toolbar = this._editionTool.core.editor.mainToolbar;
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, particleSystem !== null, toolbar.particleSystemMenu.id);
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.Node, toolbar.particleSystemMenu.id);
+                EDITOR.GUIParticleSystemEditor._CurrentParticleSystem = particleSystem;
+                // If particles...
                 if (particleSystem !== null) {
+                    // Create particles menu
                     var particleSystemFolder = this._element.addFolder("Particle System");
                     this._particleSystemCapacity = "" + particleSystem.getCapacity();
                     particleSystemFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {

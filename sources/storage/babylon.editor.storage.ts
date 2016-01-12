@@ -17,13 +17,16 @@
 
     export interface IStorageUploadFile {
         // File content
-        content: string;
+        content: string | ArrayBuffer;
 
         // File name
         name: string;
 
         // Parent folder
         parentFolder?: Microsoft.Live.IFile;
+
+        // The file type
+        type?: string;
     }
 
     export interface IStorage {

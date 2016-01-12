@@ -75,7 +75,7 @@
                 var property = "";
 
                 var data: any = node.data;
-                data = (typeof data === "number") ? data : data.clone()
+                data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone()
 
                 while (node.parent && node.text) {
                     property = node.text + (property === "" ? "" : "." + property);
@@ -87,7 +87,7 @@
                 var dataType = -1;
 
                 switch (constructorName) {
-                    case "Number": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
+                    case "Number": case "Boolean": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
                     case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
                     case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
                     case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
@@ -240,10 +240,10 @@
 
                     var effectiveTarget = this._getEffectiveTarget();
 
-                    if (typeof effectiveTarget !== "number")
+                    if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
                         value = effectiveTarget.clone();
                     else
-                        value = effectiveTarget;
+                        value = <number>effectiveTarget;
 
                     keys.push({
                         frame: frame,
@@ -337,10 +337,14 @@
             var types = [
                 "Vector4", "Vector3", "Vector2",
                 "Color4", "Color3",
-                "Number", "number"
+                "Number", "number",
+                "Boolean", "boolean"
             ];
             var instances = [
                 "Material", "ParticleSystem"
+            ];
+            var forceDrawValues = [
+                "_isEnabled"
             ];
 
             // Fill Graph
@@ -354,7 +358,7 @@
                     var constructorName: string = BABYLON.Tools.GetConstructorName(value);
                     var canAdd = true;
 
-                    if (thing[0] === "_" || types.indexOf(constructorName) === -1)
+                    if ((thing[0] === "_" && forceDrawValues.indexOf(thing) === -1) || types.indexOf(constructorName) === -1)
                         canAdd = false;
 
                     for (var i = 0; i < instances.length; i++) {
@@ -431,7 +435,7 @@
 
             this._currentKey.frame = frame;
 
-            if (typeof this._currentKey.value === "number") {
+            if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
                 this._currentKey.value = parseFloat(value);
             }
             else {
@@ -464,8 +468,8 @@
 
             var value = this._currentKey.value;
 
-            if (typeof value === "number")
-                return value.toString();
+            if (typeof value === "number" || typeof value === "boolean")
+                return Number(value).toString();
 
             if (value.asArray) {
                 var arr = value.asArray();
@@ -534,6 +538,52 @@
                 this._valuesForm.destroy();
                 this.core.removeEventReceiver(this);
             };
+        }
+
+        // Static methods that gives the last scene frame
+        public static GetSceneFrameCount(scene: Scene): number {
+            var count = 0;
+
+            var getTotal = (objs: IAnimatable[]) => {
+                for (var i = 0; i < objs.length; i++) {
+                    if (!objs[i].animations)
+                        continue;
+
+                    for (var animIndex = 0; animIndex < objs[i].animations.length; animIndex++) {
+                        var anim = objs[i].animations[animIndex];
+                        var keys = anim.getKeys();
+
+                        for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                            if (keys[keyIndex].frame > count) {
+                                count = keys[keyIndex].frame;
+                            }
+                        }
+                    }
+                }
+            };
+
+            if ((<any>scene).animations)
+                getTotal([<any>scene]);
+
+            getTotal(scene.meshes);
+            getTotal(scene.lights);
+            getTotal(scene.cameras);
+
+            return count;
+        }
+
+        // Static methods that sets the current frame
+        public static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void {
+            for (var i = 0; i < objs.length; i++) {
+                scene.stopAnimation(objs[i]);
+                scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
+
+                /*
+                for (var j = 0; j < objs[i].animations.length; j++) {
+                    objs[i].animations[j].goToFrame(frame);
+                }
+                */
+            }
         }
     }
 }

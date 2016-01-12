@@ -308,6 +308,10 @@
             }
         }
 
+        // Static members
+        public static _CurrentParticleSystem: ParticleSystem = null;
+        public static _CopiedParticleSystem: ParticleSystem = null;
+
         // Set the particle texture
         private _setParticleTexture(): void {
             var input = $("#" + this._inputElementID);
@@ -332,6 +336,19 @@
             input.click();
         }
 
+        // Plays all particle systems
+        public static PlayStopAllParticleSystems(scene: Scene, play: boolean): void {
+            for (var i = 0; i < scene.particleSystems.length; i++) {
+                if (play)
+                    scene.particleSystems[i].start();
+                else
+                    scene.particleSystems[i].stop();
+            }
+        }
+
+        // Creates a new particle system
+        // particleSystem = the original particle system to copy
+        // emitter = if null, creates a dummy node as emitter
         public static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem {
             particleSystem = particleSystem || <ParticleSystem>{ };
             var dummy: Node = null;

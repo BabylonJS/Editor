@@ -38,7 +38,7 @@
         // Creates the UI
         public createUI(): void {
             // Tabs
-            this._editionTool.panel.createTab({ id: this.tab, caption: "Particle System" });
+            this._editionTool.panel.createTab({ id: this.tab, caption: "Particles" });
         }
 
         // Update

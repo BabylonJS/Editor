@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         onPreUpdate(): void;
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
+        updateEditionTool(): void;
         isObjectSupported(object: any): boolean;
         createUI(): void;
         addTool(tool: ICustomEditionTool): void;

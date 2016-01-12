@@ -26,7 +26,10 @@ declare module BABYLON.EDITOR {
         private _createUI();
         _createEditor(container?: string): GUI.GUIEditForm;
         private _setParticleSystem();
+        static _CurrentParticleSystem: ParticleSystem;
+        static _CopiedParticleSystem: ParticleSystem;
         private _setParticleTexture();
+        static PlayStopAllParticleSystems(scene: Scene, play: boolean): void;
         static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem;
     }
 }

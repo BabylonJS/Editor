@@ -7,11 +7,12 @@ declare module BABYLON.EDITOR.GUI {
         */
         constructor(name: string, core: EditorCore);
         createMenu(type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarMenuElement;
-        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarElement;
+        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement;
         addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;
         setItemChecked(item: string, checked: boolean, menu?: string): void;
         setItemAutoChecked(item: string, menu?: string): void;
         isItemChecked(item: string, menu?: string): boolean;
+        setItemEnabled(item: string, enabled: boolean, menu?: string): boolean;
         getItemByID(id: string): IToolbarBaseElement;
         buildElement(parent: string): void;
     }

@@ -16,6 +16,7 @@ declare module BABYLON.EDITOR {
         _exportReflectionProbes(): string;
         _exportNodeTransform(node: any): string;
         _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportPostProcesses(): string;
         _exportAnimations(node: IAnimatable): string;
         _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
         _exportSky(node: Node): string;

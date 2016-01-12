@@ -89,6 +89,10 @@
             return false;
         }
 
+        public updateEditionTool(): void {
+            this.isObjectSupported(this.object);
+        }
+
         // Object supported
         public isObjectSupported(object: any): boolean {
             var tabAlreadyShown = false;

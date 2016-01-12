@@ -309,7 +309,7 @@
         /**
         * Creates a menu item
         */
-        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarElement;
+        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement;
         /**
         * Sets item checked
         */

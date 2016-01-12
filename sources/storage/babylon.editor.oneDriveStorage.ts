@@ -68,7 +68,7 @@
                     // Create the request on the fly (using jQuery)
                     var request = "--A300x\r\n"
                         + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
-                        + "Content-Type: application/octet-stream\r\n"
+                        + "Content-Type: application/octet-stream \r\n"
                         + "\r\n"
                         + "" + files[i].content + "\r\n"
                         + "\r\n"
@@ -76,7 +76,6 @@
 
                     // Build url (until 1 level of folders, check parentFolder else projectFolder)
                     var url = "https://apis.live.net/v5.0/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.folder.id);
-
 
                     // Request
                     $.ajax({

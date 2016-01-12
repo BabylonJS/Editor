@@ -61,7 +61,7 @@ var BABYLON;
                         // Create the request on the fly (using jQuery)
                         var request = "--A300x\r\n"
                             + "Content-Disposition: form-data; name=\"file\"; filename=\"" + files[i].name + "\"\r\n"
-                            + "Content-Type: application/octet-stream\r\n"
+                            + "Content-Type: application/octet-stream \r\n"
                             + "\r\n"
                             + "" + files[i].content + "\r\n"
                             + "\r\n"

@@ -53,7 +53,7 @@ var BABYLON;
                     // Build property
                     var property = "";
                     var data = node.data;
-                    data = (typeof data === "number") ? data : data.clone();
+                    data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone();
                     while (node.parent && node.text) {
                         property = node.text + (property === "" ? "" : "." + property);
                         node = node.parent;
@@ -63,6 +63,7 @@ var BABYLON;
                     var dataType = -1;
                     switch (constructorName) {
                         case "Number":
+                        case "Boolean":
                             dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
                             break;
                         case "Vector3":
@@ -199,7 +200,7 @@ var BABYLON;
                         var frame = lastKey ? lastKey.frame + 1 : 0;
                         var value = 0;
                         var effectiveTarget = this._getEffectiveTarget();
-                        if (typeof effectiveTarget !== "number")
+                        if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
                             value = effectiveTarget.clone();
                         else
                             value = effectiveTarget;
@@ -284,10 +285,14 @@ var BABYLON;
                 var types = [
                     "Vector4", "Vector3", "Vector2",
                     "Color4", "Color3",
-                    "Number", "number"
+                    "Number", "number",
+                    "Boolean", "boolean"
                 ];
                 var instances = [
                     "Material", "ParticleSystem"
+                ];
+                var forceDrawValues = [
+                    "_isEnabled"
                 ];
                 // Fill Graph
                 var addProperties = function (property, parentNode) {
@@ -298,7 +303,7 @@ var BABYLON;
                         // Check
                         var constructorName = BABYLON.Tools.GetConstructorName(value);
                         var canAdd = true;
-                        if (thing[0] === "_" || types.indexOf(constructorName) === -1)
+                        if ((thing[0] === "_" && forceDrawValues.indexOf(thing) === -1) || types.indexOf(constructorName) === -1)
                             canAdd = false;
                         for (var i = 0; i < instances.length; i++) {
                             if (value instanceof BABYLON[instances[i]]) {
@@ -357,7 +362,7 @@ var BABYLON;
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
                 this._currentKey.frame = frame;
-                if (typeof this._currentKey.value === "number") {
+                if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
                     this._currentKey.value = parseFloat(value);
                 }
                 else {
@@ -383,8 +388,8 @@ var BABYLON;
                 if (this._currentKey === null)
                     return "";
                 var value = this._currentKey.value;
-                if (typeof value === "number")
-                    return value.toString();
+                if (typeof value === "number" || typeof value === "boolean")
+                    return Number(value).toString();
                 if (value.asArray) {
                     var arr = value.asArray();
                     return arr.toString();
@@ -443,6 +448,38 @@ var BABYLON;
                     _this._valuesForm.destroy();
                     _this.core.removeEventReceiver(_this);
                 };
+            };
+            // Static methods that gives the last scene frame
+            GUIAnimationEditor.GetSceneFrameCount = function (scene) {
+                var count = 0;
+                var getTotal = function (objs) {
+                    for (var i = 0; i < objs.length; i++) {
+                        if (!objs[i].animations)
+                            continue;
+                        for (var animIndex = 0; animIndex < objs[i].animations.length; animIndex++) {
+                            var anim = objs[i].animations[animIndex];
+                            var keys = anim.getKeys();
+                            for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                                if (keys[keyIndex].frame > count) {
+                                    count = keys[keyIndex].frame;
+                                }
+                            }
+                        }
+                    }
+                };
+                if (scene.animations)
+                    getTotal([scene]);
+                getTotal(scene.meshes);
+                getTotal(scene.lights);
+                getTotal(scene.cameras);
+                return count;
+            };
+            // Static methods that sets the current frame
+            GUIAnimationEditor.SetCurrentFrame = function (scene, objs, frame) {
+                for (var i = 0; i < objs.length; i++) {
+                    scene.stopAnimation(objs[i]);
+                    scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
+                }
             };
             GUIAnimationEditor._CopiedAnimations = [];
             return GUIAnimationEditor;

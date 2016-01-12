@@ -110,7 +110,17 @@
                 }
             }
 
+            // Configure main toolbar
+            var toolbar = this._editionTool.core.editor.mainToolbar;
+
+            toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, particleSystem !== null, toolbar.particleSystemMenu.id);
+            toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof Node, toolbar.particleSystemMenu.id);
+
+            GUIParticleSystemEditor._CurrentParticleSystem = particleSystem;
+
+            // If particles...
             if (particleSystem !== null) {
+                // Create particles menu
                 var particleSystemFolder = this._element.addFolder("Particle System");
 
                 this._particleSystemCapacity = "" + particleSystem.getCapacity();

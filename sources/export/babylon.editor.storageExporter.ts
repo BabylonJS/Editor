@@ -32,11 +32,11 @@
 
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
-
-                    this._storage.createFolders(["Materials", "Loading", "Code"], folder, () => {
-                        this.core.editor.layouts.setPanelSize("bottom", 0);
-                        this.core.editor.layouts.unlockPanel("bottom");
+                    
+                    this._storage.createFolders(["Materials", "Textures", "Loading", "Code"], folder, () => {
+                        this._unlockPanel();
                     });
+
                 }
                 else {
                     this._unlockPanel();
@@ -52,6 +52,8 @@
                     if (!canceled) {
                         StorageExporter._projectFolder = folder;
                         StorageExporter._projectFolderChildren = folderChildren;
+
+                        this.export();
                     }
                 });
 
@@ -61,9 +63,7 @@
             this._lockPanel("Saving on OneDrive...");
 
             // Update files list and create files
-            this._storage.getFiles(StorageExporter._projectFolder, (children: IStorageFile[]) => {
-                StorageExporter._projectFolderChildren = children;
-
+            this._updateFileList(() => {
                 var exporter = new Exporter(this.core);
                 var files: IStorageUploadFile[] = [
                     { name: "scene.js", content: exporter.generateCode() },
@@ -83,6 +83,15 @@
         // Returns the file object from its name
         public getFile(name: string): IStorageFile {
             return this._getFileFolder(name, "file");
+        }
+
+        // Updates the file list
+        private _updateFileList(onSuccess: () => void): void {
+            // Update files list and create files
+            this._storage.getFiles(StorageExporter._projectFolder, (children: IStorageFile[]) => {
+                StorageExporter._projectFolderChildren = children;
+                onSuccess();
+            });
         }
 
         // Returns the appropriate child from its name and its type

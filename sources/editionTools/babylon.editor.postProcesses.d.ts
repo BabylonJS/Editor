@@ -2,8 +2,6 @@ declare module BABYLON.EDITOR {
     class PostProcessesTool extends AbstractDatTool {
         tab: string;
         private _enabledPostProcesses;
-        private _hdrPipeline;
-        private _ssaoPipeline;
         /**
         * Constructor
         * @param editionTool: edition tool instance

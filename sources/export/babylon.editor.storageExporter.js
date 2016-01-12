@@ -28,9 +28,8 @@ var BABYLON;
                         _this._lockPanel("Creating Template...");
                         StorageExporter._projectFolder = folder;
                         StorageExporter._projectFolderChildren = folderChildren;
-                        _this._storage.createFolders(["Materials", "Loading", "Code"], folder, function () {
-                            _this.core.editor.layouts.setPanelSize("bottom", 0);
-                            _this.core.editor.layouts.unlockPanel("bottom");
+                        _this._storage.createFolders(["Materials", "Textures", "Loading", "Code"], folder, function () {
+                            _this._unlockPanel();
                         });
                     }
                     else {
@@ -46,14 +45,14 @@ var BABYLON;
                         if (!canceled) {
                             StorageExporter._projectFolder = folder;
                             StorageExporter._projectFolderChildren = folderChildren;
+                            _this.export();
                         }
                     });
                     return;
                 }
                 this._lockPanel("Saving on OneDrive...");
                 // Update files list and create files
-                this._storage.getFiles(StorageExporter._projectFolder, function (children) {
-                    StorageExporter._projectFolderChildren = children;
+                this._updateFileList(function () {
                     var exporter = new EDITOR.Exporter(_this.core);
                     var files = [
                         { name: "scene.js", content: exporter.generateCode() },
@@ -70,6 +69,14 @@ var BABYLON;
             // Returns the file object from its name
             StorageExporter.prototype.getFile = function (name) {
                 return this._getFileFolder(name, "file");
+            };
+            // Updates the file list
+            StorageExporter.prototype._updateFileList = function (onSuccess) {
+                // Update files list and create files
+                this._storage.getFiles(StorageExporter._projectFolder, function (children) {
+                    StorageExporter._projectFolderChildren = children;
+                    onSuccess();
+                });
             };
             // Returns the appropriate child from its name and its type
             StorageExporter.prototype._getFileFolder = function (name, type) {

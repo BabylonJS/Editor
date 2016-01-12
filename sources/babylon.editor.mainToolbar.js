@@ -12,6 +12,9 @@ var BABYLON;
                 this.container = "BABYLON-EDITOR-MAIN-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
+                this.particleSystemMenu = null;
+                this.particleSystemCopyItem = null;
+                this.particleSystemPasteItem = null;
                 this._mainProject = "MAIN-PROJECT";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
@@ -27,6 +30,11 @@ var BABYLON;
                 this._addSkyMesh = "ADD-SKY-MESH";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
+                this._particlesMain = "PARTICLES-MAIN";
+                this._particlesCopy = "PARTICLES-COPY";
+                this._particlesPaste = "PARTICLES-PASTE";
+                this._particlesPlay = "PARTICLES-PLAY";
+                this._particlesStop = "PARTICLES-STOP";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -55,7 +63,6 @@ var BABYLON;
                     // Project
                     if (id.indexOf(this._mainProject) !== -1) {
                         if (id.indexOf(this._projectExportCode) !== -1) {
-                            //this._editor.exporter.openSceneExporter();
                             var exporter = new EDITOR.Exporter(this._core);
                             exporter.openSceneExporter();
                         }
@@ -104,6 +111,26 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // Particles
+                    if (id.indexOf(this._particlesMain) !== -1) {
+                        if (id.indexOf(this._particlesCopy) !== -1) {
+                            EDITOR.GUIParticleSystemEditor._CopiedParticleSystem = EDITOR.GUIParticleSystemEditor._CurrentParticleSystem;
+                        }
+                        else if (id.indexOf(this._particlesPaste) !== -1) {
+                            if (!EDITOR.GUIParticleSystemEditor._CopiedParticleSystem)
+                                return true;
+                            var emitter = this._editor.editionTool.object;
+                            var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), EDITOR.GUIParticleSystemEditor._CopiedParticleSystem, emitter);
+                            this._editor.editionTool.updateEditionTool();
+                        }
+                        else if (id.indexOf(this._particlesPlay) !== -1) {
+                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, true);
+                        }
+                        else if (id.indexOf(this._particlesStop) !== -1) {
+                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, false);
+                        }
+                        return true;
+                    }
                 }
                 return false;
             };
@@ -133,6 +160,13 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
+                //...
+                this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
+                this.particleSystemCopyItem = this.toolbar.createMenuItem(menu, "button", this._particlesCopy, "Copy Selected Particle System", "icon-copy", false, true);
+                this.particleSystemPasteItem = this.toolbar.createMenuItem(menu, "button", this._particlesPaste, "Paste Particle System", "icon-copy", false, true);
+                this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
+                this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
                 //...
                 // Build element
                 this.toolbar.buildElement(this.container);

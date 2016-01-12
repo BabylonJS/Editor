@@ -10,12 +10,14 @@
         public sceneToolbar: SceneToolbar;
         public transformer: Transformer;
         public editPanel: EditPanel;
+        public timeline: Timeline;
 
         public container: string;
         public antialias: boolean;
         public options: any;
 
         public layouts: GUI.GUILayout = null;
+        public playLayouts: GUI.GUILayout = null;
 
         public filesInput: FilesInput = null;
         public exporter: Exporter;
@@ -73,14 +75,15 @@
             // Edit panel
             this.editPanel = new EditPanel(this.core);
 
+            // Timeline
+            this.timeline = new Timeline(this.core);
+            this.timeline.createUI();
+
             // Files input
             this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
             // Override renderFunction to get full control on the render function
             (<any>this.filesInput).renderFunction = () => { };
-
-            // Exporter
-            this.exporter = new Exporter(this.core);
         }
 
         /**
@@ -101,6 +104,7 @@
         * Creates the UI
         */
         private _createUI() {
+            // Layouts
             this.layouts = new GUI.GUILayout(this.container, this.core);
 
             this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
@@ -114,10 +118,19 @@
                 "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
             );
             mainPanel.style = "overflow: hidden;";
-            this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>");
+            this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent(
+                "<div style=\"width: 100%; height: 100%; overflow: hidden;\">" +
+                "<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 15px;\"></div></br>" +
+                "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
+                "</div>"
+            );
             this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%;\"></div>");
 
             this.layouts.buildElement(this.container);
+
+            // Play Layouts
+            //this.layouts = new GUI.GUILayout(this.container, this.core);
+
         }
 
         /**
@@ -162,6 +175,7 @@
                 // Reset UI
                 this.sceneGraphTool.createUI();
                 this.sceneGraphTool.fillGraph();
+                this.timeline.reset();
             };
         }
 

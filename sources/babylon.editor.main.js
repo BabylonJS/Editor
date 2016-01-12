@@ -10,6 +10,7 @@ var BABYLON;
                 if (antialias === void 0) { antialias = false; }
                 if (options === void 0) { options = null; }
                 this.layouts = null;
+                this.playLayouts = null;
                 this.filesInput = null;
                 this.renderMainScene = true;
                 this.renderHelpers = true;
@@ -41,13 +42,14 @@ var BABYLON;
                 this.transformer = new EDITOR.Transformer(this.core);
                 // Edit panel
                 this.editPanel = new EDITOR.EditPanel(this.core);
+                // Timeline
+                this.timeline = new EDITOR.Timeline(this.core);
+                this.timeline.createUI();
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
-                // Exporter
-                this.exporter = new EDITOR.Exporter(this.core);
             }
             Object.defineProperty(EditorMain, "DummyNodeID", {
                 // private members
@@ -74,6 +76,7 @@ var BABYLON;
             * Creates the UI
             */
             EditorMain.prototype._createUI = function () {
+                // Layouts
                 this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
                 this.layouts.createPanel("BABYLON-EDITOR-TOP-TOOLBAR-PANEL", "top", 70, false).setContent("<div id=\"BABYLON-EDITOR-MAIN-TOOLBAR\" style=\"height: 50%\"></div>" +
@@ -82,9 +85,14 @@ var BABYLON;
                 var mainPanel = this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>");
                 mainPanel.style = "overflow: hidden;";
-                this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>");
+                this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div style=\"width: 100%; height: 100%; overflow: hidden;\">" +
+                    "<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 15px;\"></div></br>" +
+                    "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
+                    "</div>");
                 this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%;\"></div>");
                 this.layouts.buildElement(this.container);
+                // Play Layouts
+                //this.layouts = new GUI.GUILayout(this.container, this.core);
             };
             /**
             * Handles just opened scenes
@@ -121,6 +129,7 @@ var BABYLON;
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();
+                    _this.timeline.reset();
                 };
             };
             /**

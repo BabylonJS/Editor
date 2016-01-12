@@ -75,28 +75,44 @@
                     //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
 
-                        if (checked) {
-                            this._core.engine.resize();
-                            this._core.isPlaying = true;
+                    if (checked) {
+                        this._core.engine.resize();
+                        this._core.isPlaying = true;
 
-                            // Animate at launch
-                            for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
-                                var node = SceneFactory.NodesToStart[i];
+                        // Animate at launch
+                        for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
+                            var node = SceneFactory.NodesToStart[i];
 
-                                this._core.currentScene.stopAnimation(node);
-                                this._core.currentScene.beginAnimation(node, 0, Number.MAX_VALUE, false, SceneFactory.AnimationSpeed);
+                            if (node instanceof Sound) {
+                                (<any>node).stop();
+                                (<any>node).play();
+                                continue;
+                            }
+
+                            this._core.currentScene.stopAnimation(node);
+                            this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, SceneFactory.AnimationSpeed);
+                        }
+                    }
+                    else {
+                        this._core.engine.resize();
+
+                        // Animate at launch
+                        for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
+                            var node = SceneFactory.NodesToStart[i];
+                            this._core.currentScene.stopAnimation(node);
+
+                            if (node instanceof Sound) {
+                                (<any>node).stop();
                             }
                         }
-                        else {
-                            this._core.engine.resize();
-                        }
+                    }
 
-                        this.toolbar.setItemChecked(id, checked);
+                    this.toolbar.setItemChecked(id, checked);
 
-                        SceneManager.SwitchActionManager();
+                    SceneManager.SwitchActionManager();
 
-                        for (var i = 0; i < this._core.currentScene.meshes.length; i++)
-                            this._core.currentScene.meshes[i].showBoundingBox = false;
+                    for (var i = 0; i < this._core.currentScene.meshes.length; i++)
+                        this._core.currentScene.meshes[i].showBoundingBox = false;
                     //}
 
                     return true;

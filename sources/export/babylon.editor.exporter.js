@@ -42,7 +42,8 @@ var BABYLON;
                     "\tvar node = null;",
                     "\tvar animation = null;",
                     "\tvar keys = null;",
-                    "\tvar particleSystem = null;",
+                    "\tvar particleSystem = null;\n",
+                    this._exportPostProcesses(),
                     this._exportScene(),
                     this._exportReflectionProbes(),
                     this._traverseNodes(),
@@ -154,6 +155,34 @@ var BABYLON;
                     }
                 }
                 return null;
+            };
+            // Exports the post-processes
+            Exporter.prototype._exportPostProcesses = function () {
+                var finalString = "";
+                if (EDITOR.SceneFactory.hdrPipeline) {
+                    finalString +=
+                        "\tvar ratio = {\n" +
+                            "\t    finalRatio: 1.0,\n" +
+                            "\t    blurRatio: 0.25\n" +
+                            "\t};\n";
+                    finalString +=
+                        "\thdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
+                            "\thdr._originalPostProcess._exposureAdjustment = " + EDITOR.SceneFactory.hdrPipeline._originalPostProcess._exposureAdjustment + ";\n" +
+                            "\thdr.brightThreshold = " + EDITOR.SceneFactory.hdrPipeline.brightThreshold + ";\n" +
+                            "\thdr.gaussCoeff = " + EDITOR.SceneFactory.hdrPipeline.gaussCoeff + ";\n" +
+                            "\thdr.gaussMean = " + EDITOR.SceneFactory.hdrPipeline.gaussMean + ";\n" +
+                            "\thdr.gaussStandDev = " + EDITOR.SceneFactory.hdrPipeline.gaussStandDev + ";\n" +
+                            "\thdr.minimumLuminance = " + EDITOR.SceneFactory.hdrPipeline.minimumLuminance + ";\n" +
+                            "\thdr.luminanceDecreaseRate = " + EDITOR.SceneFactory.hdrPipeline.luminanceDecreaseRate + ";\n" +
+                            "\thdr.luminanceIncreaserate = " + EDITOR.SceneFactory.hdrPipeline.luminanceIncreaserate + ";\n" +
+                            "\thdr.exposure = " + EDITOR.SceneFactory.hdrPipeline.exposure + ";\n" +
+                            "\thdr.gaussMultiplier = " + EDITOR.SceneFactory.hdrPipeline.gaussMultiplier + ";\n";
+                    finalString +=
+                        "\tif (BABYLON.EDITOR) {\n" +
+                            "\t    BABYLON.EDITOR.SceneFactory.hdrPipeline = hdr;\n" +
+                            "\t}\n";
+                }
+                return finalString;
             };
             // Export node's animations
             Exporter.prototype._exportAnimations = function (node) {

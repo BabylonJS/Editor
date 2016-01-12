@@ -26,7 +26,7 @@ var BABYLON;
                     finalRatio: 1.0,
                     blurRatio: 1.0
                 };
-                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras);
+                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras, new BABYLON.Texture("textures/lensdirt.jpg", core.currentScene));
                 hdr.brightThreshold = 1.0;
                 hdr.gaussCoeff = 0.4;
                 hdr.gaussMean = 0.0;

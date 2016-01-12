@@ -175,9 +175,9 @@
 
             if (!node) {
                 children = [];
-                this._getRootNodes(children, "meshes");
-                this._getRootNodes(children, "lights");
                 this._getRootNodes(children, "cameras");
+                this._getRootNodes(children, "lights");
+                this._getRootNodes(children, "meshes");
                 // Other here
             }
             else

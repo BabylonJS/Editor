@@ -39,7 +39,7 @@ var BABYLON;
             // Creates the UI
             ParticleSystemTool.prototype.createUI = function () {
                 // Tabs
-                this._editionTool.panel.createTab({ id: this.tab, caption: "Particle System" });
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Particles" });
             };
             // Update
             ParticleSystemTool.prototype.update = function () {

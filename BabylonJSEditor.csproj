@@ -65,8 +65,9 @@
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\materials\babylon.skyMaterial.js" />
+    <Content Include="libs\raphael.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
-    <Content Include="website\test.html" />
+    <Content Include="website\redirect.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
   </ItemGroup>
@@ -88,6 +89,7 @@
     <TypeScriptCompile Include="defines\materials\babylon.pbrMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.skyMaterial.d.ts" />
     <TypeScriptCompile Include="defines\oneDrive.d.ts" />
+    <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.core.ts" />
@@ -97,6 +99,7 @@
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneToolbar.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.timeline.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.toolsToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.transformer.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.abstractDatTool.ts" />

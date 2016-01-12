@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         export(): void;
         getFolder(name: string): IStorageFile;
         getFile(name: string): IStorageFile;
+        private _updateFileList(onSuccess);
         private _getFileFolder(name, type);
         private _lockPanel(message);
         private _unlockPanel();

@@ -198,7 +198,7 @@
                 // Cameras
                 this._planeMaterial.diffuseTexture = this._cameraTexture;
                 this._renderHelperPlane(this.core.currentScene.cameras, (obj: Camera) => {
-                    if (obj === this.core.camera)
+                    if (obj === this.core.currentScene.activeCamera)
                         return false;
 
                     this._helperPlane.position.copyFrom(obj.position);

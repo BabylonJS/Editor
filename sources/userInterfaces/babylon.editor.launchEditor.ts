@@ -22,6 +22,7 @@
             picker.objectLists.push(core.currentScene.lights);
             picker.objectLists.push(core.currentScene.cameras);
             picker.objectLists.push(core.currentScene.meshes);
+            picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
 
             picker.selectedObjects = SceneFactory.NodesToStart;
 
@@ -36,8 +37,13 @@
                     if (!node && names[i] === "Scene")
                         node = core.currentScene;
 
-                    if (!node)
-                        continue;
+                    if (!node) {
+                        // Sound ?
+                        node = core.currentScene.getSoundByName(names[i]);
+
+                        if (!node)
+                            continue;
+                    }
 
                     SceneFactory.NodesToStart.push(node);
                 }

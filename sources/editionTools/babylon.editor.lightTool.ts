@@ -49,6 +49,7 @@
             // Common
             var commonFolder = this._element.addFolder("Common");
             commonFolder.add(object, "intensity").name("Intensity").min(0.0);
+            commonFolder.add(object, "range").name("Range").min(0.0);
 
             // Vectors
             if (object instanceof DirectionalLight) {

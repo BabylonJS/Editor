@@ -3,7 +3,11 @@
         // Public members
         public container: string = "BABYLON-EDITOR-MAIN-TOOLBAR";
         public toolbar: GUI.GUIToolbar = null;
-        public panel: GUI.IGUIPanel = null;
+        public panel: GUI.GUIPanel = null;
+
+        public particleSystemMenu: GUI.IToolbarMenuElement = null;
+        public particleSystemCopyItem: GUI.IToolbarElement = null;
+        public particleSystemPasteItem: GUI.IToolbarElement = null; 
 
         // Private members
         private _core: EditorCore;
@@ -26,6 +30,12 @@
         private _addSkyMesh: string = "ADD-SKY-MESH";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
         private _addRenderTarget: string = "ADD-RENDER-TARGET";
+
+        private _particlesMain: string = "PARTICLES-MAIN";
+        private _particlesCopy: string = "PARTICLES-COPY";
+        private _particlesPaste: string = "PARTICLES-PASTE";
+        private _particlesPlay: string = "PARTICLES-PLAY";
+        private _particlesStop: string = "PARTICLES-STOP";
 
         /**
         * Constructor
@@ -70,7 +80,6 @@
                 // Project
                 if (id.indexOf(this._mainProject) !== -1) {
                     if (id.indexOf(this._projectExportCode) !== -1) {
-                        //this._editor.exporter.openSceneExporter();
                         var exporter = new Exporter(this._core);
                         exporter.openSceneExporter();
                     }
@@ -128,6 +137,30 @@
 
                     return true;
                 }
+
+                // Particles
+                if (id.indexOf(this._particlesMain) !== -1) {
+                    if (id.indexOf(this._particlesCopy) !== -1) {
+                        GUIParticleSystemEditor._CopiedParticleSystem = GUIParticleSystemEditor._CurrentParticleSystem;
+                    }
+                    else if (id.indexOf(this._particlesPaste) !== -1) {
+                        if (!GUIParticleSystemEditor._CopiedParticleSystem)
+                            return true;
+
+                        var emitter = this._editor.editionTool.object;
+                        var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), GUIParticleSystemEditor._CopiedParticleSystem, emitter);
+                        this._editor.editionTool.updateEditionTool();
+                    }
+
+                    else if (id.indexOf(this._particlesPlay) !== -1) {
+                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, true);
+                    }
+                    else if (id.indexOf(this._particlesStop) !== -1) {
+                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, false);
+                    }
+
+                    return true;
+                }
             }
 
             return false;
@@ -163,6 +196,14 @@
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
             this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
+            //...
+
+            this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
+            this.particleSystemCopyItem = this.toolbar.createMenuItem(menu, "button", this._particlesCopy, "Copy Selected Particle System", "icon-copy", false, true);
+            this.particleSystemPasteItem = this.toolbar.createMenuItem(menu, "button", this._particlesPaste, "Paste Particle System", "icon-copy", false, true);
+            this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
+            this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
             //...
 
             // Build element
