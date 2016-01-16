@@ -74,8 +74,6 @@
 
         // sets the selected rows
         public setSelected(selected: number[]): void {
-            //(<any>this.element).last = this.getRow(0);
-            //(<W2UI.IGridElement<T>>this.element).select.call(this.element, selected);
             for (var i = 0; i < selected.length; i++) {
                 (<W2UI.IGridElement<T>>this.element).select(selected[i]);
             }

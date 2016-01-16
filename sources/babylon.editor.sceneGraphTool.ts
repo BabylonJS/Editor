@@ -163,6 +163,10 @@
                     var soundTrack = scene.soundTracks[i];
 
                     var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+
+                    if (scene.soundTracks.length === 1)
+                        soundTrackNode.expanded = true;
+
                     soundTrackNode.count = soundTrack.soundCollection.length;
                     this.sidebar.addNodes(soundTrackNode, audioNode.id);
 

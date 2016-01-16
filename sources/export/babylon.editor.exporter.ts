@@ -20,7 +20,7 @@
         }
 
         // Opens the scene exporter
-        public openSceneExporter(): void {
+        public openSceneExporter(babylonScene?: boolean): void {
             // Create window
             var windowBody = GUI.GUIElement.CreateDivElement(this._editorID, "width: 100%; height: 100%");
 
@@ -37,30 +37,41 @@
             this._editor.getSession().setMode("ace/mode/javascript");
 
             // Finish
-            this._generatedCode = this.generateCode();
+            this._generatedCode = this.generateCode(babylonScene);
         }
 
         // Generates the code
-        public generateCode(): string {
+        public generateCode(babylonScene?: boolean): string {
             var scene = this.core.currentScene;
-            var finalString = [
-                "var getTextureByName = " + this._getTextureByName + "\n",
-                "function CreateBabylonScene(scene) {",
-                "\tvar engine = scene.getEngine();",
-                "\tvar node = null;",
-                "\tvar animation = null;",
-                "\tvar keys = null;",
-                "\tvar particleSystem = null;\n",
-                this._exportPostProcesses(),
-                this._exportScene(),
-                this._exportReflectionProbes(),
-                this._traverseNodes(),
-                this._exportSceneValues(),
-                "}\n"
-            ].join("\n");
+            var finalString = "";
+
+            if (babylonScene) {
+                var obj = BABYLON.SceneSerializer.Serialize(this.core.currentScene);
+                finalString = JSON.stringify(obj);
+            }
+            else {
+                finalString = [
+                    "var getTextureByName = " + this._getTextureByName + "\n",
+                    "function CreateBabylonScene(scene) {",
+                    "\tvar engine = scene.getEngine();",
+                    "\tvar node = null;",
+                    "\tvar animation = null;",
+                    "\tvar keys = null;",
+                    "\tvar particleSystem = null;\n",
+                    this._exportPostProcesses(),
+                    this._exportScene(),
+                    this._exportReflectionProbes(),
+                    this._traverseNodes(),
+                    this._exportSceneValues(),
+                    "}\n"
+                ].join("\n");
+            }
 
             if (this._editor) {
                 this._editor.setValue(finalString, -1);
+
+                if (!babylonScene)
+                    this._editor.getSession().setUseWrapMode(true);
             }
 
             return finalString;
@@ -208,11 +219,11 @@
                 finalString +=
                     "\tvar ratio = {\n" +
                     "\t    finalRatio: 1.0,\n" +
-                    "\t    blurRatio: 0.25\n" +
+                    "\t    blurRatio: 0.5\n" +
                     "\t};\n";
 
                 finalString +=
-                    "\thdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
+                    "\tvar hdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
                     "\thdr._originalPostProcess._exposureAdjustment = " + (<any>SceneFactory.hdrPipeline)._originalPostProcess._exposureAdjustment + ";\n" +
                     "\thdr.brightThreshold = " + SceneFactory.hdrPipeline.brightThreshold + ";\n" +
                     "\thdr.gaussCoeff = " + SceneFactory.hdrPipeline.gaussCoeff + ";\n" +

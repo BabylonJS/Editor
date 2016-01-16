@@ -65,10 +65,18 @@
             return false;
         }
 
-        // Set width
+        // Get width
         public get width() {
             if (this._panelElement)
                 return this._panelElement.width;
+
+            return 0;
+        }
+
+        // Get height
+        public get height() {
+            if (this._panelElement)
+                return this._panelElement.height;
 
             return 0;
         }

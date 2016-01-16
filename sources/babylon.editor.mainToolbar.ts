@@ -14,7 +14,9 @@
         private _editor: EditorMain;
 
         private _mainProject = "MAIN-PROJECT";
+        private _mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
+        private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
         private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
@@ -79,9 +81,21 @@
 
                 // Project
                 if (id.indexOf(this._mainProject) !== -1) {
-                    if (id.indexOf(this._projectExportCode) !== -1) {
+                    if (id.indexOf(this._mainProjectOpenFiles) !== -1) {
+                        var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
+
+                        inputFiles.change((data: any) => {
+                            this._editor.filesInput.loadFiles(data);
+                        }).click();
+                    }
+
+                    else if (id.indexOf(this._projectExportCode) !== -1) {
                         var exporter = new Exporter(this._core);
                         exporter.openSceneExporter();
+                    }
+                    else if (id.indexOf(this._projectExportBabylonScene) !== -1) {
+                        var exporter = new Exporter(this._core);
+                        exporter.openSceneExporter(true);
                     }
 
                     else if (id.indexOf(this._projectConnectStorage) !== -1) {
@@ -174,7 +188,10 @@
             this.toolbar = new GUI.GUIToolbar(this.container, this._core);
 
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
+            this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
+            this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
+            this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene", "icon-export");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
             this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");

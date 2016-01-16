@@ -118,6 +118,7 @@ var BABYLON;
                                 recid: i
                             });
                         }
+                        this.core.editor.timeline.setFramesOfAnimation(animation);
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
                         var selected = this._animationsList.getSelectedRows();
@@ -219,6 +220,10 @@ var BABYLON;
                         var keys = this._currentAnimation.getKeys();
                         var offset = 0;
                         for (var i = 0; i < selected.length; i++) {
+                            var nextRow = this._keysList.getRow(selected[i + 1]);
+                            if (nextRow) {
+                                nextRow.recid--;
+                            }
                             keys.splice(selected[i] - offset, 1);
                             offset++;
                         }
@@ -291,9 +296,6 @@ var BABYLON;
                 var instances = [
                     "Material", "ParticleSystem"
                 ];
-                var forceDrawValues = [
-                    "_isEnabled"
-                ];
                 // Fill Graph
                 var addProperties = function (property, parentNode) {
                     for (var thing in property) {
@@ -303,7 +305,7 @@ var BABYLON;
                         // Check
                         var constructorName = BABYLON.Tools.GetConstructorName(value);
                         var canAdd = true;
-                        if ((thing[0] === "_" && forceDrawValues.indexOf(thing) === -1) || types.indexOf(constructorName) === -1)
+                        if (thing[0] === "_" || types.indexOf(constructorName) === -1)
                             canAdd = false;
                         for (var i = 0; i < instances.length; i++) {
                             if (value instanceof BABYLON[instances[i]]) {
@@ -399,7 +401,7 @@ var BABYLON;
             // Create the UI
             GUIAnimationEditor.prototype._createUI = function () {
                 var _this = this;
-                this.core.editor.editPanel.setPanelSize(50);
+                this.core.editor.editPanel.setPanelSize(40);
                 var animationsListID = "BABYLON-EDITOR-ANIMATION-EDITOR-ANIMATIONS";
                 var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
                 var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";

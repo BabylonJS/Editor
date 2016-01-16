@@ -224,7 +224,7 @@
             minEmitBoxFolder.add(ps.minEmitBox, "y").step(0.01);
             minEmitBoxFolder.add(ps.minEmitBox, "z").step(0.01);
 
-            var minEmitBoxFolder = emitterFolder.addFolder("Max Emitter Folder");
+            var minEmitBoxFolder = emitterFolder.addFolder("Max Emitter");
             minEmitBoxFolder.open();
             minEmitBoxFolder.add(ps.maxEmitBox, "x").step(0.01);
             minEmitBoxFolder.add(ps.maxEmitBox, "y").step(0.01);
@@ -238,7 +238,7 @@
             emissionFolder.add(ps, "maxLifeTime").name("Max Life Time").min(0.0).step(0.01);
             emissionFolder.add(ps, "emitRate").name("Emit Rate").min(0.0).step(1);
             emissionFolder.add(ps, "minEmitPower").name("Min Emit Power").min(0.0).step(0.01);
-            emissionFolder.add(ps, "maxEmitPower").name("Man Emit Power").min(0.0).step(0.01);
+            emissionFolder.add(ps, "maxEmitPower").name("Max Emit Power").min(0.0).step(0.01);
             emissionFolder.add(ps, "updateSpeed").name("Update Speed").min(0.0).step(0.001);
             emissionFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
             emissionFolder.add(ps, "maxAngularSpeed").name("Max Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);

@@ -249,7 +249,7 @@ var BABYLON;
                     var obj = array[i];
                     if (!onConfigure(obj))
                         continue;
-                    var distance = BABYLON.Vector3.Distance(this.core.camera.position, this._helperPlane.position) * 0.03;
+                    var distance = BABYLON.Vector3.Distance(this.core.currentScene.activeCamera.position, this._helperPlane.position) * 0.03;
                     this._helperPlane.scaling = new BABYLON.Vector3(distance, distance, distance),
                         this._helperPlane.computeWorldMatrix(true);
                     this._scene._cachedMaterial = null;

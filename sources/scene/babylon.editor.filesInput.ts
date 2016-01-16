@@ -10,7 +10,6 @@
 
         private static _callbackStart(core: EditorCore): () => void {
             return () => {
-                //core.engine.displayLoadingUI();
                 core.editor.layouts.lockPanel("main", "Loading...", true);
             };
         }

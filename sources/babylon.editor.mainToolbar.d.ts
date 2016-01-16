@@ -9,7 +9,9 @@ declare module BABYLON.EDITOR {
         private _core;
         private _editor;
         private _mainProject;
+        private _mainProjectOpenFiles;
         private _projectExportCode;
+        private _projectExportBabylonScene;
         private _projectConnectStorage;
         private _projectTemplateStorage;
         private _mainEdit;

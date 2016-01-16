@@ -12,6 +12,8 @@ declare module BABYLON.EDITOR {
         private _isOver;
         private _maxFrame;
         private _currentTime;
+        private _frameRects;
+        private _frameTexts;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -22,7 +24,10 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         currentTime: number;
         reset(): void;
+        setFramesOfAnimation(animation: Animation): void;
         createUI(): void;
-        private _getFrame();
+        private _updateTimeline();
+        private _getFrame(pos?);
+        private _getPosition(frame);
     }
 }

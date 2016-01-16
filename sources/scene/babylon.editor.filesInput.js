@@ -14,7 +14,6 @@ var BABYLON;
             }
             FilesInput._callbackStart = function (core) {
                 return function () {
-                    //core.engine.displayLoadingUI();
                     core.editor.layouts.lockPanel("main", "Loading...", true);
                 };
             };

@@ -138,6 +138,8 @@
                             recid: i
                         });
                     }
+
+                    this.core.editor.timeline.setFramesOfAnimation(animation);
                 }
                 else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_REMOVED) {
                     var selected = this._animationsList.getSelectedRows();
@@ -262,6 +264,11 @@
                     var offset = 0;
 
                     for (var i = 0; i < selected.length; i++) {
+                        var nextRow = this._keysList.getRow(selected[i + 1]);
+                        if (nextRow) {
+                            nextRow.recid--;
+                        }
+
                         keys.splice(selected[i] - offset, 1);
                         offset++;
                     }
@@ -343,9 +350,6 @@
             var instances = [
                 "Material", "ParticleSystem"
             ];
-            var forceDrawValues = [
-                "_isEnabled"
-            ];
 
             // Fill Graph
             var addProperties = (property: any, parentNode: string) => {
@@ -358,7 +362,7 @@
                     var constructorName: string = BABYLON.Tools.GetConstructorName(value);
                     var canAdd = true;
 
-                    if ((thing[0] === "_" && forceDrawValues.indexOf(thing) === -1) || types.indexOf(constructorName) === -1)
+                    if (thing[0] === "_" || types.indexOf(constructorName) === -1)
                         canAdd = false;
 
                     for (var i = 0; i < instances.length; i++) {
@@ -415,8 +419,8 @@
             var fps = this._currentAnimation.framePerSecond;
             var seconds = frame / fps;
 
-            var mins = Math.floor(seconds / 60);
-            var secs = seconds % 60;
+            var mins = BABYLON.Tools.Format(Math.floor(seconds / 60); 0);
+            var secs = BABYLON.Tools.Format(seconds % 60, 1);
 
             return "" + mins + "mins " + secs + "secs";
         }
@@ -481,7 +485,7 @@
 
         // Create the UI
         private _createUI(): void {
-            this.core.editor.editPanel.setPanelSize(50);
+            this.core.editor.editPanel.setPanelSize(40);
 
             var animationsListID = "BABYLON-EDITOR-ANIMATION-EDITOR-ANIMATIONS";
             var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
@@ -577,12 +581,6 @@
             for (var i = 0; i < objs.length; i++) {
                 scene.stopAnimation(objs[i]);
                 scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
-
-                /*
-                for (var j = 0; j < objs[i].animations.length; j++) {
-                    objs[i].animations[j].goToFrame(frame);
-                }
-                */
             }
         }
     }

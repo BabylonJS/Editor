@@ -293,7 +293,7 @@
                 if (!onConfigure(obj))
                     continue;
 
-                var distance = Vector3.Distance(this.core.camera.position, this._helperPlane.position) * 0.03;
+                var distance = Vector3.Distance(this.core.currentScene.activeCamera.position, this._helperPlane.position) * 0.03;
                 this._helperPlane.scaling = new Vector3(distance, distance, distance), 
                 this._helperPlane.computeWorldMatrix(true);
 

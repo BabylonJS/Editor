@@ -63,10 +63,20 @@ var BABYLON;
                     return false;
                 };
                 Object.defineProperty(GUIPanel.prototype, "width", {
-                    // Set width
+                    // Get width
                     get: function () {
                         if (this._panelElement)
                             return this._panelElement.width;
+                        return 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(GUIPanel.prototype, "height", {
+                    // Get height
+                    get: function () {
+                        if (this._panelElement)
+                            return this._panelElement.height;
                         return 0;
                     },
                     enumerable: true,

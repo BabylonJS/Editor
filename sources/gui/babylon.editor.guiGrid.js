@@ -72,8 +72,6 @@ var BABYLON;
                 };
                 // sets the selected rows
                 GUIGrid.prototype.setSelected = function (selected) {
-                    //(<any>this.element).last = this.getRow(0);
-                    //(<W2UI.IGridElement<T>>this.element).select.call(this.element, selected);
                     for (var i = 0; i < selected.length; i++) {
                         this.element.select(selected[i]);
                     }

@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR {
         editPanel: EditPanel;
         timeline: Timeline;
         container: string;
+        mainContainer: string;
         antialias: boolean;
         options: any;
         layouts: GUI.GUILayout;

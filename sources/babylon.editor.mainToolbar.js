@@ -16,7 +16,9 @@ var BABYLON;
                 this.particleSystemCopyItem = null;
                 this.particleSystemPasteItem = null;
                 this._mainProject = "MAIN-PROJECT";
+                this._mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
+                this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
@@ -51,6 +53,7 @@ var BABYLON;
             };
             // Event
             MainToolbar.prototype.onEvent = function (event) {
+                var _this = this;
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
@@ -62,9 +65,19 @@ var BABYLON;
                         return false;
                     // Project
                     if (id.indexOf(this._mainProject) !== -1) {
-                        if (id.indexOf(this._projectExportCode) !== -1) {
+                        if (id.indexOf(this._mainProjectOpenFiles) !== -1) {
+                            var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
+                            inputFiles.change(function (data) {
+                                _this._editor.filesInput.loadFiles(data);
+                            }).click();
+                        }
+                        else if (id.indexOf(this._projectExportCode) !== -1) {
                             var exporter = new EDITOR.Exporter(this._core);
                             exporter.openSceneExporter();
+                        }
+                        else if (id.indexOf(this._projectExportBabylonScene) !== -1) {
+                            var exporter = new EDITOR.Exporter(this._core);
+                            exporter.openSceneExporter(true);
                         }
                         else if (id.indexOf(this._projectConnectStorage) !== -1) {
                             var storageExporter = new EDITOR.StorageExporter(this._core);
@@ -140,7 +153,10 @@ var BABYLON;
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
+                this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
+                this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
+                this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene", "icon-export");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
                 this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");

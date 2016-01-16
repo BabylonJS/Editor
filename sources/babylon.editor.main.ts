@@ -13,6 +13,7 @@
         public timeline: Timeline;
 
         public container: string;
+        public mainContainer: string;
         public antialias: boolean;
         public options: any;
 
@@ -41,6 +42,7 @@
             this.core.editor = this;
 
             this.container = containerID;
+            this.mainContainer = containerID + "MAIN";
             this.antialias = antialias;
             this.options = options;
 
@@ -114,13 +116,11 @@
             );
             this.layouts.createPanel("BABYLON-EDITOR-GRAPH-PANEL", "right", 350, true).setContent("<div id=\"BABYLON-EDITOR-SCENE-GRAPH-TOOL\" style=\"height: 100%;\"></div>");
             var mainPanel = this.layouts.createPanel("BABYLON-EDITOR-MAIN-PANEL", "main", undefined, undefined).setContent(
-                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
+                "<div id=\"" + this.mainContainer + "\" style=\"height: 100%; width: 100%;\"></div>"
             );
             mainPanel.style = "overflow: hidden;";
             this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent(
                 "<div style=\"width: 100%; height: 100%; overflow: hidden;\">" +
-                "<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 15px;\"></div></br>" +
                 "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
                 "</div>"
             );
@@ -129,8 +129,14 @@
             this.layouts.buildElement(this.container);
 
             // Play Layouts
-            //this.layouts = new GUI.GUILayout(this.container, this.core);
-
+            this.playLayouts = new GUI.GUILayout(this.mainContainer, this.core);
+            var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
+                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
+            );
+            mainPanel.style = "overflow: hidden;";
+            this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 40, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
+            this.playLayouts.buildElement(this.mainContainer);
         }
 
         /**
