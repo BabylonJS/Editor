@@ -38,6 +38,7 @@
         private _vectorToModify: Vector3 = null;
         private _selectedTransform: string = "";
         private _distance: number = 0;
+        private _multiplier: number = 20;
 
         /**
         * Constructor
@@ -74,6 +75,14 @@
                 if (this._node)
                     Event.sendSceneEvent(this._node, SceneEventType.OBJECT_CHANGED, core);
             });
+
+            window.addEventListener("keydown", (event: KeyboardEvent) => {
+                if (event.ctrlKey)
+                    this._multiplier = 1;
+            }, false);
+            window.addEventListener("keyup", (event: KeyboardEvent) => {
+                this._multiplier = 10;
+            }, false);
 
             // Create Transformers
             this._createTransformers();
@@ -271,13 +280,17 @@
         // Returns the node position
         private _getNodePosition(): Vector3 {
             var node: any = this._node;
-            var position: Vector3 = node.position;
+            var position: Vector3 = null;
 
+            /*
             if (node.getBoundingInfo && node.geometry) {
                 position = node.getBoundingInfo().boundingSphere.centerWorld;
             }
-            else if (node._position) {
+            else */if (node._position) {
                 position = node._position;
+            }
+            else if (node.position) {
+                position = node.position;
             }
 
             return position;
@@ -395,16 +408,15 @@
                 return false;
 
             var t = -(Vector3.Dot(this._pickingPlane.normal, linePoint) + this._pickingPlane.d) / t2;
-            this._mousePositionInPlane = linePoint.add(lineVect).multiply(new Vector3(t, t, t));
+            this._mousePositionInPlane = linePoint.add(lineVect).multiplyByFloats(this._multiplier, this._multiplier, this._multiplier);
             return true;
         }
 
         // Fins the mouse position in plane
         private _findMousePositionInPlane(pickingInfos: PickingInfo): boolean {
             var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, Matrix.Identity(), this._scene.activeCamera);
-
-            //if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
-            if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint))
+            
+            if (this._getIntersectionWithLine(ray.origin, ray.direction))
                 return true;
 
             return false;

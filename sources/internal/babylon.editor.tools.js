@@ -18,6 +18,23 @@ var BABYLON;
                 var values = vector.split(",");
                 return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
             };
+            /**
+            * Opens a window popup
+            */
+            Tools.OpenWindowPopup = function (url, width, height) {
+                var features = [
+                    "width=" + width,
+                    "height=" + height,
+                    "top=" + window.screenY + Math.max(window.outerHeight - height, 0) / 2,
+                    "left=" + window.screenX + Math.max(window.outerWidth - width, 0) / 2,
+                    "status=no",
+                    "resizable=yes",
+                    "toolbar=no",
+                    "menubar=no",
+                    "scrollbars=yes"];
+                var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
+                popup.focus();
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

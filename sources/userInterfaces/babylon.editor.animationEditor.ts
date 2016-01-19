@@ -419,7 +419,7 @@
             var fps = this._currentAnimation.framePerSecond;
             var seconds = frame / fps;
 
-            var mins = BABYLON.Tools.Format(Math.floor(seconds / 60); 0);
+            var mins = BABYLON.Tools.Format(Math.floor(seconds / 60), 0);
             var secs = BABYLON.Tools.Format(seconds % 60, 1);
 
             return "" + mins + "mins " + secs + "secs";

@@ -12,7 +12,9 @@
         private _rect: Rect;
         private _selectorRect: Rect;
 
-
+        private _overlay: JQuery = null;
+        private _overlayText: JQuery = null;
+        private _overlayObj: JQuery = null;
         private _mousex: number = 0;
         private _mousey: number = 0;
         private _isOver: boolean = false;
@@ -90,12 +92,8 @@
 
         // Creates the UI
         public createUI(): void {
+            // Paper
             this._paper = Raphael(this.container, 0, 25);
-
-            this._paper.canvas.addEventListener("mousemove", (event: MouseEvent) => {
-                this._mousex = event.offsetX;
-                this._mousey = event.offsetY;
-            });
 
             // Timeline
             this._rect = this._paper.rect(0, 0, 0, 20);
@@ -107,34 +105,39 @@
             // Events
             var domElement = $("#BABYLON-EDITOR-SCENE-TOOLBAR")[0];
 
-            var click = () => {
+            var click = (event: MouseEvent) => {
+                this._mousex = BABYLON.Tools.Clamp(event.pageX - this._paper.canvas.getBoundingClientRect().left, 0, this._paper.width);
+                this._mousey = BABYLON.Tools.Clamp(event.pageY - this._paper.canvas.getBoundingClientRect().top, 0, this._paper.height);
+
                 this._currentTime = this._getFrame();
                 this._selectorRect.attr("x", this._mousex);
 
                 GUIAnimationEditor.SetCurrentFrame(this._core.currentScene, SceneFactory.NodesToStart, this._currentTime);
 
-                w2utils.unlock(domElement);
-                w2utils.lock(domElement, { msg: "Frame " + this._currentTime, spinner: false, opacity: 0.0 });
+                this._overlayText.text("Frame: " + BABYLON.Tools.Format(this._currentTime, 0));
+                this._overlayObj.css({ left: event.pageX });
             };
 
-            var start = () => {
-                w2utils.unlock(domElement);
-                w2utils.lock(domElement, { msg: "Frame " + this._currentTime, spinner: false, opacity: 0.0 });
-            };
-
-            var end = () => {
-                w2utils.unlock(domElement);
-            };
-            
-            this._rect.mouseover((event: MouseEvent) => {
-                this._isOver = true;
+            window.addEventListener("mousemove", (event: MouseEvent) => {
+                if (this._isOver) {
+                    click(event);
+                }
             });
-            this._rect.mouseout((event: MouseEvent) => {
+
+            window.addEventListener("mouseup", (event: MouseEvent) => {
+                if (this._isOver) {
+                    this._overlayText.remove();
+                }
                 this._isOver = false;
             });
 
-            this._rect.drag(click, start, end);
-            this._selectorRect.drag(click, start, end);
+            this._paper.canvas.addEventListener("mousedown", (event: MouseEvent) => {
+                this._isOver = true;
+                this._overlay = (<any>$(this._paper.canvas)).w2overlay({ html: "<div id=\"BABYLON-EDITOR-TIMELINE-TEXT\" style=\"padding: 10px; line-height: 150%\"></div>" });
+                this._overlayText = $("#BABYLON-EDITOR-TIMELINE-TEXT");
+                this._overlayObj = $("#w2ui-overlay");
+                click(event);
+            });
 
             // Finish
             this._updateTimeline();
@@ -157,6 +160,7 @@
                 // Set text
                 var decal = ((this._maxFrame / count) * this._panel.width) / this._maxFrame * (i + 1);
                 var txt = this._paper.text(decal, this._panel.height - 35, BABYLON.Tools.Format(this._getFrame(decal), 0));
+                txt.node.setAttribute("pointer-events", "none");
                 txt.attr("font-family", "MS Reference Sans Serif");
                 txt.attr("fill", "#555");
 
@@ -181,7 +185,7 @@
             if (pos)
                 return (pos * this._maxFrame) / width;
 
-            return (this._mousex * this._maxFrame) / width;
+            return BABYLON.Tools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
         }
 
         // Get a position from a frame

@@ -119,6 +119,9 @@
             if (object instanceof ReflectionProbe)
                 generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
 
+            if (object instanceof RenderTargetTexture)
+                generalFolder.add(this, "_exportRenderTarget").name("Dump Render Target");
+
             // Position
             if (object instanceof ReflectionProbe) {
                 var positionFolder = this._element.addFolder("Position");
@@ -126,6 +129,28 @@
                 positionFolder.add(object.position, "y").step(0.01);
                 positionFolder.add(object.position, "z").step(0.01);
             }
+        }
+
+        // Dumps the render target and opens a window
+        private _exportRenderTarget(): void {
+            var rt: RenderTargetTexture = this.object;
+            var tempCallback = rt.onAfterRender;
+            var width = rt.getSize().width;
+            var height = rt.getSize().height;
+
+            rt.onAfterRender = () => {
+                BABYLON.Tools.DumpFramebuffer(width, height, this._editionTool.core.engine, (data: string) => {
+                    Tools.OpenWindowPopup(data, width, height);
+                });
+            };
+
+            rt.render(false);
+            this._editionTool.core.currentScene.incrementRenderId();
+
+            if (tempCallback)
+                tempCallback(0);
+
+            rt.onAfterRender = tempCallback;
         }
 
         // Attaches to a mesh

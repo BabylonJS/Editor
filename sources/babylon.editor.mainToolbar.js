@@ -76,8 +76,10 @@ var BABYLON;
                             exporter.openSceneExporter();
                         }
                         else if (id.indexOf(this._projectExportBabylonScene) !== -1) {
-                            var exporter = new EDITOR.Exporter(this._core);
-                            exporter.openSceneExporter(true);
+                            //var exporter = new Exporter(this._core);
+                            //exporter.openSceneExporter(true);
+                            var babylonExporter = new EDITOR.BabylonExporter(this._core);
+                            babylonExporter.createUI();
                         }
                         else if (id.indexOf(this._projectConnectStorage) !== -1) {
                             var storageExporter = new EDITOR.StorageExporter(this._core);

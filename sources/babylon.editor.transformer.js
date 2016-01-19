@@ -41,6 +41,7 @@ var BABYLON;
                 this._vectorToModify = null;
                 this._selectedTransform = "";
                 this._distance = 0;
+                this._multiplier = 20;
                 //Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -65,6 +66,13 @@ var BABYLON;
                     if (_this._node)
                         EDITOR.Event.sendSceneEvent(_this._node, EDITOR.SceneEventType.OBJECT_CHANGED, core);
                 });
+                window.addEventListener("keydown", function (event) {
+                    if (event.ctrlKey)
+                        _this._multiplier = 1;
+                }, false);
+                window.addEventListener("keyup", function (event) {
+                    _this._multiplier = 10;
+                }, false);
                 // Create Transformers
                 this._createTransformers();
                 // Helper
@@ -233,12 +241,16 @@ var BABYLON;
             // Returns the node position
             Transformer.prototype._getNodePosition = function () {
                 var node = this._node;
-                var position = node.position;
+                var position = null;
+                /*
                 if (node.getBoundingInfo && node.geometry) {
                     position = node.getBoundingInfo().boundingSphere.centerWorld;
                 }
-                else if (node._position) {
+                else */ if (node._position) {
                     position = node._position;
+                }
+                else if (node.position) {
+                    position = node.position;
                 }
                 return position;
             };
@@ -334,14 +346,13 @@ var BABYLON;
                 if (t2 === 0)
                     return false;
                 var t = -(BABYLON.Vector3.Dot(this._pickingPlane.normal, linePoint) + this._pickingPlane.d) / t2;
-                this._mousePositionInPlane = linePoint.add(lineVect).multiply(new BABYLON.Vector3(t, t, t));
+                this._mousePositionInPlane = linePoint.add(lineVect).multiplyByFloats(this._multiplier, this._multiplier, this._multiplier);
                 return true;
             };
             // Fins the mouse position in plane
             Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
                 var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity(), this._scene.activeCamera);
-                //if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint.subtract(ray.origin.multiply(ray.direction))))
-                if (this._getIntersectionWithLine(ray.origin, pickingInfos.pickedPoint))
+                if (this._getIntersectionWithLine(ray.origin, ray.direction))
                     return true;
                 return false;
             };

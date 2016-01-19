@@ -349,8 +349,8 @@ var BABYLON;
                     return "0mins 0secs";
                 var fps = this._currentAnimation.framePerSecond;
                 var seconds = frame / fps;
-                var mins = Math.floor(seconds / 60);
-                var secs = seconds % 60;
+                var mins = BABYLON.Tools.Format(Math.floor(seconds / 60), 0);
+                var secs = BABYLON.Tools.Format(seconds % 60, 1);
                 return "" + mins + "mins " + secs + "secs";
             };
             // Sets the records

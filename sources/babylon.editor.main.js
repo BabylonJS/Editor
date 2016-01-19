@@ -158,11 +158,9 @@ var BABYLON;
             * Creates the editor camera
             */
             EditorMain.prototype._createBabylonCamera = function () {
-                //var camera = new FreeCamera("EditorCamera", new Vector3(10, 10, 10), this.core.currentScene);
-                //camera.setTarget(new Vector3(0, 0, 0));
-                //camera.attachControl(this.core.canvas);
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.attachControl(this.core.canvas, true, false);
+                //Mesh.CreateBox("TestTransformer", 5, this.core.currentScene, true);
                 this.core.camera = camera;
             };
             /**

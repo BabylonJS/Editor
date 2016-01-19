@@ -97,6 +97,8 @@ var BABYLON;
                 generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
                 if (object instanceof BABYLON.ReflectionProbe)
                     generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
+                if (object instanceof BABYLON.RenderTargetTexture)
+                    generalFolder.add(this, "_exportRenderTarget").name("Dump Render Target");
                 // Position
                 if (object instanceof BABYLON.ReflectionProbe) {
                     var positionFolder = this._element.addFolder("Position");
@@ -104,6 +106,24 @@ var BABYLON;
                     positionFolder.add(object.position, "y").step(0.01);
                     positionFolder.add(object.position, "z").step(0.01);
                 }
+            };
+            // Dumps the render target and opens a window
+            ReflectionProbeTool.prototype._exportRenderTarget = function () {
+                var _this = this;
+                var rt = this.object;
+                var tempCallback = rt.onAfterRender;
+                var width = rt.getSize().width;
+                var height = rt.getSize().height;
+                rt.onAfterRender = function () {
+                    BABYLON.Tools.DumpFramebuffer(width, height, _this._editionTool.core.engine, function (data) {
+                        EDITOR.Tools.OpenWindowPopup(data, width, height);
+                    });
+                };
+                rt.render(false);
+                this._editionTool.core.currentScene.incrementRenderId();
+                if (tempCallback)
+                    tempCallback(0);
+                rt.onAfterRender = tempCallback;
             };
             // Attaches to a mesh
             ReflectionProbeTool.prototype._attachToMesh = function () {

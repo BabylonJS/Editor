@@ -12,6 +12,7 @@ var BABYLON;
                 this.core = null;
                 this.objectLists = new Array();
                 this.selectedObjects = new Array();
+                this.windowName = "Select Object...";
                 // Private members
                 this._window = null;
                 this._list = null;
@@ -28,7 +29,7 @@ var BABYLON;
                     return false;
                 if (event.guiEvent.caller === this._window) {
                     var button = event.guiEvent.data;
-                    if (button === "Cancel") {
+                    if (button === "Close") {
                         this._window.close();
                     }
                     else if (button === "Select") {
@@ -58,12 +59,12 @@ var BABYLON;
                 var listID = "OBJECT-PICKER-LIST";
                 var listDiv = EDITOR.GUI.GUIElement.CreateElement("div", listID);
                 // Create window
-                this._window = new EDITOR.GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, "Select Object...", listDiv);
+                this._window = new EDITOR.GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, this.windowName, listDiv);
                 this._window.modal = true;
                 this._window.showMax = false;
                 this._window.buttons = [
                     "Select",
-                    "Cancel"
+                    "Close"
                 ];
                 this._window.setOnCloseCallback(function () {
                     _this.core.removeEventReceiver(_this);

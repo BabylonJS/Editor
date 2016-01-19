@@ -97,13 +97,13 @@ var BABYLON;
                 if (chooseEmitter) {
                     var picker = new EDITOR.ObjectPicker(core);
                     picker.objectLists.push(core.currentScene.meshes);
+                    picker.windowName = "Select an emitter ?";
                     picker.onObjectPicked = function (names) {
                         if (names.length > 1) {
                             var dialog = new EDITOR.GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning", "A Reflection Probe can be attached to only one mesh.\n" +
                                 "The first was considered as the mesh.");
                             dialog.buildElement(null);
                         }
-                        //(<ReflectionProbe>this.object).attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
                         var emitter = ps.emitter;
                         emitter.dispose(true);
                         EDITOR.Event.sendSceneEvent(emitter, EDITOR.SceneEventType.OBJECT_REMOVED, core);

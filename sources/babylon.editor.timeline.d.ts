@@ -7,6 +7,9 @@ declare module BABYLON.EDITOR {
         private _paper;
         private _rect;
         private _selectorRect;
+        private _overlay;
+        private _overlayText;
+        private _overlayObj;
         private _mousex;
         private _mousey;
         private _isOver;

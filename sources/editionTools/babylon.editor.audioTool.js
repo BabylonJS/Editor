@@ -45,8 +45,8 @@ var BABYLON;
                 this._element.remember(sound);
                 // Sound
                 var soundFolder = this._element.addFolder("Sound");
-                soundFolder.add(this, "_pauseSound").name("Pause Sound");
                 soundFolder.add(this, "_playSound").name("Play Sound");
+                soundFolder.add(this, "_pauseSound").name("Pause Sound");
                 soundFolder.add(this, "_stopSound").name("Stop Sound");
                 this._volume = sound.getVolume();
                 this._playbackRate = sound._playbackRate;
@@ -71,6 +71,13 @@ var BABYLON;
                         distanceModel: result
                     });
                 });
+                if (sound.spatialSound) {
+                    soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange(function (result) {
+                        sound.updateOptions({
+                            maxDistance: result
+                        });
+                    });
+                }
                 sound.distanceModel;
                 this._position = sound._position;
                 var positionFolder = soundFolder.addFolder("Position");

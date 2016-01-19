@@ -14,6 +14,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _exportRenderTarget();
         private _attachToMesh();
         private _setIncludedMeshes();
     }

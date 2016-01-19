@@ -30,6 +30,7 @@ declare module BABYLON.EDITOR {
         private _vectorToModify;
         private _selectedTransform;
         private _distance;
+        private _multiplier;
         /**
         * Constructor
         * @param core: the editor core instance

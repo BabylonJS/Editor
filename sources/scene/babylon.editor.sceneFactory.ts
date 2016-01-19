@@ -124,6 +124,7 @@
             if (chooseEmitter) {
                 var picker = new ObjectPicker(core);
                 picker.objectLists.push(core.currentScene.meshes);
+                picker.windowName = "Select an emitter ?";
 
                 picker.onObjectPicked = (names: string[]) => {
                     if (names.length > 1) {
@@ -134,7 +135,6 @@
                         dialog.buildElement(null);
                     }
 
-                    //(<ReflectionProbe>this.object).attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
                     var emitter = ps.emitter;
                     emitter.dispose(true);
 

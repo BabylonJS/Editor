@@ -133,6 +133,7 @@
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.oneDriveStorage.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.storage.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.babylonExporter.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.launchEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.animationEditor.ts" />

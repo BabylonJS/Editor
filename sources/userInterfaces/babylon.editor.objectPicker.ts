@@ -12,6 +12,8 @@
 
         public onObjectPicked: (names: string[]) => void;
 
+        public windowName: string = "Select Object...";
+
         // Private members
         private _window: GUI.GUIWindow = null;
         private _list: GUI.GUIGrid<IObjectPickerRow> = null;
@@ -38,7 +40,7 @@
             if (event.guiEvent.caller === this._window) {
                 var button = event.guiEvent.data;
 
-                if (button === "Cancel") {
+                if (button === "Close") {
                     this._window.close();
                 }
                 else if (button === "Select") {
@@ -72,12 +74,12 @@
             var listDiv = GUI.GUIElement.CreateElement("div", listID);
 
             // Create window
-            this._window = new GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, "Select Object...", listDiv);
+            this._window = new GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, this.windowName, listDiv);
             this._window.modal = true;
             this._window.showMax = false;
             this._window.buttons = [
                 "Select",
-                "Cancel"
+                "Close"
             ];
 
             this._window.setOnCloseCallback(() => {

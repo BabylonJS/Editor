@@ -12,6 +12,9 @@ var BABYLON;
                 // Public members
                 this.container = "BABYLON-EDITOR-PREVIEW-TIMELINE";
                 this.canvasContainer = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
+                this._overlay = null;
+                this._overlayText = null;
+                this._overlayObj = null;
                 this._mousex = 0;
                 this._mousey = 0;
                 this._isOver = false;
@@ -74,11 +77,8 @@ var BABYLON;
             // Creates the UI
             Timeline.prototype.createUI = function () {
                 var _this = this;
+                // Paper
                 this._paper = Raphael(this.container, 0, 25);
-                this._paper.canvas.addEventListener("mousemove", function (event) {
-                    _this._mousex = event.offsetX;
-                    _this._mousey = event.offsetY;
-                });
                 // Timeline
                 this._rect = this._paper.rect(0, 0, 0, 20);
                 this._rect.attr("fill", Raphael.rgb(237, 241, 246));
@@ -86,28 +86,33 @@ var BABYLON;
                 this._selectorRect.attr("fill", Raphael.rgb(200, 191, 231));
                 // Events
                 var domElement = $("#BABYLON-EDITOR-SCENE-TOOLBAR")[0];
-                var click = function () {
+                var click = function (event) {
+                    _this._mousex = BABYLON.Tools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
+                    _this._mousey = BABYLON.Tools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
                     _this._currentTime = _this._getFrame();
                     _this._selectorRect.attr("x", _this._mousex);
                     EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
-                    w2utils.unlock(domElement);
-                    w2utils.lock(domElement, { msg: "Frame " + _this._currentTime, spinner: false, opacity: 0.0 });
+                    _this._overlayText.text("Frame: " + BABYLON.Tools.Format(_this._currentTime, 0));
+                    _this._overlayObj.css({ left: event.pageX });
                 };
-                var start = function () {
-                    w2utils.unlock(domElement);
-                    w2utils.lock(domElement, { msg: "Frame " + _this._currentTime, spinner: false, opacity: 0.0 });
-                };
-                var end = function () {
-                    w2utils.unlock(domElement);
-                };
-                this._rect.mouseover(function (event) {
-                    _this._isOver = true;
+                window.addEventListener("mousemove", function (event) {
+                    if (_this._isOver) {
+                        click(event);
+                    }
                 });
-                this._rect.mouseout(function (event) {
+                window.addEventListener("mouseup", function (event) {
+                    if (_this._isOver) {
+                        _this._overlayText.remove();
+                    }
                     _this._isOver = false;
                 });
-                this._rect.drag(click, start, end);
-                this._selectorRect.drag(click, start, end);
+                this._paper.canvas.addEventListener("mousedown", function (event) {
+                    _this._isOver = true;
+                    _this._overlay = $(_this._paper.canvas).w2overlay({ html: "<div id=\"BABYLON-EDITOR-TIMELINE-TEXT\" style=\"padding: 10px; line-height: 150%\"></div>" });
+                    _this._overlayText = $("#BABYLON-EDITOR-TIMELINE-TEXT");
+                    _this._overlayObj = $("#w2ui-overlay");
+                    click(event);
+                });
                 // Finish
                 this._updateTimeline();
             };
@@ -126,6 +131,7 @@ var BABYLON;
                     // Set text
                     var decal = ((this._maxFrame / count) * this._panel.width) / this._maxFrame * (i + 1);
                     var txt = this._paper.text(decal, this._panel.height - 35, BABYLON.Tools.Format(this._getFrame(decal), 0));
+                    txt.node.setAttribute("pointer-events", "none");
                     txt.attr("font-family", "MS Reference Sans Serif");
                     txt.attr("fill", "#555");
                     // Set frame bars
@@ -144,7 +150,7 @@ var BABYLON;
                 var width = this._rect.attr("width");
                 if (pos)
                     return (pos * this._maxFrame) / width;
-                return (this._mousex * this._maxFrame) / width;
+                return BABYLON.Tools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
             };
             // Get a position from a frame
             Timeline.prototype._getPosition = function (frame) {

@@ -34,6 +34,8 @@ interface RaphaelElement {
 
     mouseover(mouseover: (event: MouseEvent) => void);
     mouseout(mouseover: (event: MouseEvent) => void);
+
+    node: HTMLElement;
 }
 
 // Raphael.js rect interface

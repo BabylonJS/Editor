@@ -51,8 +51,8 @@
 
             // Sound
             var soundFolder = this._element.addFolder("Sound");
-            soundFolder.add(this, "_pauseSound").name("Pause Sound");
             soundFolder.add(this, "_playSound").name("Play Sound");
+            soundFolder.add(this, "_pauseSound").name("Pause Sound");
             soundFolder.add(this, "_stopSound").name("Stop Sound");
 
             this._volume = sound.getVolume();
@@ -79,6 +79,14 @@
                     distanceModel: result
                 });
             });
+
+            if (sound.spatialSound) {
+                soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange((result: any) => {
+                    sound.updateOptions({
+                        maxDistance: result
+                    });
+                });
+            }
 
             sound.distanceModel
 
