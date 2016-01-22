@@ -425,6 +425,14 @@
         * Set the selected
         */
         select(...args: any[]): void;
+        /**
+        * Locks the grid
+        */
+        lock(message: string, spinner?: boolean): void;
+        /**
+        * Unlock the grid
+        */
+        unlock(): void;
     }
 
     /**
@@ -472,6 +480,8 @@ declare var w2confirm: {
 declare var w2popup: {
     open(data: any): W2UI.IWindowElement;
     message(data: any): W2UI.IWindowElement;
+    lock(msg?: string): void;
+    unlock(): void;
 }
 
 declare var w2obj: {

@@ -85,7 +85,6 @@ var BABYLON;
                 this._selectorRect = this._paper.rect(0, 0, 10, 20);
                 this._selectorRect.attr("fill", Raphael.rgb(200, 191, 231));
                 // Events
-                var domElement = $("#BABYLON-EDITOR-SCENE-TOOLBAR")[0];
                 var click = function (event) {
                     _this._mousex = BABYLON.Tools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
                     _this._mousey = BABYLON.Tools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
@@ -132,6 +131,8 @@ var BABYLON;
                     var decal = ((this._maxFrame / count) * this._panel.width) / this._maxFrame * (i + 1);
                     var txt = this._paper.text(decal, this._panel.height - 35, BABYLON.Tools.Format(this._getFrame(decal), 0));
                     txt.node.setAttribute("pointer-events", "none");
+                    txt.node.style.msUserSelect = "none";
+                    txt.node.style.webkitUserSelect = "none";
                     txt.attr("font-family", "MS Reference Sans Serif");
                     txt.attr("fill", "#555");
                     // Set frame bars

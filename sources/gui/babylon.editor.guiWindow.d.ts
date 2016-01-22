@@ -19,6 +19,8 @@ declare module BABYLON.EDITOR.GUI {
         setOnCloseCallback(callback: () => void): void;
         close(): void;
         maximize(): void;
+        lock(message?: string): void;
+        unlock(): void;
         onToggle: (maximized: boolean, width: number, height: number) => void;
         notify(message: string): void;
         buildElement(parent: string): void;

@@ -58,6 +58,14 @@ var BABYLON;
                 GUIWindow.prototype.maximize = function () {
                     this.element.max();
                 };
+                // Locks the window
+                GUIWindow.prototype.lock = function (message) {
+                    w2popup.lock(message);
+                };
+                // Unlocks the window
+                GUIWindow.prototype.unlock = function () {
+                    w2popup.unlock();
+                };
                 Object.defineProperty(GUIWindow.prototype, "onToggle", {
                     // Toggle callback
                     get: function () {

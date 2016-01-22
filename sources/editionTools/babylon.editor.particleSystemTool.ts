@@ -20,7 +20,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (!(object instanceof Mesh))
+            if (!(object instanceof Mesh) || !(object instanceof Light))
                 return false;
 
             var scene = this._editionTool.core.currentScene;

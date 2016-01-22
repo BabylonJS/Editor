@@ -193,13 +193,13 @@
 
             this.core.engine = new Engine(this.core.canvas, this.antialias, this.options);
             this.core.currentScene = new Scene(this.core.engine);
+            (<any>this.core.currentScene).animations = [];
             this.core.scenes.push({ render: true, scene: this.core.currentScene });
 
             this._createBabylonCamera();
 
             window.addEventListener("resize", (ev: UIEvent) => {
                 if (this.core.isPlaying) {
-                    //$("#BABYLON-EDITOR-SCENE-TOOLBAR").after(this.core.canvas);
                     this.core.isPlaying = false;
                 }
 
@@ -213,8 +213,6 @@
         private _createBabylonCamera(): void {
             var camera = new ArcRotateCamera("EditorCamera", 0, 0, 10, Vector3.Zero(), this.core.currentScene);
             camera.attachControl(this.core.canvas, true, false);
-
-            //Mesh.CreateBox("TestTransformer", 5, this.core.currentScene, true);
 
             this.core.camera = camera;
         }

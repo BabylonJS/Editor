@@ -60,6 +60,16 @@
             (<W2UI.IWindowElement>this.element).max();
         }
 
+        // Locks the window
+        public lock(message?: string): void {
+            w2popup.lock(message);
+        }
+
+        // Unlocks the window
+        public unlock(): void {
+            w2popup.unlock();
+        }
+
         // Toggle callback
         public set onToggle(callback: (maximized: boolean, width: number, height: number) => void) {
             var window = <W2UI.IWindowElement>this.element;

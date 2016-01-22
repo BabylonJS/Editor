@@ -1,29 +1,21 @@
 ﻿module BABYLON.EDITOR {
-    export interface IStorageFolder {
-        // Folder element
-        folder: Microsoft.Live.IFolder;
-
-        // Folder name
-        name: string;
-    }
-
     export interface IStorageFile {
         // File element
-        file: Microsoft.Live.IFile;
+        file: OneDrive.IChildResult;
 
         // File name
         name: string;
     }
 
     export interface IStorageUploadFile {
-        // File content
-        content: string | ArrayBuffer;
+        // File content (string or directly array buffer)
+        content: string | Uint8Array;
 
         // File name
         name: string;
 
         // Parent folder
-        parentFolder?: Microsoft.Live.IFile;
+        parentFolder?: OneDrive.IChildResult;
 
         // The file type
         type?: string;
@@ -31,16 +23,13 @@
 
     export interface IStorage {
         // Creates folders
-        createFolders(folders: string[], parentFolder: IStorageFolder, success?: () => void, failed?: () => void): void;
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
 
         // Gets children files
-        getFiles(folder: IStorageFolder, success: (children: IStorageFile[]) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, error?: (message: string) => void): void;
 
         // Creates files
-        createFiles(files: IStorageUploadFile[], folder: IStorageFolder, success?: () => void, failed?: () => void): void;
-
-        // Select folder
-        selectFolder(success: (folder: IStorageFolder, childrenFolders: IStorageFile[]) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void): void;
     }
 
     export class Storage implements IStorage {
@@ -59,19 +48,19 @@
         }
 
         // Creates folders
-        public createFolders(folders: string[], parentFolder: IStorageFolder, success?: () => void, failed?: () => void)
+        public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void)
         { }
 
         // Gets children files
-        public getFiles(folder: IStorageFolder, success: (children: IStorageFile[]) => void)
+        public getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void)
         { }
 
         // Create files
-        public createFiles(files: IStorageUploadFile[], folder: IStorageFolder, success?: () => void, failed?: () => void)
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void)
         { }
 
         // Select folder
-        public selectFolder(success: (folder: IStorageFolder) => void): void
+        public selectFolder(success: (folder: IStorageFile) => void): void
         { }
     }
 }

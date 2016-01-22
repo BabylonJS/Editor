@@ -67,6 +67,16 @@
             (<W2UI.IGridElement<T>>this.element).total = 0;
         }
 
+        // Locks the grid
+        public lock(message: string, spinner?: boolean): void {
+            (<W2UI.IGridElement<T>>this.element).lock(message, spinner);
+        }
+
+        // Unlock the grid
+        public unlock(): void {
+            (<W2UI.IGridElement<T>>this.element).unlock();
+        }
+
         // Returns the selected rows
         public getSelectedRows(): number[] {
             return (<W2UI.IGridElement<T>>this.element).getSelection();

@@ -66,13 +66,13 @@ var BABYLON;
                     if (_this._node)
                         EDITOR.Event.sendSceneEvent(_this._node, EDITOR.SceneEventType.OBJECT_CHANGED, core);
                 });
-                window.addEventListener("keydown", function (event) {
+                $(window).keydown(function (event) {
                     if (event.ctrlKey)
                         _this._multiplier = 1;
-                }, false);
-                window.addEventListener("keyup", function (event) {
+                });
+                $(window).keyup(function (event) {
                     _this._multiplier = 10;
-                }, false);
+                });
                 // Create Transformers
                 this._createTransformers();
                 // Helper

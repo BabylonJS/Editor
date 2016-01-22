@@ -60,7 +60,7 @@ var BABYLON;
                 if (this._editor) {
                     this._editor.setValue(finalString, -1);
                     if (!babylonScene)
-                        this._editor.getSession().setUseWrapMode(true);
+                        this._editor.getSession().setUseWrapMode(false);
                 }
                 return finalString;
             };

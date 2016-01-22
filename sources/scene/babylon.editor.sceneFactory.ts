@@ -77,6 +77,9 @@
             var light = new PointLight("New PointLight", new Vector3(10, 10, 10), core.currentScene);
             light.id = this.GenerateUUID();
 
+            Tags.EnableFor(light);
+            Tags.AddTagsTo(light, "added");
+
             Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
 
             return light;
@@ -88,6 +91,9 @@
             light.position = new Vector3(10, 10, 10);
             light.id = this.GenerateUUID();
 
+            Tags.EnableFor(light);
+            Tags.AddTagsTo(light, "added");
+
             Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
 
             return light;
@@ -98,6 +104,9 @@
             var light = new SpotLight("New SpotLight", new Vector3(10, 10, 10), new Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
             light.id = this.GenerateUUID();
 
+            Tags.EnableFor(light);
+            Tags.AddTagsTo(light, "added");
+
             Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
 
             return light;
@@ -107,6 +116,9 @@
         static AddHemisphericLight(core: EditorCore): HemisphericLight {
             var light = new HemisphericLight("New HemisphericLight", new Vector3(-1, -2, -1), core.currentScene);
             light.id = this.GenerateUUID();
+
+            Tags.EnableFor(light);
+            Tags.AddTagsTo(light, "added");
 
             Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
 
@@ -175,6 +187,8 @@
 
             var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
             skybox.material = skyboxMaterial;
+            Tags.EnableFor(skybox);
+            Tags.AddTagsTo(skybox, "added");
 
             Event.sendSceneEvent(skybox, SceneEventType.OBJECT_ADDED, core);
 

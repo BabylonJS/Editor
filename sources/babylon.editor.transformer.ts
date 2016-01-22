@@ -76,13 +76,13 @@
                     Event.sendSceneEvent(this._node, SceneEventType.OBJECT_CHANGED, core);
             });
 
-            window.addEventListener("keydown", (event: KeyboardEvent) => {
+            $(window).keydown((event: KeyboardEvent) => {
                 if (event.ctrlKey)
                     this._multiplier = 1;
-            }, false);
-            window.addEventListener("keyup", (event: KeyboardEvent) => {
+            });
+            $(window).keyup((event: KeyboardEvent) => {
                 this._multiplier = 10;
-            }, false);
+            });
 
             // Create Transformers
             this._createTransformers();

@@ -50,6 +50,7 @@
                 finalString = JSON.stringify(obj);
             }
             else {
+                
                 finalString = [
                     "var getTextureByName = " + this._getTextureByName + "\n",
                     "function CreateBabylonScene(scene) {",
@@ -65,13 +66,16 @@
                     this._exportSceneValues(),
                     "}\n"
                 ].join("\n");
+                
+                //var projectExporter = new ProjectExporter(this.core);
+                //finalString = projectExporter.exportProject();
             }
 
             if (this._editor) {
                 this._editor.setValue(finalString, -1);
 
                 if (!babylonScene)
-                    this._editor.getSession().setUseWrapMode(true);
+                    this._editor.getSession().setUseWrapMode(false);
             }
 
             return finalString;

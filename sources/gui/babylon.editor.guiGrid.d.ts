@@ -22,6 +22,8 @@ declare module BABYLON.EDITOR.GUI {
         removeRow(recid: number): void;
         getRowCount(): number;
         clear(): void;
+        lock(message: string, spinner?: boolean): void;
+        unlock(): void;
         getSelectedRows(): number[];
         setSelected(selected: number[]): void;
         getRow(indice: number): T;

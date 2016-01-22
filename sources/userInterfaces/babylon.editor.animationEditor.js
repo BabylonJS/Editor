@@ -407,7 +407,7 @@ var BABYLON;
                 var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
                 var animationsListElement = EDITOR.GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
                 var keysListElement = EDITOR.GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
-                var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 100%;");
+                var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
                 this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
                 this.core.editor.editPanel.addContainer(keysListElement, keysListID);
                 this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);

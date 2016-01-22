@@ -493,7 +493,7 @@
 
             var animationsListElement = GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
             var keysListElement = GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
-            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 100%;");
+            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
 
             this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
             this.core.editor.editPanel.addContainer(keysListElement, keysListID);

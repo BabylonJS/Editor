@@ -144,11 +144,11 @@ var BABYLON;
                 this.core.canvas = document.getElementById("BABYLON-EDITOR-MAIN-CANVAS");
                 this.core.engine = new BABYLON.Engine(this.core.canvas, this.antialias, this.options);
                 this.core.currentScene = new BABYLON.Scene(this.core.engine);
+                this.core.currentScene.animations = [];
                 this.core.scenes.push({ render: true, scene: this.core.currentScene });
                 this._createBabylonCamera();
                 window.addEventListener("resize", function (ev) {
                     if (_this.core.isPlaying) {
-                        //$("#BABYLON-EDITOR-SCENE-TOOLBAR").after(this.core.canvas);
                         _this.core.isPlaying = false;
                     }
                     _this.core.engine.resize();
@@ -160,7 +160,6 @@ var BABYLON;
             EditorMain.prototype._createBabylonCamera = function () {
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.attachControl(this.core.canvas, true, false);
-                //Mesh.CreateBox("TestTransformer", 5, this.core.currentScene, true);
                 this.core.camera = camera;
             };
             /**

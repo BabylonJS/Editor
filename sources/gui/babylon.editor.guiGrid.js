@@ -66,6 +66,14 @@ var BABYLON;
                     this.element.clear();
                     this.element.total = 0;
                 };
+                // Locks the grid
+                GUIGrid.prototype.lock = function (message, spinner) {
+                    this.element.lock(message, spinner);
+                };
+                // Unlock the grid
+                GUIGrid.prototype.unlock = function () {
+                    this.element.unlock();
+                };
                 // Returns the selected rows
                 GUIGrid.prototype.getSelectedRows = function () {
                     return this.element.getSelection();
