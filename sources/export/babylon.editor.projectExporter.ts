@@ -1,35 +1,33 @@
 ﻿module BABYLON.EDITOR {
     export class ProjectExporter {
         // Public members
+        // None
 
         // Private members
-        private _core: EditorCore;
-
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore) {
-            this._core = core;
-        }
+        // None
 
         // Exports the project
-        public exportProject(): string {
-
+        public static ExportProject(core: EditorCore, requestMaterials: boolean = false): string {
+            SceneSerializer.ClearCache();
+            
             var project: INTERNAL.IProjectRoot = {
-                globalConfiguration: this._serializeGlobalAnimations(),
+                globalConfiguration: this._SerializeGlobalAnimations(),
                 materials: [],
                 particleSystems: [],
-                nodes: []
+                nodes: [],
+                shadowGenerators: [],
+                postProcesses: this._SerializePostProcesses(),
+
+                requestedMaterials: requestMaterials ? [] : undefined
             };
 
-            this._traverseNodes(null, project);
+            this._TraverseNodes(core, null, project);
 
             return JSON.stringify(project, null, "\t");
         }
 
         // Serialize global animations
-        private _serializeGlobalAnimations(): INTERNAL.IAnimationConfiguration {
+        private static _SerializeGlobalAnimations(): INTERNAL.IAnimationConfiguration {
             var config: INTERNAL.IAnimationConfiguration = {
                 globalAnimationSpeed: SceneFactory.AnimationSpeed,
                 animatedAtLaunch: []
@@ -56,33 +54,69 @@
             return config;
         }
 
+        // Serialize 
+        private static _SerializePostProcesses(): INTERNAL.IPostProcess[] {
+            var config: INTERNAL.IPostProcess[] = [];
+
+            var serialize = (object: any): any => {
+                var obj = {};
+                
+                for (var thing in object) {
+                    if (typeof object[thing] === "number" && thing[0] !== "_")
+                        obj[thing] = object[thing];
+                }
+
+                return obj;
+            };
+
+            if (SceneFactory.HDRPipeline) {
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
+                    name: "HDRPipeline",
+                    serializationObject: serialize(SceneFactory.HDRPipeline)
+                });
+            }
+            if (SceneFactory.SSAOPipeline) {
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
+                    name: "SSAOPipeline",
+                    serializationObject: serialize(SceneFactory.SSAOPipeline)
+                });
+            }
+
+            return config;
+        }
+
         // Traverses nodes
-        private _traverseNodes(node: Node | Scene | Sound, project: INTERNAL.IProjectRoot): void {
-            var scene = this._core.currentScene;
+        private static _TraverseNodes(core: EditorCore, node: Node | Scene | Sound, project: INTERNAL.IProjectRoot): void {
+            var scene = core.currentScene;
 
             if (!node) {
-                this._traverseNodes(this._core.currentScene, project);
+                this._TraverseNodes(core, core.currentScene, project);
 
                 var rootNodes: any[] = [];
 
-                this._fillRootNodes(rootNodes, "lights");
-                this._fillRootNodes(rootNodes, "cameras");
-                this._fillRootNodes(rootNodes, "meshes");
+                this._FillRootNodes(core, rootNodes, "lights");
+                this._FillRootNodes(core, rootNodes, "cameras");
+                this._FillRootNodes(core, rootNodes, "meshes");
 
                 for (var i = 0; i < rootNodes.length; i++) {
-                    this._traverseNodes(rootNodes[i], project);
+                    this._TraverseNodes(core, rootNodes[i], project);
                 }
             }
             else {
-                if (node !== this._core.camera) {
+                if (node !== core.camera) {
                     // Check particle systems
                     for (var i = 0; i < scene.particleSystems.length; i++) {
                         var ps = scene.particleSystems[i];
                         if (ps.emitter === node) {
                             var psObj: INTERNAL.IParticleSystem = {
-                                hasEmitter: node instanceof Mesh ? node.geometry === null : false,
+                                hasEmitter: !(Tags.HasTags(node) && Tags.MatchesQuery(node, "added_particlesystem")), //node instanceof Mesh ? node.geometry === null : false,
                                 serializationObject: ps.serialize()
                             };
+
+                            if (!psObj.hasEmitter)
+                                psObj.emitterPosition = ps.emitter.position.asArray();
 
                             // Patch texture base64 string
                             psObj.serializationObject.base64TextureName = ps.particleTexture.name;
@@ -105,10 +139,12 @@
                                     var matObj: INTERNAL.IMaterial = {
                                         meshName: node.name,
                                         newInstance: true,
-                                        serializedValues: material.serialize()
+                                        serializedValues: subMaterial.serialize()
                                     };
 
                                     project.materials.push(matObj);
+
+                                    this._RequestMaterial(core, project, subMaterial);
                                 }
                             }
                         }
@@ -120,11 +156,14 @@
                         };
 
                         project.materials.push(matObj);
+
+                        this._RequestMaterial(core, project, material);
                     }
 
                     // Check modified nodes
                     var nodeObj: INTERNAL.INode = {
                         name: node instanceof Scene ? "Scene" : (<Sound | Node>node).name,
+                        id: node instanceof Scene ? "Scene" : node instanceof Sound ? "Sound" : (<Node>node).id,
                         type: node instanceof Scene ? "Scene"
                             : node instanceof Sound ? "Sound"
                             : node instanceof Light ? "Light"
@@ -134,17 +173,30 @@
                     };
                     var addNodeObj = false;
 
-                    if (BABYLON.Tags.HasTags(node)) { // Maybe modified by the editor
+                    if (Tags.HasTags(node)) { // Maybe modified by the editor
                         if (Tags.MatchesQuery(node, "added")) {
                             addNodeObj = true;
 
                             if (node instanceof Mesh) {
                                 nodeObj.serializationObject = SceneSerializer.SerializeMesh(node, false, false);
+
+                                for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++)
+                                    delete nodeObj.serializationObject.meshes[meshIndex].animations;
                             }
                             else {
                                 nodeObj.serializationObject = (<Light | Camera>node).serialize();
+                                delete nodeObj.serializationObject.animations;
                             }
+
+                            delete nodeObj.serializationObject.animations;
                         }
+                    }
+
+                    // Shadow generators
+                    if (node instanceof Light) {
+                        var shadows = node.getShadowGenerator();
+                        if (shadows && Tags.HasTags(shadows) && Tags.MatchesQuery(shadows, "added"))
+                            project.shadowGenerators.push(node.getShadowGenerator().serialize());
                     }
 
                     // Check animations
@@ -192,15 +244,27 @@
 
                 if (node instanceof Node) {
                     for (var i = 0; i < node.getDescendants().length; i++) {
-                        this._traverseNodes(node.getDescendants()[i], project);
+                        this._TraverseNodes(core, node.getDescendants()[i], project);
                     }
                 }
             }
         }
 
+        // Setups the requested materials (to be uploaded in template or release)
+        private static _RequestMaterial(core: EditorCore, project: INTERNAL.IProjectRoot, material: Material): void {
+            if (!material || material instanceof StandardMaterial || !project.requestedMaterials)
+                return;
+
+            var constructorName = BABYLON.Tools.GetConstructorName(material);
+            var index = project.requestedMaterials.indexOf(constructorName);
+
+            if (index === -1)
+                project.requestedMaterials.push(constructorName);
+        }
+
         // Fills array of root nodes
-        private _fillRootNodes(data: Node[], propertyPath: string): void {
-            var scene = this._core.currentScene;
+        private static _FillRootNodes(core: EditorCore, data: Node[], propertyPath: string): void {
+            var scene = core.currentScene;
             var nodes: Node[] = scene[propertyPath];
 
             for (var i = 0; i < nodes.length; i++) {

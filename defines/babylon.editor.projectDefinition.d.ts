@@ -54,6 +54,7 @@ declare module BABYLON.EDITOR.INTERNAL {
     */
     interface INode {
         name: string;
+        id: string;
         type: string;
         animations: IAnimation[];
         serializationObject?: any;
@@ -64,6 +65,16 @@ declare module BABYLON.EDITOR.INTERNAL {
     interface IParticleSystem {
         hasEmitter: boolean;
         serializationObject: any;
+        emitterPosition?: number[];
+    }
+    /**
+    * Post-processes
+    */
+    interface IPostProcess {
+        name: string;
+        serializationObject: any;
+        attach?: boolean;
+        cameraName?: string;
     }
     /**
     * Root object of project
@@ -73,5 +84,8 @@ declare module BABYLON.EDITOR.INTERNAL {
         materials: IMaterial[];
         particleSystems: IParticleSystem[];
         nodes: INode[];
+        shadowGenerators: any[];
+        postProcesses: IPostProcess[];
+        requestedMaterials?: string[];
     }
 }

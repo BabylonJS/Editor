@@ -1,4 +1,13 @@
 ﻿module BABYLON.EDITOR {
+    export interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+    }
+
     export class SceneFactory {
         // Public members
         static GenerateUUID(): string {
@@ -11,8 +20,16 @@
         // Private members
 
         // Public members
-        public static hdrPipeline: HDRRenderingPipeline = null;
-        public static ssaoPipeline: SSAORenderingPipeline = null;
+        public static HDRPipeline: HDRRenderingPipeline = null;
+        public static SSAOPipeline: SSAORenderingPipeline = null;
+        public static EnabledPostProcesses: IEnabledPostProcesses = {
+            hdr: false,
+            attachHDR: true,
+
+            ssao: false,
+            ssaoOnly: false,
+            attachSSAO: true,
+        }
 
         public static NodesToStart: IAnimatable[] = [];
         public static AnimationSpeed: number = 1.0;
@@ -21,10 +38,10 @@
         * Post-Processes
         */
         // Creates HDR pipeline
-        static CreateHDRPipeline(core: EditorCore): HDRRenderingPipeline {
-            if (this.hdrPipeline) {
-                this.hdrPipeline.dispose();
-                this.hdrPipeline = null;
+        static CreateHDRPipeline(core: EditorCore, serializationObject: any = { }): HDRRenderingPipeline {
+            if (this.HDRPipeline) {
+                this.HDRPipeline.dispose();
+                this.HDRPipeline = null;
             }
 
             var cameras: Camera[] = core.currentScene.cameras;
@@ -35,25 +52,26 @@
             };
 
             var hdr = new (<any>BABYLON.HDRRenderingPipeline)("hdr", core.currentScene, ratio, null, cameras, new BABYLON.Texture("textures/lensdirt.jpg", core.currentScene));
-            hdr.brightThreshold = 1.0;
-            hdr.gaussCoeff = 0.4;
-            hdr.gaussMean = 0.0;
-            hdr.gaussStandDev = 9.0;
-            hdr.minimumLuminance = 0.5;
-            hdr.luminanceDecreaseRate = 0.5;
-            hdr.luminanceIncreaserate = 0.5;
-            hdr.exposure = 1;
-            hdr.gaussMultiplier = 4;
+            hdr.brightThreshold = serializationObject.brightThreshold || 1.0;
+            hdr.gaussCoeff = serializationObject.gaussCoeff || 0.4;
+            hdr.gaussMean = serializationObject.gaussMean || 0.0;
+            hdr.gaussStandDev = serializationObject.gaussStandDev || 9.0;
+            hdr.minimumLuminance = serializationObject.minimumLuminance || 0.5;
+            hdr.luminanceDecreaseRate = serializationObject.luminanceDecreaseRate || 0.5;
+            hdr.luminanceIncreaserate = serializationObject.luminanceIncreaserate || 0.5;
+            hdr.exposure = serializationObject.exposure || 1;
+            hdr.gaussMultiplier = serializationObject.gaussMultiplier || 4;
+            hdr.exposureAdjustment = serializationObject.exposureAdjustment || hdr.exposureAdjustment;
 
-            this.hdrPipeline = hdr;
+            this.HDRPipeline = hdr;
             return hdr;
         }
 
         // Creates SSAO pipeline
-        static CreateSSAOPipeline(core: EditorCore): SSAORenderingPipeline {
-            if (this.ssaoPipeline) {
-                this.ssaoPipeline.dispose();
-                this.ssaoPipeline = null;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject: any = { }): SSAORenderingPipeline {
+            if (this.SSAOPipeline) {
+                this.SSAOPipeline.dispose();
+                this.SSAOPipeline = null;
             }
 
             var cameras: Camera[] = core.currentScene.cameras;
@@ -65,7 +83,7 @@
             ssao.totalStrength = 2;
             ssao.base = 1;
 
-            this.ssaoPipeline = ssao;
+            this.SSAOPipeline = ssao;
             return ssao;
         }
 

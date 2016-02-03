@@ -16,10 +16,11 @@ var BABYLON;
             * Post-Processes
             */
             // Creates HDR pipeline
-            SceneFactory.CreateHDRPipeline = function (core) {
-                if (this.hdrPipeline) {
-                    this.hdrPipeline.dispose();
-                    this.hdrPipeline = null;
+            SceneFactory.CreateHDRPipeline = function (core, serializationObject) {
+                if (serializationObject === void 0) { serializationObject = {}; }
+                if (this.HDRPipeline) {
+                    this.HDRPipeline.dispose();
+                    this.HDRPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var ratio = {
@@ -27,23 +28,25 @@ var BABYLON;
                     blurRatio: 1.0
                 };
                 var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras, new BABYLON.Texture("textures/lensdirt.jpg", core.currentScene));
-                hdr.brightThreshold = 1.0;
-                hdr.gaussCoeff = 0.4;
-                hdr.gaussMean = 0.0;
-                hdr.gaussStandDev = 9.0;
-                hdr.minimumLuminance = 0.5;
-                hdr.luminanceDecreaseRate = 0.5;
-                hdr.luminanceIncreaserate = 0.5;
-                hdr.exposure = 1;
-                hdr.gaussMultiplier = 4;
-                this.hdrPipeline = hdr;
+                hdr.brightThreshold = serializationObject.brightThreshold || 1.0;
+                hdr.gaussCoeff = serializationObject.gaussCoeff || 0.4;
+                hdr.gaussMean = serializationObject.gaussMean || 0.0;
+                hdr.gaussStandDev = serializationObject.gaussStandDev || 9.0;
+                hdr.minimumLuminance = serializationObject.minimumLuminance || 0.5;
+                hdr.luminanceDecreaseRate = serializationObject.luminanceDecreaseRate || 0.5;
+                hdr.luminanceIncreaserate = serializationObject.luminanceIncreaserate || 0.5;
+                hdr.exposure = serializationObject.exposure || 1;
+                hdr.gaussMultiplier = serializationObject.gaussMultiplier || 4;
+                hdr.exposureAdjustment = serializationObject.exposureAdjustment || hdr.exposureAdjustment;
+                this.HDRPipeline = hdr;
                 return hdr;
             };
             // Creates SSAO pipeline
-            SceneFactory.CreateSSAOPipeline = function (core) {
-                if (this.ssaoPipeline) {
-                    this.ssaoPipeline.dispose();
-                    this.ssaoPipeline = null;
+            SceneFactory.CreateSSAOPipeline = function (core, serializationObject) {
+                if (serializationObject === void 0) { serializationObject = {}; }
+                if (this.SSAOPipeline) {
+                    this.SSAOPipeline.dispose();
+                    this.SSAOPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
@@ -52,7 +55,7 @@ var BABYLON;
                 ssao.radius = 0.0001;
                 ssao.totalStrength = 2;
                 ssao.base = 1;
-                this.ssaoPipeline = ssao;
+                this.SSAOPipeline = ssao;
                 return ssao;
             };
             /**
@@ -147,8 +150,15 @@ var BABYLON;
             };
             // Private members
             // Public members
-            SceneFactory.hdrPipeline = null;
-            SceneFactory.ssaoPipeline = null;
+            SceneFactory.HDRPipeline = null;
+            SceneFactory.SSAOPipeline = null;
+            SceneFactory.EnabledPostProcesses = {
+                hdr: false,
+                attachHDR: true,
+                ssao: false,
+                ssaoOnly: false,
+                attachSSAO: true,
+            };
             SceneFactory.NodesToStart = [];
             SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;

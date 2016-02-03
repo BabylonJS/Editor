@@ -19,6 +19,9 @@
 
         // The file type
         type?: string;
+
+        // File location URL
+        url?: string;
     }
 
     export interface IStorage {

@@ -8,6 +8,7 @@ declare module BABYLON.EDITOR {
         name: string;
         parentFolder?: OneDrive.IChildResult;
         type?: string;
+        url?: string;
     }
     interface IStorage {
         createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;

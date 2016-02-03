@@ -20,7 +20,9 @@ var BABYLON;
             FilesInput._callback = function (callback, core, filesInput) {
                 var readFileCallback = function (scene, jsFile) {
                     return function (result) {
+                        /*
                         var evalResult = eval.call(window, result + "CreateBabylonScene");
+    
                         if (evalResult !== undefined && evalResult !== null) {
                             try {
                                 evalResult(scene);
@@ -28,10 +30,22 @@ var BABYLON;
                             catch (e) {
                                 BABYLON.Tools.Error("An error occured in the script " + jsFile.name);
                             }
-                            window.CreateBabylonScene = undefined;
+    
+                            (<any>window).CreateBabylonScene = undefined;
+    
                             core.editor.sceneGraphTool.createUI();
                             core.editor.sceneGraphTool.fillGraph();
                         }
+                        */
+                        //try {
+                        EDITOR.ProjectImporter.ImportProject(core, result);
+                        core.editor.sceneGraphTool.createUI();
+                        core.editor.sceneGraphTool.fillGraph();
+                        //}
+                        /*catch (e) {
+                            BABYLON.Tools.Error("An error occured when loading the project file " + jsFile.name + ". The result:");
+                            BABYLON.Tools.Warn(result);
+                        }*/
                         if (jsFile.msClose)
                             jsFile.msClose();
                     };

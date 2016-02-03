@@ -9,6 +9,7 @@ var BABYLON;
     (function (EDITOR) {
         var PostProcessesTool = (function (_super) {
             __extends(PostProcessesTool, _super);
+            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -17,19 +18,10 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
-                // Private members
-                this._enabledPostProcesses = null;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
                 ];
-                this._enabledPostProcesses = {
-                    hdr: false,
-                    attachHDR: true,
-                    ssao: false,
-                    ssaoOnly: false,
-                    attachSSAO: true,
-                };
             }
             // Object supported
             PostProcessesTool.prototype.isObjectSupported = function (object) {
@@ -53,79 +45,79 @@ var BABYLON;
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
                 // Ckeck checkboxes
-                this._enabledPostProcesses.hdr = EDITOR.SceneFactory.hdrPipeline !== null;
-                this._enabledPostProcesses.ssao = EDITOR.SceneFactory.ssaoPipeline !== null;
+                EDITOR.SceneFactory.EnabledPostProcesses.hdr = EDITOR.SceneFactory.HDRPipeline !== null;
+                EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
                 // HDR
                 var hdrFolder = this._element.addFolder("HDR");
-                hdrFolder.add(this._enabledPostProcesses, "hdr").name("Enabled HDR").onChange(function (result) {
+                hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "hdr").name("Enabled HDR").onChange(function (result) {
                     if (result === true)
                         EDITOR.SceneFactory.CreateHDRPipeline(_this._editionTool.core);
                     else {
-                        EDITOR.SceneFactory.hdrPipeline.dispose();
-                        EDITOR.SceneFactory.hdrPipeline = null;
+                        EDITOR.SceneFactory.HDRPipeline.dispose();
+                        EDITOR.SceneFactory.HDRPipeline = null;
                     }
                     _this.update();
                 });
-                if (EDITOR.SceneFactory.hdrPipeline) {
-                    hdrFolder.add(this._enabledPostProcesses, "attachHDR").name("Attach HDR").onChange(function (result) {
+                if (EDITOR.SceneFactory.HDRPipeline) {
+                    hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachHDR").name("Attach HDR").onChange(function (result) {
                         _this._attachDetachPipeline(result, "hdr");
                     });
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline._originalPostProcess, "_exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
-                        EDITOR.SceneFactory.hdrPipeline.update();
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
                     });
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
-                        EDITOR.SceneFactory.hdrPipeline.update();
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
                     });
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
-                        EDITOR.SceneFactory.hdrPipeline.update();
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
                     });
-                    hdrFolder.add(EDITOR.SceneFactory.hdrPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
-                ssaoFolder.add(this._enabledPostProcesses, "ssao").name("Enable SSAO").onChange(function (result) {
+                ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssao").name("Enable SSAO").onChange(function (result) {
                     if (result === true)
-                        EDITOR.SceneFactory.ssaoPipeline = EDITOR.SceneFactory.CreateSSAOPipeline(_this._editionTool.core);
+                        EDITOR.SceneFactory.SSAOPipeline = EDITOR.SceneFactory.CreateSSAOPipeline(_this._editionTool.core);
                     else {
-                        EDITOR.SceneFactory.ssaoPipeline.dispose();
-                        EDITOR.SceneFactory.ssaoPipeline = null;
+                        EDITOR.SceneFactory.SSAOPipeline.dispose();
+                        EDITOR.SceneFactory.SSAOPipeline = null;
                     }
                     _this.update();
                 });
-                if (EDITOR.SceneFactory.ssaoPipeline) {
-                    ssaoFolder.add(this._enabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange(function (result) {
+                if (EDITOR.SceneFactory.SSAOPipeline) {
+                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange(function (result) {
                         _this._ssaoOnly(result);
                     });
-                    ssaoFolder.add(this._enabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
+                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
                         _this._attachDetachPipeline(result, "ssao");
                     });
-                    ssaoFolder.add(EDITOR.SceneFactory.ssaoPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
-                    ssaoFolder.add(EDITOR.SceneFactory.ssaoPipeline, "area").min(0).max(1).step(0.0001).name("Area");
-                    ssaoFolder.add(EDITOR.SceneFactory.ssaoPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
-                    ssaoFolder.add(EDITOR.SceneFactory.ssaoPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
-                    ssaoFolder.add(EDITOR.SceneFactory.ssaoPipeline, "base").min(0).max(1).step(0.001).name("Base");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
                     var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
-                    hBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    hBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    hBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
                     var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
-                    vBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    vBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    vBlurFolder.add(EDITOR.SceneFactory.ssaoPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
                 }
             };
             // Draws SSAO only
             PostProcessesTool.prototype._ssaoOnly = function (result) {
                 if (result)
-                    EDITOR.SceneFactory.ssaoPipeline._disableEffect(EDITOR.SceneFactory.ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+                    EDITOR.SceneFactory.SSAOPipeline._disableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
                 else
-                    EDITOR.SceneFactory.ssaoPipeline._enableEffect(EDITOR.SceneFactory.ssaoPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+                    EDITOR.SceneFactory.SSAOPipeline._enableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
             };
             // Attach/detach pipeline
             PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {

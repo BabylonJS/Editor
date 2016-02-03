@@ -213,6 +213,7 @@
         private _createBabylonCamera(): void {
             var camera = new ArcRotateCamera("EditorCamera", 0, 0, 10, Vector3.Zero(), this.core.currentScene);
             camera.attachControl(this.core.canvas, true, false);
+            camera.panningAxis = new Vector3(1, 1, 1);
 
             this.core.camera = camera;
         }

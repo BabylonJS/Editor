@@ -8,27 +8,27 @@
         - Sounds to play, on play
 */
 
-module BABYLON.EDITOR.INTERNAL {
+declare module BABYLON.EDITOR.INTERNAL {
     /**
     * Animations
     */
-    export interface IAnimationEventValue {
+    interface IAnimationEventValue {
         property?: string; // The property to modify
         value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion; // The value to apply
     }
 
-    export interface IAnimationEvent {
+    interface IAnimationEvent {
         type: string; // The event type (setEnabled, setVisible, switch boolean, etc.)
         target: Node | Scene; // The target of the event
         value: IAnimationEventValue;
     }
 
-    export interface IAnimationEventFrame {
+    interface IAnimationEventFrame {
         frame: number;
         events: IAnimationEvent[];
     }
 
-    export interface IAnimation {
+    interface IAnimation {
         targetName: string; // The target name
         targetType: string; // The target type ("Node", "Sound", "Scene")
 
@@ -40,12 +40,12 @@ module BABYLON.EDITOR.INTERNAL {
     /**
     *  Global animation configuration of the project
     */
-    export interface IAnimationConfigurationOnPlay {
+    interface IAnimationConfigurationOnPlay {
         type: string; // Object type to animate/play on play
         name: string; // Object name
     }
 
-    export interface IAnimationConfiguration {
+    interface IAnimationConfiguration {
         globalAnimationSpeed: number; // Global animation speed on play
         animatedAtLaunch: IAnimationConfigurationOnPlay[];
     }
@@ -53,7 +53,7 @@ module BABYLON.EDITOR.INTERNAL {
     /**
     * Custom Materials (sky, gradient, water, etc.)
     */
-    export interface IMaterial {
+    interface IMaterial {
         serializedValues: any; // The serialized object from BABYLON[TheMaterial]
         meshName?: string;
         newInstance?: boolean;
@@ -62,8 +62,9 @@ module BABYLON.EDITOR.INTERNAL {
     /**
     * Modified nodes in the editor (custom animations, for custom materials, etc.)
     */
-    export interface INode {
+    interface INode {
         name: string; // The node name
+        id: string; // The node id
         type: string; // The type of node (Node, Scene or Sound)
         animations: IAnimation[]; // Animations of the node
 
@@ -73,18 +74,35 @@ module BABYLON.EDITOR.INTERNAL {
     /**
     * Custom particle systems
     */
-    export interface IParticleSystem {
+    interface IParticleSystem {
         hasEmitter: boolean; // If the particle system as an emitter (from the .babylon scene). If not, editor will create an empty mesh
         serializationObject: any;
+
+        emitterPosition?: number[];
+    }
+
+    /**
+    * Post-processes
+    */
+    interface IPostProcess {
+        name: string;
+        serializationObject: any;
+
+        attach?: boolean; // If pipeline
+        cameraName?: string;
     }
 
     /**
     * Root object of project
     */
-    export interface IProjectRoot {
+    interface IProjectRoot {
         globalConfiguration: IAnimationConfiguration;
         materials: IMaterial[];
         particleSystems: IParticleSystem[];
         nodes: INode[];
+        shadowGenerators: any[];
+        postProcesses: IPostProcess[];
+
+        requestedMaterials?: string[];
     }
 }

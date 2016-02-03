@@ -64,7 +64,9 @@ var BABYLON;
                     _this._lockPanel("Creating Template...");
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
-                    _this._storage.createFolders(["Materials", "Textures", "Loading", "Code"], folder, function () {
+                    _this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, function () {
+                        _this._createTemplate();
+                    }, function () {
                         _this._unlockPanel();
                     });
                 });
@@ -81,9 +83,8 @@ var BABYLON;
                 }
                 this._lockPanel("Saving on OneDrive...");
                 this._updateFileList(function () {
-                    var exporter = new EDITOR.Exporter(_this.core);
                     var files = [
-                        { name: "scene.js", content: exporter.generateCode() }
+                        { name: "scene.js", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
                     _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
                         _this._unlockPanel();
@@ -97,6 +98,88 @@ var BABYLON;
             // Returns the file object from its name
             StorageExporter.prototype.getFile = function (name) {
                 return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+            };
+            // Creates the template with all files
+            StorageExporter.prototype._createTemplate = function () {
+                var _this = this;
+                this._updateFileList(function () {
+                    var files = [];
+                    var url = window.location.href;
+                    url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                    var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
+                    var project = JSON.parse(projectContent);
+                    // Files already loaded
+                    files.push({ name: "scene.js", content: projectContent });
+                    files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    // Files to load
+                    var count = files.length;
+                    files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
+                    files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
+                    // Textures
+                    if (EDITOR.SceneFactory.HDRPipeline)
+                        files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: _this.getFolder("Textures").file, type: "arraybuffer" });
+                    // Materials
+                    for (var i = 0; i < project.requestedMaterials.length; i++) {
+                        var name = "babylon." + project.requestedMaterials[i] + ".js";
+                        files.push({ name: name, url: url + "../libs/materials/" + name, content: null, parentFolder: _this.getFolder("Materials").file });
+                    }
+                    // Load files
+                    var loadCallback = function (indice) {
+                        return function (data) {
+                            count++;
+                            if (indice >= 0) {
+                                if (files[indice].name === "index.html") {
+                                    data = _this._processIndexHTML(project, data);
+                                }
+                                files[indice].content = data;
+                            }
+                            if (count >= files.length) {
+                                _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                                    _this._unlockPanel();
+                                }, function () {
+                                    _this._unlockPanel();
+                                });
+                            }
+                        };
+                    };
+                    if (count === files.length) {
+                        // No files to load
+                        loadCallback(-1)(null);
+                    }
+                    else {
+                        // Files from server
+                        for (var i = 0; i < files.length; i++) {
+                            if (files[i].url)
+                                BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
+                        }
+                        // Files from FileInput
+                        for (var textureName in EDITOR.FilesInput.FilesTextures) {
+                            files.push({ name: textureName, content: null, parentFolder: _this.getFolder("Scene").file });
+                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                        }
+                        for (var fileName in EDITOR.FilesInput.FilesToLoad) {
+                            files.push({ name: fileName, content: null, parentFolder: _this.getFolder("Scene").file });
+                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                        }
+                        var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
+                        files.push({ name: sceneToLoad.name, content: null, parentFolder: _this.getFolder("Scene").file });
+                        BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
+                    }
+                });
+            };
+            // Processes the index.html file
+            StorageExporter.prototype._processIndexHTML = function (project, content) {
+                var finalString = content;
+                var scripts = "";
+                for (var i = 0; i < project.requestedMaterials.length; i++) {
+                    scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
+                }
+                var sceneToLoad = this.core.editor.filesInput._sceneFileToLoad;
+                if (sceneToLoad) {
+                    finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
+                }
+                finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
+                return finalString;
             };
             // Creates the UI dialog to choose folder
             StorageExporter.prototype._openFolderDialog = function (success) {

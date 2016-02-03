@@ -101,6 +101,8 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 // Shadows Generator
                 var shadows = new BABYLON.ShadowGenerator(this._customShadowsGeneratorSize, object);
+                BABYLON.Tags.EnableFor(shadows);
+                BABYLON.Tags.AddTagsTo(shadows, "added");
                 // Refresh UI
                 this.update();
             };

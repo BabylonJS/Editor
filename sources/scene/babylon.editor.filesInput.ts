@@ -17,6 +17,7 @@
         private static _callback(callback: (file: File, scene: Scene) => void, core: EditorCore, filesInput: FilesInput): (file: File, scene: Scene) => void {
             var readFileCallback = (scene: Scene, jsFile: File) => {
                 return (result: string) => {
+                    /*
                     var evalResult = eval.call(window, result + "CreateBabylonScene");
 
                     if (evalResult !== undefined && evalResult !== null) {
@@ -32,6 +33,19 @@
                         core.editor.sceneGraphTool.createUI();
                         core.editor.sceneGraphTool.fillGraph();
                     }
+                    */
+
+                    //try {
+                    
+                        ProjectImporter.ImportProject(core, result);
+                        core.editor.sceneGraphTool.createUI();
+                        core.editor.sceneGraphTool.fillGraph();
+                    
+                    //}
+                    /*catch (e) {
+                        BABYLON.Tools.Error("An error occured when loading the project file " + jsFile.name + ". The result:");
+                        BABYLON.Tools.Warn(result);
+                    }*/
 
                     if (jsFile.msClose)
                         jsFile.msClose();

@@ -114,6 +114,8 @@
             
             // Shadows Generator
             var shadows = new ShadowGenerator(this._customShadowsGeneratorSize, object);
+            Tags.EnableFor(shadows);
+            Tags.AddTagsTo(shadows, "added");
 
             // Refresh UI
             this.update();

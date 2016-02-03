@@ -355,8 +355,11 @@
 
             if (emitter)
                 dummy = emitter;
-            else
+            else {
                 dummy = new Mesh("New Particle System", scene, null, null, true);
+                Tags.EnableFor(dummy);
+                Tags.AddTagsTo(dummy, "added_particlesystem");
+            }
 
             var ps = new ParticleSystem("New Particle System", capacity, scene);
 

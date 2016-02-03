@@ -83,7 +83,9 @@
                 StorageExporter._projectFolder = folder;
                 StorageExporter._projectFolderChildren = folderChildren;
 
-                this._storage.createFolders(["Materials", "Textures", "Loading", "Code"], folder, () => {
+                this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, () => {
+                    this._createTemplate();
+                }, () => {
                     this._unlockPanel();
                 });
             });
@@ -103,9 +105,8 @@
             this._lockPanel("Saving on OneDrive...");
 
             this._updateFileList(() => {
-                var exporter = new Exporter(this.core);
                 var files: IStorageUploadFile[] = [
-                    { name: "scene.js", content: exporter.generateCode() }
+                    { name: "scene.js", content: ProjectExporter.ExportProject(this.core) }
                 ];
 
                 this._storage.createFiles(files, StorageExporter._projectFolder, () => {
@@ -122,6 +123,108 @@
         // Returns the file object from its name
         public getFile(name: string): IStorageFile {
             return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+        }
+
+        // Creates the template with all files
+        private _createTemplate(): void {
+            this._updateFileList(() => {
+                var files: IStorageUploadFile[] = [];
+
+                var url = window.location.href;
+                url = url.replace(BABYLON.Tools.GetFilename(url), "");
+
+                var projectContent = ProjectExporter.ExportProject(this.core, true);
+                var project: INTERNAL.IProjectRoot = JSON.parse(projectContent);
+
+                // Files already loaded
+                files.push({ name: "scene.js", content: projectContent });
+                files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
+
+                // Files to load
+                var count = files.length;
+
+                files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
+                files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
+
+                // Textures
+                if (SceneFactory.HDRPipeline)
+                    files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
+
+                // Materials
+                for (var i = 0; i < project.requestedMaterials.length; i++) {
+                    var name = "babylon." + project.requestedMaterials[i] + ".js";
+                    files.push({ name: name, url: url + "../libs/materials/" + name, content: null, parentFolder: this.getFolder("Materials").file });
+                }
+
+                // Load files
+                var loadCallback = (indice: number) => {
+                    return (data: any) => {
+                        count++;
+
+                        if (indice >= 0) {
+                            if (files[indice].name === "index.html") {
+                                data = this._processIndexHTML(project, data);
+                            }
+
+                            files[indice].content = data;
+                        }
+
+                        if (count >= files.length) {
+                            this._storage.createFiles(files, StorageExporter._projectFolder, () => {
+                                this._unlockPanel();
+                            }, () => {
+                                this._unlockPanel();
+                            });
+                        }
+                    }
+                };
+
+                if (count === files.length) {
+                    // No files to load
+                    loadCallback(-1)(null);
+                }
+                else {
+                    // Files from server
+                    for (var i = 0; i < files.length; i++) {
+                        if (files[i].url)
+                            BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
+                    }
+
+                    // Files from FileInput
+                    for (var textureName in FilesInput.FilesTextures) {
+                        files.push({ name: textureName, content: null, parentFolder: this.getFolder("Scene").file });
+                        BABYLON.Tools.ReadFile(FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                    }
+                    
+                    for (var fileName in FilesInput.FilesToLoad) {
+                        files.push({ name: fileName, content: null, parentFolder: this.getFolder("Scene").file });
+                        BABYLON.Tools.ReadFile(FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                    }
+
+                    var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
+                    files.push({ name: sceneToLoad.name, content: null, parentFolder: this.getFolder("Scene").file });
+                    BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
+                }
+            });
+        }
+
+        // Processes the index.html file
+        private _processIndexHTML(project: INTERNAL.IProjectRoot, content: string): string {
+            var finalString = content;
+            var scripts = "";
+
+            for (var i = 0; i < project.requestedMaterials.length; i++) {
+                scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
+            }
+
+            var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
+            if (sceneToLoad) {
+                finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
+            }
+
+            finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
+
+            return finalString;
         }
 
         // Creates the UI dialog to choose folder

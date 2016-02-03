@@ -25,6 +25,7 @@ var BABYLON;
                     EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
                 }
             }
+            // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
             OneDriveStorage.OnAuthentificated = function () {
                 // Get token from URL
                 var token = "";
@@ -36,6 +37,7 @@ var BABYLON;
                 // Close popup
                 window.opener.BABYLON.EDITOR.OneDriveStorage.ClosePopup(token, window);
             };
+            // Closes the login popup
             OneDriveStorage.ClosePopup = function (token, window) {
                 OneDriveStorage._TOKEN = token;
                 if (token === "") {

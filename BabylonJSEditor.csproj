@@ -67,6 +67,7 @@
     <Content Include="libs\materials\babylon.skyMaterial.js" />
     <Content Include="libs\raphael.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
+    <Content Include="templates\index.html" />
     <Content Include="website\redirect.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
@@ -116,6 +117,7 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectExporter.ts" />
+    <TypeScriptCompile Include="sources\export\babylon.editor.projectImporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.storageExporter.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiDialog.ts" />
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiEdit.ts" />

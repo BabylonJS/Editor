@@ -1,14 +1,10 @@
 declare module BABYLON.EDITOR {
     class ProjectExporter {
-        private _core;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        exportProject(): string;
-        private _serializeGlobalAnimations();
-        private _traverseNodes(node, project);
-        private _fillRootNodes(data, propertyPath);
+        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
+        private static _SerializeGlobalAnimations();
+        private static _SerializePostProcesses();
+        private static _TraverseNodes(core, node, project);
+        private static _RequestMaterial(core, project, material);
+        private static _FillRootNodes(core, data, propertyPath);
     }
 }

@@ -11,6 +11,7 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         openSceneExporter(babylonScene?: boolean): void;
         generateCode(babylonScene?: boolean): string;
+        static ExportCode(core: EditorCore): string;
         _exportSceneValues(): string;
         _exportScene(): string;
         _exportReflectionProbes(): string;

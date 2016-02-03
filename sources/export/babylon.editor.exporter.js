@@ -41,6 +41,7 @@ var BABYLON;
                     finalString = JSON.stringify(obj);
                 }
                 else {
+                    /*
                     finalString = [
                         "var getTextureByName = " + this._getTextureByName + "\n",
                         "function CreateBabylonScene(scene) {",
@@ -56,12 +57,34 @@ var BABYLON;
                         this._exportSceneValues(),
                         "}\n"
                     ].join("\n");
+                    */
+                    finalString = EDITOR.ProjectExporter.ExportProject(this.core, true);
                 }
                 if (this._editor) {
                     this._editor.setValue(finalString, -1);
                     if (!babylonScene)
                         this._editor.getSession().setUseWrapMode(false);
                 }
+                return finalString;
+            };
+            // Exports the code
+            Exporter.ExportCode = function (core) {
+                var exporter = new Exporter(core);
+                var finalString = [
+                    "var getTextureByName = " + exporter._getTextureByName + "\n",
+                    "function CreateBabylonScene(scene) {",
+                    "\tvar engine = scene.getEngine();",
+                    "\tvar node = null;",
+                    "\tvar animation = null;",
+                    "\tvar keys = null;",
+                    "\tvar particleSystem = null;\n",
+                    exporter._exportPostProcesses(),
+                    exporter._exportScene(),
+                    exporter._exportReflectionProbes(),
+                    exporter._traverseNodes(),
+                    exporter._exportSceneValues(),
+                    "}\n"
+                ].join("\n");
                 return finalString;
             };
             // Export the scene values
@@ -168,7 +191,7 @@ var BABYLON;
             // Exports the post-processes
             Exporter.prototype._exportPostProcesses = function () {
                 var finalString = "";
-                if (EDITOR.SceneFactory.hdrPipeline) {
+                if (EDITOR.SceneFactory.HDRPipeline) {
                     finalString +=
                         "\tvar ratio = {\n" +
                             "\t    finalRatio: 1.0,\n" +
@@ -176,19 +199,19 @@ var BABYLON;
                             "\t};\n";
                     finalString +=
                         "\tvar hdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
-                            "\thdr._originalPostProcess._exposureAdjustment = " + EDITOR.SceneFactory.hdrPipeline._originalPostProcess._exposureAdjustment + ";\n" +
-                            "\thdr.brightThreshold = " + EDITOR.SceneFactory.hdrPipeline.brightThreshold + ";\n" +
-                            "\thdr.gaussCoeff = " + EDITOR.SceneFactory.hdrPipeline.gaussCoeff + ";\n" +
-                            "\thdr.gaussMean = " + EDITOR.SceneFactory.hdrPipeline.gaussMean + ";\n" +
-                            "\thdr.gaussStandDev = " + EDITOR.SceneFactory.hdrPipeline.gaussStandDev + ";\n" +
-                            "\thdr.minimumLuminance = " + EDITOR.SceneFactory.hdrPipeline.minimumLuminance + ";\n" +
-                            "\thdr.luminanceDecreaseRate = " + EDITOR.SceneFactory.hdrPipeline.luminanceDecreaseRate + ";\n" +
-                            "\thdr.luminanceIncreaserate = " + EDITOR.SceneFactory.hdrPipeline.luminanceIncreaserate + ";\n" +
-                            "\thdr.exposure = " + EDITOR.SceneFactory.hdrPipeline.exposure + ";\n" +
-                            "\thdr.gaussMultiplier = " + EDITOR.SceneFactory.hdrPipeline.gaussMultiplier + ";\n";
+                            "\thdr.exposureAdjustment = " + EDITOR.SceneFactory.HDRPipeline.exposureAdjustment + ";\n" +
+                            "\thdr.brightThreshold = " + EDITOR.SceneFactory.HDRPipeline.brightThreshold + ";\n" +
+                            "\thdr.gaussCoeff = " + EDITOR.SceneFactory.HDRPipeline.gaussCoeff + ";\n" +
+                            "\thdr.gaussMean = " + EDITOR.SceneFactory.HDRPipeline.gaussMean + ";\n" +
+                            "\thdr.gaussStandDev = " + EDITOR.SceneFactory.HDRPipeline.gaussStandDev + ";\n" +
+                            "\thdr.minimumLuminance = " + EDITOR.SceneFactory.HDRPipeline.minimumLuminance + ";\n" +
+                            "\thdr.luminanceDecreaseRate = " + EDITOR.SceneFactory.HDRPipeline.luminanceDecreaseRate + ";\n" +
+                            "\thdr.luminanceIncreaserate = " + EDITOR.SceneFactory.HDRPipeline.luminanceIncreaserate + ";\n" +
+                            "\thdr.exposure = " + EDITOR.SceneFactory.HDRPipeline.exposure + ";\n" +
+                            "\thdr.gaussMultiplier = " + EDITOR.SceneFactory.HDRPipeline.gaussMultiplier + ";\n";
                     finalString +=
                         "\tif (BABYLON.EDITOR) {\n" +
-                            "\t    BABYLON.EDITOR.SceneFactory.hdrPipeline = hdr;\n" +
+                            "\t    BABYLON.EDITOR.SceneFactory.HDRPipeline = hdr;\n" +
                             "\t}\n";
                 }
                 return finalString;

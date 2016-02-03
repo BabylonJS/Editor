@@ -25,7 +25,7 @@ var BABYLON;
             }
             // Object supported
             ParticleSystemTool.prototype.isObjectSupported = function (object) {
-                if (!(object instanceof BABYLON.Mesh) || !(object instanceof BABYLON.Light))
+                if (!(object instanceof BABYLON.Mesh) && !(object instanceof BABYLON.Light))
                     return false;
                 var scene = this._editionTool.core.currentScene;
                 for (var i = 0; i < scene.particleSystems.length; i++) {

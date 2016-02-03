@@ -189,11 +189,11 @@
 
             this.toolbar = new GUI.GUIToolbar(this.container, this._core);
 
-            var menu = this.toolbar.createMenu("menu", this._mainProject, "Scene", "icon-folder");
+            var menu = this.toolbar.createMenu("menu", this._mainProject, "Project", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
             this.toolbar.addBreak(menu);
-            this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export", "icon-export");
-            this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene", "icon-export");
+            this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export...", "icon-export");
+            this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
             this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");

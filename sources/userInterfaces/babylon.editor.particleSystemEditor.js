@@ -287,8 +287,11 @@ var BABYLON;
                 var dummy = null;
                 if (emitter)
                     dummy = emitter;
-                else
+                else {
                     dummy = new BABYLON.Mesh("New Particle System", scene, null, null, true);
+                    BABYLON.Tags.EnableFor(dummy);
+                    BABYLON.Tags.AddTagsTo(dummy, "added_particlesystem");
+                }
                 var ps = new BABYLON.ParticleSystem("New Particle System", capacity, scene);
                 ps.emitter = dummy;
                 ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);

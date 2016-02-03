@@ -9,6 +9,7 @@
         private static _TOKEN = "";
         private static _POPUP: Window = null;
 
+        // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
         public static OnAuthentificated(): void {
             // Get token from URL
             var token = "";
@@ -23,6 +24,7 @@
             (<any>window).opener.BABYLON.EDITOR.OneDriveStorage.ClosePopup(token, window);
         }
 
+        // Closes the login popup
         public static ClosePopup(token: string, window: Window): void {
             OneDriveStorage._TOKEN = token;
 

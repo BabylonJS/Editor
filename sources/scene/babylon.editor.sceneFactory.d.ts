@@ -1,15 +1,23 @@
 declare module BABYLON.EDITOR {
+    interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+    }
     class SceneFactory {
         static GenerateUUID(): string;
-        static hdrPipeline: HDRRenderingPipeline;
-        static ssaoPipeline: SSAORenderingPipeline;
+        static HDRPipeline: HDRRenderingPipeline;
+        static SSAOPipeline: SSAORenderingPipeline;
+        static EnabledPostProcesses: IEnabledPostProcesses;
         static NodesToStart: IAnimatable[];
         static AnimationSpeed: number;
         /**
         * Post-Processes
         */
-        static CreateHDRPipeline(core: EditorCore): HDRRenderingPipeline;
-        static CreateSSAOPipeline(core: EditorCore): SSAORenderingPipeline;
+        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
         /**
         * Nodes
         */
