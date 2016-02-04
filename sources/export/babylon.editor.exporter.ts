@@ -252,15 +252,15 @@
                 finalString +=
                     "\tvar hdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
                     "\thdr.exposureAdjustment = " + (<any>SceneFactory.HDRPipeline).exposureAdjustment + ";\n" +
-                "\thdr.brightThreshold = " + SceneFactory.HDRPipeline.brightThreshold + ";\n" +
-                "\thdr.gaussCoeff = " + SceneFactory.HDRPipeline.gaussCoeff + ";\n" +
-                "\thdr.gaussMean = " + SceneFactory.HDRPipeline.gaussMean + ";\n" +
-                "\thdr.gaussStandDev = " + SceneFactory.HDRPipeline.gaussStandDev + ";\n" +
-                "\thdr.minimumLuminance = " + SceneFactory.HDRPipeline.minimumLuminance + ";\n" +
-                "\thdr.luminanceDecreaseRate = " + SceneFactory.HDRPipeline.luminanceDecreaseRate + ";\n" +
-                "\thdr.luminanceIncreaserate = " + SceneFactory.HDRPipeline.luminanceIncreaserate + ";\n" +
-                "\thdr.exposure = " + SceneFactory.HDRPipeline.exposure + ";\n" +
-                "\thdr.gaussMultiplier = " + SceneFactory.HDRPipeline.gaussMultiplier + ";\n";
+                    "\thdr.brightThreshold = " + SceneFactory.HDRPipeline.brightThreshold + ";\n" +
+                    "\thdr.gaussCoeff = " + SceneFactory.HDRPipeline.gaussCoeff + ";\n" +
+                    "\thdr.gaussMean = " + SceneFactory.HDRPipeline.gaussMean + ";\n" +
+                    "\thdr.gaussStandDev = " + SceneFactory.HDRPipeline.gaussStandDev + ";\n" +
+                    "\thdr.minimumLuminance = " + SceneFactory.HDRPipeline.minimumLuminance + ";\n" +
+                    "\thdr.luminanceDecreaseRate = " + SceneFactory.HDRPipeline.luminanceDecreaseRate + ";\n" +
+                    "\thdr.luminanceIncreaserate = " + SceneFactory.HDRPipeline.luminanceIncreaserate + ";\n" +
+                    "\thdr.exposure = " + SceneFactory.HDRPipeline.exposure + ";\n" +
+                    "\thdr.gaussMultiplier = " + SceneFactory.HDRPipeline.gaussMultiplier + ";\n";
 
                 finalString +=
                     "\tif (BABYLON.EDITOR) {\n" +

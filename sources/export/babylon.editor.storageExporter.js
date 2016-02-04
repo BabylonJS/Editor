@@ -114,6 +114,7 @@ var BABYLON;
                     // Files to load
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
+                    files.push({ name: "Web.config", url: url + "../templates/Template.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Textures
                     if (EDITOR.SceneFactory.HDRPipeline)
