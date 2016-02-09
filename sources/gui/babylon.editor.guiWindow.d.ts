@@ -24,5 +24,6 @@ declare module BABYLON.EDITOR.GUI {
         onToggle: (maximized: boolean, width: number, height: number) => void;
         notify(message: string): void;
         buildElement(parent: string): void;
+        static CreateAlert(message: string, title?: string, callback?: () => void): void;
     }
 }

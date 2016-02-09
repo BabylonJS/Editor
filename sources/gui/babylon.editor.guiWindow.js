@@ -131,6 +131,10 @@ var BABYLON;
                     // Configure editor
                     this.core.editor.renderMainScene = false;
                 };
+                // Creates an alert
+                GUIWindow.CreateAlert = function (message, title, callback) {
+                    w2alert(message, title, callback);
+                };
                 return GUIWindow;
             })(GUI.GUIElement);
             GUI.GUIWindow = GUIWindow;

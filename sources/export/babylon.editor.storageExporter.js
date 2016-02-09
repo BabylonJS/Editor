@@ -80,6 +80,7 @@ var BABYLON;
                         StorageExporter._projectFolderChildren = folderChildren;
                         _this.export();
                     });
+                    return;
                 }
                 this._lockPanel("Saving on OneDrive...");
                 this._updateFileList(function () {
@@ -163,8 +164,10 @@ var BABYLON;
                             BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
                         }
                         var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
-                        files.push({ name: sceneToLoad.name, content: null, parentFolder: _this.getFolder("Scene").file });
-                        BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
+                        if (sceneToLoad) {
+                            files.push({ name: sceneToLoad.name, content: null, parentFolder: _this.getFolder("Scene").file });
+                            BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
+                        }
                     }
                 });
             };

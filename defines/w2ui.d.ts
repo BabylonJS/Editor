@@ -468,13 +468,25 @@
         */
         onToggle: (maximized: boolean, width: number, height: number) => void;
     }
+
+    /**
+    * Window confirm element
+    */
+    interface IWindowConfirmDialog extends IElement {
+        yes(callback: () => void): IWindowConfirmDialog;
+        no(callback: () => void): IWindowConfirmDialog;
+    }
 }
 
 /**
 * Declares
 */
 declare var w2confirm: {
-    (body: string, title: string, callback: (result: any) => void): W2UI.IElement;
+    (body: string, title: string, callback: (result: any) => void): W2UI.IWindowConfirmDialog;
+}
+
+declare var w2alert: {
+    (msg: string, title?: string, callback?: () => void): W2UI.IElement;
 }
 
 declare var w2popup: {

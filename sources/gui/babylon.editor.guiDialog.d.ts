@@ -9,5 +9,6 @@ declare module BABYLON.EDITOR.GUI {
         */
         constructor(name: string, core: EditorCore, title: string, body: string);
         buildElement(parent: string): void;
+        static CreateDialog(body: string, title?: string, yesCallback?: () => void, noCallback?: () => void): void;
     }
 }

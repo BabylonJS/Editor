@@ -35,6 +35,16 @@ var BABYLON;
                             _this.callback(result);
                     });
                 };
+                // Create a dialog on the fly
+                GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
+                    w2confirm(body, title, null)
+                        .yes(function () {
+                        yesCallback();
+                    })
+                        .no(function () {
+                        noCallback();
+                    });
+                };
                 return GUIDialog;
             })(GUI.GUIElement);
             GUI.GUIDialog = GUIDialog;

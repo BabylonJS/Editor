@@ -3,9 +3,12 @@ declare module BABYLON.EDITOR {
         private _editor;
         private static _ClientID;
         private static _TOKEN;
+        private static _TOKEN_EXPIRES_IN;
+        private static _TOKEN_EXPIRES_NOW;
         private static _POPUP;
-        static OnAuthentificated(): void;
-        static ClosePopup(token: string, window: Window): void;
+        private static _OnAuthentificated();
+        private static _ClosePopup(token, expires, window);
+        private static _Login(core, success);
         /**
         * Constructor
         * @param core: the editor core instance

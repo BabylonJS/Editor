@@ -17,110 +17,148 @@ var BABYLON;
                 _super.call(this, core);
                 this._editor = core.editor;
                 // OneDrive
+                /*
                 if (OneDriveStorage._TOKEN === "") {
                     var uri = "https://login.live.com/oauth20_authorize.srf"
                         + "?client_id=" + OneDriveStorage._ClientID
-                        + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
+                        //+ "&redirect_uri=" + "http://localhost:33404/website/redirect.html"//window.location.href
+                        + "&redirect_uri=" + Tools.getBaseURL() + "redirect.html"
                         + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
-                    EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
+                    
+                    Tools.OpenWindowPopup(uri, 512, 512);
                 }
+                */
             }
             // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
-            OneDriveStorage.OnAuthentificated = function () {
+            OneDriveStorage._OnAuthentificated = function () {
                 // Get token from URL
                 var token = "";
+                var expires = "";
                 if (window.location.hash) {
                     var response = window.location.hash.substring(1);
                     var authInfo = JSON.parse("{\"" + response.replace(/&/g, '","').replace(/=/g, '":"') + "\"}", function (key, value) { return key === "" ? value : decodeURIComponent(value); });
                     token = authInfo.access_token;
+                    expires = authInfo.expires_in;
                 }
                 // Close popup
-                window.opener.BABYLON.EDITOR.OneDriveStorage.ClosePopup(token, window);
+                window.opener.BABYLON.EDITOR.OneDriveStorage._ClosePopup(token, expires, window);
             };
             // Closes the login popup
-            OneDriveStorage.ClosePopup = function (token, window) {
+            OneDriveStorage._ClosePopup = function (token, expires, window) {
                 OneDriveStorage._TOKEN = token;
                 if (token === "") {
+                    EDITOR.GUI.GUIWindow.CreateAlert("Cannot connect to OneDrive or get token...");
+                }
+                else {
+                    OneDriveStorage._TOKEN_EXPIRES_IN = parseInt(expires);
+                    OneDriveStorage._TOKEN_EXPIRES_NOW = Date.now();
+                }
+                if (window.OneDriveStorageCallback) {
+                    window.OneDriveStorageCallback();
                 }
                 window.close();
             };
+            // Login into OneDrive
+            OneDriveStorage._Login = function (core, success) {
+                // OneDrive
+                var now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
+                if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
+                    var uri = "https://login.live.com/oauth20_authorize.srf"
+                        + "?client_id=" + OneDriveStorage._ClientID
+                        + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
+                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
+                    var popup = EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
+                    popup.OneDriveStorageCallback = success;
+                }
+                else {
+                    success();
+                }
+            };
             // Creates folders
             OneDriveStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
-                var count = 0;
-                for (var i = 0; i < folders.length; i++) {
-                    $.ajax({
-                        url: "https://Api.Onedrive.com/v1.0/drive/items/" + parentFolder.file.id + "/children",
-                        type: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            "name": folders[i],
-                            "folder": {},
-                            "@name.conflictBehavior": "rename"
-                        }),
-                        headers: {
-                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
-                        },
-                        success: function () {
-                            count++;
-                            if (count === folders.length) {
-                                success();
+                OneDriveStorage._Login(this.core, function () {
+                    var count = 0;
+                    for (var i = 0; i < folders.length; i++) {
+                        $.ajax({
+                            url: "https://Api.Onedrive.com/v1.0/drive/items/" + parentFolder.file.id + "/children",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                "name": folders[i],
+                                "folder": {},
+                                "@name.conflictBehavior": "rename"
+                            }),
+                            headers: {
+                                "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                            },
+                            success: function () {
+                                count++;
+                                if (count === folders.length) {
+                                    success();
+                                }
+                            },
+                            error: function (err) {
+                                BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot create folders (POST)");
                             }
-                        },
-                        error: function (err) {
-                            BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot create folders (POST)");
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             };
             // Creates files
             OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
-                var count = 0;
-                for (var i = 0; i < files.length; i++) {
-                    $.ajax({
-                        url: "https://Api.Onedrive.com/v1.0/drive/items/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.file.id) + ":/" + files[i].name + ":/content",
-                        processData: false,
-                        data: files[i].content,
-                        type: "PUT",
-                        headers: {
-                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
-                        },
-                        success: function () {
-                            count++;
-                            if (count === files.length) {
-                                success();
+                OneDriveStorage._Login(this.core, function () {
+                    var count = 0;
+                    for (var i = 0; i < files.length; i++) {
+                        $.ajax({
+                            url: "https://Api.Onedrive.com/v1.0/drive/items/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.file.id) + ":/" + files[i].name + ":/content",
+                            processData: false,
+                            data: files[i].content,
+                            type: "PUT",
+                            headers: {
+                                "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                            },
+                            success: function () {
+                                count++;
+                                if (count === files.length) {
+                                    success();
+                                }
+                            },
+                            error: function (err) {
+                                BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot upload files (PUT) of " + folder.name);
                             }
-                        },
-                        error: function (err) {
-                            BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot upload files (PUT) of " + folder.name);
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             };
             // Gets the children files of a folder
             OneDriveStorage.prototype.getFiles = function (folder, success, error) {
-                $.ajax({
-                    url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
-                    type: "GET",
-                    headers: {
-                        "Authorization": "Bearer " + OneDriveStorage._TOKEN
-                    },
-                    success: function (response) {
-                        var children = [];
-                        for (var i = 0; i < response.value.length; i++)
-                            children.push({ file: response.value[i], name: response.value[i].name });
-                        success(children);
-                    },
-                    error: function (err) {
-                        var message = "BABYLON.EDITOR.OneDriveStorage: Cannot get files (GET, children) of " + (folder ? "folder " + folder.name : "root");
-                        if (error)
-                            error(message);
-                        else
-                            BABYLON.Tools.Error(message);
-                    }
+                OneDriveStorage._Login(this.core, function () {
+                    $.ajax({
+                        url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
+                        type: "GET",
+                        headers: {
+                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                        },
+                        success: function (response) {
+                            var children = [];
+                            for (var i = 0; i < response.value.length; i++)
+                                children.push({ file: response.value[i], name: response.value[i].name });
+                            success(children);
+                        },
+                        error: function (err) {
+                            var message = "BABYLON.EDITOR.OneDriveStorage: Cannot get files (GET, children) of " + (folder ? "folder " + folder.name : "root");
+                            if (error)
+                                error(message);
+                            else
+                                BABYLON.Tools.Error(message);
+                        }
+                    });
                 });
             };
             OneDriveStorage._ClientID = "0000000048182B1B";
             OneDriveStorage._TOKEN = "";
+            OneDriveStorage._TOKEN_EXPIRES_IN = 0;
+            OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
             OneDriveStorage._POPUP = null;
             return OneDriveStorage;
         })(EDITOR.Storage);

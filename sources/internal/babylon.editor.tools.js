@@ -34,6 +34,7 @@ var BABYLON;
                     "scrollbars=yes"];
                 var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
                 popup.focus();
+                return popup;
             };
             /**
             *

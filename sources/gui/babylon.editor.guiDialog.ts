@@ -32,5 +32,16 @@
                     this.callback(result);
             });
         }
+
+        // Create a dialog on the fly
+        public static CreateDialog(body: string, title?: string, yesCallback?: () => void, noCallback?: () => void): void {
+            w2confirm(body, title, null)
+                .yes(() => {
+                    yesCallback();
+                })
+                .no(() => {
+                    noCallback();
+                });
+        }
     }
 }

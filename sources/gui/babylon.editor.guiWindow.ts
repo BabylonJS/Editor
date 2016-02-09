@@ -139,5 +139,10 @@
             // Configure editor
             this.core.editor.renderMainScene = false;
         }
+
+        // Creates an alert
+        public static CreateAlert(message: string, title?: string, callback?: () => void): void {
+            w2alert(message, title, callback);
+        }
     }
 }
