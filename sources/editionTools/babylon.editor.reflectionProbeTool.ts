@@ -38,7 +38,7 @@
             if (event.guiEvent.eventType !== GUIEventType.GRID_ROW_ADDED && event.guiEvent.eventType !== GUIEventType.GRID_ROW_REMOVED)
                 return false;
 
-            var object: ReflectionProbe | RenderTargetTexture = this._editionTool.object;
+            var object: ReflectionProbe | RenderTargetTexture = this.object;
 
             // Manage lists
             if (event.guiEvent.caller === this._includedMeshesList) {
@@ -75,7 +75,9 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof ReflectionProbe || object instanceof RenderTargetTexture) {
+            if (object instanceof ReflectionProbe || object instanceof RenderTargetTexture
+                || (object instanceof Light && (<Light>object).getShadowGenerator()))
+            {
                 return true;
             }
 
@@ -85,14 +87,19 @@
         // Creates the UI
         public createUI(): void {
             // Tabs
-            this._editionTool.panel.createTab({ id: this.tab, caption: "Render Target" });
+            this._editionTool.panel.createTab({ id: this.tab, caption: "Render" });
         }
 
         // Update
         public update(): void {
             super.update();
 
-            var object: ReflectionProbe | RenderTargetTexture = this.object = this._editionTool.object;
+            var object: ReflectionProbe | RenderTargetTexture | Light = this.object = this._editionTool.object;
+
+            if (object instanceof Light && (<Light>object).getShadowGenerator()) {
+                object = this.object = (<Light>object).getShadowGenerator().getShadowMap();
+            }
+
             var scene = this._editionTool.core.currentScene;
 
             if (!object)
@@ -113,7 +120,7 @@
                     sidebar.refresh();
                 }
             });
-            generalFolder.add(object, "refreshRate").name("Refresh Rate").min(1.0).step(1);
+            generalFolder.add(object, "refreshRate").name("Refresh Rate").min(0.0).step(1);
             generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
 
             if (object instanceof ReflectionProbe)
@@ -216,7 +223,7 @@
 
             // Lists
             var scene = this._editionTool.core.currentScene;
-            var object = <ReflectionProbe>this._editionTool.object;
+            var object = <RenderTargetTexture>this.object;
 
             this._excludedMeshesList = new GUI.GUIGrid<IReflectionProbeRow>(excludedListID, this._editionTool.core);
             this._excludedMeshesList.header = "Excluded Meshes";

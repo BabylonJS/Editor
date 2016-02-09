@@ -62,7 +62,7 @@ var BABYLON;
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
                         this.object = event.sceneEvent.object;
-                        if (this.object !== null)
+                        if (this.object)
                             this.isObjectSupported(this.object);
                         return false;
                     }

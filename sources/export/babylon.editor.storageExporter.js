@@ -153,7 +153,7 @@ var BABYLON;
                             if (files[i].url)
                                 BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
                         }
-                        // Files from FileInput
+                        // Files from FilesInput
                         for (var textureName in EDITOR.FilesInput.FilesTextures) {
                             files.push({ name: textureName, content: null, parentFolder: _this.getFolder("Scene").file });
                             BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);

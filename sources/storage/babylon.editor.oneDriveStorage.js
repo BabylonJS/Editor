@@ -20,7 +20,7 @@ var BABYLON;
                 if (OneDriveStorage._TOKEN === "") {
                     var uri = "https://login.live.com/oauth20_authorize.srf"
                         + "?client_id=" + OneDriveStorage._ClientID
-                        + "&redirect_uri=" + "http://localhost:33404/website/redirect.html" //window.location.href
+                        + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
                         + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
                     EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
                 }
@@ -77,7 +77,6 @@ var BABYLON;
                 var count = 0;
                 for (var i = 0; i < files.length; i++) {
                     $.ajax({
-                        //url: "https://Api.Onedrive.com/v1.0/drive/items/EE516DDA62BD39D4!4993:/coucou.png:/content",
                         url: "https://Api.Onedrive.com/v1.0/drive/items/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.file.id) + ":/" + files[i].name + ":/content",
                         processData: false,
                         data: files[i].content,

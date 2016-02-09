@@ -36,11 +36,12 @@
                     */
 
                     //try {
-                    
-                        ProjectImporter.ImportProject(core, result);
-                        core.editor.sceneGraphTool.createUI();
-                        core.editor.sceneGraphTool.fillGraph();
-                    
+
+                    ProjectImporter.ImportProject(core, result);
+                    core.editor.sceneGraphTool.createUI();
+                    core.editor.sceneGraphTool.fillGraph();
+                    core.editor.timeline.reset();
+
                     //}
                     /*catch (e) {
                         BABYLON.Tools.Error("An error occured when loading the project file " + jsFile.name + ". The result:");

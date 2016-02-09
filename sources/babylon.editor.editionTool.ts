@@ -79,7 +79,7 @@
                 if (event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
                     this.object = event.sceneEvent.object;
 
-                    if (this.object !== null)
+                    if (this.object)
                         this.isObjectSupported(this.object);
 
                     return false;

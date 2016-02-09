@@ -191,7 +191,7 @@
                             BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
                     }
 
-                    // Files from FileInput
+                    // Files from FilesInput
                     for (var textureName in FilesInput.FilesTextures) {
                         files.push({ name: textureName, content: null, parentFolder: this.getFolder("Scene").file });
                         BABYLON.Tools.ReadFile(FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);

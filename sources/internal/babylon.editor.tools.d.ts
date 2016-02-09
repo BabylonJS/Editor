@@ -12,5 +12,9 @@ declare module BABYLON.EDITOR {
         * Opens a window popup
         */
         static OpenWindowPopup(url: string, width: number, height: number): any;
+        /**
+        *
+        */
+        static getBaseURL(): string;
     }
 }

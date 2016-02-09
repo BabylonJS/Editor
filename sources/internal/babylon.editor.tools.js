@@ -35,6 +35,14 @@ var BABYLON;
                 var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
                 popup.focus();
             };
+            /**
+            *
+            */
+            Tools.getBaseURL = function () {
+                var url = window.location.href;
+                url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                return url;
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

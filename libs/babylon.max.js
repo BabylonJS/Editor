@@ -20437,6 +20437,15 @@ var BABYLON;
             return this._registeredPlugins[this._registeredPlugins.length - 1];
         };
         // Public functions
+        SceneLoader.GetPluginForExtension = function (extension) {
+            for (var index = 0; index < this._registeredPlugins.length; index++) {
+                var plugin = this._registeredPlugins[index];
+                if (plugin.extensions.indexOf(extension) !== -1) {
+                    return plugin;
+                }
+            }
+            return null;
+        };
         SceneLoader.RegisterPlugin = function (plugin) {
             plugin.extensions = plugin.extensions.toLowerCase();
             SceneLoader._registeredPlugins.push(plugin);
@@ -36020,7 +36029,7 @@ var BABYLON;
          * @param {BABYLON.PostProcess} originalPostProcess - the custom original color post-process. Must be "reusable". Can be null.
          * @param {BABYLON.Camera[]} cameras - The array of cameras that the rendering pipeline will be attached to
          */
-        function HDRRenderingPipeline(name, scene, ratio, originalPostProcess, cameras) {
+        function HDRRenderingPipeline(name, scene, ratio, originalPostProcess, cameras, lensTexture) {
             var _this = this;
             if (originalPostProcess === void 0) { originalPostProcess = null; }
             _super.call(this, scene.getEngine(), name);
@@ -36083,6 +36092,7 @@ var BABYLON;
             this._lensTexture = null;
             this._needUpdate = true;
             this._scene = scene;
+            this._lensTexture = lensTexture;
             if (typeof ratio === "number") {
                 this._ratio = {
                     finalRatio: ratio,
@@ -36200,18 +36210,6 @@ var BABYLON;
             * Sets the lens texture
             */
             set: function (lensTexture) {
-                /*
-                window.addEventListener("keydown", function (evt) {
-                    // draw SSAO with scene when pressed "1"
-                    if (evt.keyCode === 49) {
-                        hdr.lensTexture = new BABYLON.Texture("textures/lensdirt.jpg", scene);
-                    }
-                        // draw without SSAO when pressed "2"
-                    else if (evt.keyCode === 50) {
-                        hdr.lensTexture = null;
-                    }
-                });
-                */
                 this._lensTexture = lensTexture;
                 var defines = "#define HDR\n";
                 if (lensTexture) {

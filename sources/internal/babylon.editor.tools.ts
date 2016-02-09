@@ -35,5 +35,15 @@
 
             popup.focus();
         }
+
+        /**
+        *
+        */
+        public static getBaseURL(): string {
+            var url = window.location.href;
+            url = url.replace(BABYLON.Tools.GetFilename(url), "");
+
+            return url;
+        }
     }
 }

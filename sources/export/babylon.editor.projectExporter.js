@@ -209,7 +209,7 @@ var BABYLON;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {
-                if (!material || material instanceof BABYLON.StandardMaterial || !project.requestedMaterials)
+                if (!material || material instanceof BABYLON.StandardMaterial || material instanceof BABYLON.MultiMaterial || !project.requestedMaterials)
                     return;
                 var constructorName = BABYLON.Tools.GetConstructorName(material);
                 var index = project.requestedMaterials.indexOf(constructorName);

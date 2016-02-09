@@ -252,7 +252,7 @@
 
         // Setups the requested materials (to be uploaded in template or release)
         private static _RequestMaterial(core: EditorCore, project: INTERNAL.IProjectRoot, material: Material): void {
-            if (!material || material instanceof StandardMaterial || !project.requestedMaterials)
+            if (!material || material instanceof StandardMaterial || material instanceof MultiMaterial || !project.requestedMaterials)
                 return;
 
             var constructorName = BABYLON.Tools.GetConstructorName(material);
