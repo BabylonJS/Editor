@@ -69,6 +69,8 @@
             this._currentTime = 0;
             this._selectorRect.attr("x", 0);
             this.setFramesOfAnimation(null);
+            
+            this._core.editor.playLayouts.setPanelSize("preview", SceneFactory.NodesToStart.length > 0 ? 40 : 0);
         }
 
         // Adds a frames

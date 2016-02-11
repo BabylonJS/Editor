@@ -102,6 +102,15 @@ var BABYLON;
                         newPs.emitter.position = BABYLON.Vector3.FromArray(ps.emitterPosition);
                     newPs.emitter.attachedParticleSystem = newPs;
                 }
+                // Lens flares
+                for (var i = 0; i < project.lensFlares.length; i++) {
+                    var lf = project.lensFlares[i];
+                    var newLf = BABYLON.LensFlareSystem.Parse(lf.serializationObject, core.currentScene, "./");
+                    for (var i = 0; i < newLf.lensFlares.length; i++) {
+                        var flare = lf.serializationObject.flares[i];
+                        newLf.lensFlares[i].texture = BABYLON.Texture.CreateFromBase64String(flare.base64Buffer, flare.base64Name.replace("data:", ""), core.currentScene);
+                    }
+                }
                 // Shadow generators
                 for (var i = 0; i < project.shadowGenerators.length; i++) {
                     var shadows = project.shadowGenerators[i];

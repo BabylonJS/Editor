@@ -150,6 +150,7 @@
             this.addTool(new ReflectionProbeTool(this));
             this.addTool(new AudioTool(this));
             this.addTool(new ParticleSystemTool(this));
+            this.addTool(new LensFlareTool(this));
         }
 
         // Adds a tool

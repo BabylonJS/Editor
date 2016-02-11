@@ -161,3 +161,7 @@ html, body {
 .w2ui-icon.icon-copy {
     background: url("images/copy.png");
 }
+
+.w2ui-icon.icon-lens-flare {
+    background: url("images/lens_flare.png");
+}

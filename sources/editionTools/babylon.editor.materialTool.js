@@ -29,21 +29,6 @@ var BABYLON;
                     "alphaMode",
                     "zOffset",
                     "fillMode",
-                    // PBR
-                    "overloadedAmbientIntensity",
-                    "overloadedDiffuseIntensity",
-                    "overloadedSpecularIntensity",
-                    "overloadedEmissiveIntensity",
-                    "overloadedAmbient",
-                    "overloadedDiffuse",
-                    "overloadedSpecular",
-                    "overloadedEmissive",
-                    "overloadedReflection",
-                    "overloadedGlossiness",
-                    "overloadedGlossinessIntensity",
-                    "overloadedReflectionIntensity",
-                    "overloadedShadowIntensity",
-                    "overloadedShadeIntensity",
                 ];
             }
             // Object supported
@@ -96,20 +81,34 @@ var BABYLON;
                 if (object instanceof BABYLON.StandardMaterial) {
                     materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
                 }
-                // Values
+                // Common
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name");
-                var propertiesFolder = this._element.addFolder("Properties");
-                this._addNumberFields(propertiesFolder, object);
-                this._addBooleanFields(propertiesFolder, object);
+                // Textures
+                var texturesFolder = this._element.addFolder("Textures");
+                for (var thing in object) {
+                    var value = object[thing];
+                    if (value instanceof BABYLON.Texture) {
+                        var tex = value;
+                        var texFolder = texturesFolder.addFolder(this._beautifyName(thing));
+                    }
+                }
+                // Numbers
+                var numbersFolder = this._element.addFolder("Numbers");
+                this._addNumberFields(numbersFolder, object);
+                // Booleans
+                var booleansFolder = this._element.addFolder("Booleans");
+                this._addBooleanFields(booleansFolder, object);
+                // Colors
                 var colorsFolder = this._element.addFolder("Colors");
                 this._addColorFields(colorsFolder, object);
+                // Vectors
                 var vectorsFolder = this._element.addFolder("Vectors");
                 this._addVectorFields(vectorsFolder, object);
             };
             // Beautify property name
             MaterialTool.prototype._beautifyName = function (name) {
-                var result = name[0].toUpperCase(); // + name.substring(1, name.length);
+                var result = name[0].toUpperCase();
                 for (var i = 1; i < name.length; i++) {
                     var char = name[i];
                     if (char === char.toUpperCase())

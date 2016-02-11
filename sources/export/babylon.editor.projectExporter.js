@@ -20,6 +20,7 @@ var BABYLON;
                     nodes: [],
                     shadowGenerators: [],
                     postProcesses: this._SerializePostProcesses(),
+                    lensFlares: this._SerializeLensFlares(core),
                     requestedMaterials: requestMaterials ? [] : undefined
                 };
                 this._TraverseNodes(core, null, project);
@@ -48,7 +49,25 @@ var BABYLON;
                 }
                 return config;
             };
-            // Serialize 
+            // Serialize lens flares
+            ProjectExporter._SerializeLensFlares = function (core) {
+                var config = [];
+                for (var i = 0; i < core.currentScene.lensFlareSystems.length; i++) {
+                    var lf = core.currentScene.lensFlareSystems[i];
+                    var obj = {
+                        serializationObject: lf.serialize()
+                    };
+                    var flares = obj.serializationObject.flares;
+                    for (var i = 0; i < flares.length; i++) {
+                        flares[i].base64Name = flares[i].textureName;
+                        delete flares[i].textureName;
+                        flares[i].base64Buffer = lf.lensFlares[i].texture._buffer;
+                    }
+                    config.push(obj);
+                }
+                return config;
+            };
+            // Serialize  post-processes
             ProjectExporter._SerializePostProcesses = function () {
                 var config = [];
                 var serialize = function (object) {
@@ -145,6 +164,8 @@ var BABYLON;
                         };
                         var addNodeObj = false;
                         if (BABYLON.Tags.HasTags(node)) {
+                            if (BABYLON.Tags.MatchesQuery(node, "added_particlesystem"))
+                                addNodeObj = true;
                             if (BABYLON.Tags.MatchesQuery(node, "added")) {
                                 addNodeObj = true;
                                 if (node instanceof BABYLON.Mesh) {

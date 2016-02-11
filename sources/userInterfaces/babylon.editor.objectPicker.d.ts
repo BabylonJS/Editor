@@ -4,6 +4,7 @@ declare module BABYLON.EDITOR {
         objectLists: Array<any[]>;
         selectedObjects: Array<any>;
         onObjectPicked: (names: string[]) => void;
+        minSelectCount: number;
         windowName: string;
         private _window;
         private _list;

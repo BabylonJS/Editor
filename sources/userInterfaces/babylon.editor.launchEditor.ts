@@ -25,6 +25,7 @@
             picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
 
             picker.selectedObjects = SceneFactory.NodesToStart;
+            picker.minSelectCount = 0;
 
             picker.open();
 
@@ -47,6 +48,8 @@
 
                     SceneFactory.NodesToStart.push(node);
                 }
+
+                core.editor.timeline.reset();
             };
         }
     }

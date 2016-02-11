@@ -93,6 +93,13 @@ declare module BABYLON.EDITOR.INTERNAL {
     }
 
     /**
+    * Lens Flares
+    */
+    interface ILensFlare {
+        serializationObject: any;
+    }
+
+    /**
     * Root object of project
     */
     interface IProjectRoot {
@@ -102,6 +109,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         nodes: INode[];
         shadowGenerators: any[];
         postProcesses: IPostProcess[];
+        lensFlares: ILensFlare[];
 
         requestedMaterials?: string[];
     }

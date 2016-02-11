@@ -11,6 +11,7 @@
         public selectedObjects: Array<any> = new Array<any>();
 
         public onObjectPicked: (names: string[]) => void;
+        public minSelectCount: number = 1;
 
         public windowName: string = "Select Object...";
 
@@ -45,7 +46,7 @@
                 }
                 else if (button === "Select") {
                     var selected = this._list.getSelectedRows();
-                    if (selected.length === 0) {
+                    if (selected.length < this.minSelectCount) {
                         this._window.notify("Please select at least 1 object...");
                     }
                     else {

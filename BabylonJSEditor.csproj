@@ -110,12 +110,14 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.animationTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.audioTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.generalTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\babylon.editor.lensFlareTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.lightTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.materialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.particleSystemTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.postProcesses.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.materialEditor.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectExporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectImporter.ts" />

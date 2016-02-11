@@ -29,10 +29,10 @@
         createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
 
         // Gets children files
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, error?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
 
         // Creates files
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
     }
 
     export class Storage implements IStorage {
@@ -51,15 +51,15 @@
         }
 
         // Creates folders
-        public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void)
+        public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void
         { }
 
         // Gets children files
-        public getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void)
+        public getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void
         { }
 
         // Create files
-        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void)
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void
         { }
 
         // Select folder

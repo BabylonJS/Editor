@@ -12,6 +12,7 @@ var BABYLON;
                 this.core = null;
                 this.objectLists = new Array();
                 this.selectedObjects = new Array();
+                this.minSelectCount = 1;
                 this.windowName = "Select Object...";
                 // Private members
                 this._window = null;
@@ -34,7 +35,7 @@ var BABYLON;
                     }
                     else if (button === "Select") {
                         var selected = this._list.getSelectedRows();
-                        if (selected.length === 0) {
+                        if (selected.length < this.minSelectCount) {
                             this._window.notify("Please select at least 1 object...");
                         }
                         else {

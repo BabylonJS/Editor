@@ -23,8 +23,10 @@ var BABYLON;
                 if (object instanceof BABYLON.AbstractMesh) {
                     var mesh = object;
                     var scene = mesh.getScene();
+                    /*
                     if (this._alreadyConfiguredObjectsIDs[mesh.id])
                         return;
+                    */
                     if (mesh instanceof BABYLON.Mesh && !mesh.geometry)
                         return;
                     this._alreadyConfiguredObjectsIDs[mesh.id] = {

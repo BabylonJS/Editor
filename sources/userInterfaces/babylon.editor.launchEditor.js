@@ -18,6 +18,7 @@ var BABYLON;
                 picker.objectLists.push(core.currentScene.meshes);
                 picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
                 picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
+                picker.minSelectCount = 0;
                 picker.open();
                 picker.onObjectPicked = function (names) {
                     EDITOR.SceneFactory.NodesToStart = [];
@@ -33,6 +34,7 @@ var BABYLON;
                         }
                         EDITOR.SceneFactory.NodesToStart.push(node);
                     }
+                    core.editor.timeline.reset();
                 };
             }
             return LaunchEditor;

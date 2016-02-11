@@ -111,6 +111,10 @@
                         var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.customRenderTargets.length, object.name, "icon-camera", object);
                         this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
                     }
+                    else if (object instanceof LensFlareSystem) {
+                        var lfNode = this.sidebar.createNode(object.name + this._core.currentScene.lensFlareSystems.length, object.name, "icon-lens-flare", object);
+                        this.sidebar.addNodes(lfNode, this._graphRootName + "LENSFLARES");
+                    }
                     else
                         this._modifyElement(event.sceneEvent.object, null);
 
@@ -174,6 +178,15 @@
                         var sound = soundTrack.soundCollection[j];
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id);
                     }
+                }
+
+                // Lens flares
+                var lfNode = this.sidebar.createNode(this._graphRootName + "LENSFLARES", "Lens Flares", "icon-folder");
+                this.sidebar.addNodes(lfNode, this._graphRootName);
+
+                for (var i = 0; i < scene.lensFlareSystems.length; i++) {
+                    var lf = scene.lensFlareSystems[i];
+                    this.sidebar.addNodes(this.sidebar.createNode(lf.name + i, lf.name, "icon-lens-flare", rp), lfNode.id);
                 }
             }
 

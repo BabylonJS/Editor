@@ -23,6 +23,7 @@ declare module BABYLON.EDITOR {
         private _addHemisphericLight;
         private _addParticleSystem;
         private _addSkyMesh;
+        private _addLensFlare;
         private _addReflectionProbe;
         private _addRenderTarget;
         private _particlesMain;

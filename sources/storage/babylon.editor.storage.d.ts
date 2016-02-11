@@ -12,8 +12,8 @@ declare module BABYLON.EDITOR {
     }
     interface IStorage {
         createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, error?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
     }
     class Storage implements IStorage {
         core: EditorCore;
@@ -22,9 +22,9 @@ declare module BABYLON.EDITOR {
         * @param core: the editor core instance
         */
         constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void): void;
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
         selectFolder(success: (folder: IStorageFile) => void): void;
     }
 }

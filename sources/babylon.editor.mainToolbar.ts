@@ -30,6 +30,7 @@
         private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _addSkyMesh: string = "ADD-SKY-MESH";
+        private _addLensFlare: string = "ADD-LENS-FLARE";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
         private _addRenderTarget: string = "ADD-RENDER-TARGET";
 
@@ -140,6 +141,10 @@
                         SceneFactory.AddParticleSystem(this._core);
                     }
 
+                    else if (id.indexOf(this._addLensFlare) !== -1) {
+                        SceneFactory.AddLensFlare(this._core);
+                    }
+                    
                     else if (id.indexOf(this._addSkyMesh) !== -1) {
                         SceneFactory.AddSkyMesh(this._core);
                     }
@@ -210,6 +215,8 @@
             this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+            this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
             this.toolbar.addBreak(menu);

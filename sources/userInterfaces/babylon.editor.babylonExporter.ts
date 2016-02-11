@@ -34,7 +34,7 @@
                     var camera = this._core.currentScene.getCameraByName(this._configForm.getRecord("activeCamera"));
 
                     obj.activeCameraID = camera ? camera.id : undefined;
-                    this._editor.setValue(JSON.stringify(obj), -1);
+                    this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
                 }
                 else if (button === "Close") {
                     this._window.close();

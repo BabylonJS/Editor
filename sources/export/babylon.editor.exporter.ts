@@ -47,7 +47,7 @@
 
             if (babylonScene) {
                 var obj = BABYLON.SceneSerializer.Serialize(this.core.currentScene);
-                finalString = JSON.stringify(obj);
+                finalString = JSON.stringify(obj, null, "\t");
             }
             else {
                 /*

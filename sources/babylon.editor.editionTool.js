@@ -120,6 +120,7 @@ var BABYLON;
                 this.addTool(new EDITOR.ReflectionProbeTool(this));
                 this.addTool(new EDITOR.AudioTool(this));
                 this.addTool(new EDITOR.ParticleSystemTool(this));
+                this.addTool(new EDITOR.LensFlareTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {

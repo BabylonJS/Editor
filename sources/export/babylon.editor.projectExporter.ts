@@ -17,6 +17,7 @@
                 nodes: [],
                 shadowGenerators: [],
                 postProcesses: this._SerializePostProcesses(),
+                lensFlares: this._SerializeLensFlares(core),
 
                 requestedMaterials: requestMaterials ? [] : undefined
             };
@@ -54,7 +55,30 @@
             return config;
         }
 
-        // Serialize 
+        // Serialize lens flares
+        private static _SerializeLensFlares(core: EditorCore): INTERNAL.ILensFlare[] {
+            var config: INTERNAL.ILensFlare[] = [];
+
+            for (var i = 0; i < core.currentScene.lensFlareSystems.length; i++) {
+                var lf = core.currentScene.lensFlareSystems[i];
+                var obj: INTERNAL.ILensFlare = {
+                    serializationObject: lf.serialize()
+                };
+
+                var flares = obj.serializationObject.flares;
+                for (var i = 0; i < flares.length; i++) {
+                    flares[i].base64Name = flares[i].textureName;
+                    delete flares[i].textureName;
+                    flares[i].base64Buffer = (<any>lf.lensFlares[i].texture)._buffer;
+                }
+
+                config.push(obj);
+            }
+
+            return config;
+        }
+
+        // Serialize  post-processes
         private static _SerializePostProcesses(): INTERNAL.IPostProcess[] {
             var config: INTERNAL.IPostProcess[] = [];
 
@@ -174,6 +198,9 @@
                     var addNodeObj = false;
 
                     if (Tags.HasTags(node)) { // Maybe modified by the editor
+                        if (Tags.MatchesQuery(node, "added_particlesystem"))
+                            addNodeObj = true;
+
                         if (Tags.MatchesQuery(node, "added")) {
                             addNodeObj = true;
 

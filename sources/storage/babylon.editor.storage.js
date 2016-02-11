@@ -17,7 +17,7 @@ var BABYLON;
             // Creates folders
             Storage.prototype.createFolders = function (folders, parentFolder, success, failed) { };
             // Gets children files
-            Storage.prototype.getFiles = function (folder, success) { };
+            Storage.prototype.getFiles = function (folder, success, failed) { };
             // Create files
             Storage.prototype.createFiles = function (files, folder, success, failed) { };
             // Select folder

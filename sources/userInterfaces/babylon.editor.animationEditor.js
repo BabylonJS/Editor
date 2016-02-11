@@ -228,12 +228,14 @@ var BABYLON;
                             offset++;
                         }
                     }
+                    this.core.editor.timeline.reset();
                     return true;
                 }
                 else if (event.guiEvent.caller === this._valuesForm && this._currentAnimation && this._currentKey) {
                     this._setFrameValue();
                     var indice = this._keysList.getSelectedRows()[0];
                     this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
+                    this.core.editor.timeline.reset();
                     return true;
                 }
                 return false;

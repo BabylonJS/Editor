@@ -56,7 +56,6 @@
             if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                 var uri = "https://login.live.com/oauth20_authorize.srf"
                     + "?client_id=" + OneDriveStorage._ClientID
-                    //+ "&redirect_uri=" + "http://localhost:33404/website/redirect.html"//window.location.href
                     + "&redirect_uri=" + Tools.getBaseURL() + "redirect.html"
                     + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
 
@@ -93,9 +92,20 @@
         }
 
         // Creates folders
-        public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void) {
+        public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void) {
             OneDriveStorage._Login(this.core, () => {
                 var count = 0;
+                var error = "";
+
+                var callback = () => {
+                    count++;
+                    if (count === folders.length) {
+                        if (error !== "" && failed) {
+                            failed(error);
+                        }
+                        success();
+                    }
+                };
 
                 for (var i = 0; i < folders.length; i++) {
                     $.ajax({
@@ -114,13 +124,11 @@
                         },
 
                         success: () => {
-                            count++;
-
-                            if (count === folders.length) {
-                                success();
-                            }
+                            callback();
                         },
                         error: (err: any) => {
+                            error += "- " + err.statusText + "\n";
+                            callback();
                             BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot create folders (POST)");
                         }
                     });
@@ -129,9 +137,20 @@
         }
 
         // Creates files
-        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: () => void): void {
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void {
             OneDriveStorage._Login(this.core, () => {
                 var count = 0;
+                var error = "";
+
+                var callback = () => {
+                    count++;
+                    if (count === files.length) {
+                        if (error !== "" && failed) {
+                            failed(error);
+                        }
+                        success();
+                    }
+                };
 
                 for (var i = 0; i < files.length; i++) {
                     $.ajax({
@@ -145,13 +164,11 @@
                         },
 
                         success: () => {
-                            count++;
-
-                            if (count === files.length) {
-                                success();
-                            }
+                            callback();
                         },
                         error: (err: any) => {
+                            error += "- " + err.statusText + "\n";
+                            callback();
                             BABYLON.Tools.Error("BABYLON.EDITOR.OneDriveStorage: Cannot upload files (PUT) of " + folder.name);
                         }
                     });
@@ -160,7 +177,7 @@
         }
 
         // Gets the children files of a folder
-        public getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, error?: (message: string) => void): void {
+        public getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void {
             OneDriveStorage._Login(this.core, () => {
                 $.ajax({
                     url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
@@ -181,8 +198,8 @@
                     error: (err: any) => {
                         var message = "BABYLON.EDITOR.OneDriveStorage: Cannot get files (GET, children) of " + (folder ? "folder " + folder.name : "root");
 
-                        if (error)
-                            error(message);
+                        if (failed)
+                            failed(message);
                         else
                             BABYLON.Tools.Error(message);
                     }

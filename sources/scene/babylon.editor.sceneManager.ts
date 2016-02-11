@@ -34,8 +34,10 @@
                 var mesh: AbstractMesh = object;
                 var scene = mesh.getScene();
 
+                /*
                 if (this._alreadyConfiguredObjectsIDs[mesh.id])
                     return;
+                */
 
                 if (mesh instanceof Mesh && !mesh.geometry)
                     return;

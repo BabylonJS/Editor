@@ -95,7 +95,7 @@ var BABYLON;
                 var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>");
                 mainPanel.style = "overflow: hidden;";
-                this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 40, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
+                this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
                 this.playLayouts.buildElement(this.mainContainer);
             };
             /**
@@ -108,9 +108,6 @@ var BABYLON;
                     _this.core.removeScene(_this.core.currentScene);
                     _this.core.scenes.push({ scene: scene, render: true });
                     _this.core.currentScene = scene;
-                    // Set scene as IAnimatable
-                    if (!scene.animations)
-                        scene.animations = [];
                     // Set active camera
                     var camera = scene.activeCamera;
                     _this._createBabylonCamera();
@@ -160,7 +157,6 @@ var BABYLON;
             EditorMain.prototype._createBabylonCamera = function () {
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.attachControl(this.core.canvas, true, false);
-                camera.panningAxis = new BABYLON.Vector3(1, 1, 1);
                 this.core.camera = camera;
             };
             /**

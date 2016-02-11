@@ -29,7 +29,8 @@
         public isObjectSupported(object: any): boolean {
             if (object instanceof Mesh
                 || object instanceof Light
-                || object instanceof Camera)
+                || object instanceof Camera
+                || object instanceof LensFlareSystem)
             {
                 return true;
             }

@@ -30,6 +30,7 @@ var BABYLON;
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
+                this._addLensFlare = "ADD-LENS-FLARE";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
                 this._particlesMain = "PARTICLES-MAIN";
@@ -115,6 +116,9 @@ var BABYLON;
                         else if (id.indexOf(this._addParticleSystem) !== -1) {
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
+                        else if (id.indexOf(this._addLensFlare) !== -1) {
+                            EDITOR.SceneFactory.AddLensFlare(this._core);
+                        }
                         else if (id.indexOf(this._addSkyMesh) !== -1) {
                             EDITOR.SceneFactory.AddSkyMesh(this._core);
                         }
@@ -173,6 +177,8 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+                this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
                 this.toolbar.addBreak(menu);
