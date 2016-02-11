@@ -4,8 +4,11 @@ declare module BABYLON.EDITOR {
         objectLists: Array<any[]>;
         selectedObjects: Array<any>;
         onObjectPicked: (names: string[]) => void;
+        onClosedPicker: () => void;
         minSelectCount: number;
         windowName: string;
+        selectButtonName: string;
+        closeButtonName: string;
         private _window;
         private _list;
         /**

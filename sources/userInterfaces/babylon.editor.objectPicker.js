@@ -14,6 +14,8 @@ var BABYLON;
                 this.selectedObjects = new Array();
                 this.minSelectCount = 1;
                 this.windowName = "Select Object...";
+                this.selectButtonName = "Select";
+                this.closeButtonName = "Close";
                 // Private members
                 this._window = null;
                 this._list = null;
@@ -30,10 +32,12 @@ var BABYLON;
                     return false;
                 if (event.guiEvent.caller === this._window) {
                     var button = event.guiEvent.data;
-                    if (button === "Close") {
+                    if (button === this.closeButtonName) {
+                        if (this.onClosedPicker)
+                            this.onClosedPicker();
                         this._window.close();
                     }
-                    else if (button === "Select") {
+                    else if (button === this.selectButtonName) {
                         var selected = this._list.getSelectedRows();
                         if (selected.length < this.minSelectCount) {
                             this._window.notify("Please select at least 1 object...");
@@ -64,8 +68,8 @@ var BABYLON;
                 this._window.modal = true;
                 this._window.showMax = false;
                 this._window.buttons = [
-                    "Select",
-                    "Close"
+                    this.selectButtonName,
+                    this.closeButtonName
                 ];
                 this._window.setOnCloseCallback(function () {
                     _this.core.removeEventReceiver(_this);

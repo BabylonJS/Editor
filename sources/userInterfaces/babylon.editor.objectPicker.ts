@@ -11,9 +11,12 @@
         public selectedObjects: Array<any> = new Array<any>();
 
         public onObjectPicked: (names: string[]) => void;
+        public onClosedPicker: () => void;
         public minSelectCount: number = 1;
 
         public windowName: string = "Select Object...";
+        public selectButtonName: string = "Select";
+        public closeButtonName: string = "Close";
 
         // Private members
         private _window: GUI.GUIWindow = null;
@@ -41,10 +44,13 @@
             if (event.guiEvent.caller === this._window) {
                 var button = event.guiEvent.data;
 
-                if (button === "Close") {
+                if (button === this.closeButtonName) {
+                    if (this.onClosedPicker)
+                        this.onClosedPicker();
+
                     this._window.close();
                 }
-                else if (button === "Select") {
+                else if (button === this.selectButtonName) {
                     var selected = this._list.getSelectedRows();
                     if (selected.length < this.minSelectCount) {
                         this._window.notify("Please select at least 1 object...");
@@ -79,8 +85,8 @@
             this._window.modal = true;
             this._window.showMax = false;
             this._window.buttons = [
-                "Select",
-                "Close"
+                this.selectButtonName,
+                this.closeButtonName
             ];
 
             this._window.setOnCloseCallback(() => {

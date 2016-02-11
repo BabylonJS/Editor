@@ -145,34 +145,49 @@
 
         // Adds a particle system
         static AddParticleSystem(core: EditorCore, chooseEmitter: boolean = true): void {
-            var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
-            ps.emitter.id = this.GenerateUUID();
-
-            Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
-
             // Pick emitter
             if (chooseEmitter) {
                 var picker = new ObjectPicker(core);
                 picker.objectLists.push(core.currentScene.meshes);
                 picker.objectLists.push(core.currentScene.lights);
                 picker.windowName = "Select an emitter ?";
+                picker.selectButtonName = "Add";
+                picker.closeButtonName = "Cancel";
+                picker.minSelectCount = 0;
 
                 picker.onObjectPicked = (names: string[]) => {
                     if (names.length > 1) {
-                        var dialog = new GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning",
+                        var dialog = new GUI.GUIDialog("ParticleSystemDialog", core, "Warning",
                             "A Particle System can be attached to only one mesh.\n" +
                             "The first was considered as the mesh."
                         );
                         dialog.buildElement(null);
                     }
 
-                    var emitter = ps.emitter;
-                    emitter.dispose(true);
+                    var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
+                    core.currentScene.meshes.pop();
+                    ps.emitter.id = this.GenerateUUID();
+                    ps.id = this.GenerateUUID();
 
-                    Event.sendSceneEvent(emitter, SceneEventType.OBJECT_REMOVED, core);
+                    if (names.length > 0) {
+                        var emitter = ps.emitter;
+                        emitter.dispose(true);
 
-                    ps.emitter = core.currentScene.getNodeByName(names[0]);
+                        ps.emitter = core.currentScene.getNodeByName(names[0]);
+                        Event.sendSceneEvent(ps, SceneEventType.OBJECT_ADDED, core);
+                    }
+                    else {
+                        core.currentScene.meshes.push(ps.emitter);
+                        Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
+                        Event.sendSceneEvent(ps, SceneEventType.OBJECT_ADDED, core);
+                    }
+
+                    // To remove later, today particle systems can handle animations
                     ps.emitter.attachedParticleSystem = ps;
+                };
+
+                picker.onClosedPicker = () => {
+
                 };
 
                 picker.open();

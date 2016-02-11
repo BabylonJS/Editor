@@ -19,8 +19,6 @@ var BABYLON;
                 this.object = null;
                 this.tab = "GENERAL.TAB";
                 // Private members
-                this._particleSystem = null;
-                this._particleSystemCapacity = "";
                 this._isActiveCamera = false;
                 this._isActivePlayCamera = false;
                 // Initialize
@@ -91,39 +89,6 @@ var BABYLON;
                         }
                     });
                 }
-                // Particle system
-                var particleSystem = null;
-                for (var i = 0; i < scene.particleSystems.length; i++) {
-                    var ps = scene.particleSystems[i];
-                    if (ps.emitter === object) {
-                        particleSystem = ps;
-                        break;
-                    }
-                }
-                // Configure main toolbar
-                var toolbar = this._editionTool.core.editor.mainToolbar;
-                toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, particleSystem !== null, toolbar.particleSystemMenu.id);
-                toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.Node, toolbar.particleSystemMenu.id);
-                EDITOR.GUIParticleSystemEditor._CurrentParticleSystem = particleSystem;
-                // If particles...
-                if (particleSystem !== null) {
-                    // Create particles menu
-                    var particleSystemFolder = this._element.addFolder("Particle System");
-                    this._particleSystemCapacity = "" + particleSystem.getCapacity();
-                    particleSystemFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
-                        result = parseFloat(result);
-                        var emitter = particleSystem.emitter;
-                        particleSystem.emitter = null;
-                        var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(scene, result, particleSystem, emitter);
-                        particleSystem.dispose();
-                        particleSystem = newParticleSystem;
-                        _this.update();
-                    });
-                    particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
-                    particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
-                    particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");
-                    this._particleSystem = particleSystem;
-                }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
@@ -162,18 +127,6 @@ var BABYLON;
                         }
                     });
                 }
-            };
-            // Start particle system
-            GeneralTool.prototype._startParticleSystem = function () {
-                this._particleSystem.start();
-            };
-            // Stop particle system
-            GeneralTool.prototype._stopParticleSystem = function () {
-                this._particleSystem.stop();
-            };
-            // Edit particle system
-            GeneralTool.prototype._editParticleSystem = function () {
-                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, this._particleSystem);
             };
             Object.defineProperty(GeneralTool.prototype, "_castShadows", {
                 // If object casts shadows or not

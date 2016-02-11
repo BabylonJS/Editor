@@ -94,8 +94,13 @@ var BABYLON;
                             var lfNode = this.sidebar.createNode(object.name + this._core.currentScene.lensFlareSystems.length, object.name, "icon-lens-flare", object);
                             this.sidebar.addNodes(lfNode, this._graphRootName + "LENSFLARES");
                         }
-                        else
-                            this._modifyElement(event.sceneEvent.object, null);
+                        else {
+                            var parentNode = null;
+                            if (event.sceneEvent.object instanceof BABYLON.ParticleSystem) {
+                                parentNode = event.sceneEvent.object.emitter;
+                            }
+                            this._modifyElement(event.sceneEvent.object, parentNode);
+                        }
                         return false;
                     }
                     else if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
@@ -161,6 +166,16 @@ var BABYLON;
                     children = node.getDescendants ? node.getDescendants() : [];
                 if (root === this._graphRootName)
                     this.sidebar.setNodeExpanded(root, true);
+                // Check particles
+                if (node && scene.particleSystems.length > 0) {
+                    for (var i = 0; i < scene.particleSystems.length; i++) {
+                        var ps = scene.particleSystems[i];
+                        if (ps.emitter && ps.emitter === node) {
+                            var psNode = this.sidebar.createNode(ps.id, ps.name, "icon-particles", ps);
+                            this.sidebar.addNodes(psNode, node.id);
+                        }
+                    }
+                }
                 // If submeshes
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                     var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
@@ -214,6 +229,7 @@ var BABYLON;
             SceneGraphTool.prototype._getObjectIcon = function (node) {
                 if (node instanceof BABYLON.Mesh) {
                     // Check particles
+                    /*
                     if (!node.geometry) {
                         var scene = node.getScene();
                         for (var i = 0; i < scene.particleSystems.length; i++) {
@@ -221,6 +237,7 @@ var BABYLON;
                                 return "icon-particles";
                         }
                     }
+                    */
                     // Else...
                     if (node.skeleton)
                         return "icon-animated-mesh";
@@ -237,6 +254,9 @@ var BABYLON;
                 }
                 else if (node instanceof BABYLON.Camera) {
                     return "icon-camera";
+                }
+                else if (node instanceof BABYLON.ParticleSystem) {
+                    return "icon-particles";
                 }
                 else if (node instanceof BABYLON.Sound) {
                     return "icon-sound";

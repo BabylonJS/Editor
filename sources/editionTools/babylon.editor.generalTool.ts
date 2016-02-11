@@ -6,9 +6,6 @@
         public tab: string = "GENERAL.TAB";
 
         // Private members
-        private _particleSystem: ParticleSystem = null;
-        private _particleSystemCapacity: string = "";
-
         private _isActiveCamera: boolean = false;
         private _isActivePlayCamera: boolean = false;
 
@@ -101,47 +98,6 @@
                 });
             }
 
-            // Particle system
-            var particleSystem: ParticleSystem = null;
-            for (var i = 0; i < scene.particleSystems.length; i++) {
-                var ps = scene.particleSystems[i];
-                if (ps.emitter === object) {
-                    particleSystem = ps;
-                    break;
-                }
-            }
-
-            // Configure main toolbar
-            var toolbar = this._editionTool.core.editor.mainToolbar;
-
-            toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, particleSystem !== null, toolbar.particleSystemMenu.id);
-            toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof Node, toolbar.particleSystemMenu.id);
-
-            GUIParticleSystemEditor._CurrentParticleSystem = particleSystem;
-
-            // If particles...
-            if (particleSystem !== null) {
-                // Create particles menu
-                var particleSystemFolder = this._element.addFolder("Particle System");
-
-                this._particleSystemCapacity = "" + particleSystem.getCapacity();
-                particleSystemFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange((result: any) => {
-                    result = parseFloat(result);
-
-                    var emitter = particleSystem.emitter;
-                    particleSystem.emitter = null;
-                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, particleSystem, emitter);
-                    particleSystem.dispose();
-                    particleSystem = newParticleSystem;
-                    this.update();
-                });
-                particleSystemFolder.add(this, "_startParticleSystem").name("Start Particle System");
-                particleSystemFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
-                particleSystemFolder.add(this, "_editParticleSystem").name("Edit Particle System");
-
-                this._particleSystem = particleSystem;
-            }
-
             // Transforms
             var transformFolder = this._element.addFolder("Transforms");
 
@@ -184,21 +140,6 @@
                     }
                 });
             }
-        }
-
-        // Start particle system
-        private _startParticleSystem(): void {
-            this._particleSystem.start();
-        }
-
-        // Stop particle system
-        private _stopParticleSystem(): void {
-            this._particleSystem.stop();
-        }
-
-        // Edit particle system
-        private _editParticleSystem(): void {
-            var psEditor = new GUIParticleSystemEditor(this._editionTool.core, this._particleSystem);
         }
 
         // If object casts shadows or not

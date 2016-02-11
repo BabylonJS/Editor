@@ -27,6 +27,9 @@
         private _particleSystem: ParticleSystem = null;
         private _particleSystemToEdit: ParticleSystem = null;
 
+        private _uiCreated: boolean;
+        private _particleSystemCapacity: string = "";
+
         /**
         * Constructor
         * @param core: the editor core
@@ -34,6 +37,7 @@
         constructor(core: EditorCore, particleSystem?: ParticleSystem, createUI: boolean = true) {
             // Initialize
             this.core = core;
+            this._uiCreated = createUI;
 
             if (createUI) {
                 // UI
@@ -74,6 +78,7 @@
                 if (button === "Apply") {
                     this._setParticleSystem();
                     this._window.close();
+                    Event.sendSceneEvent(this._particleSystemToEdit, SceneEventType.OBJECT_PICKED, this.core);
                 }
                 else if (button === "Cancel") {
                     this._window.close();
@@ -185,7 +190,7 @@
                 }
                 catch (e) {
                     // Catch silently
-                    //debugger;
+                    debugger;
                 }
             });
 
@@ -203,7 +208,38 @@
             this._editElement.remember(ps);
 
             // Name
-            this._editElement.add(ps, "id").name("ID");
+            this._editElement.add(ps, "name").name("Name").onChange((result: any) => {
+                if (!this._uiCreated) {
+                    this._updateGraphNode(result);
+                }
+            });
+
+            // Capacity
+            this._particleSystemCapacity = "" + this._particleSystem.getCapacity();
+            this._editElement.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange((result: any) => {
+                result = parseFloat(result);
+
+                var emitter = this._particleSystem.emitter;
+                var scene = this._uiCreated ? this._scene : this.core.currentScene;
+
+                this._particleSystem.emitter = null;
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, this._particleSystem, emitter);
+                this._particleSystem.dispose();
+                this._particleSystem = newParticleSystem;
+
+                if (this._uiCreated) {
+                    this._editElement.remove();
+                    this._createEditor();
+                }
+                else {
+                    this._updateGraphNode(this._particleSystem.name, this._particleSystem);
+                }
+            });
+
+            // Edit
+            this._editElement.add(this, "_editParticleSystem").name("Edit...");
+            this._editElement.add(this, "_startParticleSystem").name("Start Particle System");
+            this._editElement.add(this, "_stopParticleSystem").name("Stop Particle System");
 
             // Texture
             this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
@@ -288,7 +324,21 @@
 
         // Set the particle system
         private _setParticleSystem(): void {
-            var excluded = ["id", "name"];
+            var excluded = ["id"];
+
+            // If capacity changed
+            if (this._particleSystem.getCapacity() !== this._particleSystemToEdit.getCapacity()) {
+                var emitter = this._particleSystemToEdit.emitter;
+                this._particleSystemToEdit.emitter = null;
+
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, emitter);
+                this._particleSystemToEdit.dispose();
+                this._particleSystemToEdit = newParticleSystem;
+
+                this._updateGraphNode(this._particleSystem.name, this._particleSystemToEdit);
+
+                return;
+            }
 
             for (var thing in this._particleSystem) {
 
@@ -305,6 +355,37 @@
 
                 if (value instanceof Texture)
                     this._particleSystemToEdit[thing] = Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
+            }
+
+            this._updateGraphNode(this._particleSystem.name);
+        }
+
+        // Edit particle system
+        private _editParticleSystem(): void {
+            var psEditor = new GUIParticleSystemEditor(this.core, this._particleSystem);
+        }
+
+        // Start particle system
+        private _startParticleSystem(): void {
+            this._particleSystem.start();
+        }
+
+        // Stop particle system
+        private _stopParticleSystem(): void {
+            this._particleSystem.stop();
+        }
+
+        // Set the new name of the sidebar graph node
+        private _updateGraphNode(result: any, data?: ParticleSystem): void {
+            var sidebar = this.core.editor.sceneGraphTool.sidebar;
+            var element = sidebar.getSelectedNode();
+
+            if (element) {
+                element.text = result;
+                if (data) {
+                    element.data = data;
+                }
+                sidebar.refresh();
             }
         }
 
@@ -362,7 +443,14 @@
             }
 
             var ps = new ParticleSystem("New Particle System", capacity, scene);
+            
+            if (particleSystem.animations) {
+                for (var i = 0; i < particleSystem.animations.length; i++) {
+                    ps.animations.push(particleSystem.animations[i].clone());
+                }
+            }
 
+            ps.name = particleSystem.name || ps.name;
             ps.emitter = dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
             ps.maxEmitBox = particleSystem.maxEmitBox || new Vector3(1, 0, 0);

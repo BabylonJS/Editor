@@ -27,7 +27,7 @@ var BABYLON;
             }
             // Object supported
             AnimationTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Node || object instanceof BABYLON.Scene)
+                if (object.animations && Array.isArray(object.animations))
                     return true;
                 return false;
             };
@@ -63,9 +63,7 @@ var BABYLON;
             };
             // Plays animations
             AnimationTool.prototype._playAnimations = function () {
-                var object = this.object = this._editionTool.object;
-                var scene = (this.object instanceof BABYLON.Scene) ? this.object : object.getScene();
-                scene.beginAnimation(object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+                this._editionTool.core.currentScene.beginAnimation(this.object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
             };
             // Plays animations of skeleton
             AnimationTool.prototype._playSkeletonAnimations = function () {

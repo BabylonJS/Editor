@@ -20,17 +20,8 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (!(object instanceof Mesh) && !(object instanceof Light))
-                return false;
-
-            var scene = this._editionTool.core.currentScene;
-
-            for (var i = 0; i < scene.particleSystems.length; i++) {
-                var ps = scene.particleSystems[i];
-                if (ps.emitter === object) {
-                    return true;
-                }
-            }
+            if (object instanceof ParticleSystem)
+                return true;
 
             return false;
         }
@@ -43,24 +34,22 @@
 
         // Update
         public update(): void {
-            var object: Mesh = this.object = this._editionTool.object;
-            var particleSystem: ParticleSystem = null;
+            var object: ParticleSystem = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
-
-            for (var i = 0; i < scene.particleSystems.length; i++) {
-                var ps = scene.particleSystems[i];
-                if (ps.emitter === object) {
-                    particleSystem = ps;
-                    break;
-                }
-            }
 
             super.update();
 
-            if (!object || !particleSystem)
+            // Configure main toolbar
+            var toolbar = this._editionTool.core.editor.mainToolbar;
+            toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, object !== null, toolbar.particleSystemMenu.id);
+            toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof ParticleSystem, toolbar.particleSystemMenu.id);
+
+            GUIParticleSystemEditor._CurrentParticleSystem = object;
+
+            if (!object)
                 return;
 
-            var psEditor = new GUIParticleSystemEditor(this._editionTool.core, particleSystem, false);
+            var psEditor = new GUIParticleSystemEditor(this._editionTool.core, object, false);
             this._element = psEditor._createEditor(this.containers[0]);
         }
     }

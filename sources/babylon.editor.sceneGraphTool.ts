@@ -115,8 +115,15 @@
                         var lfNode = this.sidebar.createNode(object.name + this._core.currentScene.lensFlareSystems.length, object.name, "icon-lens-flare", object);
                         this.sidebar.addNodes(lfNode, this._graphRootName + "LENSFLARES");
                     }
-                    else
-                        this._modifyElement(event.sceneEvent.object, null);
+                    else {
+                        var parentNode: Node = null;
+
+                        if (event.sceneEvent.object instanceof ParticleSystem) {
+                            parentNode = event.sceneEvent.object.emitter;
+                        }
+
+                        this._modifyElement(event.sceneEvent.object, parentNode);
+                    }
 
                     return false;
                 }
@@ -203,6 +210,17 @@
             if (root === this._graphRootName)
                 this.sidebar.setNodeExpanded(root, true);
 
+            // Check particles
+            if (node && scene.particleSystems.length > 0) {
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    var ps = scene.particleSystems[i];
+                    if (ps.emitter && ps.emitter === node) {
+                        var psNode = this.sidebar.createNode(ps.id, ps.name, "icon-particles", ps);
+                        this.sidebar.addNodes(psNode, node.id);
+                    }
+                }
+            }
+
             // If submeshes
             if (node instanceof AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                 var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
@@ -272,6 +290,7 @@
             if (node instanceof BABYLON.Mesh) {
 
                 // Check particles
+                /*
                 if (!node.geometry) {
                     var scene = node.getScene();
                     for (var i = 0; i < scene.particleSystems.length; i++) {
@@ -279,6 +298,7 @@
                             return "icon-particles";
                     }
                 }
+                */
 
                 // Else...
                 if (node.skeleton)
@@ -297,6 +317,9 @@
             }
             else if (node instanceof Camera) {
                 return "icon-camera";
+            }
+            else if (node instanceof ParticleSystem) {
+                return "icon-particles";
             }
             else if (node instanceof Sound) {
                 return "icon-sound";

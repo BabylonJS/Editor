@@ -100,27 +100,42 @@ var BABYLON;
             };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
+                var _this = this;
                 if (chooseEmitter === void 0) { chooseEmitter = true; }
-                var ps = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
-                ps.emitter.id = this.GenerateUUID();
-                EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 // Pick emitter
                 if (chooseEmitter) {
                     var picker = new EDITOR.ObjectPicker(core);
                     picker.objectLists.push(core.currentScene.meshes);
                     picker.objectLists.push(core.currentScene.lights);
                     picker.windowName = "Select an emitter ?";
+                    picker.selectButtonName = "Add";
+                    picker.closeButtonName = "Cancel";
+                    picker.minSelectCount = 0;
                     picker.onObjectPicked = function (names) {
                         if (names.length > 1) {
-                            var dialog = new EDITOR.GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning", "A Particle System can be attached to only one mesh.\n" +
+                            var dialog = new EDITOR.GUI.GUIDialog("ParticleSystemDialog", core, "Warning", "A Particle System can be attached to only one mesh.\n" +
                                 "The first was considered as the mesh.");
                             dialog.buildElement(null);
                         }
-                        var emitter = ps.emitter;
-                        emitter.dispose(true);
-                        EDITOR.Event.sendSceneEvent(emitter, EDITOR.SceneEventType.OBJECT_REMOVED, core);
-                        ps.emitter = core.currentScene.getNodeByName(names[0]);
+                        var ps = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
+                        core.currentScene.meshes.pop();
+                        ps.emitter.id = _this.GenerateUUID();
+                        ps.id = _this.GenerateUUID();
+                        if (names.length > 0) {
+                            var emitter = ps.emitter;
+                            emitter.dispose(true);
+                            ps.emitter = core.currentScene.getNodeByName(names[0]);
+                            EDITOR.Event.sendSceneEvent(ps, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                        }
+                        else {
+                            core.currentScene.meshes.push(ps.emitter);
+                            EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                            EDITOR.Event.sendSceneEvent(ps, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                        }
+                        // To remove later, today particle systems can handle animations
                         ps.emitter.attachedParticleSystem = ps;
+                    };
+                    picker.onClosedPicker = function () {
                     };
                     picker.open();
                 }

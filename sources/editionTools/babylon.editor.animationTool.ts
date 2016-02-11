@@ -22,7 +22,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof Node || object instanceof Scene)
+            if (object.animations && Array.isArray(object.animations))
                 return true;
 
             return false;
@@ -69,10 +69,7 @@
 
         // Plays animations
         private _playAnimations(): void {
-            var object: AbstractMesh = this.object = this._editionTool.object;
-            var scene = (this.object instanceof Scene) ? this.object : object.getScene();
-
-            scene.beginAnimation(object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+            this._editionTool.core.currentScene.beginAnimation(this.object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
         }
 
         // Plays animations of skeleton

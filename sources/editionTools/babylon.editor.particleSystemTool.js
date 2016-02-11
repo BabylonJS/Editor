@@ -25,15 +25,8 @@ var BABYLON;
             }
             // Object supported
             ParticleSystemTool.prototype.isObjectSupported = function (object) {
-                if (!(object instanceof BABYLON.Mesh) && !(object instanceof BABYLON.Light))
-                    return false;
-                var scene = this._editionTool.core.currentScene;
-                for (var i = 0; i < scene.particleSystems.length; i++) {
-                    var ps = scene.particleSystems[i];
-                    if (ps.emitter === object) {
-                        return true;
-                    }
-                }
+                if (object instanceof BABYLON.ParticleSystem)
+                    return true;
                 return false;
             };
             // Creates the UI
@@ -44,19 +37,16 @@ var BABYLON;
             // Update
             ParticleSystemTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
-                var particleSystem = null;
                 var scene = this._editionTool.core.currentScene;
-                for (var i = 0; i < scene.particleSystems.length; i++) {
-                    var ps = scene.particleSystems[i];
-                    if (ps.emitter === object) {
-                        particleSystem = ps;
-                        break;
-                    }
-                }
                 _super.prototype.update.call(this);
-                if (!object || !particleSystem)
+                // Configure main toolbar
+                var toolbar = this._editionTool.core.editor.mainToolbar;
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, object !== null, toolbar.particleSystemMenu.id);
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.ParticleSystem, toolbar.particleSystemMenu.id);
+                EDITOR.GUIParticleSystemEditor._CurrentParticleSystem = object;
+                if (!object)
                     return;
-                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, particleSystem, false);
+                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, object, false);
                 this._element = psEditor._createEditor(this.containers[0]);
             };
             return ParticleSystemTool;

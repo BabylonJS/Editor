@@ -29,8 +29,10 @@ var BABYLON;
                 this._camera = null;
                 this._particleSystem = null;
                 this._particleSystemToEdit = null;
+                this._particleSystemCapacity = "";
                 // Initialize
                 this.core = core;
+                this._uiCreated = createUI;
                 if (createUI) {
                     // UI
                     this._createUI();
@@ -63,6 +65,7 @@ var BABYLON;
                     if (button === "Apply") {
                         this._setParticleSystem();
                         this._window.close();
+                        EDITOR.Event.sendSceneEvent(this._particleSystemToEdit, EDITOR.SceneEventType.OBJECT_PICKED, this.core);
                     }
                     else if (button === "Cancel") {
                         this._window.close();
@@ -152,19 +155,48 @@ var BABYLON;
                         _this._particleSystem.updateFunction = result;
                     }
                     catch (e) {
+                        // Catch silently
+                        debugger;
                     }
                 });
                 $(this._editor.container).hide();
             };
             // Creates the editor
             GUIParticleSystemEditor.prototype._createEditor = function (container) {
+                var _this = this;
                 var elementId = container ? container : this._layoutID + "FORM";
                 this._editElement = new EDITOR.GUI.GUIEditForm(elementId, this.core);
                 this._editElement.buildElement(elementId);
                 var ps = this._particleSystem;
                 this._editElement.remember(ps);
                 // Name
-                this._editElement.add(ps, "id").name("ID");
+                this._editElement.add(ps, "name").name("Name").onChange(function (result) {
+                    if (!_this._uiCreated) {
+                        _this._updateGraphNode(result);
+                    }
+                });
+                // Capacity
+                this._particleSystemCapacity = "" + this._particleSystem.getCapacity();
+                this._editElement.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
+                    result = parseFloat(result);
+                    var emitter = _this._particleSystem.emitter;
+                    var scene = _this._uiCreated ? _this._scene : _this.core.currentScene;
+                    _this._particleSystem.emitter = null;
+                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, _this._particleSystem, emitter);
+                    _this._particleSystem.dispose();
+                    _this._particleSystem = newParticleSystem;
+                    if (_this._uiCreated) {
+                        _this._editElement.remove();
+                        _this._createEditor();
+                    }
+                    else {
+                        _this._updateGraphNode(_this._particleSystem.name, _this._particleSystem);
+                    }
+                });
+                // Edit
+                this._editElement.add(this, "_editParticleSystem").name("Edit...");
+                this._editElement.add(this, "_startParticleSystem").name("Start Particle System");
+                this._editElement.add(this, "_stopParticleSystem").name("Stop Particle System");
                 // Texture
                 this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
                 this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange(function (result) {
@@ -238,7 +270,17 @@ var BABYLON;
             };
             // Set the particle system
             GUIParticleSystemEditor.prototype._setParticleSystem = function () {
-                var excluded = ["id", "name"];
+                var excluded = ["id"];
+                // If capacity changed
+                if (this._particleSystem.getCapacity() !== this._particleSystemToEdit.getCapacity()) {
+                    var emitter = this._particleSystemToEdit.emitter;
+                    this._particleSystemToEdit.emitter = null;
+                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, emitter);
+                    this._particleSystemToEdit.dispose();
+                    this._particleSystemToEdit = newParticleSystem;
+                    this._updateGraphNode(this._particleSystem.name, this._particleSystemToEdit);
+                    return;
+                }
                 for (var thing in this._particleSystem) {
                     if (thing[0] === "_" || excluded.indexOf(thing) !== -1)
                         continue;
@@ -249,6 +291,31 @@ var BABYLON;
                         this._particleSystemToEdit[thing] = value;
                     if (value instanceof BABYLON.Texture)
                         this._particleSystemToEdit[thing] = BABYLON.Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
+                }
+                this._updateGraphNode(this._particleSystem.name);
+            };
+            // Edit particle system
+            GUIParticleSystemEditor.prototype._editParticleSystem = function () {
+                var psEditor = new GUIParticleSystemEditor(this.core, this._particleSystem);
+            };
+            // Start particle system
+            GUIParticleSystemEditor.prototype._startParticleSystem = function () {
+                this._particleSystem.start();
+            };
+            // Stop particle system
+            GUIParticleSystemEditor.prototype._stopParticleSystem = function () {
+                this._particleSystem.stop();
+            };
+            // Set the new name of the sidebar graph node
+            GUIParticleSystemEditor.prototype._updateGraphNode = function (result, data) {
+                var sidebar = this.core.editor.sceneGraphTool.sidebar;
+                var element = sidebar.getSelectedNode();
+                if (element) {
+                    element.text = result;
+                    if (data) {
+                        element.data = data;
+                    }
+                    sidebar.refresh();
                 }
             };
             // Set the particle texture
@@ -293,6 +360,12 @@ var BABYLON;
                     BABYLON.Tags.AddTagsTo(dummy, "added_particlesystem");
                 }
                 var ps = new BABYLON.ParticleSystem("New Particle System", capacity, scene);
+                if (particleSystem.animations) {
+                    for (var i = 0; i < particleSystem.animations.length; i++) {
+                        ps.animations.push(particleSystem.animations[i].clone());
+                    }
+                }
+                ps.name = particleSystem.name || ps.name;
                 ps.emitter = dummy;
                 ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);
                 ps.maxEmitBox = particleSystem.maxEmitBox || new BABYLON.Vector3(1, 0, 0);

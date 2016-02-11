@@ -17,6 +17,8 @@ declare module BABYLON.EDITOR {
         private _camera;
         private _particleSystem;
         private _particleSystemToEdit;
+        private _uiCreated;
+        private _particleSystemCapacity;
         /**
         * Constructor
         * @param core: the editor core
@@ -26,6 +28,10 @@ declare module BABYLON.EDITOR {
         private _createUI();
         _createEditor(container?: string): GUI.GUIEditForm;
         private _setParticleSystem();
+        private _editParticleSystem();
+        private _startParticleSystem();
+        private _stopParticleSystem();
+        private _updateGraphNode(result, data?);
         static _CurrentParticleSystem: ParticleSystem;
         static _CopiedParticleSystem: ParticleSystem;
         private _setParticleTexture();
