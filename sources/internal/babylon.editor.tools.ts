@@ -16,7 +16,8 @@
         }
 
         /**
-        *
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
         */
         public static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array {
             var binString = window.atob(base64String.split(",")[1]);

@@ -41,9 +41,6 @@ var BABYLON;
                                     for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
                                         newNode = BABYLON.Mesh.Parse(meshes[meshIndex], core.currentScene, "./");
                                         BABYLON.Tags.EnableFor(newNode);
-                                        for (var thing in meshes[meshIndex].tags) {
-                                            BABYLON.Tags.AddTagsTo(newNode, thing);
-                                        }
                                     }
                                 }
                                 else if (node.type === "Light") {
@@ -132,6 +129,9 @@ var BABYLON;
                             break;
                         case "Sound":
                             EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getSoundByName(animated.name));
+                            break;
+                        case "ParticleSystem":
+                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getParticleSystemByName(animated.name));
                             break;
                         default: break;
                     }

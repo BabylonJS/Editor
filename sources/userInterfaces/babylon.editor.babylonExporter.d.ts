@@ -12,5 +12,6 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         onEvent(event: Event): boolean;
         createUI(): void;
+        static GenerateFinalBabylonFile(core: EditorCore): string;
     }
 }

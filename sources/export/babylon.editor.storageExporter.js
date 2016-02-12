@@ -113,6 +113,8 @@ var BABYLON;
                     // Files already loaded
                     files.push({ name: "scene.js", content: projectContent });
                     files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
+                    files.push({ name: sceneToLoad.name, content: EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
                         var lf = project.lensFlares[i].serializationObject;
@@ -181,17 +183,12 @@ var BABYLON;
                         }
                         // Files from FilesInput
                         for (var textureName in EDITOR.FilesInput.FilesTextures) {
-                            files.push({ name: textureName, content: null, parentFolder: _this.getFolder("Scene").file });
+                            files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
                             BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
                         }
                         for (var fileName in EDITOR.FilesInput.FilesToLoad) {
-                            files.push({ name: fileName, content: null, parentFolder: _this.getFolder("Scene").file });
+                            files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
                             BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
-                        }
-                        var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
-                        if (sceneToLoad) {
-                            files.push({ name: sceneToLoad.name, content: null, parentFolder: _this.getFolder("Scene").file });
-                            BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
                         }
                     }
                 });

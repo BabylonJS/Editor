@@ -114,5 +114,13 @@
             if (this._core.playCamera)
                 this._configForm.setRecord("activeCamera", this._core.playCamera.name);
         }
+
+        // Generates the final .babylon file
+        public static GenerateFinalBabylonFile(core: EditorCore): string {
+            var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+            obj.activeCameraID = core.playCamera.id;
+
+            return JSON.stringify(obj);
+        }
     }
 }

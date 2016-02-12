@@ -22,6 +22,7 @@
             picker.objectLists.push(core.currentScene.lights);
             picker.objectLists.push(core.currentScene.cameras);
             picker.objectLists.push(core.currentScene.meshes);
+            picker.objectLists.push(core.currentScene.particleSystems);
             picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
 
             picker.selectedObjects = SceneFactory.NodesToStart;
@@ -33,14 +34,19 @@
                 SceneFactory.NodesToStart = [];
 
                 for (var i = 0; i < names.length; i++) {
-                    var node: any = core.currentScene.getNodeByName(names[i]);
+                    var node: IAnimatable = core.currentScene.getNodeByName(names[i]);
 
                     if (!node && names[i] === "Scene")
                         node = core.currentScene;
 
+                    // Particle system
+                    if (!node) {
+                        node = core.currentScene.getParticleSystemByName(names[i]);
+                    }
+
                     if (!node) {
                         // Sound ?
-                        node = core.currentScene.getSoundByName(names[i]);
+                        node = <any>core.currentScene.getSoundByName(names[i]);
 
                         if (!node)
                             continue;

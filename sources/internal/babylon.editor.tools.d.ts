@@ -9,7 +9,8 @@ declare module BABYLON.EDITOR {
         */
         static GetVector3FromString(vector: string): Vector3;
         /**
-        *
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
         */
         static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
         /**

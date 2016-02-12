@@ -19,7 +19,8 @@ var BABYLON;
                 return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
             };
             /**
-            *
+            * Converts a base64 string to array buffer
+            * Largely used to convert images, converted into base64 string
             */
             Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
                 var binString = window.atob(base64String.split(",")[1]);

@@ -44,6 +44,9 @@
                 else if (node instanceof Sound) {
                     type = "Sound";
                 }
+                else if (node instanceof ParticleSystem) {
+                    type = "ParticleSystem";
+                }
 
                 var obj: INTERNAL.IAnimationConfigurationOnPlay = {
                     name: (<any>node).name,

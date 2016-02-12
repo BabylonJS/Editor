@@ -144,6 +144,9 @@
                 files.push({ name: "scene.js", content: projectContent });
                 files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
 
+                var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
+                files.push({ name: sceneToLoad.name, content: BabylonExporter.GenerateFinalBabylonFile(this.core), parentFolder: sceneFolder.file });
+
                 // Lens flare textures
                 for (var i = 0; i < project.lensFlares.length; i++) {
                     var lf = project.lensFlares[i].serializationObject;
@@ -224,20 +227,13 @@
 
                     // Files from FilesInput
                     for (var textureName in FilesInput.FilesTextures) {
-                        files.push({ name: textureName, content: null, parentFolder: this.getFolder("Scene").file });
+                        files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
                         BABYLON.Tools.ReadFile(FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
                     }
                     
                     for (var fileName in FilesInput.FilesToLoad) {
-                        files.push({ name: fileName, content: null, parentFolder: this.getFolder("Scene").file });
+                        files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
                         BABYLON.Tools.ReadFile(FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
-                    }
-
-                    var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
-
-                    if (sceneToLoad) {
-                        files.push({ name: sceneToLoad.name, content: null, parentFolder: this.getFolder("Scene").file });
-                        BABYLON.Tools.ReadFile(sceneToLoad, loadCallback(files.length - 1), null, false);
                     }
                 }
             });

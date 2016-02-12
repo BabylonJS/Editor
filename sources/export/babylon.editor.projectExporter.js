@@ -41,6 +41,9 @@ var BABYLON;
                     else if (node instanceof BABYLON.Sound) {
                         type = "Sound";
                     }
+                    else if (node instanceof BABYLON.ParticleSystem) {
+                        type = "ParticleSystem";
+                    }
                     var obj = {
                         name: node.name,
                         type: type

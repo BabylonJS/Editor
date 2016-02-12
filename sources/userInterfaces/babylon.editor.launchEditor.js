@@ -16,6 +16,7 @@ var BABYLON;
                 picker.objectLists.push(core.currentScene.lights);
                 picker.objectLists.push(core.currentScene.cameras);
                 picker.objectLists.push(core.currentScene.meshes);
+                picker.objectLists.push(core.currentScene.particleSystems);
                 picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
                 picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
                 picker.minSelectCount = 0;
@@ -26,6 +27,10 @@ var BABYLON;
                         var node = core.currentScene.getNodeByName(names[i]);
                         if (!node && names[i] === "Scene")
                             node = core.currentScene;
+                        // Particle system
+                        if (!node) {
+                            node = core.currentScene.getParticleSystemByName(names[i]);
+                        }
                         if (!node) {
                             // Sound ?
                             node = core.currentScene.getSoundByName(names[i]);

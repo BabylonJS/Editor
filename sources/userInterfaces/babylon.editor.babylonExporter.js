@@ -91,6 +91,12 @@ var BABYLON;
                 if (this._core.playCamera)
                     this._configForm.setRecord("activeCamera", this._core.playCamera.name);
             };
+            // Generates the final .babylon file
+            BabylonExporter.GenerateFinalBabylonFile = function (core) {
+                var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+                obj.activeCameraID = core.playCamera.id;
+                return JSON.stringify(obj);
+            };
             return BabylonExporter;
         })();
         EDITOR.BabylonExporter = BabylonExporter;
