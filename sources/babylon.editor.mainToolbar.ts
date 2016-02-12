@@ -142,7 +142,7 @@
                     }
 
                     else if (id.indexOf(this._addLensFlare) !== -1) {
-                        SceneFactory.AddLensFlare(this._core);
+                        SceneFactory.AddLensFlareSystem(this._core);
                     }
                     
                     else if (id.indexOf(this._addSkyMesh) !== -1) {

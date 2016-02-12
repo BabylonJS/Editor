@@ -111,6 +111,7 @@
 
                 var buffer = ps.serializationObject.base64Texture;
                 newPs.particleTexture = Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, core.currentScene);
+                newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
 
                 if (!ps.hasEmitter && ps.emitterPosition)
                     newPs.emitter.position = Vector3.FromArray(ps.emitterPosition);

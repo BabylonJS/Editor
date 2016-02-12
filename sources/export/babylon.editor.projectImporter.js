@@ -98,6 +98,7 @@ var BABYLON;
                     var newPs = BABYLON.ParticleSystem.Parse(ps.serializationObject, core.currentScene, "./");
                     var buffer = ps.serializationObject.base64Texture;
                     newPs.particleTexture = BABYLON.Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, core.currentScene);
+                    newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
                     if (!ps.hasEmitter && ps.emitterPosition)
                         newPs.emitter.position = BABYLON.Vector3.FromArray(ps.emitterPosition);
                     newPs.emitter.attachedParticleSystem = newPs;

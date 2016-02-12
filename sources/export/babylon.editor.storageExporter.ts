@@ -138,9 +138,38 @@
                 var projectContent = ProjectExporter.ExportProject(this.core, true);
                 var project: INTERNAL.IProjectRoot = JSON.parse(projectContent);
 
+                var sceneFolder = this.getFolder("Scene");
+
                 // Files already loaded
                 files.push({ name: "scene.js", content: projectContent });
                 files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
+
+                // Lens flare textures
+                for (var i = 0; i < project.lensFlares.length; i++) {
+                    var lf = project.lensFlares[i].serializationObject;
+
+                    for (var j = 0; j < lf.flares.length; j++) {
+                        if (!this._fileExists(files, lf.flares[j].base64Name, sceneFolder)) {
+                            files.push({
+                                name: lf.flares[j].base64Name,
+                                content: Tools.ConvertBase64StringToArrayBuffer(lf.flares[j].base64Buffer),
+                                parentFolder: sceneFolder.file
+                            });
+                        }
+                    }
+                }
+
+                // Particle system textures
+                for (var i = 0; i < project.particleSystems.length; i++) {
+                    var ps = project.particleSystems[i].serializationObject;
+                    if (!this._fileExists(files, ps.base64TextureName, sceneFolder)) {
+                        files.push({
+                            name: ps.base64TextureName,
+                            content: Tools.ConvertBase64StringToArrayBuffer(ps.base64Texture),
+                            parentFolder: sceneFolder.file
+                        });
+                    }
+                }
 
                 // Files to load
                 var count = files.length;
@@ -212,6 +241,17 @@
                     }
                 }
             });
+        }
+
+        // Returns true if a file exists
+        private _fileExists(files: IStorageUploadFile[], name: string, parent?: IStorageFile): boolean {
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].name === name && files[i].parentFolder === parent.file) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Processes the index.html file

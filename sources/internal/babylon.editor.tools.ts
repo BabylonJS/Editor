@@ -16,6 +16,20 @@
         }
 
         /**
+        *
+        */
+        public static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array {
+            var binString = window.atob(base64String.split(",")[1]);
+            var len = binString.length;
+            var array = new Uint8Array(len);
+
+            for (var i = 0; i < len; i++)
+                array[i] = binString.charCodeAt(i);
+
+            return array;
+        }
+
+        /**
         * Opens a window popup
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
@@ -39,13 +53,25 @@
         }
 
         /**
-        *
+        * Returns the base URL of the window
         */
         public static getBaseURL(): string {
             var url = window.location.href;
             url = url.replace(BABYLON.Tools.GetFilename(url), "");
 
             return url;
+        }
+
+        /**
+        * Creates an input element
+        */
+        public static CreateFileInpuElement(id: string): JQuery {
+            var input = $("#" + id);
+
+            if (!input[0])
+                $("#BABYLON-EDITOR-UTILS").append(GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
+
+            return input;
         }
     }
 }

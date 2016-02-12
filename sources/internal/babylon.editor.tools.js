@@ -19,6 +19,17 @@ var BABYLON;
                 return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
             };
             /**
+            *
+            */
+            Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
+                var binString = window.atob(base64String.split(",")[1]);
+                var len = binString.length;
+                var array = new Uint8Array(len);
+                for (var i = 0; i < len; i++)
+                    array[i] = binString.charCodeAt(i);
+                return array;
+            };
+            /**
             * Opens a window popup
             */
             Tools.OpenWindowPopup = function (url, width, height) {
@@ -37,12 +48,21 @@ var BABYLON;
                 return popup;
             };
             /**
-            *
+            * Returns the base URL of the window
             */
             Tools.getBaseURL = function () {
                 var url = window.location.href;
                 url = url.replace(BABYLON.Tools.GetFilename(url), "");
                 return url;
+            };
+            /**
+            * Creates an input element
+            */
+            Tools.CreateFileInpuElement = function (id) {
+                var input = $("#" + id);
+                if (!input[0])
+                    $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
+                return input;
             };
             return Tools;
         })();

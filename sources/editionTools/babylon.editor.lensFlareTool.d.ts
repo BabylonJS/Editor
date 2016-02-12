@@ -9,5 +9,10 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): void;
+        private _addLensFlareFolder(lensFlare, indice);
+        private _addLensFlare();
+        private _reset();
+        private _setupRemove(indice);
+        private _setupChangeTexture(indice);
     }
 }

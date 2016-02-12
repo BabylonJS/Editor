@@ -117,7 +117,7 @@ var BABYLON;
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
                         else if (id.indexOf(this._addLensFlare) !== -1) {
-                            EDITOR.SceneFactory.AddLensFlare(this._core);
+                            EDITOR.SceneFactory.AddLensFlareSystem(this._core);
                         }
                         else if (id.indexOf(this._addSkyMesh) !== -1) {
                             EDITOR.SceneFactory.AddSkyMesh(this._core);

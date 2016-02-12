@@ -109,9 +109,34 @@ var BABYLON;
                     url = url.replace(BABYLON.Tools.GetFilename(url), "");
                     var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
                     var project = JSON.parse(projectContent);
+                    var sceneFolder = _this.getFolder("Scene");
                     // Files already loaded
                     files.push({ name: "scene.js", content: projectContent });
                     files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    // Lens flare textures
+                    for (var i = 0; i < project.lensFlares.length; i++) {
+                        var lf = project.lensFlares[i].serializationObject;
+                        for (var j = 0; j < lf.flares.length; j++) {
+                            if (!_this._fileExists(files, lf.flares[j].base64Name, sceneFolder)) {
+                                files.push({
+                                    name: lf.flares[j].base64Name,
+                                    content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(lf.flares[j].base64Buffer),
+                                    parentFolder: sceneFolder.file
+                                });
+                            }
+                        }
+                    }
+                    // Particle system textures
+                    for (var i = 0; i < project.particleSystems.length; i++) {
+                        var ps = project.particleSystems[i].serializationObject;
+                        if (!_this._fileExists(files, ps.base64TextureName, sceneFolder)) {
+                            files.push({
+                                name: ps.base64TextureName,
+                                content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(ps.base64Texture),
+                                parentFolder: sceneFolder.file
+                            });
+                        }
+                    }
                     // Files to load
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
@@ -170,6 +195,15 @@ var BABYLON;
                         }
                     }
                 });
+            };
+            // Returns true if a file exists
+            StorageExporter.prototype._fileExists = function (files, name, parent) {
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].name === name && files[i].parentFolder === parent.file) {
+                        return true;
+                    }
+                }
+                return false;
             };
             // Processes the index.html file
             StorageExporter.prototype._processIndexHTML = function (project, content) {

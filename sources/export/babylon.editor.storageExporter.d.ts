@@ -21,6 +21,7 @@ declare module BABYLON.EDITOR {
         getFolder(name: string): IStorageFile;
         getFile(name: string): IStorageFile;
         private _createTemplate();
+        private _fileExists(files, name, parent?);
         private _processIndexHTML(project, content);
         private _openFolderDialog(success?);
         private _updateFolderDialog(folder?);
