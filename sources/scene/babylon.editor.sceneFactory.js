@@ -199,6 +199,7 @@ var BABYLON;
                 var skyboxMaterial = new BABYLON.SkyMaterial("skyMaterial", core.currentScene);
                 skyboxMaterial.backFaceCulling = false;
                 var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+                skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
                 BABYLON.Tags.EnableFor(skybox);
                 BABYLON.Tags.AddTagsTo(skybox, "added");

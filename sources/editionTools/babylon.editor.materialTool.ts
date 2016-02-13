@@ -79,7 +79,7 @@
                 this.update();
             });
 
-            if (object instanceof StandardMaterial) {
+            if (material instanceof StandardMaterial) {
                 materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
             }
 

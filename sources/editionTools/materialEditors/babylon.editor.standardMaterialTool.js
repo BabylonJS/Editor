@@ -26,6 +26,8 @@ var BABYLON;
                 if (!_super.prototype.update.call(this))
                     return false;
                 this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+                this.material.useEmissiveAsIllumination = this.material.useEmissiveAsIllumination || false;
+                this.material.useReflectionFresnelFromSpecular = this.material.useReflectionFresnelFromSpecular || false;
                 // Values
                 var valuesFolder = this._element.addFolder("Values");
                 valuesFolder.add(this.material, "roughness").min(0).step(0.01).name("Roughness");

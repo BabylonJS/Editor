@@ -18,16 +18,18 @@ var BABYLON;
                 _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR");
                 // Public members
                 // Private members
-                this._dummyPreset = "None";
+                this._dummyPreset = "";
                 // Initialize
                 this.onObjectSupported = function (material) { return material instanceof BABYLON.PBRMaterial; };
             }
             // Update
             PBRMaterialTool.prototype.update = function () {
+                var _this = this;
                 if (!_super.prototype.update.call(this))
                     return false;
                 this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
                 // Presets
+                this._dummyPreset = "None";
                 var presets = [
                     this._dummyPreset,
                     "Glass",
@@ -36,6 +38,10 @@ var BABYLON;
                     "Wood"
                 ];
                 this._element.add(this, "_dummyPreset", presets, "Preset :").onChange(function (result) {
+                    if (_this["_createPreset" + result]) {
+                        _this["_createPreset" + result]();
+                        _this.update();
+                    }
                 });
                 // PBR
                 var pbrFolder = this._element.addFolder("PBR");
@@ -45,9 +51,8 @@ var BABYLON;
                 pbrFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
                 pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
                 pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-                // Values
-                var valuesFolder = this._element.addFolder("Values");
-                valuesFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+                pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+                pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
                 // Overloaded values
                 var overloadedFolder = this._element.addFolder("Overloaded Values");
                 overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
@@ -59,8 +64,8 @@ var BABYLON;
                 // Overloaded colors
                 var overloadedColorsFolder = this._element.addFolder("Overloaded Colors");
                 this.addColorFolder(this.material.overloadedAmbient, "Ambient Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedAlbedo, "Diffuse Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedReflectivity, "Specular Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", false, overloadedColorsFolder);
                 this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", false, overloadedColorsFolder);
                 this.addColorFolder(this.material.overloadedReflection, "Reflection Color", false, overloadedColorsFolder);
                 // Options
@@ -80,6 +85,48 @@ var BABYLON;
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, colorsFolder);
                 // Finish
                 return true;
+            };
+            // Preset for glass
+            PBRMaterialTool.prototype._createPresetGlass = function () {
+                this.material.linkRefractionWithTransparency = true;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.indexOfRefraction = 0.52;
+                this.material.alpha = 0;
+                this.material.directIntensity = 0.0;
+                this.material.environmentIntensity = 0.5;
+                this.material.cameraExposure = 0.5;
+                this.material.cameraContrast = 1.7;
+                this.material.microSurface = 1;
+            };
+            // Preset for metal
+            PBRMaterialTool.prototype._createPresetMetal = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.directIntensity = 0.3;
+                this.material.environmentIntensity = 0.7;
+                this.material.cameraExposure = 0.55;
+                this.material.cameraContrast = 1.6;
+                this.material.microSurface = 0.96;
+            };
+            // Preset for Plastic
+            PBRMaterialTool.prototype._createPresetPlastic = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.directIntensity = 0.6;
+                this.material.environmentIntensity = 0.7;
+                this.material.cameraExposure = 0.6;
+                this.material.cameraContrast = 1.6;
+                this.material.microSurface = 0.96;
+            };
+            // Preset for Wood
+            PBRMaterialTool.prototype._createPresetWood = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.directIntensity = 1.5;
+                this.material.environmentIntensity = 0.5;
+                this.material.specularIntensity = 0.3;
+                this.material.cameraExposure = 0.9;
+                this.material.cameraContrast = 1.6;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = true;
             };
             return PBRMaterialTool;
         })(EDITOR.AbstractMaterialTool);

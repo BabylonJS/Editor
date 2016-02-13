@@ -271,6 +271,7 @@
             skyboxMaterial.backFaceCulling = false;
 
             var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+            skybox.id = this.GenerateUUID();
             skybox.material = skyboxMaterial;
             Tags.EnableFor(skybox);
             Tags.AddTagsTo(skybox, "added");

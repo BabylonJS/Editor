@@ -3,7 +3,7 @@
         // Public members
 
         // Private members
-        private _dummyPreset: string = "None";
+        private _dummyPreset: string = "";
 
         // Protected members
 
@@ -27,6 +27,7 @@
             this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
 
             // Presets
+            this._dummyPreset = "None";
             var presets = [
                 this._dummyPreset,
                 "Glass",
@@ -35,7 +36,10 @@
                 "Wood"
             ];
             this._element.add(this, "_dummyPreset", presets, "Preset :").onChange((result: any) => {
-
+                if (this["_createPreset" + result]) {
+                    this["_createPreset" + result]();
+                    this.update();
+                }
             });
 
             // PBR
@@ -46,10 +50,8 @@
             pbrFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
             pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
             pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-
-            // Values
-            var valuesFolder = this._element.addFolder("Values");
-            valuesFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+            pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+            pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
 
             // Overloaded values
             var overloadedFolder = this._element.addFolder("Overloaded Values");
@@ -63,8 +65,8 @@
             // Overloaded colors
             var overloadedColorsFolder = this._element.addFolder("Overloaded Colors");
             this.addColorFolder(this.material.overloadedAmbient, "Ambient Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedAlbedo, "Diffuse Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedReflectivity, "Specular Color", false, overloadedColorsFolder);
+            this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", false, overloadedColorsFolder);
+            this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", false, overloadedColorsFolder);
             this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", false, overloadedColorsFolder);
             this.addColorFolder(this.material.overloadedReflection, "Reflection Color", false, overloadedColorsFolder);
 
@@ -87,6 +89,52 @@
 
             // Finish
             return true;
+        }
+
+        // Preset for glass
+        private _createPresetGlass(): void {
+            this.material.linkRefractionWithTransparency = true;
+            this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+            this.material.indexOfRefraction = 0.52;
+            this.material.alpha = 0;
+            this.material.directIntensity = 0.0;
+            this.material.environmentIntensity = 0.5;
+            this.material.cameraExposure = 0.5;
+            this.material.cameraContrast = 1.7;
+            this.material.microSurface = 1;
+        }
+
+        // Preset for metal
+        private _createPresetMetal(): void {
+            this.material.linkRefractionWithTransparency = false;
+            this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+            this.material.directIntensity = 0.3;
+            this.material.environmentIntensity = 0.7;
+            this.material.cameraExposure = 0.55;
+            this.material.cameraContrast = 1.6;
+            this.material.microSurface = 0.96;
+        }
+
+        // Preset for Plastic
+        private _createPresetPlastic(): void {
+            this.material.linkRefractionWithTransparency = false;
+            this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+            this.material.directIntensity = 0.6;
+            this.material.environmentIntensity = 0.7;
+            this.material.cameraExposure = 0.6;
+            this.material.cameraContrast = 1.6;
+            this.material.microSurface = 0.96;
+        }
+
+        // Preset for Wood
+        private _createPresetWood(): void {
+            this.material.linkRefractionWithTransparency = false;
+            this.material.directIntensity = 1.5;
+            this.material.environmentIntensity = 0.5;
+            this.material.specularIntensity = 0.3;
+            this.material.cameraExposure = 0.9;
+            this.material.cameraContrast = 1.6;
+            this.material.useMicroSurfaceFromReflectivityMapAlpha = true;
         }
     }
 }

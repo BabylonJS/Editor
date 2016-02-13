@@ -73,7 +73,7 @@ var BABYLON;
                     _this._editionTool.object.material = newmaterial;
                     _this.update();
                 });
-                if (object instanceof BABYLON.StandardMaterial) {
+                if (material instanceof BABYLON.StandardMaterial) {
                     materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
                 }
                 // Common

@@ -189,10 +189,8 @@
             wood.specularIntensity = 0.3;
             wood.cameraExposure = 0.9;
             wood.cameraContrast = 1.6;
-
             wood.reflectivityTexture = new BABYLON.Texture("Tests/textures/reflectivity.png", scene);
             wood.useMicroSurfaceFromReflectivityMapAlpha = true;
-
             wood.albedoColor = BABYLON.Color3.White();
             wood.albedoTexture = new BABYLON.Texture("Tests/textures/albedo.png", scene);
             woodPlank.material = wood;
@@ -200,7 +198,7 @@
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        createReleaseScene();
+        //createReleaseScene();
 
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);

@@ -24,6 +24,8 @@
                 return false;
 
             this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+            this.material.useEmissiveAsIllumination = this.material.useEmissiveAsIllumination || false;
+            this.material.useReflectionFresnelFromSpecular = this.material.useReflectionFresnelFromSpecular || false;
 
             // Values
             var valuesFolder = this._element.addFolder("Values");
