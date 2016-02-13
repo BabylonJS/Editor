@@ -47,7 +47,6 @@ var BABYLON;
                 pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
                 // Values
                 var valuesFolder = this._element.addFolder("Values");
-                valuesFolder.add(this.material, "glossiness").min(0).step(0.01).name("Glossiness");
                 valuesFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 // Overloaded values
                 var overloadedFolder = this._element.addFolder("Overloaded Values");

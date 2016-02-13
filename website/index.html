@@ -114,71 +114,88 @@
             var scene = core.currentScene;
 
             // Light
-            var light = new BABYLON.DirectionalLight("globalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
-            light.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
-            light.position = new BABYLON.Vector3(10, 10, 0);
-            var shadows = new BABYLON.ShadowGenerator(1024, light);
-            shadows.getShadowMap().refreshRate = 1;
-            shadows.setDarkness(0.5);
-            // skybox
-            var skybox = BABYLON.Mesh.CreateBox("skybox", 1000.0, core.currentScene);
-            skybox.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
-            var skyboxMaterial = new BABYLON.StandardMaterial("skybox", core.currentScene);
-            skyboxMaterial.backFaceCulling = false;
-            skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/glacier", core.currentScene, ["_px.png", "_py.png", "_pz.png", "_nx.png", "_ny.png", "_nz.png"]);
-            skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-            skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-            skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-            skyboxMaterial.disableLighting = true;
-            skybox.material = skyboxMaterial;
-            // Reflection probe
-            var rp = new BABYLON.ReflectionProbe("rp", 512, core.currentScene, true);
-            rp.renderList.push(skybox);
-            // Create material function
-            var pbrReflectionTexture = new BABYLON.CubeTexture("./Tests/textures/skybox/TropicalSunnyDay", core.currentScene);
-            function createMaterial(name, path) {
-                var pbr = new BABYLON.PBRMaterial(name, core.currentScene);
-                //pbr.diffuseTexture = new BABYLON.Texture(path, core.currentScene);
-                pbr.reflectionTexture = rp.cubeTexture;
-                pbr.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-                pbr.glossiness = 1.0;
-                return pbr;
-            }
-            // Plane
-            var plane = BABYLON.Mesh.CreateGround("New Ground", 60, 60, 20, core.currentScene);
-            plane.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
-            plane.material = createMaterial("ground1m", "./Tests/textures/tile.jpg");
-            plane.material.diffuseTexture = new BABYLON.Texture("./Tests/textures/floor_diffuse.png", core.currentScene);
-            plane.material.diffuseTexture.uScale = plane.material.diffuseTexture.vScale = 10;
-            plane.material.bumpTexture = new BABYLON.Texture("./Tests/textures/floor_bump.png", core.currentScene);
-            plane.material.bumpTexture.uScale = plane.material.bumpTexture.vScale = 10;
-            plane.material.reflectionTexture = pbrReflectionTexture;
-            plane.material.environmentIntensity = 0.1;
-            plane.material.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
-            plane.isPickable = true;
-            plane.receiveShadows = true;
-            rp.renderList.push(plane);
-            // Sphere
-            var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene);
-            sphere.id = BABYLON.EDITOR.SceneFactory.GenerateUUID();
-            sphere.material = createMaterial("sphere1m", "./Tests/textures/diffuse.tga");
-            sphere.material.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            sphere.material.bumpTexture = new BABYLON.Texture("./Tests/textures/normal.png", core.currentScene);
-            sphere.material.bumpTexture.uScale = sphere.material.bumpTexture.vScale = 5;
-            sphere.material.glossiness = 1;
-            sphere.material.directIntensity = 1.3439461727881254,
-            sphere.material.emissiveIntensity = 1,
-            sphere.material.environmentIntensity = 0.5685013699580344,
-            sphere.material.ShadowIntensity = 1,
-            sphere.material.ShadeIntensity = 1;
-            sphere.material.cameraExposure = 0.7153261887420668;
-            sphere.material.cameraContrast = 1.6474178892241538;
-            sphere.material.diffuseColorLevel = 0.0;
-            sphere.scaling = new BABYLON.Vector3(4, 4, 4);
-            sphere.position = new BABYLON.Vector3(0, 2, 0);
-            shadows.getShadowMap().renderList.push(sphere);
-            rp.position.y = 2;
-            rp.renderList.push(sphere);
+            new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
+
+            // Environment Texture
+            var hdrTexture = new BABYLON.HDRCubeTexture("Tests/textures/room.hdr", scene, 512);
+
+            // Skybox
+            var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
+            var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
+            hdrSkyboxMaterial.backFaceCulling = false;
+            hdrSkyboxMaterial.reflectionTexture = hdrTexture.clone();
+            hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+            hdrSkyboxMaterial.microSurface = 1.0;
+            hdrSkyboxMaterial.cameraExposure = 0.6;
+            hdrSkyboxMaterial.cameraContrast = 1.6;
+            hdrSkyboxMaterial.disableLighting = true;
+            hdrSkybox.material = hdrSkyboxMaterial;
+            hdrSkybox.infiniteDistance = true;
+
+            // Create meshes
+            var sphereGlass = BABYLON.Mesh.CreateSphere("sphereGlass", 48, 30.0, scene);
+            sphereGlass.translate(new BABYLON.Vector3(1, 0, 0), -60);
+
+            var sphereMetal = BABYLON.Mesh.CreateSphere("sphereMetal", 48, 30.0, scene);
+            sphereMetal.translate(new BABYLON.Vector3(1, 0, 0), 60);
+
+            var spherePlastic = BABYLON.Mesh.CreateSphere("spherePlastic", 48, 30.0, scene);
+            spherePlastic.translate(new BABYLON.Vector3(0, 0, 1), -60);
+
+            var woodPlank = BABYLON.MeshBuilder.CreateBox("plane", { width: 65, height: 1, depth: 65 }, scene);
+
+            // Create materials
+            var glass = new BABYLON.PBRMaterial("glass", scene);
+            glass.reflectionTexture = hdrTexture;
+            glass.refractionTexture = hdrTexture;
+            glass.linkRefractionWithTransparency = true;
+            glass.indexOfRefraction = 0.52;
+            glass.alpha = 0;
+            glass.directIntensity = 0.0;
+            glass.environmentIntensity = 0.5;
+            glass.cameraExposure = 0.5;
+            glass.cameraContrast = 1.7;
+            glass.microSurface = 1;
+            glass.reflectivityColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+            glass.albedoColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+            sphereGlass.material = glass;
+
+            var metal = new BABYLON.PBRMaterial("metal", scene);
+            metal.reflectionTexture = hdrTexture;
+            metal.directIntensity = 0.3;
+            metal.environmentIntensity = 0.7;
+            metal.cameraExposure = 0.55;
+            metal.cameraContrast = 1.6;
+            metal.microSurface = 0.96;
+            metal.reflectivityColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+            metal.albedoColor = new BABYLON.Color3(1, 1, 1);
+            sphereMetal.material = metal;
+
+            var plastic = new BABYLON.PBRMaterial("plastic", scene);
+            plastic.reflectionTexture = hdrTexture;
+            plastic.directIntensity = 0.6;
+            plastic.environmentIntensity = 0.7;
+            plastic.cameraExposure = 0.6;
+            plastic.cameraContrast = 1.6;
+            plastic.microSurface = 0.96;
+            plastic.albedoColor = new BABYLON.Color3(0.206, 0.94, 1);
+            plastic.reflectivityColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+            spherePlastic.material = plastic;
+
+            var wood = new BABYLON.PBRMaterial("wood", scene);
+            wood.reflectionTexture = hdrTexture;
+            wood.directIntensity = 1.5;
+            wood.environmentIntensity = 0.5;
+            wood.specularIntensity = 0.3;
+            wood.cameraExposure = 0.9;
+            wood.cameraContrast = 1.6;
+
+            wood.reflectivityTexture = new BABYLON.Texture("Tests/textures/reflectivity.png", scene);
+            wood.useMicroSurfaceFromReflectivityMapAlpha = true;
+
+            wood.albedoColor = BABYLON.Color3.White();
+            wood.albedoTexture = new BABYLON.Texture("Tests/textures/albedo.png", scene);
+            woodPlank.material = wood;
 
             editorMain._handleSceneLoaded()(null, scene);
         };
