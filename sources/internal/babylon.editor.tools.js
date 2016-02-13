@@ -65,6 +65,12 @@ var BABYLON;
                     $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
                 return input;
             };
+            /**
+            * Cleans an editor project
+            */
+            Tools.CleanProject = function (project) {
+                project.renderTargets = project.renderTargets || [];
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

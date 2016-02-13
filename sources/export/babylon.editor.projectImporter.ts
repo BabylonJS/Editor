@@ -9,9 +9,28 @@
         // Imports the project
         public static ImportProject(core: EditorCore, data: string): void {
             var project: INTERNAL.IProjectRoot = JSON.parse(data);
+            Tools.CleanProject(project);
 
-            // First, create materials
+            // First, create the render targets (maybe used by the materials)
+            // (serialized materials will be able to retrieve the textures)
+            for (var i = 0; i < project.renderTargets.length; i++) {
+                var rt = project.renderTargets[i];
+
+                if (rt.isProbe) {
+                    var reflectionProbe = new ReflectionProbe(rt.serializationObject.name, rt.serializationObject.size, core.currentScene, rt.serializationObject.generateMipMaps);
+                    (<any>reflectionProbe)._waitingRenderList = rt.serializationObject.renderList;
+                    rt.waitingTexture = reflectionProbe;
+                }
+                else {
+                    var texture = <RenderTargetTexture>Texture.Parse(rt.serializationObject, core.currentScene, "./");
+                    texture._waitingRenderList = undefined;
+                    rt.waitingTexture = texture;
+                }
+            }
+
+            // Second, create materials
             // (serialized meshes will be able to retrieve the materials)
+            // Etc.
             for (var i = 0; i < project.materials.length; i++) {
                 var material = project.materials[i];
 
@@ -161,6 +180,21 @@
                     if (pp.attach !== undefined && !pp.attach) {
                         (<PostProcessRenderPipeline>newPp)._detachCameras(core.currentScene.cameras);
                     }
+                }
+            }
+
+            // Render tagets, fill waiting renderlists
+            for (var i = 0; i < project.renderTargets.length; i++) {
+                var rt = project.renderTargets[i];
+
+                if (rt.isProbe && rt.serializationObject.attachedMeshId) {
+                    (<ReflectionProbe>rt.waitingTexture).attachToMesh(core.currentScene.getMeshByID(rt.serializationObject.attachedMeshId));
+                }
+
+                for (var renderId = 0; renderId < rt.serializationObject.renderList.length; renderId++) {
+                    var obj = core.currentScene.getMeshByID(rt.serializationObject.renderList[renderId]);
+                    if (obj)
+                        rt.waitingTexture.renderList.push(obj);
                 }
             }
         }

@@ -21,6 +21,7 @@ var BABYLON;
                     shadowGenerators: [],
                     postProcesses: this._SerializePostProcesses(),
                     lensFlares: this._SerializeLensFlares(core),
+                    renderTargets: this._SerializeRenderTargets(core),
                     requestedMaterials: requestMaterials ? [] : undefined
                 };
                 this._TraverseNodes(core, null, project);
@@ -49,6 +50,41 @@ var BABYLON;
                         type: type
                     };
                     config.animatedAtLaunch.push(obj);
+                }
+                return config;
+            };
+            // Serialize render targets
+            ProjectExporter._SerializeRenderTargets = function (core) {
+                var config = [];
+                var index = 0;
+                // Probes
+                for (index = 0; index < core.currentScene.reflectionProbes.length; index++) {
+                    var rp = core.currentScene.reflectionProbes[index];
+                    var attachedMesh = rp._attachedMesh;
+                    var obj = {
+                        isProbe: true,
+                        serializationObject: {}
+                    };
+                    if (attachedMesh) {
+                        obj.serializationObject.attachedMeshId = attachedMesh.id;
+                    }
+                    obj.serializationObject.name = rp.name;
+                    obj.serializationObject.size = rp.cubeTexture.getBaseSize().width;
+                    obj.serializationObject.generateMipMaps = rp.cubeTexture._generateMipMaps;
+                    obj.serializationObject.renderList = [];
+                    for (var i = 0; i < rp.renderList.length; i++) {
+                        obj.serializationObject.renderList.push(rp.renderList[i].id);
+                    }
+                    config.push(obj);
+                }
+                // Render targets
+                for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
+                    var rt = core.currentScene.customRenderTargets[index];
+                    var obj = {
+                        isProbe: false,
+                        serializationObject: rt.serialize()
+                    };
+                    config.push(obj);
                 }
                 return config;
             };

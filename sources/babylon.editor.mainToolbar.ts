@@ -95,8 +95,6 @@
                         exporter.openSceneExporter();
                     }
                     else if (id.indexOf(this._projectExportBabylonScene) !== -1) {
-                        //var exporter = new Exporter(this._core);
-                        //exporter.openSceneExporter(true);
                         var babylonExporter = new BabylonExporter(this._core);
                         babylonExporter.createUI();
                     }

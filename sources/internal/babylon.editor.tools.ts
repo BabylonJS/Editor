@@ -74,5 +74,12 @@
 
             return input;
         }
+
+        /**
+        * Cleans an editor project
+        */
+        public static CleanProject(project: INTERNAL.IProjectRoot): void {
+            project.renderTargets = project.renderTargets || [];
+        }
     }
 }

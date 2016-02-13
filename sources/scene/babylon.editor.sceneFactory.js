@@ -190,6 +190,7 @@ var BABYLON;
             // Adds a render target
             SceneFactory.AddRenderTargetTexture = function (core) {
                 var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
+                core.currentScene.customRenderTargets.push(rt);
                 EDITOR.Event.sendSceneEvent(rt, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return rt;
             };

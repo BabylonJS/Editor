@@ -18,6 +18,7 @@
                 shadowGenerators: [],
                 postProcesses: this._SerializePostProcesses(),
                 lensFlares: this._SerializeLensFlares(core),
+                renderTargets: this._SerializeRenderTargets(core),
 
                 requestedMaterials: requestMaterials ? [] : undefined
             };
@@ -53,6 +54,52 @@
                     type: type
                 }
                 config.animatedAtLaunch.push(obj);
+            }
+
+            return config;
+        }
+
+        // Serialize render targets
+        private static _SerializeRenderTargets(core: EditorCore): INTERNAL.IRenderTarget[] {
+            var config: INTERNAL.IRenderTarget[] = [];
+            var index = 0;
+
+            // Probes
+            for (index = 0; index < core.currentScene.reflectionProbes.length; index++) {
+                var rp = core.currentScene.reflectionProbes[index];
+                var attachedMesh = (<any>rp)._attachedMesh;
+
+                var obj: INTERNAL.IRenderTarget = {
+                    isProbe: true,
+                    serializationObject: { }
+                };
+
+                if (attachedMesh) {
+                    obj.serializationObject.attachedMeshId = attachedMesh.id;
+                }
+
+                obj.serializationObject.name = rp.name;
+                obj.serializationObject.size = rp.cubeTexture.getBaseSize().width;
+                obj.serializationObject.generateMipMaps = rp.cubeTexture._generateMipMaps;
+
+                obj.serializationObject.renderList = [];
+                for (var i = 0; i < rp.renderList.length; i++) {
+                    obj.serializationObject.renderList.push(rp.renderList[i].id);
+                }
+
+                config.push(obj);
+            }
+
+            // Render targets
+            for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
+                var rt = core.currentScene.customRenderTargets[index];
+                
+                var obj: INTERNAL.IRenderTarget = {
+                    isProbe: false,
+                    serializationObject: rt.serialize()
+                };
+
+                config.push(obj);
             }
 
             return config;

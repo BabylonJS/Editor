@@ -100,6 +100,16 @@ declare module BABYLON.EDITOR.INTERNAL {
     }
 
     /**
+    * Render targets
+    */
+    interface IRenderTarget {
+        isProbe: boolean;
+        serializationObject: any;
+
+        waitingTexture?: RenderTargetTexture | ReflectionProbe;
+    }
+
+    /**
     * Root object of project
     */
     interface IProjectRoot {
@@ -110,6 +120,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         shadowGenerators: any[];
         postProcesses: IPostProcess[];
         lensFlares: ILensFlare[];
+        renderTargets: IRenderTarget[];
 
         requestedMaterials?: string[];
     }

@@ -25,5 +25,9 @@ declare module BABYLON.EDITOR {
         * Creates an input element
         */
         static CreateFileInpuElement(id: string): JQuery;
+        /**
+        * Cleans an editor project
+        */
+        static CleanProject(project: INTERNAL.IProjectRoot): void;
     }
 }

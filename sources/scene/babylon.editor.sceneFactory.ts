@@ -258,6 +258,7 @@
         // Adds a render target
         static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture {
             var rt = new RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
+            core.currentScene.customRenderTargets.push(rt);
 
             Event.sendSceneEvent(rt, SceneEventType.OBJECT_ADDED, core);
 
