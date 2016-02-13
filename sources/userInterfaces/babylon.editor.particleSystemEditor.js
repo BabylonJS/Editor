@@ -169,15 +169,21 @@ var BABYLON;
                 this._editElement.buildElement(elementId);
                 var ps = this._particleSystem;
                 this._editElement.remember(ps);
-                // Name
-                this._editElement.add(ps, "name").name("Name").onChange(function (result) {
+                // Edit
+                var functionsFolder = this._editElement.addFolder("Functions");
+                if (!this._uiCreated)
+                    functionsFolder.add(this, "_editParticleSystem").name("Edit...");
+                functionsFolder.add(this, "_startParticleSystem").name("Start Particle System");
+                functionsFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
+                // Common
+                var commonFolder = this._editElement.addFolder("Common");
+                commonFolder.add(ps, "name").name("Name").onChange(function (result) {
                     if (!_this._uiCreated) {
                         _this._updateGraphNode(result);
                     }
                 });
-                // Capacity
                 this._particleSystemCapacity = "" + this._particleSystem.getCapacity();
-                this._editElement.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
+                commonFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
                     result = parseFloat(result);
                     var emitter = _this._particleSystem.emitter;
                     var scene = _this._uiCreated ? _this._scene : _this.core.currentScene;
@@ -193,13 +199,9 @@ var BABYLON;
                         _this._updateGraphNode(_this._particleSystem.name, _this._particleSystem);
                     }
                 });
-                // Edit
-                this._editElement.add(this, "_editParticleSystem").name("Edit...");
-                this._editElement.add(this, "_startParticleSystem").name("Start Particle System");
-                this._editElement.add(this, "_stopParticleSystem").name("Stop Particle System");
                 // Texture
-                this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
-                this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange(function (result) {
+                commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
+                commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange(function (result) {
                     switch (result) {
                         case "ONEONE":
                             ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;

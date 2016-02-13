@@ -58,7 +58,7 @@
         /**
         * Adds a new element
         */
-        add(object: Object, propertyPath: string, items?: Array<string>): IGUIElement;
+        add(object: Object, propertyPath: string, items?: Array<string>, name?: string): IGUIElement;
         /**
         * Adds a new color element
         */

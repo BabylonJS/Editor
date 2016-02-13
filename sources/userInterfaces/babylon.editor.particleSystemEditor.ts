@@ -207,16 +207,24 @@
 
             this._editElement.remember(ps);
 
-            // Name
-            this._editElement.add(ps, "name").name("Name").onChange((result: any) => {
+            // Edit
+            var functionsFolder = this._editElement.addFolder("Functions");
+            if (!this._uiCreated)
+                functionsFolder.add(this, "_editParticleSystem").name("Edit...");
+
+            functionsFolder.add(this, "_startParticleSystem").name("Start Particle System");
+            functionsFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
+
+            // Common
+            var commonFolder = this._editElement.addFolder("Common");
+            commonFolder.add(ps, "name").name("Name").onChange((result: any) => {
                 if (!this._uiCreated) {
                     this._updateGraphNode(result);
                 }
             });
 
-            // Capacity
             this._particleSystemCapacity = "" + this._particleSystem.getCapacity();
-            this._editElement.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange((result: any) => {
+            commonFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange((result: any) => {
                 result = parseFloat(result);
 
                 var emitter = this._particleSystem.emitter;
@@ -236,14 +244,9 @@
                 }
             });
 
-            // Edit
-            this._editElement.add(this, "_editParticleSystem").name("Edit...");
-            this._editElement.add(this, "_startParticleSystem").name("Start Particle System");
-            this._editElement.add(this, "_stopParticleSystem").name("Stop Particle System");
-
             // Texture
-            this._editElement.add(this, "_setParticleTexture").name("Choose Texture...");
-            this._editElement.add(ps, "blendMode", ["ONEONE", "STANDARD"], "Blend Mode: ").onFinishChange((result: any) => {
+            commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
+            commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
                 switch (result) {
                     case "ONEONE": ps.blendMode = ParticleSystem.BLENDMODE_ONEONE; break;
                     case "STANDARD": ps.blendMode = ParticleSystem.BLENDMODE_STANDARD; break;
