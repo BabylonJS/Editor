@@ -6,7 +6,7 @@ declare module BABYLON.EDITOR {
         * @param editionTool: edition tool instance
         */
         constructor(editionTool: EditionTool);
-        update(): void;
+        update(): boolean;
         resize(): void;
     }
 }

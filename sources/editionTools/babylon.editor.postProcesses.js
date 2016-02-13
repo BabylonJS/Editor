@@ -40,7 +40,7 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -111,6 +111,7 @@ var BABYLON;
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
                 }
+                return true;
             };
             // Draws SSAO only
             PostProcessesTool.prototype._ssaoOnly = function (result) {

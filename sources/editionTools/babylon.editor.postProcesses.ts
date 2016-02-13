@@ -34,13 +34,13 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: Scene = this.object = this._editionTool.object;
 
             super.update();
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -122,6 +122,8 @@
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
             }
+
+            return true;
         }
 
         // Draws SSAO only

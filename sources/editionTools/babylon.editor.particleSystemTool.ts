@@ -33,7 +33,7 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: ParticleSystem = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
 
@@ -47,10 +47,12 @@
             GUIParticleSystemEditor._CurrentParticleSystem = object;
 
             if (!object)
-                return;
+                return false;
 
             var psEditor = new GUIParticleSystemEditor(this._editionTool.core, object, false);
             this._element = psEditor._createEditor(this.containers[0]);
+
+            return true;
         }
     }
 }

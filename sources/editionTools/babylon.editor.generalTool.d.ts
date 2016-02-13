@@ -11,7 +11,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _castShadows;
         private _setChildrenCastingShadows(node);
     }

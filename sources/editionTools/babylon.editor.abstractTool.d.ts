@@ -11,7 +11,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         apply(): void;
         resize(): void;
     }

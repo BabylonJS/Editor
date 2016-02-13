@@ -10,7 +10,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _editAnimations();
         private _playAnimations();
         private _playSkeletonAnimations();

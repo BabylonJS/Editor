@@ -36,14 +36,14 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var sound: Sound = this.object = this._editionTool.object;
             var soundTrack = this._editionTool.core.currentScene.soundTracks[sound.soundTrackId];
 
             super.update();
 
             if (!sound)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -99,6 +99,8 @@
 
             // Soundtrack
             var soundTrackFolder = this._element.addFolder("Sound Track");
+
+            return true;
         }
 
         // Position callback

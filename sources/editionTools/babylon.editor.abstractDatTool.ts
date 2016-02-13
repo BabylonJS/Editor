@@ -15,11 +15,13 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             if (this._element) {
                 this._element.remove();
                 this._element = null;
             }
+
+            return true;
         }
 
         // Resize

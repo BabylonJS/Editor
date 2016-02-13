@@ -80,6 +80,14 @@
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
+    <Content Include="website\src\Shaders\ShadersInclude\bonesDeclaration.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\bonesVertex.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\fogFragment.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\fogFragmentDeclaration.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\fogVertex.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\fogVertexDeclaration.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\instancesDeclaration.fx" />
+    <Content Include="website\src\Shaders\ShadersInclude\instancesVertex.fx" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -117,7 +125,10 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.postProcesses.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
-    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.materialEditor.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.abstractMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.pbrMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.skyMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.standardMaterialTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectExporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectImporter.ts" />

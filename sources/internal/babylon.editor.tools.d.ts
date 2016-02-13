@@ -26,6 +26,10 @@ declare module BABYLON.EDITOR {
         */
         static CreateFileInpuElement(id: string): JQuery;
         /**
+        * Beautify a variable name (escapeds + upper case)
+        */
+        static BeautifyName(name: string): string;
+        /**
         * Cleans an editor project
         */
         static CleanProject(project: INTERNAL.IProjectRoot): void;

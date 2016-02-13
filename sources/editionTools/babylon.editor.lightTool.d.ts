@@ -9,7 +9,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _createShadowsGenerator();
         private _removeShadowGenerator();
     }

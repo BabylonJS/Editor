@@ -39,7 +39,7 @@ var BABYLON;
                 var soundTrack = this._editionTool.core.currentScene.soundTracks[sound.soundTrackId];
                 _super.prototype.update.call(this);
                 if (!sound)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(sound);
@@ -87,6 +87,7 @@ var BABYLON;
                 positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
                 // Soundtrack
                 var soundTrackFolder = this._element.addFolder("Sound Track");
+                return true;
             };
             // Position callback
             AudioTool.prototype._positionCallback = function (sound) {

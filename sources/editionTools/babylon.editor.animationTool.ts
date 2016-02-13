@@ -35,13 +35,13 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: Node = this.object = this._editionTool.object;
 
             super.update();
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -60,6 +60,8 @@
                 var skeletonFolder = this._element.addFolder("Skeleton");
                 skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
             }
+
+            return true;
         }
 
         // Loads the animations tool

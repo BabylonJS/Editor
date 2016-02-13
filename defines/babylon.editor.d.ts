@@ -76,7 +76,7 @@
         /**
         * Update forms
         */
-        update(): void;
+        update(): boolean;
         /**
         * Apply values to object
         */

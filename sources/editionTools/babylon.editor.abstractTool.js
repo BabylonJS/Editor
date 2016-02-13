@@ -21,7 +21,9 @@ var BABYLON;
             // Creates the UI
             AbstractTool.prototype.createUI = function () { };
             // Update
-            AbstractTool.prototype.update = function () { };
+            AbstractTool.prototype.update = function () {
+                return true;
+            };
             // Apply
             AbstractTool.prototype.apply = function () { };
             // Resize

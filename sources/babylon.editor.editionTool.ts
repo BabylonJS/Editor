@@ -142,7 +142,6 @@
         public createUI(): void {
             // Add default tools
             this.addTool(new GeneralTool(this));
-            this.addTool(new MaterialTool(this));
             this.addTool(new SceneTool(this));
             this.addTool(new LightTool(this));
             this.addTool(new AnimationTool(this));
@@ -151,6 +150,11 @@
             this.addTool(new AudioTool(this));
             this.addTool(new ParticleSystemTool(this));
             this.addTool(new LensFlareTool(this));
+
+            this.addTool(new MaterialTool(this));
+            this.addTool(new StandardMaterialTool(this));
+            this.addTool(new SkyMaterialTool(this));
+            this.addTool(new PBRMaterialTool(this));
         }
 
         // Adds a tool

@@ -40,7 +40,7 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -94,6 +94,7 @@ var BABYLON;
                         shadowsFolder.add(this, "_customShadowsGeneratorSize").min(0).name("Shadow Map Size");
                     }
                 }
+                return true;
             };
             // Creates a new shadows generator
             LightTool.prototype._createShadowsGenerator = function () {

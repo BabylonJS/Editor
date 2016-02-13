@@ -33,13 +33,13 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: Scene = this.object = this._editionTool.object;
 
             super.update();
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -115,6 +115,8 @@
             capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
             capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
             capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
+
+            return true;
         }
     }
 }

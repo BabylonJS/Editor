@@ -34,13 +34,13 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: Light = this.object = this._editionTool.object;
 
             super.update();
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -105,6 +105,8 @@
                     shadowsFolder.add(this, "_customShadowsGeneratorSize").min(0).name("Shadow Map Size");
                 }
             }
+
+            return true;
         }
 
         // Creates a new shadows generator

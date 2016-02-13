@@ -3,7 +3,7 @@ declare module BABYLON {
     class SkyMaterial extends Material {
         luminance: number;
         turbidity: number;
-        reileigh: number;
+        rayleigh: number;
         mieCoefficient: number;
         mieDirectionalG: number;
         distance: number;

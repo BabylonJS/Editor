@@ -76,6 +76,24 @@
         }
 
         /**
+        * Beautify a variable name (escapeds + upper case)
+        */
+        public static BeautifyName(name: string): string {
+            var result = name[0].toUpperCase();
+
+            for (var i = 1; i < name.length; i++) {
+                var char = name[i];
+
+                if (char === char.toUpperCase())
+                    result += " ";
+
+                result += name[i];
+            }
+
+            return result;
+        }
+
+        /**
         * Cleans an editor project
         */
         public static CleanProject(project: INTERNAL.IProjectRoot): void {

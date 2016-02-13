@@ -13,7 +13,7 @@ declare module BABYLON.EDITOR {
         onEvent(event: Event): boolean;
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _exportRenderTarget();
         private _attachToMesh();
         private _setIncludedMeshes();

@@ -83,7 +83,7 @@ var BABYLON;
                 }
                 var scene = this._editionTool.core.currentScene;
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -110,6 +110,7 @@ var BABYLON;
                     positionFolder.add(object.position, "y").step(0.01);
                     positionFolder.add(object.position, "z").step(0.01);
                 }
+                return true;
             };
             // Dumps the render target and opens a window
             ReflectionProbeTool.prototype._exportRenderTarget = function () {

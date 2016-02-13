@@ -8,7 +8,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _ssaoOnly(result);
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();

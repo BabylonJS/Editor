@@ -8,7 +8,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _addLensFlareFolder(lensFlare, indice);
         private _addLensFlare();
         private _reset();

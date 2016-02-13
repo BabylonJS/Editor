@@ -28,8 +28,9 @@
         { }
 
         // Update
-        public update(): void
-        { }
+        public update(): boolean {
+            return true;
+        }
 
         // Apply
         public apply(): void

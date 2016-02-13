@@ -1,13 +1,10 @@
 ﻿module BABYLON.EDITOR {
     export class MaterialTool extends AbstractDatTool {
         // Public members
-        public object: Node = null;
-
         public tab: string = "MATERIAL.TAB";
 
         // Private members
-        private _forbiddenElements: Array<string>;
-        private _dummyProperty: any = "";
+        private _dummyProperty: string = "";
 
         /**
         * Constructor
@@ -19,14 +16,6 @@
             // Initialize
             this.containers = [
                 "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
-            ];
-
-            this._forbiddenElements = [
-                "pointSize",
-                "sideOrientation",
-                "alphaMode",
-                "zOffset",
-                "fillMode",
             ];
         }
 
@@ -53,21 +42,24 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: any = this._editionTool.object;
+            var material: Material = null;
             var scene = this._editionTool.core.currentScene;
 
             super.update();
 
             if (object instanceof AbstractMesh) {
-                object = object.material;
+                material = object.material;
             }
             else if (object instanceof SubMesh) {
-                object = object.getMaterial();
+                material = object.getMaterial();
             }
 
-            if (!object || !(object instanceof Material))
-                return;
+            if (!material)
+                return false;
+
+            this.object = object;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -80,10 +72,10 @@
             for (var i = 0; i < scene.materials.length; i++)
                 materials.push(scene.materials[i].name);
 
-            this._dummyProperty = object.name;
+            this._dummyProperty = material.name;
             materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
-                var material = scene.getMaterialByName(result);
-                this._editionTool.object.material = material;
+                var newmaterial = scene.getMaterialByName(result);
+                this._editionTool.object.material = newmaterial;
                 this.update();
             });
 
@@ -93,114 +85,22 @@
 
             // Common
             var generalFolder = this._element.addFolder("Common");
-            generalFolder.add(object, "name").name("Name");
+            generalFolder.add(material, "name").name("Name");
+            generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
 
-            // Textures
-            var texturesFolder = this._element.addFolder("Textures");
-            for (var thing in object) {
-                var value = object[thing];
-                if (value instanceof Texture) {
-                    var tex = <Texture>value;
-                    var texFolder = texturesFolder.addFolder(this._beautifyName(thing));
-                    // ...
-                }
-            }
+            // Options
+            var optionsFolder = this._element.addFolder("Options");
+            optionsFolder.add(material, "wireframe").name("Wire frame");
+            optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
+            optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
+            optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
+            optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
+            optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
 
-            // Numbers
-            var numbersFolder = this._element.addFolder("Numbers");
-            this._addNumberFields(numbersFolder, object);
+            if ((<any>material).disableLighting !== undefined)
+                optionsFolder.add(material, "disableLighting").name("Disable Lighting");
 
-            // Booleans
-            var booleansFolder = this._element.addFolder("Booleans");
-            this._addBooleanFields(booleansFolder, object);
-            
-            // Colors
-            var colorsFolder = this._element.addFolder("Colors");
-            this._addColorFields(colorsFolder, object);
-
-            // Vectors
-            var vectorsFolder = this._element.addFolder("Vectors");
-            this._addVectorFields(vectorsFolder, object);
-        }
-
-        // Beautify property name
-        private _beautifyName(name: string): string {
-            var result = name[0].toUpperCase();
-
-            for (var i = 1; i < name.length; i++) {
-                var char = name[i];
-
-                if (char === char.toUpperCase())
-                    result += " ";
-
-                result += name[i];
-            }
-
-            return result;
-        }
-
-        // Adds a number
-        private _addNumberFields(folder: dat.IFolderElement, object: any): void {
-            for (var thing in object) {
-                var value = object[thing];
-                if (typeof value === "number" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                    var item = folder.add(object, thing);
-
-                    this._element.tagObjectIfChanged(item, object, thing);
-
-                    if (thing === "alpha") {
-                        item.min(0.0).max(1.0).step(0.01);
-                    }
-
-                    item.step(0.01).name(this._beautifyName(thing));
-                }
-            }
-        }
-
-        // Adds booleans
-        private _addBooleanFields(folder: dat.IFolderElement, object: any): void {
-            for (var thing in object) {
-                var value = object[thing];
-                if (typeof value === "boolean" && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                    var item = folder.add(object, thing).name(this._beautifyName(thing));
-
-                    this._element.tagObjectIfChanged(item, object, thing);
-                }
-            }
-        }
-
-        // Adds colors
-        private _addColorFields(folder: dat.IFolderElement, object: any): void {
-            for (var thing in object) {
-                var value = object[thing];
-                if (value instanceof Color3 && thing[0] !== "_" && this._forbiddenElements.indexOf(thing) === -1) {
-                    var colorFolder = this._element.addFolder(this._beautifyName(thing), folder);
-                    colorFolder.close();
-                    colorFolder.add(object[thing], "r").name("r").min(0.0).max(1.0).step(0.001);
-                    colorFolder.add(object[thing], "g").name("g").min(0.0).max(1.0).step(0.001);
-                    colorFolder.add(object[thing], "b").name("b").min(0.0).max(1.0).step(0.001);
-                }
-            }
-        }
-
-        // Adds vectors
-        private _addVectorFields(folder: dat.IFolderElement, object: any): void {
-            for (var thing in object) {
-                var value = object[thing];
-
-                if (thing[0] === "_" || this._forbiddenElements.indexOf(thing) === -1)
-                    continue;
-
-                if (value instanceof Vector3 || value instanceof Vector2) {
-                    var vectorFolder = this._element.addFolder(this._beautifyName(thing), folder);
-                    vectorFolder.close();
-                    vectorFolder.add(object[thing], "x").name("x").step(0.01);
-                    vectorFolder.add(object[thing], "y").name("y").step(0.01);
-
-                    if (value instanceof Vector3)
-                        vectorFolder.add(object[thing], "z").name("z").step(0.01);
-                }
-            }
+            return true;
         }
 
         // Converts a standard material to PBR
@@ -222,21 +122,20 @@
             var pbr: PBRMaterial = new PBRMaterial("New PBR Material", scene);
 
             // Textures
-            pbr.diffuseTexture = object.diffuseTexture;
+            pbr.albedoTexture = object.diffuseTexture;
             pbr.bumpTexture = object.bumpTexture;
             pbr.ambientTexture = object.ambientTexture;
             pbr.emissiveTexture = object.emissiveTexture;
             pbr.lightmapTexture = object.lightmapTexture;
             pbr.reflectionTexture = object.reflectionTexture || scene.reflectionProbes[0].cubeTexture;
-            pbr.specularTexture = object.specularTexture;
-            pbr.useAlphaFromDiffuseTexture = object.useAlphaFromDiffuseTexture;
+            pbr.reflectivityTexture = object.specularTexture;
+            pbr.useAlphaFromAlbedoTexture = object.useAlphaFromDiffuseTexture;
 
             // Colors
-            pbr.diffuseColor = object.diffuseColor;
+            pbr.albedoColor = object.diffuseColor;
             pbr.emissiveColor = object.emissiveColor;
-            pbr.specularColor = object.specularColor;
+            pbr.reflectivityColor = object.specularColor;
             pbr.ambientColor = object.ambientColor;
-            pbr.glossiness = object.specularPower;
             pbr.alpha = object.alpha;
             pbr.alphaMode = object.alphaMode;
 

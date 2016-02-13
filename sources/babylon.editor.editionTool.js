@@ -112,7 +112,6 @@ var BABYLON;
             EditionTool.prototype.createUI = function () {
                 // Add default tools
                 this.addTool(new EDITOR.GeneralTool(this));
-                this.addTool(new EDITOR.MaterialTool(this));
                 this.addTool(new EDITOR.SceneTool(this));
                 this.addTool(new EDITOR.LightTool(this));
                 this.addTool(new EDITOR.AnimationTool(this));
@@ -121,6 +120,10 @@ var BABYLON;
                 this.addTool(new EDITOR.AudioTool(this));
                 this.addTool(new EDITOR.ParticleSystemTool(this));
                 this.addTool(new EDITOR.LensFlareTool(this));
+                this.addTool(new EDITOR.MaterialTool(this));
+                this.addTool(new EDITOR.StandardMaterialTool(this));
+                this.addTool(new EDITOR.SkyMaterialTool(this));
+                this.addTool(new EDITOR.PBRMaterialTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {

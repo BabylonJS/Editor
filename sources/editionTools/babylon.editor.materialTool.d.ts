@@ -1,8 +1,6 @@
 declare module BABYLON.EDITOR {
     class MaterialTool extends AbstractDatTool {
-        object: Node;
         tab: string;
-        private _forbiddenElements;
         private _dummyProperty;
         /**
         * Constructor
@@ -11,12 +9,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
-        private _beautifyName(name);
-        private _addNumberFields(folder, object);
-        private _addBooleanFields(folder, object);
-        private _addColorFields(folder, object);
-        private _addVectorFields(folder, object);
+        update(): boolean;
         private _convertToPBR();
     }
 }

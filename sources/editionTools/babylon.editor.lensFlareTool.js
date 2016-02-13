@@ -42,7 +42,7 @@ var BABYLON;
                 var core = this._editionTool.core;
                 _super.prototype.update.call(this);
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -54,6 +54,7 @@ var BABYLON;
                 for (var i = 0; i < object.lensFlares.length; i++) {
                     this._addLensFlareFolder(object.lensFlares[i], i);
                 }
+                return true;
             };
             // Adds a lens flare folder
             LensFlareTool.prototype._addLensFlareFolder = function (lensFlare, indice) {

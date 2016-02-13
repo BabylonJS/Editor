@@ -34,7 +34,7 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             var object: LensFlareSystem = this.object = this._editionTool.object;
             var scene = this._editionTool.core.currentScene;
             var core = this._editionTool.core;
@@ -42,7 +42,7 @@
             super.update();
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -58,6 +58,8 @@
             for (var i = 0; i < object.lensFlares.length; i++) {
                 this._addLensFlareFolder(object.lensFlares[i], i);
             }
+
+            return true;
         }
 
         // Adds a lens flare folder

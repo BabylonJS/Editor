@@ -45,9 +45,10 @@ var BABYLON;
                 toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.ParticleSystem, toolbar.particleSystemMenu.id);
                 EDITOR.GUIParticleSystemEditor._CurrentParticleSystem = object;
                 if (!object)
-                    return;
+                    return false;
                 var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, object, false);
                 this._element = psEditor._createEditor(this.containers[0]);
+                return true;
             };
             return ParticleSystemTool;
         })(EDITOR.AbstractDatTool);

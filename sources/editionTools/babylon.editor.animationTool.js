@@ -41,7 +41,7 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -56,6 +56,7 @@ var BABYLON;
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
                 }
+                return true;
             };
             // Loads the animations tool
             AnimationTool.prototype._editAnimations = function () {

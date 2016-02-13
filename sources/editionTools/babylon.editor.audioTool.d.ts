@@ -11,7 +11,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        update(): void;
+        update(): boolean;
         private _positionCallback(sound);
         private _pauseSound();
         private _playSound();

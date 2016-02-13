@@ -39,7 +39,7 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
-                    return;
+                    return false;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -112,6 +112,7 @@ var BABYLON;
                 capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
                 capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
                 capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
+                return true;
             };
             return SceneTool;
         })(EDITOR.AbstractDatTool);

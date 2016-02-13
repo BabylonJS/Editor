@@ -82,7 +82,10 @@
     <script src="../sources/editionTools/babylon.editor.particleSystemTool.js" type="text/javascript"></script>
     <script src="../sources/editionTools/babylon.editor.lensFlareTool.js" type="text/javascript"></script>
 
-    <script src="../sources/editionTools/materialEditors/babylon.editor.materialEditor.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js" type="text/javascript"></script>
+    <script src="../sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js" type="text/javascript"></script>
 
     <!-- USER INTERFACES -->
     <script src="../sources/userInterfaces/babylon.editor.particleSystemEditor.js" type="text/javascript"></script>
@@ -180,7 +183,7 @@
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        //createReleaseScene();
+        createReleaseScene();
 
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);

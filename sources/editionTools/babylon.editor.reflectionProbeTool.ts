@@ -91,7 +91,7 @@
         }
 
         // Update
-        public update(): void {
+        public update(): boolean {
             super.update();
 
             var object: ReflectionProbe | RenderTargetTexture | Light = this.object = this._editionTool.object;
@@ -103,7 +103,7 @@
             var scene = this._editionTool.core.currentScene;
 
             if (!object)
-                return;
+                return false;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
             this._element.buildElement(this.containers[0]);
@@ -136,6 +136,8 @@
                 positionFolder.add(object.position, "y").step(0.01);
                 positionFolder.add(object.position, "z").step(0.01);
             }
+
+            return true;
         }
 
         // Dumps the render target and opens a window

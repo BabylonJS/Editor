@@ -23,6 +23,7 @@ var BABYLON;
                     this._element.remove();
                     this._element = null;
                 }
+                return true;
             };
             // Resize
             AbstractDatTool.prototype.resize = function () {
