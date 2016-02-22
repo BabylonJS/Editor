@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIPanel extends GUIElement implements IGUIPanel {
+    class GUIPanel extends GUIElement {
         tabs: Array<IGUITab>;
         type: string;
         size: number;

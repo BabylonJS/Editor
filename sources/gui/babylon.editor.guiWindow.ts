@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIWindow extends GUIElement implements IGUIWindowElement {
+    export class GUIWindow extends GUIElement {
         // Public members
         public title: string = "";
         public body: string = "";

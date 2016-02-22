@@ -79,10 +79,6 @@
                 this.update();
             });
 
-            if (material instanceof StandardMaterial) {
-                materialFolder.add(this, "_convertToPBR").name("Convert to PBR");
-            }
-
             // Common
             var generalFolder = this._element.addFolder("Common");
             generalFolder.add(material, "name").name("Name");
@@ -101,61 +97,6 @@
                 optionsFolder.add(material, "disableLighting").name("Disable Lighting");
 
             return true;
-        }
-
-        // Converts a standard material to PBR
-        private _convertToPBR(): void {
-            var object: StandardMaterial = null;
-            var mesh = this._editionTool.object;
-
-            if (mesh instanceof AbstractMesh) {
-                object = mesh.material;
-            }
-            else if (mesh instanceof SubMesh) {
-                object = mesh.getMaterial();
-            }
-
-            if (!object)
-                return;
-
-            var scene = this._editionTool.core.currentScene;
-            var pbr: PBRMaterial = new PBRMaterial("New PBR Material", scene);
-
-            // Textures
-            pbr.albedoTexture = object.diffuseTexture;
-            pbr.bumpTexture = object.bumpTexture;
-            pbr.ambientTexture = object.ambientTexture;
-            pbr.emissiveTexture = object.emissiveTexture;
-            pbr.lightmapTexture = object.lightmapTexture;
-            pbr.reflectionTexture = object.reflectionTexture || scene.reflectionProbes[0].cubeTexture;
-            pbr.reflectivityTexture = object.specularTexture;
-            pbr.useAlphaFromAlbedoTexture = object.useAlphaFromDiffuseTexture;
-
-            // Colors
-            pbr.albedoColor = object.diffuseColor;
-            pbr.emissiveColor = object.emissiveColor;
-            pbr.reflectivityColor = object.specularColor;
-            pbr.ambientColor = object.ambientColor;
-            pbr.alpha = object.alpha;
-            pbr.alphaMode = object.alphaMode;
-
-            // Finish
-            if (mesh instanceof AbstractMesh) {
-                mesh.material = pbr;
-            }
-            else if (mesh instanceof SubMesh) {
-                var subMesh = <SubMesh>mesh;
-                var material = subMesh.getMesh().material;
-
-                if (material instanceof MultiMaterial) {
-                    var materialIndex = material.subMaterials.indexOf(subMesh.getMaterial());
-
-                    if (materialIndex !== -1)
-                        material.subMaterials[materialIndex] = pbr;
-                }
-            }
-
-            this.update();
         }
     }
 }

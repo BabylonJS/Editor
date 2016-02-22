@@ -94,7 +94,8 @@ var BABYLON;
             // Generates the final .babylon file
             BabylonExporter.GenerateFinalBabylonFile = function (core) {
                 var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
-                obj.activeCameraID = core.playCamera.id;
+                if (core.playCamera)
+                    obj.activeCameraID = core.playCamera.id;
                 return JSON.stringify(obj);
             };
             return BabylonExporter;

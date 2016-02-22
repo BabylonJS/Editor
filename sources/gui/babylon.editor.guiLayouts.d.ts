@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUILayout extends GUIElement implements IGUILayout {
+    class GUILayout extends GUIElement {
         panels: Array<GUIPanel>;
         /**
         * Constructor

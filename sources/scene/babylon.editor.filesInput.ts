@@ -17,6 +17,7 @@
         private static _callback(callback: (file: File, scene: Scene) => void, core: EditorCore, filesInput: FilesInput): (file: File, scene: Scene) => void {
             var readFileCallback = (scene: Scene, jsFile: File) => {
                 return (result: string) => {
+                    
                     /*
                     var evalResult = eval.call(window, result + "CreateBabylonScene");
 
@@ -34,9 +35,8 @@
                         core.editor.sceneGraphTool.fillGraph();
                     }
                     */
-
                     //try {
-
+                    
                     ProjectImporter.ImportProject(core, result);
                     core.editor.sceneGraphTool.createUI();
                     core.editor.sceneGraphTool.fillGraph();

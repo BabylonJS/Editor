@@ -19,7 +19,8 @@ var BABYLON;
                 function GUIForm(name, header, core) {
                     if (header === void 0) { header = ""; }
                     _super.call(this, name, core);
-                    this.fields = new Array();
+                    this.fields = [];
+                    this.toolbarFields = [];
                     // Initialize
                     this.header = header;
                 }
@@ -32,6 +33,12 @@ var BABYLON;
                     var field = { name: name, type: type, html: { caption: caption, span: span, text: text }, options: options };
                     this.fields.push(field);
                     return this;
+                };
+                // Create a toolbar field
+                GUIForm.prototype.createToolbarField = function (id, type, caption, img) {
+                    var field = { id: name, text: caption, type: type, checked: false, img: img };
+                    this.toolbarFields.push(field);
+                    return field;
                 };
                 // Set record
                 GUIForm.prototype.setRecord = function (name, value) {
@@ -49,9 +56,23 @@ var BABYLON;
                         focus: -1,
                         header: this.header,
                         formHTML: "",
-                        fields: this.fields
+                        fields: this.fields,
+                        toolbar: {
+                            items: this.toolbarFields,
+                            onClick: function (event) {
+                                if (_this.onToolbarClicked)
+                                    _this.onToolbarClicked(event.target);
+                                var ev = new EDITOR.Event();
+                                ev.eventType = EDITOR.EventType.GUI_EVENT;
+                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
+                                ev.guiEvent.data = event.target;
+                                _this.core.sendEvent(ev);
+                            }
+                        }
                     });
                     this.element.on({ type: "change", execute: "after" }, function () {
+                        if (_this.onFormChanged)
+                            _this.onFormChanged();
                         var ev = new EDITOR.Event();
                         ev.eventType = EDITOR.EventType.GUI_EVENT;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);

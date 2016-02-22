@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIToolbar extends GUIElement implements IGUIToolbarElement {
+    export class GUIToolbar extends GUIElement {
         // Public members
-        public menus: Array<IToolbarMenuElement> = new Array<IToolbarMenuElement>();
+        public menus: IToolbarMenuElement[] = new Array<IToolbarMenuElement>();
 
         // Private members
 
@@ -144,6 +144,21 @@
             }
 
             return null;
+        }
+
+        // Returns the decomposed selected menu IDs
+        public decomposeSelecteMenu(id: string): { hasParent: boolean, parent: string, selected: string } {
+            var finalIDs = id.split(":");
+            var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
+
+            if (!item)
+                return null;
+
+            return {
+                hasParent: finalIDs.length > 1,
+                parent: finalIDs[0],
+                selected: finalIDs.length > 1 ? finalIDs[finalIDs.length - 1] : ""
+            };
         }
 
         // Build element

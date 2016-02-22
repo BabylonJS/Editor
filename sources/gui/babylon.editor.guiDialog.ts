@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIDialog extends GUIElement implements IGUIDialogElement {
+    export class GUIDialog extends GUIElement {
         // Public members
         public title: string;
         public body: string;
@@ -23,13 +23,13 @@
         // Build element
         public buildElement(parent: string): void {
             this.element = w2confirm(this.body, this.title, (result) => {
-                var ev = new Event();
-                ev.eventType = EventType.GUI_EVENT;
-                ev.guiEvent = new GUIEvent(this, GUIEventType.UNKNOWN, result);
-                this.core.sendEvent(ev);
-
                 if (this.callback)
                     this.callback(result);
+
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT;
+                ev.guiEvent = new GUIEvent(this, GUIEventType.WINDOW_BUTTON_CLICKED, result);
+                this.core.sendEvent(ev);
             });
         }
 

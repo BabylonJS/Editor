@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIDialog extends GUIElement implements IGUIDialogElement {
+    class GUIDialog extends GUIElement {
         title: string;
         body: string;
         callback: (data: string) => void;

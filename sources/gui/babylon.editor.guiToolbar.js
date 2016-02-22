@@ -128,6 +128,18 @@ var BABYLON;
                     }
                     return null;
                 };
+                // Returns the decomposed selected menu IDs
+                GUIToolbar.prototype.decomposeSelecteMenu = function (id) {
+                    var finalIDs = id.split(":");
+                    var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
+                    if (!item)
+                        return null;
+                    return {
+                        hasParent: finalIDs.length > 1,
+                        parent: finalIDs[0],
+                        selected: finalIDs.length > 1 ? finalIDs[finalIDs.length - 1] : ""
+                    };
+                };
                 // Build element
                 GUIToolbar.prototype.buildElement = function (parent) {
                     var _this = this;

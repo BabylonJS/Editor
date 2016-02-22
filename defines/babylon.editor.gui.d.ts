@@ -287,7 +287,11 @@
         /**
         * The item's icon
         */
-        icon: string;
+        icon?: string;
+        /**
+        * The item's image
+        */
+        img?: string;
     }
 
     interface IToolbarMenuElement extends IToolbarBaseElement {

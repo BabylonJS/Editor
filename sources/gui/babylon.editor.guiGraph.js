@@ -103,6 +103,8 @@ var BABYLON;
                         nodes: [],
                         menu: this.menus,
                         onClick: function (event) {
+                            if (_this.onGraphClick)
+                                _this.onGraphClick(event.object.data);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_SELECTED);
@@ -110,6 +112,8 @@ var BABYLON;
                             _this.core.sendEvent(ev);
                         },
                         onMenuClick: function (event) {
+                            if (_this.onMenuClick)
+                                _this.onMenuClick(event.menuItem.id);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_MENU_SELECTED);

@@ -15,6 +15,7 @@
 
         private _mainProject = "MAIN-PROJECT";
         private _mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
+        private _mainProjectReload = "MAIN-PROJECT-RELOAD";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
@@ -74,10 +75,15 @@
                 }
 
                 var id: string = event.guiEvent.data;
-                var finalID = id.split(":");
-                var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
 
-                if (item === null)
+                //var finalIDs = id.split(":");
+                //var item = this.toolbar.getItemByID(finalIDs[finalIDs.length - 1]);
+
+                //if (item === null)
+                //    return false;
+
+                var selected = this.toolbar.decomposeSelecteMenu(id);
+                if (!selected || !selected.hasParent)
                     return false;
 
                 // Project
@@ -88,6 +94,9 @@
                         inputFiles.change((data: any) => {
                             this._editor.filesInput.loadFiles(data);
                         }).click();
+                    }
+                    else if (id.indexOf(this._mainProjectReload) !== -1) {
+                        this._core.editor.filesInput.reload();
                     }
 
                     else if (id.indexOf(this._projectExportCode) !== -1) {
@@ -165,9 +174,11 @@
                     else if (id.indexOf(this._particlesPaste) !== -1) {
                         if (!GUIParticleSystemEditor._CopiedParticleSystem)
                             return true;
-
-                        var emitter = this._editor.editionTool.object;
+                        
+                        var emitter = GUIParticleSystemEditor._CopiedParticleSystem.emitter;
                         var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), GUIParticleSystemEditor._CopiedParticleSystem, emitter);
+
+                        Event.sendSceneEvent(newParticleSystem, SceneEventType.OBJECT_ADDED, this._core);
                         this._editor.editionTool.updateEditionTool();
                     }
 
@@ -194,6 +205,7 @@
 
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Project", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
+            this.toolbar.createMenuItem(menu, "button", this._mainProjectReload, "Reload...", "icon-copy");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export...", "icon-export");
             this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");

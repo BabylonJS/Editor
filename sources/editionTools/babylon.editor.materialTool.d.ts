@@ -10,6 +10,5 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-        private _convertToPBR();
     }
 }

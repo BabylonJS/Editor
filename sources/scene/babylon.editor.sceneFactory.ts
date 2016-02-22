@@ -167,7 +167,6 @@
                     var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
                     core.currentScene.meshes.pop();
                     ps.emitter.id = this.GenerateUUID();
-                    ps.id = this.GenerateUUID();
 
                     if (names.length > 0) {
                         var emitter = ps.emitter;

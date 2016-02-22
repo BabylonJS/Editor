@@ -120,7 +120,6 @@ var BABYLON;
                         var ps = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
                         core.currentScene.meshes.pop();
                         ps.emitter.id = _this.GenerateUUID();
-                        ps.id = _this.GenerateUUID();
                         if (names.length > 0) {
                             var emitter = ps.emitter;
                             emitter.dispose(true);

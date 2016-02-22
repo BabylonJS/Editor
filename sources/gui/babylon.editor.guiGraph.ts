@@ -1,7 +1,10 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIGraph extends GUIElement implements IGUIGraphElement {
+    export class GUIGraph extends GUIElement {
         // Public members
         public menus: Array<IGraphMenuElement> = new Array<IGraphNodeElement>();
+
+        public onGraphClick: (data: any) => void;
+        public onMenuClick: (id: string) => void;
 
         /**
         * Constructor
@@ -110,6 +113,9 @@
                 nodes: [],
                 menu: this.menus,
                 onClick: (event: any) => {
+                    if (this.onGraphClick)
+                        this.onGraphClick(event.object.data);
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_SELECTED);
@@ -117,6 +123,9 @@
                     this.core.sendEvent(ev);
                 },
                 onMenuClick: (event: any) => {
+                    if (this.onMenuClick)
+                        this.onMenuClick(event.menuItem.id);
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_MENU_SELECTED);

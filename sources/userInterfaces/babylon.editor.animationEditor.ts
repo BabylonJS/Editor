@@ -496,7 +496,7 @@
 
             var animationsListElement = GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
             var keysListElement = GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
-            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
+            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 70%;");
 
             this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
             this.core.editor.editPanel.addContainer(keysListElement, keysListID);
@@ -568,13 +568,12 @@
                     }
                 }
             };
-
-            if ((<any>scene).animations)
-                getTotal([<any>scene]);
-
+            
+            getTotal([scene]);
             getTotal(scene.meshes);
             getTotal(scene.lights);
             getTotal(scene.cameras);
+            getTotal(scene.particleSystems);
 
             return count;
         }

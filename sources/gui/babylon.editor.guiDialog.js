@@ -27,12 +27,12 @@ var BABYLON;
                 GUIDialog.prototype.buildElement = function (parent) {
                     var _this = this;
                     this.element = w2confirm(this.body, this.title, function (result) {
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.GUI_EVENT;
-                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.UNKNOWN, result);
-                        _this.core.sendEvent(ev);
                         if (_this.callback)
                             _this.callback(result);
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result);
+                        _this.core.sendEvent(ev);
                     });
                 };
                 // Create a dialog on the fly

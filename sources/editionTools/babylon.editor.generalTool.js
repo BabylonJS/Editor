@@ -93,9 +93,9 @@ var BABYLON;
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
-                    positionFolder.add(object.position, "x").name("x").step(0.1).listen();
-                    positionFolder.add(object.position, "y").name("y").step(0.1).listen();
-                    positionFolder.add(object.position, "z").name("z").step(0.1).listen();
+                    positionFolder.add(object.position, "x").step(0.1).name("x").listen();
+                    positionFolder.add(object.position, "y").step(0.1).name("y").listen();
+                    positionFolder.add(object.position, "z").step(0.1).name("z").listen();
                 }
                 if (object.rotation) {
                     var rotationFolder = this._element.addFolder("Rotation", transformFolder);

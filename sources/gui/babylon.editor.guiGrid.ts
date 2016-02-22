@@ -4,7 +4,7 @@
     gridButtons["add"].caption = w2utils.lang("");
     gridButtons["delete"].caption = w2utils.lang("");
 
-    export class GUIGrid<T> extends GUIElement implements IGUIGridElement<T> {
+    export class GUIGrid<T> extends GUIElement {
         // Public members
         public columns: Array<W2UI.IGridColumnData> = new Array<W2UI.IGridColumnData>();
         public header: string = "New Grid";
@@ -16,6 +16,12 @@
         public showOptions: boolean = true;
         public showSearch: boolean = true;
         public menus: W2UI.IGridMenu[] = [];
+
+        public onClick: (selected: number[]) => void;
+        public onMenuClick: (id: string) => void;
+        public onDelete: (selected: number[]) => void;
+        public onAdd: () => void;
+        public onEdit: (selected: number[]) => void;
 
         // Private members
 
@@ -129,6 +135,9 @@
                     event.onComplete = () => {
                         var selected = this.getSelectedRows();
                         if (selected.length === 1) {
+                            if (this.onClick)
+                                this.onClick(selected);
+
                             var ev = new Event();
                             ev.eventType = EventType.GUI_EVENT;
                             ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_SELECTED, selected);
@@ -140,6 +149,9 @@
                 keyboard: false,
 
                 onMenuClick: (event: any) => {
+                    if (this.onMenuClick)
+                        this.onMenuClick(event.menuItem.id);
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
@@ -148,14 +160,22 @@
 
                 onDelete: (event: any) => {
                     if (event.force) {
+                        var data = this.getSelectedRows();
+
+                        if (this.onDelete)
+                            this.onDelete(data);
+
                         var ev = new Event();
                         ev.eventType = EventType.GUI_EVENT;
-                        ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_REMOVED, this.getSelectedRows());
+                        ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_REMOVED, data);
                         this.core.sendEvent(ev);
                     }
                 },
 
                 onAdd: (event) => {
+                    if (this.onAdd)
+                        this.onAdd();
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_ADDED);
@@ -163,9 +183,14 @@
                 },
 
                 onEdit: (event) => {
+                    var data = this.getSelectedRows();
+
+                    if (this.onEdit)
+                        this.onEdit(data);
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
-                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_EDITED, this.getSelectedRows());
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_EDITED, data);
                     this.core.sendEvent(ev);
                 }
             });

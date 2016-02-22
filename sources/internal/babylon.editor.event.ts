@@ -11,24 +11,25 @@
 
     export enum GUIEventType {
         FORM_CHANGED = 0,
-        LAYOUT_CHANGED = 1,
-        PANEL_CHANGED = 2,
-        GRAPH_SELECTED = 3,
-        TAB_CHANGED = 4,
-        TOOLBAR_MENU_SELECTED = 5,
-        GRAPH_MENU_SELECTED = 6,
+        FORM_TOOLBAR_CLICKED = 1,
+        LAYOUT_CHANGED = 2,
+        PANEL_CHANGED = 3,
+        GRAPH_SELECTED = 4,
+        TAB_CHANGED = 5,
+        TOOLBAR_MENU_SELECTED = 6,
+        GRAPH_MENU_SELECTED = 7,
 
-        GRID_SELECTED = 7,
-        GRID_ROW_REMOVED = 8,
-        GRID_ROW_ADDED = 9,
-        GRID_ROW_EDITED = 10,
-        GRID_MENU_SELECTED = 11,
+        GRID_SELECTED = 8,
+        GRID_ROW_REMOVED = 9,
+        GRID_ROW_ADDED = 10,
+        GRID_ROW_EDITED = 11,
+        GRID_MENU_SELECTED = 12,
 
-        WINDOW_BUTTON_CLICKED = 12,
+        WINDOW_BUTTON_CLICKED = 13,
 
-        OBJECT_PICKED = 13,
+        OBJECT_PICKED = 14,
 
-        UNKNOWN = 14
+        UNKNOWN = 15
     }
 
     export enum SceneEventType {

@@ -1,8 +1,12 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIForm extends GUIElement implements IGUIForm {
+    export class GUIForm extends GUIElement {
         // Public members
         public header: string;
-        public fields: Array<GUI.IGUIFormField> = new Array<GUI.IGUIFormField>();
+        public fields: Array<GUI.IGUIFormField> = [];
+        public toolbarFields: Array<GUI.IToolbarElement> = [];
+
+        public onFormChanged: () => void;
+        public onToolbarClicked: (id: string) => void;
 
         /**
         * Constructor
@@ -26,6 +30,14 @@
             return this;
         }
 
+        // Create a toolbar field
+        public createToolbarField(id: string, type: string, caption: string, img: string): IToolbarElement {
+            var field = <IToolbarElement>{ id: name, text: caption, type: type, checked: false, img: img };
+            this.toolbarFields.push(field);
+
+            return field;
+        }
+
         // Set record
         public setRecord(name: string, value: any): void {
             (<W2UI.IFormElement>this.element).record[name] = value;
@@ -43,10 +55,26 @@
                 focus: -1,
                 header: this.header,
                 formHTML: "",
-                fields: this.fields
+                fields: this.fields,
+                toolbar: {
+                    items: this.toolbarFields,
+                    onClick: (event: any) => {
+                        if (this.onToolbarClicked)
+                            this.onToolbarClicked(event.target);
+
+                        var ev = new Event();
+                        ev.eventType = EventType.GUI_EVENT;
+                        ev.guiEvent = new GUIEvent(this, GUIEventType.FORM_CHANGED);
+                        ev.guiEvent.data = event.target;
+                        this.core.sendEvent(ev);
+                    }
+                }
             });
 
             this.element.on({ type: "change", execute: "after" }, () => {
+                if (this.onFormChanged)
+                    this.onFormChanged();
+
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
                 ev.guiEvent = new GUIEvent(this, GUIEventType.FORM_CHANGED);

@@ -118,6 +118,8 @@ var BABYLON;
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();
                                 if (selected.length === 1) {
+                                    if (_this.onClick)
+                                        _this.onClick(selected);
                                     var ev = new EDITOR.Event();
                                     ev.eventType = EDITOR.EventType.GUI_EVENT;
                                     ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_SELECTED, selected);
@@ -127,6 +129,8 @@ var BABYLON;
                         },
                         keyboard: false,
                         onMenuClick: function (event) {
+                            if (_this.onMenuClick)
+                                _this.onMenuClick(event.menuItem.id);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
@@ -134,22 +138,30 @@ var BABYLON;
                         },
                         onDelete: function (event) {
                             if (event.force) {
+                                var data = _this.getSelectedRows();
+                                if (_this.onDelete)
+                                    _this.onDelete(data);
                                 var ev = new EDITOR.Event();
                                 ev.eventType = EDITOR.EventType.GUI_EVENT;
-                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_REMOVED, _this.getSelectedRows());
+                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_REMOVED, data);
                                 _this.core.sendEvent(ev);
                             }
                         },
                         onAdd: function (event) {
+                            if (_this.onAdd)
+                                _this.onAdd();
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_ADDED);
                             _this.core.sendEvent(ev);
                         },
                         onEdit: function (event) {
+                            var data = _this.getSelectedRows();
+                            if (_this.onEdit)
+                                _this.onEdit(data);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, _this.getSelectedRows());
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
                             _this.core.sendEvent(ev);
                         }
                     });

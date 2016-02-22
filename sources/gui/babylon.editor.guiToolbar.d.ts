@@ -1,6 +1,6 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIToolbar extends GUIElement implements IGUIToolbarElement {
-        menus: Array<IToolbarMenuElement>;
+    class GUIToolbar extends GUIElement {
+        menus: IToolbarMenuElement[];
         /**
         * Constructor
         * @param name: the form name
@@ -14,6 +14,11 @@ declare module BABYLON.EDITOR.GUI {
         isItemChecked(item: string, menu?: string): boolean;
         setItemEnabled(item: string, enabled: boolean, menu?: string): boolean;
         getItemByID(id: string): IToolbarBaseElement;
+        decomposeSelecteMenu(id: string): {
+            hasParent: boolean;
+            parent: string;
+            selected: string;
+        };
         buildElement(parent: string): void;
     }
 }

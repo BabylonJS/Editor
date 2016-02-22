@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIList extends GUIElement implements IGUIListElement {
+    export class GUIList extends GUIElement {
         // Public members
         public items: Array<string> = new Array<string>();
 

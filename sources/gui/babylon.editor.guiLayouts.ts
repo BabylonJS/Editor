@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUILayout extends GUIElement implements IGUILayout {
+    export class GUILayout extends GUIElement {
         // Public members
         public panels: Array<GUIPanel> = new Array<GUIPanel>();
 

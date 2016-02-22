@@ -457,6 +457,7 @@
             }
 
             ps.name = particleSystem.name || ps.name;
+            ps.id = SceneFactory.GenerateUUID();
             ps.emitter = dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
             ps.maxEmitBox = particleSystem.maxEmitBox || new Vector3(1, 0, 0);

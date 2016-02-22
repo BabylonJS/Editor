@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIWindow extends GUIElement implements IGUIWindowElement {
+    class GUIWindow extends GUIElement {
         title: string;
         body: string;
         size: Vector2;

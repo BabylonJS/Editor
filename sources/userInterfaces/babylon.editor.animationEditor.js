@@ -409,7 +409,7 @@ var BABYLON;
                 var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
                 var animationsListElement = EDITOR.GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
                 var keysListElement = EDITOR.GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
-                var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
+                var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 70%;");
                 this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
                 this.core.editor.editPanel.addContainer(keysListElement, keysListID);
                 this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
@@ -471,11 +471,11 @@ var BABYLON;
                         }
                     }
                 };
-                if (scene.animations)
-                    getTotal([scene]);
+                getTotal([scene]);
                 getTotal(scene.meshes);
                 getTotal(scene.lights);
                 getTotal(scene.cameras);
+                getTotal(scene.particleSystems);
                 return count;
             };
             // Static methods that sets the current frame

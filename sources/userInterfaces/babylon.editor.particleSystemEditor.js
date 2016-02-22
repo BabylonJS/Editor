@@ -370,6 +370,7 @@ var BABYLON;
                     }
                 }
                 ps.name = particleSystem.name || ps.name;
+                ps.id = EDITOR.SceneFactory.GenerateUUID();
                 ps.emitter = dummy;
                 ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);
                 ps.maxEmitBox = particleSystem.maxEmitBox || new BABYLON.Vector3(1, 0, 0);
