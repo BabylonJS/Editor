@@ -111,18 +111,17 @@
                         var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.customRenderTargets.length, object.name, "icon-camera", object);
                         this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
                     }
-                    else if (object instanceof LensFlareSystem) {
-                        var lfNode = this.sidebar.createNode(object.name + this._core.currentScene.lensFlareSystems.length, object.name, "icon-lens-flare", object);
-                        this.sidebar.addNodes(lfNode, this._graphRootName + "LENSFLARES");
-                    }
                     else {
                         var parentNode: Node = null;
 
                         if (event.sceneEvent.object instanceof ParticleSystem) {
                             parentNode = event.sceneEvent.object.emitter;
                         }
+                        else if (event.sceneEvent.object instanceof LensFlareSystem) {
+                            parentNode = (<LensFlareSystem>event.sceneEvent.object).getEmitter();
+                        }
 
-                        this._modifyElement(event.sceneEvent.object, parentNode);
+                        this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
                     }
 
                     return false;
@@ -186,15 +185,6 @@
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id);
                     }
                 }
-
-                // Lens flares
-                var lfNode = this.sidebar.createNode(this._graphRootName + "LENSFLARES", "Lens Flares", "icon-folder");
-                this.sidebar.addNodes(lfNode, this._graphRootName);
-
-                for (var i = 0; i < scene.lensFlareSystems.length; i++) {
-                    var lf = scene.lensFlareSystems[i];
-                    this.sidebar.addNodes(this.sidebar.createNode(lf.name + i, lf.name, "icon-lens-flare", rp), lfNode.id);
-                }
             }
 
             if (!node) {
@@ -217,6 +207,17 @@
                     if (ps.emitter && ps.emitter === node) {
                         var psNode = this.sidebar.createNode(ps.id, ps.name, "icon-particles", ps);
                         this.sidebar.addNodes(psNode, node.id);
+                    }
+                }
+            }
+
+            // Check lens flares
+            if (node && scene.lensFlareSystems.length > 0) {
+                for (var i = 0; i < scene.lensFlareSystems.length; i++) {
+                    var system = scene.lensFlareSystems[i];
+                    if (system.getEmitter() === node) {
+                        var lfNode = this.sidebar.createNode(system.name + i, system.name, "icon-lens-flare", system);
+                        this.sidebar.addNodes(lfNode, node.id);
                     }
                 }
             }
@@ -288,19 +289,6 @@
         // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
         private _getObjectIcon(node: Node): string {
             if (node instanceof BABYLON.Mesh) {
-
-                // Check particles
-                /*
-                if (!node.geometry) {
-                    var scene = node.getScene();
-                    for (var i = 0; i < scene.particleSystems.length; i++) {
-                        if (scene.particleSystems[i].emitter === node)
-                            return "icon-particles";
-                    }
-                }
-                */
-
-                // Else...
                 if (node.skeleton)
                     return "icon-animated-mesh";
 
@@ -321,6 +309,9 @@
             else if (node instanceof ParticleSystem) {
                 return "icon-particles";
             }
+            else if (node instanceof LensFlareSystem) {
+                return "icon-lens-flare";
+            }
             else if (node instanceof Sound) {
                 return "icon-sound";
             }
@@ -329,13 +320,13 @@
         }
 
         // Removes or adds a node from/to the graph
-        private _modifyElement(node: Node, parentNode: Node): void {
+        private _modifyElement(node: Node, parentNode: Node, id?: string): void {
             if (!node)
                 return;
 
                 // Add node
             var icon = this._getObjectIcon(node);
-            this.sidebar.addNodes(this.sidebar.createNode(node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+            this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
 
             this.sidebar.refresh();
         }

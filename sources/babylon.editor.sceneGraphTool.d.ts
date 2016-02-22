@@ -20,6 +20,6 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         private _getRootNodes(result, entities);
         private _getObjectIcon(node);
-        private _modifyElement(node, parentNode);
+        private _modifyElement(node, parentNode, id?);
     }
 }
