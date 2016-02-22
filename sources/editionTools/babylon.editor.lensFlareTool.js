@@ -9,7 +9,6 @@ var BABYLON;
     (function (EDITOR) {
         var LensFlareTool = (function (_super) {
             __extends(LensFlareTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -18,6 +17,9 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "LENSFLARE.TAB";
+                // Private members
+                this._dummyProperty = "";
+                this._currentLensFlareId = 0;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-LENS-FLARE"
@@ -37,6 +39,7 @@ var BABYLON;
             };
             // Update
             LensFlareTool.prototype.update = function () {
+                var _this = this;
                 var object = this.object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
                 var core = this._editionTool.core;
@@ -50,32 +53,42 @@ var BABYLON;
                 var commonFolder = this._element.addFolder("Common");
                 commonFolder.add(object, "borderLimit").min(0).step(1).name("Border Limit");
                 commonFolder.add(this, "_addLensFlare").name("Add Lens Flare...");
-                // Flares
-                for (var i = 0; i < object.lensFlares.length; i++) {
-                    this._addLensFlareFolder(object.lensFlares[i], i);
-                }
-                return true;
-            };
-            // Adds a lens flare folder
-            LensFlareTool.prototype._addLensFlareFolder = function (lensFlare, indice) {
-                var lfFolder = this._element.addFolder("Flare " + indice);
-                if (indice > 0)
-                    lfFolder.close();
+                // Select lens flare
+                var lensFlares = [];
+                for (var i = 0; i < object.lensFlares.length; i++)
+                    lensFlares.push("Lens Flare " + (i + 1));
+                commonFolder.add(this, "_dummyProperty", lensFlares).name("Lens Flare :").onFinishChange(function (result) {
+                    var indice = parseFloat(result.split("Lens Flare ")[1]);
+                    if (typeof indice === "number") {
+                        indice--;
+                        _this._currentLensFlareId = indice;
+                    }
+                    _this.update();
+                });
+                // Lens Flare
+                var lensFlare = object.lensFlares[this._currentLensFlareId];
+                if (!lensFlare)
+                    return false;
+                var lfFolder = this._element.addFolder("Lens Flare");
                 var colorFolder = this._element.addFolder("Color", lfFolder);
                 colorFolder.add(lensFlare.color, "r").min(0).max(1).name("R");
                 colorFolder.add(lensFlare.color, "g").min(0).max(1).name("G");
                 colorFolder.add(lensFlare.color, "b").min(0).max(1).name("B");
                 lfFolder.add(lensFlare, "position").step(0.1).name("Position");
                 lfFolder.add(lensFlare, "size").step(0.1).name("Size");
-                this._setupChangeTexture(indice);
-                lfFolder.add(this, "_changeTexture" + indice).name("Set Texture...");
-                this._setupRemove(indice);
-                lfFolder.add(this, "_removeLensFlare" + indice).name("Remove...");
+                this._setupChangeTexture(this._currentLensFlareId);
+                lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
+                this._setupRemove(this._currentLensFlareId);
+                lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
+                // Finish
+                this._currentLensFlareId = 0;
+                this._dummyProperty = "Lens Flare 1";
+                return true;
             };
             // Add a lens flare
             LensFlareTool.prototype._addLensFlare = function () {
                 var lf = EDITOR.SceneFactory.AddLensFlare(this._editionTool.core, this.object, 0.5, 0, new BABYLON.Color3(1, 0, 0));
-                this._addLensFlareFolder(lf, this.object.lensFlares.length - 1);
+                this.update();
             };
             // Resets "this"
             LensFlareTool.prototype._reset = function () {

@@ -4,6 +4,8 @@
         public tab: string = "LENSFLARE.TAB";
 
         // Private members
+        private _dummyProperty: string = "";
+        private _currentLensFlareId: number = 0;
 
         /**
         * Constructor
@@ -51,23 +53,30 @@
             // General
             var commonFolder = this._element.addFolder("Common");
             commonFolder.add(object, "borderLimit").min(0).step(1).name("Border Limit");
-
             commonFolder.add(this, "_addLensFlare").name("Add Lens Flare...");
+            
+            // Select lens flare
+            var lensFlares: string[] = [];
+            for (var i = 0; i < object.lensFlares.length; i++)
+                lensFlares.push("Lens Flare " + (i + 1));
 
-            // Flares
-            for (var i = 0; i < object.lensFlares.length; i++) {
-                this._addLensFlareFolder(object.lensFlares[i], i);
-            }
+            commonFolder.add(this, "_dummyProperty", lensFlares).name("Lens Flare :").onFinishChange((result: any) => {
+                var indice = parseFloat(result.split("Lens Flare ")[1]);
 
-            return true;
-        }
+                if (typeof indice === "number") {
+                    indice--;
+                    this._currentLensFlareId = indice;
+                }
 
-        // Adds a lens flare folder
-        private _addLensFlareFolder(lensFlare: LensFlare, indice: number): void {
-            var lfFolder = this._element.addFolder("Flare " + indice);
+                this.update();
+            });
 
-            if (indice > 0)
-                lfFolder.close();
+            // Lens Flare
+            var lensFlare = object.lensFlares[this._currentLensFlareId];
+            if (!lensFlare)
+                return false;
+
+            var lfFolder = this._element.addFolder("Lens Flare");
 
             var colorFolder = this._element.addFolder("Color", lfFolder);
             colorFolder.add(lensFlare.color, "r").min(0).max(1).name("R");
@@ -77,17 +86,22 @@
             lfFolder.add(lensFlare, "position").step(0.1).name("Position");
             lfFolder.add(lensFlare, "size").step(0.1).name("Size");
 
-            this._setupChangeTexture(indice);
-            lfFolder.add(this, "_changeTexture" + indice).name("Set Texture...");
+            this._setupChangeTexture(this._currentLensFlareId);
+            lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
 
-            this._setupRemove(indice);
-            lfFolder.add(this, "_removeLensFlare" + indice).name("Remove...");
+            this._setupRemove(this._currentLensFlareId);
+            lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
+
+            // Finish
+            this._currentLensFlareId = 0;
+            this._dummyProperty = "Lens Flare 1";
+            return true;
         }
 
         // Add a lens flare
         private _addLensFlare(): void {
             var lf = SceneFactory.AddLensFlare(this._editionTool.core, this.object, 0.5, 0, new Color3(1, 0, 0));
-            this._addLensFlareFolder(lf, (<LensFlareSystem>this.object).lensFlares.length - 1);
+            this.update();
         }
 
         // Resets "this"

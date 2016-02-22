@@ -216,7 +216,7 @@
                 for (var i = 0; i < scene.lensFlareSystems.length; i++) {
                     var system = scene.lensFlareSystems[i];
                     if (system.getEmitter() === node) {
-                        var lfNode = this.sidebar.createNode(system.name + i, system.name, "icon-lens-flare", system);
+                        var lfNode = this.sidebar.createNode(SceneFactory.GenerateUUID(), system.name, "icon-lens-flare", system);
                         this.sidebar.addNodes(lfNode, node.id);
                     }
                 }

@@ -1,6 +1,8 @@
 declare module BABYLON.EDITOR {
     class LensFlareTool extends AbstractDatTool {
         tab: string;
+        private _dummyProperty;
+        private _currentLensFlareId;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -9,7 +11,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-        private _addLensFlareFolder(lensFlare, indice);
         private _addLensFlare();
         private _reset();
         private _setupRemove(indice);
