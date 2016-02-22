@@ -12,6 +12,7 @@ var BABYLON;
                 // Public members
                 this.container = "BABYLON-EDITOR-PREVIEW-TIMELINE";
                 this.canvasContainer = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
+                this.animations = [];
                 this._overlay = null;
                 this._overlayText = null;
                 this._overlayObj = null;
@@ -31,6 +32,7 @@ var BABYLON;
                 // Register this
                 this._core.updates.push(this);
                 this._core.eventReceivers.push(this);
+                // Set animation
             }
             // On event
             Timeline.prototype.onEvent = function (event) {

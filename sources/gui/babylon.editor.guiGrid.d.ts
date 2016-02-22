@@ -24,6 +24,7 @@ declare module BABYLON.EDITOR.GUI {
         addMenu(id: number, text: string, icon: string): void;
         createColumn(id: string, text: string, size?: string): void;
         addRow(data: T): void;
+        addRecord(data: T): void;
         removeRow(recid: number): void;
         getRowCount(): number;
         clear(): void;

@@ -101,6 +101,8 @@ var BABYLON;
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();
+                this.toolbar.addSpacer();
+                this.toolbar.createInput("INPUT-ID", "INPUt-ID-FPS", "FPS :", 5);
                 // Build element
                 this.toolbar.buildElement(this.container);
             };

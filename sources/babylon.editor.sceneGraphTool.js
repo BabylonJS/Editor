@@ -48,8 +48,14 @@ var BABYLON;
                                 return false;
                             if (id === this._menuDeleteId) {
                                 if (object && object.dispose && object !== this._core.camera) {
-                                    var parent = object.parent;
                                     object.dispose();
+                                    var node = this.sidebar.getNode(this.sidebar.getSelected());
+                                    if (node && node.parent) {
+                                        node.parent.count = node.parent.count || 0;
+                                        node.parent.count--;
+                                        if (node.parent.count <= 0)
+                                            node.parent.count = undefined;
+                                    }
                                     this.sidebar.removeNode(this.sidebar.getSelected());
                                     this.sidebar.refresh();
                                 }
@@ -263,6 +269,13 @@ var BABYLON;
                     return;
                 // Add node
                 var icon = this._getObjectIcon(node);
+                if (parentNode) {
+                    var parent = this.sidebar.getNode(parentNode.id);
+                    if (parent) {
+                        parent.count = parent.count || 0;
+                        parent.count++;
+                    }
+                }
                 this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
                 this.sidebar.refresh();
             };

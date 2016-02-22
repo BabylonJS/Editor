@@ -43,6 +43,24 @@
             return item;
         }
 
+        // Creates a new input element
+        public createInput(id: string, inputId: string, text: string, size: number = 10): IToolbarMenuElement {
+            var item: IToolbarMenuElement = {
+                type: "html",
+                id: id,
+                html:
+                    "<div style=\"padding: 3px 10px;\">" +
+                    text +
+                    "    <input size=\"" + size + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
+                    "</div>",
+                text: text,
+                
+            };
+            this.menus.push(item);
+
+            return item;
+        }
+
         // Adds a break
         public addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement {
             var item = {
@@ -59,6 +77,22 @@
                 menu.items.push(item);
             else
                 this.menus.push(item);
+
+            return item;
+        }
+
+        // Adds a spacer
+        public addSpacer(): IToolbarMenuElement {
+            var item = {
+                type: "spacer",
+                id: undefined,
+                text: undefined,
+                img: undefined,
+                icon: undefined,
+                checked: undefined,
+                items: undefined
+            };
+            this.menus.push(item);
 
             return item;
         }

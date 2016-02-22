@@ -48,10 +48,15 @@ var BABYLON;
                         size = "50%";
                     this.columns.push({ field: id, caption: text, size: size });
                 };
-                // Adds a row
+                // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
                     data.recid = this.getRowCount();
                     this.element.add(data);
+                };
+                // Adds a record without refreshing the grid
+                GUIGrid.prototype.addRecord = function (data) {
+                    data.recid = this.element.records.length;
+                    this.element.records.push(data);
                 };
                 // Removes a row
                 GUIGrid.prototype.removeRow = function (recid) {

@@ -47,6 +47,21 @@ var BABYLON;
                     menu.items.push(item);
                     return item;
                 };
+                // Creates a new input element
+                GUIToolbar.prototype.createInput = function (id, inputId, text, size) {
+                    if (size === void 0) { size = 10; }
+                    var item = {
+                        type: "html",
+                        id: id,
+                        html: "<div style=\"padding: 3px 10px;\">" +
+                            text +
+                            "    <input size=\"" + size + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
+                            "</div>",
+                        text: text,
+                    };
+                    this.menus.push(item);
+                    return item;
+                };
                 // Adds a break
                 GUIToolbar.prototype.addBreak = function (menu) {
                     var item = {
@@ -62,6 +77,20 @@ var BABYLON;
                         menu.items.push(item);
                     else
                         this.menus.push(item);
+                    return item;
+                };
+                // Adds a spacer
+                GUIToolbar.prototype.addSpacer = function () {
+                    var item = {
+                        type: "spacer",
+                        id: undefined,
+                        text: undefined,
+                        img: undefined,
+                        icon: undefined,
+                        checked: undefined,
+                        items: undefined
+                    };
+                    this.menus.push(item);
                     return item;
                 };
                 // Sets the item checked

@@ -51,10 +51,16 @@
             this.columns.push({ field: id, caption: text, size: size });
         }
 
-        // Adds a row
+        // Adds a row and refreshes the grid
         public addRow(data: T): void {
             (<any>data).recid = this.getRowCount();
             (<W2UI.IGridElement<T>>this.element).add(data);
+        }
+
+        // Adds a record without refreshing the grid
+        public addRecord(data: T): void {
+            (<any>data).recid = (<W2UI.IGridElement<T>>this.element).records.length;
+            (<W2UI.IGridElement<T>>this.element).records.push(data);
         }
 
         // Removes a row

@@ -17,6 +17,7 @@ declare module BABYLON.EDITOR.GUI {
         setSelected(node: string): void;
         getSelected(): string;
         getSelectedNode(): IGraphNodeElement;
+        getNode(id: string): IGraphNodeElement;
         getSelectedData(): Object;
         clear(): void;
         buildElement(parent: string): void;

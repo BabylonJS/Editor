@@ -113,7 +113,7 @@
                     if (list[j] === this.core.camera)
                         continue;
 
-                    this._list.addRow({
+                    this._list.addRecord({
                         name: list[j].name || "Scene",
                         recid: recid
                     });
@@ -124,6 +124,8 @@
                     recid++;
                 }
             }
+
+            this._list.refresh();
 
             // Set selected
             if (selected.length > 0)

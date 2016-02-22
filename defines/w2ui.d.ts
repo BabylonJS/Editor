@@ -437,6 +437,10 @@
         * Unlock the grid
         */
         unlock(): void;
+        /**
+        * Records of the grid
+        */
+        records: T[];
     }
 
     /**

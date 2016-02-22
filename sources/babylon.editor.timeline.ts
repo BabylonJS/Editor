@@ -1,8 +1,10 @@
 ﻿module BABYLON.EDITOR {
-    export class Timeline implements IEventReceiver, ICustomUpdate {
+    export class Timeline implements IEventReceiver, ICustomUpdate, IAnimatable {
         // Public members
         public container: string = "BABYLON-EDITOR-PREVIEW-TIMELINE";
         public canvasContainer: string = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
+
+        public animations: Animation[] = [];
 
         // Private members
         private _core: EditorCore;
@@ -39,6 +41,9 @@
             // Register this
             this._core.updates.push(this);
             this._core.eventReceivers.push(this);
+
+            // Set animation
+
         }
 
         // On event

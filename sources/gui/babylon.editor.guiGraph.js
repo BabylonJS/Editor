@@ -80,6 +80,11 @@ var BABYLON;
                         return element;
                     return null;
                 };
+                // Returns the node by id
+                GUIGraph.prototype.getNode = function (id) {
+                    var element = this.element.get(id);
+                    return element;
+                };
                 // Returns the selected data
                 GUIGraph.prototype.getSelectedData = function () {
                     var selected = this.getSelected();

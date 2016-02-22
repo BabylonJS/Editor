@@ -88,7 +88,7 @@ var BABYLON;
                     for (var j = 0; j < list.length; j++) {
                         if (list[j] === this.core.camera)
                             continue;
-                        this._list.addRow({
+                        this._list.addRecord({
                             name: list[j].name || "Scene",
                             recid: recid
                         });
@@ -97,6 +97,7 @@ var BABYLON;
                         recid++;
                     }
                 }
+                this._list.refresh();
                 // Set selected
                 if (selected.length > 0)
                     this._list.setSelected(selected);

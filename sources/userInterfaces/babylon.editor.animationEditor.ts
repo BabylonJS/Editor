@@ -110,6 +110,7 @@
                 });
                 
                 // Finish
+                this.core.editor.timeline.reset();
                 this._addAnimationWindow.close();
                 return true;
             }
@@ -132,13 +133,14 @@
                     this._keysList.clear();
 
                     for (var i = 0; i < keys.length; i++) {
-                        this._keysList.addRow({
+                        this._keysList.addRecord({
                             key: keys[i].frame.toString(),
                             value: this._getFrameTime(keys[i].frame),
                             recid: i
                         });
                     }
 
+                    this._keysList.refresh();
                     this.core.editor.timeline.setFramesOfAnimation(animation);
                 }
                 else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_REMOVED) {
@@ -496,7 +498,7 @@
 
             var animationsListElement = GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
             var keysListElement = GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
-            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 70%;");
+            var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
 
             this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
             this.core.editor.editPanel.addContainer(keysListElement, keysListID);
@@ -535,6 +537,7 @@
 
             // Values form
             this._valuesForm = new GUI.GUIForm(valuesFormID, "Value", this.core);
+            this._valuesForm.header = "";
             this._valuesForm.createField("frame", "float", "Frame :", 3);
             this._valuesForm.createField("value", "text", "Value :", 3);
             this._valuesForm.buildElement(valuesFormID);

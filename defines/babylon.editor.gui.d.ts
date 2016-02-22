@@ -280,7 +280,7 @@
         /**
         * If the item is checked or not
         */
-        checked: boolean;
+        checked?: boolean;
     }
 
     interface IToolbarElement extends IToolbarBaseElement {
@@ -292,17 +292,29 @@
         * The item's image
         */
         img?: string;
+        /**
+        * The element HTML (when input)
+        */
+        html?: string;
     }
 
     interface IToolbarMenuElement extends IToolbarBaseElement {
         /**
         * List of menu's items
         */
-        items: Array<IToolbarElement>;
+        items?: Array<IToolbarElement>;
         /**
         * The menu's image
         */
-        img: string;
+        img?: string;
+        /**
+        * The element HTML (when input)
+        */
+        html?: string;
+        /**
+        * The input callback
+        */
+
     }
 
     interface IGUIToolbarElement extends IGUIElement {
