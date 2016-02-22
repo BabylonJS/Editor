@@ -11,7 +11,7 @@ html, body {
 
 #BABYLON-EDITOR-MAIN-CANVAS {
     width: 100%;
-    height: 100%;
+    /*height: 100%;*/
 }
 
 #BABYLON-EDITOR-EDITION-TOOL {

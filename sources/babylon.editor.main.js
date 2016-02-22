@@ -77,6 +77,7 @@ var BABYLON;
             * Creates the UI
             */
             EditorMain.prototype._createUI = function () {
+                var _this = this;
                 // Layouts
                 this.layouts = new EDITOR.GUI.GUILayout(this.container, this.core);
                 this.layouts.createPanel("BABYLON-EDITOR-EDITION-TOOL-PANEL", "left", 380, true).setContent("<div id=\"BABYLON-EDITOR-EDITION-TOOL\"></div>");
@@ -92,11 +93,18 @@ var BABYLON;
                 this.layouts.buildElement(this.container);
                 // Play Layouts
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
-                var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                    "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>");
+                var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
+                //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
+                    "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>");
                 mainPanel.style = "overflow: hidden;";
                 this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
                 this.playLayouts.buildElement(this.mainContainer);
+                this.playLayouts.on({ execute: "after", type: "resize" }, function () {
+                    var panelHeight = _this.layouts.getPanelFromType("main").height;
+                    var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
+                    _this.core.canvas.height = panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height;
+                });
             };
             /**
             * Handles just opened scenes

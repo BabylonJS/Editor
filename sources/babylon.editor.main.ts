@@ -131,12 +131,20 @@
             // Play Layouts
             this.playLayouts = new GUI.GUILayout(this.mainContainer, this.core);
             var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
-                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>"
+                //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
+                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>"
             );
             mainPanel.style = "overflow: hidden;";
+
             this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
             this.playLayouts.buildElement(this.mainContainer);
+
+            this.playLayouts.on({ execute: "after", type: "resize" }, () => {
+                var panelHeight = this.layouts.getPanelFromType("main").height;
+                var toolbarHeight = this.sceneToolbar.toolbar.element.box.clientHeight;
+                this.core.canvas.height = panelHeight - toolbarHeight * 1.5 - this.playLayouts.getPanelFromType("preview").height;
+            });
         }
 
         /**

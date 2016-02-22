@@ -4,6 +4,7 @@
 
 .dg.main .close-button {
     background-color: #ccc;
+    visibility: hidden;
 }
  
 .dg.main .close-button:hover {

@@ -18,7 +18,7 @@ var BABYLON;
                 // Public members
                 this.tab = "LENSFLARE.TAB";
                 // Private members
-                this._dummyProperty = "";
+                this._dummyProperty = "Lens Flare 1";
                 this._currentLensFlareId = 0;
                 // Initialize
                 this.containers = [

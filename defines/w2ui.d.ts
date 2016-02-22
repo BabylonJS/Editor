@@ -38,6 +38,10 @@
         * Resize element
         */
         resize(): void;
+        /**
+        * Box HTML Element
+        */
+        box?: HTMLElement;
     }
 
     /**

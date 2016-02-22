@@ -4,7 +4,7 @@
         public tab: string = "LENSFLARE.TAB";
 
         // Private members
-        private _dummyProperty: string = "";
+        private _dummyProperty: string = "Lens Flare 1";
         private _currentLensFlareId: number = 0;
 
         /**
