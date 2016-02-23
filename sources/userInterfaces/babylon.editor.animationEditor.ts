@@ -32,8 +32,10 @@
         private _addAnimationGraph: GUI.GUIGraph = null;
         private _addAnimationForm: GUI.GUIEditForm = null;
         private _addAnimationName: string = "New Animation";
-        private _addAnimationFramesPerSecond: number = 1;
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
+
+        // Static members
+        public static FramesPerSecond: number = 24;
 
         private static _CopiedAnimations: Animation[] = [];
 
@@ -94,7 +96,7 @@
                     default: return true; break;
                 }
 
-                var animation = new Animation(this._addAnimationName, property, this._addAnimationFramesPerSecond, dataType, this._addAnimationType);
+                var animation = new Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
                 animation.setKeys([{
                     frame: 0,
                     value: data
@@ -330,7 +332,6 @@
             this._addAnimationForm.buildElement(editID);
 
             this._addAnimationForm.add(this, "_addAnimationName").name("Name");
-            this._addAnimationForm.add(this, "_addAnimationFramesPerSecond").min(0).step(1).name("Frames Per Second");
 
             this._addAnimationType = Animation.ANIMATIONLOOPMODE_CYCLE;
             this._addAnimationForm.add(this, "_addAnimationType", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange((result: any) => {

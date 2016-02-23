@@ -89,6 +89,7 @@ var BABYLON;
             };
             // Creates the UI
             SceneToolbar.prototype.createUI = function () {
+                var _this = this;
                 if (this.toolbar != null)
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
@@ -102,9 +103,33 @@ var BABYLON;
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();
                 this.toolbar.addSpacer();
-                this.toolbar.createInput("INPUT-ID", "INPUt-ID-FPS", "FPS :", 5);
+                this.toolbar.createInput("SCENE-TOOLBAR-FPS", "SCENE-TOOLBAR-FPS-INPUT", "FPS :", 5);
                 // Build element
                 this.toolbar.buildElement(this.container);
+                // Set events
+                var fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
+                fpsInput.change(function (event) {
+                    EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(fpsInput.val());
+                    _this._setFramesPerSecond();
+                });
+                fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+            };
+            // Set new frames per second
+            SceneToolbar.prototype._setFramesPerSecond = function () {
+                var setFPS = function (objs) {
+                    for (var objIndex = 0; objIndex < objs.length; objIndex++) {
+                        for (var animIndex = 0; animIndex < objs[objIndex].animations.length; animIndex++) {
+                            objs[objIndex].animations[animIndex].framePerSecond = EDITOR.GUIAnimationEditor.FramesPerSecond;
+                        }
+                    }
+                };
+                setFPS([this._core.currentScene]);
+                setFPS(this._core.currentScene.meshes);
+                setFPS(this._core.currentScene.lights);
+                setFPS(this._core.currentScene.cameras);
+                setFPS(this._core.currentScene.particleSystems);
+                for (var sIndex = 0; sIndex < this._core.currentScene.skeletons.length; sIndex++)
+                    setFPS(this._core.currentScene.skeletons[sIndex].bones);
             };
             return SceneToolbar;
         })();

@@ -135,6 +135,7 @@ var BABYLON;
                 }
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
+                EDITOR.GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || EDITOR.GUIAnimationEditor.FramesPerSecond;
                 for (var i = 0; i < project.globalConfiguration.animatedAtLaunch.length; i++) {
                     var animated = project.globalConfiguration.animatedAtLaunch[i];
                     switch (animated.type) {

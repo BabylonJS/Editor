@@ -27,7 +27,6 @@ var BABYLON;
                 this._addAnimationGraph = null;
                 this._addAnimationForm = null;
                 this._addAnimationName = "New Animation";
-                this._addAnimationFramesPerSecond = 1;
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
                 // Initialize
                 this.core = core;
@@ -80,7 +79,7 @@ var BABYLON;
                             return true;
                             break;
                     }
-                    var animation = new BABYLON.Animation(this._addAnimationName, property, this._addAnimationFramesPerSecond, dataType, this._addAnimationType);
+                    var animation = new BABYLON.Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
                     animation.setKeys([{
                             frame: 0,
                             value: data
@@ -272,7 +271,6 @@ var BABYLON;
                 this._addAnimationForm = new EDITOR.GUI.GUIEditForm(editID, this.core);
                 this._addAnimationForm.buildElement(editID);
                 this._addAnimationForm.add(this, "_addAnimationName").name("Name");
-                this._addAnimationForm.add(this, "_addAnimationFramesPerSecond").min(0).step(1).name("Frames Per Second");
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
                 this._addAnimationForm.add(this, "_addAnimationType", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange(function (result) {
                     switch (result) {
@@ -488,6 +486,8 @@ var BABYLON;
                     scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
                 }
             };
+            // Static members
+            GUIAnimationEditor.FramesPerSecond = 24;
             GUIAnimationEditor._CopiedAnimations = [];
             return GUIAnimationEditor;
         })();

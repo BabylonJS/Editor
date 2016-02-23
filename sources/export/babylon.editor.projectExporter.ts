@@ -32,6 +32,7 @@
         private static _SerializeGlobalAnimations(): INTERNAL.IAnimationConfiguration {
             var config: INTERNAL.IAnimationConfiguration = {
                 globalAnimationSpeed: SceneFactory.AnimationSpeed,
+                framesPerSecond: GUIAnimationEditor.FramesPerSecond,
                 animatedAtLaunch: []
             };
 

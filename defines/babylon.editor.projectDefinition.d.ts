@@ -40,6 +40,7 @@ declare module BABYLON.EDITOR.INTERNAL {
     interface IAnimationConfiguration {
         globalAnimationSpeed: number;
         animatedAtLaunch: IAnimationConfigurationOnPlay[];
+        framesPerSecond: number;
     }
     /**
     * Custom Materials (sky, gradient, water, etc.)

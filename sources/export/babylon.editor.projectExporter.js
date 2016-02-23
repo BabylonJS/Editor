@@ -31,6 +31,7 @@ var BABYLON;
             ProjectExporter._SerializeGlobalAnimations = function () {
                 var config = {
                     globalAnimationSpeed: EDITOR.SceneFactory.AnimationSpeed,
+                    framesPerSecond: EDITOR.GUIAnimationEditor.FramesPerSecond,
                     animatedAtLaunch: []
                 };
                 for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {

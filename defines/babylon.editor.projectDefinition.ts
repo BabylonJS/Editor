@@ -48,6 +48,7 @@ declare module BABYLON.EDITOR.INTERNAL {
     interface IAnimationConfiguration {
         globalAnimationSpeed: number; // Global animation speed on play
         animatedAtLaunch: IAnimationConfigurationOnPlay[];
+        framesPerSecond: number;
     }
 
     /**

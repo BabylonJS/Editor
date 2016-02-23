@@ -18,5 +18,6 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
+        private _setFramesPerSecond();
     }
 }

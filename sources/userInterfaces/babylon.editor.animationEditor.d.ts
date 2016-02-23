@@ -12,8 +12,8 @@ declare module BABYLON.EDITOR {
         private _addAnimationGraph;
         private _addAnimationForm;
         private _addAnimationName;
-        private _addAnimationFramesPerSecond;
         private _addAnimationType;
+        static FramesPerSecond: number;
         private static _CopiedAnimations;
         /**
         * Constructor

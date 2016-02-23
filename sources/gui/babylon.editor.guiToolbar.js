@@ -55,7 +55,7 @@ var BABYLON;
                         id: id,
                         html: "<div style=\"padding: 3px 10px;\">" +
                             text +
-                            "    <input size=\"" + size + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
+                            "    <input size=\"" + size + "\" id=\"" + inputId + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
                             "</div>",
                         text: text,
                     };

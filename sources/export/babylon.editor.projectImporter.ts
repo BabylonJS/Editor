@@ -157,6 +157,7 @@
 
             // Set global animations
             SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
+            GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || GUIAnimationEditor.FramesPerSecond;
 
             for (var i = 0; i < project.globalConfiguration.animatedAtLaunch.length; i++) {
                 var animated = project.globalConfiguration.animatedAtLaunch[i];

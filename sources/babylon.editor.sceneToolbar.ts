@@ -132,10 +132,38 @@
             this.toolbar.addBreak();
 
             this.toolbar.addSpacer();
-            this.toolbar.createInput("INPUT-ID", "INPUt-ID-FPS", "FPS :", 5);
+            this.toolbar.createInput("SCENE-TOOLBAR-FPS", "SCENE-TOOLBAR-FPS-INPUT", "FPS :", 5);
 
             // Build element
             this.toolbar.buildElement(this.container);
+
+            // Set events
+            var fpsInput: JQuery = (<any>$("#SCENE-TOOLBAR-FPS-INPUT")).w2field("int", { autoFormat: true });
+            fpsInput.change((event: JQueryEventObject) => {
+                GUIAnimationEditor.FramesPerSecond = parseFloat(fpsInput.val());
+                this._setFramesPerSecond();
+            });
+            fpsInput.val(String(GUIAnimationEditor.FramesPerSecond));
+        }
+
+        // Set new frames per second
+        private _setFramesPerSecond(): void {
+            var setFPS = (objs: IAnimatable[]) => {
+                for (var objIndex = 0; objIndex < objs.length; objIndex++) {
+                    for (var animIndex = 0; animIndex < objs[objIndex].animations.length; animIndex++) {
+                        objs[objIndex].animations[animIndex].framePerSecond = GUIAnimationEditor.FramesPerSecond;
+                    }
+                }
+            };
+
+            setFPS([this._core.currentScene]);
+            setFPS(this._core.currentScene.meshes);
+            setFPS(this._core.currentScene.lights);
+            setFPS(this._core.currentScene.cameras);
+            setFPS(this._core.currentScene.particleSystems);
+
+            for (var sIndex = 0; sIndex < this._core.currentScene.skeletons.length; sIndex++)
+                setFPS(this._core.currentScene.skeletons[sIndex].bones);
         }
     }
 }
