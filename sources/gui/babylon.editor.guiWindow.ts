@@ -1,16 +1,16 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIWindow extends GUIElement {
+    export class GUIWindow extends GUIElement<W2UI.IWindowElement> {
         // Public members
         public title: string = "";
         public body: string = "";
         public size: Vector2 = new Vector2(800, 600);
-        public buttons: Array<string> = new Array<string>();
+        public buttons: Array<string> = [];
         public modal: boolean = true;
         public showClose: boolean = true;
         public showMax: boolean = true;
 
         // Private members
-        private _onCloseCallbacks: Array<() => void> = new Array<() => void>();
+        private _onCloseCallbacks: Array<() => void> = [];
         private _onCloseCallback: () => void;
         private _onToggle: (maximized: boolean, width: number, height: number) => void;
 
@@ -42,7 +42,7 @@
 
         // Destroy the element (W2UI)
         public destroy(): void {
-            (<W2UI.IWindowElement>this.element).clear();
+            this.element.clear();
         }
 
         // Sets the on close callback
@@ -52,12 +52,12 @@
 
         // Closes the window
         public close(): void {
-            (<W2UI.IWindowElement>this.element).close();
+            this.element.close();
         }
 
         // Maximizes the window
         public maximize(): void {
-            (<W2UI.IWindowElement>this.element).max();
+            this.element.max();
         }
 
         // Locks the window
@@ -72,15 +72,14 @@
 
         // Toggle callback
         public set onToggle(callback: (maximized: boolean, width: number, height: number) => void) {
-            var window = <W2UI.IWindowElement>this.element;
             var windowEvent = (event: any) => {
                 event.onComplete = (eventData) => {
                     callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
                 };
             };
 
-            window.onMax = windowEvent;
-            window.onMin = windowEvent;
+            this.element.onMax = windowEvent;
+            this.element.onMin = windowEvent;
 
             this._onToggle = callback;
         }

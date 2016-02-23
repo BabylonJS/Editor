@@ -22,12 +22,12 @@ var BABYLON;
                     this.title = "";
                     this.body = "";
                     this.size = new BABYLON.Vector2(800, 600);
-                    this.buttons = new Array();
+                    this.buttons = [];
                     this.modal = true;
                     this.showClose = true;
                     this.showMax = true;
                     // Private members
-                    this._onCloseCallbacks = new Array();
+                    this._onCloseCallbacks = [];
                     // Initialize
                     this.title = title;
                     this.body = body;
@@ -73,14 +73,13 @@ var BABYLON;
                     },
                     // Toggle callback
                     set: function (callback) {
-                        var window = this.element;
                         var windowEvent = function (event) {
                             event.onComplete = function (eventData) {
                                 callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
                             };
                         };
-                        window.onMax = windowEvent;
-                        window.onMin = windowEvent;
+                        this.element.onMax = windowEvent;
+                        this.element.onMin = windowEvent;
                         this._onToggle = callback;
                     },
                     enumerable: true,

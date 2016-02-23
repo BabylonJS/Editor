@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIWindow extends GUIElement {
+    class GUIWindow extends GUIElement<W2UI.IWindowElement> {
         title: string;
         body: string;
         size: Vector2;

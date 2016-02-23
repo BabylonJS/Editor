@@ -4,9 +4,9 @@
     gridButtons["add"].caption = w2utils.lang("");
     gridButtons["delete"].caption = w2utils.lang("");
 
-    export class GUIGrid<T> extends GUIElement {
+    export class GUIGrid<T> extends GUIElement<W2UI.IGridElement<T>> {
         // Public members
-        public columns: Array<W2UI.IGridColumnData> = new Array<W2UI.IGridColumnData>();
+        public columns: Array<W2UI.IGridColumnData> = [];
         public header: string = "New Grid";
         public showToolbar: boolean = true;
         public showFooter: boolean = false;
@@ -54,57 +54,71 @@
         // Adds a row and refreshes the grid
         public addRow(data: T): void {
             (<any>data).recid = this.getRowCount();
-            (<W2UI.IGridElement<T>>this.element).add(data);
+            this.element.add(data);
         }
 
         // Adds a record without refreshing the grid
         public addRecord(data: T): void {
-            (<any>data).recid = (<W2UI.IGridElement<T>>this.element).records.length;
-            (<W2UI.IGridElement<T>>this.element).records.push(data);
+            (<any>data).recid = this.element.records.length;
+            this.element.records.push(data);
         }
 
-        // Removes a row
+        // Removes a row and refreshes the list
         public removeRow(recid: number): void {
-            (<W2UI.IGridElement<T>>this.element).remove(recid);
+            this.element.remove(recid);
+        }
+
+        // Removes a record, need to refresh the list after
+        public removeRecord(recid: number): void {
+            this.element.records.splice(recid, 1);
+        }
+
+        // Refresh the element (W2UI)
+        public refresh(): void {
+            for (var i = 0; i < this.element.records.length; i++) {
+                (<any>this.element).records[i].recid = i;
+            }
+
+            super.refresh();
         }
 
         // Returns the number of rows
         public getRowCount(): number {
-            return (<W2UI.IGridElement<T>>this.element).total;
+            return this.element.total;
         }
 
         // Clear
         public clear(): void {
-            (<W2UI.IGridElement<T>>this.element).clear();
-            (<W2UI.IGridElement<T>>this.element).total = 0;
+            this.element.clear();
+            this.element.total = 0;
         }
 
         // Locks the grid
         public lock(message: string, spinner?: boolean): void {
-            (<W2UI.IGridElement<T>>this.element).lock(message, spinner);
+            this.element.lock(message, spinner);
         }
 
         // Unlock the grid
         public unlock(): void {
-            (<W2UI.IGridElement<T>>this.element).unlock();
+            this.element.unlock();
         }
 
         // Returns the selected rows
         public getSelectedRows(): number[] {
-            return (<W2UI.IGridElement<T>>this.element).getSelection();
+            return this.element.getSelection();
         }
 
         // sets the selected rows
         public setSelected(selected: number[]): void {
             for (var i = 0; i < selected.length; i++) {
-                (<W2UI.IGridElement<T>>this.element).select(selected[i]);
+                this.element.select(selected[i]);
             }
         }
 
         // Returns the row at indice
         public getRow(indice: number): T {
             if (indice >= 0) {
-                return (<W2UI.IGridElement<T>>this.element).get(indice);
+                return this.element.get(indice);
             }
 
             return null;
@@ -112,7 +126,7 @@
         
         // Modifies the row at indice
         public modifyRow(indice: number, data: T): void {
-            (<W2UI.IGridElement<T>>this.element).set(indice, data);
+            this.element.set(indice, data);
         }
 
         // Build element

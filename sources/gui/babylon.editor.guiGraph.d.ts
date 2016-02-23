@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIGraph extends GUIElement {
+    class GUIGraph extends GUIElement<W2UI.IGraphElement> {
         menus: Array<IGraphMenuElement>;
         onGraphClick: (data: any) => void;
         onMenuClick: (id: string) => void;
@@ -10,7 +10,7 @@ declare module BABYLON.EDITOR.GUI {
         */
         constructor(name: string, core: EditorCore);
         addMenu(id: string, text: string, img?: string): void;
-        createNode(id: string, text: string, img?: string, data?: Object): IGraphNodeElement;
+        createNode(id: string, text: string, img?: string, data?: any): IGraphNodeElement;
         addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;
         removeNode(node: IGraphNodeElement | string): void;
         setNodeExpanded(node: string, expanded: boolean): void;

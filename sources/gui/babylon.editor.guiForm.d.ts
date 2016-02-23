@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIForm extends GUIElement {
+    class GUIForm extends GUIElement<W2UI.IFormElement> {
         header: string;
         fields: Array<GUI.IGUIFormField>;
         toolbarFields: Array<GUI.IToolbarElement>;

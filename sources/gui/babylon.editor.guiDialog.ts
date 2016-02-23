@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIDialog extends GUIElement {
+    export class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         // Public members
         public title: string;
         public body: string;

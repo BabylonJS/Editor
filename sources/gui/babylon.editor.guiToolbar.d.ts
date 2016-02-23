@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIToolbar extends GUIElement {
+    class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
         menus: IToolbarMenuElement[];
         /**
         * Constructor
@@ -16,7 +16,7 @@ declare module BABYLON.EDITOR.GUI {
         isItemChecked(item: string, menu?: string): boolean;
         setItemEnabled(item: string, enabled: boolean, menu?: string): boolean;
         getItemByID(id: string): IToolbarBaseElement;
-        decomposeSelecteMenu(id: string): {
+        decomposeSelectedMenu(id: string): {
             hasParent: boolean;
             parent: string;
             selected: string;

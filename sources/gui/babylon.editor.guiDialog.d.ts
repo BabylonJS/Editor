@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIDialog extends GUIElement {
+    class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
         body: string;
         callback: (data: string) => void;

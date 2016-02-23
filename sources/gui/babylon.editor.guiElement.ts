@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIElement implements IGUIElement {
+    export class GUIElement<T extends W2UI.IElement> implements IGUIElement {
         // Public members
-        public element: W2UI.IElement = null;
+        public element: T = null;
 
         public name: string = "";
 
@@ -48,12 +48,12 @@
         * Static methods
         */ 
         // Creates a div element (string)
-        static CreateDivElement(id: string, style?: string): string {
+        public static CreateDivElement(id: string, style?: string): string {
             return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
         }
 
         // Creates a custom element (string)
-        static CreateElement(type: string, id: string, style: string = "width: 100%; height: 100%;"): string {
+        public static CreateElement(type: string, id: string, style: string = "width: 100%; height: 100%;"): string {
             return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
         }
     }

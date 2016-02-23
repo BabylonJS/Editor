@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIEditForm extends GUIElement {
+    class GUIEditForm extends GUIElement<W2UI.IElement> {
         private _datElement;
         /**
         * Constructor

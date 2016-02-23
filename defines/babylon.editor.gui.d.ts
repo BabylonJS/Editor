@@ -174,7 +174,7 @@
         /**
         * Node's data (any object)
         */
-        data: Object;
+        data: any;
         /**
         * Gets the node's parent
         */

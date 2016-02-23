@@ -44,18 +44,26 @@ var BABYLON;
                         var index = object.renderList.indexOf(mesh);
                         if (index !== -1)
                             object.renderList.splice(index, 1);
-                        this._excludedMeshesList.addRow({ name: mesh.name });
+                        //this._excludedMeshesList.addRow({ name: mesh.name });
+                        this._excludedMeshesList.addRecord({ name: mesh.name });
                     }
+                    this._excludedMeshesList.refresh();
                     return true;
                 }
                 else if (event.guiEvent.caller === this._excludedMeshesList) {
                     var selected = this._excludedMeshesList.getSelectedRows();
+                    var offset = 0;
                     for (var i = 0; i < selected.length; i++) {
                         var mesh = this._editionTool.core.currentScene.getMeshByName(this._excludedMeshesList.getRow(selected[i]).name);
                         object.renderList.push(mesh);
-                        this._includedMeshesList.addRow({ name: mesh.name });
-                        this._excludedMeshesList.removeRow(selected[i]);
+                        //this._includedMeshesList.addRow({ name: mesh.name });
+                        this._includedMeshesList.addRecord({ name: mesh.name });
+                        //this._excludedMeshesList.removeRow(selected[i]);
+                        this._excludedMeshesList.removeRecord(selected[i] - offset);
+                        offset++;
                     }
+                    this._includedMeshesList.refresh();
+                    this._excludedMeshesList.refresh();
                     return true;
                 }
                 return false;
@@ -189,20 +197,22 @@ var BABYLON;
                 this._excludedMeshesList.buildElement(leftPanelID);
                 for (var i = 0; i < scene.meshes.length; i++) {
                     if (object.renderList.indexOf(scene.meshes[i]) === -1)
-                        this._excludedMeshesList.addRow({
+                        this._excludedMeshesList.addRecord({
                             name: scene.meshes[i].name
                         });
                 }
+                this._excludedMeshesList.refresh();
                 this._includedMeshesList = new EDITOR.GUI.GUIGrid(includedListID, this._editionTool.core);
                 this._includedMeshesList.header = "Included Meshes";
                 this._includedMeshesList.showDelete = true;
                 this._includedMeshesList.createColumn("name", "name", "100%");
                 this._includedMeshesList.buildElement(rightPanelID);
                 for (var i = 0; i < object.renderList.length; i++) {
-                    this._includedMeshesList.addRow({
+                    this._includedMeshesList.addRecord({
                         name: object.renderList[i].name
                     });
                 }
+                this._includedMeshesList.refresh();
             };
             return ReflectionProbeTool;
         })(EDITOR.AbstractDatTool);

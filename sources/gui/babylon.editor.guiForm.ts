@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIForm extends GUIElement {
+    export class GUIForm extends GUIElement<W2UI.IFormElement> {
         // Public members
         public header: string;
         public fields: Array<GUI.IGUIFormField> = [];
@@ -32,7 +32,7 @@
 
         // Create a toolbar field
         public createToolbarField(id: string, type: string, caption: string, img: string): IToolbarElement {
-            var field = <IToolbarElement>{ id: name, text: caption, type: type, checked: false, img: img };
+            var field: IToolbarElement = { id: name, text: caption, type: type, checked: false, img: img };
             this.toolbarFields.push(field);
 
             return field;
@@ -40,12 +40,12 @@
 
         // Set record
         public setRecord(name: string, value: any): void {
-            (<W2UI.IFormElement>this.element).record[name] = value;
+            this.element.record[name] = value;
         }
 
         // Get record
         public getRecord(name: string): any {
-            return (<W2UI.IFormElement>this.element).record[name];
+            return this.element.record[name];
         }
 
         // Build element

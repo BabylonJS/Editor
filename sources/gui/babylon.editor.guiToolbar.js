@@ -19,7 +19,7 @@ var BABYLON;
                 function GUIToolbar(name, core) {
                     _super.call(this, name, core);
                     // Public members
-                    this.menus = new Array();
+                    this.menus = [];
                 }
                 // Creates a new menu
                 GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
@@ -95,19 +95,17 @@ var BABYLON;
                 };
                 // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
-                    var element = this.element;
                     var id = menu ? menu + ":" + item : item;
-                    checked ? element.check(id) : element.uncheck(id);
+                    checked ? this.element.check(id) : this.element.uncheck(id);
                 };
                 // Sets the item auto checked (true to false, false to true)
                 GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
-                    var element = this.element;
-                    var result = element.get(menu ? menu + ":" + item : item);
+                    var result = this.element.get(menu ? menu + ":" + item : item);
                     var checked = result ? result.checked : false;
                     if (!checked)
-                        element.check(item);
+                        this.element.check(item);
                     else
-                        element.uncheck(item);
+                        this.element.uncheck(item);
                 };
                 // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
@@ -158,7 +156,7 @@ var BABYLON;
                     return null;
                 };
                 // Returns the decomposed selected menu IDs
-                GUIToolbar.prototype.decomposeSelecteMenu = function (id) {
+                GUIToolbar.prototype.decomposeSelectedMenu = function (id) {
                     var finalIDs = id.split(":");
                     var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
                     if (!item)

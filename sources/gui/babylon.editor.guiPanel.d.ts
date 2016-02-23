@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIPanel extends GUIElement {
+    class GUIPanel extends GUIElement<W2UI.IElement> {
         tabs: Array<IGUITab>;
         type: string;
         size: number;

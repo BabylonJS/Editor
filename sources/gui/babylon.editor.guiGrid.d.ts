@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIGrid<T> extends GUIElement {
+    class GUIGrid<T> extends GUIElement<W2UI.IGridElement<T>> {
         columns: Array<W2UI.IGridColumnData>;
         header: string;
         showToolbar: boolean;
@@ -26,6 +26,8 @@ declare module BABYLON.EDITOR.GUI {
         addRow(data: T): void;
         addRecord(data: T): void;
         removeRow(recid: number): void;
+        removeRecord(recid: number): void;
+        refresh(): void;
         getRowCount(): number;
         clear(): void;
         lock(message: string, spinner?: boolean): void;

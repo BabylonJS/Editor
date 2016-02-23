@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIToolbar extends GUIElement {
+    export class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
         // Public members
-        public menus: IToolbarMenuElement[] = new Array<IToolbarMenuElement>();
+        public menus: IToolbarMenuElement[] = [];
 
         // Private members
 
@@ -99,28 +99,26 @@
         
         // Sets the item checked
         public setItemChecked(item: string, checked: boolean, menu?: string): void {
-            var element = <W2UI.IToolbarElement>this.element;
             var id = menu ? menu + ":" + item : item;
 
-            checked ? element.check(id) : element.uncheck(id);
+            checked ? this.element.check(id) : this.element.uncheck(id);
         }
         
         // Sets the item auto checked (true to false, false to true)
         public setItemAutoChecked(item: string, menu?: string): void {
-            var element = <W2UI.IToolbarElement>this.element;
-            var result = element.get(menu ? menu + ":" + item : item);
+            var result = this.element.get(menu ? menu + ":" + item : item);
 
             var checked = result ? result.checked : false;
 
             if (!checked)
-                element.check(item);
+                this.element.check(item);
             else
-                element.uncheck(item);
+                this.element.uncheck(item);
         }
 
         // Returns if the item is checked
         public isItemChecked(item: string, menu?: string): boolean {
-            var result = (<W2UI.IToolbarElement>this.element).get(menu ? menu + ":" + item : item);
+            var result = this.element.get(menu ? menu + ":" + item : item);
 
             if (result)
                 return result.checked;
@@ -134,7 +132,7 @@
 
             var result = null;
             if (menu)
-                result = (<W2UI.IToolbarElement>this.element).get(menu);
+                result = this.element.get(menu);
 
             if (result) {
                 for (var i = 0; i < result.items.length; i++) {
@@ -147,9 +145,9 @@
             }
             else {
                 if (enabled)
-                    (<W2UI.IToolbarElement>this.element).enable(finalID);
+                    this.element.enable(finalID);
                 else
-                    (<W2UI.IToolbarElement>this.element).disable(finalID);
+                    this.element.disable(finalID);
             }
 
             if (result)
@@ -181,7 +179,7 @@
         }
 
         // Returns the decomposed selected menu IDs
-        public decomposeSelecteMenu(id: string): { hasParent: boolean, parent: string, selected: string } {
+        public decomposeSelectedMenu(id: string): { hasParent: boolean, parent: string, selected: string } {
             var finalIDs = id.split(":");
             var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
 

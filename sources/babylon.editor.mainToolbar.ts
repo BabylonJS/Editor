@@ -82,7 +82,7 @@
                 //if (item === null)
                 //    return false;
 
-                var selected = this.toolbar.decomposeSelecteMenu(id);
+                var selected = this.toolbar.decomposeSelectedMenu(id);
                 if (!selected || !selected.hasParent)
                     return false;
 

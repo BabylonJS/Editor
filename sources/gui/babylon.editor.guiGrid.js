@@ -23,7 +23,7 @@ var BABYLON;
                 function GUIGrid(name, core) {
                     _super.call(this, name, core);
                     // Public members
-                    this.columns = new Array();
+                    this.columns = [];
                     this.header = "New Grid";
                     this.showToolbar = true;
                     this.showFooter = false;
@@ -58,9 +58,20 @@ var BABYLON;
                     data.recid = this.element.records.length;
                     this.element.records.push(data);
                 };
-                // Removes a row
+                // Removes a row and refreshes the list
                 GUIGrid.prototype.removeRow = function (recid) {
                     this.element.remove(recid);
+                };
+                // Removes a record, need to refresh the list after
+                GUIGrid.prototype.removeRecord = function (recid) {
+                    this.element.records.splice(recid, 1);
+                };
+                // Refresh the element (W2UI)
+                GUIGrid.prototype.refresh = function () {
+                    for (var i = 0; i < this.element.records.length; i++) {
+                        this.element.records[i].recid = i;
+                    }
+                    _super.prototype.refresh.call(this);
                 };
                 // Returns the number of rows
                 GUIGrid.prototype.getRowCount = function () {

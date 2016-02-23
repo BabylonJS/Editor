@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUILayout extends GUIElement {
+    export class GUILayout extends GUIElement<W2UI.ILayoutsElement> {
         // Public members
-        public panels: Array<GUIPanel> = new Array<GUIPanel>();
+        public panels: Array<GUIPanel> = [];
 
         /**
         * Constructor
@@ -19,11 +19,11 @@
         }
 
         public lockPanel(type: string, message?: string, spinner?: boolean): void {
-            (<W2UI.ILayoutsElement>this.element).lock(type, message, spinner);
+            this.element.lock(type, message, spinner);
         }
 
         public unlockPanel(type: string): void {
-            (<W2UI.ILayoutsElement>this.element).unlock(type);
+            this.element.unlock(type);
         }
 
         public getPanelFromType(type: string): GUIPanel {
@@ -47,7 +47,7 @@
         }
 
         public setPanelSize(panelType: string, size: number): void {
-            (<W2UI.ILayoutsElement>this.element).sizeTo(panelType, size);
+            this.element.sizeTo(panelType, size);
         }
 
         public buildElement(parent: string): void {
@@ -65,7 +65,7 @@
 
             // Set panels
             for (var i = 0; i < this.panels.length; i++) {
-                this.panels[i]._panelElement = (<W2UI.ILayoutsElement>this.element).get(this.panels[i].type);
+                this.panels[i]._panelElement = this.element.get(this.panels[i].type);
             }
         }
     }

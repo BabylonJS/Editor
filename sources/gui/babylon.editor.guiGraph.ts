@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIGraph extends GUIElement {
+    export class GUIGraph extends GUIElement<W2UI.IGraphElement> {
         // Public members
-        public menus: Array<IGraphMenuElement> = new Array<IGraphNodeElement>();
+        public menus: Array<IGraphMenuElement> = [];
 
         public onGraphClick: (data: any) => void;
         public onMenuClick: (id: string) => void;
@@ -24,7 +24,7 @@
         }
         
         // Creates a new node and returns its reference
-        public createNode(id: string, text: string, img: string = "", data?: Object): IGraphNodeElement {
+        public createNode(id: string, text: string, img: string = "", data?: any): IGraphNodeElement {
             return {
                 id: id,
                 text: text,
@@ -35,28 +35,25 @@
 
         // Adds new nodes to the graph
         public addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void {
-            var element = <W2UI.IGraphElement>this.element;
-
             if (!parent)
-                element.add(Array.isArray(nodes) ? nodes : [nodes]);
+                this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
             else
-                element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
         }
         
         // Removes the provided node
         public removeNode(node: IGraphNodeElement | string): void {
-            (<W2UI.IGraphElement>this.element).remove(node);
+            this.element.remove(node);
         }
         
         // Sets if the provided node is expanded or not
         public setNodeExpanded(node: string, expanded: boolean): void {
-            var element = <W2UI.IGraphElement>this.element;
-            expanded ? element.expand(node) : element.collapse(node);
+            expanded ? this.element.expand(node) : this.element.collapse(node);
         }
 
         // Sets the selected node
         public setSelected(node: string): void {
-            var element = (<W2UI.IGraphElement>this.element).get(node);
+            var element = this.element.get(node);
 
             if (!element)
                 return;
@@ -65,21 +62,21 @@
                 element = element.parent;
 
                 if (element && element.id)
-                    (<W2UI.IGraphElement>this.element).expand(element.id);
+                    this.element.expand(element.id);
             }
 
-            (<W2UI.IGraphElement>this.element).select(node);
-            (<W2UI.IGraphElement>this.element).scrollIntoView(node);
+            this.element.select(node);
+            this.element.scrollIntoView(node);
         }
 
         // Returns the selected node
         public getSelected(): string {
-            return (<W2UI.IGraphElement>this.element).selected;
+            return this.element.selected;
         }
 
         // Returns the selected node
         public getSelectedNode(): IGraphNodeElement {
-            var element = (<W2UI.IGraphElement>this.element).get(this.getSelected());
+            var element = this.element.get(this.getSelected());
 
             if (element)
                 return element;
@@ -89,25 +86,24 @@
 
         // Returns the node by id
         public getNode(id: string): IGraphNodeElement {
-            var element = (<W2UI.IGraphElement>this.element).get(id);
+            var element = this.element.get(id);
             return element;
         }
 
         // Returns the selected data
         public getSelectedData(): Object {
             var selected = this.getSelected();
-            return (<W2UI.IGraphElement>this.element).get(selected).data;
+            return this.element.get(selected).data;
         }
 
         // Clears the graph
         public clear(): void {
             var toRemove = [];
-            var element = <W2UI.IGraphElement>this.element;
 
-            for (var i = 0; i < element.nodes.length; i++)
-                toRemove.push(element.nodes[i].id);
+            for (var i = 0; i < this.element.nodes.length; i++)
+                toRemove.push(this.element.nodes[i].id);
 
-            element.remove.apply(element, toRemove);
+            this.element.remove.apply(this.element, toRemove);
         }
 
         // Build element

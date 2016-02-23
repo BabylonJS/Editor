@@ -19,7 +19,7 @@ var BABYLON;
                 function GUIGraph(name, core) {
                     _super.call(this, name, core);
                     // Public members
-                    this.menus = new Array();
+                    this.menus = [];
                 }
                 GUIGraph.prototype.addMenu = function (id, text, img) {
                     if (img === void 0) { img = ""; }
@@ -41,11 +41,10 @@ var BABYLON;
                 };
                 // Adds new nodes to the graph
                 GUIGraph.prototype.addNodes = function (nodes, parent) {
-                    var element = this.element;
                     if (!parent)
-                        element.add(Array.isArray(nodes) ? nodes : [nodes]);
+                        this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
                     else
-                        element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
                 };
                 // Removes the provided node
                 GUIGraph.prototype.removeNode = function (node) {
@@ -53,8 +52,7 @@ var BABYLON;
                 };
                 // Sets if the provided node is expanded or not
                 GUIGraph.prototype.setNodeExpanded = function (node, expanded) {
-                    var element = this.element;
-                    expanded ? element.expand(node) : element.collapse(node);
+                    expanded ? this.element.expand(node) : this.element.collapse(node);
                 };
                 // Sets the selected node
                 GUIGraph.prototype.setSelected = function (node) {
@@ -93,10 +91,9 @@ var BABYLON;
                 // Clears the graph
                 GUIGraph.prototype.clear = function () {
                     var toRemove = [];
-                    var element = this.element;
-                    for (var i = 0; i < element.nodes.length; i++)
-                        toRemove.push(element.nodes[i].id);
-                    element.remove.apply(element, toRemove);
+                    for (var i = 0; i < this.element.nodes.length; i++)
+                        toRemove.push(this.element.nodes[i].id);
+                    this.element.remove.apply(this.element, toRemove);
                 };
                 // Build element
                 GUIGraph.prototype.buildElement = function (parent) {

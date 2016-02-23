@@ -1,6 +1,6 @@
 declare module BABYLON.EDITOR.GUI {
-    class GUIElement implements IGUIElement {
-        element: W2UI.IElement;
+    class GUIElement<T extends W2UI.IElement> implements IGUIElement {
+        element: T;
         name: string;
         core: EditorCore;
         /**

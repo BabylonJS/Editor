@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIEditForm extends GUIElement {
+    export class GUIEditForm extends GUIElement<W2UI.IElement> {
         // Public members
 
         // Private members

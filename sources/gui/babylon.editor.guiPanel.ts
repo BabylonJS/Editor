@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIPanel extends GUIElement {
+    export class GUIPanel extends GUIElement<W2UI.IElement> {
         // Public memebers
         public tabs: Array<IGUITab> = new Array<IGUITab>();
         public type: string;

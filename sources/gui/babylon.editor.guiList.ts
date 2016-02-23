@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIList extends GUIElement {
+    export class GUIList extends GUIElement<W2UI.IListElement> {
         // Public members
-        public items: Array<string> = new Array<string>();
+        public items: Array<string> = [];
 
         // Private members
 
@@ -23,10 +23,9 @@
 
         // Returns the selected item
         public getSelected(): number {
-            var element = <W2UI.IListElement>this.element;
-            var value = element.val();
+            var value = this.element.val();
 
-            return element.items.indexOf(value);
+            return this.element.items.indexOf(value);
         }
 
         // Build element

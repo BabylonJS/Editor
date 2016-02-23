@@ -20,7 +20,7 @@ var BABYLON;
                 function GUIList(name, core) {
                     _super.call(this, name, core);
                     // Public members
-                    this.items = new Array();
+                    this.items = [];
                 }
                 // Creates a new item
                 GUIList.prototype.addItem = function (name) {
@@ -29,9 +29,8 @@ var BABYLON;
                 };
                 // Returns the selected item
                 GUIList.prototype.getSelected = function () {
-                    var element = this.element;
-                    var value = element.val();
-                    return element.items.indexOf(value);
+                    var value = this.element.val();
+                    return this.element.items.indexOf(value);
                 };
                 // Build element
                 GUIList.prototype.buildElement = function (parent) {
