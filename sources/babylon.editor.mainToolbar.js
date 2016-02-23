@@ -69,89 +69,92 @@ var BABYLON;
                     if (!selected || !selected.hasParent)
                         return false;
                     // Project
-                    if (id.indexOf(this._mainProject) !== -1) {
-                        if (id.indexOf(this._mainProjectOpenFiles) !== -1) {
+                    if (selected.parent === this._mainProject) {
+                        if (selected.selected === this._mainProjectOpenFiles) {
                             var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
                             inputFiles.change(function (data) {
                                 _this._editor.filesInput.loadFiles(data);
                             }).click();
                         }
-                        else if (id.indexOf(this._mainProjectReload) !== -1) {
+                        else if (selected.selected === this._mainProjectReload) {
                             this._core.editor.filesInput.reload();
                         }
-                        else if (id.indexOf(this._projectExportCode) !== -1) {
+                        else if (selected.selected === this._projectExportCode) {
                             var exporter = new EDITOR.Exporter(this._core);
                             exporter.openSceneExporter();
                         }
-                        else if (id.indexOf(this._projectExportBabylonScene) !== -1) {
+                        else if (selected.selected === this._projectExportBabylonScene) {
                             var babylonExporter = new EDITOR.BabylonExporter(this._core);
                             babylonExporter.createUI();
                         }
-                        else if (id.indexOf(this._projectConnectStorage) !== -1) {
+                        else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this._core);
                             storageExporter.export();
                         }
-                        else if (id.indexOf(this._projectTemplateStorage) !== -1) {
+                        else if (selected.selected === this._projectTemplateStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this._core);
                             storageExporter.createTemplate();
                         }
                         return true;
                     }
                     // Edit
-                    if (id.indexOf(this._mainEdit) !== -1) {
-                        if (id.indexOf(this._mainEditLaunch) !== -1) {
+                    if (selected.parent === this._mainEdit) {
+                        if (selected.selected === this._mainEditLaunch) {
                             var launchEditor = new EDITOR.LaunchEditor(this._core);
                         }
                         return true;
                     }
                     // Add
-                    if (id.indexOf(this._mainAdd) !== -1) {
-                        if (id.indexOf(this._addPointLight) !== -1) {
+                    if (selected.parent === this._mainAdd) {
+                        if (selected.selected === this._addPointLight) {
                             EDITOR.SceneFactory.AddPointLight(this._core);
                         }
-                        else if (id.indexOf(this._addDirectionalLight) !== -1) {
+                        else if (selected.selected === this._addDirectionalLight) {
                             EDITOR.SceneFactory.AddDirectionalLight(this._core);
                         }
-                        else if (id.indexOf(this._addSpotLight) !== -1) {
+                        else if (selected.selected === this._addSpotLight) {
                             EDITOR.SceneFactory.AddSpotLight(this._core);
                         }
-                        else if (id.indexOf(this._addHemisphericLight) !== -1) {
+                        else if (selected.selected === this._addHemisphericLight) {
                             EDITOR.SceneFactory.AddHemisphericLight(this._core);
                         }
-                        else if (id.indexOf(this._addParticleSystem) !== -1) {
+                        else if (selected.selected === this._addParticleSystem) {
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
-                        else if (id.indexOf(this._addLensFlare) !== -1) {
+                        else if (selected.selected === this._addLensFlare) {
                             EDITOR.SceneFactory.AddLensFlareSystem(this._core);
                         }
-                        else if (id.indexOf(this._addSkyMesh) !== -1) {
+                        else if (selected.selected === this._addSkyMesh) {
                             EDITOR.SceneFactory.AddSkyMesh(this._core);
                         }
-                        else if (id.indexOf(this._addReflectionProbe) !== -1) {
+                        else if (selected.selected === this._addReflectionProbe) {
                             EDITOR.SceneFactory.AddReflectionProbe(this._core);
                         }
-                        else if (id.indexOf(this._addRenderTarget) !== -1) {
+                        else if (selected.selected === this._addRenderTarget) {
                             EDITOR.SceneFactory.AddRenderTargetTexture(this._core);
                         }
                         return true;
                     }
                     // Particles
-                    if (id.indexOf(this._particlesMain) !== -1) {
-                        if (id.indexOf(this._particlesCopy) !== -1) {
+                    if (selected.parent === this._particlesMain) {
+                        if (selected.selected === this._particlesCopy) {
                             EDITOR.GUIParticleSystemEditor._CopiedParticleSystem = EDITOR.GUIParticleSystemEditor._CurrentParticleSystem;
                         }
-                        else if (id.indexOf(this._particlesPaste) !== -1) {
+                        else if (selected.selected === this._particlesPaste) {
                             if (!EDITOR.GUIParticleSystemEditor._CopiedParticleSystem)
                                 return true;
-                            var emitter = EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.emitter;
-                            var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), EDITOR.GUIParticleSystemEditor._CopiedParticleSystem, emitter);
+                            //var emitter = GUIParticleSystemEditor._CopiedParticleSystem.emitter;
+                            var selectedEmitter = this._core.editor.sceneGraphTool.sidebar.getSelectedNode();
+                            if (!selectedEmitter || !selectedEmitter.data || !selectedEmitter.data.position)
+                                return true;
+                            var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), EDITOR.GUIParticleSystemEditor._CopiedParticleSystem, selectedEmitter.data);
                             EDITOR.Event.sendSceneEvent(newParticleSystem, EDITOR.SceneEventType.OBJECT_ADDED, this._core);
                             this._editor.editionTool.updateEditionTool();
                         }
-                        else if (id.indexOf(this._particlesPlay) !== -1) {
+                        else if (selected.selected === this._particlesPlay) {
                             EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, true);
                         }
-                        else if (id.indexOf(this._particlesStop) !== -1) {
+                        else if (selected.selected === this._particlesStop) {
                             EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, false);
                         }
                         return true;
