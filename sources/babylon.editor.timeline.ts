@@ -90,7 +90,7 @@
             for (var i = 0; i < keys.length; i++) {
                 var pos = this._getPosition(keys[i].frame);
 
-                var rect = this._paper.rect(pos - 1.5, this._panel.height - 35, 3, 15);
+                var rect = this._paper.rect(pos - 1.5, this._panel.height - 30, 3, 10);
                 rect.attr("fill", "red");
                 rect.attr("stroke", "black");
                 this._frameRects.push(rect);

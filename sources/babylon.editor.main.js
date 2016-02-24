@@ -195,6 +195,7 @@ var BABYLON;
                 // Post update
                 this.core.onPostUpdate();
             };
+            // Disposes the editor
             EditorMain.prototype.dispose = function () {
             };
             return EditorMain;

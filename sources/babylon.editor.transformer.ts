@@ -39,6 +39,7 @@
         private _selectedTransform: string = "";
         private _distance: number = 0;
         private _multiplier: number = 20;
+        private _ctrlIsDown: boolean = false;
 
         /**
         * Constructor
@@ -77,11 +78,19 @@
             });
 
             $(window).keydown((event: KeyboardEvent) => {
-                if (event.ctrlKey)
+                if (event.ctrlKey && this._ctrlIsDown === false) {
                     this._multiplier = 1;
+                    this._ctrlIsDown = true;
+                    this._pickPosition = true;
+                }
             });
+
             $(window).keyup((event: KeyboardEvent) => {
-                this._multiplier = 10;
+                if (!event.ctrlKey && this._ctrlIsDown === true) {
+                    this._multiplier = 10;
+                    this._ctrlIsDown = false;
+                    this._pickPosition = true;
+                }
             });
 
             // Create Transformers

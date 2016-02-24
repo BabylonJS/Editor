@@ -42,6 +42,7 @@ var BABYLON;
                 this._selectedTransform = "";
                 this._distance = 0;
                 this._multiplier = 20;
+                this._ctrlIsDown = false;
                 //Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -67,11 +68,18 @@ var BABYLON;
                         EDITOR.Event.sendSceneEvent(_this._node, EDITOR.SceneEventType.OBJECT_CHANGED, core);
                 });
                 $(window).keydown(function (event) {
-                    if (event.ctrlKey)
+                    if (event.ctrlKey && _this._ctrlIsDown === false) {
                         _this._multiplier = 1;
+                        _this._ctrlIsDown = true;
+                        _this._pickPosition = true;
+                    }
                 });
                 $(window).keyup(function (event) {
-                    _this._multiplier = 10;
+                    if (!event.ctrlKey && _this._ctrlIsDown === true) {
+                        _this._multiplier = 10;
+                        _this._ctrlIsDown = false;
+                        _this._pickPosition = true;
+                    }
                 });
                 // Create Transformers
                 this._createTransformers();

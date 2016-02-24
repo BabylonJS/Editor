@@ -253,6 +253,7 @@
             this.core.onPostUpdate();
         }
 
+        // Disposes the editor
         public dispose(): void {
 
         }
