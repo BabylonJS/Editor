@@ -78,6 +78,7 @@ var BABYLON;
                         EDITOR.SceneFactory.HDRPipeline.update();
                     });
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                    hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
@@ -132,6 +133,24 @@ var BABYLON;
                 if (this._editionTool.core.playCamera)
                     cameras.push(this._editionTool.core.playCamera);
                 return cameras;
+            };
+            // Creates a function to change texture of a flare
+            PostProcessesTool.prototype._loadHDRLensDirtTexture = function () {
+                var _this = this;
+                var input = EDITOR.Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
+                input.change(function (data) {
+                    var files = data.target.files || data.currentTarget.files;
+                    if (files.length < 1)
+                        return;
+                    var file = files[0];
+                    BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
+                        var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
+                        texture.name = texture.name.replace("data:", "");
+                        EDITOR.SceneFactory.HDRPipeline.lensTexture = texture;
+                        input.remove();
+                    }, null);
+                });
+                input.click();
             };
             return PostProcessesTool;
         })(EDITOR.AbstractDatTool);

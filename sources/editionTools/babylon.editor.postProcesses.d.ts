@@ -12,5 +12,6 @@ declare module BABYLON.EDITOR {
         private _ssaoOnly(result);
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();
+        private _loadHDRLensDirtTexture();
     }
 }

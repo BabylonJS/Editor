@@ -48,7 +48,7 @@
 
             var ratio: any = {
                 finalRatio: 1.0,
-                blurRatio: 0.5
+                blurRatio: 0.25
             };
 
             var hdr = new (<any>BABYLON.HDRRenderingPipeline)("hdr", core.currentScene, ratio, null, cameras, new BABYLON.Texture("textures/lensdirt.jpg", core.currentScene));
