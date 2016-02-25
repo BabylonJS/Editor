@@ -137,8 +137,17 @@
                 var obj = {};
                 
                 for (var thing in object) {
-                    if (typeof object[thing] === "number" && thing[0] !== "_")
+                    if (thing[0] === "_")
+                        continue;
+
+                    if (typeof object[thing] === "number")
                         obj[thing] = object[thing];
+
+                    if (object[thing] instanceof Texture) {
+                        obj[thing] = {
+
+                        };
+                    }
                 }
 
                 return obj;
@@ -333,7 +342,10 @@
             if (!material || material instanceof StandardMaterial || material instanceof MultiMaterial || !project.requestedMaterials)
                 return;
 
-            var constructorName = BABYLON.Tools.GetConstructorName(material);
+            var constructorName = (<any>material).constructor ? (<any>material).constructor.name : null;
+            if (!constructorName)
+                return;
+
             var index = project.requestedMaterials.indexOf(constructorName);
 
             if (index === -1)

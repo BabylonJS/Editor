@@ -33,5 +33,9 @@ declare module BABYLON.EDITOR {
         * Cleans an editor project
         */
         static CleanProject(project: INTERNAL.IProjectRoot): void;
+        /**
+        *
+        */
+        static GetConstructorName(obj: any): string;
     }
 }

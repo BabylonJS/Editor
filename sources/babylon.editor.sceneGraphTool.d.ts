@@ -21,5 +21,6 @@ declare module BABYLON.EDITOR {
         private _getRootNodes(result, entities);
         private _getObjectIcon(node);
         private _modifyElement(node, parentNode, id?);
+        private _ensureObjectDispose(object);
     }
 }

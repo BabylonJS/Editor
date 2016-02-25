@@ -83,6 +83,7 @@
                     SceneFactory.HDRPipeline.update();
                 });
                 hdrFolder.add(SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                hdrFolder.add(SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                 hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
             }
 

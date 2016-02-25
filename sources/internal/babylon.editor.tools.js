@@ -84,6 +84,12 @@ var BABYLON;
             Tools.CleanProject = function (project) {
                 project.renderTargets = project.renderTargets || [];
             };
+            /**
+            *
+            */
+            Tools.GetConstructorName = function (obj) {
+                return obj.constructor ? obj.constructor.name : "";
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

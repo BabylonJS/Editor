@@ -67,7 +67,7 @@
                     "}\n"
                 ].join("\n");
                 */
-                
+
                 finalString = ProjectExporter.ExportProject(this.core, true);
             }
 

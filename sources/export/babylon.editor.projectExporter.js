@@ -113,8 +113,13 @@ var BABYLON;
                 var serialize = function (object) {
                     var obj = {};
                     for (var thing in object) {
-                        if (typeof object[thing] === "number" && thing[0] !== "_")
+                        if (thing[0] === "_")
+                            continue;
+                        if (typeof object[thing] === "number")
                             obj[thing] = object[thing];
+                        if (object[thing] instanceof BABYLON.Texture) {
+                            obj[thing] = {};
+                        }
                     }
                     return obj;
                 };
@@ -272,7 +277,9 @@ var BABYLON;
             ProjectExporter._RequestMaterial = function (core, project, material) {
                 if (!material || material instanceof BABYLON.StandardMaterial || material instanceof BABYLON.MultiMaterial || !project.requestedMaterials)
                     return;
-                var constructorName = BABYLON.Tools.GetConstructorName(material);
+                var constructorName = material.constructor ? material.constructor.name : null;
+                if (!constructorName)
+                    return;
                 var index = project.requestedMaterials.indexOf(constructorName);
                 if (index === -1)
                     project.requestedMaterials.push(constructorName);

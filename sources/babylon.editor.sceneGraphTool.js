@@ -49,6 +49,7 @@ var BABYLON;
                             if (id === this._menuDeleteId) {
                                 if (object && object.dispose && object !== this._core.camera) {
                                     object.dispose();
+                                    this._ensureObjectDispose(object);
                                     var node = this.sidebar.getNode(this.sidebar.getSelected());
                                     if (node && node.parent) {
                                         node.parent.count = node.parent.count || 0;
@@ -278,6 +279,42 @@ var BABYLON;
                 }
                 this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
                 this.sidebar.refresh();
+            };
+            // Ensures that the object will delete all his dependencies
+            SceneGraphTool.prototype._ensureObjectDispose = function (object) {
+                var index;
+                var scene = this._core.currentScene;
+                // Lens flares
+                for (index = 0; index < scene.lensFlareSystems.length; index++) {
+                    var lf = scene.lensFlareSystems[index];
+                    if (lf.getEmitter() === object)
+                        lf.dispose();
+                }
+                // Particle systems
+                for (index = 0; index < scene.particleSystems.length; index++) {
+                    var ps = scene.particleSystems[index];
+                    if (ps.emitter === object)
+                        ps.dispose();
+                }
+                // Shadow generators
+                for (index = 0; index < scene.lights.length; index++) {
+                    var sg = scene.lights[index].getShadowGenerator();
+                    if (!sg)
+                        continue;
+                    var renderList = sg.getShadowMap().renderList;
+                    for (var meshIndex = 0; meshIndex < renderList.length; meshIndex++) {
+                        if (renderList[meshIndex] === object)
+                            renderList.splice(meshIndex, 1);
+                    }
+                }
+                // Render targets
+                for (index = 0; index < scene.customRenderTargets.length; index++) {
+                    var rt = scene.customRenderTargets[index];
+                    for (var meshIndex = 0; meshIndex < rt.renderList.length; meshIndex++) {
+                        if (rt.renderList[meshIndex] === object)
+                            rt.renderList.splice(meshIndex, 1);
+                    }
+                }
             };
             return SceneGraphTool;
         })();

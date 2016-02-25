@@ -85,7 +85,7 @@
                 }
 
                 // Create animation
-                var constructorName = BABYLON.Tools.GetConstructorName(data);
+                var constructorName = Tools.GetConstructorName(data);
                 var dataType = -1;
 
                 switch (constructorName) {
@@ -365,7 +365,7 @@
                         continue;
 
                     // Check
-                    var constructorName: string = BABYLON.Tools.GetConstructorName(value);
+                    var constructorName: string = Tools.GetConstructorName(value);
                     var canAdd = true;
 
                     if (thing[0] === "_" || types.indexOf(constructorName) === -1)
@@ -449,7 +449,7 @@
                 this._currentKey.value = parseFloat(value);
             }
             else {
-                var ctr = BABYLON.Tools.GetConstructorName(this._currentKey.value);
+                var ctr = Tools.GetConstructorName(this._currentKey.value);
                 if (BABYLON[ctr] && BABYLON[ctr].FromArray) {
                     var spl = value.split(",");
                     var arr = [];

@@ -58,7 +58,7 @@ var BABYLON;
                         node = node.parent;
                     }
                     // Create animation
-                    var constructorName = BABYLON.Tools.GetConstructorName(data);
+                    var constructorName = EDITOR.Tools.GetConstructorName(data);
                     var dataType = -1;
                     switch (constructorName) {
                         case "Number":
@@ -305,7 +305,7 @@ var BABYLON;
                         if (value === null || value === undefined)
                             continue;
                         // Check
-                        var constructorName = BABYLON.Tools.GetConstructorName(value);
+                        var constructorName = EDITOR.Tools.GetConstructorName(value);
                         var canAdd = true;
                         if (thing[0] === "_" || types.indexOf(constructorName) === -1)
                             canAdd = false;
@@ -370,7 +370,7 @@ var BABYLON;
                     this._currentKey.value = parseFloat(value);
                 }
                 else {
-                    var ctr = BABYLON.Tools.GetConstructorName(this._currentKey.value);
+                    var ctr = EDITOR.Tools.GetConstructorName(this._currentKey.value);
                     if (BABYLON[ctr] && BABYLON[ctr].FromArray) {
                         var spl = value.split(",");
                         var arr = [];

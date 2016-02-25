@@ -99,5 +99,12 @@
         public static CleanProject(project: INTERNAL.IProjectRoot): void {
             project.renderTargets = project.renderTargets || [];
         }
+
+        /**
+        *
+        */
+        public static GetConstructorName(obj: any): string {
+            return obj.constructor ? obj.constructor.name : "";
+        }
     }
 }
