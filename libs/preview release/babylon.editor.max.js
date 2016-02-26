@@ -1,9 +1,2989 @@
 var __extends = (this && this.__extends) || function (d, b) {
-for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-function __() { this.constructor = d; }
-__.prototype = b.prototype;
-d.prototype = new __();
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        /**
+        * Event Type
+        */
+        (function (EventType) {
+            EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
+            EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
+            EventType[EventType["UNKNOWN"] = 2] = "UNKNOWN";
+        })(EDITOR.EventType || (EDITOR.EventType = {}));
+        var EventType = EDITOR.EventType;
+        (function (GUIEventType) {
+            GUIEventType[GUIEventType["FORM_CHANGED"] = 0] = "FORM_CHANGED";
+            GUIEventType[GUIEventType["FORM_TOOLBAR_CLICKED"] = 1] = "FORM_TOOLBAR_CLICKED";
+            GUIEventType[GUIEventType["LAYOUT_CHANGED"] = 2] = "LAYOUT_CHANGED";
+            GUIEventType[GUIEventType["PANEL_CHANGED"] = 3] = "PANEL_CHANGED";
+            GUIEventType[GUIEventType["GRAPH_SELECTED"] = 4] = "GRAPH_SELECTED";
+            GUIEventType[GUIEventType["TAB_CHANGED"] = 5] = "TAB_CHANGED";
+            GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 6] = "TOOLBAR_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 7] = "GRAPH_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRID_SELECTED"] = 8] = "GRID_SELECTED";
+            GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 9] = "GRID_ROW_REMOVED";
+            GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 10] = "GRID_ROW_ADDED";
+            GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 11] = "GRID_ROW_EDITED";
+            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 12] = "GRID_MENU_SELECTED";
+            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 13] = "WINDOW_BUTTON_CLICKED";
+            GUIEventType[GUIEventType["OBJECT_PICKED"] = 14] = "OBJECT_PICKED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 15] = "UNKNOWN";
+        })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
+        var GUIEventType = EDITOR.GUIEventType;
+        (function (SceneEventType) {
+            SceneEventType[SceneEventType["OBJECT_PICKED"] = 0] = "OBJECT_PICKED";
+            SceneEventType[SceneEventType["OBJECT_ADDED"] = 1] = "OBJECT_ADDED";
+            SceneEventType[SceneEventType["OBJECT_REMOVED"] = 2] = "OBJECT_REMOVED";
+            SceneEventType[SceneEventType["OBJECT_CHANGED"] = 3] = "OBJECT_CHANGED";
+            SceneEventType[SceneEventType["UNKNOWN"] = 4] = "UNKNOWN";
+        })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
+        var SceneEventType = EDITOR.SceneEventType;
+        /**
+        * Base Event
+        */
+        var BaseEvent = (function () {
+            function BaseEvent(data) {
+                this.data = data;
+            }
+            return BaseEvent;
+        })();
+        EDITOR.BaseEvent = BaseEvent;
+        /**
+        * Scene Event
+        */
+        var SceneEvent = (function (_super) {
+            __extends(SceneEvent, _super);
+            /**
+            * Constructor
+            * @param object: the object generating the event
+            */
+            function SceneEvent(object, eventType, data) {
+                _super.call(this, data);
+                this.object = object;
+                this.eventType = eventType;
+            }
+            return SceneEvent;
+        })(BaseEvent);
+        EDITOR.SceneEvent = SceneEvent;
+        /**
+        * GUI Event
+        */
+        var GUIEvent = (function (_super) {
+            __extends(GUIEvent, _super);
+            /**
+            * Constructor
+            * @param caller: gui element calling the event
+            * @param eventType: the gui event type
+            */
+            function GUIEvent(caller, eventType, data) {
+                _super.call(this, data);
+                this.caller = caller;
+                this.eventType = eventType;
+            }
+            return GUIEvent;
+        })(BaseEvent);
+        EDITOR.GUIEvent = GUIEvent;
+        /**
+        * IEvent implementation
+        */
+        var Event = (function () {
+            function Event() {
+                this.eventType = EventType.UNKNOWN;
+                this.sceneEvent = null;
+                this.guiEvent = null;
+            }
+            Event.sendSceneEvent = function (object, type, core) {
+                var ev = new Event();
+                ev.eventType = EventType.SCENE_EVENT;
+                ev.sceneEvent = new SceneEvent(object, type);
+                core.sendEvent(ev);
+            };
+            Event.sendGUIEvent = function (object, type, core) {
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT;
+                ev.guiEvent = new GUIEvent(object, type);
+                core.sendEvent(ev);
+            };
+            return Event;
+        })();
+        EDITOR.Event = Event;
+        /**
+        * Statics
+        */
+        /**
+        * Sends a scene event
+        */
+        var sendSceneEvent = function (object, type, core) {
+            var ev = new Event();
+            ev.eventType = EventType.SCENE_EVENT;
+            ev.sceneEvent = new SceneEvent(object, type);
+            core.sendEvent(ev);
+        };
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var Tools = (function () {
+            function Tools() {
+            }
+            /**
+            * Returns a vector3 string from a vector3
+            */
+            Tools.GetStringFromVector3 = function (vector) {
+                return "" + vector.x + ", " + vector.y + ", " + vector.z;
+            };
+            /**
+            * Returns a vector3 from a vector3 string
+            */
+            Tools.GetVector3FromString = function (vector) {
+                var values = vector.split(",");
+                return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
+            };
+            /**
+            * Converts a base64 string to array buffer
+            * Largely used to convert images, converted into base64 string
+            */
+            Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
+                var binString = window.atob(base64String.split(",")[1]);
+                var len = binString.length;
+                var array = new Uint8Array(len);
+                for (var i = 0; i < len; i++)
+                    array[i] = binString.charCodeAt(i);
+                return array;
+            };
+            /**
+            * Opens a window popup
+            */
+            Tools.OpenWindowPopup = function (url, width, height) {
+                var features = [
+                    "width=" + width,
+                    "height=" + height,
+                    "top=" + window.screenY + Math.max(window.outerHeight - height, 0) / 2,
+                    "left=" + window.screenX + Math.max(window.outerWidth - width, 0) / 2,
+                    "status=no",
+                    "resizable=yes",
+                    "toolbar=no",
+                    "menubar=no",
+                    "scrollbars=yes"];
+                var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
+                popup.focus();
+                return popup;
+            };
+            /**
+            * Returns the base URL of the window
+            */
+            Tools.getBaseURL = function () {
+                var url = window.location.href;
+                url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                return url;
+            };
+            /**
+            * Creates an input element
+            */
+            Tools.CreateFileInpuElement = function (id) {
+                var input = $("#" + id);
+                if (!input[0])
+                    $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
+                return input;
+            };
+            /**
+            * Beautify a variable name (escapeds + upper case)
+            */
+            Tools.BeautifyName = function (name) {
+                var result = name[0].toUpperCase();
+                for (var i = 1; i < name.length; i++) {
+                    var char = name[i];
+                    if (char === char.toUpperCase())
+                        result += " ";
+                    result += name[i];
+                }
+                return result;
+            };
+            /**
+            * Cleans an editor project
+            */
+            Tools.CleanProject = function (project) {
+                project.renderTargets = project.renderTargets || [];
+            };
+            /**
+            *
+            */
+            Tools.GetConstructorName = function (obj) {
+                return obj.constructor ? obj.constructor.name : "";
+            };
+            return Tools;
+        })();
+        EDITOR.Tools = Tools;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIElement = (function () {
+                // Private members
+                /**
+                * Constructor
+                * @param name: the gui element name
+                * @param core: the editor core
+                */
+                function GUIElement(name, core) {
+                    // Public members
+                    this.element = null;
+                    this.name = "";
+                    this.core = null;
+                    // Members
+                    this.name = name;
+                    this.core = core;
+                }
+                // Destroy the element (W2UI)
+                GUIElement.prototype.destroy = function () {
+                    this.element.destroy();
+                };
+                // Refresh the element (W2UI)
+                GUIElement.prototype.refresh = function () {
+                    this.element.refresh();
+                };
+                // Resize the element (W2UI)
+                GUIElement.prototype.resize = function () {
+                    this.element.resize();
+                };
+                // Add callback on an event
+                GUIElement.prototype.on = function (event, callback) {
+                    this.element.on(event, callback);
+                };
+                // Build the element
+                GUIElement.prototype.buildElement = function (parent) { };
+                /**
+                * Static methods
+                */
+                // Creates a div element (string)
+                GUIElement.CreateDivElement = function (id, style) {
+                    return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
+                };
+                // Creates a custom element (string)
+                GUIElement.CreateElement = function (type, id, style) {
+                    if (style === void 0) { style = "width: 100%; height: 100%;"; }
+                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
+                };
+                return GUIElement;
+            })();
+            GUI.GUIElement = GUIElement;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIDialog = (function (_super) {
+                __extends(GUIDialog, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                */
+                function GUIDialog(name, core, title, body) {
+                    _super.call(this, name, core);
+                    this.callback = null;
+                    // Initialize
+                    this.title = title;
+                    this.body = body;
+                }
+                // Build element
+                GUIDialog.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = w2confirm(this.body, this.title, function (result) {
+                        if (_this.callback)
+                            _this.callback(result);
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result);
+                        _this.core.sendEvent(ev);
+                    });
+                };
+                // Create a dialog on the fly
+                GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
+                    w2confirm(body, title, null)
+                        .yes(function () {
+                        yesCallback();
+                    })
+                        .no(function () {
+                        noCallback();
+                    });
+                };
+                return GUIDialog;
+            })(GUI.GUIElement);
+            GUI.GUIDialog = GUIDialog;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIEditForm = (function (_super) {
+                __extends(GUIEditForm, _super);
+                /**
+                * Constructor
+                * @param name: the form name
+                */
+                function GUIEditForm(name, core) {
+                    _super.call(this, name, core);
+                }
+                // Removes the element
+                GUIEditForm.prototype.remove = function () {
+                    this._datElement.domElement.parentNode.removeChild(this._datElement.domElement);
+                };
+                // Add a folder
+                GUIEditForm.prototype.addFolder = function (name, parent) {
+                    var parentFolder = parent ? parent : this._datElement;
+                    var folder = parentFolder.addFolder(name);
+                    folder.open();
+                    return folder;
+                };
+                // Add a field
+                GUIEditForm.prototype.add = function (object, propertyPath, items, name) {
+                    if (!object || object[propertyPath] === undefined || object[propertyPath] === null)
+                        return this._datElement.add(null, "");
+                    return this._datElement.add(object, propertyPath, items).name(name);
+                };
+                // Adds tags to object if property changed
+                GUIEditForm.prototype.tagObjectIfChanged = function (element, object, property) {
+                    element.onFinishChange(function (result) {
+                        if (!BABYLON.Tags.HasTags(object)) {
+                            BABYLON.Tags.EnableFor(object);
+                        }
+                        if (!BABYLON.Tags.MatchesQuery(object, property)) {
+                            BABYLON.Tags.AddTagsTo(object, property);
+                        }
+                    });
+                };
+                Object.defineProperty(GUIEditForm.prototype, "width", {
+                    get: function () {
+                        return this._datElement.width;
+                    },
+                    // Get / Set width
+                    set: function (width) {
+                        this._datElement.width = width;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(GUIEditForm.prototype, "height", {
+                    get: function () {
+                        return this._datElement.height;
+                    },
+                    // Get / Set height
+                    set: function (height) {
+                        this._datElement.height = height;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                // Remember initial
+                GUIEditForm.prototype.remember = function (object) {
+                    this._datElement.remember(object);
+                };
+                // Build element
+                GUIEditForm.prototype.buildElement = function (parent) {
+                    var parentElement = $("#" + parent);
+                    this._datElement = new dat.GUI({
+                        autoPlace: false
+                    });
+                    this._datElement.width = parentElement.width();
+                    this.element = parentElement[0].appendChild(this._datElement.domElement);
+                };
+                return GUIEditForm;
+            })(GUI.GUIElement);
+            GUI.GUIEditForm = GUIEditForm;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIForm = (function (_super) {
+                __extends(GUIForm, _super);
+                /**
+                * Constructor
+                * @param name: the form name
+                * @param header: form's header text
+                */
+                function GUIForm(name, header, core) {
+                    if (header === void 0) { header = ""; }
+                    _super.call(this, name, core);
+                    this.fields = [];
+                    this.toolbarFields = [];
+                    // Initialize
+                    this.header = header;
+                }
+                // Create a field
+                GUIForm.prototype.createField = function (name, type, caption, span, text, options) {
+                    if (span === void 0) { span = undefined; }
+                    if (text === void 0) { text = ""; }
+                    if (options === void 0) { options = {}; }
+                    span = (span === null) ? 6 : span;
+                    var field = { name: name, type: type, html: { caption: caption, span: span, text: text }, options: options };
+                    this.fields.push(field);
+                    return this;
+                };
+                // Create a toolbar field
+                GUIForm.prototype.createToolbarField = function (id, type, caption, img) {
+                    var field = { id: name, text: caption, type: type, checked: false, img: img };
+                    this.toolbarFields.push(field);
+                    return field;
+                };
+                // Set record
+                GUIForm.prototype.setRecord = function (name, value) {
+                    this.element.record[name] = value;
+                };
+                // Get record
+                GUIForm.prototype.getRecord = function (name) {
+                    return this.element.record[name];
+                };
+                // Build element
+                GUIForm.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = $("#" + parent).w2form({
+                        name: this.name,
+                        focus: -1,
+                        header: this.header,
+                        formHTML: "",
+                        fields: this.fields,
+                        toolbar: {
+                            items: this.toolbarFields,
+                            onClick: function (event) {
+                                if (_this.onToolbarClicked)
+                                    _this.onToolbarClicked(event.target);
+                                var ev = new EDITOR.Event();
+                                ev.eventType = EDITOR.EventType.GUI_EVENT;
+                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
+                                ev.guiEvent.data = event.target;
+                                _this.core.sendEvent(ev);
+                            }
+                        }
+                    });
+                    this.element.on({ type: "change", execute: "after" }, function () {
+                        if (_this.onFormChanged)
+                            _this.onFormChanged();
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
+                        _this.core.sendEvent(ev);
+                    });
+                };
+                return GUIForm;
+            })(GUI.GUIElement);
+            GUI.GUIForm = GUIForm;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIGraph = (function (_super) {
+                __extends(GUIGraph, _super);
+                /**
+                * Constructor
+                * @param name: the form name
+                * @param header: form's header text
+                */
+                function GUIGraph(name, core) {
+                    _super.call(this, name, core);
+                    // Public members
+                    this.menus = [];
+                }
+                GUIGraph.prototype.addMenu = function (id, text, img) {
+                    if (img === void 0) { img = ""; }
+                    this.menus.push({
+                        id: id,
+                        text: text,
+                        img: img
+                    });
+                };
+                // Creates a new node and returns its reference
+                GUIGraph.prototype.createNode = function (id, text, img, data) {
+                    if (img === void 0) { img = ""; }
+                    return {
+                        id: id,
+                        text: text,
+                        img: img,
+                        data: data
+                    };
+                };
+                // Adds new nodes to the graph
+                GUIGraph.prototype.addNodes = function (nodes, parent) {
+                    if (!parent)
+                        this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
+                    else
+                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                };
+                // Removes the provided node
+                GUIGraph.prototype.removeNode = function (node) {
+                    this.element.remove(node);
+                };
+                // Sets if the provided node is expanded or not
+                GUIGraph.prototype.setNodeExpanded = function (node, expanded) {
+                    expanded ? this.element.expand(node) : this.element.collapse(node);
+                };
+                // Sets the selected node
+                GUIGraph.prototype.setSelected = function (node) {
+                    var element = this.element.get(node);
+                    if (!element)
+                        return;
+                    while (element.parent !== null) {
+                        element = element.parent;
+                        if (element && element.id)
+                            this.element.expand(element.id);
+                    }
+                    this.element.select(node);
+                    this.element.scrollIntoView(node);
+                };
+                // Returns the selected node
+                GUIGraph.prototype.getSelected = function () {
+                    return this.element.selected;
+                };
+                // Returns the selected node
+                GUIGraph.prototype.getSelectedNode = function () {
+                    var element = this.element.get(this.getSelected());
+                    if (element)
+                        return element;
+                    return null;
+                };
+                // Returns the node by id
+                GUIGraph.prototype.getNode = function (id) {
+                    var element = this.element.get(id);
+                    return element;
+                };
+                // Returns the selected data
+                GUIGraph.prototype.getSelectedData = function () {
+                    var selected = this.getSelected();
+                    return this.element.get(selected).data;
+                };
+                // Clears the graph
+                GUIGraph.prototype.clear = function () {
+                    var toRemove = [];
+                    for (var i = 0; i < this.element.nodes.length; i++)
+                        toRemove.push(this.element.nodes[i].id);
+                    this.element.remove.apply(this.element, toRemove);
+                };
+                // Build element
+                GUIGraph.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = $("#" + parent).w2sidebar({
+                        name: this.name,
+                        img: null,
+                        keyboard: false,
+                        nodes: [],
+                        menu: this.menus,
+                        onClick: function (event) {
+                            if (_this.onGraphClick)
+                                _this.onGraphClick(event.object.data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_SELECTED);
+                            ev.guiEvent.data = event.object.data;
+                            _this.core.sendEvent(ev);
+                        },
+                        onMenuClick: function (event) {
+                            if (_this.onMenuClick)
+                                _this.onMenuClick(event.menuItem.id);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_MENU_SELECTED);
+                            ev.guiEvent.data = event.menuItem.id;
+                            _this.core.sendEvent(ev);
+                        }
+                    });
+                };
+                return GUIGraph;
+            })(GUI.GUIElement);
+            GUI.GUIGraph = GUIGraph;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var gridButtons = w2obj.grid.prototype.buttons;
+            gridButtons["add"].caption = w2utils.lang("");
+            gridButtons["delete"].caption = w2utils.lang("");
+            var GUIGrid = (function (_super) {
+                __extends(GUIGrid, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                * @param core: the editor core
+                */
+                function GUIGrid(name, core) {
+                    _super.call(this, name, core);
+                    // Public members
+                    this.columns = [];
+                    this.header = "New Grid";
+                    this.showToolbar = true;
+                    this.showFooter = false;
+                    this.showDelete = false;
+                    this.showAdd = false;
+                    this.showEdit = false;
+                    this.showOptions = true;
+                    this.showSearch = true;
+                    this.menus = [];
+                }
+                // Adds a menu
+                GUIGrid.prototype.addMenu = function (id, text, icon) {
+                    this.menus.push({
+                        id: id,
+                        text: text,
+                        icon: icon
+                    });
+                };
+                // Creates a column
+                GUIGrid.prototype.createColumn = function (id, text, size) {
+                    if (!size)
+                        size = "50%";
+                    this.columns.push({ field: id, caption: text, size: size });
+                };
+                // Adds a row and refreshes the grid
+                GUIGrid.prototype.addRow = function (data) {
+                    data.recid = this.getRowCount();
+                    this.element.add(data);
+                };
+                // Adds a record without refreshing the grid
+                GUIGrid.prototype.addRecord = function (data) {
+                    data.recid = this.element.records.length;
+                    this.element.records.push(data);
+                };
+                // Removes a row and refreshes the list
+                GUIGrid.prototype.removeRow = function (recid) {
+                    this.element.remove(recid);
+                };
+                // Removes a record, need to refresh the list after
+                GUIGrid.prototype.removeRecord = function (recid) {
+                    this.element.records.splice(recid, 1);
+                };
+                // Refresh the element (W2UI)
+                GUIGrid.prototype.refresh = function () {
+                    for (var i = 0; i < this.element.records.length; i++) {
+                        this.element.records[i].recid = i;
+                    }
+                    _super.prototype.refresh.call(this);
+                };
+                // Returns the number of rows
+                GUIGrid.prototype.getRowCount = function () {
+                    return this.element.total;
+                };
+                // Clear
+                GUIGrid.prototype.clear = function () {
+                    this.element.clear();
+                    this.element.total = 0;
+                };
+                // Locks the grid
+                GUIGrid.prototype.lock = function (message, spinner) {
+                    this.element.lock(message, spinner);
+                };
+                // Unlock the grid
+                GUIGrid.prototype.unlock = function () {
+                    this.element.unlock();
+                };
+                // Returns the selected rows
+                GUIGrid.prototype.getSelectedRows = function () {
+                    return this.element.getSelection();
+                };
+                // sets the selected rows
+                GUIGrid.prototype.setSelected = function (selected) {
+                    for (var i = 0; i < selected.length; i++) {
+                        this.element.select(selected[i]);
+                    }
+                };
+                // Returns the row at indice
+                GUIGrid.prototype.getRow = function (indice) {
+                    if (indice >= 0) {
+                        return this.element.get(indice);
+                    }
+                    return null;
+                };
+                // Modifies the row at indice
+                GUIGrid.prototype.modifyRow = function (indice, data) {
+                    this.element.set(indice, data);
+                };
+                // Build element
+                GUIGrid.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = $("#" + parent).w2grid({
+                        name: this.name,
+                        show: {
+                            toolbar: this.showToolbar,
+                            footer: this.showFooter,
+                            toolbarDelete: this.showDelete,
+                            toolbarAdd: this.showAdd,
+                            toolbarEdit: this.showEdit,
+                            toolbarSearch: this.showSearch,
+                            toolbarColumns: this.showOptions,
+                            header: !(this.header === "")
+                        },
+                        menu: this.menus,
+                        header: this.header,
+                        columns: this.columns,
+                        records: [],
+                        onClick: function (event) {
+                            event.onComplete = function () {
+                                var selected = _this.getSelectedRows();
+                                if (selected.length === 1) {
+                                    if (_this.onClick)
+                                        _this.onClick(selected);
+                                    var ev = new EDITOR.Event();
+                                    ev.eventType = EDITOR.EventType.GUI_EVENT;
+                                    ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_SELECTED, selected);
+                                    _this.core.sendEvent(ev);
+                                }
+                            };
+                        },
+                        keyboard: false,
+                        onMenuClick: function (event) {
+                            if (_this.onMenuClick)
+                                _this.onMenuClick(event.menuItem.id);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
+                            _this.core.sendEvent(ev);
+                        },
+                        onDelete: function (event) {
+                            if (event.force) {
+                                var data = _this.getSelectedRows();
+                                if (_this.onDelete)
+                                    _this.onDelete(data);
+                                var ev = new EDITOR.Event();
+                                ev.eventType = EDITOR.EventType.GUI_EVENT;
+                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_REMOVED, data);
+                                _this.core.sendEvent(ev);
+                            }
+                        },
+                        onAdd: function (event) {
+                            if (_this.onAdd)
+                                _this.onAdd();
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_ADDED);
+                            _this.core.sendEvent(ev);
+                        },
+                        onEdit: function (event) {
+                            var data = _this.getSelectedRows();
+                            if (_this.onEdit)
+                                _this.onEdit(data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
+                            _this.core.sendEvent(ev);
+                        }
+                    });
+                };
+                return GUIGrid;
+            })(GUI.GUIElement);
+            GUI.GUIGrid = GUIGrid;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUILayout = (function (_super) {
+                __extends(GUILayout, _super);
+                /**
+                * Constructor
+                * @param name: layouts name
+                */
+                function GUILayout(name, core) {
+                    _super.call(this, name, core);
+                    // Public members
+                    this.panels = [];
+                }
+                GUILayout.prototype.createPanel = function (name, type, size, resizable) {
+                    if (resizable === void 0) { resizable = true; }
+                    var panel = new GUI.GUIPanel(name, type, size, resizable, this.core);
+                    this.panels.push(panel);
+                    return panel;
+                };
+                GUILayout.prototype.lockPanel = function (type, message, spinner) {
+                    this.element.lock(type, message, spinner);
+                };
+                GUILayout.prototype.unlockPanel = function (type) {
+                    this.element.unlock(type);
+                };
+                GUILayout.prototype.getPanelFromType = function (type) {
+                    for (var i = 0; i < this.panels.length; i++) {
+                        if (this.panels[i].type === type) {
+                            return this.panels[i];
+                        }
+                    }
+                    return null;
+                };
+                GUILayout.prototype.getPanelFromName = function (name) {
+                    for (var i = 0; i < this.panels.length; i++) {
+                        if (this.panels[i].name === name) {
+                            return this.panels[i];
+                        }
+                    }
+                    return null;
+                };
+                GUILayout.prototype.setPanelSize = function (panelType, size) {
+                    this.element.sizeTo(panelType, size);
+                };
+                GUILayout.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = $("#" + parent).w2layout({
+                        name: this.name,
+                        panels: this.panels
+                    });
+                    this.element.on({ type: "resize", execute: "after" }, function () {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.LAYOUT_CHANGED);
+                        _this.core.sendEvent(ev);
+                    });
+                    // Set panels
+                    for (var i = 0; i < this.panels.length; i++) {
+                        this.panels[i]._panelElement = this.element.get(this.panels[i].type);
+                    }
+                };
+                return GUILayout;
+            })(GUI.GUIElement);
+            GUI.GUILayout = GUILayout;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIList = (function (_super) {
+                __extends(GUIList, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                * @param core: the editor core
+                */
+                function GUIList(name, core) {
+                    _super.call(this, name, core);
+                    // Public members
+                    this.items = [];
+                }
+                // Creates a new item
+                GUIList.prototype.addItem = function (name) {
+                    this.items.push(name);
+                    return this;
+                };
+                // Returns the selected item
+                GUIList.prototype.getSelected = function () {
+                    var value = this.element.val();
+                    return this.element.items.indexOf(value);
+                };
+                // Build element
+                GUIList.prototype.buildElement = function (parent) {
+                    this.element = $("input[type = list]" + "#" + parent).w2field("list", {
+                        items: this.items,
+                        selected: this.items.length > 0 ? this.items[0] : ""
+                    });
+                };
+                return GUIList;
+            })(GUI.GUIElement);
+            GUI.GUIList = GUIList;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIPanel = (function (_super) {
+                __extends(GUIPanel, _super);
+                /**
+                * Constructor
+                * @param name: panel name
+                * @param type: panel type (left, right, etc.)
+                * @param size: panel size
+                * @param resizable: if the panel is resizable
+                * @param core: the editor core
+                */
+                function GUIPanel(name, type, size, resizable, core) {
+                    _super.call(this, name, core);
+                    // Public memebers
+                    this.tabs = new Array();
+                    this.size = 70;
+                    this.minSize = 10;
+                    this.maxSize = undefined;
+                    this.style = "background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;";
+                    this.toolbar = null;
+                    this.type = type;
+                    this.size = size;
+                    this.resizable = resizable;
+                }
+                // Create tab
+                GUIPanel.prototype.createTab = function (tab) {
+                    var _this = this;
+                    // Configure event
+                    tab.onClick = function (event) {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CHANGED, event.target);
+                        _this.core.sendEvent(ev);
+                    };
+                    // Add tab
+                    this.tabs.push(tab);
+                    if (this._panelElement !== null) {
+                        this._panelElement.tabs.add(tab);
+                    }
+                    return this;
+                };
+                // Remove tab from id
+                GUIPanel.prototype.removeTab = function (id) {
+                    if (this._panelElement !== null) {
+                        this._panelElement.tabs.remove(id);
+                    }
+                    for (var i = 0; i < this.tabs.length; i++) {
+                        if (this.tabs[i].id === id) {
+                            this.tabs.splice(i, 1);
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                Object.defineProperty(GUIPanel.prototype, "width", {
+                    // Get width
+                    get: function () {
+                        if (this._panelElement)
+                            return this._panelElement.width;
+                        return 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(GUIPanel.prototype, "height", {
+                    // Get height
+                    get: function () {
+                        if (this._panelElement)
+                            return this._panelElement.height;
+                        return 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                // Return tab count
+                GUIPanel.prototype.getTabCount = function () {
+                    return this.tabs.length;
+                };
+                // Set tab enabled
+                GUIPanel.prototype.setTabEnabled = function (id, enable) {
+                    if (this._panelElement === null) {
+                        return this;
+                    }
+                    enable ? this._panelElement.tabs.enable(id) : this._panelElement.tabs.disable(id);
+                    return this;
+                };
+                // Return tab id from index
+                GUIPanel.prototype.getTabIDFromIndex = function (index) {
+                    if (index >= 0 && index < this.tabs.length) {
+                        return this.tabs[index].id;
+                    }
+                    return "";
+                };
+                // Sets panel content (HTML)
+                GUIPanel.prototype.setContent = function (content) {
+                    this.content = content;
+                    return this;
+                };
+                // Hides a tab
+                GUIPanel.prototype.hideTab = function (id) {
+                    return this._panelElement.tabs.hide(id) === 1;
+                };
+                // Show tab
+                GUIPanel.prototype.showTab = function (id) {
+                    return this._panelElement.tabs.show(id) === 1;
+                };
+                return GUIPanel;
+            })(GUI.GUIElement);
+            GUI.GUIPanel = GUIPanel;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIToolbar = (function (_super) {
+                __extends(GUIToolbar, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                */
+                function GUIToolbar(name, core) {
+                    _super.call(this, name, core);
+                    // Public members
+                    this.menus = [];
+                }
+                // Creates a new menu
+                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
+                    var menu = {
+                        type: type,
+                        id: id,
+                        text: text,
+                        img: icon,
+                        checked: checked || false,
+                        items: []
+                    };
+                    this.menus.push(menu);
+                    return menu;
+                };
+                // Creates a new menu item
+                GUIToolbar.prototype.createMenuItem = function (menu, type, id, text, icon, checked, disabled) {
+                    var item = {
+                        type: type,
+                        id: id,
+                        text: text,
+                        icon: icon,
+                        checked: checked || false,
+                        disabled: disabled || false
+                    };
+                    menu.items.push(item);
+                    return item;
+                };
+                // Creates a new input element
+                GUIToolbar.prototype.createInput = function (id, inputId, text, size) {
+                    if (size === void 0) { size = 10; }
+                    var item = {
+                        type: "html",
+                        id: id,
+                        html: "<div style=\"padding: 3px 10px;\">" +
+                            text +
+                            "    <input size=\"" + size + "\" id=\"" + inputId + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
+                            "</div>",
+                        text: text,
+                    };
+                    this.menus.push(item);
+                    return item;
+                };
+                // Adds a break
+                GUIToolbar.prototype.addBreak = function (menu) {
+                    var item = {
+                        type: "break",
+                        id: undefined,
+                        text: undefined,
+                        img: undefined,
+                        icon: undefined,
+                        checked: undefined,
+                        items: undefined
+                    };
+                    if (menu)
+                        menu.items.push(item);
+                    else
+                        this.menus.push(item);
+                    return item;
+                };
+                // Adds a spacer
+                GUIToolbar.prototype.addSpacer = function () {
+                    var item = {
+                        type: "spacer",
+                        id: undefined,
+                        text: undefined,
+                        img: undefined,
+                        icon: undefined,
+                        checked: undefined,
+                        items: undefined
+                    };
+                    this.menus.push(item);
+                    return item;
+                };
+                // Sets the item checked
+                GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
+                    var id = menu ? menu + ":" + item : item;
+                    checked ? this.element.check(id) : this.element.uncheck(id);
+                };
+                // Sets the item auto checked (true to false, false to true)
+                GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
+                    var result = this.element.get(menu ? menu + ":" + item : item);
+                    var checked = result ? result.checked : false;
+                    if (!checked)
+                        this.element.check(item);
+                    else
+                        this.element.uncheck(item);
+                };
+                // Returns if the item is checked
+                GUIToolbar.prototype.isItemChecked = function (item, menu) {
+                    var result = this.element.get(menu ? menu + ":" + item : item);
+                    if (result)
+                        return result.checked;
+                    return false;
+                };
+                // Sets an item enabled or not
+                GUIToolbar.prototype.setItemEnabled = function (item, enabled, menu) {
+                    var finalID = menu ? menu + ":" + item : item;
+                    var result = null;
+                    if (menu)
+                        result = this.element.get(menu);
+                    if (result) {
+                        for (var i = 0; i < result.items.length; i++) {
+                            if (result.items[i].id === item) {
+                                result.items[i].disabled = !enabled;
+                                this.refresh();
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        if (enabled)
+                            this.element.enable(finalID);
+                        else
+                            this.element.disable(finalID);
+                    }
+                    if (result)
+                        return true;
+                    return false;
+                };
+                // Returns an item by its ID
+                GUIToolbar.prototype.getItemByID = function (id) {
+                    for (var i = 0; i < this.menus.length; i++) {
+                        var menu = this.menus[i];
+                        if (menu.type === "break")
+                            continue;
+                        if (menu.id === id)
+                            return menu;
+                        for (var j = 0; j < menu.items.length; j++) {
+                            var item = menu.items[j];
+                            if (item.id === id)
+                                return item;
+                        }
+                    }
+                    return null;
+                };
+                // Returns the decomposed selected menu IDs
+                GUIToolbar.prototype.decomposeSelectedMenu = function (id) {
+                    var finalIDs = id.split(":");
+                    var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
+                    if (!item)
+                        return null;
+                    return {
+                        hasParent: finalIDs.length > 1,
+                        parent: finalIDs[0],
+                        selected: finalIDs.length > 1 ? finalIDs[finalIDs.length - 1] : ""
+                    };
+                };
+                // Build element
+                GUIToolbar.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    this.element = $("#" + parent).w2toolbar({
+                        name: this.name,
+                        items: this.menus,
+                        onClick: function (event) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED);
+                            ev.guiEvent.data = event.target;
+                            _this.core.sendEvent(ev);
+                        }
+                    });
+                };
+                return GUIToolbar;
+            })(GUI.GUIElement);
+            GUI.GUIToolbar = GUIToolbar;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUI;
+        (function (GUI) {
+            var GUIWindow = (function (_super) {
+                __extends(GUIWindow, _super);
+                /**
+                * Constructor
+                * @param name: the form name
+                */
+                function GUIWindow(name, core, title, body, size, buttons) {
+                    var _this = this;
+                    _super.call(this, name, core);
+                    // Public members
+                    this.title = "";
+                    this.body = "";
+                    this.size = new BABYLON.Vector2(800, 600);
+                    this.buttons = [];
+                    this.modal = true;
+                    this.showClose = true;
+                    this.showMax = true;
+                    // Private members
+                    this._onCloseCallbacks = [];
+                    // Initialize
+                    this.title = title;
+                    this.body = body;
+                    if (size)
+                        this.size = size;
+                    if (buttons)
+                        this.buttons = buttons;
+                    this._onCloseCallback = function () {
+                        _this.core.editor.renderMainScene = true;
+                        for (var i = 0; i < _this._onCloseCallbacks.length; i++) {
+                            _this._onCloseCallbacks[i]();
+                        }
+                    };
+                }
+                // Destroy the element (W2UI)
+                GUIWindow.prototype.destroy = function () {
+                    this.element.clear();
+                };
+                // Sets the on close callback
+                GUIWindow.prototype.setOnCloseCallback = function (callback) {
+                    this._onCloseCallbacks.push(callback);
+                };
+                // Closes the window
+                GUIWindow.prototype.close = function () {
+                    this.element.close();
+                };
+                // Maximizes the window
+                GUIWindow.prototype.maximize = function () {
+                    this.element.max();
+                };
+                // Locks the window
+                GUIWindow.prototype.lock = function (message) {
+                    w2popup.lock(message);
+                };
+                // Unlocks the window
+                GUIWindow.prototype.unlock = function () {
+                    w2popup.unlock();
+                };
+                Object.defineProperty(GUIWindow.prototype, "onToggle", {
+                    // Toggle callback
+                    get: function () {
+                        return this._onToggle;
+                    },
+                    // Toggle callback
+                    set: function (callback) {
+                        var windowEvent = function (event) {
+                            event.onComplete = function (eventData) {
+                                callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
+                            };
+                        };
+                        this.element.onMax = windowEvent;
+                        this.element.onMin = windowEvent;
+                        this._onToggle = callback;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                // Notify a message
+                GUIWindow.prototype.notify = function (message) {
+                    w2popup.message({
+                        width: 400,
+                        height: 180,
+                        html: "<div style=\"padding: 60px; text-align: center\">" + message + "</div>\"" +
+                            "<div style=\"text- align: center\"><button class=\"btn\" onclick=\"w2popup.message()\">Close</button>"
+                    });
+                };
+                // Build element
+                GUIWindow.prototype.buildElement = function (parent) {
+                    var _this = this;
+                    // Create buttons
+                    var buttonID = "WindowButton";
+                    var buttons = "";
+                    for (var i = 0; i < this.buttons.length; i++) {
+                        buttons += "<button class=\"btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
+                    }
+                    // Create window
+                    this.element = w2popup.open({
+                        title: this.title,
+                        body: this.body,
+                        buttons: buttons,
+                        width: this.size.x,
+                        height: this.size.y,
+                        showClose: this.showClose,
+                        showMax: this.showMax == null ? false : this.showMax,
+                        modal: this.modal
+                    });
+                    // Create events for buttons
+                    for (var i = 0; i < this.buttons.length; i++) {
+                        var element = $("#" + buttonID + this.buttons[i]);
+                        element.click(function (result) {
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result.target.id.replace(buttonID, ""));
+                            _this.core.sendEvent(ev);
+                        });
+                    }
+                    // Configure window
+                    var window = this.element;
+                    window.onClose = this._onCloseCallback;
+                    // Configure editor
+                    this.core.editor.renderMainScene = false;
+                };
+                // Creates an alert
+                GUIWindow.CreateAlert = function (message, title, callback) {
+                    w2alert(message, title, callback);
+                };
+                return GUIWindow;
+            })(GUI.GUIElement);
+            GUI.GUIWindow = GUIWindow;
+        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var AbstractTool = (function () {
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AbstractTool(editionTool) {
+                // Public members
+                this.object = null;
+                this.tab = "";
+                // Initialize
+                this._editionTool = editionTool;
+            }
+            // Object supported
+            AbstractTool.prototype.isObjectSupported = function (object) {
+                return false;
+            };
+            // Creates the UI
+            AbstractTool.prototype.createUI = function () { };
+            // Update
+            AbstractTool.prototype.update = function () {
+                return true;
+            };
+            // Apply
+            AbstractTool.prototype.apply = function () { };
+            // Resize
+            AbstractTool.prototype.resize = function () { };
+            return AbstractTool;
+        })();
+        EDITOR.AbstractTool = AbstractTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var AbstractDatTool = (function (_super) {
+            __extends(AbstractDatTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AbstractDatTool(editionTool) {
+                // Initialize
+                _super.call(this, editionTool);
+            }
+            // Update
+            AbstractDatTool.prototype.update = function () {
+                if (this._element) {
+                    this._element.remove();
+                    this._element = null;
+                }
+                return true;
+            };
+            // Resize
+            AbstractDatTool.prototype.resize = function () {
+                if (this._element)
+                    this._element.width = this._editionTool.panel.width - 15;
+            };
+            return AbstractDatTool;
+        })(EDITOR.AbstractTool);
+        EDITOR.AbstractDatTool = AbstractDatTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GeneralTool = (function (_super) {
+            __extends(GeneralTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function GeneralTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.object = null;
+                this.tab = "GENERAL.TAB";
+                // Private members
+                this._isActiveCamera = false;
+                this._isActivePlayCamera = false;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
+                ];
+            }
+            // Object supported
+            GeneralTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Mesh
+                    || object instanceof BABYLON.Light
+                    || object instanceof BABYLON.Camera
+                    || object instanceof BABYLON.LensFlareSystem) {
+                    return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            GeneralTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "General" });
+            };
+            // Update
+            GeneralTool.prototype.update = function () {
+                var _this = this;
+                var object = this.object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
+                var core = this._editionTool.core;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // General
+                var generalFolder = this._element.addFolder("Common");
+                generalFolder.add(object, "name").name("Name").onChange(function (result) {
+                    var sidebar = _this._editionTool.core.editor.sceneGraphTool.sidebar;
+                    var element = sidebar.getSelectedNode();
+                    if (element) {
+                        element.text = result;
+                        sidebar.refresh();
+                    }
+                });
+                // Camera
+                if (object instanceof BABYLON.Camera) {
+                    var cameraFolder = this._element.addFolder("Camera");
+                    if (object !== core.camera) {
+                        this._isActivePlayCamera = object === core.playCamera;
+                        cameraFolder.add(this, "_isActivePlayCamera").name("Set Play Camera").listen().onFinishChange(function (result) {
+                            if (result === true) {
+                                core.playCamera = object;
+                                if (core.isPlaying)
+                                    core.currentScene.activeCamera = object;
+                            }
+                            else {
+                                result = true;
+                            }
+                        });
+                    }
+                    this._isActiveCamera = object === core.currentScene.activeCamera;
+                    cameraFolder.add(this, "_isActiveCamera").name("Active Camera").listen().onFinishChange(function (result) {
+                        if (result === true) {
+                            core.currentScene.activeCamera = object;
+                        }
+                        else {
+                            result = true;
+                        }
+                    });
+                }
+                // Transforms
+                var transformFolder = this._element.addFolder("Transforms");
+                if (object.position) {
+                    var positionFolder = this._element.addFolder("Position", transformFolder);
+                    positionFolder.add(object.position, "x").step(0.1).name("x").listen();
+                    positionFolder.add(object.position, "y").step(0.1).name("y").listen();
+                    positionFolder.add(object.position, "z").step(0.1).name("z").listen();
+                }
+                if (object.rotation) {
+                    var rotationFolder = this._element.addFolder("Rotation", transformFolder);
+                    rotationFolder.add(object.rotation, "x").name("x").step(0.1).listen();
+                    rotationFolder.add(object.rotation, "y").name("y").step(0.1).listen();
+                    rotationFolder.add(object.rotation, "z").name("z").step(0.1).listen();
+                }
+                if (object.scaling) {
+                    var scalingFolder = this._element.addFolder("Scaling", transformFolder);
+                    scalingFolder.add(object.scaling, "x").name("x").step(0.1).listen();
+                    scalingFolder.add(object.scaling, "y").name("y").step(0.1).listen();
+                    scalingFolder.add(object.scaling, "z").name("z").step(0.1).listen();
+                }
+                // Rendering
+                if (object instanceof BABYLON.AbstractMesh) {
+                    var renderingFolder = this._element.addFolder("Rendering");
+                    renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
+                    renderingFolder.add(object, "applyFog").name("Apply Fog");
+                    renderingFolder.add(object, "isVisible").name("Is Visible");
+                    renderingFolder.add(this, "_castShadows").name("Cast Shadows").onChange(function (result) {
+                        if (result === true) {
+                            var dialog = new EDITOR.GUI.GUIDialog("CastShadowsDialog", _this._editionTool.core, "Shadows Generator", "Make children to cast shadows");
+                            dialog.callback = function (data) {
+                                if (data === "Yes") {
+                                    _this._setChildrenCastingShadows(object);
+                                }
+                            };
+                            dialog.buildElement(null);
+                        }
+                    });
+                }
+                return true;
+            };
+            Object.defineProperty(GeneralTool.prototype, "_castShadows", {
+                // If object casts shadows or not
+                get: function () {
+                    var scene = this.object.getScene();
+                    for (var i = 0; i < scene.lights.length; i++) {
+                        var light = scene.lights[i];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        for (var j = 0; j < shadowMap.renderList.length; j++) {
+                            var mesh = shadowMap.renderList[j];
+                            if (mesh === this.object)
+                                return true;
+                        }
+                    }
+                    return false;
+                },
+                // Sets if object casts shadows or not
+                set: function (cast) {
+                    var scene = this.object.getScene();
+                    var object = this.object;
+                    for (var i = 0; i < scene.lights.length; i++) {
+                        var light = scene.lights[i];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        if (cast)
+                            shadowMap.renderList.push(object);
+                        else {
+                            var index = shadowMap.renderList.indexOf(object);
+                            if (index !== -1)
+                                shadowMap.renderList.splice(index, 1);
+                        }
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
+            // Sets children casting shadows
+            GeneralTool.prototype._setChildrenCastingShadows = function (node) {
+                var scene = node.getScene();
+                for (var i = 0; i < node.getDescendants().length; i++) {
+                    var object = node.getDescendants()[i];
+                    if (!(object instanceof BABYLON.AbstractMesh))
+                        continue;
+                    for (var j = 0; j < scene.lights.length; j++) {
+                        var light = scene.lights[j];
+                        var shadows = light.getShadowGenerator();
+                        if (!shadows)
+                            continue;
+                        var shadowMap = shadows.getShadowMap();
+                        var index = shadowMap.renderList.indexOf(object);
+                        if (index === -1)
+                            shadowMap.renderList.push(object);
+                    }
+                    this._setChildrenCastingShadows(object);
+                }
+            };
+            return GeneralTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.GeneralTool = GeneralTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var AnimationTool = (function (_super) {
+            __extends(AnimationTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AnimationTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "ANIMATION.TAB";
+                // Private members
+                this._animationSpeed = 1.0;
+                this._loopAnimation = false;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
+                ];
+            }
+            // Object supported
+            AnimationTool.prototype.isObjectSupported = function (object) {
+                if (object.animations && Array.isArray(object.animations))
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            AnimationTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Animations" });
+            };
+            // Update
+            AnimationTool.prototype.update = function () {
+                var object = this.object = this._editionTool.object;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Edit animations
+                this._element.add(this, "_editAnimations").name("Edit Animations");
+                // Animations
+                var animationsFolder = this._element.addFolder("Play Animations");
+                animationsFolder.add(this, "_playAnimations").name("Play Animations");
+                animationsFolder.add(this, "_animationSpeed").min(0).name("Speed");
+                animationsFolder.add(this, "_loopAnimation").name("Loop");
+                if (object instanceof BABYLON.AbstractMesh && object.skeleton) {
+                    var skeletonFolder = this._element.addFolder("Skeleton");
+                    skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
+                }
+                return true;
+            };
+            // Loads the animations tool
+            AnimationTool.prototype._editAnimations = function () {
+                var animCreator = new EDITOR.GUIAnimationEditor(this._editionTool.core, this.object);
+            };
+            // Plays animations
+            AnimationTool.prototype._playAnimations = function () {
+                this._editionTool.core.currentScene.beginAnimation(this.object, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+            };
+            // Plays animations of skeleton
+            AnimationTool.prototype._playSkeletonAnimations = function () {
+                var object = this.object = this._editionTool.object;
+                var scene = object.getScene();
+                scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+            };
+            return AnimationTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.AnimationTool = AnimationTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var AudioTool = (function (_super) {
+            __extends(AudioTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AudioTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "SOUND.TAB";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-SOUND"
+                ];
+            }
+            // Object supported
+            AudioTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Sound)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            AudioTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Sound" });
+            };
+            // Update
+            AudioTool.prototype.update = function () {
+                var sound = this.object = this._editionTool.object;
+                var soundTrack = this._editionTool.core.currentScene.soundTracks[sound.soundTrackId];
+                _super.prototype.update.call(this);
+                if (!sound)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(sound);
+                // Sound
+                var soundFolder = this._element.addFolder("Sound");
+                soundFolder.add(this, "_playSound").name("Play Sound");
+                soundFolder.add(this, "_pauseSound").name("Pause Sound");
+                soundFolder.add(this, "_stopSound").name("Stop Sound");
+                this._volume = sound.getVolume();
+                this._playbackRate = sound._playbackRate;
+                soundFolder.add(this, "_volume").min(0.0).max(1.0).step(0.01).name("Volume").onChange(function (result) {
+                    sound.setVolume(result);
+                });
+                soundFolder.add(this, "_playbackRate").min(0.0).max(1.0).step(0.01).name("Playback Rate").onChange(function (result) {
+                    sound.setPlaybackRate(result);
+                });
+                soundFolder.add(sound, "rolloffFactor").min(0.0).max(1.0).step(0.01).name("Rolloff Factor").onChange(function (result) {
+                    sound.updateOptions({
+                        rolloffFactor: result
+                    });
+                });
+                soundFolder.add(sound, "loop").name("Loop").onChange(function (result) {
+                    sound.updateOptions({
+                        loop: result
+                    });
+                });
+                soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange(function (result) {
+                    sound.updateOptions({
+                        distanceModel: result
+                    });
+                });
+                if (sound.spatialSound) {
+                    soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange(function (result) {
+                        sound.updateOptions({
+                            maxDistance: result
+                        });
+                    });
+                }
+                sound.distanceModel;
+                this._position = sound._position;
+                var positionFolder = soundFolder.addFolder("Position");
+                positionFolder.open();
+                positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
+                positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
+                positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
+                // Soundtrack
+                var soundTrackFolder = this._element.addFolder("Sound Track");
+                return true;
+            };
+            // Position callback
+            AudioTool.prototype._positionCallback = function (sound) {
+                var _this = this;
+                return function (result) {
+                    sound.setPosition(_this._position);
+                };
+            };
+            // Pause sound
+            AudioTool.prototype._pauseSound = function () {
+                var sound = this.object;
+                sound.pause();
+            };
+            // Play sound
+            AudioTool.prototype._playSound = function () {
+                var sound = this.object;
+                sound.play();
+            };
+            // Stop sound
+            AudioTool.prototype._stopSound = function () {
+                var sound = this.object;
+                sound.stop();
+            };
+            return AudioTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.AudioTool = AudioTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var LensFlareTool = (function (_super) {
+            __extends(LensFlareTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function LensFlareTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "LENSFLARE.TAB";
+                // Private members
+                this._dummyProperty = "Lens Flare 1";
+                this._currentLensFlareId = 0;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-LENS-FLARE"
+                ];
+            }
+            // Object supported
+            LensFlareTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.LensFlareSystem) {
+                    return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            LensFlareTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Lens Flare" });
+            };
+            // Update
+            LensFlareTool.prototype.update = function () {
+                var _this = this;
+                var object = this.object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
+                var core = this._editionTool.core;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // General
+                var commonFolder = this._element.addFolder("Common");
+                commonFolder.add(object, "borderLimit").min(0).step(1).name("Border Limit");
+                commonFolder.add(this, "_addLensFlare").name("Add Lens Flare...");
+                // Select lens flare
+                var lensFlares = [];
+                for (var i = 0; i < object.lensFlares.length; i++)
+                    lensFlares.push("Lens Flare " + (i + 1));
+                commonFolder.add(this, "_dummyProperty", lensFlares).name("Lens Flare :").onFinishChange(function (result) {
+                    var indice = parseFloat(result.split("Lens Flare ")[1]);
+                    if (typeof indice === "number") {
+                        indice--;
+                        _this._currentLensFlareId = indice;
+                    }
+                    _this.update();
+                });
+                // Lens Flare
+                var lensFlare = object.lensFlares[this._currentLensFlareId];
+                if (!lensFlare)
+                    return false;
+                var lfFolder = this._element.addFolder("Lens Flare");
+                var colorFolder = this._element.addFolder("Color", lfFolder);
+                colorFolder.add(lensFlare.color, "r").min(0).max(1).name("R");
+                colorFolder.add(lensFlare.color, "g").min(0).max(1).name("G");
+                colorFolder.add(lensFlare.color, "b").min(0).max(1).name("B");
+                lfFolder.add(lensFlare, "position").step(0.1).name("Position");
+                lfFolder.add(lensFlare, "size").step(0.1).name("Size");
+                this._setupChangeTexture(this._currentLensFlareId);
+                lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
+                this._setupRemove(this._currentLensFlareId);
+                lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
+                // Finish
+                this._currentLensFlareId = 0;
+                this._dummyProperty = "Lens Flare 1";
+                return true;
+            };
+            // Add a lens flare
+            LensFlareTool.prototype._addLensFlare = function () {
+                var lf = EDITOR.SceneFactory.AddLensFlare(this._editionTool.core, this.object, 0.5, 0, new BABYLON.Color3(1, 0, 0));
+                this.update();
+            };
+            // Resets "this"
+            LensFlareTool.prototype._reset = function () {
+                for (var thing in this) {
+                    if (thing.indexOf("_removeLensFlare") !== -1) {
+                        delete this[thing];
+                    }
+                    else if (thing.indexOf("_changeTexture") !== -1) {
+                        delete this[thing];
+                    }
+                }
+                this.update();
+            };
+            // Removes a lens flare
+            LensFlareTool.prototype._setupRemove = function (indice) {
+                var _this = this;
+                this["_removeLensFlare" + indice] = function () {
+                    _this.object.lensFlares[indice].dispose();
+                    _this._reset();
+                };
+            };
+            // Creates a function to change texture of a flare
+            LensFlareTool.prototype._setupChangeTexture = function (indice) {
+                var _this = this;
+                this["_changeTexture" + indice] = function () {
+                    var input = EDITOR.Tools.CreateFileInpuElement("LENS-FLARE-LOAD-TEXTURE");
+                    input.change(function (data) {
+                        var files = data.target.files || data.currentTarget.files;
+                        if (files.length < 1)
+                            return;
+                        var file = files[0];
+                        BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
+                            var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
+                            texture.name = texture.name.replace("data:", "");
+                            _this.object.lensFlares[indice].texture = texture;
+                            input.remove();
+                        }, null);
+                    });
+                    input.click();
+                };
+            };
+            return LensFlareTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.LensFlareTool = LensFlareTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var LightTool = (function (_super) {
+            __extends(LightTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function LightTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "LIGHT.TAB";
+                // Private members
+                this._customShadowsGeneratorSize = 512;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-LIGHT"
+                ];
+            }
+            // Object supported
+            LightTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Light)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            LightTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Light" });
+            };
+            // Update
+            LightTool.prototype.update = function () {
+                var object = this.object = this._editionTool.object;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Common
+                var commonFolder = this._element.addFolder("Common");
+                commonFolder.add(object, "intensity").name("Intensity").min(0.0);
+                commonFolder.add(object, "range").name("Range").min(0.0);
+                // Vectors
+                if (object instanceof BABYLON.DirectionalLight) {
+                    var directionFolder = this._element.addFolder("Direction");
+                    directionFolder.add(object.direction, "x").step(0.1);
+                    directionFolder.add(object.direction, "y").step(0.1);
+                    directionFolder.add(object.direction, "z").step(0.1);
+                }
+                // Spot light
+                if (object instanceof BABYLON.SpotLight) {
+                    var spotFolder = this._element.addFolder("Spot Light");
+                    spotFolder.add(object, "exponent").min(0.0).name("Exponent");
+                    spotFolder.add(object, "angle").min(0.0).name("Angle");
+                }
+                // Colors
+                var colorsFolder = this._element.addFolder("Colors");
+                if (object.diffuse) {
+                    var diffuseFolder = colorsFolder.addFolder("Diffuse Color");
+                    diffuseFolder.add(object.diffuse, "r").min(0.0).max(1.0).step(0.01);
+                    diffuseFolder.add(object.diffuse, "g").min(0.0).max(1.0).step(0.01);
+                    diffuseFolder.add(object.diffuse, "b").min(0.0).max(1.0).step(0.01);
+                }
+                if (object.specular) {
+                    var diffuseFolder = colorsFolder.addFolder("Specular Color");
+                    diffuseFolder.add(object.specular, "r").min(0.0).max(1.0).step(0.01);
+                    diffuseFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
+                    diffuseFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
+                }
+                // Shadows
+                var shadowsFolder = this._element.addFolder("Shadows");
+                var shadows = object.getShadowGenerator();
+                if (shadows) {
+                    shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
+                    shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
+                    shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
+                    shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
+                    shadowsFolder.add(shadows, "bias").name("Bias");
+                    shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");
+                    shadowsFolder.add(shadows, "blurScale").min(0.0).max(10.0).name("Blur Scale");
+                    shadowsFolder.add(this, "_removeShadowGenerator").name("Remove Shadows Generator");
+                }
+                else {
+                    if (!(object instanceof BABYLON.HemisphericLight)) {
+                        shadowsFolder.add(this, "_createShadowsGenerator").name("Create Shadows Generator");
+                        shadowsFolder.add(this, "_customShadowsGeneratorSize").min(0).name("Shadow Map Size");
+                    }
+                }
+                return true;
+            };
+            // Creates a new shadows generator
+            LightTool.prototype._createShadowsGenerator = function () {
+                // Assume that object exists
+                var object = this.object = this._editionTool.object;
+                // Shadows Generator
+                var shadows = new BABYLON.ShadowGenerator(this._customShadowsGeneratorSize, object);
+                BABYLON.Tags.EnableFor(shadows);
+                BABYLON.Tags.AddTagsTo(shadows, "added");
+                // Refresh UI
+                this.update();
+            };
+            // Removes a shadows generator
+            LightTool.prototype._removeShadowGenerator = function () {
+                var object = this.object = this._editionTool.object;
+                // Shadows Generator
+                var shadows = object.getShadowGenerator();
+                if (shadows)
+                    shadows.dispose();
+                object._shadowGenerator = null;
+                this.update();
+            };
+            return LightTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.LightTool = LightTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var MaterialTool = (function (_super) {
+            __extends(MaterialTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function MaterialTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "MATERIAL.TAB";
+                // Private members
+                this._dummyProperty = "";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
+                ];
+            }
+            // Object supported
+            MaterialTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Mesh) {
+                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial))
+                        return true;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    var subMesh = object;
+                    var multiMaterial = subMesh.getMesh().material;
+                    if (multiMaterial instanceof BABYLON.MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
+                        return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            MaterialTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Material" });
+            };
+            // Update
+            MaterialTool.prototype.update = function () {
+                var _this = this;
+                var object = this._editionTool.object;
+                var material = null;
+                var scene = this._editionTool.core.currentScene;
+                _super.prototype.update.call(this);
+                if (object instanceof BABYLON.AbstractMesh) {
+                    material = object.material;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    material = object.getMaterial();
+                }
+                if (!material)
+                    return false;
+                this.object = object;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Material
+                var materialFolder = this._element.addFolder("Material");
+                var materials = [];
+                for (var i = 0; i < scene.materials.length; i++)
+                    materials.push(scene.materials[i].name);
+                this._dummyProperty = material.name;
+                materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
+                    var newmaterial = scene.getMaterialByName(result);
+                    _this._editionTool.object.material = newmaterial;
+                    _this.update();
+                });
+                // Common
+                var generalFolder = this._element.addFolder("Common");
+                generalFolder.add(material, "name").name("Name");
+                generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
+                // Options
+                var optionsFolder = this._element.addFolder("Options");
+                optionsFolder.add(material, "wireframe").name("Wire frame");
+                optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
+                optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
+                optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
+                optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
+                optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
+                if (material.disableLighting !== undefined)
+                    optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                return true;
+            };
+            return MaterialTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.MaterialTool = MaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ParticleSystemTool = (function (_super) {
+            __extends(ParticleSystemTool, _super);
+            // Private members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function ParticleSystemTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "PARTICLE.SYSTEM.TAB";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-PARTICLE-SYSTEM"
+                ];
+            }
+            // Object supported
+            ParticleSystemTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.ParticleSystem)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            ParticleSystemTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Particles" });
+            };
+            // Update
+            ParticleSystemTool.prototype.update = function () {
+                var object = this.object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
+                _super.prototype.update.call(this);
+                // Configure main toolbar
+                var toolbar = this._editionTool.core.editor.mainToolbar;
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, object !== null, toolbar.particleSystemMenu.id);
+                toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.ParticleSystem, toolbar.particleSystemMenu.id);
+                EDITOR.GUIParticleSystemEditor._CurrentParticleSystem = object;
+                if (!object)
+                    return false;
+                var psEditor = new EDITOR.GUIParticleSystemEditor(this._editionTool.core, object, false);
+                this._element = psEditor._createEditor(this.containers[0]);
+                return true;
+            };
+            return ParticleSystemTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.ParticleSystemTool = ParticleSystemTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var PostProcessesTool = (function (_super) {
+            __extends(PostProcessesTool, _super);
+            // Private members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function PostProcessesTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "POSTPROCESSES.TAB";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
+                ];
+            }
+            // Object supported
+            PostProcessesTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Scene)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            PostProcessesTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
+            };
+            // Update
+            PostProcessesTool.prototype.update = function () {
+                var _this = this;
+                var object = this.object = this._editionTool.object;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Ckeck checkboxes
+                EDITOR.SceneFactory.EnabledPostProcesses.hdr = EDITOR.SceneFactory.HDRPipeline !== null;
+                EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
+                // HDR
+                var hdrFolder = this._element.addFolder("HDR");
+                hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "hdr").name("Enabled HDR").onChange(function (result) {
+                    if (result === true)
+                        EDITOR.SceneFactory.CreateHDRPipeline(_this._editionTool.core);
+                    else {
+                        EDITOR.SceneFactory.HDRPipeline.dispose();
+                        EDITOR.SceneFactory.HDRPipeline = null;
+                    }
+                    _this.update();
+                });
+                if (EDITOR.SceneFactory.HDRPipeline) {
+                    hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachHDR").name("Attach HDR").onChange(function (result) {
+                        _this._attachDetachPipeline(result, "hdr");
+                    });
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
+                    });
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
+                    });
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
+                        EDITOR.SceneFactory.HDRPipeline.update();
+                    });
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
+                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
+                    hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+                }
+                // SSAO
+                var ssaoFolder = this._element.addFolder("SSAO");
+                ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssao").name("Enable SSAO").onChange(function (result) {
+                    if (result === true)
+                        EDITOR.SceneFactory.SSAOPipeline = EDITOR.SceneFactory.CreateSSAOPipeline(_this._editionTool.core);
+                    else {
+                        EDITOR.SceneFactory.SSAOPipeline.dispose();
+                        EDITOR.SceneFactory.SSAOPipeline = null;
+                    }
+                    _this.update();
+                });
+                if (EDITOR.SceneFactory.SSAOPipeline) {
+                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange(function (result) {
+                        _this._ssaoOnly(result);
+                    });
+                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
+                        _this._attachDetachPipeline(result, "ssao");
+                    });
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
+                    var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                }
+                return true;
+            };
+            // Draws SSAO only
+            PostProcessesTool.prototype._ssaoOnly = function (result) {
+                if (result)
+                    EDITOR.SceneFactory.SSAOPipeline._disableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+                else
+                    EDITOR.SceneFactory.SSAOPipeline._enableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+            };
+            // Attach/detach pipeline
+            PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {
+                if (attach)
+                    this._editionTool.core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pipeline, this._getPipelineCameras());
+                else
+                    this._editionTool.core.currentScene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(pipeline, this._getPipelineCameras());
+            };
+            PostProcessesTool.prototype._getPipelineCameras = function () {
+                var cameras = [this._editionTool.core.camera];
+                if (this._editionTool.core.playCamera)
+                    cameras.push(this._editionTool.core.playCamera);
+                return cameras;
+            };
+            // Creates a function to change texture of a flare
+            PostProcessesTool.prototype._loadHDRLensDirtTexture = function () {
+                var _this = this;
+                var input = EDITOR.Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
+                input.change(function (data) {
+                    var files = data.target.files || data.currentTarget.files;
+                    if (files.length < 1)
+                        return;
+                    var file = files[0];
+                    BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
+                        var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
+                        texture.name = texture.name.replace("data:", "");
+                        EDITOR.SceneFactory.HDRPipeline.lensTexture = texture;
+                        input.remove();
+                    }, null);
+                });
+                input.click();
+            };
+            return PostProcessesTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.PostProcessesTool = PostProcessesTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ReflectionProbeTool = (function (_super) {
+            __extends(ReflectionProbeTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function ReflectionProbeTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "REFLECTION.PROBE.TAB";
+                // Private members
+                this._window = null;
+                this._excludedMeshesList = null;
+                this._includedMeshesList = null;
+                this._layouts = null;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-RENDER-TARGET"
+                ];
+                this._editionTool.core.eventReceivers.push(this);
+            }
+            // On event
+            ReflectionProbeTool.prototype.onEvent = function (event) {
+                // Manage event
+                if (event.eventType !== EDITOR.EventType.GUI_EVENT)
+                    return false;
+                if (event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_ADDED && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_REMOVED)
+                    return false;
+                var object = this.object;
+                // Manage lists
+                if (event.guiEvent.caller === this._includedMeshesList) {
+                    var selected = this._includedMeshesList.getSelectedRows();
+                    for (var i = 0; i < selected.length; i++) {
+                        var mesh = object.renderList[selected[i] - i];
+                        var index = object.renderList.indexOf(mesh);
+                        if (index !== -1)
+                            object.renderList.splice(index, 1);
+                        //this._excludedMeshesList.addRow({ name: mesh.name });
+                        this._excludedMeshesList.addRecord({ name: mesh.name });
+                    }
+                    this._excludedMeshesList.refresh();
+                    return true;
+                }
+                else if (event.guiEvent.caller === this._excludedMeshesList) {
+                    var selected = this._excludedMeshesList.getSelectedRows();
+                    var offset = 0;
+                    for (var i = 0; i < selected.length; i++) {
+                        var mesh = this._editionTool.core.currentScene.getMeshByName(this._excludedMeshesList.getRow(selected[i]).name);
+                        object.renderList.push(mesh);
+                        //this._includedMeshesList.addRow({ name: mesh.name });
+                        this._includedMeshesList.addRecord({ name: mesh.name });
+                        //this._excludedMeshesList.removeRow(selected[i]);
+                        this._excludedMeshesList.removeRecord(selected[i] - offset);
+                        offset++;
+                    }
+                    this._includedMeshesList.refresh();
+                    this._excludedMeshesList.refresh();
+                    return true;
+                }
+                return false;
+            };
+            // Object supported
+            ReflectionProbeTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.ReflectionProbe || object instanceof BABYLON.RenderTargetTexture
+                    || (object instanceof BABYLON.Light && object.getShadowGenerator())) {
+                    return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            ReflectionProbeTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Render" });
+            };
+            // Update
+            ReflectionProbeTool.prototype.update = function () {
+                var _this = this;
+                _super.prototype.update.call(this);
+                var object = this.object = this._editionTool.object;
+                if (object instanceof BABYLON.Light && object.getShadowGenerator()) {
+                    object = this.object = object.getShadowGenerator().getShadowMap();
+                }
+                var scene = this._editionTool.core.currentScene;
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // General
+                var generalFolder = this._element.addFolder("Common");
+                generalFolder.add(object, "name").name("Name").onChange(function (result) {
+                    var sidebar = _this._editionTool.core.editor.sceneGraphTool.sidebar;
+                    var element = sidebar.getSelectedNode();
+                    if (element) {
+                        element.text = result;
+                        sidebar.refresh();
+                    }
+                });
+                generalFolder.add(object, "refreshRate").name("Refresh Rate").min(0.0).step(1);
+                generalFolder.add(this, "_setIncludedMeshes").name("Configure Render List...");
+                if (object instanceof BABYLON.ReflectionProbe)
+                    generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
+                if (object instanceof BABYLON.RenderTargetTexture)
+                    generalFolder.add(this, "_exportRenderTarget").name("Dump Render Target");
+                // Position
+                if (object instanceof BABYLON.ReflectionProbe) {
+                    var positionFolder = this._element.addFolder("Position");
+                    positionFolder.add(object.position, "x").step(0.01);
+                    positionFolder.add(object.position, "y").step(0.01);
+                    positionFolder.add(object.position, "z").step(0.01);
+                }
+                return true;
+            };
+            // Dumps the render target and opens a window
+            ReflectionProbeTool.prototype._exportRenderTarget = function () {
+                var _this = this;
+                var rt = this.object;
+                var tempCallback = rt.onAfterRender;
+                var width = rt.getSize().width;
+                var height = rt.getSize().height;
+                rt.onAfterRender = function () {
+                    BABYLON.Tools.DumpFramebuffer(width, height, _this._editionTool.core.engine, function (data) {
+                        EDITOR.Tools.OpenWindowPopup(data, width, height);
+                    });
+                };
+                rt.render(false);
+                this._editionTool.core.currentScene.incrementRenderId();
+                if (tempCallback)
+                    tempCallback(0);
+                rt.onAfterRender = tempCallback;
+            };
+            // Attaches to a mesh
+            ReflectionProbeTool.prototype._attachToMesh = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(picker.core.currentScene.meshes);
+                picker.onObjectPicked = function (names) {
+                    if (names.length > 1) {
+                        var dialog = new EDITOR.GUI.GUIDialog("ReflectionProbeDialog", picker.core, "Warning", "A Reflection Probe can be attached to only one mesh.\n" +
+                            "The first was considered as the mesh.");
+                        dialog.buildElement(null);
+                    }
+                    _this.object.attachToMesh(picker.core.currentScene.getMeshByName(names[0]));
+                };
+                picker.open();
+            };
+            // Sets the included/excluded meshes
+            ReflectionProbeTool.prototype._setIncludedMeshes = function () {
+                var _this = this;
+                // IDs
+                var bodyID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT";
+                var leftPanelID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT-LEFT";
+                var rightPanelID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT-RIGHT";
+                var excludedListID = "REFLECTION-PROBES-RENDER-LIST-LIST-EXCLUDED";
+                var includedListID = "REFLECTION-PROBES-RENDER-LIST-LIST-INCLUDED";
+                // Window
+                var body = EDITOR.GUI.GUIElement.CreateElement("div", bodyID);
+                this._window = new EDITOR.GUI.GUIWindow("REFLECTION-PROBES-RENDER-LIST-WINDOW", this._editionTool.core, "Configure Render List", body);
+                this._window.modal = true;
+                this._window.size.x = 800;
+                this._window.buildElement(null);
+                this._window.setOnCloseCallback(function () {
+                    _this._includedMeshesList.destroy();
+                    _this._excludedMeshesList.destroy();
+                    _this._layouts.destroy();
+                    _this._includedMeshesList = null;
+                    _this._excludedMeshesList = null;
+                });
+                this._window.onToggle = function (maximized, width, height) {
+                    _this._layouts.getPanelFromType("left").width = width / 2;
+                    _this._layouts.getPanelFromType("main").width = height / 2;
+                    _this._layouts.resize();
+                };
+                // Layout
+                var leftDiv = EDITOR.GUI.GUIElement.CreateElement("div", leftPanelID);
+                var rightDiv = EDITOR.GUI.GUIElement.CreateElement("div", rightPanelID);
+                this._layouts = new EDITOR.GUI.GUILayout(bodyID, this._editionTool.core);
+                this._layouts.createPanel(leftDiv, "left", 400, true).setContent(leftDiv);
+                this._layouts.createPanel(rightDiv, "main", 400, true).setContent(rightDiv);
+                this._layouts.buildElement(bodyID);
+                // Lists
+                var scene = this._editionTool.core.currentScene;
+                var object = this.object;
+                this._excludedMeshesList = new EDITOR.GUI.GUIGrid(excludedListID, this._editionTool.core);
+                this._excludedMeshesList.header = "Excluded Meshes";
+                this._excludedMeshesList.showAdd = true;
+                this._excludedMeshesList.createColumn("name", "name", "100%");
+                this._excludedMeshesList.buildElement(leftPanelID);
+                for (var i = 0; i < scene.meshes.length; i++) {
+                    if (object.renderList.indexOf(scene.meshes[i]) === -1)
+                        this._excludedMeshesList.addRecord({
+                            name: scene.meshes[i].name
+                        });
+                }
+                this._excludedMeshesList.refresh();
+                this._includedMeshesList = new EDITOR.GUI.GUIGrid(includedListID, this._editionTool.core);
+                this._includedMeshesList.header = "Included Meshes";
+                this._includedMeshesList.showDelete = true;
+                this._includedMeshesList.createColumn("name", "name", "100%");
+                this._includedMeshesList.buildElement(rightPanelID);
+                for (var i = 0; i < object.renderList.length; i++) {
+                    this._includedMeshesList.addRecord({
+                        name: object.renderList[i].name
+                    });
+                }
+                this._includedMeshesList.refresh();
+            };
+            return ReflectionProbeTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.ReflectionProbeTool = ReflectionProbeTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var SceneTool = (function (_super) {
+            __extends(SceneTool, _super);
+            // Private members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function SceneTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "SCENE.TAB";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-SCENE"
+                ];
+            }
+            // Object supported
+            SceneTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Scene)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            SceneTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Scene" });
+            };
+            // Update
+            SceneTool.prototype.update = function () {
+                var object = this.object = this._editionTool.object;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Common
+                this._element.add(EDITOR.SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
+                // Colors
+                var colorsFolder = this._element.addFolder("Colors");
+                var ambientColorFolder = colorsFolder.addFolder("Ambient Color");
+                ambientColorFolder.open();
+                ambientColorFolder.add(object.ambientColor, "r").min(0.0).max(1.0).step(0.01);
+                ambientColorFolder.add(object.ambientColor, "g").min(0.0).max(1.0).step(0.01);
+                ambientColorFolder.add(object.ambientColor, "b").min(0.0).max(1.0).step(0.01);
+                var clearColorFolder = colorsFolder.addFolder("Clear Color");
+                clearColorFolder.open();
+                clearColorFolder.add(object.clearColor, "r").min(0.0).max(1.0).step(0.01);
+                clearColorFolder.add(object.clearColor, "g").min(0.0).max(1.0).step(0.01);
+                clearColorFolder.add(object.clearColor, "b").min(0.0).max(1.0).step(0.01);
+                // Collisions
+                var collisionsFolder = this._element.addFolder("Collisions");
+                collisionsFolder.add(object, "collisionsEnabled").name("Collisions Enabled");
+                var gravityFolder = collisionsFolder.addFolder("Gravity");
+                gravityFolder.add(object.gravity, "x");
+                gravityFolder.add(object.gravity, "y");
+                gravityFolder.add(object.gravity, "z");
+                // Audio
+                var audioFolder = this._element.addFolder("Audio");
+                audioFolder.add(object, "audioEnabled").name("Audio Enabled");
+                // Fog
+                var fogFolder = this._element.addFolder("Fog");
+                fogFolder.add(object, "fogMode", [
+                    "None",
+                    "Exp",
+                    "Exp2",
+                    "Linear"
+                ]).name("Fog Mode").onFinishChange(function (result) {
+                    switch (result) {
+                        case "Exp":
+                            object.fogMode = BABYLON.Scene.FOGMODE_EXP;
+                            break;
+                        case "Exp2":
+                            object.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+                            break;
+                        case "Linear":
+                            object.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+                            break;
+                        default:
+                            object.fogMode = BABYLON.Scene.FOGMODE_NONE;
+                            break;
+                    }
+                });
+                fogFolder.add(object, "fogEnabled").name("Enable Fog");
+                fogFolder.add(object, "fogStart").name("Fog Start").min(0.0);
+                fogFolder.add(object, "fogEnd").name("Fog End").min(0.0);
+                fogFolder.add(object, "fogDensity").name("Fog Density").min(0.0);
+                var fogColorFolder = fogFolder.addFolder("Fog Color");
+                fogColorFolder.add(object.fogColor, "r").min(0.0).max(1.0).step(0.001);
+                fogColorFolder.add(object.fogColor, "g").min(0.0).max(1.0).step(0.001);
+                fogColorFolder.add(object.fogColor, "b").min(0.0).max(1.0).step(0.001);
+                // Capacities
+                var capacitiesFolder = this._element.addFolder("Capacities");
+                capacitiesFolder.close();
+                capacitiesFolder.add(object, "postProcessesEnabled").name("Post-Processes Enabled");
+                capacitiesFolder.add(object, "shadowsEnabled").name("Shadows Enabled");
+                capacitiesFolder.add(object, "fogEnabled").name("Fog Enabled");
+                capacitiesFolder.add(object, "lensFlaresEnabled").name("Lens Flares Enabled");
+                capacitiesFolder.add(object, "lightsEnabled").name("Lights Enabled");
+                capacitiesFolder.add(object, "particlesEnabled").name("Particles Enabled");
+                capacitiesFolder.add(object, "probesEnabled").name("Reflection Probes Enabled");
+                capacitiesFolder.add(object, "proceduralTexturesEnabled").name("Procedural Textures Enabled");
+                capacitiesFolder.add(object, "renderTargetsEnabled").name("Render Targets Enabled");
+                capacitiesFolder.add(object, "texturesEnabled").name("Textures Enabled");
+                capacitiesFolder.add(object, "skeletonsEnabled").name("Skeletons Enabled");
+                return true;
+            };
+            return SceneTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.SceneTool = SceneTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var AbstractMaterialTool = (function (_super) {
+            __extends(AbstractMaterialTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AbstractMaterialTool(editionTool, containerID, tabID, tabName) {
+                _super.call(this, editionTool);
+                // Public members
+                // Private members
+                this._tabName = "New Tab";
+                this.material = null;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-" + containerID
+                ];
+                this.tab = "MATERIAL." + tabID;
+                this._tabName = tabName;
+            }
+            // Object supported
+            AbstractMaterialTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Mesh) {
+                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial) && this.onObjectSupported(object.material))
+                        return true;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    var subMesh = object;
+                    var multiMaterial = subMesh.getMesh().material;
+                    if (multiMaterial instanceof BABYLON.MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex] && this.onObjectSupported(multiMaterial.subMaterials[subMesh.materialIndex]))
+                        return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            AbstractMaterialTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: this._tabName });
+            };
+            // Update
+            AbstractMaterialTool.prototype.update = function () {
+                var object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
+                _super.prototype.update.call(this);
+                if (object instanceof BABYLON.AbstractMesh) {
+                    this.material = object.material;
+                }
+                else if (object instanceof BABYLON.SubMesh) {
+                    this.material = object.getMaterial();
+                }
+                if (!this.material)
+                    return false;
+                this.object = object;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                return true;
+            };
+            // Add a color element
+            AbstractMaterialTool.prototype.addColorFolder = function (property, propertyName, open, parent) {
+                if (open === void 0) { open = false; }
+                var folder = this._element.addFolder(propertyName, parent);
+                folder.add(property, "r").min(0).max(1).name("Red");
+                folder.add(property, "g").min(0).max(1).name("Green");
+                folder.add(property, "b").min(0).max(1).name("Blue");
+                if (property instanceof BABYLON.Color4)
+                    folder.add(property, "a").min(0).max(1).name("Alpha");
+                if (!open)
+                    folder.close();
+                return folder;
+            };
+            return AbstractMaterialTool;
+        })(EDITOR.AbstractDatTool);
+        EDITOR.AbstractMaterialTool = AbstractMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var PBRMaterialTool = (function (_super) {
+            __extends(PBRMaterialTool, _super);
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function PBRMaterialTool(editionTool) {
+                _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR");
+                // Public members
+                // Private members
+                this._dummyPreset = "";
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.PBRMaterial; };
+            }
+            // Update
+            PBRMaterialTool.prototype.update = function () {
+                var _this = this;
+                if (!_super.prototype.update.call(this))
+                    return false;
+                this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+                // Presets
+                this._dummyPreset = "None";
+                var presets = [
+                    this._dummyPreset,
+                    "Glass",
+                    "Metal",
+                    "Plastic",
+                    "Wood"
+                ];
+                this._element.add(this, "_dummyPreset", presets, "Preset :").onChange(function (result) {
+                    if (_this["_createPreset" + result]) {
+                        _this["_createPreset" + result]();
+                        _this.update();
+                    }
+                });
+                // PBR
+                var pbrFolder = this._element.addFolder("PBR");
+                pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
+                pbrFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
+                pbrFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
+                pbrFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
+                pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
+                pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
+                pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+                pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
+                // Overloaded values
+                var overloadedFolder = this._element.addFolder("Overloaded Values");
+                overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
+                overloadedFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
+                overloadedFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
+                overloadedFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
+                overloadedFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
+                overloadedFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
+                // Overloaded colors
+                var overloadedColorsFolder = this._element.addFolder("Overloaded Colors");
+                this.addColorFolder(this.material.overloadedAmbient, "Ambient Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", false, overloadedColorsFolder);
+                this.addColorFolder(this.material.overloadedReflection, "Reflection Color", false, overloadedColorsFolder);
+                // Options
+                var optionsFolder = this._element.addFolder("Options");
+                optionsFolder.add(this.material, "linkRefractionWithTransparency").name("Link Refraction With Transparency");
+                optionsFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
+                optionsFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+                optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
+                optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
+                optionsFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                // Colors
+                var colorsFolder = this._element.addFolder("Colors");
+                this.addColorFolder(this.material.ambientColor, "Ambient Color", true, colorsFolder);
+                this.addColorFolder(this.material.albedoColor, "Albedo Color", true, colorsFolder);
+                this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, colorsFolder);
+                this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, colorsFolder);
+                this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, colorsFolder);
+                // Finish
+                return true;
+            };
+            // Preset for glass
+            PBRMaterialTool.prototype._createPresetGlass = function () {
+                this.material.linkRefractionWithTransparency = true;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.indexOfRefraction = 0.52;
+                this.material.alpha = 0;
+                this.material.directIntensity = 0.0;
+                this.material.environmentIntensity = 0.5;
+                this.material.cameraExposure = 0.5;
+                this.material.cameraContrast = 1.7;
+                this.material.microSurface = 1;
+            };
+            // Preset for metal
+            PBRMaterialTool.prototype._createPresetMetal = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.directIntensity = 0.3;
+                this.material.environmentIntensity = 0.7;
+                this.material.cameraExposure = 0.55;
+                this.material.cameraContrast = 1.6;
+                this.material.microSurface = 0.96;
+            };
+            // Preset for Plastic
+            PBRMaterialTool.prototype._createPresetPlastic = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
+                this.material.directIntensity = 0.6;
+                this.material.environmentIntensity = 0.7;
+                this.material.cameraExposure = 0.6;
+                this.material.cameraContrast = 1.6;
+                this.material.microSurface = 0.96;
+            };
+            // Preset for Wood
+            PBRMaterialTool.prototype._createPresetWood = function () {
+                this.material.linkRefractionWithTransparency = false;
+                this.material.directIntensity = 1.5;
+                this.material.environmentIntensity = 0.5;
+                this.material.specularIntensity = 0.3;
+                this.material.cameraExposure = 0.9;
+                this.material.cameraContrast = 1.6;
+                this.material.useMicroSurfaceFromReflectivityMapAlpha = true;
+            };
+            return PBRMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.PBRMaterialTool = PBRMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var SkyMaterialTool = (function (_super) {
+            __extends(SkyMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function SkyMaterialTool(editionTool) {
+                _super.call(this, editionTool, "SKY-MATERIAL", "SKY", "Sky");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.SkyMaterial; };
+            }
+            // Update
+            SkyMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Begin here
+                this._element.add(this.material, "inclination").step(0.01).name("Inclination");
+                this._element.add(this.material, "azimuth").step(0.01).name("Azimuth");
+                this._element.add(this.material, "luminance").step(0.01).name("Luminance");
+                this._element.add(this.material, "turbidity").step(0.01).name("Turbidity");
+                this._element.add(this.material, "mieCoefficient").step(0.0001).name("Mie Coefficient");
+                this._element.add(this.material, "mieDirectionalG").step(0.01).name("Mie Coefficient G");
+                this._element.add(this.material, "rayleigh").step(0.01).name("Reileigh Coefficient");
+                // Finish
+                return true;
+            };
+            return SkyMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.SkyMaterialTool = SkyMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var StandardMaterialTool = (function (_super) {
+            __extends(StandardMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function StandardMaterialTool(editionTool) {
+                _super.call(this, editionTool, "STANDARD-MATERIAL", "STANDARD", "Std Material");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.StandardMaterial; };
+            }
+            // Update
+            StandardMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+                this.material.useEmissiveAsIllumination = this.material.useEmissiveAsIllumination || false;
+                this.material.useReflectionFresnelFromSpecular = this.material.useReflectionFresnelFromSpecular || false;
+                // Values
+                var valuesFolder = this._element.addFolder("Values");
+                valuesFolder.add(this.material, "roughness").min(0).step(0.01).name("Roughness");
+                valuesFolder.add(this.material, "specularPower").min(0).step(0.01).name("Specular Power");
+                // Options
+                var optionsFolder = this._element.addFolder("Options");
+                optionsFolder.add(this.material, "useAlphaFromDiffuseTexture").name("Use Alpha From Diffuse Texture");
+                optionsFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+                optionsFolder.add(this.material, "useGlossinessFromSpecularMapAlpha").name("Use Glossiness From Specular Map Alpha");
+                optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
+                optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
+                optionsFolder.add(this.material, "useReflectionFresnelFromSpecular").name("Use Reflection Fresnel From Specular");
+                optionsFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                // Colors
+                var colorsFolder = this._element.addFolder("Colors");
+                this.addColorFolder(this.material.ambientColor, "Ambient Color", true, colorsFolder);
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, colorsFolder);
+                this.addColorFolder(this.material.specularColor, "Specular Color", true, colorsFolder);
+                this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, colorsFolder);
+                // Finish
+                return true;
+            };
+            return StandardMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.StandardMaterialTool = StandardMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -77,11 +3057,10 @@ var BABYLON;
             EditorCore.prototype.dispose = function () {
             };
             return EditorCore;
-        }());
+        })();
         EDITOR.EditorCore = EditorCore;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -223,11 +3202,10 @@ var BABYLON;
                 this.editionTools.push(tool);
             };
             return EditionTool;
-        }());
+        })();
         EDITOR.EditionTool = EditionTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -273,11 +3251,10 @@ var BABYLON;
                 this.editor.layouts.setPanelSize("preview", height * percents / 100);
             };
             return EditPanel;
-        }());
+        })();
         EDITOR.EditPanel = EditPanel;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -479,11 +3456,10 @@ var BABYLON;
             EditorMain.prototype.dispose = function () {
             };
             return EditorMain;
-        }());
+        })();
         EDITOR.EditorMain = EditorMain;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -692,11 +3668,10 @@ var BABYLON;
                 this.toolbar.buildElement(this.container);
             };
             return MainToolbar;
-        }());
+        })();
         EDITOR.MainToolbar = MainToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1016,11 +3991,10 @@ var BABYLON;
                 }
             };
             return SceneGraphTool;
-        }());
+        })();
         EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1155,11 +4129,10 @@ var BABYLON;
                     setFPS(this._core.currentScene.skeletons[sIndex].bones);
             };
             return SceneToolbar;
-        }());
+        })();
         EDITOR.SceneToolbar = SceneToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1324,11 +4297,10 @@ var BABYLON;
                 return (frame * width) / this._maxFrame;
             };
             return Timeline;
-        }());
+        })();
         EDITOR.Timeline = Timeline;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1437,11 +4409,10 @@ var BABYLON;
                 this.toolbar.buildElement(this.container);
             };
             return ToolsToolbar;
-        }());
+        })();
         EDITOR.ToolsToolbar = ToolsToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1893,12 +4864,10 @@ var BABYLON;
                 return mesh;
             };
             return Transformer;
-        }());
+        })();
         EDITOR.Transformer = Transformer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -1964,11 +4933,10 @@ var BABYLON;
                 };
             };
             return FilesInput;
-        }(BABYLON.FilesInput));
+        })(BABYLON.FilesInput);
         EDITOR.FilesInput = FilesInput;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -2193,11 +5161,10 @@ var BABYLON;
             SceneFactory.NodesToStart = [];
             SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;
-        }());
+        })();
         EDITOR.SceneFactory = SceneFactory;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -2268,17 +5235,39 @@ var BABYLON;
             */
             SceneManager._alreadyConfiguredObjectsIDs = {};
             return SceneManager;
-        }());
+        })();
         EDITOR.SceneManager = SceneManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var Storage = (function () {
+            // Private members
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
+            function Storage(core) {
+                // Public members
+                this.core = null;
+                // Initialize
+                this.core = core;
+            }
+            // Creates folders
+            Storage.prototype.createFolders = function (folders, parentFolder, success, failed) { };
+            // Gets children files
+            Storage.prototype.getFiles = function (folder, success, failed) { };
+            // Create files
+            Storage.prototype.createFiles = function (files, folder, success, failed) { };
+            // Select folder
+            Storage.prototype.selectFolder = function (success) { };
+            return Storage;
+        })();
+        EDITOR.Storage = Storage;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
@@ -2455,1476 +5444,2496 @@ var BABYLON;
             OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
             OneDriveStorage._POPUP = null;
             return OneDriveStorage;
-        }(EDITOR.Storage));
+        })(EDITOR.Storage);
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var Storage = (function () {
-            // Private members
+        var Exporter = (function () {
             /**
             * Constructor
-            * @param core: the editor core instance
             */
-            function Storage(core) {
-                // Public members
-                this.core = null;
+            function Exporter(core) {
+                // private members
+                this._window = null;
+                this._editor = null;
+                this._editorID = "BABYLON-EDITOR-EXPORT-WINDOW-EDITOR";
+                this._generatedCode = "";
                 // Initialize
                 this.core = core;
             }
-            // Creates folders
-            Storage.prototype.createFolders = function (folders, parentFolder, success, failed) { };
-            // Gets children files
-            Storage.prototype.getFiles = function (folder, success, failed) { };
-            // Create files
-            Storage.prototype.createFiles = function (files, folder, success, failed) { };
-            // Select folder
-            Storage.prototype.selectFolder = function (success) { };
-            return Storage;
-        }());
-        EDITOR.Storage = Storage;
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        /**
-        * Event Type
-        */
-        (function (EventType) {
-            EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
-            EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
-            EventType[EventType["UNKNOWN"] = 2] = "UNKNOWN";
-        })(EDITOR.EventType || (EDITOR.EventType = {}));
-        var EventType = EDITOR.EventType;
-        (function (GUIEventType) {
-            GUIEventType[GUIEventType["FORM_CHANGED"] = 0] = "FORM_CHANGED";
-            GUIEventType[GUIEventType["FORM_TOOLBAR_CLICKED"] = 1] = "FORM_TOOLBAR_CLICKED";
-            GUIEventType[GUIEventType["LAYOUT_CHANGED"] = 2] = "LAYOUT_CHANGED";
-            GUIEventType[GUIEventType["PANEL_CHANGED"] = 3] = "PANEL_CHANGED";
-            GUIEventType[GUIEventType["GRAPH_SELECTED"] = 4] = "GRAPH_SELECTED";
-            GUIEventType[GUIEventType["TAB_CHANGED"] = 5] = "TAB_CHANGED";
-            GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 6] = "TOOLBAR_MENU_SELECTED";
-            GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 7] = "GRAPH_MENU_SELECTED";
-            GUIEventType[GUIEventType["GRID_SELECTED"] = 8] = "GRID_SELECTED";
-            GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 9] = "GRID_ROW_REMOVED";
-            GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 10] = "GRID_ROW_ADDED";
-            GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 11] = "GRID_ROW_EDITED";
-            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 12] = "GRID_MENU_SELECTED";
-            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 13] = "WINDOW_BUTTON_CLICKED";
-            GUIEventType[GUIEventType["OBJECT_PICKED"] = 14] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 15] = "UNKNOWN";
-        })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
-        var GUIEventType = EDITOR.GUIEventType;
-        (function (SceneEventType) {
-            SceneEventType[SceneEventType["OBJECT_PICKED"] = 0] = "OBJECT_PICKED";
-            SceneEventType[SceneEventType["OBJECT_ADDED"] = 1] = "OBJECT_ADDED";
-            SceneEventType[SceneEventType["OBJECT_REMOVED"] = 2] = "OBJECT_REMOVED";
-            SceneEventType[SceneEventType["OBJECT_CHANGED"] = 3] = "OBJECT_CHANGED";
-            SceneEventType[SceneEventType["UNKNOWN"] = 4] = "UNKNOWN";
-        })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
-        var SceneEventType = EDITOR.SceneEventType;
-        /**
-        * Base Event
-        */
-        var BaseEvent = (function () {
-            function BaseEvent(data) {
-                this.data = data;
-            }
-            return BaseEvent;
-        }());
-        EDITOR.BaseEvent = BaseEvent;
-        /**
-        * Scene Event
-        */
-        var SceneEvent = (function (_super) {
-            __extends(SceneEvent, _super);
-            /**
-            * Constructor
-            * @param object: the object generating the event
-            */
-            function SceneEvent(object, eventType, data) {
-                _super.call(this, data);
-                this.object = object;
-                this.eventType = eventType;
-            }
-            return SceneEvent;
-        }(BaseEvent));
-        EDITOR.SceneEvent = SceneEvent;
-        /**
-        * GUI Event
-        */
-        var GUIEvent = (function (_super) {
-            __extends(GUIEvent, _super);
-            /**
-            * Constructor
-            * @param caller: gui element calling the event
-            * @param eventType: the gui event type
-            */
-            function GUIEvent(caller, eventType, data) {
-                _super.call(this, data);
-                this.caller = caller;
-                this.eventType = eventType;
-            }
-            return GUIEvent;
-        }(BaseEvent));
-        EDITOR.GUIEvent = GUIEvent;
-        /**
-        * IEvent implementation
-        */
-        var Event = (function () {
-            function Event() {
-                this.eventType = EventType.UNKNOWN;
-                this.sceneEvent = null;
-                this.guiEvent = null;
-            }
-            Event.sendSceneEvent = function (object, type, core) {
-                var ev = new Event();
-                ev.eventType = EventType.SCENE_EVENT;
-                ev.sceneEvent = new SceneEvent(object, type);
-                core.sendEvent(ev);
+            // Opens the scene exporter
+            Exporter.prototype.openSceneExporter = function (babylonScene) {
+                var _this = this;
+                // Create window
+                var windowBody = EDITOR.GUI.GUIElement.CreateDivElement(this._editorID, "width: 100%; height: 100%");
+                this._window = new EDITOR.GUI.GUIWindow("WindowExport", this.core, "Export Project", windowBody);
+                this._window.buildElement(null);
+                this._window.onToggle = function (maximized, width, height) {
+                    _this._editor.resize();
+                };
+                // Create ace editor
+                this._editor = ace.edit(this._editorID);
+                this._editor.setTheme("ace/theme/clouds");
+                this._editor.getSession().setMode("ace/mode/javascript");
+                // Finish
+                this._generatedCode = this.generateCode(babylonScene);
             };
-            Event.sendGUIEvent = function (object, type, core) {
-                var ev = new Event();
-                ev.eventType = EventType.GUI_EVENT;
-                ev.guiEvent = new GUIEvent(object, type);
-                core.sendEvent(ev);
-            };
-            return Event;
-        }());
-        EDITOR.Event = Event;
-        /**
-        * Statics
-        */
-        /**
-        * Sends a scene event
-        */
-        var sendSceneEvent = function (object, type, core) {
-            var ev = new Event();
-            ev.eventType = EventType.SCENE_EVENT;
-            ev.sceneEvent = new SceneEvent(object, type);
-            core.sendEvent(ev);
-        };
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var Tools = (function () {
-            function Tools() {
-            }
-            /**
-            * Returns a vector3 string from a vector3
-            */
-            Tools.GetStringFromVector3 = function (vector) {
-                return "" + vector.x + ", " + vector.y + ", " + vector.z;
-            };
-            /**
-            * Returns a vector3 from a vector3 string
-            */
-            Tools.GetVector3FromString = function (vector) {
-                var values = vector.split(",");
-                return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
-            };
-            /**
-            * Converts a base64 string to array buffer
-            * Largely used to convert images, converted into base64 string
-            */
-            Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
-                var binString = window.atob(base64String.split(",")[1]);
-                var len = binString.length;
-                var array = new Uint8Array(len);
-                for (var i = 0; i < len; i++)
-                    array[i] = binString.charCodeAt(i);
-                return array;
-            };
-            /**
-            * Opens a window popup
-            */
-            Tools.OpenWindowPopup = function (url, width, height) {
-                var features = [
-                    "width=" + width,
-                    "height=" + height,
-                    "top=" + window.screenY + Math.max(window.outerHeight - height, 0) / 2,
-                    "left=" + window.screenX + Math.max(window.outerWidth - width, 0) / 2,
-                    "status=no",
-                    "resizable=yes",
-                    "toolbar=no",
-                    "menubar=no",
-                    "scrollbars=yes"];
-                var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
-                popup.focus();
-                return popup;
-            };
-            /**
-            * Returns the base URL of the window
-            */
-            Tools.getBaseURL = function () {
-                var url = window.location.href;
-                url = url.replace(BABYLON.Tools.GetFilename(url), "");
-                return url;
-            };
-            /**
-            * Creates an input element
-            */
-            Tools.CreateFileInpuElement = function (id) {
-                var input = $("#" + id);
-                if (!input[0])
-                    $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
-                return input;
-            };
-            /**
-            * Beautify a variable name (escapeds + upper case)
-            */
-            Tools.BeautifyName = function (name) {
-                var result = name[0].toUpperCase();
-                for (var i = 1; i < name.length; i++) {
-                    var char = name[i];
-                    if (char === char.toUpperCase())
-                        result += " ";
-                    result += name[i];
+            // Generates the code
+            Exporter.prototype.generateCode = function (babylonScene) {
+                var scene = this.core.currentScene;
+                var finalString = "";
+                if (babylonScene) {
+                    var obj = BABYLON.SceneSerializer.Serialize(this.core.currentScene);
+                    finalString = JSON.stringify(obj, null, "\t");
                 }
-                return result;
+                else {
+                    /*
+                    finalString = [
+                        "var getTextureByName = " + this._getTextureByName + "\n",
+                        "function CreateBabylonScene(scene) {",
+                        "\tvar engine = scene.getEngine();",
+                        "\tvar node = null;",
+                        "\tvar animation = null;",
+                        "\tvar keys = null;",
+                        "\tvar particleSystem = null;\n",
+                        this._exportPostProcesses(),
+                        this._exportScene(),
+                        this._exportReflectionProbes(),
+                        this._traverseNodes(),
+                        this._exportSceneValues(),
+                        "}\n"
+                    ].join("\n");
+                    */
+                    finalString = EDITOR.ProjectExporter.ExportProject(this.core, true);
+                }
+                if (this._editor) {
+                    this._editor.setValue(finalString, -1);
+                    if (!babylonScene)
+                        this._editor.getSession().setUseWrapMode(false);
+                }
+                return finalString;
             };
-            /**
-            * Cleans an editor project
-            */
-            Tools.CleanProject = function (project) {
-                project.renderTargets = project.renderTargets || [];
+            // Exports the code
+            Exporter.ExportCode = function (core) {
+                var exporter = new Exporter(core);
+                var finalString = [
+                    "var getTextureByName = " + exporter._getTextureByName + "\n",
+                    "function CreateBabylonScene(scene) {",
+                    "\tvar engine = scene.getEngine();",
+                    "\tvar node = null;",
+                    "\tvar animation = null;",
+                    "\tvar keys = null;",
+                    "\tvar particleSystem = null;\n",
+                    exporter._exportPostProcesses(),
+                    exporter._exportScene(),
+                    exporter._exportReflectionProbes(),
+                    exporter._traverseNodes(),
+                    exporter._exportSceneValues(),
+                    "}\n"
+                ].join("\n");
+                return finalString;
             };
-            /**
-            *
-            */
-            Tools.GetConstructorName = function (obj) {
-                return obj.constructor ? obj.constructor.name : "";
-            };
-            return Tools;
-        }());
-        EDITOR.Tools = Tools;
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIDialog = (function (_super) {
-                __extends(GUIDialog, _super);
-                // Private members
-                /**
-                * Constructor
-                * @param name: the form name
-                */
-                function GUIDialog(name, core, title, body) {
-                    _super.call(this, name, core);
-                    this.callback = null;
-                    // Initialize
-                    this.title = title;
-                    this.body = body;
-                }
-                // Build element
-                GUIDialog.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = w2confirm(this.body, this.title, function (result) {
-                        if (_this.callback)
-                            _this.callback(result);
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.GUI_EVENT;
-                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result);
-                        _this.core.sendEvent(ev);
-                    });
-                };
-                // Create a dialog on the fly
-                GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
-                    w2confirm(body, title, null)
-                        .yes(function () {
-                        yesCallback();
-                    })
-                        .no(function () {
-                        noCallback();
-                    });
-                };
-                return GUIDialog;
-            }(GUI.GUIElement));
-            GUI.GUIDialog = GUIDialog;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIEditForm = (function (_super) {
-                __extends(GUIEditForm, _super);
-                /**
-                * Constructor
-                * @param name: the form name
-                */
-                function GUIEditForm(name, core) {
-                    _super.call(this, name, core);
-                }
-                // Removes the element
-                GUIEditForm.prototype.remove = function () {
-                    this._datElement.domElement.parentNode.removeChild(this._datElement.domElement);
-                };
-                // Add a folder
-                GUIEditForm.prototype.addFolder = function (name, parent) {
-                    var parentFolder = parent ? parent : this._datElement;
-                    var folder = parentFolder.addFolder(name);
-                    folder.open();
-                    return folder;
-                };
-                // Add a field
-                GUIEditForm.prototype.add = function (object, propertyPath, items, name) {
-                    if (!object || object[propertyPath] === undefined || object[propertyPath] === null)
-                        return this._datElement.add(null, "");
-                    return this._datElement.add(object, propertyPath, items).name(name);
-                };
-                // Adds tags to object if property changed
-                GUIEditForm.prototype.tagObjectIfChanged = function (element, object, property) {
-                    element.onFinishChange(function (result) {
-                        if (!BABYLON.Tags.HasTags(object)) {
-                            BABYLON.Tags.EnableFor(object);
-                        }
-                        if (!BABYLON.Tags.MatchesQuery(object, property)) {
-                            BABYLON.Tags.AddTagsTo(object, property);
-                        }
-                    });
-                };
-                Object.defineProperty(GUIEditForm.prototype, "width", {
-                    get: function () {
-                        return this._datElement.width;
-                    },
-                    // Get / Set width
-                    set: function (width) {
-                        this._datElement.width = width;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(GUIEditForm.prototype, "height", {
-                    get: function () {
-                        return this._datElement.height;
-                    },
-                    // Get / Set height
-                    set: function (height) {
-                        this._datElement.height = height;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                // Remember initial
-                GUIEditForm.prototype.remember = function (object) {
-                    this._datElement.remember(object);
-                };
-                // Build element
-                GUIEditForm.prototype.buildElement = function (parent) {
-                    var parentElement = $("#" + parent);
-                    this._datElement = new dat.GUI({
-                        autoPlace: false
-                    });
-                    this._datElement.width = parentElement.width();
-                    this.element = parentElement[0].appendChild(this._datElement.domElement);
-                };
-                return GUIEditForm;
-            }(GUI.GUIElement));
-            GUI.GUIEditForm = GUIEditForm;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIElement = (function () {
-                // Private members
-                /**
-                * Constructor
-                * @param name: the gui element name
-                * @param core: the editor core
-                */
-                function GUIElement(name, core) {
-                    // Public members
-                    this.element = null;
-                    this.name = "";
-                    this.core = null;
-                    // Members
-                    this.name = name;
-                    this.core = core;
-                }
-                // Destroy the element (W2UI)
-                GUIElement.prototype.destroy = function () {
-                    this.element.destroy();
-                };
-                // Refresh the element (W2UI)
-                GUIElement.prototype.refresh = function () {
-                    this.element.refresh();
-                };
-                // Resize the element (W2UI)
-                GUIElement.prototype.resize = function () {
-                    this.element.resize();
-                };
-                // Add callback on an event
-                GUIElement.prototype.on = function (event, callback) {
-                    this.element.on(event, callback);
-                };
-                // Build the element
-                GUIElement.prototype.buildElement = function (parent) { };
-                /**
-                * Static methods
-                */
-                // Creates a div element (string)
-                GUIElement.CreateDivElement = function (id, style) {
-                    return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
-                };
-                // Creates a custom element (string)
-                GUIElement.CreateElement = function (type, id, style) {
-                    if (style === void 0) { style = "width: 100%; height: 100%;"; }
-                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
-                };
-                return GUIElement;
-            }());
-            GUI.GUIElement = GUIElement;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIForm = (function (_super) {
-                __extends(GUIForm, _super);
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param header: form's header text
-                */
-                function GUIForm(name, header, core) {
-                    if (header === void 0) { header = ""; }
-                    _super.call(this, name, core);
-                    this.fields = [];
-                    this.toolbarFields = [];
-                    // Initialize
-                    this.header = header;
-                }
-                // Create a field
-                GUIForm.prototype.createField = function (name, type, caption, span, text, options) {
-                    if (span === void 0) { span = undefined; }
-                    if (text === void 0) { text = ""; }
-                    if (options === void 0) { options = {}; }
-                    span = (span === null) ? 6 : span;
-                    var field = { name: name, type: type, html: { caption: caption, span: span, text: text }, options: options };
-                    this.fields.push(field);
-                    return this;
-                };
-                // Create a toolbar field
-                GUIForm.prototype.createToolbarField = function (id, type, caption, img) {
-                    var field = { id: name, text: caption, type: type, checked: false, img: img };
-                    this.toolbarFields.push(field);
-                    return field;
-                };
-                // Set record
-                GUIForm.prototype.setRecord = function (name, value) {
-                    this.element.record[name] = value;
-                };
-                // Get record
-                GUIForm.prototype.getRecord = function (name) {
-                    return this.element.record[name];
-                };
-                // Build element
-                GUIForm.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = $("#" + parent).w2form({
-                        name: this.name,
-                        focus: -1,
-                        header: this.header,
-                        formHTML: "",
-                        fields: this.fields,
-                        toolbar: {
-                            items: this.toolbarFields,
-                            onClick: function (event) {
-                                if (_this.onToolbarClicked)
-                                    _this.onToolbarClicked(event.target);
-                                var ev = new EDITOR.Event();
-                                ev.eventType = EDITOR.EventType.GUI_EVENT;
-                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
-                                ev.guiEvent.data = event.target;
-                                _this.core.sendEvent(ev);
-                            }
-                        }
-                    });
-                    this.element.on({ type: "change", execute: "after" }, function () {
-                        if (_this.onFormChanged)
-                            _this.onFormChanged();
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.GUI_EVENT;
-                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.FORM_CHANGED);
-                        _this.core.sendEvent(ev);
-                    });
-                };
-                return GUIForm;
-            }(GUI.GUIElement));
-            GUI.GUIForm = GUIForm;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIGraph = (function (_super) {
-                __extends(GUIGraph, _super);
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param header: form's header text
-                */
-                function GUIGraph(name, core) {
-                    _super.call(this, name, core);
-                    // Public members
-                    this.menus = [];
-                }
-                GUIGraph.prototype.addMenu = function (id, text, img) {
-                    if (img === void 0) { img = ""; }
-                    this.menus.push({
-                        id: id,
-                        text: text,
-                        img: img
-                    });
-                };
-                // Creates a new node and returns its reference
-                GUIGraph.prototype.createNode = function (id, text, img, data) {
-                    if (img === void 0) { img = ""; }
-                    return {
-                        id: id,
-                        text: text,
-                        img: img,
-                        data: data
-                    };
-                };
-                // Adds new nodes to the graph
-                GUIGraph.prototype.addNodes = function (nodes, parent) {
-                    if (!parent)
-                        this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
+            // Export the scene values
+            Exporter.prototype._exportSceneValues = function () {
+                // Common values
+                var finalString = "\n" +
+                    "\tif (BABYLON.EDITOR) {\n" +
+                    "\t    BABYLON.EDITOR.SceneFactory.AnimationSpeed = " + EDITOR.SceneFactory.AnimationSpeed + ";\n";
+                for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                    var node = EDITOR.SceneFactory.NodesToStart[i];
+                    if (node instanceof BABYLON.Scene)
+                        finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene);\n";
                     else
-                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
-                };
-                // Removes the provided node
-                GUIGraph.prototype.removeNode = function (node) {
-                    this.element.remove(node);
-                };
-                // Sets if the provided node is expanded or not
-                GUIGraph.prototype.setNodeExpanded = function (node, expanded) {
-                    expanded ? this.element.expand(node) : this.element.collapse(node);
-                };
-                // Sets the selected node
-                GUIGraph.prototype.setSelected = function (node) {
-                    var element = this.element.get(node);
-                    if (!element)
-                        return;
-                    while (element.parent !== null) {
-                        element = element.parent;
-                        if (element && element.id)
-                            this.element.expand(element.id);
-                    }
-                    this.element.select(node);
-                    this.element.scrollIntoView(node);
-                };
-                // Returns the selected node
-                GUIGraph.prototype.getSelected = function () {
-                    return this.element.selected;
-                };
-                // Returns the selected node
-                GUIGraph.prototype.getSelectedNode = function () {
-                    var element = this.element.get(this.getSelected());
-                    if (element)
-                        return element;
-                    return null;
-                };
-                // Returns the node by id
-                GUIGraph.prototype.getNode = function (id) {
-                    var element = this.element.get(id);
-                    return element;
-                };
-                // Returns the selected data
-                GUIGraph.prototype.getSelectedData = function () {
-                    var selected = this.getSelected();
-                    return this.element.get(selected).data;
-                };
-                // Clears the graph
-                GUIGraph.prototype.clear = function () {
-                    var toRemove = [];
-                    for (var i = 0; i < this.element.nodes.length; i++)
-                        toRemove.push(this.element.nodes[i].id);
-                    this.element.remove.apply(this.element, toRemove);
-                };
-                // Build element
-                GUIGraph.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = $("#" + parent).w2sidebar({
-                        name: this.name,
-                        img: null,
-                        keyboard: false,
-                        nodes: [],
-                        menu: this.menus,
-                        onClick: function (event) {
-                            if (_this.onGraphClick)
-                                _this.onGraphClick(event.object.data);
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_SELECTED);
-                            ev.guiEvent.data = event.object.data;
-                            _this.core.sendEvent(ev);
-                        },
-                        onMenuClick: function (event) {
-                            if (_this.onMenuClick)
-                                _this.onMenuClick(event.menuItem.id);
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_MENU_SELECTED);
-                            ev.guiEvent.data = event.menuItem.id;
-                            _this.core.sendEvent(ev);
-                        }
-                    });
-                };
-                return GUIGraph;
-            }(GUI.GUIElement));
-            GUI.GUIGraph = GUIGraph;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var gridButtons = w2obj.grid.prototype.buttons;
-            gridButtons["add"].caption = w2utils.lang("");
-            gridButtons["delete"].caption = w2utils.lang("");
-            var GUIGrid = (function (_super) {
-                __extends(GUIGrid, _super);
-                // Private members
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param core: the editor core
-                */
-                function GUIGrid(name, core) {
-                    _super.call(this, name, core);
-                    // Public members
-                    this.columns = [];
-                    this.header = "New Grid";
-                    this.showToolbar = true;
-                    this.showFooter = false;
-                    this.showDelete = false;
-                    this.showAdd = false;
-                    this.showEdit = false;
-                    this.showOptions = true;
-                    this.showSearch = true;
-                    this.menus = [];
+                        finalString += "\t    BABYLON.EDITOR.SceneFactory.NodesToStart.push(scene.getNodeByName(\"" + node.name + "\"));\n";
                 }
-                // Adds a menu
-                GUIGrid.prototype.addMenu = function (id, text, icon) {
-                    this.menus.push({
-                        id: id,
-                        text: text,
-                        icon: icon
-                    });
-                };
-                // Creates a column
-                GUIGrid.prototype.createColumn = function (id, text, size) {
-                    if (!size)
-                        size = "50%";
-                    this.columns.push({ field: id, caption: text, size: size });
-                };
-                // Adds a row and refreshes the grid
-                GUIGrid.prototype.addRow = function (data) {
-                    data.recid = this.getRowCount();
-                    this.element.add(data);
-                };
-                // Adds a record without refreshing the grid
-                GUIGrid.prototype.addRecord = function (data) {
-                    data.recid = this.element.records.length;
-                    this.element.records.push(data);
-                };
-                // Removes a row and refreshes the list
-                GUIGrid.prototype.removeRow = function (recid) {
-                    this.element.remove(recid);
-                };
-                // Removes a record, need to refresh the list after
-                GUIGrid.prototype.removeRecord = function (recid) {
-                    this.element.records.splice(recid, 1);
-                };
-                // Refresh the element (W2UI)
-                GUIGrid.prototype.refresh = function () {
-                    for (var i = 0; i < this.element.records.length; i++) {
-                        this.element.records[i].recid = i;
-                    }
-                    _super.prototype.refresh.call(this);
-                };
-                // Returns the number of rows
-                GUIGrid.prototype.getRowCount = function () {
-                    return this.element.total;
-                };
-                // Clear
-                GUIGrid.prototype.clear = function () {
-                    this.element.clear();
-                    this.element.total = 0;
-                };
-                // Locks the grid
-                GUIGrid.prototype.lock = function (message, spinner) {
-                    this.element.lock(message, spinner);
-                };
-                // Unlock the grid
-                GUIGrid.prototype.unlock = function () {
-                    this.element.unlock();
-                };
-                // Returns the selected rows
-                GUIGrid.prototype.getSelectedRows = function () {
-                    return this.element.getSelection();
-                };
-                // sets the selected rows
-                GUIGrid.prototype.setSelected = function (selected) {
-                    for (var i = 0; i < selected.length; i++) {
-                        this.element.select(selected[i]);
-                    }
-                };
-                // Returns the row at indice
-                GUIGrid.prototype.getRow = function (indice) {
-                    if (indice >= 0) {
-                        return this.element.get(indice);
-                    }
-                    return null;
-                };
-                // Modifies the row at indice
-                GUIGrid.prototype.modifyRow = function (indice, data) {
-                    this.element.set(indice, data);
-                };
-                // Build element
-                GUIGrid.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = $("#" + parent).w2grid({
-                        name: this.name,
-                        show: {
-                            toolbar: this.showToolbar,
-                            footer: this.showFooter,
-                            toolbarDelete: this.showDelete,
-                            toolbarAdd: this.showAdd,
-                            toolbarEdit: this.showEdit,
-                            toolbarSearch: this.showSearch,
-                            toolbarColumns: this.showOptions,
-                            header: !(this.header === "")
-                        },
-                        menu: this.menus,
-                        header: this.header,
-                        columns: this.columns,
-                        records: [],
-                        onClick: function (event) {
-                            event.onComplete = function () {
-                                var selected = _this.getSelectedRows();
-                                if (selected.length === 1) {
-                                    if (_this.onClick)
-                                        _this.onClick(selected);
-                                    var ev = new EDITOR.Event();
-                                    ev.eventType = EDITOR.EventType.GUI_EVENT;
-                                    ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_SELECTED, selected);
-                                    _this.core.sendEvent(ev);
-                                }
-                            };
-                        },
-                        keyboard: false,
-                        onMenuClick: function (event) {
-                            if (_this.onMenuClick)
-                                _this.onMenuClick(event.menuItem.id);
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_MENU_SELECTED, event.menuItem.id);
-                            _this.core.sendEvent(ev);
-                        },
-                        onDelete: function (event) {
-                            if (event.force) {
-                                var data = _this.getSelectedRows();
-                                if (_this.onDelete)
-                                    _this.onDelete(data);
-                                var ev = new EDITOR.Event();
-                                ev.eventType = EDITOR.EventType.GUI_EVENT;
-                                ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_REMOVED, data);
-                                _this.core.sendEvent(ev);
-                            }
-                        },
-                        onAdd: function (event) {
-                            if (_this.onAdd)
-                                _this.onAdd();
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_ADDED);
-                            _this.core.sendEvent(ev);
-                        },
-                        onEdit: function (event) {
-                            var data = _this.getSelectedRows();
-                            if (_this.onEdit)
-                                _this.onEdit(data);
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
-                            _this.core.sendEvent(ev);
-                        }
-                    });
-                };
-                return GUIGrid;
-            }(GUI.GUIElement));
-            GUI.GUIGrid = GUIGrid;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUILayout = (function (_super) {
-                __extends(GUILayout, _super);
-                /**
-                * Constructor
-                * @param name: layouts name
-                */
-                function GUILayout(name, core) {
-                    _super.call(this, name, core);
-                    // Public members
-                    this.panels = [];
+                finalString += "\t}\n";
+                finalString += "\telse {\n";
+                for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                    var node = EDITOR.SceneFactory.NodesToStart[i];
+                    if (node instanceof BABYLON.Scene)
+                        finalString += "\t    scene.beginAnimation(scene, 0, Number.MAX_VALUE, false, " + EDITOR.SceneFactory.AnimationSpeed + "); \n";
+                    else
+                        finalString += "\t    scene.beginAnimation(scene.getNodeByName(\"" + node.name + "\"), 0, Number.MAX_VALUE, false, " + EDITOR.SceneFactory.AnimationSpeed + ");\n";
                 }
-                GUILayout.prototype.createPanel = function (name, type, size, resizable) {
-                    if (resizable === void 0) { resizable = true; }
-                    var panel = new GUI.GUIPanel(name, type, size, resizable, this.core);
-                    this.panels.push(panel);
-                    return panel;
-                };
-                GUILayout.prototype.lockPanel = function (type, message, spinner) {
-                    this.element.lock(type, message, spinner);
-                };
-                GUILayout.prototype.unlockPanel = function (type) {
-                    this.element.unlock(type);
-                };
-                GUILayout.prototype.getPanelFromType = function (type) {
-                    for (var i = 0; i < this.panels.length; i++) {
-                        if (this.panels[i].type === type) {
-                            return this.panels[i];
-                        }
+                finalString += "\t}\n";
+                return finalString;
+            };
+            // Export scene
+            Exporter.prototype._exportScene = function () {
+                var scene = this.core.currentScene;
+                var finalString = "\n\t// Export scene\n";
+                // Set values
+                for (var thing in scene) {
+                    var value = scene[thing];
+                    var result = "";
+                    if (thing[0] === "_")
+                        continue;
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
                     }
-                    return null;
-                };
-                GUILayout.prototype.getPanelFromName = function (name) {
-                    for (var i = 0; i < this.panels.length; i++) {
-                        if (this.panels[i].name === name) {
-                            return this.panels[i];
-                        }
+                    else if (value instanceof BABYLON.Color3) {
+                        result += this._exportColor3(value);
                     }
-                    return null;
-                };
-                GUILayout.prototype.setPanelSize = function (panelType, size) {
-                    this.element.sizeTo(panelType, size);
-                };
-                GUILayout.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = $("#" + parent).w2layout({
-                        name: this.name,
-                        panels: this.panels
-                    });
-                    this.element.on({ type: "resize", execute: "after" }, function () {
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.GUI_EVENT;
-                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.LAYOUT_CHANGED);
-                        _this.core.sendEvent(ev);
-                    });
-                    // Set panels
-                    for (var i = 0; i < this.panels.length; i++) {
-                        this.panels[i]._panelElement = this.element.get(this.panels[i].type);
-                    }
-                };
-                return GUILayout;
-            }(GUI.GUIElement));
-            GUI.GUILayout = GUILayout;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIList = (function (_super) {
-                __extends(GUIList, _super);
-                // Private members
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param core: the editor core
-                */
-                function GUIList(name, core) {
-                    _super.call(this, name, core);
-                    // Public members
-                    this.items = [];
+                    else
+                        continue;
+                    finalString += "\tscene." + thing + " = " + result + ";\n";
                 }
-                // Creates a new item
-                GUIList.prototype.addItem = function (name) {
-                    this.items.push(name);
-                    return this;
-                };
-                // Returns the selected item
-                GUIList.prototype.getSelected = function () {
-                    var value = this.element.val();
-                    return this.element.items.indexOf(value);
-                };
-                // Build element
-                GUIList.prototype.buildElement = function (parent) {
-                    this.element = $("input[type = list]" + "#" + parent).w2field("list", {
-                        items: this.items,
-                        selected: this.items.length > 0 ? this.items[0] : ""
-                    });
-                };
-                return GUIList;
-            }(GUI.GUIElement));
-            GUI.GUIList = GUIList;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIPanel = (function (_super) {
-                __extends(GUIPanel, _super);
-                /**
-                * Constructor
-                * @param name: panel name
-                * @param type: panel type (left, right, etc.)
-                * @param size: panel size
-                * @param resizable: if the panel is resizable
-                * @param core: the editor core
-                */
-                function GUIPanel(name, type, size, resizable, core) {
-                    _super.call(this, name, core);
-                    // Public memebers
-                    this.tabs = new Array();
-                    this.size = 70;
-                    this.minSize = 10;
-                    this.maxSize = undefined;
-                    this.style = "background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;";
-                    this.toolbar = null;
-                    this.type = type;
-                    this.size = size;
-                    this.resizable = resizable;
+                var animations = scene.animations;
+                if (animations && animations.length > 0) {
+                    finalString += "\tscene.animations = [];\n";
+                    finalString += "\tnode = scene;\n";
+                    finalString += this._exportAnimations(scene);
                 }
-                // Create tab
-                GUIPanel.prototype.createTab = function (tab) {
-                    var _this = this;
-                    // Configure event
-                    tab.onClick = function (event) {
-                        var ev = new EDITOR.Event();
-                        ev.eventType = EDITOR.EventType.GUI_EVENT;
-                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CHANGED, event.target);
-                        _this.core.sendEvent(ev);
-                    };
-                    // Add tab
-                    this.tabs.push(tab);
-                    if (this._panelElement !== null) {
-                        this._panelElement.tabs.add(tab);
+                return finalString;
+            };
+            // Export reflection probes
+            Exporter.prototype._exportReflectionProbes = function () {
+                var scene = this.core.currentScene;
+                var finalString = "\t// Export reflection probes\n";
+                finalString += "\tvar reflectionProbe = null;";
+                var t = new BABYLON.ReflectionProbe("", 512, scene, false);
+                for (var i = 0; i < scene.reflectionProbes.length; i++) {
+                    var rp = scene.reflectionProbes[i];
+                    var texture = rp.cubeTexture;
+                    if (rp.name === "")
+                        continue;
+                    finalString += "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
+                    // Render list
+                    for (var j = 0; j < rp.renderList.length; j++) {
+                        var node = rp.renderList[j];
+                        finalString += "\treflectionProbe.renderList.push(scene.getNodeByName(\"" + node.name + "\"));\n";
                     }
-                    return this;
-                };
-                // Remove tab from id
-                GUIPanel.prototype.removeTab = function (id) {
-                    if (this._panelElement !== null) {
-                        this._panelElement.tabs.remove(id);
+                }
+                return finalString;
+            };
+            // Export node's transformation
+            Exporter.prototype._exportNodeTransform = function (node) {
+                var finalString = "";
+                if (node.position) {
+                    finalString += "\tnode.position = " + this._exportVector3(node.position) + ";\n";
+                }
+                if (node.rotation) {
+                    finalString += "\tnode.rotation = " + this._exportVector3(node.rotation) + ";\n";
+                }
+                if (node.rotationQuaternion) {
+                    finalString += "\tnode.rotationQuaternion = " + this._exportQuaternion(node.rotationQuaternion) + ";\n";
+                }
+                if (node.scaling) {
+                    finalString += "\tnode.scaling = " + this._exportVector3(node.scaling) + ";\n";
+                }
+                return finalString;
+            };
+            // Returns a BaseTexture from its name
+            Exporter.prototype._getTextureByName = function (name, scene) {
+                // "this" is forbidden since this code is exported directly
+                for (var i = 0; i < scene.textures.length; i++) {
+                    var texture = scene.textures[i];
+                    if (texture.name === name) {
+                        return texture;
                     }
-                    for (var i = 0; i < this.tabs.length; i++) {
-                        if (this.tabs[i].id === id) {
-                            this.tabs.splice(i, 1);
-                            return true;
+                }
+                return null;
+            };
+            // Exports the post-processes
+            Exporter.prototype._exportPostProcesses = function () {
+                var finalString = "";
+                if (EDITOR.SceneFactory.HDRPipeline) {
+                    finalString +=
+                        "\tvar ratio = {\n" +
+                            "\t    finalRatio: 1.0,\n" +
+                            "\t    blurRatio: 0.5\n" +
+                            "\t};\n";
+                    finalString +=
+                        "\tvar hdr = new BABYLON.HDRRenderingPipeline(\"hdr\", scene, ratio, null, scene.cameras, new BABYLON.Texture(\"Textures/lensdirt.jpg\", scene));\n" +
+                            "\thdr.exposureAdjustment = " + EDITOR.SceneFactory.HDRPipeline.exposureAdjustment + ";\n" +
+                            "\thdr.brightThreshold = " + EDITOR.SceneFactory.HDRPipeline.brightThreshold + ";\n" +
+                            "\thdr.gaussCoeff = " + EDITOR.SceneFactory.HDRPipeline.gaussCoeff + ";\n" +
+                            "\thdr.gaussMean = " + EDITOR.SceneFactory.HDRPipeline.gaussMean + ";\n" +
+                            "\thdr.gaussStandDev = " + EDITOR.SceneFactory.HDRPipeline.gaussStandDev + ";\n" +
+                            "\thdr.minimumLuminance = " + EDITOR.SceneFactory.HDRPipeline.minimumLuminance + ";\n" +
+                            "\thdr.luminanceDecreaseRate = " + EDITOR.SceneFactory.HDRPipeline.luminanceDecreaseRate + ";\n" +
+                            "\thdr.luminanceIncreaserate = " + EDITOR.SceneFactory.HDRPipeline.luminanceIncreaserate + ";\n" +
+                            "\thdr.exposure = " + EDITOR.SceneFactory.HDRPipeline.exposure + ";\n" +
+                            "\thdr.gaussMultiplier = " + EDITOR.SceneFactory.HDRPipeline.gaussMultiplier + ";\n";
+                    finalString +=
+                        "\tif (BABYLON.EDITOR) {\n" +
+                            "\t    BABYLON.EDITOR.SceneFactory.HDRPipeline = hdr;\n" +
+                            "\t}\n";
+                }
+                return finalString;
+            };
+            // Export node's animations
+            Exporter.prototype._exportAnimations = function (node) {
+                var finalString = "\n";
+                for (var i = 0; i < node.animations.length; i++) {
+                    var anim = node.animations[i];
+                    // Check tags here
+                    // ....
+                    if (!BABYLON.Tags.HasTags(anim) || !BABYLON.Tags.MatchesQuery(anim, "modified"))
+                        continue;
+                    var keys = anim.getKeys();
+                    finalString += "\tkeys = [];\n";
+                    finalString += "\tanimation = new BABYLON.Animation(\"" + anim.name + "\", \"" + anim.targetPropertyPath.join(".") + "\", " + anim.framePerSecond + ", " + anim.dataType + ", " + anim.loopMode + "); \n";
+                    finalString += "\tBABYLON.Tags.AddTagsTo(animation, \"modified\");\n";
+                    if (!keys)
+                        continue;
+                    for (var j = 0; j < keys.length; j++) {
+                        var value = keys[j].value;
+                        var result = value.toString();
+                        if (value instanceof BABYLON.Vector3) {
+                            result = this._exportVector3(value);
                         }
+                        else if (value instanceof BABYLON.Vector2) {
+                            result = this._exportVector2(value);
+                        }
+                        else if (value instanceof BABYLON.Color3) {
+                            result = this._exportColor3(value);
+                        }
+                        finalString += "\tkeys.push({ frame: " + keys[j].frame + ", value: " + result + " });\n";
                     }
-                    return false;
-                };
-                Object.defineProperty(GUIPanel.prototype, "width", {
-                    // Get width
-                    get: function () {
-                        if (this._panelElement)
-                            return this._panelElement.width;
-                        return 0;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                Object.defineProperty(GUIPanel.prototype, "height", {
-                    // Get height
-                    get: function () {
-                        if (this._panelElement)
-                            return this._panelElement.height;
-                        return 0;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                // Return tab count
-                GUIPanel.prototype.getTabCount = function () {
-                    return this.tabs.length;
-                };
-                // Set tab enabled
-                GUIPanel.prototype.setTabEnabled = function (id, enable) {
-                    if (this._panelElement === null) {
-                        return this;
-                    }
-                    enable ? this._panelElement.tabs.enable(id) : this._panelElement.tabs.disable(id);
-                    return this;
-                };
-                // Return tab id from index
-                GUIPanel.prototype.getTabIDFromIndex = function (index) {
-                    if (index >= 0 && index < this.tabs.length) {
-                        return this.tabs[index].id;
-                    }
+                    finalString += "\tanimation.setKeys(keys);\n";
+                    finalString += "\tnode.animations.push(animation);\n";
+                }
+                return finalString;
+            };
+            // Export node's material
+            Exporter.prototype._exportNodeMaterial = function (node, subMeshId) {
+                var material = null;
+                //node.material;
+                if (node instanceof BABYLON.AbstractMesh) {
+                    material = node.material;
+                }
+                else if (node instanceof BABYLON.SubMesh) {
+                    material = node.getMaterial();
+                }
+                var isStandard = material instanceof BABYLON.StandardMaterial;
+                if (!material || (isStandard && !BABYLON.Tags.HasTags(material)))
                     return "";
-                };
-                // Sets panel content (HTML)
-                GUIPanel.prototype.setContent = function (content) {
-                    this.content = content;
-                    return this;
-                };
-                // Hides a tab
-                GUIPanel.prototype.hideTab = function (id) {
-                    return this._panelElement.tabs.hide(id) === 1;
-                };
-                // Show tab
-                GUIPanel.prototype.showTab = function (id) {
-                    return this._panelElement.tabs.show(id) === 1;
-                };
-                return GUIPanel;
-            }(GUI.GUIElement));
-            GUI.GUIPanel = GUIPanel;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+                var finalString = "\n";
+                // Set constructor
+                var materialString = "\tnode.material";
+                if (node instanceof BABYLON.SubMesh) {
+                    materialString = "\tnode.material.subMaterials[" + subMeshId + "]";
+                }
+                if (material instanceof BABYLON.StandardMaterial) {
+                }
+                else if (material instanceof BABYLON.PBRMaterial) {
+                    finalString += materialString + " =  new BABYLON.PBRMaterial(\"" + material.name + "\", scene);\n";
+                }
+                else if (material instanceof BABYLON.SkyMaterial) {
+                    finalString += materialString + " =  new BABYLON.SkyMaterial(\"" + material.name + "\", scene);\n";
+                }
+                // Set values
+                for (var thing in material) {
+                    var value = material[thing];
+                    var result = "";
+                    if (thing[0] === "_" || value === null)
+                        continue;
+                    if (isStandard && !BABYLON.Tags.MatchesQuery(material, thing))
+                        continue;
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
+                    }
+                    else if (value instanceof BABYLON.Vector3) {
+                        result += this._exportVector3(value);
+                    }
+                    else if (value instanceof BABYLON.Vector2) {
+                        result += this._exportVector2(value);
+                    }
+                    else if (value instanceof BABYLON.Color3) {
+                        result += this._exportColor3(value);
+                    }
+                    else if (value instanceof BABYLON.Color4) {
+                        result += this._exportColor4(value);
+                    }
+                    else if (value instanceof BABYLON.BaseTexture) {
+                        result += "getTextureByName(\"" + value.name + "\", scene);";
+                    }
+                    else
+                        continue;
+                    if (node instanceof BABYLON.AbstractMesh) {
+                        finalString += "\tnode.material." + thing + " = " + result + ";\n";
+                    }
+                    else if (node instanceof BABYLON.SubMesh) {
+                        finalString += "\tnode.material.subMaterials[" + subMeshId + "]." + thing + " = " + result + ";\n";
+                    }
+                }
+                return finalString + "\n";
+            };
+            Exporter.prototype._exportSky = function (node) {
+                var finalString = "\tnode = BABYLON.Mesh.CreateBox(\"" + node.name + "\", 1000, scene);\n";
+                return finalString;
+            };
+            Exporter.prototype._exportParticleSystem = function (particleSystem) {
+                var node = particleSystem.emitter;
+                var finalString = "";
+                if (!node.geometry)
+                    finalString = "\tnode = new BABYLON.Mesh(\"" + node.name + "\", scene, null, null, true);\n";
+                else
+                    finalString = "\tnode = scene.getMeshByName(\"" + node.name + "\");\n";
+                finalString += "\tparticleSystem = new BABYLON.ParticleSystem(\"" + particleSystem.name + "\", " + particleSystem.getCapacity() + ", scene);\n";
+                finalString += "\tparticleSystem.emitter = node;\n";
+                for (var thing in particleSystem) {
+                    if (thing[0] === "_")
+                        continue;
+                    var value = particleSystem[thing];
+                    var result = "";
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
+                    }
+                    else if (typeof value === "string") {
+                        result += "\"" + value + "\"";
+                    }
+                    else if (value instanceof BABYLON.Vector3) {
+                        result = this._exportVector3(value);
+                    }
+                    else if (value instanceof BABYLON.Color4) {
+                        result += this._exportColor4(value);
+                    }
+                    else if (value instanceof BABYLON.Color3) {
+                        result += this._exportColor3(value);
+                    }
+                    else if (value instanceof BABYLON.Texture) {
+                        result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
+                    }
+                    else
+                        continue;
+                    finalString += "\tparticleSystem." + thing + " = " + result + ";\n";
+                }
+                finalString += "\tnode.attachedParticleSystem = particleSystem;\n";
+                if (!particleSystem._stopped)
+                    finalString += "\tparticleSystem.start();\n";
+                return finalString;
+            };
+            // Exports a light
+            Exporter.prototype._exportLight = function (light) {
+                var finalString = "";
+                var shadows = light.getShadowGenerator();
+                if (!shadows)
+                    return finalString;
+                for (var thing in light) {
+                    if (thing[0] === "_")
+                        continue;
+                    var value = light[thing];
+                    var result = "";
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
+                    }
+                    else if (typeof value === "string") {
+                        result += "\"" + value + "\"";
+                    }
+                    else if (value instanceof BABYLON.Vector3) {
+                        result += this._exportVector3(value);
+                    }
+                    else if (value instanceof BABYLON.Vector2) {
+                        result += this._exportVector2(value);
+                    }
+                    else if (value instanceof BABYLON.Color3) {
+                        result += this._exportColor3(value);
+                    }
+                    else
+                        continue;
+                    finalString += "\tnode." + thing + " = " + result + ";\n";
+                }
+                finalString += "\n";
+                // Shadow generator
+                var shadowsGenerator = light.getShadowGenerator();
+                if (!shadowsGenerator)
+                    return finalString;
+                var serializationObject = shadowsGenerator.serialize();
+                finalString +=
+                    "\tvar shadowGenerator = node.getShadowGenerator();\n"
+                        + "\tif (!shadowGenerator) {\n" // Do not create another
+                        + "\t\tshadowGenerator = new BABYLON.ShadowGenerator(" + serializationObject.mapSize + ", node);\n";
+                for (var i = 0; i < serializationObject.renderList.length; i++) {
+                    var mesh = serializationObject.renderList[i];
+                    finalString += "\t\tshadowGenerator.getShadowMap().renderList.push(scene.getMeshByID(\"" + mesh + "\"));\n";
+                }
+                finalString += "\t}\n";
+                for (var thing in shadowsGenerator) {
+                    if (thing[0] === "_")
+                        continue;
+                    var value = shadowsGenerator[thing];
+                    var result = "";
+                    if (typeof value === "number" || typeof value === "boolean") {
+                        result += value;
+                    }
+                    else if (typeof value === "string") {
+                        result += "\"" + value + "\"";
+                    }
+                    else
+                        continue;
+                    finalString += "\tshadowGenerator." + thing + " = " + result + ";\n";
+                }
+                return finalString;
+            };
+            // Exports a BABYLON.Vector2
+            Exporter.prototype._exportVector2 = function (vector) {
+                return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
+            };
+            // Exports a BABYLON.Vector3
+            Exporter.prototype._exportVector3 = function (vector) {
+                return "new BABYLON.Vector3(" + vector.x + ", " + vector.y + ", " + vector.z + ")";
+            };
+            // Exports a BABYLON.Quaternion
+            Exporter.prototype._exportQuaternion = function (quaternion) {
+                return "new BABYLON.Quaternion(" + quaternion.x + ", " + quaternion.y + ", " + quaternion.z + ", " + quaternion.w + ")";
+            };
+            // Exports a BABYLON.Color3
+            Exporter.prototype._exportColor3 = function (color) {
+                return "new BABYLON.Color3(" + color.r + ", " + color.g + ", " + color.b + ")";
+            };
+            // Exports a BABYLON.Color4
+            Exporter.prototype._exportColor4 = function (color) {
+                return "new BABYLON.Color4(" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ")";
+            };
+            // Traverses nodes
+            Exporter.prototype._traverseNodes = function (node) {
+                var scene = this.core.currentScene;
+                if (!node) {
+                    var rootNodes = [];
+                    var finalString = "";
+                    this._fillRootNodes(rootNodes, "lights");
+                    this._fillRootNodes(rootNodes, "cameras");
+                    this._fillRootNodes(rootNodes, "meshes");
+                    for (var i = 0; i < rootNodes.length; i++) {
+                        finalString += this._traverseNodes(rootNodes[i]);
+                    }
+                    return finalString;
+                }
+                else {
+                    var finalString = "";
+                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
+                        finalString = "\t// Configure node " + node.name + "\n";
+                        var foundParticleSystems = false;
+                        for (var i = 0; i < scene.particleSystems.length; i++) {
+                            var ps = scene.particleSystems[i];
+                            if (ps.emitter === node) {
+                                finalString += "\n" + this._exportParticleSystem(ps);
+                                foundParticleSystems = true;
+                            }
+                        }
+                        var foundSky = false;
+                        if (!foundParticleSystems) {
+                            if (node instanceof BABYLON.Mesh && node.material instanceof BABYLON.SkyMaterial) {
+                                finalString += "\n" + this._exportSky(node);
+                                foundSky = true;
+                            }
+                        }
+                        if (!foundSky)
+                            finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
+                        // Transformation
+                        if (foundParticleSystems || foundSky)
+                            finalString += this._exportNodeTransform(node);
+                        if (node instanceof BABYLON.AbstractMesh) {
+                            // Material
+                            if (node.material instanceof BABYLON.MultiMaterial) {
+                                for (var i = 0; i < node.subMeshes.length; i++) {
+                                    finalString += this._exportNodeMaterial(node.subMeshes[i], i);
+                                }
+                            }
+                            else {
+                                finalString += this._exportNodeMaterial(node);
+                            }
+                        }
+                        else if (node instanceof BABYLON.Light) {
+                            finalString += this._exportLight(node);
+                        }
+                        if (node.animations.length > 0) {
+                            finalString += this._exportAnimations(node);
+                        }
+                    }
+                    for (var i = 0; i < node.getDescendants().length; i++) {
+                        finalString += this._traverseNodes(node.getDescendants()[i]);
+                    }
+                    return finalString;
+                }
+            };
+            // Fills array of root nodes
+            Exporter.prototype._fillRootNodes = function (data, propertyPath) {
+                var scene = this.core.currentScene;
+                var nodes = scene[propertyPath];
+                for (var i = 0; i < nodes.length; i++) {
+                    if (!nodes[i].parent)
+                        data.push(nodes[i]);
+                }
+            };
+            return Exporter;
+        })();
+        EDITOR.Exporter = Exporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIToolbar = (function (_super) {
-                __extends(GUIToolbar, _super);
-                // Private members
-                /**
-                * Constructor
-                * @param name: the form name
-                */
-                function GUIToolbar(name, core) {
-                    _super.call(this, name, core);
-                    // Public members
-                    this.menus = [];
+        var ProjectExporter = (function () {
+            function ProjectExporter() {
+            }
+            // Public members
+            // None
+            // Private members
+            // None
+            // Exports the project
+            ProjectExporter.ExportProject = function (core, requestMaterials) {
+                if (requestMaterials === void 0) { requestMaterials = false; }
+                BABYLON.SceneSerializer.ClearCache();
+                var project = {
+                    globalConfiguration: this._SerializeGlobalAnimations(),
+                    materials: [],
+                    particleSystems: [],
+                    nodes: [],
+                    shadowGenerators: [],
+                    postProcesses: this._SerializePostProcesses(),
+                    lensFlares: this._SerializeLensFlares(core),
+                    renderTargets: this._SerializeRenderTargets(core),
+                    requestedMaterials: requestMaterials ? [] : undefined
+                };
+                this._TraverseNodes(core, null, project);
+                return JSON.stringify(project, null, "\t");
+            };
+            // Serialize global animations
+            ProjectExporter._SerializeGlobalAnimations = function () {
+                var config = {
+                    globalAnimationSpeed: EDITOR.SceneFactory.AnimationSpeed,
+                    framesPerSecond: EDITOR.GUIAnimationEditor.FramesPerSecond,
+                    animatedAtLaunch: []
+                };
+                for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
+                    var node = EDITOR.SceneFactory.NodesToStart[i];
+                    var type = "Node";
+                    if (node instanceof BABYLON.Scene) {
+                        type = "Scene";
+                    }
+                    else if (node instanceof BABYLON.Sound) {
+                        type = "Sound";
+                    }
+                    else if (node instanceof BABYLON.ParticleSystem) {
+                        type = "ParticleSystem";
+                    }
+                    var obj = {
+                        name: node.name,
+                        type: type
+                    };
+                    config.animatedAtLaunch.push(obj);
                 }
-                // Creates a new menu
-                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
-                    var menu = {
-                        type: type,
-                        id: id,
-                        text: text,
-                        img: icon,
-                        checked: checked || false,
-                        items: []
+                return config;
+            };
+            // Serialize render targets
+            ProjectExporter._SerializeRenderTargets = function (core) {
+                var config = [];
+                var index = 0;
+                // Probes
+                for (index = 0; index < core.currentScene.reflectionProbes.length; index++) {
+                    var rp = core.currentScene.reflectionProbes[index];
+                    var attachedMesh = rp._attachedMesh;
+                    var obj = {
+                        isProbe: true,
+                        serializationObject: {}
                     };
-                    this.menus.push(menu);
-                    return menu;
-                };
-                // Creates a new menu item
-                GUIToolbar.prototype.createMenuItem = function (menu, type, id, text, icon, checked, disabled) {
-                    var item = {
-                        type: type,
-                        id: id,
-                        text: text,
-                        icon: icon,
-                        checked: checked || false,
-                        disabled: disabled || false
+                    if (attachedMesh) {
+                        obj.serializationObject.attachedMeshId = attachedMesh.id;
+                    }
+                    obj.serializationObject.name = rp.name;
+                    obj.serializationObject.size = rp.cubeTexture.getBaseSize().width;
+                    obj.serializationObject.generateMipMaps = rp.cubeTexture._generateMipMaps;
+                    obj.serializationObject.renderList = [];
+                    for (var i = 0; i < rp.renderList.length; i++) {
+                        obj.serializationObject.renderList.push(rp.renderList[i].id);
+                    }
+                    config.push(obj);
+                }
+                // Render targets
+                for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
+                    var rt = core.currentScene.customRenderTargets[index];
+                    var obj = {
+                        isProbe: false,
+                        serializationObject: rt.serialize()
                     };
-                    menu.items.push(item);
-                    return item;
-                };
-                // Creates a new input element
-                GUIToolbar.prototype.createInput = function (id, inputId, text, size) {
-                    if (size === void 0) { size = 10; }
-                    var item = {
-                        type: "html",
-                        id: id,
-                        html: "<div style=\"padding: 3px 10px;\">" +
-                            text +
-                            "    <input size=\"" + size + "\" id=\"" + inputId + "\" style=\"padding: 3px; border-radius: 2px; border: 1px solid silver\"/>" +
-                            "</div>",
-                        text: text,
+                    config.push(obj);
+                }
+                return config;
+            };
+            // Serialize lens flares
+            ProjectExporter._SerializeLensFlares = function (core) {
+                var config = [];
+                for (var i = 0; i < core.currentScene.lensFlareSystems.length; i++) {
+                    var lf = core.currentScene.lensFlareSystems[i];
+                    var obj = {
+                        serializationObject: lf.serialize()
                     };
-                    this.menus.push(item);
-                    return item;
+                    var flares = obj.serializationObject.flares;
+                    for (var i = 0; i < flares.length; i++) {
+                        flares[i].base64Name = flares[i].textureName;
+                        delete flares[i].textureName;
+                        flares[i].base64Buffer = lf.lensFlares[i].texture._buffer;
+                    }
+                    config.push(obj);
+                }
+                return config;
+            };
+            // Serialize  post-processes
+            ProjectExporter._SerializePostProcesses = function () {
+                var config = [];
+                var serialize = function (object) {
+                    var obj = {};
+                    for (var thing in object) {
+                        if (thing[0] === "_")
+                            continue;
+                        if (typeof object[thing] === "number")
+                            obj[thing] = object[thing];
+                        if (object[thing] instanceof BABYLON.Texture) {
+                            obj[thing] = {
+                                base64Name: object[thing].name,
+                                base64Buffer: object[thing]._buffer
+                            };
+                        }
+                    }
+                    return obj;
                 };
-                // Adds a break
-                GUIToolbar.prototype.addBreak = function (menu) {
-                    var item = {
-                        type: "break",
-                        id: undefined,
-                        text: undefined,
-                        img: undefined,
-                        icon: undefined,
-                        checked: undefined,
-                        items: undefined
-                    };
-                    if (menu)
-                        menu.items.push(item);
-                    else
-                        this.menus.push(item);
-                    return item;
-                };
-                // Adds a spacer
-                GUIToolbar.prototype.addSpacer = function () {
-                    var item = {
-                        type: "spacer",
-                        id: undefined,
-                        text: undefined,
-                        img: undefined,
-                        icon: undefined,
-                        checked: undefined,
-                        items: undefined
-                    };
-                    this.menus.push(item);
-                    return item;
-                };
-                // Sets the item checked
-                GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
-                    var id = menu ? menu + ":" + item : item;
-                    checked ? this.element.check(id) : this.element.uncheck(id);
-                };
-                // Sets the item auto checked (true to false, false to true)
-                GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
-                    var result = this.element.get(menu ? menu + ":" + item : item);
-                    var checked = result ? result.checked : false;
-                    if (!checked)
-                        this.element.check(item);
-                    else
-                        this.element.uncheck(item);
-                };
-                // Returns if the item is checked
-                GUIToolbar.prototype.isItemChecked = function (item, menu) {
-                    var result = this.element.get(menu ? menu + ":" + item : item);
-                    if (result)
-                        return result.checked;
-                    return false;
-                };
-                // Sets an item enabled or not
-                GUIToolbar.prototype.setItemEnabled = function (item, enabled, menu) {
-                    var finalID = menu ? menu + ":" + item : item;
-                    var result = null;
-                    if (menu)
-                        result = this.element.get(menu);
-                    if (result) {
-                        for (var i = 0; i < result.items.length; i++) {
-                            if (result.items[i].id === item) {
-                                result.items[i].disabled = !enabled;
-                                this.refresh();
+                if (EDITOR.SceneFactory.HDRPipeline) {
+                    config.push({
+                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
+                        name: "HDRPipeline",
+                        serializationObject: serialize(EDITOR.SceneFactory.HDRPipeline)
+                    });
+                }
+                if (EDITOR.SceneFactory.SSAOPipeline) {
+                    config.push({
+                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachSSAO,
+                        name: "SSAOPipeline",
+                        serializationObject: serialize(EDITOR.SceneFactory.SSAOPipeline)
+                    });
+                }
+                return config;
+            };
+            // Traverses nodes
+            ProjectExporter._TraverseNodes = function (core, node, project) {
+                var scene = core.currentScene;
+                if (!node) {
+                    this._TraverseNodes(core, core.currentScene, project);
+                    var rootNodes = [];
+                    this._FillRootNodes(core, rootNodes, "lights");
+                    this._FillRootNodes(core, rootNodes, "cameras");
+                    this._FillRootNodes(core, rootNodes, "meshes");
+                    for (var i = 0; i < rootNodes.length; i++) {
+                        this._TraverseNodes(core, rootNodes[i], project);
+                    }
+                }
+                else {
+                    if (node !== core.camera) {
+                        // Check particle systems
+                        for (var i = 0; i < scene.particleSystems.length; i++) {
+                            var ps = scene.particleSystems[i];
+                            if (ps.emitter === node) {
+                                var psObj = {
+                                    hasEmitter: !(BABYLON.Tags.HasTags(node) && BABYLON.Tags.MatchesQuery(node, "added_particlesystem")),
+                                    serializationObject: ps.serialize()
+                                };
+                                if (!psObj.hasEmitter)
+                                    psObj.emitterPosition = ps.emitter.position.asArray();
+                                // Patch texture base64 string
+                                psObj.serializationObject.base64TextureName = ps.particleTexture.name;
+                                psObj.serializationObject.base64Texture = ps.particleTexture._buffer;
+                                delete psObj.serializationObject.textureName;
+                                project.particleSystems.push(psObj);
+                            }
+                        }
+                        // Check materials
+                        if (node instanceof BABYLON.AbstractMesh && node.material && !(node.material instanceof BABYLON.StandardMaterial)) {
+                            var material = node.material;
+                            if (material instanceof BABYLON.MultiMaterial) {
+                                for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
+                                    var subMaterial = material.subMaterials[materialIndex];
+                                    if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
+                                        var matObj = {
+                                            meshName: node.name,
+                                            newInstance: true,
+                                            serializedValues: subMaterial.serialize()
+                                        };
+                                        project.materials.push(matObj);
+                                        this._RequestMaterial(core, project, subMaterial);
+                                    }
+                                }
+                            }
+                            var matObj = {
+                                meshName: node.name,
+                                newInstance: true,
+                                serializedValues: material.serialize()
+                            };
+                            project.materials.push(matObj);
+                            this._RequestMaterial(core, project, material);
+                        }
+                        // Check modified nodes
+                        var nodeObj = {
+                            name: node instanceof BABYLON.Scene ? "Scene" : node.name,
+                            id: node instanceof BABYLON.Scene ? "Scene" : node instanceof BABYLON.Sound ? "Sound" : node.id,
+                            type: node instanceof BABYLON.Scene ? "Scene"
+                                : node instanceof BABYLON.Sound ? "Sound"
+                                    : node instanceof BABYLON.Light ? "Light"
+                                        : node instanceof BABYLON.Camera ? "Camera"
+                                            : "Mesh",
+                            animations: []
+                        };
+                        var addNodeObj = false;
+                        if (BABYLON.Tags.HasTags(node)) {
+                            if (BABYLON.Tags.MatchesQuery(node, "added_particlesystem"))
+                                addNodeObj = true;
+                            if (BABYLON.Tags.MatchesQuery(node, "added")) {
+                                addNodeObj = true;
+                                if (node instanceof BABYLON.Mesh) {
+                                    nodeObj.serializationObject = BABYLON.SceneSerializer.SerializeMesh(node, false, false);
+                                    for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++)
+                                        delete nodeObj.serializationObject.meshes[meshIndex].animations;
+                                }
+                                else {
+                                    nodeObj.serializationObject = node.serialize();
+                                    delete nodeObj.serializationObject.animations;
+                                }
+                                delete nodeObj.serializationObject.animations;
+                            }
+                        }
+                        // Shadow generators
+                        if (node instanceof BABYLON.Light) {
+                            var shadows = node.getShadowGenerator();
+                            if (shadows && BABYLON.Tags.HasTags(shadows) && BABYLON.Tags.MatchesQuery(shadows, "added"))
+                                project.shadowGenerators.push(node.getShadowGenerator().serialize());
+                        }
+                        // Check animations
+                        if (node.animations) {
+                            var animatable = node;
+                            for (var animIndex = 0; animIndex < animatable.animations.length; animIndex++) {
+                                var animation = animatable.animations[animIndex];
+                                if (!BABYLON.Tags.HasTags(animation) || !BABYLON.Tags.MatchesQuery(animation, "modified"))
+                                    continue;
+                                addNodeObj = true;
+                                // Add values
+                                var animObj = {
+                                    events: [],
+                                    serializationObject: animation.serialize(),
+                                    targetName: node instanceof BABYLON.Scene ? "Scene" : node.name,
+                                    targetType: node instanceof BABYLON.Scene ? "Scene" : node instanceof BABYLON.Sound ? "Sound" : "Node",
+                                };
+                                // Setup events
+                                var keys = animation.getKeys();
+                                for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                                    var events = keys[keyIndex].events;
+                                    if (!events)
+                                        continue;
+                                    animObj.events.push({
+                                        events: events,
+                                        frame: keys[keyIndex].frame
+                                    });
+                                }
+                                // Add
+                                nodeObj.animations.push(animObj);
+                            }
+                        }
+                        // Add
+                        if (addNodeObj) {
+                            project.nodes.push(nodeObj);
+                        }
+                    }
+                    if (node instanceof BABYLON.Node) {
+                        for (var i = 0; i < node.getDescendants().length; i++) {
+                            this._TraverseNodes(core, node.getDescendants()[i], project);
+                        }
+                    }
+                }
+            };
+            // Setups the requested materials (to be uploaded in template or release)
+            ProjectExporter._RequestMaterial = function (core, project, material) {
+                if (!material || material instanceof BABYLON.StandardMaterial || material instanceof BABYLON.MultiMaterial || !project.requestedMaterials)
+                    return;
+                var constructorName = material.constructor ? material.constructor.name : null;
+                if (!constructorName)
+                    return;
+                var index = project.requestedMaterials.indexOf(constructorName);
+                if (index === -1)
+                    project.requestedMaterials.push(constructorName);
+            };
+            // Fills array of root nodes
+            ProjectExporter._FillRootNodes = function (core, data, propertyPath) {
+                var scene = core.currentScene;
+                var nodes = scene[propertyPath];
+                for (var i = 0; i < nodes.length; i++) {
+                    if (!nodes[i].parent)
+                        data.push(nodes[i]);
+                }
+            };
+            return ProjectExporter;
+        })();
+        EDITOR.ProjectExporter = ProjectExporter;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ProjectImporter = (function () {
+            function ProjectImporter() {
+            }
+            // Public members
+            // None
+            // Private members
+            // None
+            // Imports the project
+            ProjectImporter.ImportProject = function (core, data) {
+                var project = JSON.parse(data);
+                EDITOR.Tools.CleanProject(project);
+                // First, create the render targets (maybe used by the materials)
+                // (serialized materials will be able to retrieve the textures)
+                for (var i = 0; i < project.renderTargets.length; i++) {
+                    var rt = project.renderTargets[i];
+                    if (rt.isProbe) {
+                        var reflectionProbe = new BABYLON.ReflectionProbe(rt.serializationObject.name, rt.serializationObject.size, core.currentScene, rt.serializationObject.generateMipMaps);
+                        reflectionProbe._waitingRenderList = rt.serializationObject.renderList;
+                        rt.waitingTexture = reflectionProbe;
+                    }
+                    else {
+                        var texture = BABYLON.Texture.Parse(rt.serializationObject, core.currentScene, "./");
+                        texture._waitingRenderList = undefined;
+                        rt.waitingTexture = texture;
+                    }
+                }
+                // Second, create materials
+                // (serialized meshes will be able to retrieve the materials)
+                // Etc.
+                for (var i = 0; i < project.materials.length; i++) {
+                    var material = project.materials[i];
+                    // For now, continue
+                    // If no customType, the changes can be done in the modeler (3ds Max, Blender, Unity3D, etc.)
+                    if (!material.newInstance || !material.serializedValues.customType)
+                        continue;
+                    var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
+                    materialType.Parse(material.serializedValues, core.currentScene, "./");
+                }
+                // Parse the nodes
+                for (var i = 0; i < project.nodes.length; i++) {
+                    var node = project.nodes[i];
+                    var newNode = null;
+                    switch (node.type) {
+                        case "Mesh":
+                        case "Light":
+                        case "Camera":
+                            if (node.serializationObject) {
+                                if (node.type === "Mesh") {
+                                    var vertexDatas = node.serializationObject.geometries.vertexData;
+                                    for (var vertexDataIndex = 0; vertexDataIndex < vertexDatas.length; vertexDataIndex++) {
+                                        BABYLON.Geometry.Parse(vertexDatas[vertexDataIndex], core.currentScene, "./");
+                                    }
+                                    var meshes = node.serializationObject.meshes;
+                                    for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
+                                        newNode = BABYLON.Mesh.Parse(meshes[meshIndex], core.currentScene, "./");
+                                        BABYLON.Tags.EnableFor(newNode);
+                                    }
+                                }
+                                else if (node.type === "Light") {
+                                    newNode = BABYLON.Light.Parse(node.serializationObject, core.currentScene);
+                                }
+                                else if (node.type === "Camera") {
+                                    newNode = BABYLON.Camera.Parse(node.serializationObject, core.currentScene);
+                                }
+                            }
+                            else {
+                                newNode = core.currentScene.getNodeByName(node.name);
+                            }
+                            break;
+                        case "Scene":
+                            newNode = core.currentScene;
+                            break;
+                        default:
+                            continue;
+                    }
+                    // Check particles system
+                    if (!newNode) {
+                        for (var psIndex = 0; psIndex < project.particleSystems.length; psIndex++) {
+                            var ps = project.particleSystems[psIndex];
+                            if (!ps.hasEmitter && node.id && ps.serializationObject && ps.serializationObject.emitterId === node.id) {
+                                newNode = new BABYLON.Mesh(node.name, core.currentScene, null, null, true);
+                                newNode.id = node.id;
+                                BABYLON.Tags.EnableFor(newNode);
+                                BABYLON.Tags.AddTagsTo(newNode, "added_particlesystem");
                                 break;
                             }
                         }
                     }
-                    else {
-                        if (enabled)
-                            this.element.enable(finalID);
-                        else
-                            this.element.disable(finalID);
+                    if (!newNode) {
+                        BABYLON.Tools.Warn("Cannot configure node named " + node.name + " , with ID " + node.id);
+                        continue;
                     }
-                    if (result)
-                        return true;
-                    return false;
-                };
-                // Returns an item by its ID
-                GUIToolbar.prototype.getItemByID = function (id) {
-                    for (var i = 0; i < this.menus.length; i++) {
-                        var menu = this.menus[i];
-                        if (menu.type === "break")
-                            continue;
-                        if (menu.id === id)
-                            return menu;
-                        for (var j = 0; j < menu.items.length; j++) {
-                            var item = menu.items[j];
-                            if (item.id === id)
-                                return item;
-                        }
+                    // Animations
+                    if (node.animations.length > 0 && !newNode.animations)
+                        newNode.animations = [];
+                    for (var animationIndex = 0; animationIndex < node.animations.length; animationIndex++) {
+                        var animation = node.animations[animationIndex];
+                        var newAnimation = BABYLON.Animation.Parse(animation.serializationObject);
+                        newNode.animations.push(newAnimation);
+                        BABYLON.Tags.EnableFor(newAnimation);
+                        BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
-                    return null;
-                };
-                // Returns the decomposed selected menu IDs
-                GUIToolbar.prototype.decomposeSelectedMenu = function (id) {
-                    var finalIDs = id.split(":");
-                    var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
-                    if (!item)
-                        return null;
-                    return {
-                        hasParent: finalIDs.length > 1,
-                        parent: finalIDs[0],
-                        selected: finalIDs.length > 1 ? finalIDs[finalIDs.length - 1] : ""
-                    };
-                };
-                // Build element
-                GUIToolbar.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    this.element = $("#" + parent).w2toolbar({
-                        name: this.name,
-                        items: this.menus,
-                        onClick: function (event) {
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED);
-                            ev.guiEvent.data = event.target;
-                            _this.core.sendEvent(ev);
+                }
+                // Particle systems
+                for (var i = 0; i < project.particleSystems.length; i++) {
+                    var ps = project.particleSystems[i];
+                    var newPs = BABYLON.ParticleSystem.Parse(ps.serializationObject, core.currentScene, "./");
+                    var buffer = ps.serializationObject.base64Texture;
+                    newPs.particleTexture = BABYLON.Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, core.currentScene);
+                    newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
+                    if (!ps.hasEmitter && ps.emitterPosition)
+                        newPs.emitter.position = BABYLON.Vector3.FromArray(ps.emitterPosition);
+                    newPs.emitter.attachedParticleSystem = newPs;
+                }
+                // Lens flares
+                for (var i = 0; i < project.lensFlares.length; i++) {
+                    var lf = project.lensFlares[i];
+                    var newLf = BABYLON.LensFlareSystem.Parse(lf.serializationObject, core.currentScene, "./");
+                    for (var i = 0; i < newLf.lensFlares.length; i++) {
+                        var flare = lf.serializationObject.flares[i];
+                        newLf.lensFlares[i].texture = BABYLON.Texture.CreateFromBase64String(flare.base64Buffer, flare.base64Name.replace("data:", ""), core.currentScene);
+                    }
+                }
+                // Shadow generators
+                for (var i = 0; i < project.shadowGenerators.length; i++) {
+                    var shadows = project.shadowGenerators[i];
+                    var newShadowGenerator = BABYLON.ShadowGenerator.Parse(shadows, core.currentScene);
+                    BABYLON.Tags.EnableFor(newShadowGenerator);
+                    BABYLON.Tags.AddTagsTo(newShadowGenerator, "added");
+                    newShadowGenerator.getShadowMap().renderList.some(function (value, index, array) {
+                        if (!value) {
+                            array.splice(index, 1);
+                            return true;
                         }
+                        return false;
                     });
-                };
-                return GUIToolbar;
-            }(GUI.GUIElement));
-            GUI.GUIToolbar = GUIToolbar;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+                }
+                // Set global animations
+                EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
+                EDITOR.GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || EDITOR.GUIAnimationEditor.FramesPerSecond;
+                for (var i = 0; i < project.globalConfiguration.animatedAtLaunch.length; i++) {
+                    var animated = project.globalConfiguration.animatedAtLaunch[i];
+                    switch (animated.type) {
+                        case "Scene":
+                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene);
+                            break;
+                        case "Node":
+                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getNodeByName(animated.name));
+                            break;
+                        case "Sound":
+                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getSoundByName(animated.name));
+                            break;
+                        case "ParticleSystem":
+                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getParticleSystemByName(animated.name));
+                            break;
+                        default: break;
+                    }
+                }
+                // Post processes
+                for (var i = 0; i < project.postProcesses.length; i++) {
+                    var pp = project.postProcesses[i];
+                    if (EDITOR.SceneFactory["Create" + pp.name]) {
+                        var newPp = EDITOR.SceneFactory["Create" + pp.name](core, pp.serializationObject);
+                        if (pp.attach !== undefined && !pp.attach) {
+                            newPp._detachCameras(core.currentScene.cameras);
+                        }
+                    }
+                }
+                // Render tagets, fill waiting renderlists
+                for (var i = 0; i < project.renderTargets.length; i++) {
+                    var rt = project.renderTargets[i];
+                    if (rt.isProbe && rt.serializationObject.attachedMeshId) {
+                        rt.waitingTexture.attachToMesh(core.currentScene.getMeshByID(rt.serializationObject.attachedMeshId));
+                    }
+                    for (var renderId = 0; renderId < rt.serializationObject.renderList.length; renderId++) {
+                        var obj = core.currentScene.getMeshByID(rt.serializationObject.renderList[renderId]);
+                        if (obj)
+                            rt.waitingTexture.renderList.push(obj);
+                    }
+                }
+            };
+            return ProjectImporter;
+        })();
+        EDITOR.ProjectImporter = ProjectImporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
-
-
-
-
-
-
 var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var GUI;
-        (function (GUI) {
-            var GUIWindow = (function (_super) {
-                __extends(GUIWindow, _super);
-                /**
-                * Constructor
-                * @param name: the form name
-                */
-                function GUIWindow(name, core, title, body, size, buttons) {
-                    var _this = this;
-                    _super.call(this, name, core);
-                    // Public members
-                    this.title = "";
-                    this.body = "";
-                    this.size = new BABYLON.Vector2(800, 600);
-                    this.buttons = [];
-                    this.modal = true;
-                    this.showClose = true;
-                    this.showMax = true;
-                    // Private members
-                    this._onCloseCallbacks = [];
-                    // Initialize
-                    this.title = title;
-                    this.body = body;
-                    if (size)
-                        this.size = size;
-                    if (buttons)
-                        this.buttons = buttons;
-                    this._onCloseCallback = function () {
-                        _this.core.editor.renderMainScene = true;
-                        for (var i = 0; i < _this._onCloseCallbacks.length; i++) {
-                            _this._onCloseCallbacks[i]();
-                        }
-                    };
-                }
-                // Destroy the element (W2UI)
-                GUIWindow.prototype.destroy = function () {
-                    this.element.clear();
-                };
-                // Sets the on close callback
-                GUIWindow.prototype.setOnCloseCallback = function (callback) {
-                    this._onCloseCallbacks.push(callback);
-                };
-                // Closes the window
-                GUIWindow.prototype.close = function () {
-                    this.element.close();
-                };
-                // Maximizes the window
-                GUIWindow.prototype.maximize = function () {
-                    this.element.max();
-                };
-                // Locks the window
-                GUIWindow.prototype.lock = function (message) {
-                    w2popup.lock(message);
-                };
-                // Unlocks the window
-                GUIWindow.prototype.unlock = function () {
-                    w2popup.unlock();
-                };
-                Object.defineProperty(GUIWindow.prototype, "onToggle", {
-                    // Toggle callback
-                    get: function () {
-                        return this._onToggle;
-                    },
-                    // Toggle callback
-                    set: function (callback) {
-                        var windowEvent = function (event) {
-                            event.onComplete = function (eventData) {
-                                callback(eventData.options.maximized, eventData.options.width, eventData.options.height);
-                            };
-                        };
-                        this.element.onMax = windowEvent;
-                        this.element.onMin = windowEvent;
-                        this._onToggle = callback;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-                // Notify a message
-                GUIWindow.prototype.notify = function (message) {
-                    w2popup.message({
-                        width: 400,
-                        height: 180,
-                        html: "<div style=\"padding: 60px; text-align: center\">" + message + "</div>\"" +
-                            "<div style=\"text- align: center\"><button class=\"btn\" onclick=\"w2popup.message()\">Close</button>"
-                    });
-                };
-                // Build element
-                GUIWindow.prototype.buildElement = function (parent) {
-                    var _this = this;
-                    // Create buttons
-                    var buttonID = "WindowButton";
-                    var buttons = "";
-                    for (var i = 0; i < this.buttons.length; i++) {
-                        buttons += "<button class=\"btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
+        var StorageExporter = (function () {
+            /**
+            * Constructor
+            */
+            function StorageExporter(core, storageType) {
+                if (storageType === void 0) { storageType = StorageExporter.OneDriveStorage; }
+                this._window = null;
+                this._filesList = null;
+                this._currentChildrenFolder = null;
+                this._currentFolder = null;
+                this._previousFolders = null;
+                this._onFolderSelected = null;
+                // Initialize
+                this.core = core;
+                core.eventReceivers.push(this);
+                this._storage = new BABYLON.EDITOR[storageType](this.core);
+            }
+            Object.defineProperty(StorageExporter, "OneDriveStorage", {
+                // Static members
+                get: function () {
+                    return "OneDriveStorage";
+                },
+                enumerable: true,
+                configurable: true
+            });
+            // On event received
+            StorageExporter.prototype.onEvent = function (event) {
+                var _this = this;
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.caller === this._filesList && event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
+                    var selected = this._filesList.getSelectedRows()[0];
+                    var current = this._filesList.getRow(selected);
+                    if (current.type === "folder") {
+                        var folder = this._getFileFolder(current.name, "folder", this._currentChildrenFolder);
+                        this._previousFolders.push(this._currentFolder);
+                        this._updateFolderDialog(folder);
                     }
-                    // Create window
-                    this.element = w2popup.open({
-                        title: this.title,
-                        body: this.body,
-                        buttons: buttons,
-                        width: this.size.x,
-                        height: this.size.y,
-                        showClose: this.showClose,
-                        showMax: this.showMax == null ? false : this.showMax,
-                        modal: this.modal
-                    });
-                    // Create events for buttons
-                    for (var i = 0; i < this.buttons.length; i++) {
-                        var element = $("#" + buttonID + this.buttons[i]);
-                        element.click(function (result) {
-                            var ev = new EDITOR.Event();
-                            ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result.target.id.replace(buttonID, ""));
-                            _this.core.sendEvent(ev);
+                    else if (current.type === "previous") {
+                        var previousFolder = this._previousFolders.pop();
+                        this._updateFolderDialog(previousFolder);
+                    }
+                    return true;
+                }
+                else if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.caller === this._window && event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED) {
+                    var button = event.guiEvent.data;
+                    var selectedRows = this._filesList.getSelectedRows();
+                    if (button === "Choose" && this._currentFolder) {
+                        this._storage.getFiles(this._currentFolder, function (children) {
+                            _this._onFolderSelected(_this._currentFolder, children);
                         });
                     }
-                    // Configure window
-                    var window = this.element;
-                    window.onClose = this._onCloseCallback;
-                    // Configure editor
-                    this.core.editor.renderMainScene = false;
+                    this._window.close();
+                    return true;
+                }
+                return false;
+            };
+            // Creates a template
+            StorageExporter.prototype.createTemplate = function () {
+                var _this = this;
+                this._openFolderDialog(function (folder, folderChildren) {
+                    _this._lockPanel("Creating Template...");
+                    StorageExporter._projectFolder = folder;
+                    StorageExporter._projectFolderChildren = folderChildren;
+                    _this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, function () {
+                        _this._createTemplate();
+                    }, function () {
+                        _this._unlockPanel();
+                    });
+                });
+            };
+            // Exports
+            StorageExporter.prototype.export = function () {
+                var _this = this;
+                if (!StorageExporter._projectFolder) {
+                    this._openFolderDialog(function (folder, folderChildren) {
+                        StorageExporter._projectFolder = folder;
+                        StorageExporter._projectFolderChildren = folderChildren;
+                        _this.export();
+                    });
+                    return;
+                }
+                this._lockPanel("Saving on OneDrive...");
+                this._updateFileList(function () {
+                    var files = [
+                        { name: "scene.js", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
+                    ];
+                    _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                        _this._unlockPanel();
+                    });
+                });
+            };
+            // Returns the folder object from its name
+            StorageExporter.prototype.getFolder = function (name) {
+                return this._getFileFolder(name, "folder", StorageExporter._projectFolderChildren);
+            };
+            // Returns the file object from its name
+            StorageExporter.prototype.getFile = function (name) {
+                return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+            };
+            // Creates the template with all files
+            StorageExporter.prototype._createTemplate = function () {
+                var _this = this;
+                this._updateFileList(function () {
+                    var files = [];
+                    var url = window.location.href;
+                    url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                    var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
+                    var project = JSON.parse(projectContent);
+                    var sceneFolder = _this.getFolder("Scene");
+                    // Files already loaded
+                    files.push({ name: "scene.js", content: projectContent });
+                    files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
+                    files.push({ name: sceneToLoad.name, content: EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core), parentFolder: sceneFolder.file });
+                    // Lens flare textures
+                    for (var i = 0; i < project.lensFlares.length; i++) {
+                        var lf = project.lensFlares[i].serializationObject;
+                        for (var j = 0; j < lf.flares.length; j++) {
+                            if (!_this._fileExists(files, lf.flares[j].base64Name, sceneFolder)) {
+                                files.push({
+                                    name: lf.flares[j].base64Name,
+                                    content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(lf.flares[j].base64Buffer),
+                                    parentFolder: sceneFolder.file
+                                });
+                            }
+                        }
+                    }
+                    // Particle system textures
+                    for (var i = 0; i < project.particleSystems.length; i++) {
+                        var ps = project.particleSystems[i].serializationObject;
+                        if (!_this._fileExists(files, ps.base64TextureName, sceneFolder)) {
+                            files.push({
+                                name: ps.base64TextureName,
+                                content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(ps.base64Texture),
+                                parentFolder: sceneFolder.file
+                            });
+                        }
+                    }
+                    // Files to load
+                    var count = files.length;
+                    files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
+                    files.push({ name: "Web.config", url: url + "../templates/Template.xml", content: null });
+                    files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
+                    // Textures
+                    if (EDITOR.SceneFactory.HDRPipeline)
+                        files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: _this.getFolder("Textures").file, type: "arraybuffer" });
+                    // Materials
+                    for (var i = 0; i < project.requestedMaterials.length; i++) {
+                        var name = "babylon." + project.requestedMaterials[i] + ".js";
+                        files.push({ name: name, url: url + "../libs/materials/" + name, content: null, parentFolder: _this.getFolder("Materials").file });
+                    }
+                    // Load files
+                    var loadCallback = function (indice) {
+                        return function (data) {
+                            count++;
+                            if (indice >= 0) {
+                                if (files[indice].name === "index.html") {
+                                    data = _this._processIndexHTML(project, data);
+                                }
+                                files[indice].content = data;
+                            }
+                            if (count >= files.length) {
+                                _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                                    _this._unlockPanel();
+                                }, function () {
+                                    _this._unlockPanel();
+                                });
+                            }
+                        };
+                    };
+                    if (count === files.length) {
+                        // No files to load
+                        loadCallback(-1)(null);
+                    }
+                    else {
+                        // Files from server
+                        for (var i = 0; i < files.length; i++) {
+                            if (files[i].url)
+                                BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
+                        }
+                        // Files from FilesInput
+                        for (var textureName in EDITOR.FilesInput.FilesTextures) {
+                            files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
+                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                        }
+                        for (var fileName in EDITOR.FilesInput.FilesToLoad) {
+                            files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
+                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                        }
+                    }
+                });
+            };
+            // Returns true if a file exists
+            StorageExporter.prototype._fileExists = function (files, name, parent) {
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].name === name && files[i].parentFolder === parent.file) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            // Processes the index.html file
+            StorageExporter.prototype._processIndexHTML = function (project, content) {
+                var finalString = content;
+                var scripts = "";
+                for (var i = 0; i < project.requestedMaterials.length; i++) {
+                    scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
+                }
+                var sceneToLoad = this.core.editor.filesInput._sceneFileToLoad;
+                if (sceneToLoad) {
+                    finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
+                }
+                finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
+                return finalString;
+            };
+            // Creates the UI dialog to choose folder
+            StorageExporter.prototype._openFolderDialog = function (success) {
+                var _this = this;
+                this._onFolderSelected = success;
+                var gridID = "BABYLON-STORAGE-EXPORTER-GRID";
+                var gridDiv = EDITOR.GUI.GUIElement.CreateElement("div", gridID);
+                // Window
+                this._window = new EDITOR.GUI.GUIWindow("BABYLON-STORAGE-EXPORTER-WINDOW", this.core, "Choose folder...", gridDiv);
+                this._window.modal = true;
+                this._window.showMax = false;
+                this._window.buttons = [
+                    "Choose",
+                    "Cancel"
+                ];
+                this._window.setOnCloseCallback(function () {
+                    _this.core.removeEventReceiver(_this);
+                    _this._filesList.destroy();
+                });
+                this._window.buildElement(null);
+                // Grid
+                this._filesList = new EDITOR.GUI.GUIGrid(gridID, this.core);
+                this._filesList.header = "Files and Folders";
+                this._filesList.createColumn("name", "name", "80%");
+                this._filesList.createColumn("type", "type", "20%");
+                this._filesList.buildElement(gridID);
+                // Finish
+                this._previousFolders = [];
+                this._updateFolderDialog();
+            };
+            // Gets a list of files and folders
+            StorageExporter.prototype._updateFolderDialog = function (folder) {
+                var _this = this;
+                if (folder === void 0) { folder = null; }
+                this._filesList.lock("Loading...", true);
+                this._filesList.clear();
+                this._currentFolder = folder;
+                this._filesList.addRow({
+                    name: "..",
+                    type: "previous",
+                    recid: 0
+                });
+                this._storage.getFiles(folder, function (children) {
+                    _this._currentChildrenFolder = children;
+                    for (var i = 0; i < children.length; i++) {
+                        _this._filesList.addRow({
+                            name: children[i].name,
+                            type: children[i].file.folder ? "folder" : "file",
+                            recid: i + 1
+                        });
+                    }
+                    _this._filesList.unlock();
+                }, function () {
+                    _this._filesList.unlock();
+                });
+            };
+            // Updates the file list
+            StorageExporter.prototype._updateFileList = function (onSuccess) {
+                // Update files list and create files
+                this._storage.getFiles(StorageExporter._projectFolder, function (children) {
+                    StorageExporter._projectFolderChildren = children;
+                    onSuccess();
+                });
+            };
+            // Returns the appropriate child from its name and its type
+            StorageExporter.prototype._getFileFolder = function (name, type, files) {
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i].file.name === name && files[i].file[type])
+                        return files[i];
+                }
+                return {
+                    file: null,
+                    name: ""
                 };
-                // Creates an alert
-                GUIWindow.CreateAlert = function (message, title, callback) {
-                    w2alert(message, title, callback);
-                };
-                return GUIWindow;
-            }(GUI.GUIElement));
-            GUI.GUIWindow = GUIWindow;
-        })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
+            };
+            // Locks the panel
+            StorageExporter.prototype._lockPanel = function (message) {
+                this.core.editor.layouts.setPanelSize("bottom", 0);
+                this.core.editor.layouts.lockPanel("bottom", message, true);
+            };
+            // Unlocks the panel
+            StorageExporter.prototype._unlockPanel = function () {
+                this.core.editor.layouts.setPanelSize("bottom", 0);
+                this.core.editor.layouts.unlockPanel("bottom");
+            };
+            // Static members
+            StorageExporter._projectFolder = null;
+            StorageExporter._projectFolderChildren = null;
+            return StorageExporter;
+        })();
+        EDITOR.StorageExporter = StorageExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-
-if (((typeof window != "undefined" && window.module) || (typeof module != "undefined")) && typeof module.exports != "undefined") {
-    module.exports = BABYLON;
-};
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var EContextMenuID;
+        (function (EContextMenuID) {
+            EContextMenuID[EContextMenuID["COPY"] = 0] = "COPY";
+            EContextMenuID[EContextMenuID["PASTE"] = 1] = "PASTE";
+            EContextMenuID[EContextMenuID["PASTE_KEYS"] = 2] = "PASTE_KEYS";
+        })(EContextMenuID || (EContextMenuID = {}));
+        var GUIAnimationEditor = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function GUIAnimationEditor(core, object) {
+                // Public members
+                this.core = null;
+                // Private members
+                this._animationsList = null;
+                this._keysList = null;
+                this._valuesForm = null;
+                this._currentAnimation = null;
+                this._currentKey = null;
+                this._addAnimationWindow = null;
+                this._addAnimationLayout = null;
+                this._addAnimationGraph = null;
+                this._addAnimationForm = null;
+                this._addAnimationName = "New Animation";
+                this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                // Initialize
+                this.core = core;
+                this.core.eventReceivers.push(this);
+                this.object = object;
+                this.core.editor.editPanel.close();
+                this._createUI();
+            }
+            // Event receiver
+            GUIAnimationEditor.prototype.onEvent = function (event) {
+                if (event.eventType !== EDITOR.EventType.GUI_EVENT)
+                    return false;
+                // Window
+                if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._addAnimationWindow) {
+                    var button = event.guiEvent.data;
+                    if (button === "Cancel") {
+                        this._addAnimationWindow.close();
+                        return true;
+                    }
+                    var node = this._addAnimationGraph.getSelectedNode();
+                    if (!node)
+                        return true;
+                    // Build property
+                    var property = "";
+                    var data = node.data;
+                    data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone();
+                    while (node.parent && node.text) {
+                        property = node.text + (property === "" ? "" : "." + property);
+                        node = node.parent;
+                    }
+                    // Create animation
+                    var constructorName = EDITOR.Tools.GetConstructorName(data);
+                    var dataType = -1;
+                    switch (constructorName) {
+                        case "Number":
+                        case "Boolean":
+                            dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+                            break;
+                        case "Vector3":
+                            dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
+                            break;
+                        case "Color3":
+                        case "Color4":
+                            dataType = BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+                            break;
+                        case "Vector2":
+                            dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR2;
+                            break;
+                        default: return true;
+                    }
+                    var animation = new BABYLON.Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
+                    animation.setKeys([{
+                            frame: 0,
+                            value: data
+                        }, {
+                            frame: 1,
+                            value: data
+                        }]);
+                    this.object.animations.push(animation);
+                    BABYLON.Tags.AddTagsTo(animation, "modified");
+                    this._animationsList.addRow({
+                        name: this._addAnimationName
+                    });
+                    // Finish
+                    this.core.editor.timeline.reset();
+                    this._addAnimationWindow.close();
+                    return true;
+                }
+                // Lists
+                if (event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_SELECTED && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_ADDED
+                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== EDITOR.GUIEventType.FORM_CHANGED
+                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_MENU_SELECTED) {
+                    return false;
+                }
+                if (event.guiEvent.caller === this._animationsList) {
+                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
+                        var index = this._animationsList.getSelectedRows()[0];
+                        var animation = this.object.animations[index];
+                        var keys = animation.getKeys();
+                        this._currentAnimation = animation;
+                        this._currentKey = null;
+                        this._keysList.clear();
+                        for (var i = 0; i < keys.length; i++) {
+                            this._keysList.addRecord({
+                                key: keys[i].frame.toString(),
+                                value: this._getFrameTime(keys[i].frame),
+                                recid: i
+                            });
+                        }
+                        this._keysList.refresh();
+                        this.core.editor.timeline.setFramesOfAnimation(animation);
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
+                        var selected = this._animationsList.getSelectedRows();
+                        var offset = 0;
+                        for (var i = 0; i < selected.length; i++) {
+                            this.object.animations.splice(selected[i] - offset, 1);
+                            offset++;
+                        }
+                        this._keysList.clear();
+                        this.core.currentScene.stopAnimation(this.object);
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
+                        this._createAnimation();
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_MENU_SELECTED) {
+                        var id = event.guiEvent.data;
+                        if (id === EContextMenuID.COPY) {
+                            GUIAnimationEditor._CopiedAnimations = [];
+                            var selected = this._animationsList.getSelectedRows();
+                            for (var i = 0; i < selected.length; i++) {
+                                GUIAnimationEditor._CopiedAnimations.push(this.object.animations[selected[i]]);
+                            }
+                        }
+                        else if (id === EContextMenuID.PASTE) {
+                            for (var i = 0; i < GUIAnimationEditor._CopiedAnimations.length; i++) {
+                                var anim = GUIAnimationEditor._CopiedAnimations[i];
+                                var animKeys = anim.getKeys();
+                                var animation = new BABYLON.Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
+                                var keys = [];
+                                for (var j = 0; j < animKeys.length; j++) {
+                                    keys.push({
+                                        frame: animKeys[j].frame,
+                                        value: animKeys[j].value
+                                    });
+                                }
+                                animation.setKeys(keys);
+                                this.object.animations.push(animation);
+                                BABYLON.Tags.AddTagsTo(animation, "modified");
+                                this._animationsList.addRow({
+                                    name: anim.name
+                                });
+                            }
+                        }
+                        else if (id === EContextMenuID.PASTE_KEYS) {
+                            var selected = this._animationsList.getSelectedRows();
+                            if (GUIAnimationEditor._CopiedAnimations.length === 1 && selected.length === 1) {
+                                var animation = this.object.animations[selected[0]];
+                                var anim = GUIAnimationEditor._CopiedAnimations[0];
+                                var keys = anim.getKeys();
+                                var length = animation.getKeys().length;
+                                for (var i = 0; i < keys.length; i++) {
+                                    animation.getKeys().push({
+                                        frame: keys[i].frame,
+                                        value: keys[i].value
+                                    });
+                                    this._keysList.addRow({
+                                        key: keys[i].frame,
+                                        value: this._getFrameTime(keys[i].frame),
+                                        recid: length
+                                    });
+                                    length++;
+                                }
+                            }
+                        }
+                    }
+                    this._setRecords(0, "");
+                    return true;
+                }
+                else if (event.guiEvent.caller === this._keysList && this._currentAnimation !== null) {
+                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
+                        var index = this._keysList.getSelectedRows()[0];
+                        var key = this._currentAnimation.getKeys()[index];
+                        this._currentKey = key;
+                        this._setRecords(key.frame, key.value);
+                        var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
+                        var keys = this._currentAnimation.getKeys();
+                        var lastKey = keys[keys.length - 1];
+                        var frame = lastKey ? lastKey.frame + 1 : 0;
+                        var value = 0;
+                        var effectiveTarget = this._getEffectiveTarget();
+                        if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
+                            value = effectiveTarget.clone();
+                        else
+                            value = effectiveTarget;
+                        keys.push({
+                            frame: frame,
+                            value: value
+                        });
+                        this._keysList.addRow({
+                            key: frame,
+                            value: this._getFrameTime(frame),
+                            recid: keys.length
+                        });
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
+                        var selected = this._keysList.getSelectedRows();
+                        var keys = this._currentAnimation.getKeys();
+                        var offset = 0;
+                        for (var i = 0; i < selected.length; i++) {
+                            var nextRow = this._keysList.getRow(selected[i + 1]);
+                            if (nextRow) {
+                                nextRow.recid--;
+                            }
+                            keys.splice(selected[i] - offset, 1);
+                            offset++;
+                        }
+                    }
+                    this.core.editor.timeline.reset();
+                    return true;
+                }
+                else if (event.guiEvent.caller === this._valuesForm && this._currentAnimation && this._currentKey) {
+                    this._setFrameValue();
+                    var indice = this._keysList.getSelectedRows()[0];
+                    this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
+                    this.core.editor.timeline.reset();
+                    return true;
+                }
+                return false;
+            };
+            // Creates an animation
+            GUIAnimationEditor.prototype._createAnimation = function () {
+                var _this = this;
+                var layoutID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD";
+                var graphID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-GRAPH";
+                var editID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-EDIT";
+                var layoutDiv = EDITOR.GUI.GUIElement.CreateDivElement(layoutID, "width: 100%; height: 100%;");
+                // Window
+                this._addAnimationWindow = new EDITOR.GUI.GUIWindow("AddAnimation", this.core, "Add Animation", layoutDiv, new BABYLON.Vector2(800, 600));
+                this._addAnimationWindow.modal = true;
+                this._addAnimationWindow.showClose = true;
+                this._addAnimationWindow.showMax = false;
+                this._addAnimationWindow.buttons = ["Apply", "Cancel"];
+                this._addAnimationWindow.buildElement(null);
+                this._addAnimationWindow.setOnCloseCallback(function () {
+                    _this._addAnimationWindow.destroy();
+                    _this._addAnimationGraph.destroy();
+                    _this._addAnimationLayout.destroy();
+                });
+                // Layout
+                var leftDiv = EDITOR.GUI.GUIElement.CreateElement("div", graphID);
+                var rightDiv = EDITOR.GUI.GUIElement.CreateElement("div", editID);
+                this._addAnimationLayout = new EDITOR.GUI.GUILayout(layoutID, this.core);
+                this._addAnimationLayout.createPanel(leftDiv, "left", 380, false).setContent(leftDiv);
+                this._addAnimationLayout.createPanel(rightDiv, "main", 380, false).setContent(rightDiv);
+                this._addAnimationLayout.buildElement(layoutID);
+                // Edit element
+                this._addAnimationForm = new EDITOR.GUI.GUIEditForm(editID, this.core);
+                this._addAnimationForm.buildElement(editID);
+                this._addAnimationForm.add(this, "_addAnimationName").name("Name");
+                this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                this._addAnimationForm.add(this, "_addAnimationType", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange(function (result) {
+                    switch (result) {
+                        case "Relative":
+                            _this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE;
+                            break;
+                        case "Cycle":
+                            _this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                            break;
+                        case "Constant":
+                            _this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+                            break;
+                        default: break;
+                    }
+                });
+                // Graph
+                this._addAnimationGraph = new EDITOR.GUI.GUIGraph(graphID, this.core);
+                this._addAnimationGraph.buildElement(graphID);
+                var types = [
+                    "Vector4", "Vector3", "Vector2",
+                    "Color4", "Color3",
+                    "Number", "number",
+                    "Boolean", "boolean"
+                ];
+                var instances = [
+                    "Material", "ParticleSystem"
+                ];
+                // Fill Graph
+                var addProperties = function (property, parentNode) {
+                    for (var thing in property) {
+                        var value = property[thing];
+                        if (value === null || value === undefined)
+                            continue;
+                        // Check
+                        var constructorName = EDITOR.Tools.GetConstructorName(value);
+                        var canAdd = true;
+                        if (thing[0] === "_" || types.indexOf(constructorName) === -1)
+                            canAdd = false;
+                        for (var i = 0; i < instances.length; i++) {
+                            if (value instanceof BABYLON[instances[i]]) {
+                                canAdd = true;
+                                break;
+                            }
+                        }
+                        if (!canAdd)
+                            continue;
+                        // Add node
+                        var icon = "icon-edit";
+                        if (constructorName.indexOf("Vector") !== -1)
+                            icon = "icon-position";
+                        else if (constructorName.indexOf("Color") !== -1)
+                            icon = "icon-effects";
+                        else if (value instanceof BABYLON.Material)
+                            icon = "icon-shaders";
+                        else if (value instanceof BABYLON.ParticleSystem)
+                            icon = "icon-particles";
+                        var node = _this._addAnimationGraph.createNode(EDITOR.SceneFactory.GenerateUUID(), thing, icon, value);
+                        _this._addAnimationGraph.addNodes(node, parentNode);
+                        addProperties(value, node.id);
+                    }
+                };
+                addProperties(this.object, "");
+            };
+            // Returns the effective target
+            GUIAnimationEditor.prototype._getEffectiveTarget = function (value) {
+                var effectiveTarget = this.object;
+                for (var i = 0; i < this._currentAnimation.targetPropertyPath.length - (value ? 1 : 0); i++) {
+                    effectiveTarget = effectiveTarget[this._currentAnimation.targetPropertyPath[i]];
+                }
+                if (value) {
+                    effectiveTarget[this._currentAnimation.targetPropertyPath[this._currentAnimation.targetPropertyPath.length - 1]] = value;
+                }
+                return effectiveTarget;
+            };
+            // Gets frame time (min,s,ms)
+            GUIAnimationEditor.prototype._getFrameTime = function (frame) {
+                if (frame === 0)
+                    return "0mins 0secs";
+                var fps = this._currentAnimation.framePerSecond;
+                var seconds = frame / fps;
+                var mins = BABYLON.Tools.Format(Math.floor(seconds / 60), 0);
+                var secs = BABYLON.Tools.Format(seconds % 60, 1);
+                return "" + mins + "mins " + secs + "secs";
+            };
+            // Sets the records
+            GUIAnimationEditor.prototype._setRecords = function (frame, value) {
+                this._valuesForm.setRecord("frame", frame.toString());
+                this._valuesForm.setRecord("value", this._getFrameValue());
+                this._valuesForm.refresh();
+            };
+            // Sets the frame value
+            GUIAnimationEditor.prototype._setFrameValue = function () {
+                var frame = this._valuesForm.getRecord("frame");
+                var value = this._valuesForm.getRecord("value");
+                this._currentKey.frame = frame;
+                if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
+                    this._currentKey.value = parseFloat(value);
+                }
+                else {
+                    var ctr = EDITOR.Tools.GetConstructorName(this._currentKey.value);
+                    if (BABYLON[ctr] && BABYLON[ctr].FromArray) {
+                        var spl = value.split(",");
+                        var arr = [];
+                        for (var i in spl) {
+                            arr.push(parseFloat(spl[i]));
+                        }
+                        this._currentKey.value = BABYLON[ctr].FromArray(arr);
+                    }
+                }
+                if (!BABYLON.Tags.HasTags(this._currentAnimation)) {
+                    BABYLON.Tags.EnableFor(this._currentAnimation);
+                }
+                if (!BABYLON.Tags.MatchesQuery(this._currentAnimation, "modified")) {
+                    BABYLON.Tags.AddTagsTo(this._currentAnimation, "modified");
+                }
+            };
+            // Gets the frame value
+            GUIAnimationEditor.prototype._getFrameValue = function () {
+                if (this._currentKey === null)
+                    return "";
+                var value = this._currentKey.value;
+                if (typeof value === "number" || typeof value === "boolean")
+                    return Number(value).toString();
+                if (value.asArray) {
+                    var arr = value.asArray();
+                    return arr.toString();
+                }
+                return "";
+            };
+            // Create the UI
+            GUIAnimationEditor.prototype._createUI = function () {
+                var _this = this;
+                this.core.editor.editPanel.setPanelSize(40);
+                var animationsListID = "BABYLON-EDITOR-ANIMATION-EDITOR-ANIMATIONS";
+                var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
+                var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
+                var animationsListElement = EDITOR.GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
+                var keysListElement = EDITOR.GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
+                var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
+                this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
+                this.core.editor.editPanel.addContainer(keysListElement, keysListID);
+                this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
+                // Animations List
+                this._animationsList = new EDITOR.GUI.GUIGrid(animationsListID, this.core);
+                this._animationsList.header = "Animations";
+                this._animationsList.createColumn("name", "name", "100%");
+                this._animationsList.showSearch = false;
+                this._animationsList.showOptions = false;
+                this._animationsList.showDelete = true;
+                this._animationsList.showAdd = true;
+                this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "");
+                this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "");
+                this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "");
+                this._animationsList.buildElement(animationsListID);
+                for (var i = 0; i < this.object.animations.length; i++) {
+                    this._animationsList.addRow({
+                        name: this.object.animations[i].name,
+                        recid: i
+                    });
+                }
+                // Keys List
+                this._keysList = new EDITOR.GUI.GUIGrid(keysListID, this.core);
+                this._keysList.header = "Keys";
+                this._keysList.createColumn("key", "key", "20%");
+                this._keysList.createColumn("value", "value", "80%");
+                this._keysList.showSearch = false;
+                this._keysList.showOptions = false;
+                this._keysList.showDelete = true;
+                this._keysList.showAdd = true;
+                this._keysList.buildElement(keysListID);
+                // Values form
+                this._valuesForm = new EDITOR.GUI.GUIForm(valuesFormID, "Value", this.core);
+                this._valuesForm.header = "";
+                this._valuesForm.createField("frame", "float", "Frame :", 3);
+                this._valuesForm.createField("value", "text", "Value :", 3);
+                this._valuesForm.buildElement(valuesFormID);
+                this.core.editor.editPanel.onClose = function () {
+                    _this._animationsList.destroy();
+                    _this._keysList.destroy();
+                    _this._valuesForm.destroy();
+                    _this.core.removeEventReceiver(_this);
+                };
+            };
+            // Static methods that gives the last scene frame
+            GUIAnimationEditor.GetSceneFrameCount = function (scene) {
+                var count = 0;
+                var getTotal = function (objs) {
+                    for (var i = 0; i < objs.length; i++) {
+                        if (!objs[i].animations)
+                            continue;
+                        for (var animIndex = 0; animIndex < objs[i].animations.length; animIndex++) {
+                            var anim = objs[i].animations[animIndex];
+                            var keys = anim.getKeys();
+                            for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                                if (keys[keyIndex].frame > count) {
+                                    count = keys[keyIndex].frame;
+                                }
+                            }
+                        }
+                    }
+                };
+                getTotal([scene]);
+                getTotal(scene.meshes);
+                getTotal(scene.lights);
+                getTotal(scene.cameras);
+                getTotal(scene.particleSystems);
+                return count;
+            };
+            // Static methods that sets the current frame
+            GUIAnimationEditor.SetCurrentFrame = function (scene, objs, frame) {
+                for (var i = 0; i < objs.length; i++) {
+                    scene.stopAnimation(objs[i]);
+                    scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
+                }
+            };
+            // Static members
+            GUIAnimationEditor.FramesPerSecond = 24;
+            GUIAnimationEditor._CopiedAnimations = [];
+            return GUIAnimationEditor;
+        })();
+        EDITOR.GUIAnimationEditor = GUIAnimationEditor;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var BabylonExporter = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function BabylonExporter(core) {
+                this._window = null;
+                this._layout = null;
+                this._editor = null;
+                this._configForm = null;
+                // Initialize
+                this._core = core;
+                this._core.eventReceivers.push(this);
+            }
+            // On Event
+            BabylonExporter.prototype.onEvent = function (event) {
+                if (event.eventType !== EDITOR.EventType.GUI_EVENT)
+                    return false;
+                if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._window) {
+                    var button = event.guiEvent.data;
+                    if (button === "Generate") {
+                        var obj = BABYLON.SceneSerializer.Serialize(this._core.currentScene);
+                        var camera = this._core.currentScene.getCameraByName(this._configForm.getRecord("activeCamera"));
+                        obj.activeCameraID = camera ? camera.id : undefined;
+                        this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
+                    }
+                    else if (button === "Close") {
+                        this._window.close();
+                    }
+                    return true;
+                }
+                return false;
+            };
+            // Create the UI
+            BabylonExporter.prototype.createUI = function () {
+                var _this = this;
+                // IDs
+                var codeID = "BABYLON-EXPORTER-CODE-EDITOR";
+                var codeDiv = EDITOR.GUI.GUIElement.CreateElement("div", codeID);
+                var configID = "BABYLON-EXPORTER-CONFIG";
+                var configDiv = EDITOR.GUI.GUIElement.CreateElement("div", configID);
+                var layoutID = "BABYLON-EXPORTER-LAYOUT";
+                var layoutDiv = EDITOR.GUI.GUIElement.CreateElement("div", layoutID);
+                // Window
+                this._window = new EDITOR.GUI.GUIWindow("BABYLON-EXPORTER-WINDOW", this._core, "Export to .babylon", layoutDiv);
+                this._window.modal = true;
+                this._window.showMax = true;
+                this._window.buttons = [
+                    "Generate",
+                    "Close"
+                ];
+                this._window.setOnCloseCallback(function () {
+                    _this._core.removeEventReceiver(_this);
+                    _this._layout.destroy();
+                    _this._configForm.destroy();
+                });
+                this._window.buildElement(null);
+                this._window.onToggle = function (maximized, width, height) {
+                    if (!maximized) {
+                        width = _this._window.size.x;
+                        height = _this._window.size.y;
+                    }
+                    _this._layout.setPanelSize("left", width / 2);
+                    _this._layout.setPanelSize("main", width / 2);
+                };
+                // Layout
+                this._layout = new EDITOR.GUI.GUILayout(layoutID, this._core);
+                this._layout.createPanel("CODE-PANEL", "left", 380, false).setContent(codeDiv);
+                this._layout.createPanel("CONFIG-PANEL", "main", 380, false).setContent(configDiv);
+                this._layout.buildElement(layoutID);
+                // Code editor
+                this._editor = ace.edit(codeID);
+                this._editor.setValue("Click on \"Generate\" to generate the .babylon file\naccording to the following configuration", -1);
+                this._editor.setTheme("ace/theme/clouds");
+                this._editor.getSession().setMode("ace/mode/javascript");
+                // Form
+                var cameras = [];
+                for (var i = 0; i < this._core.currentScene.cameras.length; i++) {
+                    var camera = this._core.currentScene.cameras[i];
+                    if (camera !== this._core.camera) {
+                        cameras.push(camera.name);
+                    }
+                }
+                this._configForm = new EDITOR.GUI.GUIForm(configID, "Configuration", this._core);
+                this._configForm.createField("activeCamera", "list", "Active Camera :", 5, "", { items: cameras });
+                this._configForm.buildElement(configID);
+                if (this._core.playCamera)
+                    this._configForm.setRecord("activeCamera", this._core.playCamera.name);
+            };
+            // Generates the final .babylon file
+            BabylonExporter.GenerateFinalBabylonFile = function (core) {
+                var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+                if (core.playCamera)
+                    obj.activeCameraID = core.playCamera.id;
+                return JSON.stringify(obj);
+            };
+            return BabylonExporter;
+        })();
+        EDITOR.BabylonExporter = BabylonExporter;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var LaunchEditor = (function () {
+            // Private members
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function LaunchEditor(core) {
+                // Initialize
+                this.core = core;
+                var picker = new EDITOR.ObjectPicker(core);
+                picker.objectLists.push([core.currentScene]);
+                picker.objectLists.push(core.currentScene.lights);
+                picker.objectLists.push(core.currentScene.cameras);
+                picker.objectLists.push(core.currentScene.meshes);
+                picker.objectLists.push(core.currentScene.particleSystems);
+                picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
+                picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
+                picker.minSelectCount = 0;
+                picker.open();
+                picker.onObjectPicked = function (names) {
+                    EDITOR.SceneFactory.NodesToStart = [];
+                    for (var i = 0; i < names.length; i++) {
+                        var node = core.currentScene.getNodeByName(names[i]);
+                        if (!node && names[i] === "Scene")
+                            node = core.currentScene;
+                        // Particle system
+                        if (!node) {
+                            node = core.currentScene.getParticleSystemByName(names[i]);
+                        }
+                        if (!node) {
+                            // Sound ?
+                            node = core.currentScene.getSoundByName(names[i]);
+                            if (!node)
+                                continue;
+                        }
+                        EDITOR.SceneFactory.NodesToStart.push(node);
+                    }
+                    core.editor.timeline.reset();
+                };
+            }
+            return LaunchEditor;
+        })();
+        EDITOR.LaunchEditor = LaunchEditor;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ObjectPicker = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function ObjectPicker(core) {
+                // Public members
+                this.core = null;
+                this.objectLists = new Array();
+                this.selectedObjects = new Array();
+                this.minSelectCount = 1;
+                this.windowName = "Select Object...";
+                this.selectButtonName = "Select";
+                this.closeButtonName = "Close";
+                // Private members
+                this._window = null;
+                this._list = null;
+                // Initialize
+                this.core = core;
+                this.core.eventReceivers.push(this);
+            }
+            // On event received
+            ObjectPicker.prototype.onEvent = function (event) {
+                // Manage event
+                if (event.eventType !== EDITOR.EventType.GUI_EVENT)
+                    return false;
+                if (event.guiEvent.eventType !== EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED)
+                    return false;
+                if (event.guiEvent.caller === this._window) {
+                    var button = event.guiEvent.data;
+                    if (button === this.closeButtonName) {
+                        if (this.onClosedPicker)
+                            this.onClosedPicker();
+                        this._window.close();
+                    }
+                    else if (button === this.selectButtonName) {
+                        var selected = this._list.getSelectedRows();
+                        if (selected.length < this.minSelectCount) {
+                            this._window.notify("Please select at least 1 object...");
+                        }
+                        else {
+                            if (this.onObjectPicked) {
+                                var selectedNames = [];
+                                for (var i = 0; i < selected.length; i++) {
+                                    selectedNames.push(this._list.getRow(selected[i]).name);
+                                }
+                                this.onObjectPicked(selectedNames);
+                            }
+                            this._window.close();
+                        }
+                    }
+                    return true;
+                }
+                return false;
+            };
+            // Opens the object picker
+            ObjectPicker.prototype.open = function () {
+                var _this = this;
+                //IDs
+                var listID = "OBJECT-PICKER-LIST";
+                var listDiv = EDITOR.GUI.GUIElement.CreateElement("div", listID);
+                // Create window
+                this._window = new EDITOR.GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, this.windowName, listDiv);
+                this._window.modal = true;
+                this._window.showMax = false;
+                this._window.buttons = [
+                    this.selectButtonName,
+                    this.closeButtonName
+                ];
+                this._window.setOnCloseCallback(function () {
+                    _this.core.removeEventReceiver(_this);
+                    _this._list.destroy();
+                });
+                this._window.buildElement(null);
+                // Create list
+                this._list = new EDITOR.GUI.GUIGrid(listID, this.core);
+                this._list.header = "Objects";
+                this._list.createColumn("name", "name", "100%");
+                this._list.buildElement(listID);
+                var selected = [];
+                var recid = 0;
+                for (var i = 0; i < this.objectLists.length; i++) {
+                    var list = this.objectLists[i];
+                    for (var j = 0; j < list.length; j++) {
+                        if (list[j] === this.core.camera)
+                            continue;
+                        this._list.addRecord({
+                            name: list[j].name || "Scene",
+                            recid: recid
+                        });
+                        if (this.selectedObjects.indexOf(list[j]) !== -1)
+                            selected.push(recid);
+                        recid++;
+                    }
+                }
+                this._list.refresh();
+                // Set selected
+                if (selected.length > 0)
+                    this._list.setSelected(selected);
+            };
+            return ObjectPicker;
+        })();
+        EDITOR.ObjectPicker = ObjectPicker;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUIParticleSystemEditor = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function GUIParticleSystemEditor(core, particleSystem, createUI) {
+                var _this = this;
+                if (createUI === void 0) { createUI = true; }
+                // Public members
+                this.core = null;
+                // Private members
+                this._window = null;
+                this._layouts = null;
+                this._leftPanel = null;
+                this._layoutID = "BABYLON-EDITOR-CREATE-PARTICLE-SYSTEM";
+                this._formTabID = this._layoutID + "TAB-UPDATE-FORM";
+                this._editorTabID = this._layoutID + "TAB-UPDATE-EDITOR";
+                this._editElement = null;
+                this._editElementID = this._layoutID + "FORM";
+                this._inputElementID = this._layoutID + "INPUT";
+                this._editor = null;
+                this._editorElementID = this._layoutID + "EDITOR";
+                this._engine = null;
+                this._scene = null;
+                this._camera = null;
+                this._particleSystem = null;
+                this._particleSystemToEdit = null;
+                this._particleSystemCapacity = "";
+                // Initialize
+                this.core = core;
+                this._uiCreated = createUI;
+                if (createUI) {
+                    // UI
+                    this._createUI();
+                    // Scene
+                    this._engine = new BABYLON.Engine(document.getElementById(this._layoutID + "CANVAS"));
+                    this._scene = new BABYLON.Scene(this._engine);
+                    this._camera = new BABYLON.ArcRotateCamera("Camera", 1, 1.3, 30, new BABYLON.Vector3(0, 0, 0), this._scene);
+                    this._camera.attachControl(this._engine.getRenderingCanvas(), false);
+                    this._engine.runRenderLoop(function () {
+                        _this._scene.render();
+                    });
+                    this._particleSystem = GUIParticleSystemEditor.CreateParticleSystem(this._scene, particleSystem.getCapacity(), particleSystem);
+                    this._particleSystemToEdit = particleSystem;
+                    // Finish
+                    core.eventReceivers.push(this);
+                    this._createEditor();
+                }
+                else {
+                    // Assume that particleSystem isn't null
+                    this._particleSystem = particleSystem;
+                    this._scene = particleSystem._scene;
+                }
+            }
+            // On event
+            GUIParticleSystemEditor.prototype.onEvent = function (event) {
+                if (event.eventType !== EDITOR.EventType.GUI_EVENT)
+                    return false;
+                if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._window) {
+                    var button = event.guiEvent.data;
+                    if (button === "Apply") {
+                        this._setParticleSystem();
+                        this._window.close();
+                        EDITOR.Event.sendSceneEvent(this._particleSystemToEdit, EDITOR.SceneEventType.OBJECT_PICKED, this.core);
+                    }
+                    else if (button === "Cancel") {
+                        this._window.close();
+                    }
+                    return true;
+                }
+                else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED) {
+                    var panel = this._layouts.getPanelFromType("left");
+                    if (event.guiEvent.caller !== this._leftPanel)
+                        return false;
+                    // Code here to change tab
+                    var tabID = event.guiEvent.data;
+                    var form = $("#" + this._layoutID + "FORM").hide();
+                    var editor = $("#" + this._layoutID + "EDITOR").hide();
+                    if (tabID === this._formTabID) {
+                        form.show();
+                    }
+                    else if (tabID === this._editorTabID) {
+                        editor.show();
+                        var exporter = this.core.editor.exporter;
+                        this._editor.setValue("var " + exporter._exportParticleSystem(this._particleSystemToEdit), -1);
+                    }
+                    return true;
+                }
+                return false;
+            };
+            // Creates the UI
+            GUIParticleSystemEditor.prototype._createUI = function () {
+                var _this = this;
+                // Window
+                var layoutDiv = EDITOR.GUI.GUIElement.CreateDivElement(this._layoutID, "width: 100%; height: 100%;");
+                this._window = new EDITOR.GUI.GUIWindow("EditParticleSystem", this.core, "Edit Particle System", layoutDiv, new BABYLON.Vector2(800, 600));
+                this._window.modal = true;
+                this._window.showMax = true;
+                this._window.showClose = true;
+                this._window.buttons = ["Apply", "Cancel"];
+                this._window.buildElement(null);
+                this._window.onToggle = function (maximized, width, height) {
+                    if (!maximized) {
+                        width = _this._window.size.x;
+                        height = _this._window.size.y;
+                    }
+                    _this._layouts.setPanelSize("left", width / 2);
+                    _this._layouts.setPanelSize("main", width / 2);
+                };
+                this._window.on({ type: "open" }, function () {
+                    _this._window.maximize();
+                });
+                this._window.setOnCloseCallback(function () {
+                    _this._window.destroy();
+                    _this._layouts.destroy();
+                    _this.core.removeEventReceiver(_this);
+                });
+                // Layout
+                var leftDiv = EDITOR.GUI.GUIElement.CreateDivElement(this._editElementID)
+                    + EDITOR.GUI.GUIElement.CreateElement("div", this._editorElementID)
+                    + EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", this._inputElementID, "display: none;");
+                var rightDiv = EDITOR.GUI.GUIElement.CreateElement("canvas", this._layoutID + "CANVAS");
+                this._layouts = new EDITOR.GUI.GUILayout(this._layoutID, this.core);
+                this._leftPanel = this._layouts.createPanel(leftDiv, "left", 380, true).setContent(leftDiv);
+                this._layouts.createPanel(rightDiv, "main", 380, true).setContent(rightDiv);
+                this._layouts.buildElement(this._layoutID);
+                var leftPanel = this._layouts.getPanelFromType("left");
+                var editTabID = this._layoutID + "TAB-EDIT";
+                leftPanel.createTab({ id: this._formTabID, caption: "Edit" });
+                leftPanel.createTab({ id: this._editorTabID, caption: "Generated Code" });
+                this._layouts.on({ type: "resize" }, function () {
+                    _this._engine.resize();
+                    _this._editElement.width = leftPanel.width - 30;
+                    _this._editor.resize();
+                });
+                // Code editor
+                this._editor = ace.edit(this._editorElementID);
+                this._editor.setValue([
+                    "var callback = function (particles) {",
+                    "\t",
+                    "};"
+                ].join("\n"), -1);
+                this._editor.setTheme("ace/theme/clouds");
+                this._editor.getSession().setMode("ace/mode/javascript");
+                this._editor.getSession().on("change", function (e) {
+                    var value = _this._editor.getValue() + "\ncallback;";
+                    try {
+                        var result = eval.call(window, value);
+                        //Test function
+                        result(_this._particleSystem._stockParticles);
+                        _this._particleSystem.updateFunction = result;
+                    }
+                    catch (e) {
+                        // Catch silently
+                        debugger;
+                    }
+                });
+                $(this._editor.container).hide();
+            };
+            // Creates the editor
+            GUIParticleSystemEditor.prototype._createEditor = function (container) {
+                var _this = this;
+                var elementId = container ? container : this._layoutID + "FORM";
+                this._editElement = new EDITOR.GUI.GUIEditForm(elementId, this.core);
+                this._editElement.buildElement(elementId);
+                var ps = this._particleSystem;
+                this._editElement.remember(ps);
+                // Edit
+                var functionsFolder = this._editElement.addFolder("Functions");
+                if (!this._uiCreated)
+                    functionsFolder.add(this, "_editParticleSystem").name("Edit...");
+                functionsFolder.add(this, "_startParticleSystem").name("Start Particle System");
+                functionsFolder.add(this, "_stopParticleSystem").name("Stop Particle System");
+                // Common
+                var commonFolder = this._editElement.addFolder("Common");
+                commonFolder.add(ps, "name").name("Name").onChange(function (result) {
+                    if (!_this._uiCreated) {
+                        _this._updateGraphNode(result);
+                    }
+                });
+                this._particleSystemCapacity = "" + this._particleSystem.getCapacity();
+                commonFolder.add(this, "_particleSystemCapacity").name("Capacity").onFinishChange(function (result) {
+                    result = parseFloat(result);
+                    var emitter = _this._particleSystem.emitter;
+                    var scene = _this._uiCreated ? _this._scene : _this.core.currentScene;
+                    _this._particleSystem.emitter = null;
+                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, _this._particleSystem, emitter);
+                    _this._particleSystem.dispose();
+                    _this._particleSystem = newParticleSystem;
+                    if (_this._uiCreated) {
+                        _this._editElement.remove();
+                        _this._createEditor();
+                    }
+                    else {
+                        _this._updateGraphNode(_this._particleSystem.name, _this._particleSystem);
+                    }
+                });
+                // Texture
+                commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
+                commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange(function (result) {
+                    switch (result) {
+                        case "ONEONE":
+                            ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+                            break;
+                        case "STANDARD":
+                            ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                            break;
+                        default: break;
+                    }
+                });
+                // Emitter
+                var emitterFolder = this._editElement.addFolder("Emitter");
+                var minEmitBoxFolder = emitterFolder.addFolder("Min Emitter");
+                minEmitBoxFolder.open();
+                minEmitBoxFolder.add(ps.minEmitBox, "x").step(0.01);
+                minEmitBoxFolder.add(ps.minEmitBox, "y").step(0.01);
+                minEmitBoxFolder.add(ps.minEmitBox, "z").step(0.01);
+                var minEmitBoxFolder = emitterFolder.addFolder("Max Emitter");
+                minEmitBoxFolder.open();
+                minEmitBoxFolder.add(ps.maxEmitBox, "x").step(0.01);
+                minEmitBoxFolder.add(ps.maxEmitBox, "y").step(0.01);
+                minEmitBoxFolder.add(ps.maxEmitBox, "z").step(0.01);
+                // Emission
+                var emissionFolder = this._editElement.addFolder("Emission");
+                emissionFolder.add(ps, "minSize").name("Min Size").min(0.0).step(0.01);
+                emissionFolder.add(ps, "maxSize").name("Max Size").min(0.0).step(0.01);
+                emissionFolder.add(ps, "minLifeTime").name("Min Life Time").min(0.0).step(0.01);
+                emissionFolder.add(ps, "maxLifeTime").name("Max Life Time").min(0.0).step(0.01);
+                emissionFolder.add(ps, "emitRate").name("Emit Rate").min(0.0).step(1);
+                emissionFolder.add(ps, "minEmitPower").name("Min Emit Power").min(0.0).step(0.01);
+                emissionFolder.add(ps, "maxEmitPower").name("Max Emit Power").min(0.0).step(0.01);
+                emissionFolder.add(ps, "updateSpeed").name("Update Speed").min(0.0).step(0.001);
+                emissionFolder.add(ps, "minAngularSpeed").name("Min Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+                emissionFolder.add(ps, "maxAngularSpeed").name("Max Angular Speed").min(0.0).max(2 * Math.PI).step(0.01);
+                // Gravity
+                var gravityDirectionFolder = this._editElement.addFolder("Gravity and directions");
+                var gravityFolder = gravityDirectionFolder.addFolder("Gravity");
+                gravityFolder.open();
+                gravityFolder.add(ps.gravity, "x").step(0.01);
+                gravityFolder.add(ps.gravity, "y").step(0.01);
+                gravityFolder.add(ps.gravity, "z").step(0.01);
+                var direction1Folder = gravityDirectionFolder.addFolder("Direction 1");
+                direction1Folder.add(ps.direction1, "x").step(0.01);
+                direction1Folder.add(ps.direction1, "y").step(0.01);
+                direction1Folder.add(ps.direction1, "z").step(0.01);
+                var direction2Folder = gravityDirectionFolder.addFolder("Direction 2");
+                direction2Folder.add(ps.direction2, "x").step(0.01);
+                direction2Folder.add(ps.direction2, "y").step(0.01);
+                direction2Folder.add(ps.direction2, "z").step(0.01);
+                // Colors
+                var colorFolder = this._editElement.addFolder("Colors");
+                var color1Folder = colorFolder.addFolder("Color 1");
+                color1Folder.add(ps.color1, "r").step(0.01).min(0.0).max(1.0);
+                color1Folder.add(ps.color1, "g").step(0.01).min(0.0).max(1.0);
+                color1Folder.add(ps.color1, "b").step(0.01).min(0.0).max(1.0);
+                //color1Folder.add(ps.color1, "a").step(0.01).min(0.0).max(1.0);
+                var color2Folder = colorFolder.addFolder("Color 2");
+                color2Folder.add(ps.color2, "r").step(0.01).min(0.0).max(1.0);
+                color2Folder.add(ps.color2, "g").step(0.01).min(0.0).max(1.0);
+                color2Folder.add(ps.color2, "b").step(0.01).min(0.0).max(1.0);
+                //color2Folder.add(ps.color2, "a").step(0.01).min(0.0).max(1.0);
+                var colorDeadFolder = colorFolder.addFolder("Color Dead");
+                colorDeadFolder.add(ps.colorDead, "r").step(0.01).min(0.0).max(1.0);
+                colorDeadFolder.add(ps.colorDead, "g").step(0.01).min(0.0).max(1.0);
+                colorDeadFolder.add(ps.colorDead, "b").step(0.01).min(0.0).max(1.0);
+                //colorDeadFolder.add(ps.colorDead, "a").step(0.01).min(0.0).max(1.0);
+                return this._editElement;
+            };
+            // Set the particle system
+            GUIParticleSystemEditor.prototype._setParticleSystem = function () {
+                var excluded = ["id"];
+                // If capacity changed
+                if (this._particleSystem.getCapacity() !== this._particleSystemToEdit.getCapacity()) {
+                    var emitter = this._particleSystemToEdit.emitter;
+                    this._particleSystemToEdit.emitter = null;
+                    var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, emitter);
+                    this._particleSystemToEdit.dispose();
+                    this._particleSystemToEdit = newParticleSystem;
+                    this._updateGraphNode(this._particleSystem.name, this._particleSystemToEdit);
+                    return;
+                }
+                for (var thing in this._particleSystem) {
+                    if (thing[0] === "_" || excluded.indexOf(thing) !== -1)
+                        continue;
+                    var value = this._particleSystem[thing];
+                    if (typeof value === "number" || typeof value === "string" || typeof value === "boolean")
+                        this._particleSystemToEdit[thing] = value;
+                    if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Color4)
+                        this._particleSystemToEdit[thing] = value;
+                    if (value instanceof BABYLON.Texture)
+                        this._particleSystemToEdit[thing] = BABYLON.Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
+                }
+                this._updateGraphNode(this._particleSystem.name);
+            };
+            // Edit particle system
+            GUIParticleSystemEditor.prototype._editParticleSystem = function () {
+                var psEditor = new GUIParticleSystemEditor(this.core, this._particleSystem);
+            };
+            // Start particle system
+            GUIParticleSystemEditor.prototype._startParticleSystem = function () {
+                this._particleSystem.start();
+            };
+            // Stop particle system
+            GUIParticleSystemEditor.prototype._stopParticleSystem = function () {
+                this._particleSystem.stop();
+            };
+            // Set the new name of the sidebar graph node
+            GUIParticleSystemEditor.prototype._updateGraphNode = function (result, data) {
+                var sidebar = this.core.editor.sceneGraphTool.sidebar;
+                var element = sidebar.getSelectedNode();
+                if (element) {
+                    element.text = result;
+                    if (data) {
+                        element.data = data;
+                    }
+                    sidebar.refresh();
+                }
+            };
+            // Set the particle texture
+            GUIParticleSystemEditor.prototype._setParticleTexture = function () {
+                var _this = this;
+                var input = $("#" + this._inputElementID);
+                if (!input[0])
+                    $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", this._inputElementID, "display: none;"));
+                input = $("#" + this._inputElementID);
+                input.change(function (data) {
+                    var files = data.target.files || data.currentTarget.files;
+                    if (files.length < 1)
+                        return;
+                    var file = files[0];
+                    BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
+                        var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._scene);
+                        texture.name = texture.name.replace("data:", "");
+                        _this._particleSystem.particleTexture = texture;
+                        input.remove();
+                    }, null);
+                });
+                input.click();
+            };
+            // Plays all particle systems
+            GUIParticleSystemEditor.PlayStopAllParticleSystems = function (scene, play) {
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    if (play)
+                        scene.particleSystems[i].start();
+                    else
+                        scene.particleSystems[i].stop();
+                }
+            };
+            // Creates a new particle system
+            // particleSystem = the original particle system to copy
+            // emitter = if null, creates a dummy node as emitter
+            GUIParticleSystemEditor.CreateParticleSystem = function (scene, capacity, particleSystem, emitter) {
+                particleSystem = particleSystem || {};
+                var dummy = null;
+                if (emitter)
+                    dummy = emitter;
+                else {
+                    dummy = new BABYLON.Mesh("New Particle System", scene, null, null, true);
+                    BABYLON.Tags.EnableFor(dummy);
+                    BABYLON.Tags.AddTagsTo(dummy, "added_particlesystem");
+                }
+                var ps = new BABYLON.ParticleSystem("New Particle System", capacity, scene);
+                if (particleSystem.animations) {
+                    for (var i = 0; i < particleSystem.animations.length; i++) {
+                        ps.animations.push(particleSystem.animations[i].clone());
+                    }
+                }
+                ps.name = particleSystem.name || ps.name;
+                ps.id = EDITOR.SceneFactory.GenerateUUID();
+                ps.emitter = dummy;
+                ps.minEmitBox = particleSystem.minEmitBox || new BABYLON.Vector3(-1, 0, 0);
+                ps.maxEmitBox = particleSystem.maxEmitBox || new BABYLON.Vector3(1, 0, 0);
+                ps.color1 = particleSystem.color1 || new BABYLON.Color3(0.7, 0.8, 1.0);
+                ps.color2 = particleSystem.color2 || new BABYLON.Color3(0.2, 0.5, 1.0);
+                ps.colorDead = particleSystem.colorDead || new BABYLON.Color3(0, 0, 0.2);
+                ps.minSize = particleSystem.minSize || 0.1;
+                ps.maxSize = particleSystem.maxSize || 0.5;
+                ps.minLifeTime = particleSystem.minLifeTime || 0.3;
+                ps.maxLifeTime = particleSystem.maxLifeTime || 1.5;
+                ps.emitRate = particleSystem.emitRate || 1500;
+                // Blend mode : BLENDMODE_ONEONE, or BLENDMODE_STANDARD
+                ps.blendMode = particleSystem.blendMode || BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+                var buffer = particleSystem.particleTexture ? particleSystem.particleTexture._buffer : null;
+                var texture = particleSystem.particleTexture ? BABYLON.Texture.CreateFromBase64String(buffer, particleSystem.particleTexture.name, scene) : BABYLON.Texture.CreateFromBase64String("data:image/png;base64,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", "particleTexture.png", scene);
+                texture.name = texture.name.replace("data:", "");
+                ps.particleTexture = texture;
+                ps.gravity = particleSystem.gravity || new BABYLON.Vector3(0, -9.81, 0);
+                ps.direction1 = particleSystem.direction1 || new BABYLON.Vector3(-7, 8, 3);
+                ps.direction2 = particleSystem.direction2 || new BABYLON.Vector3(7, 8, -3);
+                ps.minAngularSpeed = particleSystem.minAngularSpeed || 0;
+                ps.maxAngularSpeed = particleSystem.maxAngularSpeed || Math.PI;
+                ps.minEmitPower = particleSystem.minEmitPower || 1;
+                ps.maxEmitPower = particleSystem.maxEmitPower || 3;
+                ps.updateSpeed = particleSystem.updateSpeed || 0.005;
+                ps.start();
+                dummy.attachedParticleSystem = ps;
+                return ps;
+            };
+            // Static members
+            GUIParticleSystemEditor._CurrentParticleSystem = null;
+            GUIParticleSystemEditor._CopiedParticleSystem = null;
+            return GUIParticleSystemEditor;
+        })();
+        EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));

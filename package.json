@@ -19,6 +19,7 @@
     "gulp-rename": "~1.2.2",
     "through2": "~0.6.5",
     "run-sequence": "~1.1.0",
-    "gulp-clean-ts-extends": "~0.1.1"
+    "gulp-clean-ts-extends": "~0.1.1",
+    "gulp-webserver": "^0.9.1"
   }
 }

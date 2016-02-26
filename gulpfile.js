@@ -10,6 +10,7 @@ var rename = require("gulp-rename");
 var config = require("./config.json");
 var gutil = require('gulp-util');
 var through = require('through2');
+var webserver = require('gulp-webserver');
 
 var extendsSearchRegex = /var\s__extends[\s\S]+?\};/g;
 
@@ -57,7 +58,7 @@ var addModuleExports = function (varName) {
 Compiles all typescript files and creating a declaration file.
 */
 gulp.task("typescript-compile", function () {
-    var result = gulp.src(config.core.typescript)
+    var result = gulp.src(config.core.typescriptBuild)
         .pipe(typescript({
             noExternalResolve: true,
             target: "ES5",
@@ -79,13 +80,43 @@ gulp.task("typescript-compile", function () {
 Compiles all typescript files and merges in a single file babylon.editor.js
 */
 gulp.task("build", ["typescript-compile"], function () {
+    /*
     return merge2(gulp.src(config.core.files), gulp.src(config.plugins.files))
         .pipe(concat(config.build.filename))
-        .pipe(cleants())
-        .pipe(replace(extendsSearchRegex, ""))
-        .pipe(addModuleExports("BABYLON"))
+        //.pipe(cleants())
+        //.pipe(replace(extendsSearchRegex, ""))
+        //.pipe(addModuleExports("BABYLON.EDITOR"))
         .pipe(gulp.dest(config.build.outputDirectory))
         .pipe(rename(config.build.minFilename))
         .pipe(uglify())
         .pipe(gulp.dest(config.build.outputDirectory));
+    */
+    
+    var files = [].concat(config.core.typescript);
+    for (var i=0; i < config.core.files.length; i++) {
+        files.push(config.core.files[i].replace(".js", ".ts"));
+    }
+    
+    var result = gulp.src(files)
+        .pipe(typescript({
+            target: "ES5",
+            declarationFiles: false,
+            experimentalDecorators: false,
+            out: config.build.filename
+        }));
+        
+	return result.js.pipe(gulp.dest(config.build.outputDirectory));
+});
+
+/**
+ * Web server task to serve a local test page
+ */
+gulp.task("webserver", function() {
+  gulp.src('.')
+    .pipe(webserver({
+      livereload: false,
+      open: 'http://localhost:1338/website/index-debug.html',
+      port: 1338,
+      fallback: 'index-debug.html'
+    }));
 });

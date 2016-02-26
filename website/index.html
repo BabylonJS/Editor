@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -23,76 +23,7 @@
     <script src="../libs/ace/theme-clouds.js" type="text/javascript"></script>
 
     <!-- GUI ELEMENTS -->
-    <script src="../sources/gui/babylon.editor.guiElement.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiPanel.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiLayouts.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiForm.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiGraph.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiEdit.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiToolbar.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiDialog.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiGrid.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiWindow.js" type="text/javascript"></script>
-    <script src="../sources/gui/babylon.editor.guiList.js" type="text/javascript"></script>
-
-    <!-- INTERNAL FILES -->
-    <script src="../sources/internal/babylon.editor.event.js" type="text/javascript"></script>
-    <script src="../sources/internal/babylon.editor.tools.js" type="text/javascript"></script>
-
-    <!-- SCENE -->
-    <script src="../sources/scene/babylon.editor.sceneManager.js" type="text/javascript"></script>
-    <script src="../sources/scene/babylon.editor.sceneFactory.js" type="text/javascript"></script>
-    <script src="../sources/scene/babylon.editor.filesInput.js" type="text/javascript"></script>
-
-    <!-- TOOLS -->
-    <script src="../sources/babylon.editor.transformer.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.sceneGraphTool.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.mainToolbar.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.toolsToolbar.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.sceneToolbar.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.editPanel.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.timeline.js" type="text/javascript"></script>
-
-    <!-- EXPORTER -->
-    <script src="../sources/export/babylon.editor.projectExporter.js" type="text/javascript"></script>
-    <script src="../sources/export/babylon.editor.projectImporter.js" type="text/javascript"></script>
-    <script src="../sources/export/babylon.editor.exporter.js" type="text/javascript"></script>
-    <script src="../sources/export/babylon.editor.storageExporter.js" type="text/javascript"></script>
-
-    <!-- MAIN FILES -->
-    <script src="../sources/babylon.editor.main.js" type="text/javascript"></script>
-    <script src="../sources/babylon.editor.core.js" type="text/javascript"></script>
-
-    <!-- STORAGE -->
-    <script src="../sources/storage/babylon.editor.storage.js" type="text/javascript"></script>
-    <script src="../sources/storage/babylon.editor.oneDriveStorage.js" type="text/javascript"></script>
-
-    <!-- EDITION TOOLS -->
-    <script src="../sources/babylon.editor.editionTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.abstractTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.abstractDatTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.generalTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.materialTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.sceneTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.lightTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.animationTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.postProcesses.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.reflectionProbeTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.audioTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.particleSystemTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/babylon.editor.lensFlareTool.js" type="text/javascript"></script>
-
-    <script src="../sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js" type="text/javascript"></script>
-    <script src="../sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js" type="text/javascript"></script>
-
-    <!-- USER INTERFACES -->
-    <script src="../sources/userInterfaces/babylon.editor.particleSystemEditor.js" type="text/javascript"></script>
-    <script src="../sources/userInterfaces/babylon.editor.objectPicker.js" type="text/javascript"></script>
-    <script src="../sources/userInterfaces/babylon.editor.animationEditor.js" type="text/javascript"></script>
-    <script src="../sources/userInterfaces/babylon.editor.launchEditor.js" type="text/javascript"></script>
-    <script src="../sources/userInterfaces/babylon.editor.babylonExporter.js" type="text/javascript"></script>
+    <script src="../libs/preview release/babylon.editor.max.js" type="text/javascript"></script>
 
     <!-- MATERIALS -->
     <script src="../libs/materials/babylon.pbrMaterial.js" type="text/javascript"></script>
@@ -108,97 +39,6 @@
         var editorMain = new BABYLON.EDITOR.EditorMain("BABYLON-EDITOR-MAIN");
         var core = editorMain.core;
         editorMain.createRenderLoop();
-
-        // Create test scene
-        function createReleaseScene() {
-            var scene = core.currentScene;
-
-            // Light
-            new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
-
-            // Environment Texture
-            var hdrTexture = new BABYLON.HDRCubeTexture("Tests/textures/room.hdr", scene, 512);
-
-            // Skybox
-            var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
-            var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
-            hdrSkyboxMaterial.backFaceCulling = false;
-            hdrSkyboxMaterial.reflectionTexture = hdrTexture.clone();
-            hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-            hdrSkyboxMaterial.microSurface = 1.0;
-            hdrSkyboxMaterial.cameraExposure = 0.6;
-            hdrSkyboxMaterial.cameraContrast = 1.6;
-            hdrSkyboxMaterial.disableLighting = true;
-            hdrSkybox.material = hdrSkyboxMaterial;
-            hdrSkybox.infiniteDistance = true;
-
-            // Create meshes
-            var sphereGlass = BABYLON.Mesh.CreateSphere("sphereGlass", 48, 30.0, scene);
-            sphereGlass.translate(new BABYLON.Vector3(1, 0, 0), -60);
-
-            var sphereMetal = BABYLON.Mesh.CreateSphere("sphereMetal", 48, 30.0, scene);
-            sphereMetal.translate(new BABYLON.Vector3(1, 0, 0), 60);
-
-            var spherePlastic = BABYLON.Mesh.CreateSphere("spherePlastic", 48, 30.0, scene);
-            spherePlastic.translate(new BABYLON.Vector3(0, 0, 1), -60);
-
-            var woodPlank = BABYLON.MeshBuilder.CreateBox("plane", { width: 65, height: 1, depth: 65 }, scene);
-
-            // Create materials
-            var glass = new BABYLON.PBRMaterial("glass", scene);
-            glass.reflectionTexture = hdrTexture;
-            glass.refractionTexture = hdrTexture;
-            glass.linkRefractionWithTransparency = true;
-            glass.indexOfRefraction = 0.52;
-            glass.alpha = 0;
-            glass.directIntensity = 0.0;
-            glass.environmentIntensity = 0.5;
-            glass.cameraExposure = 0.5;
-            glass.cameraContrast = 1.7;
-            glass.microSurface = 1;
-            glass.reflectivityColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            glass.albedoColor = new BABYLON.Color3(0.95, 0.95, 0.95);
-            sphereGlass.material = glass;
-
-            var metal = new BABYLON.PBRMaterial("metal", scene);
-            metal.reflectionTexture = hdrTexture;
-            metal.directIntensity = 0.3;
-            metal.environmentIntensity = 0.7;
-            metal.cameraExposure = 0.55;
-            metal.cameraContrast = 1.6;
-            metal.microSurface = 0.96;
-            metal.reflectivityColor = new BABYLON.Color3(0.9, 0.9, 0.9);
-            metal.albedoColor = new BABYLON.Color3(1, 1, 1);
-            sphereMetal.material = metal;
-
-            var plastic = new BABYLON.PBRMaterial("plastic", scene);
-            plastic.reflectionTexture = hdrTexture;
-            plastic.directIntensity = 0.6;
-            plastic.environmentIntensity = 0.7;
-            plastic.cameraExposure = 0.6;
-            plastic.cameraContrast = 1.6;
-            plastic.microSurface = 0.96;
-            plastic.albedoColor = new BABYLON.Color3(0.206, 0.94, 1);
-            plastic.reflectivityColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-            spherePlastic.material = plastic;
-
-            var wood = new BABYLON.PBRMaterial("wood", scene);
-            wood.reflectionTexture = hdrTexture;
-            wood.directIntensity = 1.5;
-            wood.environmentIntensity = 0.5;
-            wood.specularIntensity = 0.3;
-            wood.cameraExposure = 0.9;
-            wood.cameraContrast = 1.6;
-            wood.reflectivityTexture = new BABYLON.Texture("Tests/textures/reflectivity.png", scene);
-            wood.useMicroSurfaceFromReflectivityMapAlpha = true;
-            wood.albedoColor = BABYLON.Color3.White();
-            wood.albedoTexture = new BABYLON.Texture("Tests/textures/albedo.png", scene);
-            woodPlank.material = wood;
-
-            editorMain._handleSceneLoaded()(null, scene);
-        };
-
-        //createReleaseScene();
 
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);

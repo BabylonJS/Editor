@@ -15,12 +15,14 @@
 	"tasks": [
 		{
 			"taskName": "build",
-			// Make this the default build command.
 			"isBuildCommand": true,
-			// Show the output window only if unrecognized errors occur.
 			"showOutput": "always",
-			// Use the standard less compilation problem matcher.
 			"problemMatcher": "$gulp-tsc"
+		},
+        {
+			"taskName": "webserver",
+			"isTestCommand": true,
+			"showOutput": "always"
 		}
 	]
 }
