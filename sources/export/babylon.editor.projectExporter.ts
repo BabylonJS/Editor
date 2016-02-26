@@ -145,7 +145,8 @@
 
                     if (object[thing] instanceof Texture) {
                         obj[thing] = {
-
+                            base64Name: (<Texture>object[thing]).name,
+                            base64Buffer: object[thing]._buffer
                         };
                     }
                 }

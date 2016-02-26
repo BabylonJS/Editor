@@ -132,6 +132,13 @@ var BABYLON;
                     var newShadowGenerator = BABYLON.ShadowGenerator.Parse(shadows, core.currentScene);
                     BABYLON.Tags.EnableFor(newShadowGenerator);
                     BABYLON.Tags.AddTagsTo(newShadowGenerator, "added");
+                    newShadowGenerator.getShadowMap().renderList.some(function (value, index, array) {
+                        if (!value) {
+                            array.splice(index, 1);
+                            return true;
+                        }
+                        return false;
+                    });
                 }
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;

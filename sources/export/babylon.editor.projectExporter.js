@@ -118,7 +118,10 @@ var BABYLON;
                         if (typeof object[thing] === "number")
                             obj[thing] = object[thing];
                         if (object[thing] instanceof BABYLON.Texture) {
-                            obj[thing] = {};
+                            obj[thing] = {
+                                base64Name: object[thing].name,
+                                base64Buffer: object[thing]._buffer
+                            };
                         }
                     }
                     return obj;

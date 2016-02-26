@@ -153,6 +153,15 @@
                 var newShadowGenerator = ShadowGenerator.Parse(shadows, core.currentScene);
                 Tags.EnableFor(newShadowGenerator);
                 Tags.AddTagsTo(newShadowGenerator, "added");
+
+                newShadowGenerator.getShadowMap().renderList.some((value: AbstractMesh, index: number, array: AbstractMesh[]) => {
+                    if (!value) {
+                        array.splice(index, 1);
+                        return true;
+                    }
+
+                    return false;
+                });
             }
 
             // Set global animations
