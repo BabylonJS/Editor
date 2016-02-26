@@ -119,3 +119,6 @@ UpgradeLog*.XML
 
 # Windows files
 Thumbs.db
+
+# For node modules
+node_modules

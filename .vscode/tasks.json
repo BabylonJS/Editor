@@ -1,0 +1,26 @@
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team
+// ${file}: the current opened file
+// ${fileBasename}: the current opened file's basename
+// ${fileDirname}: the current opened file's dirname
+// ${fileExtname}: the current opened file's extension
+// ${cwd}: the current working directory of the spawned process
+
+// A task runner configuration for gulp. Gulp provides a less task
+// which compiles less to css.
+{
+	"version": "0.1.0",
+	"command": "gulp",
+	"isShellCommand": true,
+	"tasks": [
+		{
+			"taskName": "build",
+			// Make this the default build command.
+			"isBuildCommand": true,
+			// Show the output window only if unrecognized errors occur.
+			"showOutput": "always",
+			// Use the standard less compilation problem matcher.
+			"problemMatcher": "$gulp-tsc"
+		}
+	]
+}

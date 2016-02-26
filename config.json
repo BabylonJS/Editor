@@ -1,0 +1,55 @@
+{
+  "build": {
+    "filename": "babylon.editor.max.js",
+    "minFilename": "babylon.editor.js",
+    "declarationFilename": "babylon.editor.d.ts",
+    "outputDirectory": "libs/preview release",
+    "srcOutputDirectory": "sources/"
+  },
+  "core": {
+    "typescript": [
+      "sources/**/*.ts",
+      "!sources/**/*.d.ts",
+      "defines/**/*.d.ts"
+    ],
+    "files": [
+      "sources/babylon.editor.core.js",
+      "sources/babylon.editor.editionTool.js",
+      "sources/babylon.editor.editPanel.js",
+      "sources/babylon.editor.main.js",
+      "sources/babylon.editor.mainToolbar.js",
+      "sources/babylon.editor.sceneGraphTool.js",
+      "sources/babylon.editor.sceneToolbar.js",
+      "sources/babylon.editor.timeline.js",
+      "sources/babylon.editor.toolsToolbar.js",
+      "sources/babylon.editor.transformer.js",
+      
+      "sources/scene/babylon.editor.filesInput.js",
+      "sources/scene/babylon.editor.sceneFactory.js",
+      "sources/scene/babylon.editor.sceneManager.js",
+      
+      "sources/storage/babylon.editor.oneDriveStorage.js",
+      "sources/storage/babylon.editor.storage.js",
+      
+      "sources/internal/babylon.editor.event.js",
+      "sources/internal/babylon.editor.tools.js",
+      
+      "sources/gui/babylon.editor.guiDialog.js",
+      "sources/gui/babylon.editor.guiEdit.js",
+      "sources/gui/babylon.editor.guiElement.js",
+      "sources/gui/babylon.editor.guiForm.js",
+      "sources/gui/babylon.editor.guiGraph.js",
+      "sources/gui/babylon.editor.guiGrid.js",
+      "sources/gui/babylon.editor.guiLayouts.js",
+      "sources/gui/babylon.editor.guiList.js",
+      "sources/gui/babylon.editor.guiPanel.js",
+      "sources/gui/babylon.editor.guiToolbar.js",
+      "sources/gui/babylon.editor.guiWindow.js"
+    ]
+  },
+  "plugins": {
+    "files": [      
+        
+    ]
+  }
+}
