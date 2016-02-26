@@ -3,5 +3,8 @@
         "experimentalDecorators": true,
         "module": "commonjs", 
         "target": "es5"
-    }
+    },
+    "exclude": [
+        "libs/preview release/babylon.editor.d.ts"
+    ]
 }
