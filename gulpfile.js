@@ -13,6 +13,14 @@ var through = require('through2');
 var webserver = require('gulp-webserver');
 
 /*
+Configure files
+*/
+var files = [].concat(config.core.defines);
+for (var i=0; i < config.core.files.length; i++) {
+    files.push(config.core.files[i].replace(".js", ".ts"));
+}
+
+/*
 Compiles all typescript files and creating a declaration file.
 */
 gulp.task("typescript-compile", function () {
@@ -37,11 +45,6 @@ gulp.task("typescript-compile", function () {
 Compiles all typescript files and merges in a single file babylon.editor.js
 */
 gulp.task("build", ["typescript-compile"], function () {
-    var files = [].concat(config.core.defines);
-    for (var i=0; i < config.core.files.length; i++) {
-        files.push(config.core.files[i].replace(".js", ".ts"));
-    }
-    
     var result = gulp.src(files)
         .pipe(typescript({
             target: "ES5",
@@ -59,6 +62,13 @@ gulp.task("build", ["typescript-compile"], function () {
         .pipe(rename(config.build.minFilename))
         .pipe(uglify())
         .pipe(gulp.dest(config.build.outputDirectory));
+});
+
+/*
+Automatically call the "default" task when a TS file changes
+*/
+gulp.task("watch", function() {
+	gulp.watch(files, ["typescript-compile"]);
 });
 
 /**
