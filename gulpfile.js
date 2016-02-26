@@ -12,48 +12,6 @@ var gutil = require('gulp-util');
 var through = require('through2');
 var webserver = require('gulp-webserver');
 
-var extendsSearchRegex = /var\s__extends[\s\S]+?\};/g;
-
-/*
-Cleans the max and minified files
-*/
-var addModuleExports = function (varName) {
-  return through.obj(function (file, enc, cb) {
-
-    var moduleExportsAddition = 
-      '\nif (((typeof window != "undefined" && window.module) || (typeof module != "undefined")) && typeof module.exports != "undefined") {\n' +
-      '    module.exports = ' + varName + ';\n' +
-      '};\n';
-      
-      var extendsAddition = 
-      'var __extends = (this && this.__extends) || function (d, b) {\n' +
-        'for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];\n' +
-        'function __() { this.constructor = d; }\n' +
-        '__.prototype = b.prototype;\n' +
-        'd.prototype = new __();\n' +
-      '};\n';
-
-    if (file.isNull()) {
-      cb(null, file);
-      return;
-    }
-
-    if (file.isStream()) {
-      //streams not supported, no need for now.
-      return;
-    }
-
-    try {
-      file.contents = new Buffer(extendsAddition.concat(String(file.contents)).concat(moduleExportsAddition));
-      this.push(file);
-
-    } catch (err) {
-      this.emit('error', new gutil.PluginError('gulp-add-module-exports', err, {fileName: file.path}));
-    }
-    cb();
-  });
-};
-
 /*
 Compiles all typescript files and creating a declaration file.
 */
@@ -63,7 +21,6 @@ gulp.task("typescript-compile", function () {
             noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
-            typescript: require("typescript"),
             experimentalDecorators: false
         }));
         
@@ -80,18 +37,6 @@ gulp.task("typescript-compile", function () {
 Compiles all typescript files and merges in a single file babylon.editor.js
 */
 gulp.task("build", ["typescript-compile"], function () {
-    /*
-    return merge2(gulp.src(config.core.files), gulp.src(config.plugins.files))
-        .pipe(concat(config.build.filename))
-        //.pipe(cleants())
-        //.pipe(replace(extendsSearchRegex, ""))
-        //.pipe(addModuleExports("BABYLON.EDITOR"))
-        .pipe(gulp.dest(config.build.outputDirectory))
-        .pipe(rename(config.build.minFilename))
-        .pipe(uglify())
-        .pipe(gulp.dest(config.build.outputDirectory));
-    */
-    
     var files = [].concat(config.core.defines);
     for (var i=0; i < config.core.files.length; i++) {
         files.push(config.core.files[i].replace(".js", ".ts"));
