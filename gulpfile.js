@@ -92,7 +92,7 @@ gulp.task("build", ["typescript-compile"], function () {
         .pipe(gulp.dest(config.build.outputDirectory));
     */
     
-    var files = [].concat(config.core.typescript);
+    var files = [].concat(config.core.defines);
     for (var i=0; i < config.core.files.length; i++) {
         files.push(config.core.files[i].replace(".js", ".ts"));
     }
@@ -105,7 +105,15 @@ gulp.task("build", ["typescript-compile"], function () {
             out: config.build.filename
         }));
         
-	return result.js.pipe(gulp.dest(config.build.outputDirectory));
+	return result.js.pipe(gulp.dest(config.build.outputDirectory))
+        .pipe(concat(config.build.filename))
+        .pipe(cleants())
+        //.pipe(replace(extendsSearchRegex, ""))
+        //.pipe(addModuleExports("BABYLON.EDITOR"))
+        .pipe(gulp.dest(config.build.outputDirectory))
+        .pipe(rename(config.build.minFilename))
+        .pipe(uglify())
+        .pipe(gulp.dest(config.build.outputDirectory));
 });
 
 /**

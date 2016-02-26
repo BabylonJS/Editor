@@ -7,7 +7,7 @@
     "srcOutputDirectory": "sources/"
   },
   "core": {
-    "typescript": [
+    "defines": [
       "!sources/**/*.d.ts",
       "defines/**/*.d.ts"
     ],
