@@ -119,4 +119,3 @@ var BABYLON;
         EDITOR.SceneTool = SceneTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.sceneTool.js.map

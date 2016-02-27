@@ -8,6 +8,8 @@
         // Private members
         private _core: EditorCore;
         private _editor: EditorMain;
+        
+        private _fpsInput: JQuery = null;
 
         private _wireframeID: string = "WIREFRAME";
         private _boundingBoxID: string = "BOUNDINGBOX";
@@ -138,16 +140,22 @@
             this.toolbar.buildElement(this.container);
 
             // Set events
-            var fpsInput: JQuery = (<any>$("#SCENE-TOOLBAR-FPS-INPUT")).w2field("int", { autoFormat: true });
-            fpsInput.change((event: JQueryEventObject) => {
-                GUIAnimationEditor.FramesPerSecond = parseFloat(fpsInput.val());
-                this._setFramesPerSecond();
+            this._fpsInput = (<any>$("#SCENE-TOOLBAR-FPS-INPUT")).w2field("int", { autoFormat: true });
+            this._fpsInput.change((event: JQueryEventObject) => {
+                GUIAnimationEditor.FramesPerSecond = parseFloat(this._fpsInput.val());
+                this._configureFramesPerSecond();
             });
-            fpsInput.val(String(GUIAnimationEditor.FramesPerSecond));
+            this._fpsInput.val(String(GUIAnimationEditor.FramesPerSecond));
+        }
+        
+        // Sets frames per second in FPS input
+        public setFramesPerSecond(fps: number): void {
+            this._fpsInput.val(String(fps));
+            this._configureFramesPerSecond();
         }
 
         // Set new frames per second
-        private _setFramesPerSecond(): void {
+        private _configureFramesPerSecond(): void {
             var setFPS = (objs: IAnimatable[]) => {
                 for (var objIndex = 0; objIndex < objs.length; objIndex++) {
                     for (var animIndex = 0; animIndex < objs[objIndex].animations.length; animIndex++) {

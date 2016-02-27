@@ -321,4 +321,3 @@ var BABYLON;
         EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.sceneGraphTool.js.map

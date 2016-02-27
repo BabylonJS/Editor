@@ -1998,15 +1998,17 @@ var BABYLON;
                 var colorsFolder = this._element.addFolder("Colors");
                 if (object.diffuse) {
                     var diffuseFolder = colorsFolder.addFolder("Diffuse Color");
+                    diffuseFolder.open();
                     diffuseFolder.add(object.diffuse, "r").min(0.0).max(1.0).step(0.01);
                     diffuseFolder.add(object.diffuse, "g").min(0.0).max(1.0).step(0.01);
                     diffuseFolder.add(object.diffuse, "b").min(0.0).max(1.0).step(0.01);
                 }
                 if (object.specular) {
-                    var diffuseFolder = colorsFolder.addFolder("Specular Color");
-                    diffuseFolder.add(object.specular, "r").min(0.0).max(1.0).step(0.01);
-                    diffuseFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
-                    diffuseFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
+                    var specularFolder = colorsFolder.addFolder("Specular Color");
+                    specularFolder.open();
+                    specularFolder.add(object.specular, "r").min(0.0).max(1.0).step(0.01);
+                    specularFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
+                    specularFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
                 }
                 // Shadows
                 var shadowsFolder = this._element.addFolder("Shadows");
@@ -4009,6 +4011,7 @@ var BABYLON;
                 this.container = "BABYLON-EDITOR-SCENE-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
+                this._fpsInput = null;
                 this._wireframeID = "WIREFRAME";
                 this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
@@ -4104,15 +4107,20 @@ var BABYLON;
                 // Build element
                 this.toolbar.buildElement(this.container);
                 // Set events
-                var fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
-                fpsInput.change(function (event) {
-                    EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(fpsInput.val());
-                    _this._setFramesPerSecond();
+                this._fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
+                this._fpsInput.change(function (event) {
+                    EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(_this._fpsInput.val());
+                    _this._configureFramesPerSecond();
                 });
-                fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+                this._fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+            };
+            // Sets frames per second in FPS input
+            SceneToolbar.prototype.setFramesPerSecond = function (fps) {
+                this._fpsInput.val(String(fps));
+                this._configureFramesPerSecond();
             };
             // Set new frames per second
-            SceneToolbar.prototype._setFramesPerSecond = function () {
+            SceneToolbar.prototype._configureFramesPerSecond = function () {
                 var setFPS = function (objs) {
                     for (var objIndex = 0; objIndex < objs.length; objIndex++) {
                         for (var animIndex = 0; animIndex < objs[objIndex].animations.length; animIndex++) {
@@ -4146,7 +4154,6 @@ var BABYLON;
                 var _this = this;
                 // Public members
                 this.container = "BABYLON-EDITOR-PREVIEW-TIMELINE";
-                this.canvasContainer = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
                 this.animations = [];
                 this._overlay = null;
                 this._overlayText = null;
@@ -4875,7 +4882,7 @@ var BABYLON;
         var FilesInput = (function (_super) {
             __extends(FilesInput, _super);
             function FilesInput(core, sceneLoadedCallback, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, startingProcessingFilesCallback) {
-                _super.call(this, core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, null), progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core));
+                _super.call(this, core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, this), progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core));
             }
             FilesInput._callbackStart = function (core) {
                 return function () {
@@ -5331,7 +5338,7 @@ var BABYLON;
                     var uri = "https://login.live.com/oauth20_authorize.srf"
                         + "?client_id=" + OneDriveStorage._ClientID
                         + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
-                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
+                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
                     var popup = EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
                     popup.OneDriveStorageCallback = success;
                 }
@@ -6414,6 +6421,7 @@ var BABYLON;
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
                 EDITOR.GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || EDITOR.GUIAnimationEditor.FramesPerSecond;
+                core.editor.sceneToolbar.setFramesPerSecond(EDITOR.GUIAnimationEditor.FramesPerSecond);
                 for (var i = 0; i < project.globalConfiguration.animatedAtLaunch.length; i++) {
                     var animated = project.globalConfiguration.animatedAtLaunch[i];
                     switch (animated.type) {
@@ -6800,6 +6808,8 @@ var BABYLON;
                 this._addAnimationForm = null;
                 this._addAnimationName = "New Animation";
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                this._graphPaper = null;
+                this._graphLines = [];
                 // Initialize
                 this.core = core;
                 this.core.eventReceivers.push(this);
@@ -6890,6 +6900,7 @@ var BABYLON;
                         }
                         this._keysList.refresh();
                         this.core.editor.timeline.setFramesOfAnimation(animation);
+                        this._configureGraph();
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
                         var selected = this._animationsList.getSelectedRows();
@@ -7170,6 +7181,33 @@ var BABYLON;
                 }
                 return "";
             };
+            // Configure graph
+            GUIAnimationEditor.prototype._configureGraph = function () {
+                var keys = this._currentAnimation.getKeys();
+                var maxFrame = keys[keys.length - 1].frame;
+                var maxValue = 0;
+                var minValue = 0;
+                var index;
+                for (index = 0; index < keys.length; index++) {
+                    if (keys[index].value > maxValue)
+                        maxValue = keys[index];
+                    if (keys[index].value < minValue)
+                        minValue = keys[index].value;
+                }
+                var path = [];
+                for (var i = 0; i < keys.length; i++) {
+                    var x = (keys[i].frame * this._graphPaper.canvas.getBoundingClientRect().width) / maxFrame;
+                    var y = (keys[i].value * this._graphPaper.canvas.getBoundingClientRect().height) / ((minValue + maxValue) / 2);
+                    if (isNaN(x))
+                        x = 0;
+                    if (isNaN(y))
+                        y = 0;
+                    path.push(i === 0 ? "M" : "L");
+                    path.push(x);
+                    path.push(y);
+                }
+                this._graphLines[0].attr("path", path);
+            };
             // Create the UI
             GUIAnimationEditor.prototype._createUI = function () {
                 var _this = this;
@@ -7177,12 +7215,15 @@ var BABYLON;
                 var animationsListID = "BABYLON-EDITOR-ANIMATION-EDITOR-ANIMATIONS";
                 var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
                 var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
+                var graphCanvasID = "BABYLON-EDITOR-ANIMATION-EDITOR-CANVAS";
                 var animationsListElement = EDITOR.GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
                 var keysListElement = EDITOR.GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
                 var valuesFormElement = EDITOR.GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
+                var graphCanvasElement = EDITOR.GUI.GUIElement.CreateDivElement(graphCanvasID, "width: 40%; height: 50%; float: right;");
                 this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
                 this.core.editor.editPanel.addContainer(keysListElement, keysListID);
                 this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
+                this.core.editor.editPanel.addContainer(graphCanvasElement, graphCanvasID);
                 // Animations List
                 this._animationsList = new EDITOR.GUI.GUIGrid(animationsListID, this.core);
                 this._animationsList.header = "Animations";
@@ -7223,6 +7264,15 @@ var BABYLON;
                     _this._valuesForm.destroy();
                     _this.core.removeEventReceiver(_this);
                 };
+                // Graph
+                this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
+                var rect = this._graphPaper.rect(0, 0, 0, 0);
+                rect.attr("width", "100%");
+                rect.attr("height", "100%");
+                rect.attr("fill", "#f5f6f7");
+                var line = this._graphPaper.path("");
+                line.attr("stroke", Raphael.rgb(255, 0, 0));
+                this._graphLines.push(line);
             };
             // Static methods that gives the last scene frame
             GUIAnimationEditor.GetSceneFrameCount = function (scene) {

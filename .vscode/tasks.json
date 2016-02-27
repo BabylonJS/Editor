@@ -14,7 +14,7 @@
 	"isShellCommand": true,
 	"tasks": [
 		{
-			"taskName": "build",
+			"taskName": "typescript-compile",
 			"isBuildCommand": true,
 			"showOutput": "always",
 			"problemMatcher": "$gulp-tsc"

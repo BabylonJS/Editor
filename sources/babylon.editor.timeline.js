@@ -11,7 +11,6 @@ var BABYLON;
                 var _this = this;
                 // Public members
                 this.container = "BABYLON-EDITOR-PREVIEW-TIMELINE";
-                this.canvasContainer = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
                 this.animations = [];
                 this._overlay = null;
                 this._overlayText = null;
@@ -166,4 +165,3 @@ var BABYLON;
         EDITOR.Timeline = Timeline;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.timeline.js.map

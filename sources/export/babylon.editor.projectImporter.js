@@ -76,7 +76,6 @@ var BABYLON;
                             break;
                         default:
                             continue;
-                            break;
                     }
                     // Check particles system
                     if (!newNode) {
@@ -143,6 +142,7 @@ var BABYLON;
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
                 EDITOR.GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || EDITOR.GUIAnimationEditor.FramesPerSecond;
+                core.editor.sceneToolbar.setFramesPerSecond(EDITOR.GUIAnimationEditor.FramesPerSecond);
                 for (var i = 0; i < project.globalConfiguration.animatedAtLaunch.length; i++) {
                     var animated = project.globalConfiguration.animatedAtLaunch[i];
                     switch (animated.type) {
@@ -189,4 +189,3 @@ var BABYLON;
         EDITOR.ProjectImporter = ProjectImporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.projectImporter.js.map

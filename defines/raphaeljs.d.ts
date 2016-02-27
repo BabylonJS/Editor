@@ -62,13 +62,13 @@ interface Paper {
     height: number;
     setSize(width: number, height: number);
 
-    rect(x: number, y: number, width: number, height: number, r?: number): Rect;
+    rect(x: number, y: number, width: number | string, height: number | string, r?: number): Rect;
     text(x: number, y: number, text: string): Text;
-    path(pathString: string);
+    path(pathString: string | any[]);
 }
 
 // Raphael.js
 declare var Raphael: {
-    (containerID: string, width: number, height: number): Paper;
+    (containerID: string, width: number | string, height: number | string): Paper;
     rgb(r: number, g: number, b: number): RaphaelColor;
 }

@@ -77,4 +77,3 @@ var BABYLON;
         EDITOR.AnimationTool = AnimationTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.animationTool.js.map

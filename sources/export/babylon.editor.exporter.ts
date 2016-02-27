@@ -628,9 +628,6 @@
 
                 return finalString;
             }
-
-            // Should never happen
-            return "";
         }
 
         // Fills array of root nodes

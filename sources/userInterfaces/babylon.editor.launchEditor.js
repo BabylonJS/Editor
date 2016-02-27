@@ -47,4 +47,3 @@ var BABYLON;
         EDITOR.LaunchEditor = LaunchEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.launchEditor.js.map

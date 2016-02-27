@@ -41,4 +41,3 @@ var BABYLON;
         EDITOR.SkyMaterialTool = SkyMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.skyMaterialTool.js.map

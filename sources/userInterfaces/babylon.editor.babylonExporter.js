@@ -103,4 +103,3 @@ var BABYLON;
         EDITOR.BabylonExporter = BabylonExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.babylonExporter.js.map

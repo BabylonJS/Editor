@@ -301,4 +301,3 @@ var BABYLON;
         EDITOR.ProjectExporter = ProjectExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.projectExporter.js.map

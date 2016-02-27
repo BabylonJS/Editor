@@ -2,7 +2,8 @@
     export class FilesInput extends BABYLON.FilesInput {
         constructor(core: EditorCore, sceneLoadedCallback, progressCallback,
             additionnalRenderLoopLogicCallback, textureLoadingCallback,
-            startingProcessingFilesCallback) {
+            startingProcessingFilesCallback)
+        {
             super(core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, this),
                 progressCallback, additionnalRenderLoopLogicCallback,
                 textureLoadingCallback, FilesInput._callbackStart(core));

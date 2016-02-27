@@ -33,6 +33,13 @@
         private _addAnimationForm: GUI.GUIEditForm = null;
         private _addAnimationName: string = "New Animation";
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
+        
+        private _graphPaper: Paper = null;
+        private _graphLines: Path[] = [];
+        private _graphValueTexts: Text[] = [];
+        private _graphMiddleLine: Rect = null;
+        private _graphTimeLines: Rect[] = [];
+        private _graphTimeTexts: Text[] = [];
 
         // Static members
         public static FramesPerSecond: number = 24;
@@ -93,7 +100,7 @@
                     case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
                     case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
                     case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
-                    default: return true; break;
+                    default: return true;
                 }
 
                 var animation = new Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
@@ -144,6 +151,7 @@
 
                     this._keysList.refresh();
                     this.core.editor.timeline.setFramesOfAnimation(animation);
+                    this._configureGraph();
                 }
                 else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_REMOVED) {
                     var selected = this._animationsList.getSelectedRows();
@@ -326,7 +334,7 @@
             this._addAnimationLayout.createPanel(leftDiv, "left", 380, false).setContent(leftDiv);
             this._addAnimationLayout.createPanel(rightDiv, "main", 380, false).setContent(rightDiv);
             this._addAnimationLayout.buildElement(layoutID);
-
+            
             // Edit element
             this._addAnimationForm = new GUI.GUIEditForm(editID, this.core);
             this._addAnimationForm.buildElement(editID);
@@ -488,6 +496,117 @@
 
             return "";
         }
+        
+        // Configure graph
+        private _configureGraph(): void {
+            var keys = this._currentAnimation.getKeys();
+            var maxValue = 0;
+            
+            var getMaxValue = (param?: string) => {
+                var value: any;
+                
+                for (var i = 0; i < keys.length; i++) {
+                    value = keys[i].value;
+                    if (param)
+                        value = value[param];
+                    value = Math.abs(value);
+                    
+                    if (value > maxValue)
+                        maxValue = value;
+                }
+            }
+            
+            var width = this._graphPaper.canvas.getBoundingClientRect().width;
+            var height = this._graphPaper.canvas.getBoundingClientRect().height;
+            var middle = height / 2;
+            var maxFrame = keys[keys.length - 1].frame;
+            
+            var colorParameters = ["r", "g", "b"];
+            var vectorParameters = ["x", "y", "z"];
+            var currentParameters: string[];
+            var parametersCount = 1;
+            
+            // Reset lines
+            for (var lineIndex=0; lineIndex < this._graphLines.length; lineIndex++)
+                this._graphLines[lineIndex].attr("path", "");
+            
+            // Configure drawing and max values
+            switch (this._currentAnimation.dataType) {
+                case Animation.ANIMATIONTYPE_VECTOR2:
+                    parametersCount = 2;
+                    getMaxValue("x");
+                    getMaxValue("y");
+                    currentParameters = vectorParameters;
+                    break;
+                case Animation.ANIMATIONTYPE_VECTOR3:
+                    parametersCount = 3;
+                    getMaxValue("x");
+                    getMaxValue("y");
+                    getMaxValue("z");
+                    currentParameters = vectorParameters;
+                    break;
+                case Animation.ANIMATIONTYPE_COLOR3:
+                    parametersCount = 3;
+                    getMaxValue("r");
+                    getMaxValue("g");
+                    getMaxValue("b");
+                    currentParameters = colorParameters;
+                    break;
+                default:
+                    getMaxValue();
+                    break;
+            }
+            
+            // Draw values
+            this._graphValueTexts[0].attr("y", 10);
+            this._graphValueTexts[0].attr("text", Math.floor(maxValue));
+            
+            this._graphValueTexts[1].attr("y", middle);
+            this._graphValueTexts[1].attr("text", 0);
+            
+            this._graphValueTexts[2].attr("y", middle * 2 - 10);
+            this._graphValueTexts[2].attr("text", -Math.floor(maxValue));
+            
+            // Draw middle line
+            this._graphMiddleLine.attr("path", ["M", 0, middle, "L", this._graphPaper.canvas.getBoundingClientRect().width, middle]);
+            
+            // Draw time lines and texts
+            for (var i=0; i < 10; i++) {
+                var x = ((maxFrame / 10) * width) / maxFrame * (i + 1);
+                this._graphTimeLines[i].attr("path", ["M", x, 0, "L", x, middle * 2]);
+                
+                this._graphTimeTexts[i].attr("text", Math.floor((x * maxFrame) / width));
+                this._graphTimeTexts[i].attr("y", height - 10);
+                this._graphTimeTexts[i].attr("x", x - this._graphTimeTexts[i].attr("width") * 2);
+            }
+            
+            // Draw lines
+            for (var lineIndex=0; lineIndex < parametersCount; lineIndex++) {
+                var path: any[] = [];
+                for (var i = 0; i < keys.length; i++) {
+                    var value = keys[i].value;
+                    if (parametersCount > 1)
+                        value = value[currentParameters[lineIndex]];
+                    
+                    var frame = keys[i].frame;
+                    
+                    var x = (frame * width) / maxFrame;
+                    var y = middle;
+                    
+                    if (value !== 0 && maxValue !== 0)
+                        y += (value * middle) / (maxValue * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1);
+                    
+                    if (isNaN(x)) x = 0;
+                    if (isNaN(y)) y = 0;
+                    
+                    path.push(i === 0 ? "M" : "L");
+                    path.push(x);
+                    path.push(y);
+                }
+                
+                this._graphLines[lineIndex].attr("path", path);
+            }
+        }
 
         // Create the UI
         private _createUI(): void {
@@ -496,15 +615,18 @@
             var animationsListID = "BABYLON-EDITOR-ANIMATION-EDITOR-ANIMATIONS";
             var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
             var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
-
+            var graphCanvasID = "BABYLON-EDITOR-ANIMATION-EDITOR-CANVAS";
+            
             var animationsListElement = GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
             var keysListElement = GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
             var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
-
+            var graphCanvasElement = GUI.GUIElement.CreateDivElement(graphCanvasID, "width: 40%; height: 50%; float: right;");
+            
             this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
             this.core.editor.editPanel.addContainer(keysListElement, keysListID);
             this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
-
+            this.core.editor.editPanel.addContainer(graphCanvasElement, graphCanvasID);
+            
             // Animations List
             this._animationsList = new GUI.GUIGrid<IAnimationRow>(animationsListID, this.core);
             this._animationsList.header = "Animations";
@@ -549,6 +671,41 @@
                 this._valuesForm.destroy();
                 this.core.removeEventReceiver(this);
             };
+            
+            // Graph
+            this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
+            
+            var rect = this._graphPaper.rect(0, 0, 0, 0);
+            rect.attr("width", "100%");
+            rect.attr("height", "100%");
+            rect.attr("fill", "#f5f6f7");
+            
+            for (var i=0; i < 3; i++) {
+                var line = this._graphPaper.path("");
+                this._graphLines.push(line);
+            }
+            this._graphLines[0].attr("stroke", Raphael.rgb(255, 0, 0));
+            this._graphLines[1].attr("stroke", Raphael.rgb(0, 255, 0));
+            this._graphLines[2].attr("stroke", Raphael.rgb(0, 0, 255));
+            
+            for (var i=0; i < 3; i++) {
+                var text = this._graphPaper.text(5, 0, "");
+                text.attr("font-size", 11);
+                text.attr("text-anchor", "start");
+                this._graphValueTexts.push(text);
+            }
+            
+            this._graphMiddleLine = this._graphPaper.path("");
+            this._graphMiddleLine.attr("stroke", Raphael.rgb(128, 128, 128));
+            
+            for (var i=0; i < 10; i++) {
+                var line = this._graphPaper.path("");
+                line.attr("stroke", Raphael.rgb(200, 200, 200));
+                this._graphTimeLines.push(line);
+                
+                var text = this._graphPaper.text(0, 0, "");
+                this._graphTimeTexts.push(text);
+            }
         }
 
         // Static methods that gives the last scene frame

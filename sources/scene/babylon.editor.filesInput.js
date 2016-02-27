@@ -72,4 +72,3 @@ var BABYLON;
         EDITOR.FilesInput = FilesInput;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.filesInput.js.map

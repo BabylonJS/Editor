@@ -199,6 +199,15 @@
         };
 
         //createReleaseScene();
+        
+        var animation = new BABYLON.Animation("anim", "fogStart", 1, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, true);
+        animation.setKeys([
+            { frame: 0, value: 0 },
+            { frame: 5, value: 5 },
+            { frame: 10, value: -5 },
+            { frame: 15, value: -0 }
+        ]);
+        core.currentScene.animations.push(animation);
 
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);

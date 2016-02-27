@@ -194,4 +194,3 @@ var BABYLON;
         EDITOR.GeneralTool = GeneralTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.generalTool.js.map

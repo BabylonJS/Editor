@@ -2,7 +2,6 @@
     export class Timeline implements IEventReceiver, ICustomUpdate, IAnimatable {
         // Public members
         public container: string = "BABYLON-EDITOR-PREVIEW-TIMELINE";
-        public canvasContainer: string = "BABYLON-EDITOR-PREVIEW-TIMELINE-CANVAS";
 
         public animations: Animation[] = [];
 
@@ -25,7 +24,7 @@
         private _currentTime: number = 0;
         private _frameRects: Rect[] = [];
         private _frameTexts: { text: Text, bars: Rect[] }[] = [];
-
+        
         /**
         * Constructor
         * @param core: the editor core instance

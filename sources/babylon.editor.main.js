@@ -203,4 +203,3 @@ var BABYLON;
         EDITOR.EditorMain = EditorMain;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.main.js.map

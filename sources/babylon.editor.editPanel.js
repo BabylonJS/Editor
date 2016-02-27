@@ -47,4 +47,3 @@ var BABYLON;
         EDITOR.EditPanel = EditPanel;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.editPanel.js.map

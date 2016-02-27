@@ -12,6 +12,7 @@ var BABYLON;
                 this.container = "BABYLON-EDITOR-SCENE-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
+                this._fpsInput = null;
                 this._wireframeID = "WIREFRAME";
                 this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
@@ -107,15 +108,20 @@ var BABYLON;
                 // Build element
                 this.toolbar.buildElement(this.container);
                 // Set events
-                var fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
-                fpsInput.change(function (event) {
-                    EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(fpsInput.val());
-                    _this._setFramesPerSecond();
+                this._fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
+                this._fpsInput.change(function (event) {
+                    EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(_this._fpsInput.val());
+                    _this._configureFramesPerSecond();
                 });
-                fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+                this._fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+            };
+            // Sets frames per second in FPS input
+            SceneToolbar.prototype.setFramesPerSecond = function (fps) {
+                this._fpsInput.val(String(fps));
+                this._configureFramesPerSecond();
             };
             // Set new frames per second
-            SceneToolbar.prototype._setFramesPerSecond = function () {
+            SceneToolbar.prototype._configureFramesPerSecond = function () {
                 var setFPS = function (objs) {
                     for (var objIndex = 0; objIndex < objs.length; objIndex++) {
                         for (var animIndex = 0; animIndex < objs[objIndex].animations.length; animIndex++) {
@@ -136,4 +142,3 @@ var BABYLON;
         EDITOR.SceneToolbar = SceneToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.sceneToolbar.js.map

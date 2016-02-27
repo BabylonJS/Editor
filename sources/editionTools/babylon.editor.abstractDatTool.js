@@ -35,4 +35,3 @@ var BABYLON;
         EDITOR.AbstractDatTool = AbstractDatTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.abstractDatTool.js.map

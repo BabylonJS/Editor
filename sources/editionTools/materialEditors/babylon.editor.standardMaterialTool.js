@@ -55,4 +55,3 @@ var BABYLON;
         EDITOR.StandardMaterialTool = StandardMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.standardMaterialTool.js.map

@@ -453,4 +453,3 @@ var BABYLON;
         EDITOR.Transformer = Transformer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.transformer.js.map

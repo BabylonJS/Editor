@@ -66,7 +66,7 @@ var BABYLON;
                     var uri = "https://login.live.com/oauth20_authorize.srf"
                         + "?client_id=" + OneDriveStorage._ClientID
                         + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
-                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
+                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
                     var popup = EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
                     popup.OneDriveStorageCallback = success;
                 }
@@ -183,4 +183,3 @@ var BABYLON;
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.oneDriveStorage.js.map

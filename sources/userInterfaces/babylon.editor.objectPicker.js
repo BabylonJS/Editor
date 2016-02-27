@@ -107,4 +107,3 @@ var BABYLON;
         EDITOR.ObjectPicker = ObjectPicker;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.objectPicker.js.map

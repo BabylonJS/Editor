@@ -65,15 +65,17 @@ var BABYLON;
                 var colorsFolder = this._element.addFolder("Colors");
                 if (object.diffuse) {
                     var diffuseFolder = colorsFolder.addFolder("Diffuse Color");
+                    diffuseFolder.open();
                     diffuseFolder.add(object.diffuse, "r").min(0.0).max(1.0).step(0.01);
                     diffuseFolder.add(object.diffuse, "g").min(0.0).max(1.0).step(0.01);
                     diffuseFolder.add(object.diffuse, "b").min(0.0).max(1.0).step(0.01);
                 }
                 if (object.specular) {
-                    var diffuseFolder = colorsFolder.addFolder("Specular Color");
-                    diffuseFolder.add(object.specular, "r").min(0.0).max(1.0).step(0.01);
-                    diffuseFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
-                    diffuseFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
+                    var specularFolder = colorsFolder.addFolder("Specular Color");
+                    specularFolder.open();
+                    specularFolder.add(object.specular, "r").min(0.0).max(1.0).step(0.01);
+                    specularFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
+                    specularFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
                 }
                 // Shadows
                 var shadowsFolder = this._element.addFolder("Shadows");
@@ -122,4 +124,3 @@ var BABYLON;
         EDITOR.LightTool = LightTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.lightTool.js.map

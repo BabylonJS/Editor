@@ -221,6 +221,7 @@ declare module BABYLON.EDITOR {
         panel: GUI.IGUIPanel;
         private _core;
         private _editor;
+        private _fpsInput;
         private _wireframeID;
         private _boundingBoxID;
         private _centerOnObjectID;
@@ -234,14 +235,14 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
-        private _setFramesPerSecond();
+        setFramesPerSecond(fps: number): void;
+        private _configureFramesPerSecond();
     }
 }
 
 declare module BABYLON.EDITOR {
     class Timeline implements IEventReceiver, ICustomUpdate, IAnimatable {
         container: string;
-        canvasContainer: string;
         animations: Animation[];
         private _core;
         private _panel;
@@ -1171,6 +1172,12 @@ declare module BABYLON.EDITOR {
         private _addAnimationForm;
         private _addAnimationName;
         private _addAnimationType;
+        private _graphPaper;
+        private _graphLines;
+        private _graphValueTexts;
+        private _graphMiddleLine;
+        private _graphTimeLines;
+        private _graphTimeTexts;
         static FramesPerSecond: number;
         private static _CopiedAnimations;
         /**
@@ -1185,6 +1192,7 @@ declare module BABYLON.EDITOR {
         private _setRecords(frame, value);
         private _setFrameValue();
         private _getFrameValue();
+        private _configureGraph();
         private _createUI();
         static GetSceneFrameCount(scene: Scene): number;
         static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void;

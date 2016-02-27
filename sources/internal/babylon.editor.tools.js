@@ -95,4 +95,3 @@ var BABYLON;
         EDITOR.Tools = Tools;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.tools.js.map

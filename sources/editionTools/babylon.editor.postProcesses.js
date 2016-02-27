@@ -158,4 +158,3 @@ var BABYLON;
         EDITOR.PostProcessesTool = PostProcessesTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.postProcesses.js.map

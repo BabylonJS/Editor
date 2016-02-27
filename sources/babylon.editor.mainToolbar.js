@@ -210,4 +210,3 @@ var BABYLON;
         EDITOR.MainToolbar = MainToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.mainToolbar.js.map
