@@ -141,8 +141,8 @@
                 var sceneFolder = this.getFolder("Scene");
 
                 // Files already loaded
-                files.push({ name: "scene.js", content: projectContent });
-                files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
+                //files.push({ name: "scene.js", content: projectContent });
+                //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
 
                 var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
                 files.push({ name: sceneToLoad.name, content: BabylonExporter.GenerateFinalBabylonFile(this.core), parentFolder: sceneFolder.file });
@@ -182,8 +182,15 @@
                 files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
 
                 // Textures
-                if (SceneFactory.HDRPipeline)
-                    files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
+                if (SceneFactory.HDRPipeline && SceneFactory.HDRPipeline.lensTexture) {
+                    var lensTextureName = SceneFactory.HDRPipeline.lensTexture.name;
+                    //files.push({ name: lensTextureName, url: url + "Textures/" + lensTextureName, content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
+                    files.push({
+                        name: lensTextureName,
+                        content: Tools.ConvertBase64StringToArrayBuffer((<any>SceneFactory.HDRPipeline.lensTexture)._buffer),
+                        parentFolder: this.getFolder("Textures").file
+                    });
+                }
 
                 // Materials
                 for (var i = 0; i < project.requestedMaterials.length; i++) {

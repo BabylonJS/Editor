@@ -4,13 +4,13 @@ var typescript = require("gulp-typescript");
 var sourcemaps = require("gulp-sourcemaps");
 var merge2 = require("merge2");
 var concat = require("gulp-concat");
-var cleants = require('gulp-clean-ts-extends');
+var cleants = require("gulp-clean-ts-extends");
 var replace = require("gulp-replace");
 var rename = require("gulp-rename");
 var config = require("./config.json");
-var gutil = require('gulp-util');
-var through = require('through2');
-var webserver = require('gulp-webserver');
+var gutil = require("gulp-util");
+var through = require("through2");
+var webserver = require("gulp-webserver");
 
 /*
 * Configure files
@@ -75,11 +75,11 @@ gulp.task("watch", function() {
  * Web server task to serve a local test page
  */
 gulp.task("webserver", function() {
-  gulp.src('.')
+  gulp.src(".")
     .pipe(webserver({
       livereload: false,
-      open: 'http://localhost:1338/website/index-debug.html',
+      open: "http://localhost:1338/website/index-debug.html",
       port: 1338,
-      fallback: 'index-debug.html'
+      fallback: "index-debug.html"
     }));
 });

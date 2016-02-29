@@ -6581,8 +6581,8 @@ var BABYLON;
                     var project = JSON.parse(projectContent);
                     var sceneFolder = _this.getFolder("Scene");
                     // Files already loaded
-                    files.push({ name: "scene.js", content: projectContent });
-                    files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    //files.push({ name: "scene.js", content: projectContent });
+                    //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
                     files.push({ name: sceneToLoad.name, content: EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core), parentFolder: sceneFolder.file });
                     // Lens flare textures
@@ -6615,8 +6615,15 @@ var BABYLON;
                     files.push({ name: "Web.config", url: url + "../templates/Template.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Textures
-                    if (EDITOR.SceneFactory.HDRPipeline)
-                        files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: _this.getFolder("Textures").file, type: "arraybuffer" });
+                    if (EDITOR.SceneFactory.HDRPipeline && EDITOR.SceneFactory.HDRPipeline.lensTexture) {
+                        var lensTextureName = EDITOR.SceneFactory.HDRPipeline.lensTexture.name;
+                        //files.push({ name: lensTextureName, url: url + "Textures/" + lensTextureName, content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
+                        files.push({
+                            name: lensTextureName,
+                            content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(EDITOR.SceneFactory.HDRPipeline.lensTexture._buffer),
+                            parentFolder: _this.getFolder("Textures").file
+                        });
+                    }
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -6810,6 +6817,10 @@ var BABYLON;
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
                 this._graphPaper = null;
                 this._graphLines = [];
+                this._graphValueTexts = [];
+                this._graphMiddleLine = null;
+                this._graphTimeLines = [];
+                this._graphTimeTexts = [];
                 // Initialize
                 this.core = core;
                 this.core.eventReceivers.push(this);
@@ -6828,195 +6839,15 @@ var BABYLON;
                         this._addAnimationWindow.close();
                         return true;
                     }
-                    var node = this._addAnimationGraph.getSelectedNode();
-                    if (!node)
-                        return true;
-                    // Build property
-                    var property = "";
-                    var data = node.data;
-                    data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone();
-                    while (node.parent && node.text) {
-                        property = node.text + (property === "" ? "" : "." + property);
-                        node = node.parent;
-                    }
-                    // Create animation
-                    var constructorName = EDITOR.Tools.GetConstructorName(data);
-                    var dataType = -1;
-                    switch (constructorName) {
-                        case "Number":
-                        case "Boolean":
-                            dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
-                            break;
-                        case "Vector3":
-                            dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
-                            break;
-                        case "Color3":
-                        case "Color4":
-                            dataType = BABYLON.Animation.ANIMATIONTYPE_COLOR3;
-                            break;
-                        case "Vector2":
-                            dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR2;
-                            break;
-                        default: return true;
-                    }
-                    var animation = new BABYLON.Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
-                    animation.setKeys([{
-                            frame: 0,
-                            value: data
-                        }, {
-                            frame: 1,
-                            value: data
-                        }]);
-                    this.object.animations.push(animation);
-                    BABYLON.Tags.AddTagsTo(animation, "modified");
-                    this._animationsList.addRow({
-                        name: this._addAnimationName
-                    });
-                    // Finish
-                    this.core.editor.timeline.reset();
-                    this._addAnimationWindow.close();
+                    this._onAddAnimation();
                     return true;
                 }
-                // Lists
-                if (event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_SELECTED && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_ADDED
-                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== EDITOR.GUIEventType.FORM_CHANGED
-                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_MENU_SELECTED) {
-                    return false;
-                }
+                // Animations list
                 if (event.guiEvent.caller === this._animationsList) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
-                        var index = this._animationsList.getSelectedRows()[0];
-                        var animation = this.object.animations[index];
-                        var keys = animation.getKeys();
-                        this._currentAnimation = animation;
-                        this._currentKey = null;
-                        this._keysList.clear();
-                        for (var i = 0; i < keys.length; i++) {
-                            this._keysList.addRecord({
-                                key: keys[i].frame.toString(),
-                                value: this._getFrameTime(keys[i].frame),
-                                recid: i
-                            });
-                        }
-                        this._keysList.refresh();
-                        this.core.editor.timeline.setFramesOfAnimation(animation);
-                        this._configureGraph();
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
-                        var selected = this._animationsList.getSelectedRows();
-                        var offset = 0;
-                        for (var i = 0; i < selected.length; i++) {
-                            this.object.animations.splice(selected[i] - offset, 1);
-                            offset++;
-                        }
-                        this._keysList.clear();
-                        this.core.currentScene.stopAnimation(this.object);
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
-                        this._createAnimation();
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_MENU_SELECTED) {
-                        var id = event.guiEvent.data;
-                        if (id === EContextMenuID.COPY) {
-                            GUIAnimationEditor._CopiedAnimations = [];
-                            var selected = this._animationsList.getSelectedRows();
-                            for (var i = 0; i < selected.length; i++) {
-                                GUIAnimationEditor._CopiedAnimations.push(this.object.animations[selected[i]]);
-                            }
-                        }
-                        else if (id === EContextMenuID.PASTE) {
-                            for (var i = 0; i < GUIAnimationEditor._CopiedAnimations.length; i++) {
-                                var anim = GUIAnimationEditor._CopiedAnimations[i];
-                                var animKeys = anim.getKeys();
-                                var animation = new BABYLON.Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
-                                var keys = [];
-                                for (var j = 0; j < animKeys.length; j++) {
-                                    keys.push({
-                                        frame: animKeys[j].frame,
-                                        value: animKeys[j].value
-                                    });
-                                }
-                                animation.setKeys(keys);
-                                this.object.animations.push(animation);
-                                BABYLON.Tags.AddTagsTo(animation, "modified");
-                                this._animationsList.addRow({
-                                    name: anim.name
-                                });
-                            }
-                        }
-                        else if (id === EContextMenuID.PASTE_KEYS) {
-                            var selected = this._animationsList.getSelectedRows();
-                            if (GUIAnimationEditor._CopiedAnimations.length === 1 && selected.length === 1) {
-                                var animation = this.object.animations[selected[0]];
-                                var anim = GUIAnimationEditor._CopiedAnimations[0];
-                                var keys = anim.getKeys();
-                                var length = animation.getKeys().length;
-                                for (var i = 0; i < keys.length; i++) {
-                                    animation.getKeys().push({
-                                        frame: keys[i].frame,
-                                        value: keys[i].value
-                                    });
-                                    this._keysList.addRow({
-                                        key: keys[i].frame,
-                                        value: this._getFrameTime(keys[i].frame),
-                                        recid: length
-                                    });
-                                    length++;
-                                }
-                            }
-                        }
-                    }
                     this._setRecords(0, "");
                     return true;
                 }
                 else if (event.guiEvent.caller === this._keysList && this._currentAnimation !== null) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
-                        var index = this._keysList.getSelectedRows()[0];
-                        var key = this._currentAnimation.getKeys()[index];
-                        this._currentKey = key;
-                        this._setRecords(key.frame, key.value);
-                        var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
-                        var keys = this._currentAnimation.getKeys();
-                        var lastKey = keys[keys.length - 1];
-                        var frame = lastKey ? lastKey.frame + 1 : 0;
-                        var value = 0;
-                        var effectiveTarget = this._getEffectiveTarget();
-                        if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
-                            value = effectiveTarget.clone();
-                        else
-                            value = effectiveTarget;
-                        keys.push({
-                            frame: frame,
-                            value: value
-                        });
-                        this._keysList.addRow({
-                            key: frame,
-                            value: this._getFrameTime(frame),
-                            recid: keys.length
-                        });
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
-                        var selected = this._keysList.getSelectedRows();
-                        var keys = this._currentAnimation.getKeys();
-                        var offset = 0;
-                        for (var i = 0; i < selected.length; i++) {
-                            var nextRow = this._keysList.getRow(selected[i + 1]);
-                            if (nextRow) {
-                                nextRow.recid--;
-                            }
-                            keys.splice(selected[i] - offset, 1);
-                            offset++;
-                        }
-                    }
-                    this.core.editor.timeline.reset();
-                    return true;
-                }
-                else if (event.guiEvent.caller === this._valuesForm && this._currentAnimation && this._currentKey) {
-                    this._setFrameValue();
-                    var indice = this._keysList.getSelectedRows()[0];
-                    this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
                     this.core.editor.timeline.reset();
                     return true;
                 }
@@ -7184,29 +7015,286 @@ var BABYLON;
             // Configure graph
             GUIAnimationEditor.prototype._configureGraph = function () {
                 var keys = this._currentAnimation.getKeys();
-                var maxFrame = keys[keys.length - 1].frame;
                 var maxValue = 0;
-                var minValue = 0;
-                var index;
-                for (index = 0; index < keys.length; index++) {
-                    if (keys[index].value > maxValue)
-                        maxValue = keys[index];
-                    if (keys[index].value < minValue)
-                        minValue = keys[index].value;
+                var getMaxValue = function (param) {
+                    var value;
+                    for (var i = 0; i < keys.length; i++) {
+                        value = keys[i].value;
+                        if (param)
+                            value = value[param];
+                        value = Math.abs(value);
+                        if (value > maxValue)
+                            maxValue = value;
+                    }
+                };
+                var width = this._graphPaper.canvas.getBoundingClientRect().width;
+                var height = this._graphPaper.canvas.getBoundingClientRect().height;
+                var middle = height / 2;
+                var maxFrame = keys[keys.length - 1].frame;
+                var colorParameters = ["r", "g", "b"];
+                var vectorParameters = ["x", "y", "z"];
+                var currentParameters;
+                var parametersCount = 1;
+                // Reset lines
+                for (var lineIndex = 0; lineIndex < this._graphLines.length; lineIndex++)
+                    this._graphLines[lineIndex].attr("path", "");
+                // Configure drawing and max values
+                switch (this._currentAnimation.dataType) {
+                    case BABYLON.Animation.ANIMATIONTYPE_VECTOR2:
+                        parametersCount = 2;
+                        getMaxValue("x");
+                        getMaxValue("y");
+                        currentParameters = vectorParameters;
+                        break;
+                    case BABYLON.Animation.ANIMATIONTYPE_VECTOR3:
+                        parametersCount = 3;
+                        getMaxValue("x");
+                        getMaxValue("y");
+                        getMaxValue("z");
+                        currentParameters = vectorParameters;
+                        break;
+                    case BABYLON.Animation.ANIMATIONTYPE_COLOR3:
+                        parametersCount = 3;
+                        getMaxValue("r");
+                        getMaxValue("g");
+                        getMaxValue("b");
+                        currentParameters = colorParameters;
+                        break;
+                    default:
+                        getMaxValue();
+                        break;
                 }
-                var path = [];
+                // Draw values
+                this._graphValueTexts[0].attr("y", 10);
+                this._graphValueTexts[0].attr("text", Math.floor(maxValue));
+                this._graphValueTexts[1].attr("y", middle);
+                this._graphValueTexts[1].attr("text", 0);
+                this._graphValueTexts[2].attr("y", middle * 2 - 10);
+                this._graphValueTexts[2].attr("text", -Math.floor(maxValue));
+                // Draw middle line
+                this._graphMiddleLine.attr("path", ["M", 0, middle, "L", this._graphPaper.canvas.getBoundingClientRect().width, middle]);
+                // Draw time lines and texts
+                for (var i = 0; i < 10; i++) {
+                    var x = ((maxFrame / 10) * width) / maxFrame * (i + 1);
+                    this._graphTimeLines[i].attr("path", ["M", x, 0, "L", x, middle * 2]);
+                    this._graphTimeTexts[i].attr("text", Math.floor((x * maxFrame) / width));
+                    this._graphTimeTexts[i].attr("y", height - 10);
+                    this._graphTimeTexts[i].attr("x", x - this._graphTimeTexts[i].attr("width") * 2);
+                }
+                // Draw lines
+                for (var lineIndex = 0; lineIndex < parametersCount; lineIndex++) {
+                    var path = [];
+                    for (var i = 0; i < keys.length; i++) {
+                        var value = keys[i].value;
+                        if (parametersCount > 1)
+                            value = value[currentParameters[lineIndex]];
+                        var frame = keys[i].frame;
+                        var x = (frame * width) / maxFrame;
+                        var y = middle;
+                        if (value !== 0 && maxValue !== 0)
+                            y += (value * middle) / (maxValue * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1);
+                        if (isNaN(x))
+                            x = 0;
+                        if (isNaN(y))
+                            y = 0;
+                        path.push(i === 0 ? "M" : "L");
+                        path.push(x);
+                        path.push(y);
+                    }
+                    this._graphLines[lineIndex].attr("path", path);
+                }
+            };
+            // On selected animation
+            GUIAnimationEditor.prototype._onSelectedAnimation = function () {
+                var index = this._animationsList.getSelectedRows()[0];
+                var animation = this.object.animations[index];
+                var keys = animation.getKeys();
+                this._currentAnimation = animation;
+                this._currentKey = null;
+                this._keysList.clear();
                 for (var i = 0; i < keys.length; i++) {
-                    var x = (keys[i].frame * this._graphPaper.canvas.getBoundingClientRect().width) / maxFrame;
-                    var y = (keys[i].value * this._graphPaper.canvas.getBoundingClientRect().height) / ((minValue + maxValue) / 2);
-                    if (isNaN(x))
-                        x = 0;
-                    if (isNaN(y))
-                        y = 0;
-                    path.push(i === 0 ? "M" : "L");
-                    path.push(x);
-                    path.push(y);
+                    this._keysList.addRecord({
+                        key: keys[i].frame.toString(),
+                        value: this._getFrameTime(keys[i].frame),
+                        recid: i
+                    });
                 }
-                this._graphLines[0].attr("path", path);
+                this._keysList.refresh();
+                this.core.editor.timeline.setFramesOfAnimation(animation);
+                this._configureGraph();
+            };
+            // On add animation
+            GUIAnimationEditor.prototype._onAddAnimation = function () {
+                var node = this._addAnimationGraph.getSelectedNode();
+                if (!node)
+                    return;
+                // Build property
+                var property = "";
+                var data = node.data;
+                data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone();
+                while (node.parent && node.text) {
+                    property = node.text + (property === "" ? "" : "." + property);
+                    node = node.parent;
+                }
+                // Create animation
+                var constructorName = EDITOR.Tools.GetConstructorName(data);
+                var dataType = -1;
+                switch (constructorName) {
+                    case "Number":
+                    case "Boolean":
+                        dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+                        break;
+                    case "Vector3":
+                        dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
+                        break;
+                    case "Color3":
+                    case "Color4":
+                        dataType = BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+                        break;
+                    case "Vector2":
+                        dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR2;
+                        break;
+                    default: return;
+                }
+                var animation = new BABYLON.Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
+                animation.setKeys([{
+                        frame: 0,
+                        value: data
+                    }, {
+                        frame: 1,
+                        value: data
+                    }]);
+                this.object.animations.push(animation);
+                BABYLON.Tags.AddTagsTo(animation, "modified");
+                this._animationsList.addRow({
+                    name: this._addAnimationName
+                });
+                // Finish
+                this.core.editor.timeline.reset();
+                this._addAnimationWindow.close();
+            };
+            // On modify key
+            GUIAnimationEditor.prototype._onModifyKey = function () {
+                if (this._keysList.getSelectedRows().length <= 0)
+                    return;
+                this._setFrameValue();
+                var indice = this._keysList.getSelectedRows()[0];
+                this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
+                this.core.editor.timeline.reset();
+                this._currentAnimation.getKeys().sort(function (a, b) {
+                    return a.frame - b.frame;
+                });
+                this._onSelectedAnimation();
+                this._keysList.setSelected([indice]);
+            };
+            // On animation menu selected
+            GUIAnimationEditor.prototype._onAnimationMenuSelected = function (id) {
+                if (id === EContextMenuID.COPY) {
+                    GUIAnimationEditor._CopiedAnimations = [];
+                    var selected = this._animationsList.getSelectedRows();
+                    for (var i = 0; i < selected.length; i++) {
+                        GUIAnimationEditor._CopiedAnimations.push(this.object.animations[selected[i]]);
+                    }
+                }
+                else if (id === EContextMenuID.PASTE) {
+                    for (var i = 0; i < GUIAnimationEditor._CopiedAnimations.length; i++) {
+                        var anim = GUIAnimationEditor._CopiedAnimations[i];
+                        var animKeys = anim.getKeys();
+                        var animation = new BABYLON.Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
+                        var keys = [];
+                        for (var j = 0; j < animKeys.length; j++) {
+                            keys.push({
+                                frame: animKeys[j].frame,
+                                value: animKeys[j].value
+                            });
+                        }
+                        animation.setKeys(keys);
+                        this.object.animations.push(animation);
+                        BABYLON.Tags.AddTagsTo(animation, "modified");
+                        this._animationsList.addRow({
+                            name: anim.name
+                        });
+                    }
+                }
+                else if (id === EContextMenuID.PASTE_KEYS) {
+                    var selected = this._animationsList.getSelectedRows();
+                    if (GUIAnimationEditor._CopiedAnimations.length === 1 && selected.length === 1) {
+                        var animation = this.object.animations[selected[0]];
+                        var anim = GUIAnimationEditor._CopiedAnimations[0];
+                        var keys = anim.getKeys();
+                        var length = animation.getKeys().length;
+                        for (var i = 0; i < keys.length; i++) {
+                            animation.getKeys().push({
+                                frame: keys[i].frame,
+                                value: keys[i].value
+                            });
+                            this._keysList.addRow({
+                                key: keys[i].frame,
+                                value: this._getFrameTime(keys[i].frame),
+                                recid: length
+                            });
+                            length++;
+                        }
+                    }
+                }
+            };
+            // On delete animations
+            GUIAnimationEditor.prototype._onDeleteAnimations = function () {
+                var selected = this._animationsList.getSelectedRows();
+                var offset = 0;
+                for (var i = 0; i < selected.length; i++) {
+                    this.object.animations.splice(selected[i] - offset, 1);
+                    offset++;
+                }
+                this._keysList.clear();
+                this.core.currentScene.stopAnimation(this.object);
+            };
+            // Onkey selected
+            GUIAnimationEditor.prototype._onKeySelected = function () {
+                var index = this._keysList.getSelectedRows()[0];
+                var key = this._currentAnimation.getKeys()[index];
+                this._currentKey = key;
+                this._setRecords(key.frame, key.value);
+                var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
+            };
+            // On add key
+            GUIAnimationEditor.prototype._onAddKey = function () {
+                var keys = this._currentAnimation.getKeys();
+                var lastKey = keys[keys.length - 1];
+                var frame = lastKey ? lastKey.frame + 1 : 0;
+                var value = 0;
+                var effectiveTarget = this._getEffectiveTarget();
+                if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
+                    value = effectiveTarget.clone();
+                else
+                    value = effectiveTarget;
+                keys.push({
+                    frame: frame,
+                    value: value
+                });
+                this._keysList.addRow({
+                    key: frame,
+                    value: this._getFrameTime(frame),
+                    recid: keys.length
+                });
+                // Reset list
+                this._onSelectedAnimation();
+            };
+            // On remove key(s)
+            GUIAnimationEditor.prototype._onRemoveKeys = function () {
+                var selected = this._keysList.getSelectedRows();
+                var keys = this._currentAnimation.getKeys();
+                var offset = 0;
+                for (var i = 0; i < selected.length; i++) {
+                    var nextRow = this._keysList.getRow(selected[i + 1]);
+                    if (nextRow) {
+                        nextRow.recid--;
+                    }
+                    keys.splice(selected[i] - offset, 1);
+                    offset++;
+                }
+                // Reset list
+                this._onSelectedAnimation();
             };
             // Create the UI
             GUIAnimationEditor.prototype._createUI = function () {
@@ -7242,6 +7330,18 @@ var BABYLON;
                         recid: i
                     });
                 }
+                this._animationsList.onDelete = function (selected) {
+                    _this._onDeleteAnimations();
+                };
+                this._animationsList.onAdd = function () {
+                    _this._createAnimation();
+                };
+                this._animationsList.onMenuClick = function (id) {
+                    _this._onAnimationMenuSelected(id);
+                };
+                this._animationsList.onClick = function (selected) {
+                    _this._onSelectedAnimation();
+                };
                 // Keys List
                 this._keysList = new EDITOR.GUI.GUIGrid(keysListID, this.core);
                 this._keysList.header = "Keys";
@@ -7252,17 +7352,23 @@ var BABYLON;
                 this._keysList.showDelete = true;
                 this._keysList.showAdd = true;
                 this._keysList.buildElement(keysListID);
+                this._keysList.onAdd = function () {
+                    _this._onAddKey();
+                };
+                this._keysList.onDelete = function (selected) {
+                    _this._onRemoveKeys();
+                };
+                this._keysList.onClick = function (selected) {
+                    _this._onKeySelected();
+                };
                 // Values form
                 this._valuesForm = new EDITOR.GUI.GUIForm(valuesFormID, "Value", this.core);
                 this._valuesForm.header = "";
                 this._valuesForm.createField("frame", "float", "Frame :", 3);
                 this._valuesForm.createField("value", "text", "Value :", 3);
                 this._valuesForm.buildElement(valuesFormID);
-                this.core.editor.editPanel.onClose = function () {
-                    _this._animationsList.destroy();
-                    _this._keysList.destroy();
-                    _this._valuesForm.destroy();
-                    _this.core.removeEventReceiver(_this);
+                this._valuesForm.onFormChanged = function () {
+                    _this._onModifyKey();
                 };
                 // Graph
                 this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
@@ -7270,9 +7376,36 @@ var BABYLON;
                 rect.attr("width", "100%");
                 rect.attr("height", "100%");
                 rect.attr("fill", "#f5f6f7");
-                var line = this._graphPaper.path("");
-                line.attr("stroke", Raphael.rgb(255, 0, 0));
-                this._graphLines.push(line);
+                for (var i = 0; i < 3; i++) {
+                    var line = this._graphPaper.path("");
+                    this._graphLines.push(line);
+                }
+                this._graphLines[0].attr("stroke", Raphael.rgb(255, 0, 0));
+                this._graphLines[1].attr("stroke", Raphael.rgb(0, 255, 0));
+                this._graphLines[2].attr("stroke", Raphael.rgb(0, 0, 255));
+                for (var i = 0; i < 3; i++) {
+                    var text = this._graphPaper.text(5, 0, "");
+                    text.attr("font-size", 11);
+                    text.attr("text-anchor", "start");
+                    this._graphValueTexts.push(text);
+                }
+                this._graphMiddleLine = this._graphPaper.path("");
+                this._graphMiddleLine.attr("stroke", Raphael.rgb(128, 128, 128));
+                for (var i = 0; i < 10; i++) {
+                    var line = this._graphPaper.path("");
+                    line.attr("stroke", Raphael.rgb(200, 200, 200));
+                    this._graphTimeLines.push(line);
+                    var text = this._graphPaper.text(0, 0, "");
+                    this._graphTimeTexts.push(text);
+                }
+                // Finish
+                this.core.editor.editPanel.onClose = function () {
+                    _this._animationsList.destroy();
+                    _this._keysList.destroy();
+                    _this._valuesForm.destroy();
+                    _this._graphPaper.clear();
+                    _this.core.removeEventReceiver(_this);
+                };
             };
             // Static methods that gives the last scene frame
             GUIAnimationEditor.GetSceneFrameCount = function (scene) {

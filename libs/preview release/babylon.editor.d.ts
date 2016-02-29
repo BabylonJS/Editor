@@ -42,24 +42,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class EditPanel {
-        core: EditorCore;
-        editor: EditorMain;
-        panel: GUI.GUIPanel;
-        onClose: () => void;
-        private _containers;
-        private _mainPanel;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore);
-        addContainer(container: string, id?: string): boolean;
-        close(): void;
-        setPanelSize(percents: number): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class EditionTool implements ICustomUpdate, IEventReceiver {
         object: any;
         container: string;
@@ -80,6 +62,24 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         addTool(tool: ICustomEditionTool): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class EditPanel {
+        core: EditorCore;
+        editor: EditorMain;
+        panel: GUI.GUIPanel;
+        onClose: () => void;
+        private _containers;
+        private _mainPanel;
+        /**
+        * Constructor
+        */
+        constructor(core: EditorCore);
+        addContainer(container: string, id?: string): boolean;
+        close(): void;
+        setPanelSize(percents: number): void;
     }
 }
 
@@ -775,7 +775,7 @@ declare module BABYLON.EDITOR.GUI {
         showSearch: boolean;
         menus: W2UI.IGridMenu[];
         onClick: (selected: number[]) => void;
-        onMenuClick: (id: string) => void;
+        onMenuClick: (id: number) => void;
         onDelete: (selected: number[]) => void;
         onAdd: () => void;
         onEdit: (selected: number[]) => void;
@@ -1193,6 +1193,14 @@ declare module BABYLON.EDITOR {
         private _setFrameValue();
         private _getFrameValue();
         private _configureGraph();
+        private _onSelectedAnimation();
+        private _onAddAnimation();
+        private _onModifyKey();
+        private _onAnimationMenuSelected(id);
+        private _onDeleteAnimations();
+        private _onKeySelected();
+        private _onAddKey();
+        private _onRemoveKeys();
         private _createUI();
         static GetSceneFrameCount(scene: Scene): number;
         static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void;

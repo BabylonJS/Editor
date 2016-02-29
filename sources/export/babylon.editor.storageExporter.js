@@ -111,8 +111,8 @@ var BABYLON;
                     var project = JSON.parse(projectContent);
                     var sceneFolder = _this.getFolder("Scene");
                     // Files already loaded
-                    files.push({ name: "scene.js", content: projectContent });
-                    files.push({ name: "template.js", content: EDITOR.Exporter.ExportCode(_this.core), parentFolder: _this.getFolder("js").file });
+                    //files.push({ name: "scene.js", content: projectContent });
+                    //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
                     files.push({ name: sceneToLoad.name, content: EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core), parentFolder: sceneFolder.file });
                     // Lens flare textures
@@ -145,8 +145,15 @@ var BABYLON;
                     files.push({ name: "Web.config", url: url + "../templates/Template.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Textures
-                    if (EDITOR.SceneFactory.HDRPipeline)
-                        files.push({ name: "lensdirt.jpg", url: url + "Textures/lensdirt.jpg", content: null, parentFolder: _this.getFolder("Textures").file, type: "arraybuffer" });
+                    if (EDITOR.SceneFactory.HDRPipeline && EDITOR.SceneFactory.HDRPipeline.lensTexture) {
+                        var lensTextureName = EDITOR.SceneFactory.HDRPipeline.lensTexture.name;
+                        //files.push({ name: lensTextureName, url: url + "Textures/" + lensTextureName, content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
+                        files.push({
+                            name: lensTextureName,
+                            content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(EDITOR.SceneFactory.HDRPipeline.lensTexture._buffer),
+                            parentFolder: _this.getFolder("Textures").file
+                        });
+                    }
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
