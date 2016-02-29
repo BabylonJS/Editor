@@ -13,6 +13,12 @@ declare module BABYLON.EDITOR {
         private _addAnimationForm;
         private _addAnimationName;
         private _addAnimationType;
+        private _graphPaper;
+        private _graphLines;
+        private _graphValueTexts;
+        private _graphMiddleLine;
+        private _graphTimeLines;
+        private _graphTimeTexts;
         static FramesPerSecond: number;
         private static _CopiedAnimations;
         /**
@@ -27,6 +33,15 @@ declare module BABYLON.EDITOR {
         private _setRecords(frame, value);
         private _setFrameValue();
         private _getFrameValue();
+        private _configureGraph();
+        private _onSelectedAnimation();
+        private _onAddAnimation();
+        private _onModifyKey();
+        private _onAnimationMenuSelected(id);
+        private _onDeleteAnimations();
+        private _onKeySelected();
+        private _onAddKey();
+        private _onRemoveKeys();
         private _createUI();
         static GetSceneFrameCount(scene: Scene): number;
         static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void;

@@ -79,87 +79,16 @@
                 return true;
             }
 
-            // Lists
-            if (event.guiEvent.eventType !== GUIEventType.GRID_SELECTED && event.guiEvent.eventType !== GUIEventType.GRID_ROW_ADDED
-                && event.guiEvent.eventType !== GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== GUIEventType.FORM_CHANGED
-                && event.guiEvent.eventType !== GUIEventType.GRID_MENU_SELECTED) {
-                return false;
-            }
-
             // Animations list
             if (event.guiEvent.caller === this._animationsList) {
-                if (event.guiEvent.eventType === GUIEventType.GRID_SELECTED) {
-                    this._onSelectedAnimation();
-                }
-                else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_ADDED) {
-                    this._createAnimation();
-                }
-                else if (event.guiEvent.eventType === GUIEventType.GRID_MENU_SELECTED) {
-                    var id: number = event.guiEvent.data;
-                    this._onAnimationMenuSelected(id);
-                }
-
                 this._setRecords(0, "");
 
                 return true;
             }
+            // Keys list
             else if (event.guiEvent.caller === this._keysList && this._currentAnimation !== null) {
-                if (event.guiEvent.eventType === GUIEventType.GRID_SELECTED) {
-                    var index: number = this._keysList.getSelectedRows()[0];
-                    var key = this._currentAnimation.getKeys()[index];
-
-                    this._currentKey = key;
-                    this._setRecords(key.frame, key.value);
-
-                    var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
-                }
-                else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_ADDED) {
-                    var keys = this._currentAnimation.getKeys();
-                    var lastKey = keys[keys.length - 1];
-
-                    var frame = lastKey ? lastKey.frame + 1 : 0;
-                    var value = 0;
-
-                    var effectiveTarget = this._getEffectiveTarget();
-
-                    if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
-                        value = effectiveTarget.clone();
-                    else
-                        value = <number>effectiveTarget;
-
-                    keys.push({
-                        frame: frame,
-                        value: value
-                    });
-
-                    this._keysList.addRow({
-                        key: frame,
-                        value: this._getFrameTime(frame),
-                        recid: keys.length
-                    });
-                }
-                else if (event.guiEvent.eventType === GUIEventType.GRID_ROW_REMOVED) {
-                    var selected = this._keysList.getSelectedRows();
-                    var keys = this._currentAnimation.getKeys();
-                    var offset = 0;
-
-                    for (var i = 0; i < selected.length; i++) {
-                        var nextRow = this._keysList.getRow(selected[i + 1]);
-                        if (nextRow) {
-                            nextRow.recid--;
-                        }
-
-                        keys.splice(selected[i] - offset, 1);
-                        offset++;
-                    }
-                }
-
                 this.core.editor.timeline.reset();
 
-                return true;
-            }
-            else if (event.guiEvent.caller === this._valuesForm && this._currentAnimation && this._currentKey) {
-                this._onModifyKey();
                 return true;
             }
 
@@ -546,9 +475,12 @@
         
         // On modify key
         private _onModifyKey(): void {
-            this._setFrameValue();
+            if (this._keysList.getSelectedRows().length <= 0)
+                return;
 
+            this._setFrameValue();
             var indice = this._keysList.getSelectedRows()[0];
+
             this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
             this.core.editor.timeline.reset();
             
@@ -621,6 +553,81 @@
             }
         }
 
+        // On delete animations
+        private _onDeleteAnimations(): void {
+            var selected = this._animationsList.getSelectedRows();
+            var offset = 0;
+
+            for (var i = 0; i < selected.length; i++) {
+                this.object.animations.splice(selected[i] - offset, 1);
+                offset++;
+            }
+
+            this._keysList.clear();
+            this.core.currentScene.stopAnimation(this.object);  
+        }
+
+        // Onkey selected
+        private _onKeySelected(): void {
+            var index: number = this._keysList.getSelectedRows()[0];
+            var key = this._currentAnimation.getKeys()[index];
+
+            this._currentKey = key;
+            this._setRecords(key.frame, key.value);
+
+            var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
+        }
+
+        // On add key
+        private _onAddKey(): void {
+            var keys = this._currentAnimation.getKeys();
+            var lastKey = keys[keys.length - 1];
+
+            var frame = lastKey ? lastKey.frame + 1 : 0;
+            var value = 0;
+
+            var effectiveTarget = this._getEffectiveTarget();
+
+            if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
+                value = effectiveTarget.clone();
+            else
+                value = <number>effectiveTarget;
+
+            keys.push({
+                frame: frame,
+                value: value
+            });
+
+            this._keysList.addRow({
+                key: frame,
+                value: this._getFrameTime(frame),
+                recid: keys.length
+            });
+
+            // Reset list
+            this._onSelectedAnimation();
+        }
+
+        // On remove key(s)
+        private _onRemoveKeys(): void {
+            var selected = this._keysList.getSelectedRows();
+            var keys = this._currentAnimation.getKeys();
+            var offset = 0;
+
+            for (var i = 0; i < selected.length; i++) {
+                var nextRow = this._keysList.getRow(selected[i + 1]);
+                if (nextRow) {
+                    nextRow.recid--;
+                }
+
+                keys.splice(selected[i] - offset, 1);
+                offset++;
+            }
+
+            // Reset list
+            this._onSelectedAnimation();
+        }
+
         // Create the UI
         private _createUI(): void {
             this.core.editor.editPanel.setPanelSize(40);
@@ -629,12 +636,12 @@
             var keysListID = "BABYLON-EDITOR-ANIMATION-EDITOR-KEYS";
             var valuesFormID = "BABYLON-EDITOR-ANIMATION-EDITOR-VALUES";
             var graphCanvasID = "BABYLON-EDITOR-ANIMATION-EDITOR-CANVAS";
-            
+
             var animationsListElement = GUI.GUIElement.CreateDivElement(animationsListID, "width: 30%; height: 100%; float: left;");
             var keysListElement = GUI.GUIElement.CreateDivElement(keysListID, "width: 30%; height: 100%; float: left;");
             var valuesFormElement = GUI.GUIElement.CreateDivElement(valuesFormID, "width: 40%; height: 50%;");
             var graphCanvasElement = GUI.GUIElement.CreateDivElement(graphCanvasID, "width: 40%; height: 50%; float: right;");
-            
+
             this.core.editor.editPanel.addContainer(animationsListElement, animationsListID);
             this.core.editor.editPanel.addContainer(keysListElement, keysListID);
             this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
@@ -659,18 +666,18 @@
                     recid: i
                 });
             }
-            
-            this._animationsList.onDelete = (selected: number[]) => {
-                var selected = this._animationsList.getSelectedRows();
-                var offset = 0;
 
-                for (var i = 0; i < selected.length; i++) {
-                    this.object.animations.splice(selected[i] - offset, 1);
-                    offset++;
-                }
-                
-                this._keysList.clear();
-                this.core.currentScene.stopAnimation(this.object);  
+            this._animationsList.onDelete = (selected: number[]) => {
+                this._onDeleteAnimations();
+            };
+            this._animationsList.onAdd = () => {
+                this._createAnimation();
+            };
+            this._animationsList.onMenuClick = (id: number) => {
+                this._onAnimationMenuSelected(id);
+            };
+            this._animationsList.onClick = (selected: number[]) => {
+                this._onSelectedAnimation();
             };
 
             // Keys List
@@ -684,12 +691,26 @@
             this._keysList.showAdd = true;
             this._keysList.buildElement(keysListID);
 
+            this._keysList.onAdd = () => {
+                this._onAddKey();
+            };
+            this._keysList.onDelete = (selected: number[]) => {
+                this._onRemoveKeys();
+            };
+            this._keysList.onClick = (selected: number[]) => {
+                this._onKeySelected();
+            };
+
             // Values form
             this._valuesForm = new GUI.GUIForm(valuesFormID, "Value", this.core);
             this._valuesForm.header = "";
             this._valuesForm.createField("frame", "float", "Frame :", 3);
             this._valuesForm.createField("value", "text", "Value :", 3);
             this._valuesForm.buildElement(valuesFormID);
+
+            this._valuesForm.onFormChanged = () => {
+                this._onModifyKey();
+            };
             
             // Graph
             this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
@@ -731,7 +752,7 @@
                 this._animationsList.destroy();
                 this._keysList.destroy();
                 this._valuesForm.destroy();
-                (<any>this._graphPaper).clear();
+                this._graphPaper.clear();
                 this.core.removeEventReceiver(this);
             };
             

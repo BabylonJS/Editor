@@ -5,6 +5,7 @@ declare module BABYLON.EDITOR {
         panel: GUI.IGUIPanel;
         private _core;
         private _editor;
+        private _fpsInput;
         private _wireframeID;
         private _boundingBoxID;
         private _centerOnObjectID;
@@ -18,6 +19,7 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
-        private _setFramesPerSecond();
+        setFramesPerSecond(fps: number): void;
+        private _configureFramesPerSecond();
     }
 }

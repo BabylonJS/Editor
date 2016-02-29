@@ -65,6 +65,8 @@ interface Paper {
     rect(x: number, y: number, width: number | string, height: number | string, r?: number): Rect;
     text(x: number, y: number, text: string): Text;
     path(pathString: string | any[]);
+
+    clear(): void;
 }
 
 // Raphael.js

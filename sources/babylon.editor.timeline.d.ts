@@ -1,7 +1,6 @@
 declare module BABYLON.EDITOR {
     class Timeline implements IEventReceiver, ICustomUpdate, IAnimatable {
         container: string;
-        canvasContainer: string;
         animations: Animation[];
         private _core;
         private _panel;

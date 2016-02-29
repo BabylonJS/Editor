@@ -55,73 +55,13 @@ var BABYLON;
                     this._onAddAnimation();
                     return true;
                 }
-                // Lists
-                if (event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_SELECTED && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_ADDED
-                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_REMOVED && event.guiEvent.eventType !== EDITOR.GUIEventType.FORM_CHANGED
-                    && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_MENU_SELECTED) {
-                    return false;
-                }
                 // Animations list
                 if (event.guiEvent.caller === this._animationsList) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
-                        this._onSelectedAnimation();
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
-                        this._createAnimation();
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_MENU_SELECTED) {
-                        var id = event.guiEvent.data;
-                        this._onAnimationMenuSelected(id);
-                    }
                     this._setRecords(0, "");
                     return true;
                 }
                 else if (event.guiEvent.caller === this._keysList && this._currentAnimation !== null) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_SELECTED) {
-                        var index = this._keysList.getSelectedRows()[0];
-                        var key = this._currentAnimation.getKeys()[index];
-                        this._currentKey = key;
-                        this._setRecords(key.frame, key.value);
-                        var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_ADDED) {
-                        var keys = this._currentAnimation.getKeys();
-                        var lastKey = keys[keys.length - 1];
-                        var frame = lastKey ? lastKey.frame + 1 : 0;
-                        var value = 0;
-                        var effectiveTarget = this._getEffectiveTarget();
-                        if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
-                            value = effectiveTarget.clone();
-                        else
-                            value = effectiveTarget;
-                        keys.push({
-                            frame: frame,
-                            value: value
-                        });
-                        this._keysList.addRow({
-                            key: frame,
-                            value: this._getFrameTime(frame),
-                            recid: keys.length
-                        });
-                    }
-                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRID_ROW_REMOVED) {
-                        var selected = this._keysList.getSelectedRows();
-                        var keys = this._currentAnimation.getKeys();
-                        var offset = 0;
-                        for (var i = 0; i < selected.length; i++) {
-                            var nextRow = this._keysList.getRow(selected[i + 1]);
-                            if (nextRow) {
-                                nextRow.recid--;
-                            }
-                            keys.splice(selected[i] - offset, 1);
-                            offset++;
-                        }
-                    }
                     this.core.editor.timeline.reset();
-                    return true;
-                }
-                else if (event.guiEvent.caller === this._valuesForm && this._currentAnimation && this._currentKey) {
-                    this._onModifyKey();
                     return true;
                 }
                 return false;
@@ -448,6 +388,8 @@ var BABYLON;
             };
             // On modify key
             GUIAnimationEditor.prototype._onModifyKey = function () {
+                if (this._keysList.getSelectedRows().length <= 0)
+                    return;
                 this._setFrameValue();
                 var indice = this._keysList.getSelectedRows()[0];
                 this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
@@ -509,6 +451,64 @@ var BABYLON;
                     }
                 }
             };
+            // On delete animations
+            GUIAnimationEditor.prototype._onDeleteAnimations = function () {
+                var selected = this._animationsList.getSelectedRows();
+                var offset = 0;
+                for (var i = 0; i < selected.length; i++) {
+                    this.object.animations.splice(selected[i] - offset, 1);
+                    offset++;
+                }
+                this._keysList.clear();
+                this.core.currentScene.stopAnimation(this.object);
+            };
+            // Onkey selected
+            GUIAnimationEditor.prototype._onKeySelected = function () {
+                var index = this._keysList.getSelectedRows()[0];
+                var key = this._currentAnimation.getKeys()[index];
+                this._currentKey = key;
+                this._setRecords(key.frame, key.value);
+                var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
+            };
+            // On add key
+            GUIAnimationEditor.prototype._onAddKey = function () {
+                var keys = this._currentAnimation.getKeys();
+                var lastKey = keys[keys.length - 1];
+                var frame = lastKey ? lastKey.frame + 1 : 0;
+                var value = 0;
+                var effectiveTarget = this._getEffectiveTarget();
+                if (typeof effectiveTarget !== "number" && typeof effectiveTarget !== "boolean")
+                    value = effectiveTarget.clone();
+                else
+                    value = effectiveTarget;
+                keys.push({
+                    frame: frame,
+                    value: value
+                });
+                this._keysList.addRow({
+                    key: frame,
+                    value: this._getFrameTime(frame),
+                    recid: keys.length
+                });
+                // Reset list
+                this._onSelectedAnimation();
+            };
+            // On remove key(s)
+            GUIAnimationEditor.prototype._onRemoveKeys = function () {
+                var selected = this._keysList.getSelectedRows();
+                var keys = this._currentAnimation.getKeys();
+                var offset = 0;
+                for (var i = 0; i < selected.length; i++) {
+                    var nextRow = this._keysList.getRow(selected[i + 1]);
+                    if (nextRow) {
+                        nextRow.recid--;
+                    }
+                    keys.splice(selected[i] - offset, 1);
+                    offset++;
+                }
+                // Reset list
+                this._onSelectedAnimation();
+            };
             // Create the UI
             GUIAnimationEditor.prototype._createUI = function () {
                 var _this = this;
@@ -544,14 +544,16 @@ var BABYLON;
                     });
                 }
                 this._animationsList.onDelete = function (selected) {
-                    var selected = _this._animationsList.getSelectedRows();
-                    var offset = 0;
-                    for (var i = 0; i < selected.length; i++) {
-                        _this.object.animations.splice(selected[i] - offset, 1);
-                        offset++;
-                    }
-                    _this._keysList.clear();
-                    _this.core.currentScene.stopAnimation(_this.object);
+                    _this._onDeleteAnimations();
+                };
+                this._animationsList.onAdd = function () {
+                    _this._createAnimation();
+                };
+                this._animationsList.onMenuClick = function (id) {
+                    _this._onAnimationMenuSelected(id);
+                };
+                this._animationsList.onClick = function (selected) {
+                    _this._onSelectedAnimation();
                 };
                 // Keys List
                 this._keysList = new EDITOR.GUI.GUIGrid(keysListID, this.core);
@@ -563,12 +565,24 @@ var BABYLON;
                 this._keysList.showDelete = true;
                 this._keysList.showAdd = true;
                 this._keysList.buildElement(keysListID);
+                this._keysList.onAdd = function () {
+                    _this._onAddKey();
+                };
+                this._keysList.onDelete = function (selected) {
+                    _this._onRemoveKeys();
+                };
+                this._keysList.onClick = function (selected) {
+                    _this._onKeySelected();
+                };
                 // Values form
                 this._valuesForm = new EDITOR.GUI.GUIForm(valuesFormID, "Value", this.core);
                 this._valuesForm.header = "";
                 this._valuesForm.createField("frame", "float", "Frame :", 3);
                 this._valuesForm.createField("value", "text", "Value :", 3);
                 this._valuesForm.buildElement(valuesFormID);
+                this._valuesForm.onFormChanged = function () {
+                    _this._onModifyKey();
+                };
                 // Graph
                 this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
                 var rect = this._graphPaper.rect(0, 0, 0, 0);
@@ -646,3 +660,4 @@ var BABYLON;
         EDITOR.GUIAnimationEditor = GUIAnimationEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.animationEditor.js.map

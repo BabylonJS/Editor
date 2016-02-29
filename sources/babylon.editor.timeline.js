@@ -165,3 +165,4 @@ var BABYLON;
         EDITOR.Timeline = Timeline;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.timeline.js.map

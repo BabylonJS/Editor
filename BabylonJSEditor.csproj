@@ -204,4 +204,7 @@
     <TypeScriptSourceMap>false</TypeScriptSourceMap>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>if $(ConfigurationName) == Release gulp build</PostBuildEvent>
+  </PropertyGroup>
 </Project>
