@@ -78,7 +78,7 @@ gulp.task("webserver", function() {
   gulp.src(".")
     .pipe(webserver({
       livereload: false,
-      open: "http://localhost:1338/website/index-debug.html",
+      open: "http://localhost:1338/index-debug.html",
       port: 1338,
       fallback: "index-debug.html"
     }));

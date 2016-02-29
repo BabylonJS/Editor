@@ -61,7 +61,7 @@
                 for (var i = 0; i < files.length; i++) {
                     //if (files[i].type !== "application/javascript")
                     //    continue;
-                    if (files[i].name.indexOf(".babyloneditorproject") === -1 && files[i].name.indexOf(".js") === -1)
+                    if (files[i].name.indexOf(".editorproject") === -1 && files[i].name.indexOf(".js") === -1)
                         continue;
 
                     BABYLON.Tools.ReadFile(files[i], readFileCallback(scene, files[i]), null);

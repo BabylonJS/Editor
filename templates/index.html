@@ -26,11 +26,10 @@
     <canvas id="renderCanvas"></canvas>
 
     <!-- LIBS -->
-    <script src="js/babylon.max.js" type="text/javascript"></script>
-    <script src="js/template.js" type="text/javascript"></script>
+    <script src="js/babylon.js" type="text/javascript"></script>
 
     <!-- OTHER JS FILES -->
-    EXPORTER-JS-FILES-TO-ADD
+EXPORTER-JS-FILES-TO-ADD
 
     <script type="text/javascript">
         var canvas = document.getElementById("renderCanvas");
@@ -39,7 +38,7 @@
         BABYLON.SceneLoader.Load("./Scene/", "EXPORTER-SCENE-NAME", engine, function (scene) {
             scene.activeCamera.attachControl(canvas);
 
-            CreateBabylonScene(scene);
+            //CreateBabylonScene(scene);
 
             scene.executeWhenReady(function () {
 

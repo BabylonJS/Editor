@@ -11,7 +11,7 @@ declare module BABYLON.EDITOR.GUI {
         showSearch: boolean;
         menus: W2UI.IGridMenu[];
         onClick: (selected: number[]) => void;
-        onMenuClick: (id: string) => void;
+        onMenuClick: (id: number) => void;
         onDelete: (selected: number[]) => void;
         onAdd: () => void;
         onEdit: (selected: number[]) => void;

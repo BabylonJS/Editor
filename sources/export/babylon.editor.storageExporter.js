@@ -139,11 +139,6 @@ var BABYLON;
                             });
                         }
                     }
-                    // Files to load
-                    var count = files.length;
-                    files.push({ name: "index.html", url: url + "../templates/index.html", content: null });
-                    files.push({ name: "Web.config", url: url + "../templates/Template.xml", content: null });
-                    files.push({ name: "babylon.max.js", url: url + "../libs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Textures
                     if (EDITOR.SceneFactory.HDRPipeline && EDITOR.SceneFactory.HDRPipeline.lensTexture) {
                         var lensTextureName = EDITOR.SceneFactory.HDRPipeline.lensTexture.name;
@@ -154,10 +149,15 @@ var BABYLON;
                             parentFolder: _this.getFolder("Textures").file
                         });
                     }
+                    // Files to load
+                    var count = files.length;
+                    files.push({ name: "index.html", url: url + "templates/index.html", content: null });
+                    files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
+                    files.push({ name: "babylon.js", url: url + "libs/babylon.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
-                        files.push({ name: name, url: url + "../libs/materials/" + name, content: null, parentFolder: _this.getFolder("Materials").file });
+                        files.push({ name: name, url: url + "libs/materials/" + name, content: null, parentFolder: _this.getFolder("Materials").file });
                     }
                     // Load files
                     var loadCallback = function (indice) {

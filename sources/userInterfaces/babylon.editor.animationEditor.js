@@ -660,4 +660,3 @@ var BABYLON;
         EDITOR.GUIAnimationEditor = GUIAnimationEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
-//# sourceMappingURL=babylon.editor.animationEditor.js.map

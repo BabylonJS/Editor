@@ -67,9 +67,9 @@
     <Content Include="libs\materials\babylon.skyMaterial.js" />
     <Content Include="libs\raphael.js" />
     <Content Include="libs\w2ui-1.4.1.js" />
+    <Content Include="redirect.html" />
     <Content Include="templates\index.html" />
-    <Content Include="website\index-debug.html" />
-    <Content Include="website\redirect.html" />
+    <Content Include="index-debug.html" />
     <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>

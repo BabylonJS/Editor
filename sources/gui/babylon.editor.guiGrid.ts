@@ -18,7 +18,7 @@
         public menus: W2UI.IGridMenu[] = [];
 
         public onClick: (selected: number[]) => void;
-        public onMenuClick: (id: string) => void;
+        public onMenuClick: (id: number) => void;
         public onDelete: (selected: number[]) => void;
         public onAdd: () => void;
         public onEdit: (selected: number[]) => void;
