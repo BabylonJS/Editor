@@ -1,8 +1,42 @@
-Babylon.js Editor
+Babylon.js Editor v0.8
 ======
 
-Visual editor for Babylon.js
+Getting started with the Babylon.js Editor?
+Check out the introduction with demos here: https://medium.com/babylon-js/welcome-to-the-babylon-js-editor-c08dccdcec07#.dbhqaduir
 
+The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
+
+The editor is available online at http://editor.babylonjs.com/
+
+Features
+======
+
+* Create and edit particle systems
+* Create and edit animations
+* Create and edit lens flares systems
+* Create and edit materials (complete materials editor will come in version 1.0)
+* Save projects on OneDrive (Drop Box will come in future versions)
+* Deploy project template on OneDrive (Drop Box will come in future versions)
+* Cinematics Editor
+* Scene graph view
+* Create and edit post-process (soon exported in final .babylon scenes)
+* Create and edit render targets (soon exported in final .babylon scenes)
+
+Contribute
+======
+
+The branch "**master**" contains the online version of the editor, available at http://editor.babylonjs.com/
+
+If you want to contribute, you can use the branch "**dev**" and pull request.
+The **master** branch will be merged with the **dev** branch at each stable version, even preview :)
+
+Roadmap for v1.0
+======
+* Introduce Materials Editor
+* Introduce Actions Builder
+
+Licence
+======
 ## Apache License 2.0 (Apache)
 
 Apache License
