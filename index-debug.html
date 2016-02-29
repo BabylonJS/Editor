@@ -208,6 +208,8 @@
             { frame: 15, value: -0 }
         ]);
         core.currentScene.animations.push(animation);
+        BABYLON.EDITOR.SceneFactory.NodesToStart.push(core.currentScene);
+        core.editor.timeline.reset();
 
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);

@@ -12,6 +12,7 @@
         private _paper: Paper;
         private _rect: Rect;
         private _selectorRect: Rect;
+        private _animatedRect: Rect;
 
         private _overlay: JQuery = null;
         private _overlayText: JQuery = null;
@@ -24,6 +25,9 @@
         private _currentTime: number = 0;
         private _frameRects: Rect[] = [];
         private _frameTexts: { text: Text, bars: Rect[] }[] = [];
+
+        private _frameAnimation: Animation;
+        private _currentAnimationFrame: number = 0;
         
         /**
         * Constructor
@@ -40,9 +44,6 @@
             // Register this
             this._core.updates.push(this);
             this._core.eventReceivers.push(this);
-
-            // Set animation
-
         }
 
         // On event
@@ -55,11 +56,30 @@
         public onPreUpdate(): void {
             this._paper.setSize(this._panel.width - 17, 20);
             this._rect.attr("width", this._panel.width - 17);
+            this._animatedRect.attr("x", this._currentAnimationFrame);
         }
 
         // Called after the scene(s) was rendered
         public onPostUpdate(): void {
 
+        }
+
+        // Starts the play mode of the timeline
+        public play(): void {
+            var keys = this._frameAnimation.getKeys();
+
+            this._frameAnimation.framePerSecond = GUIAnimationEditor.FramesPerSecond;
+            keys[0].frame = this._getFrame();
+            keys[0].value = this._getPosition(this._currentTime);
+            keys[1].frame = this._maxFrame;
+            keys[1].value = this._getPosition(this._maxFrame);
+
+            this._core.currentScene.beginAnimation(this, keys[0].frame, this._maxFrame, false, SceneFactory.AnimationSpeed);
+        }
+
+        // Stops the play mode of the timeline
+        public stop(): void {
+            this._core.currentScene.stopAnimation(this);
         }
 
         // Get current time
@@ -107,6 +127,17 @@
 
             this._selectorRect = this._paper.rect(0, 0, 10, 20);
             this._selectorRect.attr("fill", Raphael.rgb(200, 191, 231));
+
+            this._animatedRect = this._paper.rect(0, 0, 4, 20);
+            //this._animatedRect.attr("fill", Raphael.rgb(0, 0, 0));
+
+            // Animations
+            this._frameAnimation = new Animation("anim", "_currentAnimationFrame", 12, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+            this._frameAnimation.setKeys([
+                { frame: 0, value: 0 },
+                { frame: 1, value: 1 }
+            ]);
+            this.animations.push(this._frameAnimation);
 
             // Events
             var click = (event: MouseEvent) => {

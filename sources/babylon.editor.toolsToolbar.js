@@ -69,6 +69,7 @@ var BABYLON;
                                 this._core.currentScene.stopAnimation(node);
                                 this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
+                            this._core.editor.timeline.play();
                         }
                         else {
                             this._core.engine.resize();
@@ -80,6 +81,7 @@ var BABYLON;
                                     node.stop();
                                 }
                             }
+                            this._core.editor.timeline.stop();
                         }
                         this.toolbar.setItemChecked(id, checked);
                         EDITOR.SceneManager.SwitchActionManager();
@@ -110,3 +112,4 @@ var BABYLON;
         EDITOR.ToolsToolbar = ToolsToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.toolsToolbar.js.map

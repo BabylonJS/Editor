@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR {
         private _paper;
         private _rect;
         private _selectorRect;
+        private _animatedRect;
         private _overlay;
         private _overlayText;
         private _overlayObj;
@@ -17,6 +18,8 @@ declare module BABYLON.EDITOR {
         private _currentTime;
         private _frameRects;
         private _frameTexts;
+        private _frameAnimation;
+        private _currentAnimationFrame;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -25,6 +28,8 @@ declare module BABYLON.EDITOR {
         onEvent(event: Event): boolean;
         onPreUpdate(): void;
         onPostUpdate(): void;
+        play(): void;
+        stop(): void;
         currentTime: number;
         reset(): void;
         setFramesOfAnimation(animation: Animation): void;

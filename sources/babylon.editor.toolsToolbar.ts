@@ -92,6 +92,7 @@
                             this._core.currentScene.stopAnimation(node);
                             this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, SceneFactory.AnimationSpeed);
                         }
+                        this._core.editor.timeline.play();
                     }
                     else {
                         this._core.engine.resize();
@@ -105,6 +106,7 @@
                                 (<any>node).stop();
                             }
                         }
+                        this._core.editor.timeline.stop();
                     }
 
                     this.toolbar.setItemChecked(id, checked);
