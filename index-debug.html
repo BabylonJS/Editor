@@ -110,14 +110,14 @@
         editorMain.createRenderLoop();
 
         // Create test scene
-        function createReleaseScene() {
+        function createPBRScene() {
             var scene = core.currentScene;
 
             // Light
             new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
 
             // Environment Texture
-            var hdrTexture = new BABYLON.HDRCubeTexture("Tests/textures/room.hdr", scene, 512);
+            var hdrTexture = new BABYLON.HDRCubeTexture("website/Tests/textures/room.hdr", scene, 512);
 
             // Skybox
             var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
@@ -189,16 +189,16 @@
             wood.specularIntensity = 0.3;
             wood.cameraExposure = 0.9;
             wood.cameraContrast = 1.6;
-            wood.reflectivityTexture = new BABYLON.Texture("Tests/textures/reflectivity.png", scene);
+            wood.reflectivityTexture = new BABYLON.Texture("website/Tests/textures/reflectivity.png", scene);
             wood.useMicroSurfaceFromReflectivityMapAlpha = true;
             wood.albedoColor = BABYLON.Color3.White();
-            wood.albedoTexture = new BABYLON.Texture("Tests/textures/albedo.png", scene);
+            wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
             woodPlank.material = wood;
 
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        //createReleaseScene();
+        createPBRScene();
         
         var animation = new BABYLON.Animation("anim", "fogStart", 1, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, true);
         animation.setKeys([
