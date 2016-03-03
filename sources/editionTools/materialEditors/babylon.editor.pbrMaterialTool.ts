@@ -53,7 +53,7 @@
             pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
             pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
 
-            // Overloaded values
+            // Debug values
             var overloadedFolder = this._element.addFolder("Overloaded Values");
             overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
             overloadedFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");

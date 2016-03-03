@@ -145,7 +145,7 @@
                 //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
 
                 var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
-                files.push({ name: sceneToLoad.name, content: BabylonExporter.GenerateFinalBabylonFile(this.core), parentFolder: sceneFolder.file });
+                files.push({ name: sceneToLoad.name, content: JSON.stringify(BabylonExporter.GenerateFinalBabylonFile(this.core)), parentFolder: sceneFolder.file });
 
                 // Lens flare textures
                 for (var i = 0; i < project.lensFlares.length; i++) {

@@ -2816,7 +2816,7 @@ var BABYLON;
                 pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
                 pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
-                // Overloaded values
+                // Debug values
                 var overloadedFolder = this._element.addFolder("Overloaded Values");
                 overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
                 overloadedFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
@@ -4165,6 +4165,7 @@ var BABYLON;
                 this._currentTime = 0;
                 this._frameRects = [];
                 this._frameTexts = [];
+                this._currentAnimationFrame = 0;
                 // Initialize
                 this._core = core;
                 this._panel = core.editor.playLayouts.getPanelFromType("preview");
@@ -4174,7 +4175,6 @@ var BABYLON;
                 // Register this
                 this._core.updates.push(this);
                 this._core.eventReceivers.push(this);
-                // Set animation
             }
             // On event
             Timeline.prototype.onEvent = function (event) {
@@ -4184,9 +4184,24 @@ var BABYLON;
             Timeline.prototype.onPreUpdate = function () {
                 this._paper.setSize(this._panel.width - 17, 20);
                 this._rect.attr("width", this._panel.width - 17);
+                this._animatedRect.attr("x", this._currentAnimationFrame);
             };
             // Called after the scene(s) was rendered
             Timeline.prototype.onPostUpdate = function () {
+            };
+            // Starts the play mode of the timeline
+            Timeline.prototype.play = function () {
+                var keys = this._frameAnimation.getKeys();
+                this._frameAnimation.framePerSecond = EDITOR.GUIAnimationEditor.FramesPerSecond;
+                keys[0].frame = this._getFrame();
+                keys[0].value = this._getPosition(this._currentTime);
+                keys[1].frame = this._maxFrame;
+                keys[1].value = this._getPosition(this._maxFrame);
+                this._core.currentScene.beginAnimation(this, keys[0].frame, this._maxFrame, false, EDITOR.SceneFactory.AnimationSpeed);
+            };
+            // Stops the play mode of the timeline
+            Timeline.prototype.stop = function () {
+                this._core.currentScene.stopAnimation(this);
             };
             Object.defineProperty(Timeline.prototype, "currentTime", {
                 // Get current time
@@ -4229,6 +4244,15 @@ var BABYLON;
                 this._rect.attr("fill", Raphael.rgb(237, 241, 246));
                 this._selectorRect = this._paper.rect(0, 0, 10, 20);
                 this._selectorRect.attr("fill", Raphael.rgb(200, 191, 231));
+                this._animatedRect = this._paper.rect(0, 0, 4, 20);
+                //this._animatedRect.attr("fill", Raphael.rgb(0, 0, 0));
+                // Animations
+                this._frameAnimation = new BABYLON.Animation("anim", "_currentAnimationFrame", 12, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+                this._frameAnimation.setKeys([
+                    { frame: 0, value: 0 },
+                    { frame: 1, value: 1 }
+                ]);
+                this.animations.push(this._frameAnimation);
                 // Events
                 var click = function (event) {
                     _this._mousex = BABYLON.Tools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
@@ -4379,6 +4403,7 @@ var BABYLON;
                                 this._core.currentScene.stopAnimation(node);
                                 this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
+                            this._core.editor.timeline.play();
                         }
                         else {
                             this._core.engine.resize();
@@ -4390,6 +4415,7 @@ var BABYLON;
                                     node.stop();
                                 }
                             }
+                            this._core.editor.timeline.stop();
                         }
                         this.toolbar.setItemChecked(id, checked);
                         EDITOR.SceneManager.SwitchActionManager();
@@ -6584,7 +6610,7 @@ var BABYLON;
                     //files.push({ name: "scene.js", content: projectContent });
                     //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
-                    files.push({ name: sceneToLoad.name, content: EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core), parentFolder: sceneFolder.file });
+                    files.push({ name: sceneToLoad.name, content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
                         var lf = project.lensFlares[i].serializationObject;
@@ -7472,7 +7498,7 @@ var BABYLON;
                 if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._window) {
                     var button = event.guiEvent.data;
                     if (button === "Generate") {
-                        var obj = BABYLON.SceneSerializer.Serialize(this._core.currentScene);
+                        var obj = BabylonExporter.GenerateFinalBabylonFile(this._core); //BABYLON.SceneSerializer.Serialize(this._core.currentScene);
                         var camera = this._core.currentScene.getCameraByName(this._configForm.getRecord("activeCamera"));
                         obj.activeCameraID = camera ? camera.id : undefined;
                         this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
@@ -7545,7 +7571,34 @@ var BABYLON;
                 var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
-                return JSON.stringify(obj);
+                // Set auto play
+                var maxFrame = EDITOR.GUIAnimationEditor.GetSceneFrameCount(core.currentScene);
+                var setAutoPlay = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var name = objects[i].name;
+                        for (var j = 0; j < EDITOR.SceneFactory.NodesToStart.length; j++) {
+                            if (EDITOR.SceneFactory.NodesToStart[j].name === name) {
+                                objects[i].autoAnimate = true;
+                                objects[i].autoAnimateFrom = 0;
+                                objects[i].autoAnimateTo = maxFrame;
+                                objects[i].autoAnimateLoop = false;
+                                objects[i].autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
+                            }
+                        }
+                    }
+                };
+                if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Scene; })) {
+                    obj.autoAnimate = true;
+                    obj.autoAnimateFrom = 0;
+                    obj.autoAnimateTo = maxFrame;
+                    obj.autoAnimateLoop = false;
+                    obj.autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
+                }
+                setAutoPlay(obj.cameras);
+                setAutoPlay(obj.lights);
+                setAutoPlay(obj.meshes);
+                setAutoPlay(obj.particleSystems);
+                return obj;
             };
             return BabylonExporter;
         })();

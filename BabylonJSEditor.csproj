@@ -63,6 +63,7 @@
     <Content Include="libs\babylon.max.js" />
     <Content Include="libs\dat.gui.min.js" />
     <Content Include="libs\jquery.min.js" />
+    <Content Include="libs\loaders\babylon.objFileLoader.js" />
     <Content Include="libs\materials\babylon.pbrMaterial.js" />
     <Content Include="libs\materials\babylon.skyMaterial.js" />
     <Content Include="libs\raphael.js" />

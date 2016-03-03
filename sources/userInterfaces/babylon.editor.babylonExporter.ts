@@ -30,7 +30,7 @@
                 var button: string = event.guiEvent.data;
 
                 if (button === "Generate") {
-                    var obj = BABYLON.SceneSerializer.Serialize(this._core.currentScene);
+                    var obj = BabylonExporter.GenerateFinalBabylonFile(this._core);//BABYLON.SceneSerializer.Serialize(this._core.currentScene);
                     var camera = this._core.currentScene.getCameraByName(this._configForm.getRecord("activeCamera"));
 
                     obj.activeCameraID = camera ? camera.id : undefined;
@@ -116,13 +116,44 @@
         }
 
         // Generates the final .babylon file
-        public static GenerateFinalBabylonFile(core: EditorCore): string {
+        public static GenerateFinalBabylonFile(core: EditorCore): any {
             var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
 
             if (core.playCamera)
                 obj.activeCameraID = core.playCamera.id;
 
-            return JSON.stringify(obj);
+            // Set auto play
+            var maxFrame = GUIAnimationEditor.GetSceneFrameCount(core.currentScene);
+
+            var setAutoPlay = (objects: any[]) => {
+                for (var i = 0; i < objects.length; i++) {
+                    var name = objects[i].name;
+                    for (var j = 0; j < SceneFactory.NodesToStart.length; j++) {
+                        if ((<any>SceneFactory.NodesToStart[j]).name === name) {
+                            objects[i].autoAnimate = true;
+                            objects[i].autoAnimateFrom = 0;
+                            objects[i].autoAnimateTo = maxFrame;
+                            objects[i].autoAnimateLoop = false;
+                            objects[i].autoAnimateSpeed = SceneFactory.AnimationSpeed;
+                        }
+                    }
+                }
+            };
+
+            if (SceneFactory.NodesToStart.some((value: IAnimatable, index: number, array: IAnimatable[]) => { return value instanceof Scene })) {
+                obj.autoAnimate = true;
+                obj.autoAnimateFrom = 0;
+                obj.autoAnimateTo = maxFrame;
+                obj.autoAnimateLoop = false;
+                obj.autoAnimateSpeed = SceneFactory.AnimationSpeed;
+            }
+
+            setAutoPlay(obj.cameras);
+            setAutoPlay(obj.lights);
+            setAutoPlay(obj.meshes);
+            setAutoPlay(obj.particleSystems);
+
+            return obj;
         }
     }
 }

@@ -23,7 +23,7 @@ var BABYLON;
                 if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._window) {
                     var button = event.guiEvent.data;
                     if (button === "Generate") {
-                        var obj = BABYLON.SceneSerializer.Serialize(this._core.currentScene);
+                        var obj = BabylonExporter.GenerateFinalBabylonFile(this._core); //BABYLON.SceneSerializer.Serialize(this._core.currentScene);
                         var camera = this._core.currentScene.getCameraByName(this._configForm.getRecord("activeCamera"));
                         obj.activeCameraID = camera ? camera.id : undefined;
                         this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
@@ -96,7 +96,34 @@ var BABYLON;
                 var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
-                return JSON.stringify(obj);
+                // Set auto play
+                var maxFrame = EDITOR.GUIAnimationEditor.GetSceneFrameCount(core.currentScene);
+                var setAutoPlay = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var name = objects[i].name;
+                        for (var j = 0; j < EDITOR.SceneFactory.NodesToStart.length; j++) {
+                            if (EDITOR.SceneFactory.NodesToStart[j].name === name) {
+                                objects[i].autoAnimate = true;
+                                objects[i].autoAnimateFrom = 0;
+                                objects[i].autoAnimateTo = maxFrame;
+                                objects[i].autoAnimateLoop = false;
+                                objects[i].autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
+                            }
+                        }
+                    }
+                };
+                if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Scene; })) {
+                    obj.autoAnimate = true;
+                    obj.autoAnimateFrom = 0;
+                    obj.autoAnimateTo = maxFrame;
+                    obj.autoAnimateLoop = false;
+                    obj.autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
+                }
+                setAutoPlay(obj.cameras);
+                setAutoPlay(obj.lights);
+                setAutoPlay(obj.meshes);
+                setAutoPlay(obj.particleSystems);
+                return obj;
             };
             return BabylonExporter;
         })();
