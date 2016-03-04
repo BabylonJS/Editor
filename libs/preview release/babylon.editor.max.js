@@ -7003,6 +7003,9 @@ var BABYLON;
             GUIAnimationEditor.prototype._setFrameValue = function () {
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
+                var changedFrame = false;
+                if (this._currentKey.frame !== frame)
+                    changedFrame = true;
                 this._currentKey.frame = frame;
                 if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
                     this._currentKey.value = parseFloat(value);
@@ -7024,6 +7027,7 @@ var BABYLON;
                 if (!BABYLON.Tags.MatchesQuery(this._currentAnimation, "modified")) {
                     BABYLON.Tags.AddTagsTo(this._currentAnimation, "modified");
                 }
+                return changedFrame;
             };
             // Gets the frame value
             GUIAnimationEditor.prototype._getFrameValue = function () {
@@ -7201,16 +7205,24 @@ var BABYLON;
             };
             // On modify key
             GUIAnimationEditor.prototype._onModifyKey = function () {
+                /*
                 if (this._keysList.getSelectedRows().length <= 0)
                     return;
-                this._setFrameValue();
+                */
+                if (!this._currentKey)
+                    return;
+                var needRefresh = this._setFrameValue();
                 var indice = this._keysList.getSelectedRows()[0];
                 this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
                 this.core.editor.timeline.reset();
                 this._currentAnimation.getKeys().sort(function (a, b) {
                     return a.frame - b.frame;
                 });
-                this._onSelectedAnimation();
+                if (needRefresh) {
+                    var key = this._currentKey;
+                    this._onSelectedAnimation();
+                    this._currentKey = key;
+                }
                 this._keysList.setSelected([indice]);
             };
             // On animation menu selected

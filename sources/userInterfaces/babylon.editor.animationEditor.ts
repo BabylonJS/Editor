@@ -239,9 +239,13 @@
         }
 
         // Sets the frame value
-        private _setFrameValue(): void {
+        private _setFrameValue(): boolean {
             var frame = this._valuesForm.getRecord("frame");
             var value = this._valuesForm.getRecord("value");
+            var changedFrame = false;
+
+            if (this._currentKey.frame !== frame)
+                changedFrame = true;
 
             this._currentKey.frame = frame;
 
@@ -269,6 +273,8 @@
             if (!BABYLON.Tags.MatchesQuery(this._currentAnimation, "modified")) {
                 BABYLON.Tags.AddTagsTo(this._currentAnimation, "modified");
             }
+
+            return changedFrame;
         }
 
         // Gets the frame value
@@ -427,58 +433,62 @@
         private _onAddAnimation(): void {
             var node = this._addAnimationGraph.getSelectedNode();
 
-                if (!node)
-                    return;
+            if (!node)
+                return;
 
-                // Build property
-                var property = "";
+            // Build property
+            var property = "";
 
-                var data: any = node.data;
-                data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone()
+            var data: any = node.data;
+            data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone()
 
-                while (node.parent && node.text) {
-                    property = node.text + (property === "" ? "" : "." + property);
-                    node = node.parent;
-                }
+            while (node.parent && node.text) {
+                property = node.text + (property === "" ? "" : "." + property);
+                node = node.parent;
+            }
 
-                // Create animation
-                var constructorName = Tools.GetConstructorName(data);
-                var dataType = -1;
+            // Create animation
+            var constructorName = Tools.GetConstructorName(data);
+            var dataType = -1;
 
-                switch (constructorName) {
-                    case "Number": case "Boolean": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
-                    case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
-                    case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
-                    case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
-                    default: return;
-                }
+            switch (constructorName) {
+                case "Number": case "Boolean": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
+                case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
+                case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
+                case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
+                default: return;
+            }
 
-                var animation = new Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
-                animation.setKeys([{
-                    frame: 0,
-                    value: data
-                }, {
-                    frame: 1,
-                    value: data
-                }]);
-                this.object.animations.push(animation);
-                BABYLON.Tags.AddTagsTo(animation, "modified");
+            var animation = new Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
+            animation.setKeys([{
+                frame: 0,
+                value: data
+            }, {
+                frame: 1,
+                value: data
+            }]);
+            this.object.animations.push(animation);
+            BABYLON.Tags.AddTagsTo(animation, "modified");
 
-                this._animationsList.addRow({
-                    name: this._addAnimationName
-                });
+            this._animationsList.addRow({
+                name: this._addAnimationName
+            });
                 
-                // Finish
-                this.core.editor.timeline.reset();
-                this._addAnimationWindow.close();
+            // Finish
+            this.core.editor.timeline.reset();
+            this._addAnimationWindow.close();
         }
         
         // On modify key
         private _onModifyKey(): void {
+            /*
             if (this._keysList.getSelectedRows().length <= 0)
                 return;
+            */
+            if (!this._currentKey)
+                return;
 
-            this._setFrameValue();
+            var needRefresh = this._setFrameValue();
             var indice = this._keysList.getSelectedRows()[0];
 
             this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
@@ -487,7 +497,13 @@
             this._currentAnimation.getKeys().sort((a: any, b: any) => {
                 return a.frame - b.frame;
             });
-            this._onSelectedAnimation();
+
+            if (needRefresh) {
+                var key = this._currentKey;
+                this._onSelectedAnimation();
+                this._currentKey = key;
+            }
+
             this._keysList.setSelected([indice]);
         }
         
