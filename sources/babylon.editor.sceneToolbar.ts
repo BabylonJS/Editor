@@ -83,33 +83,9 @@
                 }
                 else if (id.indexOf(this._centerOnObjectID) !== -1) {
                     var object: any = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
-                    if (!object || !object.position)
-                        return true;
+                    this.setFocusOnObject(object);
 
-                    var camera = this._core.camera;
-                    var position = object.position;
-
-                    if (object.getAbsolutePosition)
-                        position = object.getAbsolutePosition();
-
-                    if (object.getBoundingInfo)
-                        position = object.getBoundingInfo().boundingSphere.centerWorld;
-
-                    var keys = [
-                        {
-                            frame: 0,
-                            value: camera.target
-                        }, {
-                            frame: 1,
-                            value: position
-                        }
-                    ];
-
-                    var animation = new Animation("FocusOnObjectAnimation", "target", 10, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
-                    animation.setKeys(keys);
-
-                    scene.stopAnimation(camera);
-                    scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
+                    return true;
                 }
             }
 
@@ -146,6 +122,38 @@
                 this._configureFramesPerSecond();
             });
             this._fpsInput.val(String(GUIAnimationEditor.FramesPerSecond));
+        }
+
+        // Sets the focus of the camera
+        public setFocusOnObject(object: any): void {
+            if (!object || !object.position)
+                return;
+
+            var scene = this._core.currentScene;
+            var camera = this._core.camera;
+            var position = object.position;
+
+            if (object.getAbsolutePosition)
+                position = object.getAbsolutePosition();
+
+            if (object.getBoundingInfo)
+                position = object.getBoundingInfo().boundingSphere.centerWorld;
+
+            var keys = [
+                {
+                    frame: 0,
+                    value: camera.target
+                }, {
+                    frame: 1,
+                    value: position
+                }
+            ];
+
+            var animation = new Animation("FocusOnObjectAnimation", "target", 10, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT);
+            animation.setKeys(keys);
+
+            scene.stopAnimation(camera);
+            scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
         }
         
         // Sets frames per second in FPS input

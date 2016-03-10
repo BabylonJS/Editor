@@ -33,11 +33,14 @@ var BABYLON;
             SceneGraphTool.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
                     if (event.guiEvent.caller === this.sidebar) {
-                        if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED) {
+                        if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED || event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED) {
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.SCENE_EVENT;
                             ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
                             this._core.sendEvent(ev);
+                            if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED) {
+                                this._core.editor.sceneToolbar.setFocusOnObject(event.guiEvent.data);
+                            }
                             return true;
                         }
                         else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {

@@ -22,17 +22,18 @@ var BABYLON;
             GUIEventType[GUIEventType["LAYOUT_CHANGED"] = 2] = "LAYOUT_CHANGED";
             GUIEventType[GUIEventType["PANEL_CHANGED"] = 3] = "PANEL_CHANGED";
             GUIEventType[GUIEventType["GRAPH_SELECTED"] = 4] = "GRAPH_SELECTED";
-            GUIEventType[GUIEventType["TAB_CHANGED"] = 5] = "TAB_CHANGED";
-            GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 6] = "TOOLBAR_MENU_SELECTED";
-            GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 7] = "GRAPH_MENU_SELECTED";
-            GUIEventType[GUIEventType["GRID_SELECTED"] = 8] = "GRID_SELECTED";
-            GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 9] = "GRID_ROW_REMOVED";
-            GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 10] = "GRID_ROW_ADDED";
-            GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 11] = "GRID_ROW_EDITED";
-            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 12] = "GRID_MENU_SELECTED";
-            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 13] = "WINDOW_BUTTON_CLICKED";
-            GUIEventType[GUIEventType["OBJECT_PICKED"] = 14] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 15] = "UNKNOWN";
+            GUIEventType[GUIEventType["GRAPH_DOUBLE_SELECTED"] = 5] = "GRAPH_DOUBLE_SELECTED";
+            GUIEventType[GUIEventType["TAB_CHANGED"] = 6] = "TAB_CHANGED";
+            GUIEventType[GUIEventType["TOOLBAR_MENU_SELECTED"] = 7] = "TOOLBAR_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRAPH_MENU_SELECTED"] = 8] = "GRAPH_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRID_SELECTED"] = 9] = "GRID_SELECTED";
+            GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 10] = "GRID_ROW_REMOVED";
+            GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 11] = "GRID_ROW_ADDED";
+            GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 12] = "GRID_ROW_EDITED";
+            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 13] = "GRID_MENU_SELECTED";
+            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 14] = "WINDOW_BUTTON_CLICKED";
+            GUIEventType[GUIEventType["OBJECT_PICKED"] = 15] = "OBJECT_PICKED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 16] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -602,6 +603,15 @@ var BABYLON;
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_SELECTED);
+                            ev.guiEvent.data = event.object.data;
+                            _this.core.sendEvent(ev);
+                        },
+                        onDblClick: function (event) {
+                            if (_this.onGraphDblClick)
+                                _this.onGraphDblClick(event.object.data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED);
                             ev.guiEvent.data = event.object.data;
                             _this.core.sendEvent(ev);
                         },
@@ -2206,7 +2216,6 @@ var BABYLON;
     (function (EDITOR) {
         var PostProcessesTool = (function (_super) {
             __extends(PostProcessesTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -2215,6 +2224,19 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
+                // Private members
+                this._hdrDebugPasses = [
+                    "HDRToneMapping",
+                    "HDRTextureAdder",
+                    "HDRGaussianBlurV",
+                    "HDRGaussianBlurH",
+                    "HDRDownSampleX4",
+                    "HDRBrightPass",
+                    "HDRPassPostProcess",
+                    "HDR"
+                ];
+                this._downSamplerName = "HDRDownSampler";
+                this._enableDownSampler = true;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
@@ -2230,6 +2252,16 @@ var BABYLON;
             PostProcessesTool.prototype.createUI = function () {
                 // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
+            };
+            PostProcessesTool.prototype.drawBrightPass = function () {
+                //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
+                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                    var result = (this["_hdrDebugEnable" + i]);
+                    if (!result)
+                        EDITOR.SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+                    else
+                        EDITOR.SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+                }
             };
             // Update
             PostProcessesTool.prototype.update = function () {
@@ -2277,6 +2309,21 @@ var BABYLON;
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                     hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+                    var debugFolder = hdrFolder.addFolder("Debug");
+                    for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                        this["_hdrDebugEnable" + i] = true;
+                        debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange(function (result) {
+                            _this.drawBrightPass();
+                        });
+                    }
+                    debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange(function (result) {
+                        for (var i = 0; i < BABYLON.HDRRenderingPipeline.LUM_STEPS; i++) {
+                            if (!result)
+                                EDITOR.SceneFactory.HDRPipeline._disableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
+                            else
+                                EDITOR.SceneFactory.HDRPipeline._enableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
+                        }
+                    });
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
@@ -2809,43 +2856,65 @@ var BABYLON;
                 // PBR
                 var pbrFolder = this._element.addFolder("PBR");
                 pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-                pbrFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
-                pbrFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
-                pbrFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
                 pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
-                pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-                pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
-                // Debug values
-                var overloadedFolder = this._element.addFolder("Overloaded Values");
-                overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
-                overloadedFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
-                overloadedFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
-                overloadedFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
-                overloadedFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
-                overloadedFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
-                // Overloaded colors
-                var overloadedColorsFolder = this._element.addFolder("Overloaded Colors");
-                this.addColorFolder(this.material.overloadedAmbient, "Ambient Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", false, overloadedColorsFolder);
-                this.addColorFolder(this.material.overloadedReflection, "Reflection Color", false, overloadedColorsFolder);
+                // Albedo
+                var albedoFolder = this._element.addFolder("Albedo");
+                this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
+                albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
+                albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump & Parallax");
+                bumpFolder.open();
+                bumpFolder.add(this.material, "useParallax").name("Use Parallax");
+                bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
+                bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                // Reflectivity
+                var reflectivityFolder = this._element.addFolder("Reflectivity");
+                this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
+                reflectivityFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+                reflectivityFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                // Reflection
+                var reflectionFolder = this._element.addFolder("Reflection");
+                this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, reflectionFolder);
+                reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
+                // Emissive
+                var emissiveFolder = this._element.addFolder("Emissive");
+                this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
+                emissiveFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
+                emissiveFolder.add(this.material, "linkEmissiveWithAlbedo").name("Link Emissive With Albedo");
+                emissiveFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+                // Ambient
+                var ambientFolder = this._element.addFolder("Ambient");
+                this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
                 // Options
                 var optionsFolder = this._element.addFolder("Options");
-                optionsFolder.add(this.material, "linkRefractionWithTransparency").name("Link Refraction With Transparency");
-                optionsFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
-                optionsFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
                 optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
                 optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
-                optionsFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
-                // Colors
-                var colorsFolder = this._element.addFolder("Colors");
-                this.addColorFolder(this.material.ambientColor, "Ambient Color", true, colorsFolder);
-                this.addColorFolder(this.material.albedoColor, "Albedo Color", true, colorsFolder);
-                this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, colorsFolder);
-                this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, colorsFolder);
-                this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, colorsFolder);
+                // Debug
+                var debugFolder = this._element.addFolder("Debug");
+                debugFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
+                debugFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
+                // Debug albedo
+                albedoFolder = debugFolder.addFolder("Albedo Debug");
+                this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", true, albedoFolder);
+                albedoFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
+                // Debug reflectivity
+                reflectivityFolder = debugFolder.addFolder("Reflectivity Debug");
+                this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", true, reflectivityFolder);
+                reflectivityFolder.add(this.material, "overloadedReflectivityIntensity").min(0).step(0.01).name("Reflectivity Intensity");
+                // Debug reflection
+                reflectionFolder = debugFolder.addFolder("Reflection Debug");
+                this.addColorFolder(this.material.overloadedReflection, "Reflection Color", true, reflectionFolder);
+                reflectionFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
+                // Debug ambient
+                ambientFolder = debugFolder.addFolder("Ambient Debug");
+                this.addColorFolder(this.material.overloadedAmbient, "Reflection Color", true, ambientFolder);
+                ambientFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
+                // Debug emissive
+                emissiveFolder = debugFolder.addFolder("Emissive Debug");
+                this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", true, emissiveFolder);
+                emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
             };
@@ -3709,11 +3778,14 @@ var BABYLON;
             SceneGraphTool.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
                     if (event.guiEvent.caller === this.sidebar) {
-                        if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED) {
+                        if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_SELECTED || event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED) {
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.SCENE_EVENT;
                             ev.sceneEvent = new EDITOR.SceneEvent(event.guiEvent.data, EDITOR.SceneEventType.OBJECT_PICKED);
                             this._core.sendEvent(ev);
+                            if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED) {
+                                this._core.editor.sceneToolbar.setFocusOnObject(event.guiEvent.data);
+                            }
                             return true;
                         }
                         else if (event.guiEvent.eventType === EDITOR.GUIEventType.GRAPH_MENU_SELECTED) {
@@ -4062,27 +4134,8 @@ var BABYLON;
                     }
                     else if (id.indexOf(this._centerOnObjectID) !== -1) {
                         var object = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
-                        if (!object || !object.position)
-                            return true;
-                        var camera = this._core.camera;
-                        var position = object.position;
-                        if (object.getAbsolutePosition)
-                            position = object.getAbsolutePosition();
-                        if (object.getBoundingInfo)
-                            position = object.getBoundingInfo().boundingSphere.centerWorld;
-                        var keys = [
-                            {
-                                frame: 0,
-                                value: camera.target
-                            }, {
-                                frame: 1,
-                                value: position
-                            }
-                        ];
-                        var animation = new BABYLON.Animation("FocusOnObjectAnimation", "target", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-                        animation.setKeys(keys);
-                        scene.stopAnimation(camera);
-                        scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
+                        this.setFocusOnObject(object);
+                        return true;
                     }
                 }
                 return false;
@@ -4113,6 +4166,31 @@ var BABYLON;
                     _this._configureFramesPerSecond();
                 });
                 this._fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+            };
+            // Sets the focus of the camera
+            SceneToolbar.prototype.setFocusOnObject = function (object) {
+                if (!object || !object.position)
+                    return;
+                var scene = this._core.currentScene;
+                var camera = this._core.camera;
+                var position = object.position;
+                if (object.getAbsolutePosition)
+                    position = object.getAbsolutePosition();
+                if (object.getBoundingInfo)
+                    position = object.getBoundingInfo().boundingSphere.centerWorld;
+                var keys = [
+                    {
+                        frame: 0,
+                        value: camera.target
+                    }, {
+                        frame: 1,
+                        value: position
+                    }
+                ];
+                var animation = new BABYLON.Animation("FocusOnObjectAnimation", "target", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                animation.setKeys(keys);
+                scene.stopAnimation(camera);
+                scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
             };
             // Sets frames per second in FPS input
             SceneToolbar.prototype.setFramesPerSecond = function (fps) {
@@ -5250,6 +5328,7 @@ var BABYLON;
                         if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
                             EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
                             core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
+                            core.editor.sceneToolbar.setFocusOnObject(mesh);
                         }
                     }));
                     if (parentNode && !mesh.parent) {
@@ -6999,7 +7078,7 @@ var BABYLON;
                 this._valuesForm.setRecord("value", this._getFrameValue());
                 this._valuesForm.refresh();
             };
-            // Sets the frame value
+            // Sets the frame value and returns if the frame changed
             GUIAnimationEditor.prototype._setFrameValue = function () {
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
@@ -7215,10 +7294,10 @@ var BABYLON;
                 var indice = this._keysList.getSelectedRows()[0];
                 this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
                 this.core.editor.timeline.reset();
-                this._currentAnimation.getKeys().sort(function (a, b) {
-                    return a.frame - b.frame;
-                });
                 if (needRefresh) {
+                    this._currentAnimation.getKeys().sort(function (a, b) {
+                        return a.frame - b.frame;
+                    });
                     var key = this._currentKey;
                     this._onSelectedAnimation();
                     this._currentKey = key;

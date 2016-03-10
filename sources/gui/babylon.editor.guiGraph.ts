@@ -4,6 +4,7 @@
         public menus: Array<IGraphMenuElement> = [];
 
         public onGraphClick: (data: any) => void;
+        public onGraphDblClick: (data: any) => void;
         public onMenuClick: (id: string) => void;
 
         /**
@@ -121,6 +122,16 @@
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_SELECTED);
+                    ev.guiEvent.data = event.object.data;
+                    this.core.sendEvent(ev);
+                },
+                onDblClick: (event: any) => {
+                    if (this.onGraphDblClick)
+                        this.onGraphDblClick(event.object.data);
+
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRAPH_DOUBLE_SELECTED);
                     ev.guiEvent.data = event.object.data;
                     this.core.sendEvent(ev);
                 },

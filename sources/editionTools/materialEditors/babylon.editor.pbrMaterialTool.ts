@@ -45,47 +45,78 @@
             // PBR
             var pbrFolder = this._element.addFolder("PBR");
             pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-            pbrFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity")
-            pbrFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
-            pbrFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
             pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
-            pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
-            pbrFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
             pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
+            
+            // Albedo
+            var albedoFolder = this._element.addFolder("Albedo");
+            this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
+            albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity")
+            albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
 
-            // Debug values
-            var overloadedFolder = this._element.addFolder("Overloaded Values");
-            overloadedFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
-            overloadedFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
-            overloadedFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
-            overloadedFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
-            overloadedFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
-            overloadedFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
+            // Bump
+            var bumpFolder = this._element.addFolder("Bump & Parallax");
+            bumpFolder.open();
+            bumpFolder.add(this.material, "useParallax").name("Use Parallax");
+            bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
+            bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
 
-            // Overloaded colors
-            var overloadedColorsFolder = this._element.addFolder("Overloaded Colors");
-            this.addColorFolder(this.material.overloadedAmbient, "Ambient Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", false, overloadedColorsFolder);
-            this.addColorFolder(this.material.overloadedReflection, "Reflection Color", false, overloadedColorsFolder);
+            // Reflectivity
+            var reflectivityFolder = this._element.addFolder("Reflectivity");
+            this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
+            reflectivityFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
+            reflectivityFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+
+            // Reflection
+            var reflectionFolder = this._element.addFolder("Reflection");
+            this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, reflectionFolder);
+            reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
+
+            // Emissive
+            var emissiveFolder = this._element.addFolder("Emissive");
+            this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
+            emissiveFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
+            emissiveFolder.add(this.material, "linkEmissiveWithAlbedo").name("Link Emissive With Albedo");
+            emissiveFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+
+            // Ambient
+            var ambientFolder = this._element.addFolder("Ambient");
+            this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
 
             // Options
             var optionsFolder = this._element.addFolder("Options");
-            optionsFolder.add(this.material, "linkRefractionWithTransparency").name("Link Refraction With Transparency");
-            optionsFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
-            optionsFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
             optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
             optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
-            optionsFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
 
-            // Colors
-            var colorsFolder = this._element.addFolder("Colors");
-            this.addColorFolder(this.material.ambientColor, "Ambient Color", true, colorsFolder);
-            this.addColorFolder(this.material.albedoColor, "Albedo Color", true, colorsFolder);
-            this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, colorsFolder);
-            this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, colorsFolder);
-            this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, colorsFolder);
+            // Debug
+            var debugFolder = this._element.addFolder("Debug");
+            debugFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
+            debugFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
+
+            // Debug albedo
+            albedoFolder = debugFolder.addFolder("Albedo Debug");
+            this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", true, albedoFolder);
+            albedoFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
+
+            // Debug reflectivity
+            reflectivityFolder = debugFolder.addFolder("Reflectivity Debug");
+            this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", true, reflectivityFolder);
+            reflectivityFolder.add(this.material, "overloadedReflectivityIntensity").min(0).step(0.01).name("Reflectivity Intensity");
+
+            // Debug reflection
+            reflectionFolder = debugFolder.addFolder("Reflection Debug");
+            this.addColorFolder(this.material.overloadedReflection, "Reflection Color", true, reflectionFolder);
+            reflectionFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
+
+            // Debug ambient
+            ambientFolder = debugFolder.addFolder("Ambient Debug");
+            this.addColorFolder(this.material.overloadedAmbient, "Reflection Color", true, ambientFolder);
+            ambientFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
+
+            // Debug emissive
+            emissiveFolder = debugFolder.addFolder("Emissive Debug");
+            this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", true, emissiveFolder);
+            emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
 
             // Finish
             return true;

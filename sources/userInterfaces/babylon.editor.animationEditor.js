@@ -186,7 +186,7 @@ var BABYLON;
                 this._valuesForm.setRecord("value", this._getFrameValue());
                 this._valuesForm.refresh();
             };
-            // Sets the frame value
+            // Sets the frame value and returns if the frame changed
             GUIAnimationEditor.prototype._setFrameValue = function () {
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
@@ -402,10 +402,10 @@ var BABYLON;
                 var indice = this._keysList.getSelectedRows()[0];
                 this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
                 this.core.editor.timeline.reset();
-                this._currentAnimation.getKeys().sort(function (a, b) {
-                    return a.frame - b.frame;
-                });
                 if (needRefresh) {
+                    this._currentAnimation.getKeys().sort(function (a, b) {
+                        return a.frame - b.frame;
+                    });
                     var key = this._currentKey;
                     this._onSelectedAnimation();
                     this._currentKey = key;

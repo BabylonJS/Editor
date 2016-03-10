@@ -2,6 +2,7 @@ declare module BABYLON.EDITOR.GUI {
     class GUIGraph extends GUIElement<W2UI.IGraphElement> {
         menus: Array<IGraphMenuElement>;
         onGraphClick: (data: any) => void;
+        onGraphDblClick: (data: any) => void;
         onMenuClick: (id: string) => void;
         /**
         * Constructor

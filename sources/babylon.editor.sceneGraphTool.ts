@@ -44,11 +44,15 @@
         public onEvent(event: Event): boolean {
             if (event.eventType === EventType.GUI_EVENT) {
                 if (event.guiEvent.caller === this.sidebar) {
-                    if (event.guiEvent.eventType === GUIEventType.GRAPH_SELECTED) {
+                    if (event.guiEvent.eventType === GUIEventType.GRAPH_SELECTED || event.guiEvent.eventType === GUIEventType.GRAPH_DOUBLE_SELECTED) {
                         var ev = new Event();
                         ev.eventType = EventType.SCENE_EVENT;
                         ev.sceneEvent = new SceneEvent(event.guiEvent.data, SceneEventType.OBJECT_PICKED);
                         this._core.sendEvent(ev);
+
+                        if (event.guiEvent.eventType === GUIEventType.GRAPH_DOUBLE_SELECTED) {
+                            this._core.editor.sceneToolbar.setFocusOnObject(event.guiEvent.data);
+                        }
                         return true;
                     }
                     else if (event.guiEvent.eventType === GUIEventType.GRAPH_MENU_SELECTED) {

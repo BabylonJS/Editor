@@ -235,6 +235,7 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
+        setFocusOnObject(object: any): void;
         setFramesPerSecond(fps: number): void;
         private _configureFramesPerSecond();
     }
@@ -611,6 +612,9 @@ declare module BABYLON.EDITOR {
 declare module BABYLON.EDITOR {
     class PostProcessesTool extends AbstractDatTool {
         tab: string;
+        private _hdrDebugPasses;
+        private _downSamplerName;
+        private _enableDownSampler;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -618,6 +622,7 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
+        drawBrightPass(): void;
         update(): boolean;
         private _ssaoOnly(result);
         private _attachDetachPipeline(attach, pipeline);
@@ -745,6 +750,7 @@ declare module BABYLON.EDITOR.GUI {
     class GUIGraph extends GUIElement<W2UI.IGraphElement> {
         menus: Array<IGraphMenuElement>;
         onGraphClick: (data: any) => void;
+        onGraphDblClick: (data: any) => void;
         onMenuClick: (id: string) => void;
         /**
         * Constructor
@@ -948,17 +954,18 @@ declare module BABYLON.EDITOR {
         LAYOUT_CHANGED = 2,
         PANEL_CHANGED = 3,
         GRAPH_SELECTED = 4,
-        TAB_CHANGED = 5,
-        TOOLBAR_MENU_SELECTED = 6,
-        GRAPH_MENU_SELECTED = 7,
-        GRID_SELECTED = 8,
-        GRID_ROW_REMOVED = 9,
-        GRID_ROW_ADDED = 10,
-        GRID_ROW_EDITED = 11,
-        GRID_MENU_SELECTED = 12,
-        WINDOW_BUTTON_CLICKED = 13,
-        OBJECT_PICKED = 14,
-        UNKNOWN = 15,
+        GRAPH_DOUBLE_SELECTED = 5,
+        TAB_CHANGED = 6,
+        TOOLBAR_MENU_SELECTED = 7,
+        GRAPH_MENU_SELECTED = 8,
+        GRID_SELECTED = 9,
+        GRID_ROW_REMOVED = 10,
+        GRID_ROW_ADDED = 11,
+        GRID_ROW_EDITED = 12,
+        GRID_MENU_SELECTED = 13,
+        WINDOW_BUTTON_CLICKED = 14,
+        OBJECT_PICKED = 15,
+        UNKNOWN = 16,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,

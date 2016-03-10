@@ -5,6 +5,18 @@
         public tab: string = "POSTPROCESSES.TAB";
 
         // Private members
+        private _hdrDebugPasses: string[] = [
+            "HDRToneMapping",
+            "HDRTextureAdder",
+            "HDRGaussianBlurV",
+            "HDRGaussianBlurH",
+            "HDRDownSampleX4",
+            "HDRBrightPass",
+            "HDRPassPostProcess",
+            "HDR"
+        ];
+        private _downSamplerName = "HDRDownSampler";
+        private _enableDownSampler = true;
 
         /**
         * Constructor
@@ -31,6 +43,17 @@
         public createUI(): void {
             // Tabs
             this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
+        }
+
+        public drawBrightPass(): void {
+            //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
+            for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                var result = ((<any>this)["_hdrDebugEnable" + i]);
+                if (!result)
+                    SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+                else
+                    SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+            }
         }
 
         // Update
@@ -85,6 +108,23 @@
                 hdrFolder.add(SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                 hdrFolder.add(SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                 hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+
+                var debugFolder = hdrFolder.addFolder("Debug");
+                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                    (<any>this)["_hdrDebugEnable" + i] = true;
+                    debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange((result: any) => {
+                        this.drawBrightPass();
+                    }); 
+                }
+
+                debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange((result: any) => {
+                    for (var i = 0; i < HDRRenderingPipeline.LUM_STEPS; i++) {
+                        if (!result)
+                            SceneFactory.HDRPipeline._disableEffect(this._downSamplerName + i, this._editionTool.core.currentScene.cameras);
+                        else
+                            SceneFactory.HDRPipeline._enableEffect(this._downSamplerName + i, this._editionTool.core.currentScene.cameras);
+                    }
+                });
             }
 
             // SSAO

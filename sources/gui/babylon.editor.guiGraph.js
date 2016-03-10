@@ -113,6 +113,15 @@ var BABYLON;
                             ev.guiEvent.data = event.object.data;
                             _this.core.sendEvent(ev);
                         },
+                        onDblClick: function (event) {
+                            if (_this.onGraphDblClick)
+                                _this.onGraphDblClick(event.object.data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRAPH_DOUBLE_SELECTED);
+                            ev.guiEvent.data = event.object.data;
+                            _this.core.sendEvent(ev);
+                        },
                         onMenuClick: function (event) {
                             if (_this.onMenuClick)
                                 _this.onMenuClick(event.menuItem.id);

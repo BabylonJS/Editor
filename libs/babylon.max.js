@@ -37757,7 +37757,7 @@ var BABYLON;
                 _this._hdrCurrentLuminance = (pixel[0] * bit_shift.x + pixel[1] * bit_shift.y + pixel[2] * bit_shift.z + pixel[3] * bit_shift.w) / 100.0;
             };
             // Create luminance post-process
-            var ratio = { width: Math.pow(3, lumSteps - 1), height: Math.pow(3, lumSteps - 1) };
+            var ratio = { width: Math.pow(2, lumSteps - 1), height: Math.pow(2, lumSteps - 1) };
             this._downSamplePostProcesses[lumSteps - 1] = new BABYLON.PostProcess("hdr", "hdr", ["lumOffsets"], [], ratio, null, BABYLON.Texture.NEAREST_SAMPLINGMODE, scene.getEngine(), false, "#define LUMINANCE_GENERATOR", BABYLON.Engine.TEXTURETYPE_FLOAT);
             this._downSamplePostProcesses[lumSteps - 1].onApply = luminanceCallback;
             // Create down sample post-processes

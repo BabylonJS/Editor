@@ -63,27 +63,8 @@ var BABYLON;
                     }
                     else if (id.indexOf(this._centerOnObjectID) !== -1) {
                         var object = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
-                        if (!object || !object.position)
-                            return true;
-                        var camera = this._core.camera;
-                        var position = object.position;
-                        if (object.getAbsolutePosition)
-                            position = object.getAbsolutePosition();
-                        if (object.getBoundingInfo)
-                            position = object.getBoundingInfo().boundingSphere.centerWorld;
-                        var keys = [
-                            {
-                                frame: 0,
-                                value: camera.target
-                            }, {
-                                frame: 1,
-                                value: position
-                            }
-                        ];
-                        var animation = new BABYLON.Animation("FocusOnObjectAnimation", "target", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-                        animation.setKeys(keys);
-                        scene.stopAnimation(camera);
-                        scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
+                        this.setFocusOnObject(object);
+                        return true;
                     }
                 }
                 return false;
@@ -114,6 +95,31 @@ var BABYLON;
                     _this._configureFramesPerSecond();
                 });
                 this._fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
+            };
+            // Sets the focus of the camera
+            SceneToolbar.prototype.setFocusOnObject = function (object) {
+                if (!object || !object.position)
+                    return;
+                var scene = this._core.currentScene;
+                var camera = this._core.camera;
+                var position = object.position;
+                if (object.getAbsolutePosition)
+                    position = object.getAbsolutePosition();
+                if (object.getBoundingInfo)
+                    position = object.getBoundingInfo().boundingSphere.centerWorld;
+                var keys = [
+                    {
+                        frame: 0,
+                        value: camera.target
+                    }, {
+                        frame: 1,
+                        value: position
+                    }
+                ];
+                var animation = new BABYLON.Animation("FocusOnObjectAnimation", "target", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                animation.setKeys(keys);
+                scene.stopAnimation(camera);
+                scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
             };
             // Sets frames per second in FPS input
             SceneToolbar.prototype.setFramesPerSecond = function (fps) {

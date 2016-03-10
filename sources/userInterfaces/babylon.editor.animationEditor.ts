@@ -238,7 +238,7 @@
             this._valuesForm.refresh();
         }
 
-        // Sets the frame value
+        // Sets the frame value and returns if the frame changed
         private _setFrameValue(): boolean {
             var frame = this._valuesForm.getRecord("frame");
             var value = this._valuesForm.getRecord("value");
@@ -493,12 +493,12 @@
 
             this._keysList.modifyRow(indice, { key: this._currentKey.frame, value: this._getFrameTime(this._currentKey.frame) });
             this.core.editor.timeline.reset();
-            
-            this._currentAnimation.getKeys().sort((a: any, b: any) => {
-                return a.frame - b.frame;
-            });
 
             if (needRefresh) {
+                this._currentAnimation.getKeys().sort((a: any, b: any) => {
+                    return a.frame - b.frame;
+                });
+
                 var key = this._currentKey;
                 this._onSelectedAnimation();
                 this._currentKey = key;

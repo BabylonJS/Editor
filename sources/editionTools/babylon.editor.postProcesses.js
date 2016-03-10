@@ -9,7 +9,6 @@ var BABYLON;
     (function (EDITOR) {
         var PostProcessesTool = (function (_super) {
             __extends(PostProcessesTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -18,6 +17,19 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
+                // Private members
+                this._hdrDebugPasses = [
+                    "HDRToneMapping",
+                    "HDRTextureAdder",
+                    "HDRGaussianBlurV",
+                    "HDRGaussianBlurH",
+                    "HDRDownSampleX4",
+                    "HDRBrightPass",
+                    "HDRPassPostProcess",
+                    "HDR"
+                ];
+                this._downSamplerName = "HDRDownSampler";
+                this._enableDownSampler = true;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
@@ -33,6 +45,16 @@ var BABYLON;
             PostProcessesTool.prototype.createUI = function () {
                 // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
+            };
+            PostProcessesTool.prototype.drawBrightPass = function () {
+                //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
+                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                    var result = (this["_hdrDebugEnable" + i]);
+                    if (!result)
+                        EDITOR.SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+                    else
+                        EDITOR.SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
+                }
             };
             // Update
             PostProcessesTool.prototype.update = function () {
@@ -80,6 +102,21 @@ var BABYLON;
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                     hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+                    var debugFolder = hdrFolder.addFolder("Debug");
+                    for (var i = 0; i < this._hdrDebugPasses.length; i++) {
+                        this["_hdrDebugEnable" + i] = true;
+                        debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange(function (result) {
+                            _this.drawBrightPass();
+                        });
+                    }
+                    debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange(function (result) {
+                        for (var i = 0; i < BABYLON.HDRRenderingPipeline.LUM_STEPS; i++) {
+                            if (!result)
+                                EDITOR.SceneFactory.HDRPipeline._disableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
+                            else
+                                EDITOR.SceneFactory.HDRPipeline._enableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
+                        }
+                    });
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");

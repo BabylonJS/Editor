@@ -19,6 +19,7 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
+        setFocusOnObject(object: any): void;
         setFramesPerSecond(fps: number): void;
         private _configureFramesPerSecond();
     }
