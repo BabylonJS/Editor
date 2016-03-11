@@ -5,18 +5,7 @@
         public tab: string = "POSTPROCESSES.TAB";
 
         // Private members
-        private _hdrDebugPasses: string[] = [
-            "HDRToneMapping",
-            "HDRTextureAdder",
-            "HDRGaussianBlurV",
-            "HDRGaussianBlurH",
-            "HDRDownSampleX4",
-            "HDRBrightPass",
-            "HDRPassPostProcess",
-            "HDR"
-        ];
-        private _downSamplerName = "HDRDownSampler";
-        private _enableDownSampler = true;
+        private _renderEffects: { } = { };
 
         /**
         * Constructor
@@ -43,17 +32,6 @@
         public createUI(): void {
             // Tabs
             this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
-        }
-
-        public drawBrightPass(): void {
-            //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
-            for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                var result = ((<any>this)["_hdrDebugEnable" + i]);
-                if (!result)
-                    SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-                else
-                    SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-            }
         }
 
         // Update
@@ -110,21 +88,7 @@
                 hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
 
                 var debugFolder = hdrFolder.addFolder("Debug");
-                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                    (<any>this)["_hdrDebugEnable" + i] = true;
-                    debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange((result: any) => {
-                        this.drawBrightPass();
-                    }); 
-                }
-
-                debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange((result: any) => {
-                    for (var i = 0; i < HDRRenderingPipeline.LUM_STEPS; i++) {
-                        if (!result)
-                            SceneFactory.HDRPipeline._disableEffect(this._downSamplerName + i, this._editionTool.core.currentScene.cameras);
-                        else
-                            SceneFactory.HDRPipeline._enableEffect(this._downSamplerName + i, this._editionTool.core.currentScene.cameras);
-                    }
-                });
+                this._setupDebugPipeline(debugFolder, SceneFactory.HDRPipeline);
             }
 
             // SSAO
@@ -140,10 +104,6 @@
             });
 
             if (SceneFactory.SSAOPipeline) {
-                ssaoFolder.add(SceneFactory.EnabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange((result: any) => {
-                    this._ssaoOnly(result);
-                });
-
                 ssaoFolder.add(SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange((result: any) => {
                     this._attachDetachPipeline(result, "ssao");
                 });
@@ -163,17 +123,37 @@
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+
+                var debugFolder = ssaoFolder.addFolder("Debug");
+                this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
             }
 
             return true;
         }
 
-        // Draws SSAO only
-        private _ssaoOnly(result: boolean): void {
-            if (result)
-                SceneFactory.SSAOPipeline._disableEffect(SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
-            else
-                SceneFactory.SSAOPipeline._enableEffect(SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+        // Set up debug mode
+        private _setupDebugPipeline(folder: dat.IFolderElement, pipeline: PostProcessRenderPipeline): void {
+            var renderEffects = (<any>pipeline)._renderEffects;
+
+            var configure = () => {
+                for (var effectName in renderEffects) {
+                    if (this._renderEffects[effectName] === true)
+                        pipeline._enableEffect(effectName, this._getPipelineCameras());
+                    else
+                        pipeline._disableEffect(effectName, this._getPipelineCameras());
+                }
+            };
+            
+            for (var effectName in renderEffects) {
+                var effect: PostProcessRenderEffect = renderEffects[effectName];
+
+                if (!this._renderEffects[effectName])
+                    this._renderEffects[effectName] = true;
+
+                folder.add(this._renderEffects, effectName).onChange((result: any) => {
+                    configure();
+                });
+            }
         }
 
         // Attach/detach pipeline

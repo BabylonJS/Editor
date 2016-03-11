@@ -7,6 +7,8 @@ declare module BABYLON.EDITOR {
         */
         constructor(editionTool: EditionTool);
         update(): boolean;
+        private _setAlbedoTexture();
+        private _setBumpTexture();
         private _createPresetGlass();
         private _createPresetMetal();
         private _createPresetPlastic();

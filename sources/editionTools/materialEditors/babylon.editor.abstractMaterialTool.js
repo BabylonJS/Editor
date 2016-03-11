@@ -77,6 +77,10 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Adds a texture element
+            AbstractMaterialTool.prototype.addTextureButton = function () {
+                return null;
+            };
             return AbstractMaterialTool;
         })(EDITOR.AbstractDatTool);
         EDITOR.AbstractMaterialTool = AbstractMaterialTool;

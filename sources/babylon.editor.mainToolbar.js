@@ -24,6 +24,7 @@ var BABYLON;
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
                 this._mainEditLaunch = "EDIT-LAUNCH";
+                this._mainEditTextures = "EDIT-TEXTURES";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
@@ -102,6 +103,9 @@ var BABYLON;
                         if (selected.selected === this._mainEditLaunch) {
                             var launchEditor = new EDITOR.LaunchEditor(this._core);
                         }
+                        else if (selected.selected === this._mainEditTextures) {
+                            var textureEditor = new EDITOR.GUITextureEditor(this._core, "");
+                        }
                         return true;
                     }
                     // Add
@@ -179,6 +183,7 @@ var BABYLON;
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
+                this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
                 this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");

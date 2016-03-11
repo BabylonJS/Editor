@@ -160,6 +160,7 @@ declare module BABYLON.EDITOR {
         private _projectTemplateStorage;
         private _mainEdit;
         private _mainEditLaunch;
+        private _mainEditTextures;
         private _mainAdd;
         private _addPointLight;
         private _addDirectionalLight;
@@ -612,9 +613,7 @@ declare module BABYLON.EDITOR {
 declare module BABYLON.EDITOR {
     class PostProcessesTool extends AbstractDatTool {
         tab: string;
-        private _hdrDebugPasses;
-        private _downSamplerName;
-        private _enableDownSampler;
+        private _renderEffects;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -622,9 +621,8 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        drawBrightPass(): void;
         update(): boolean;
-        private _ssaoOnly(result);
+        private _setupDebugPipeline(folder, pipeline);
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();
         private _loadHDRLensDirtTexture();
@@ -1314,6 +1312,27 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class GUITextureEditor {
+        object: Object;
+        propertyPath: string;
+        private _core;
+        private _targetObject;
+        private _targetTexture;
+        private _objectName;
+        private _texturesList;
+        /**
+        * Constructor
+        * @param core: the editor core
+        * @param object: the object to edit
+        * @param propertyPath: the path to the texture property of the object
+        */
+        constructor(core: EditorCore, objectName: string, object?: Object, propertyPath?: string);
+        private _createUI();
+        private _onReadFileCallback(name);
+    }
+}
+
+declare module BABYLON.EDITOR {
     class AbstractMaterialTool<T> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
@@ -1327,6 +1346,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): boolean;
         protected addColorFolder(property: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement): dat.IFolderElement;
+        protected addTextureButton(): dat.IFolderElement;
     }
 }
 
@@ -1339,6 +1359,8 @@ declare module BABYLON.EDITOR {
         */
         constructor(editionTool: EditionTool);
         update(): boolean;
+        private _setAlbedoTexture();
+        private _setBumpTexture();
         private _createPresetGlass();
         private _createPresetMetal();
         private _createPresetPlastic();

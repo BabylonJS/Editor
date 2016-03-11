@@ -17,6 +17,7 @@ declare module BABYLON.EDITOR {
         private _projectTemplateStorage;
         private _mainEdit;
         private _mainEditLaunch;
+        private _mainEditTextures;
         private _mainAdd;
         private _addPointLight;
         private _addDirectionalLight;

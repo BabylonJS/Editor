@@ -77,7 +77,8 @@
       "sources/userInterfaces/babylon.editor.babylonExporter.js",
       "sources/userInterfaces/babylon.editor.launchEditor.js",
       "sources/userInterfaces/babylon.editor.objectPicker.js",
-      "sources/userInterfaces/babylon.editor.particleSystemEditor.js"
+      "sources/userInterfaces/babylon.editor.particleSystemEditor.js",
+      "sources/userInterfaces/babylon.editor.textureEditor.js"
     ]
   },
   "plugins": {

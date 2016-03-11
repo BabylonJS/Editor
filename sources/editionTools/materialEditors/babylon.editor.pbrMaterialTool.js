@@ -53,12 +53,14 @@ var BABYLON;
                 this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
                 albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
                 albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
+                albedoFolder.add(this, "_setAlbedoTexture").name("Configure Albedo Texture");
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.open();
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                bumpFolder.add(this, "_setBumpTexture").name("Configure Bump Texture");
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
                 this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
@@ -107,6 +109,14 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
+            };
+            // Set albedo texture
+            PBRMaterialTool.prototype._setAlbedoTexture = function () {
+                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "albedoTexture");
+            };
+            // Set bump texture
+            PBRMaterialTool.prototype._setBumpTexture = function () {
+                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "bumpTexture");
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {

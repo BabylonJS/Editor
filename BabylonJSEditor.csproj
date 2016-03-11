@@ -56,6 +56,7 @@
     <Content Include="css\images\sphere.png" />
     <Content Include="css\images\wireframe.png" />
     <Content Include="css\w2ui-1.4.1.css" />
+    <Content Include="gulpfile.js" />
     <Content Include="libs\ace\ace.js" />
     <Content Include="libs\ace\mode-javascript.js" />
     <Content Include="libs\ace\theme-clouds.js" />
@@ -77,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="templates\Template.xml" />
+    <Content Include="config.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -160,6 +162,7 @@
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.animationEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.objectPicker.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.textureEditor.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

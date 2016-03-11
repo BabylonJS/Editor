@@ -2225,18 +2225,7 @@ var BABYLON;
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
                 // Private members
-                this._hdrDebugPasses = [
-                    "HDRToneMapping",
-                    "HDRTextureAdder",
-                    "HDRGaussianBlurV",
-                    "HDRGaussianBlurH",
-                    "HDRDownSampleX4",
-                    "HDRBrightPass",
-                    "HDRPassPostProcess",
-                    "HDR"
-                ];
-                this._downSamplerName = "HDRDownSampler";
-                this._enableDownSampler = true;
+                this._renderEffects = {};
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
@@ -2252,16 +2241,6 @@ var BABYLON;
             PostProcessesTool.prototype.createUI = function () {
                 // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
-            };
-            PostProcessesTool.prototype.drawBrightPass = function () {
-                //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
-                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                    var result = (this["_hdrDebugEnable" + i]);
-                    if (!result)
-                        EDITOR.SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-                    else
-                        EDITOR.SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-                }
             };
             // Update
             PostProcessesTool.prototype.update = function () {
@@ -2310,20 +2289,7 @@ var BABYLON;
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                     hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
                     var debugFolder = hdrFolder.addFolder("Debug");
-                    for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                        this["_hdrDebugEnable" + i] = true;
-                        debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange(function (result) {
-                            _this.drawBrightPass();
-                        });
-                    }
-                    debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange(function (result) {
-                        for (var i = 0; i < BABYLON.HDRRenderingPipeline.LUM_STEPS; i++) {
-                            if (!result)
-                                EDITOR.SceneFactory.HDRPipeline._disableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
-                            else
-                                EDITOR.SceneFactory.HDRPipeline._enableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
-                        }
-                    });
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline);
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
@@ -2337,9 +2303,6 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.SSAOPipeline) {
-                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange(function (result) {
-                        _this._ssaoOnly(result);
-                    });
                     ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
                         _this._attachDetachPipeline(result, "ssao");
                     });
@@ -2356,15 +2319,31 @@ var BABYLON;
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    var debugFolder = ssaoFolder.addFolder("Debug");
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
                 return true;
             };
-            // Draws SSAO only
-            PostProcessesTool.prototype._ssaoOnly = function (result) {
-                if (result)
-                    EDITOR.SceneFactory.SSAOPipeline._disableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
-                else
-                    EDITOR.SceneFactory.SSAOPipeline._enableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+            // Set up debug mode
+            PostProcessesTool.prototype._setupDebugPipeline = function (folder, pipeline) {
+                var _this = this;
+                var renderEffects = pipeline._renderEffects;
+                var configure = function () {
+                    for (var effectName in renderEffects) {
+                        if (_this._renderEffects[effectName] === true)
+                            pipeline._enableEffect(effectName, _this._getPipelineCameras());
+                        else
+                            pipeline._disableEffect(effectName, _this._getPipelineCameras());
+                    }
+                };
+                for (var effectName in renderEffects) {
+                    var effect = renderEffects[effectName];
+                    if (!this._renderEffects[effectName])
+                        this._renderEffects[effectName] = true;
+                    folder.add(this._renderEffects, effectName).onChange(function (result) {
+                        configure();
+                    });
+                }
             };
             // Attach/detach pipeline
             PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {
@@ -2808,6 +2787,10 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Adds a texture element
+            AbstractMaterialTool.prototype.addTextureButton = function () {
+                return null;
+            };
             return AbstractMaterialTool;
         })(EDITOR.AbstractDatTool);
         EDITOR.AbstractMaterialTool = AbstractMaterialTool;
@@ -2863,12 +2846,14 @@ var BABYLON;
                 this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
                 albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
                 albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
+                albedoFolder.add(this, "_setAlbedoTexture").name("Configure Albedo Texture");
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.open();
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                bumpFolder.add(this, "_setBumpTexture").name("Configure Bump Texture");
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
                 this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
@@ -2917,6 +2902,14 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
+            };
+            // Set albedo texture
+            PBRMaterialTool.prototype._setAlbedoTexture = function () {
+                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "albedoTexture");
+            };
+            // Set bump texture
+            PBRMaterialTool.prototype._setBumpTexture = function () {
+                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "bumpTexture");
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {
@@ -3557,6 +3550,7 @@ var BABYLON;
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
                 this._mainEditLaunch = "EDIT-LAUNCH";
+                this._mainEditTextures = "EDIT-TEXTURES";
                 this._mainAdd = "MAIN-ADD";
                 this._addPointLight = "ADD-POINT-LIGHT";
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
@@ -3635,6 +3629,9 @@ var BABYLON;
                         if (selected.selected === this._mainEditLaunch) {
                             var launchEditor = new EDITOR.LaunchEditor(this._core);
                         }
+                        else if (selected.selected === this._mainEditTextures) {
+                            var textureEditor = new EDITOR.GUITextureEditor(this._core, "");
+                        }
                         return true;
                     }
                     // Add
@@ -3712,6 +3709,7 @@ var BABYLON;
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
+                this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
                 this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
@@ -7547,6 +7545,10 @@ var BABYLON;
                 getTotal(scene.lights);
                 getTotal(scene.cameras);
                 getTotal(scene.particleSystems);
+                // Skeletons
+                for (var skeletonIndex = 0; skeletonIndex < scene.skeletons.length; skeletonIndex++) {
+                    getTotal(scene.skeletons[skeletonIndex].bones);
+                }
                 return count;
             };
             // Static methods that sets the current frame
@@ -8262,5 +8264,123 @@ var BABYLON;
             return GUIParticleSystemEditor;
         })();
         EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GUITextureEditor = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            * @param object: the object to edit
+            * @param propertyPath: the path to the texture property of the object
+            */
+            function GUITextureEditor(core, objectName, object, propertyPath) {
+                this._targetTexture = null;
+                this._texturesList = null;
+                // Initialize
+                this._core = core;
+                this._core.editor.editPanel.close();
+                this.object = object;
+                this.propertyPath = propertyPath;
+                this._objectName = objectName;
+                // Initialize object and property path
+                if (object && propertyPath) {
+                    this._targetObject = object[propertyPath];
+                    if (!this._targetObject || !(this._targetObject instanceof BABYLON.BaseTexture)) {
+                        this._targetObject = null;
+                    }
+                }
+                // Finish
+                this._createUI();
+            }
+            // Creates the UI
+            GUITextureEditor.prototype._createUI = function () {
+                var _this = this;
+                this._core.editor.editPanel.setPanelSize(40);
+                // IDs and elements
+                var texturesListID = "BABYLON-EDITOR-TEXTURES-EDITOR-TEXTURES";
+                var canvasID = "BABYLON-EDITOR-TEXTURES-EDITOR-CANVAS";
+                var texturesListElement = EDITOR.GUI.GUIElement.CreateDivElement(texturesListID, "width: 50%; height: 100%; float: left;");
+                var canvasElement = EDITOR.GUI.GUIElement.CreateElement("canvas", canvasID, "width: 50%; height: 100%; float: right;");
+                this._core.editor.editPanel.addContainer(texturesListElement, texturesListID);
+                this._core.editor.editPanel.addContainer(canvasElement, canvasID);
+                // Texture canvas
+                var engine = new BABYLON.Engine($("#" + canvasID)[0], true);
+                var scene = new BABYLON.Scene(engine);
+                scene.clearColor = new BABYLON.Color3(0, 0, 0);
+                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), scene);
+                var postProcess = new BABYLON.PassPostProcess("PostProcessTextureEditor", 1.0, camera);
+                postProcess.onApply = function (effect) {
+                    if (_this._targetTexture)
+                        effect.setTexture("textureSampler", _this._targetTexture);
+                };
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
+                // Textures list
+                this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
+                this._texturesList.header = "Textures " + this._objectName;
+                this._texturesList.createColumn("name", "name", "100%");
+                this._texturesList.showSearch = false;
+                this._texturesList.showOptions = false;
+                this._texturesList.showAdd = true;
+                this._texturesList.buildElement(texturesListID);
+                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    this._texturesList.addRow({
+                        name: this._core.currentScene.textures[i].name,
+                        recid: i
+                    });
+                }
+                this._texturesList.onClick = function (selected) {
+                    if (selected.length === 0)
+                        return;
+                    var selectedTexture = _this._core.currentScene.textures[selected[0]];
+                    var serializationObject = selectedTexture.serialize();
+                    if (_this._targetTexture)
+                        _this._targetTexture.dispose();
+                    if (selectedTexture._buffer) {
+                        serializationObject.base64String = selectedTexture._buffer;
+                    }
+                    else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                        serializationObject.name = selectedTexture.url;
+                    }
+                    _this._targetTexture = BABYLON.Texture.Parse(serializationObject, scene, "");
+                    if (_this.object) {
+                        _this.object[_this.propertyPath] = selectedTexture;
+                    }
+                };
+                this._texturesList.onAdd = function () {
+                    var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
+                    inputFiles[0].files = [];
+                    inputFiles.change(function (data) {
+                        for (var i = 0; i < data.target.files.length; i++) {
+                            BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(data.target.files[i].name), null);
+                        }
+                    }).click();
+                };
+                // Finish
+                this._core.editor.editPanel.onClose = function () {
+                    _this._texturesList.destroy();
+                    scene.dispose();
+                    engine.dispose();
+                };
+            };
+            // On readed texture file callback
+            GUITextureEditor.prototype._onReadFileCallback = function (name) {
+                var _this = this;
+                return function (data) {
+                    BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    _this._texturesList.addRow({
+                        name: name,
+                        recid: _this._texturesList.getRowCount() - 1
+                    });
+                };
+            };
+            return GUITextureEditor;
+        })();
+        EDITOR.GUITextureEditor = GUITextureEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -23,6 +23,7 @@
 
         private _mainEdit = "MAIN-EDIT";
         private _mainEditLaunch = "EDIT-LAUNCH";
+        private _mainEditTextures = "EDIT-TEXTURES";
 
         private _mainAdd: string = "MAIN-ADD";
         private _addPointLight: string = "ADD-POINT-LIGHT";
@@ -125,6 +126,9 @@
                     if (selected.selected === this._mainEditLaunch) {
                         var launchEditor = new LaunchEditor(this._core);
                     }
+                    else if (selected.selected === this._mainEditTextures) {
+                        var textureEditor = new GUITextureEditor(this._core, "");
+                    }
 
                     return true;
                 }
@@ -221,6 +225,7 @@
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
             this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
+            this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
             //...
 
             menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");

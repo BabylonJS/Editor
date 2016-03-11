@@ -655,6 +655,10 @@ var BABYLON;
                 getTotal(scene.lights);
                 getTotal(scene.cameras);
                 getTotal(scene.particleSystems);
+                // Skeletons
+                for (var skeletonIndex = 0; skeletonIndex < scene.skeletons.length; skeletonIndex++) {
+                    getTotal(scene.skeletons[skeletonIndex].bones);
+                }
                 return count;
             };
             // Static methods that sets the current frame

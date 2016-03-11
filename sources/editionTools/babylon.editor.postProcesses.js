@@ -18,18 +18,7 @@ var BABYLON;
                 // Public members
                 this.tab = "POSTPROCESSES.TAB";
                 // Private members
-                this._hdrDebugPasses = [
-                    "HDRToneMapping",
-                    "HDRTextureAdder",
-                    "HDRGaussianBlurV",
-                    "HDRGaussianBlurH",
-                    "HDRDownSampleX4",
-                    "HDRBrightPass",
-                    "HDRPassPostProcess",
-                    "HDR"
-                ];
-                this._downSamplerName = "HDRDownSampler";
-                this._enableDownSampler = true;
+                this._renderEffects = {};
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
@@ -45,16 +34,6 @@ var BABYLON;
             PostProcessesTool.prototype.createUI = function () {
                 // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
-            };
-            PostProcessesTool.prototype.drawBrightPass = function () {
-                //SceneFactory.HDRPipeline._disableEffect("HDRToneMapping", this._editionTool.core.currentScene.cameras);
-                for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                    var result = (this["_hdrDebugEnable" + i]);
-                    if (!result)
-                        EDITOR.SceneFactory.HDRPipeline._disableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-                    else
-                        EDITOR.SceneFactory.HDRPipeline._enableEffect(this._hdrDebugPasses[i], this._editionTool.core.currentScene.cameras);
-                }
             };
             // Update
             PostProcessesTool.prototype.update = function () {
@@ -103,20 +82,7 @@ var BABYLON;
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
                     hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
                     var debugFolder = hdrFolder.addFolder("Debug");
-                    for (var i = 0; i < this._hdrDebugPasses.length; i++) {
-                        this["_hdrDebugEnable" + i] = true;
-                        debugFolder.add(this, "_hdrDebugEnable" + i).name(this._hdrDebugPasses[i]).onChange(function (result) {
-                            _this.drawBrightPass();
-                        });
-                    }
-                    debugFolder.add(this, "_enableDownSampler").name("Down Sample").onChange(function (result) {
-                        for (var i = 0; i < BABYLON.HDRRenderingPipeline.LUM_STEPS; i++) {
-                            if (!result)
-                                EDITOR.SceneFactory.HDRPipeline._disableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
-                            else
-                                EDITOR.SceneFactory.HDRPipeline._enableEffect(_this._downSamplerName + i, _this._editionTool.core.currentScene.cameras);
-                        }
-                    });
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline);
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
@@ -130,9 +96,6 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.SSAOPipeline) {
-                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssaoOnly").name("SSAO Only").onChange(function (result) {
-                        _this._ssaoOnly(result);
-                    });
                     ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
                         _this._attachDetachPipeline(result, "ssao");
                     });
@@ -149,15 +112,31 @@ var BABYLON;
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                     vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    var debugFolder = ssaoFolder.addFolder("Debug");
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
                 return true;
             };
-            // Draws SSAO only
-            PostProcessesTool.prototype._ssaoOnly = function (result) {
-                if (result)
-                    EDITOR.SceneFactory.SSAOPipeline._disableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
-                else
-                    EDITOR.SceneFactory.SSAOPipeline._enableEffect(EDITOR.SceneFactory.SSAOPipeline.SSAOCombineRenderEffect, this._getPipelineCameras());
+            // Set up debug mode
+            PostProcessesTool.prototype._setupDebugPipeline = function (folder, pipeline) {
+                var _this = this;
+                var renderEffects = pipeline._renderEffects;
+                var configure = function () {
+                    for (var effectName in renderEffects) {
+                        if (_this._renderEffects[effectName] === true)
+                            pipeline._enableEffect(effectName, _this._getPipelineCameras());
+                        else
+                            pipeline._disableEffect(effectName, _this._getPipelineCameras());
+                    }
+                };
+                for (var effectName in renderEffects) {
+                    var effect = renderEffects[effectName];
+                    if (!this._renderEffects[effectName])
+                        this._renderEffects[effectName] = true;
+                    folder.add(this._renderEffects, effectName).onChange(function (result) {
+                        configure();
+                    });
+                }
             };
             // Attach/detach pipeline
             PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {

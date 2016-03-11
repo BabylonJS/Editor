@@ -88,5 +88,11 @@
 
             return folder;
         }
+
+        // Adds a texture element
+        protected addTextureButton(): dat.IFolderElement {
+
+            return null;
+        }
     }
 }

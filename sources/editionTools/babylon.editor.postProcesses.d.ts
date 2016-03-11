@@ -1,9 +1,7 @@
 declare module BABYLON.EDITOR {
     class PostProcessesTool extends AbstractDatTool {
         tab: string;
-        private _hdrDebugPasses;
-        private _downSamplerName;
-        private _enableDownSampler;
+        private _renderEffects;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -11,9 +9,8 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         isObjectSupported(object: any): boolean;
         createUI(): void;
-        drawBrightPass(): void;
         update(): boolean;
-        private _ssaoOnly(result);
+        private _setupDebugPipeline(folder, pipeline);
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();
         private _loadHDRLensDirtTexture();
