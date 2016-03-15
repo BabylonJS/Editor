@@ -8,6 +8,7 @@
         public modal: boolean = true;
         public showClose: boolean = true;
         public showMax: boolean = true;
+        public onButtonClicked: (buttonId: string) => void;
 
         // Private members
         private _onCloseCallbacks: Array<() => void> = [];
@@ -124,10 +125,14 @@
             for (var i = 0; i < this.buttons.length; i++) {
                 var element = $("#" + buttonID + this.buttons[i]);
                 element.click((result: JQueryEventObject) => {
+                    var button = result.target.id.replace(buttonID, "");
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
-                    ev.guiEvent = new GUIEvent(this, GUIEventType.WINDOW_BUTTON_CLICKED, result.target.id.replace(buttonID, ""));
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.WINDOW_BUTTON_CLICKED, button);
                     this.core.sendEvent(ev);
+
+                    if (this.onButtonClicked)
+                        this.onButtonClicked(button);
                 });
             }
 

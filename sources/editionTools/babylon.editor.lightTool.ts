@@ -122,7 +122,7 @@
             Tags.AddTagsTo(shadows, "added");
 
             // Refresh UI
-            this.update();
+            this._editionTool.updateEditionTool();
         }
 
         // Removes a shadows generator

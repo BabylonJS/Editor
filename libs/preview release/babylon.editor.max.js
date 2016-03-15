@@ -1347,10 +1347,13 @@ var BABYLON;
                     for (var i = 0; i < this.buttons.length; i++) {
                         var element = $("#" + buttonID + this.buttons[i]);
                         element.click(function (result) {
+                            var button = result.target.id.replace(buttonID, "");
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result.target.id.replace(buttonID, ""));
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, button);
                             _this.core.sendEvent(ev);
+                            if (_this.onButtonClicked)
+                                _this.onButtonClicked(button);
                         });
                     }
                     // Configure window
@@ -2050,7 +2053,7 @@ var BABYLON;
                 BABYLON.Tags.EnableFor(shadows);
                 BABYLON.Tags.AddTagsTo(shadows, "added");
                 // Refresh UI
-                this.update();
+                this._editionTool.updateEditionTool();
             };
             // Removes a shadows generator
             LightTool.prototype._removeShadowGenerator = function () {
@@ -2141,15 +2144,19 @@ var BABYLON;
                 this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
-                        _this._editionTool.object.material = undefined;
+                        _this._removeMaterial();
                     }
                     else {
                         var newmaterial = scene.getMaterialByName(result);
                         _this._editionTool.object.material = newmaterial;
                     }
-                    _this.update();
+                    _this._editionTool.updateEditionTool();
                 });
-                materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+                materialFolder.add(this, "_removeMaterial").name("Remove Material");
+                // Materials Library
+                var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
+                if (material)
+                    materialsLibraryFolder.close();
                 if (!material)
                     return true;
                 // Common
@@ -2168,8 +2175,28 @@ var BABYLON;
                     optionsFolder.add(material, "disableLighting").name("Disable Lighting");
                 return true;
             };
+            // Removes the current material
+            MaterialTool.prototype._removeMaterial = function () {
+                if (this.object instanceof BABYLON.AbstractMesh) {
+                    this.object.material = undefined;
+                }
+                else if (this.object instanceof BABYLON.SubMesh) {
+                    var subMesh = this.object;
+                    var material = subMesh.getMesh().material;
+                    if (!(material instanceof BABYLON.MultiMaterial))
+                        return;
+                    material.subMaterials[subMesh.materialIndex] = undefined;
+                }
+                this._editionTool.updateEditionTool();
+            };
             // Set material from materials library
-            MaterialTool.prototype._setMaterialLibrary = function () {
+            MaterialTool.prototype._setMaterialsLibrary = function () {
+                // Body
+                var windowBody = EDITOR.GUI.GUIElement.CreateElement("div", "BABYLON-EDITOR-MATERIALS-LIBRARY");
+                var window = new EDITOR.GUI.GUIWindow("MaterialsLibraryWindow", this._editionTool.core, "Materials Library", windowBody, new BABYLON.Vector2(800, 600), ["Select", "Cancel"]);
+                window.modal = true;
+                window.buildElement(null);
+                // Layout
             };
             return MaterialTool;
         })(EDITOR.AbstractDatTool);
@@ -2820,6 +2847,7 @@ var BABYLON;
                 };
                 this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
                 var folder = this._element.addFolder("Texture", parentFolder);
+                folder.close();
                 folder.add(this, functionName).name("Browse...");
                 folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
                     if (result === "None") {

@@ -92,6 +92,7 @@ var BABYLON;
                 };
                 this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
                 var folder = this._element.addFolder("Texture", parentFolder);
+                folder.close();
                 folder.add(this, functionName).name("Browse...");
                 folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
                     if (result === "None") {

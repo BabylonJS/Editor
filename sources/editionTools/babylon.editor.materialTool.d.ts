@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-        private _setMaterialLibrary();
+        private _removeMaterial();
+        private _setMaterialsLibrary();
     }
 }

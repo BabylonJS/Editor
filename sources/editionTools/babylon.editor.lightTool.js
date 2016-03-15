@@ -107,7 +107,7 @@ var BABYLON;
                 BABYLON.Tags.EnableFor(shadows);
                 BABYLON.Tags.AddTagsTo(shadows, "added");
                 // Refresh UI
-                this.update();
+                this._editionTool.updateEditionTool();
             };
             // Removes a shadows generator
             LightTool.prototype._removeShadowGenerator = function () {

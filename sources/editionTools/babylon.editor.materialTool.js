@@ -77,15 +77,19 @@ var BABYLON;
                 this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
-                        _this._editionTool.object.material = undefined;
+                        _this._removeMaterial();
                     }
                     else {
                         var newmaterial = scene.getMaterialByName(result);
                         _this._editionTool.object.material = newmaterial;
                     }
-                    _this.update();
+                    _this._editionTool.updateEditionTool();
                 });
-                materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+                materialFolder.add(this, "_removeMaterial").name("Remove Material");
+                // Materials Library
+                var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
+                if (material)
+                    materialsLibraryFolder.close();
                 if (!material)
                     return true;
                 // Common
@@ -104,8 +108,28 @@ var BABYLON;
                     optionsFolder.add(material, "disableLighting").name("Disable Lighting");
                 return true;
             };
+            // Removes the current material
+            MaterialTool.prototype._removeMaterial = function () {
+                if (this.object instanceof BABYLON.AbstractMesh) {
+                    this.object.material = undefined;
+                }
+                else if (this.object instanceof BABYLON.SubMesh) {
+                    var subMesh = this.object;
+                    var material = subMesh.getMesh().material;
+                    if (!(material instanceof BABYLON.MultiMaterial))
+                        return;
+                    material.subMaterials[subMesh.materialIndex] = undefined;
+                }
+                this._editionTool.updateEditionTool();
+            };
             // Set material from materials library
-            MaterialTool.prototype._setMaterialLibrary = function () {
+            MaterialTool.prototype._setMaterialsLibrary = function () {
+                // Body
+                var windowBody = EDITOR.GUI.GUIElement.CreateElement("div", "BABYLON-EDITOR-MATERIALS-LIBRARY");
+                var window = new EDITOR.GUI.GUIWindow("MaterialsLibraryWindow", this._editionTool.core, "Materials Library", windowBody, new BABYLON.Vector2(800, 600), ["Select", "Cancel"]);
+                window.modal = true;
+                window.buildElement(null);
+                // Layout
             };
             return MaterialTool;
         })(EDITOR.AbstractDatTool);

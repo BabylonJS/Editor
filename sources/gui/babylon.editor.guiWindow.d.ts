@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR.GUI {
         modal: boolean;
         showClose: boolean;
         showMax: boolean;
+        onButtonClicked: (buttonId: string) => void;
         private _onCloseCallbacks;
         private _onCloseCallback;
         private _onToggle;

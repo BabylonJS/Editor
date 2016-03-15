@@ -118,10 +118,13 @@ var BABYLON;
                     for (var i = 0; i < this.buttons.length; i++) {
                         var element = $("#" + buttonID + this.buttons[i]);
                         element.click(function (result) {
+                            var button = result.target.id.replace(buttonID, "");
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, result.target.id.replace(buttonID, ""));
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED, button);
                             _this.core.sendEvent(ev);
+                            if (_this.onButtonClicked)
+                                _this.onButtonClicked(button);
                         });
                     }
                     // Configure window

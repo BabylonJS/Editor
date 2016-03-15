@@ -82,16 +82,21 @@
             this._dummyProperty = material ? material.name : materials[0];
             materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
                 if (result === "None") {
-                    this._editionTool.object.material = undefined;
+                    this._removeMaterial();
                 }
                 else {
                     var newmaterial = scene.getMaterialByName(result);
                     this._editionTool.object.material = newmaterial;
                 }
-                this.update();
+                this._editionTool.updateEditionTool();
             });
 
-            materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+            materialFolder.add(this, "_removeMaterial").name("Remove Material");
+
+            // Materials Library
+            var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
+            if (material)
+                materialsLibraryFolder.close();
 
             if (!material)
                 return true;
@@ -116,8 +121,33 @@
             return true;
         }
 
+        // Removes the current material
+        private _removeMaterial(): void {
+            if (this.object instanceof AbstractMesh) {
+                this.object.material = undefined;
+            }
+            else if (this.object instanceof SubMesh) {
+                var subMesh = <SubMesh>this.object;
+                var material = <MultiMaterial>subMesh.getMesh().material;
+
+                if (!(material instanceof MultiMaterial))
+                    return;
+
+                material.subMaterials[subMesh.materialIndex] = undefined;
+            }
+
+            this._editionTool.updateEditionTool();
+        }
+
         // Set material from materials library
-        private _setMaterialLibrary(): void {
+        private _setMaterialsLibrary(): void {
+            // Body
+            var windowBody = GUI.GUIElement.CreateElement("div", "BABYLON-EDITOR-MATERIALS-LIBRARY");
+            var window = new GUI.GUIWindow("MaterialsLibraryWindow", this._editionTool.core, "Materials Library", windowBody, new Vector2(800, 600), ["Select", "Cancel"]);
+            window.modal = true;
+            window.buildElement(null);
+
+            // Layout
 
         }
     }
