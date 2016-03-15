@@ -148,6 +148,9 @@
             var spherePlastic = BABYLON.Mesh.CreateSphere("spherePlastic", 48, 30.0, scene);
             spherePlastic.translate(new BABYLON.Vector3(0, 0, 1), -60);
 
+            var sphereNull = BABYLON.Mesh.CreateSphere("sphereNull", 48, 30.0, scene);
+            sphereNull.translate(new BABYLON.Vector3(0, 0, 1), 60);
+
             var woodPlank = BABYLON.MeshBuilder.CreateBox("plane", { width: 65, height: 1, depth: 65 }, scene);
 
             // Create materials

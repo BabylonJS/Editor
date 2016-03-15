@@ -2090,16 +2090,25 @@ var BABYLON;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
+                /*
+                if (object instanceof Mesh) {
+                    if (object.material && !(object.material instanceof MultiMaterial))
+                        return true;
+                }
+                else if (object instanceof SubMesh) {
+                    var subMesh = <SubMesh>object;
+                    var multiMaterial = <MultiMaterial>subMesh.getMesh().material;
+                    if (multiMaterial instanceof MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
+                        return true;
+                }
+                */
                 if (object instanceof BABYLON.Mesh) {
-                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial))
-                        return true;
+                    if (object.material && (object.material instanceof BABYLON.MultiMaterial))
+                        return false;
+                    return true;
                 }
-                else if (object instanceof BABYLON.SubMesh) {
-                    var subMesh = object;
-                    var multiMaterial = subMesh.getMesh().material;
-                    if (multiMaterial instanceof BABYLON.MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
-                        return true;
-                }
+                else if (object instanceof BABYLON.SubMesh)
+                    return true;
                 return false;
             };
             // Creates the UI
@@ -2120,23 +2129,29 @@ var BABYLON;
                 else if (object instanceof BABYLON.SubMesh) {
                     material = object.getMaterial();
                 }
-                if (!material)
-                    return false;
                 this.object = object;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
                 // Material
                 var materialFolder = this._element.addFolder("Material");
-                var materials = [];
+                var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material.name;
+                this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
-                    var newmaterial = scene.getMaterialByName(result);
-                    _this._editionTool.object.material = newmaterial;
+                    if (result === "None") {
+                        _this._editionTool.object.material = undefined;
+                    }
+                    else {
+                        var newmaterial = scene.getMaterialByName(result);
+                        _this._editionTool.object.material = newmaterial;
+                    }
                     _this.update();
                 });
+                materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+                if (!material)
+                    return true;
                 // Common
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(material, "name").name("Name");
@@ -2152,6 +2167,9 @@ var BABYLON;
                 if (material.disableLighting !== undefined)
                     optionsFolder.add(material, "disableLighting").name("Disable Lighting");
                 return true;
+            };
+            // Set material from materials library
+            MaterialTool.prototype._setMaterialLibrary = function () {
             };
             return MaterialTool;
         })(EDITOR.AbstractDatTool);
@@ -2788,7 +2806,34 @@ var BABYLON;
                 return folder;
             };
             // Adds a texture element
-            AbstractMaterialTool.prototype.addTextureButton = function () {
+            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
+                var _this = this;
+                var stringName = name.replace(" ", "");
+                var functionName = "_set" + stringName;
+                var textures = ["None"];
+                var scene = this.material.getScene();
+                for (var i = 0; i < scene.textures.length; i++) {
+                    textures.push(scene.textures[i].name);
+                }
+                this[functionName] = function () {
+                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, _this.material.name + " - " + name, _this.material, property);
+                };
+                this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
+                var folder = this._element.addFolder("Texture", parentFolder);
+                folder.add(this, functionName).name("Browse...");
+                folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
+                    if (result === "None") {
+                        _this.material[property] = undefined;
+                    }
+                    else {
+                        for (var i = 0; i < scene.textures.length; i++) {
+                            if (scene.textures[i].name === result) {
+                                _this.material[property] = scene.textures[i];
+                                break;
+                            }
+                        }
+                    }
+                });
                 return null;
             };
             return AbstractMaterialTool;
@@ -2846,32 +2891,36 @@ var BABYLON;
                 this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
                 albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
                 albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
-                albedoFolder.add(this, "_setAlbedoTexture").name("Configure Albedo Texture");
+                this.addTextureButton("Albedo Texture", "albedoTexture", albedoFolder);
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.open();
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-                bumpFolder.add(this, "_setBumpTexture").name("Configure Bump Texture");
+                this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
                 this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
                 reflectivityFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 reflectivityFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                this.addTextureButton("Reflectivity Texture", "reflectivityTexture", reflectivityFolder);
                 // Reflection
                 var reflectionFolder = this._element.addFolder("Reflection");
                 this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, reflectionFolder);
                 reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
+                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder);
                 // Emissive
                 var emissiveFolder = this._element.addFolder("Emissive");
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
                 emissiveFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
                 emissiveFolder.add(this.material, "linkEmissiveWithAlbedo").name("Link Emissive With Albedo");
                 emissiveFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+                this.addTextureButton("Emissive Texture", "emissiveTexture", emissiveFolder);
                 // Ambient
                 var ambientFolder = this._element.addFolder("Ambient");
                 this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
+                this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
                 // Options
                 var optionsFolder = this._element.addFolder("Options");
                 optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
@@ -2902,14 +2951,6 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
-            };
-            // Set albedo texture
-            PBRMaterialTool.prototype._setAlbedoTexture = function () {
-                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "albedoTexture");
-            };
-            // Set bump texture
-            PBRMaterialTool.prototype._setBumpTexture = function () {
-                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "bumpTexture");
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {
@@ -8322,7 +8363,7 @@ var BABYLON;
                 });
                 // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
-                this._texturesList.header = "Textures " + this._objectName;
+                this._texturesList.header = this._objectName ? this._objectName : "Textures ";
                 this._texturesList.createColumn("name", "name", "100%");
                 this._texturesList.showSearch = false;
                 this._texturesList.showOptions = false;
@@ -8354,12 +8395,12 @@ var BABYLON;
                 };
                 this._texturesList.onAdd = function () {
                     var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
-                    inputFiles[0].files = [];
-                    inputFiles.change(function (data) {
+                    inputFiles[0].onchange = function (data) {
                         for (var i = 0; i < data.target.files.length; i++) {
                             BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(data.target.files[i].name), null);
                         }
-                    }).click();
+                    };
+                    inputFiles.click();
                 };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
@@ -8377,6 +8418,7 @@ var BABYLON;
                         name: name,
                         recid: _this._texturesList.getRowCount() - 1
                     });
+                    _this._core.editor.editionTool.isObjectSupported(_this._core.editor.editionTool.object);
                 };
             };
             return GUITextureEditor;

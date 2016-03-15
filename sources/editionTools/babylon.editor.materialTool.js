@@ -26,16 +26,25 @@ var BABYLON;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
+                /*
+                if (object instanceof Mesh) {
+                    if (object.material && !(object.material instanceof MultiMaterial))
+                        return true;
+                }
+                else if (object instanceof SubMesh) {
+                    var subMesh = <SubMesh>object;
+                    var multiMaterial = <MultiMaterial>subMesh.getMesh().material;
+                    if (multiMaterial instanceof MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
+                        return true;
+                }
+                */
                 if (object instanceof BABYLON.Mesh) {
-                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial))
-                        return true;
+                    if (object.material && (object.material instanceof BABYLON.MultiMaterial))
+                        return false;
+                    return true;
                 }
-                else if (object instanceof BABYLON.SubMesh) {
-                    var subMesh = object;
-                    var multiMaterial = subMesh.getMesh().material;
-                    if (multiMaterial instanceof BABYLON.MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
-                        return true;
-                }
+                else if (object instanceof BABYLON.SubMesh)
+                    return true;
                 return false;
             };
             // Creates the UI
@@ -56,23 +65,29 @@ var BABYLON;
                 else if (object instanceof BABYLON.SubMesh) {
                     material = object.getMaterial();
                 }
-                if (!material)
-                    return false;
                 this.object = object;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
                 // Material
                 var materialFolder = this._element.addFolder("Material");
-                var materials = [];
+                var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material.name;
+                this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
-                    var newmaterial = scene.getMaterialByName(result);
-                    _this._editionTool.object.material = newmaterial;
+                    if (result === "None") {
+                        _this._editionTool.object.material = undefined;
+                    }
+                    else {
+                        var newmaterial = scene.getMaterialByName(result);
+                        _this._editionTool.object.material = newmaterial;
+                    }
                     _this.update();
                 });
+                materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+                if (!material)
+                    return true;
                 // Common
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(material, "name").name("Name");
@@ -88,6 +103,9 @@ var BABYLON;
                 if (material.disableLighting !== undefined)
                     optionsFolder.add(material, "disableLighting").name("Disable Lighting");
                 return true;
+            };
+            // Set material from materials library
+            MaterialTool.prototype._setMaterialLibrary = function () {
             };
             return MaterialTool;
         })(EDITOR.AbstractDatTool);

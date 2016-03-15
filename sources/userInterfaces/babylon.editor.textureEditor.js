@@ -54,7 +54,7 @@ var BABYLON;
                 });
                 // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
-                this._texturesList.header = "Textures " + this._objectName;
+                this._texturesList.header = this._objectName ? this._objectName : "Textures ";
                 this._texturesList.createColumn("name", "name", "100%");
                 this._texturesList.showSearch = false;
                 this._texturesList.showOptions = false;
@@ -86,12 +86,12 @@ var BABYLON;
                 };
                 this._texturesList.onAdd = function () {
                     var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
-                    inputFiles[0].files = [];
-                    inputFiles.change(function (data) {
+                    inputFiles[0].onchange = function (data) {
                         for (var i = 0; i < data.target.files.length; i++) {
                             BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(data.target.files[i].name), null);
                         }
-                    }).click();
+                    };
+                    inputFiles.click();
                 };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
@@ -109,6 +109,7 @@ var BABYLON;
                         name: name,
                         recid: _this._texturesList.getRowCount() - 1
                     });
+                    _this._core.editor.editionTool.isObjectSupported(_this._core.editor.editionTool.object);
                 };
             };
             return GUITextureEditor;

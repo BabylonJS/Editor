@@ -21,6 +21,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
+            /*
             if (object instanceof Mesh) {
                 if (object.material && !(object.material instanceof MultiMaterial))
                     return true;
@@ -31,6 +32,15 @@
                 if (multiMaterial instanceof MultiMaterial && multiMaterial.subMaterials[subMesh.materialIndex])
                     return true;
             }
+            */
+            if (object instanceof Mesh) {
+                if (object.material && (object.material instanceof MultiMaterial))
+                    return false;
+
+                return true;
+            }
+            else if (object instanceof SubMesh)
+                return true;
 
             return false;
         }
@@ -56,9 +66,6 @@
                 material = object.getMaterial();
             }
 
-            if (!material)
-                return false;
-
             this.object = object;
 
             this._element = new GUI.GUIEditForm(this.containers[0], this._editionTool.core);
@@ -68,16 +75,26 @@
             // Material
             var materialFolder = this._element.addFolder("Material");
 
-            var materials: string[] = [];
+            var materials: string[] = ["None"];
             for (var i = 0; i < scene.materials.length; i++)
                 materials.push(scene.materials[i].name);
 
-            this._dummyProperty = material.name;
+            this._dummyProperty = material ? material.name : materials[0];
             materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
-                var newmaterial = scene.getMaterialByName(result);
-                this._editionTool.object.material = newmaterial;
+                if (result === "None") {
+                    this._editionTool.object.material = undefined;
+                }
+                else {
+                    var newmaterial = scene.getMaterialByName(result);
+                    this._editionTool.object.material = newmaterial;
+                }
                 this.update();
             });
+
+            materialFolder.add(this, "_setMaterialLibrary").name("Material Library...");
+
+            if (!material)
+                return true;
 
             // Common
             var generalFolder = this._element.addFolder("Common");
@@ -97,6 +114,11 @@
                 optionsFolder.add(material, "disableLighting").name("Disable Lighting");
 
             return true;
+        }
+
+        // Set material from materials library
+        private _setMaterialLibrary(): void {
+
         }
     }
 }

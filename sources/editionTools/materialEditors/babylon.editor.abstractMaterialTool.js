@@ -78,7 +78,34 @@ var BABYLON;
                 return folder;
             };
             // Adds a texture element
-            AbstractMaterialTool.prototype.addTextureButton = function () {
+            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
+                var _this = this;
+                var stringName = name.replace(" ", "");
+                var functionName = "_set" + stringName;
+                var textures = ["None"];
+                var scene = this.material.getScene();
+                for (var i = 0; i < scene.textures.length; i++) {
+                    textures.push(scene.textures[i].name);
+                }
+                this[functionName] = function () {
+                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, _this.material.name + " - " + name, _this.material, property);
+                };
+                this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
+                var folder = this._element.addFolder("Texture", parentFolder);
+                folder.add(this, functionName).name("Browse...");
+                folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
+                    if (result === "None") {
+                        _this.material[property] = undefined;
+                    }
+                    else {
+                        for (var i = 0; i < scene.textures.length; i++) {
+                            if (scene.textures[i].name === result) {
+                                _this.material[property] = scene.textures[i];
+                                break;
+                            }
+                        }
+                    }
+                });
                 return null;
             };
             return AbstractMaterialTool;

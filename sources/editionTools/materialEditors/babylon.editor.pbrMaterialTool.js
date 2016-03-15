@@ -53,32 +53,36 @@ var BABYLON;
                 this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
                 albedoFolder.add(this.material, "directIntensity").step(0.01).name("Direct Intensity");
                 albedoFolder.add(this.material, "useAlphaFromAlbedoTexture").name("Use Alpha From Albedo Texture");
-                albedoFolder.add(this, "_setAlbedoTexture").name("Configure Albedo Texture");
+                this.addTextureButton("Albedo Texture", "albedoTexture", albedoFolder);
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.open();
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-                bumpFolder.add(this, "_setBumpTexture").name("Configure Bump Texture");
+                this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
                 this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
                 reflectivityFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 reflectivityFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                this.addTextureButton("Reflectivity Texture", "reflectivityTexture", reflectivityFolder);
                 // Reflection
                 var reflectionFolder = this._element.addFolder("Reflection");
                 this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, reflectionFolder);
                 reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
+                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder);
                 // Emissive
                 var emissiveFolder = this._element.addFolder("Emissive");
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
                 emissiveFolder.add(this.material, "emissiveIntensity").step(0.01).name("Emissive Intensity");
                 emissiveFolder.add(this.material, "linkEmissiveWithAlbedo").name("Link Emissive With Albedo");
                 emissiveFolder.add(this.material, "useEmissiveAsIllumination").name("Use Emissive As Illumination");
+                this.addTextureButton("Emissive Texture", "emissiveTexture", emissiveFolder);
                 // Ambient
                 var ambientFolder = this._element.addFolder("Ambient");
                 this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
+                this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
                 // Options
                 var optionsFolder = this._element.addFolder("Options");
                 optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
@@ -109,14 +113,6 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
-            };
-            // Set albedo texture
-            PBRMaterialTool.prototype._setAlbedoTexture = function () {
-                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "albedoTexture");
-            };
-            // Set bump texture
-            PBRMaterialTool.prototype._setBumpTexture = function () {
-                var textureEditor = new EDITOR.GUITextureEditor(this._editionTool.core, this.material.name, this.material, "bumpTexture");
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {

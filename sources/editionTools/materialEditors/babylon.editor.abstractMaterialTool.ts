@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class AbstractMaterialTool<T> extends AbstractDatTool {
+    export class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         // Public members
 
         // Private members
@@ -90,7 +90,36 @@
         }
 
         // Adds a texture element
-        protected addTextureButton(): dat.IFolderElement {
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement): dat.IFolderElement {
+            var stringName = name.replace(" ", "");
+            var functionName = "_set" + stringName;
+            var textures = ["None"];
+            var scene = this.material.getScene();
+
+            for (var i = 0; i < scene.textures.length; i++) {
+                textures.push(scene.textures[i].name);
+            }
+
+            this[functionName] = () => {
+                var textureEditor = new GUITextureEditor(this._editionTool.core, this.material.name + " - " + name, this.material, property);
+            };
+            this[stringName] = (this.material[property] && this.material[property] instanceof BaseTexture) ? this.material[property].name : textures[0];
+
+            var folder = this._element.addFolder("Texture", parentFolder);
+            folder.add(this, functionName).name("Browse...");
+            folder.add(this, stringName, textures).name("Choose").onChange((result: any) => {
+                if (result === "None") {
+                    this.material[property] = undefined;
+                }
+                else {
+                    for (var i = 0; i < scene.textures.length; i++) {
+                        if (scene.textures[i].name === result) {
+                            this.material[property] = scene.textures[i];
+                            break;
+                        }
+                    }
+                }
+            });
 
             return null;
         }

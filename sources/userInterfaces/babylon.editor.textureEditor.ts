@@ -23,7 +23,7 @@
         * @param object: the object to edit
         * @param propertyPath: the path to the texture property of the object
         */
-        constructor(core: EditorCore, objectName: string, object?: Object, propertyPath?: string) {
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string) {
             // Initialize
             this._core = core;
             this._core.editor.editPanel.close();
@@ -77,7 +77,7 @@
 
             // Textures list
             this._texturesList = new GUI.GUIGrid<ITextureRow>(texturesListID, this._core);
-            this._texturesList.header = "Textures " + this._objectName;
+            this._texturesList.header = this._objectName ? this._objectName : "Textures ";
             this._texturesList.createColumn("name", "name", "100%");
             this._texturesList.showSearch = false;
             this._texturesList.showOptions = false;
@@ -117,13 +117,13 @@
 
             this._texturesList.onAdd = () => {
                 var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
-                (<any>inputFiles[0]).files = [];
 
-                inputFiles.change((data: any) => {
+                inputFiles[0].onchange = (data: any) => {
                     for (var i = 0; i < data.target.files.length; i++) {
                         BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(data.target.files[i].name), null);
                     }
-                }).click();
+                };
+                inputFiles.click();
             };
 
             // Finish
@@ -143,6 +143,8 @@
                     name: name,
                     recid: this._texturesList.getRowCount() - 1
                 });
+
+                this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
             };
         }
     }

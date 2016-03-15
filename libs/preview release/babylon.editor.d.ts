@@ -593,6 +593,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
+        private _setMaterialLibrary();
     }
 }
 
@@ -1326,14 +1327,14 @@ declare module BABYLON.EDITOR {
         * @param object: the object to edit
         * @param propertyPath: the path to the texture property of the object
         */
-        constructor(core: EditorCore, objectName: string, object?: Object, propertyPath?: string);
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string);
         private _createUI();
         private _onReadFileCallback(name);
     }
 }
 
 declare module BABYLON.EDITOR {
-    class AbstractMaterialTool<T> extends AbstractDatTool {
+    class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
         protected material: T;
@@ -1346,7 +1347,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): boolean;
         protected addColorFolder(property: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement): dat.IFolderElement;
-        protected addTextureButton(): dat.IFolderElement;
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement): dat.IFolderElement;
     }
 }
 
@@ -1359,8 +1360,6 @@ declare module BABYLON.EDITOR {
         */
         constructor(editionTool: EditionTool);
         update(): boolean;
-        private _setAlbedoTexture();
-        private _setBumpTexture();
         private _createPresetGlass();
         private _createPresetMetal();
         private _createPresetPlastic();

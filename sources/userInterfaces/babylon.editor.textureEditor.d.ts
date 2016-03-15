@@ -13,7 +13,7 @@ declare module BABYLON.EDITOR {
         * @param object: the object to edit
         * @param propertyPath: the path to the texture property of the object
         */
-        constructor(core: EditorCore, objectName: string, object?: Object, propertyPath?: string);
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string);
         private _createUI();
         private _onReadFileCallback(name);
     }
