@@ -164,7 +164,8 @@ var BABYLON;
             */
             EditorMain.prototype._createBabylonCamera = function () {
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
-                camera.attachControl(this.core.canvas, true, false);
+                camera.panningSensibility = 50;
+                camera.attachControl(this.core.canvas, false, false);
                 this.core.camera = camera;
             };
             /**

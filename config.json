@@ -49,6 +49,7 @@
       "sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.waterMaterialTool.js",
       
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",

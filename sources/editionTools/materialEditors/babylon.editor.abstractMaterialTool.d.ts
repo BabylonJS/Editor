@@ -12,6 +12,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): boolean;
         protected addColorFolder(property: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement): dat.IFolderElement;
+        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open?: boolean, parent?: dat.IFolderElement): dat.IFolderElement;
         protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement): dat.IFolderElement;
     }
 }

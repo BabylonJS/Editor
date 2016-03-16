@@ -89,6 +89,21 @@
             return folder;
         }
 
+        // Add a vector element
+        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open: boolean = false, parent?: dat.IFolderElement): dat.IFolderElement {
+            var folder = this._element.addFolder(propertyName, parent);
+            folder.add(vector, "x").min(0).max(1).name("X");
+            folder.add(vector, "y").min(0).max(1).name("Y");
+
+            if (vector instanceof Vector3)
+                folder.add(vector, "z").min(0).max(1).name("Z");
+
+            if (!open)
+                folder.close();
+
+            return folder;
+        }
+
         // Adds a texture element
         protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement): dat.IFolderElement {
             var stringName = name.replace(" ", "");

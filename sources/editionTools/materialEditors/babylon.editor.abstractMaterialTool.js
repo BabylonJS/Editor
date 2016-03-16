@@ -77,6 +77,18 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Add a vector element
+            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent) {
+                if (open === void 0) { open = false; }
+                var folder = this._element.addFolder(propertyName, parent);
+                folder.add(vector, "x").min(0).max(1).name("X");
+                folder.add(vector, "y").min(0).max(1).name("Y");
+                if (vector instanceof BABYLON.Vector3)
+                    folder.add(vector, "z").min(0).max(1).name("Z");
+                if (!open)
+                    folder.close();
+                return folder;
+            };
             // Adds a texture element
             AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
                 var _this = this;

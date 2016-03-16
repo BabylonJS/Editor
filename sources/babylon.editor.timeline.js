@@ -112,8 +112,8 @@ var BABYLON;
                 this.animations.push(this._frameAnimation);
                 // Events
                 var click = function (event) {
-                    _this._mousex = BABYLON.Tools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
-                    _this._mousey = BABYLON.Tools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
+                    _this._mousex = BABYLON.MathTools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
+                    _this._mousey = BABYLON.MathTools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
                     _this._currentTime = _this._getFrame();
                     _this._selectorRect.attr("x", _this._mousex);
                     EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
@@ -177,7 +177,7 @@ var BABYLON;
                 var width = this._rect.attr("width");
                 if (pos)
                     return (pos * this._maxFrame) / width;
-                return BABYLON.Tools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
+                return BABYLON.MathTools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
             };
             // Get a position from a frame
             Timeline.prototype._getPosition = function (frame) {

@@ -2861,6 +2861,18 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Add a vector element
+            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent) {
+                if (open === void 0) { open = false; }
+                var folder = this._element.addFolder(propertyName, parent);
+                folder.add(vector, "x").min(0).max(1).name("X");
+                folder.add(vector, "y").min(0).max(1).name("Y");
+                if (vector instanceof BABYLON.Vector3)
+                    folder.add(vector, "z").min(0).max(1).name("Z");
+                if (!open)
+                    folder.close();
+                return folder;
+            };
             // Adds a texture element
             AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
                 var _this = this;
@@ -3175,6 +3187,80 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var WaterMaterialTool = (function (_super) {
+            __extends(WaterMaterialTool, _super);
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function WaterMaterialTool(editionTool) {
+                _super.call(this, editionTool, "WATER-MATERIAL", "WATER", "Water");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.WaterMaterial; };
+            }
+            // Update
+            WaterMaterialTool.prototype.update = function () {
+                var _this = this;
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Wind
+                var windFolder = this._element.addFolder("Wind");
+                windFolder.add(this.material, "windForce").min(0.0).step(0.01).name("Wind Force");
+                this.addVectorFolder(this.material.windDirection, "Wind Direction", true, windFolder);
+                // Waves
+                var waveFolder = this._element.addFolder("Waves");
+                waveFolder.add(this.material, "waveHeight").min(0.0).step(0.01).name("Wave Height");
+                waveFolder.add(this.material, "waveLength").min(0.0).step(0.01).name("Wave Length");
+                waveFolder.add(this.material, "waveSpeed").min(0.0).step(0.01).name("Wave Speed");
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump");
+                bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
+                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
+                // Color
+                var colorFolder = this._element.addFolder("Color");
+                colorFolder.add(this.material, "colorBlendFactor").min(0.0).max(1.0).step(0.01).name("Blend Factor");
+                this.addColorFolder(this.material.waterColor, "Water Color", true, colorFolder);
+                // Render
+                this._rtsEnabled = this.material.renderTargetsEnabled;
+                var renderFolder = this._element.addFolder("Reflection & Refraction");
+                renderFolder.add(this, "_rtsEnabled").name("Enable Reflection & Refraction").onChange(function (result) {
+                    _this.material.enableRenderTargets(result);
+                });
+                renderFolder.add(this, "_configureReflection").name("Render...");
+                // Finish
+                return true;
+            };
+            // Configure rendering
+            WaterMaterialTool.prototype._configureReflection = function () {
+                var _this = this;
+                var scene = this.material.getScene();
+                var renderList = this.material.getRenderList();
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(scene.meshes);
+                picker.selectedObjects = this.material.getRenderList();
+                picker.minSelectCount = 0;
+                picker.open();
+                picker.onObjectPicked = function (names) {
+                    _this.material.reflectionTexture.renderList = [];
+                    _this.material.refractionTexture.renderList = [];
+                    for (var i = 0; i < names.length; i++) {
+                        var mesh = scene.getMeshByName(names[i]);
+                        if (!mesh)
+                            continue;
+                        _this.material.addToRenderList(mesh);
+                    }
+                };
+            };
+            return WaterMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.WaterMaterialTool = WaterMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var EditorCore = (function () {
             /**
             * Constructor
@@ -3374,6 +3460,7 @@ var BABYLON;
                 this.addTool(new EDITOR.StandardMaterialTool(this));
                 this.addTool(new EDITOR.SkyMaterialTool(this));
                 this.addTool(new EDITOR.PBRMaterialTool(this));
+                this.addTool(new EDITOR.WaterMaterialTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {
@@ -3608,7 +3695,8 @@ var BABYLON;
             */
             EditorMain.prototype._createBabylonCamera = function () {
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
-                camera.attachControl(this.core.canvas, true, false);
+                camera.panningSensibility = 50;
+                camera.attachControl(this.core.canvas, false, false);
                 this.core.camera = camera;
             };
             /**
@@ -3679,6 +3767,8 @@ var BABYLON;
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
                 this._addSpotLight = "ADD-SPOT-LIGHT";
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
+                this._addBoxMesh = "ADD-BOX-MESH";
+                this._addSphereMesh = "ADD-SPHERE-MESH";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
                 this._addLensFlare = "ADD-LENS-FLARE";
@@ -3771,6 +3861,12 @@ var BABYLON;
                         else if (selected.selected === this._addHemisphericLight) {
                             EDITOR.SceneFactory.AddHemisphericLight(this._core);
                         }
+                        else if (selected.selected === this._addBoxMesh) {
+                            EDITOR.SceneFactory.AddBoxMesh(this._core);
+                        }
+                        else if (selected.selected === this._addSphereMesh) {
+                            EDITOR.SceneFactory.AddSphereMesh(this._core);
+                        }
                         else if (selected.selected === this._addParticleSystem) {
                             EDITOR.SceneFactory.AddParticleSystem(this._core);
                         }
@@ -3832,6 +3928,7 @@ var BABYLON;
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
+                this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
@@ -3839,6 +3936,9 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
+                this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._addBoxMesh, "Add Box", "icon-box-mesh");
+                this.toolbar.createMenuItem(menu, "button", this._addSphereMesh, "Add Sphere", "icon-sphere-mesh");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
                 this.toolbar.addBreak(menu);
@@ -4454,8 +4554,8 @@ var BABYLON;
                 this.animations.push(this._frameAnimation);
                 // Events
                 var click = function (event) {
-                    _this._mousex = BABYLON.Tools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
-                    _this._mousey = BABYLON.Tools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
+                    _this._mousex = BABYLON.MathTools.Clamp(event.pageX - _this._paper.canvas.getBoundingClientRect().left, 0, _this._paper.width);
+                    _this._mousey = BABYLON.MathTools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
                     _this._currentTime = _this._getFrame();
                     _this._selectorRect.attr("x", _this._mousex);
                     EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
@@ -4519,7 +4619,7 @@ var BABYLON;
                 var width = this._rect.attr("width");
                 if (pos)
                     return (pos * this._maxFrame) / width;
-                return BABYLON.Tools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
+                return BABYLON.MathTools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
             };
             // Get a position from a frame
             Timeline.prototype._getPosition = function (frame) {
@@ -5272,6 +5372,24 @@ var BABYLON;
                 EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return light;
             };
+            // Adds a box
+            SceneFactory.AddBoxMesh = function (core) {
+                var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
+                box.id = this.GenerateUUID();
+                BABYLON.Tags.EnableFor(box);
+                BABYLON.Tags.AddTagsTo(box, "added");
+                EDITOR.Event.sendSceneEvent(box, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return box;
+            };
+            // Adds a sphere
+            SceneFactory.AddSphereMesh = function (core) {
+                var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
+                sphere.id = this.GenerateUUID();
+                BABYLON.Tags.EnableFor(sphere);
+                BABYLON.Tags.AddTagsTo(sphere, "added");
+                EDITOR.Event.sendSceneEvent(sphere, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return sphere;
+            };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
                 var _this = this;
@@ -5378,6 +5496,17 @@ var BABYLON;
                 BABYLON.Tags.AddTagsTo(skybox, "added");
                 EDITOR.Event.sendSceneEvent(skybox, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return skybox;
+            };
+            // Adds a water mesh (with water material)
+            SceneFactory.AddWaterMesh = function (core) {
+                var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
+                var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
+                water.id = this.GenerateUUID();
+                water.material = waterMaterial;
+                BABYLON.Tags.EnableFor(water);
+                BABYLON.Tags.AddTagsTo(water, "added");
+                EDITOR.Event.sendSceneEvent(water, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return water;
             };
             // Private members
             // Public members

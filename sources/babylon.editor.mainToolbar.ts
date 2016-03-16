@@ -30,6 +30,8 @@
         private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
         private _addSpotLight: string = "ADD-SPOT-LIGHT";
         private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
+        private _addBoxMesh: string = "ADD-BOX-MESH";
+        private _addSphereMesh: string = "ADD-SPHERE-MESH";
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _addSkyMesh: string = "ADD-SKY-MESH";
         private _addLensFlare: string = "ADD-LENS-FLARE";
@@ -148,6 +150,13 @@
                         SceneFactory.AddHemisphericLight(this._core);
                     }
 
+                    else if (selected.selected === this._addBoxMesh) {
+                        SceneFactory.AddBoxMesh(this._core);
+                    }
+                    else if (selected.selected === this._addSphereMesh) {
+                        SceneFactory.AddSphereMesh(this._core);
+                    }
+
                     else if (selected.selected === this._addParticleSystem) {
                         SceneFactory.AddParticleSystem(this._core);
                     }
@@ -225,6 +234,7 @@
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
             this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
+            this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
             //...
 
@@ -233,6 +243,9 @@
             this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
             this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
             this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
+            this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._addBoxMesh, "Add Box", "icon-box-mesh");
+            this.toolbar.createMenuItem(menu, "button", this._addSphereMesh, "Add Sphere", "icon-sphere-mesh");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
             this.toolbar.addBreak(menu);

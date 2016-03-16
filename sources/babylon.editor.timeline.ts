@@ -141,8 +141,8 @@
 
             // Events
             var click = (event: MouseEvent) => {
-                this._mousex = BABYLON.Tools.Clamp(event.pageX - this._paper.canvas.getBoundingClientRect().left, 0, this._paper.width);
-                this._mousey = BABYLON.Tools.Clamp(event.pageY - this._paper.canvas.getBoundingClientRect().top, 0, this._paper.height);
+                this._mousex = MathTools.Clamp(event.pageX - this._paper.canvas.getBoundingClientRect().left, 0, this._paper.width);
+                this._mousey = MathTools.Clamp(event.pageY - this._paper.canvas.getBoundingClientRect().top, 0, this._paper.height);
 
                 this._currentTime = this._getFrame();
                 this._selectorRect.attr("x", this._mousex);
@@ -222,7 +222,7 @@
             if (pos)
                 return (pos * this._maxFrame) / width;
 
-            return BABYLON.Tools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
+            return MathTools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
         }
 
         // Get a position from a frame

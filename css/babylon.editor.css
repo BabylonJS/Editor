@@ -165,3 +165,11 @@ html, body {
 .w2ui-icon.icon-lens-flare {
     background: url("images/lens_flare.png");
 }
+
+.w2ui-icon.icon-box-mesh {
+    background: url("images/cube.png");
+}
+
+.w2ui-icon.icon-sphere-mesh {
+    background: url("images/billboard.png");
+}

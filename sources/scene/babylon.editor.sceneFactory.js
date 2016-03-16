@@ -101,6 +101,24 @@ var BABYLON;
                 EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return light;
             };
+            // Adds a box
+            SceneFactory.AddBoxMesh = function (core) {
+                var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
+                box.id = this.GenerateUUID();
+                BABYLON.Tags.EnableFor(box);
+                BABYLON.Tags.AddTagsTo(box, "added");
+                EDITOR.Event.sendSceneEvent(box, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return box;
+            };
+            // Adds a sphere
+            SceneFactory.AddSphereMesh = function (core) {
+                var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
+                sphere.id = this.GenerateUUID();
+                BABYLON.Tags.EnableFor(sphere);
+                BABYLON.Tags.AddTagsTo(sphere, "added");
+                EDITOR.Event.sendSceneEvent(sphere, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return sphere;
+            };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
                 var _this = this;
@@ -207,6 +225,17 @@ var BABYLON;
                 BABYLON.Tags.AddTagsTo(skybox, "added");
                 EDITOR.Event.sendSceneEvent(skybox, EDITOR.SceneEventType.OBJECT_ADDED, core);
                 return skybox;
+            };
+            // Adds a water mesh (with water material)
+            SceneFactory.AddWaterMesh = function (core) {
+                var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
+                var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
+                water.id = this.GenerateUUID();
+                water.material = waterMaterial;
+                BABYLON.Tags.EnableFor(water);
+                BABYLON.Tags.AddTagsTo(water, "added");
+                EDITOR.Event.sendSceneEvent(water, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                return water;
             };
             // Private members
             // Public members

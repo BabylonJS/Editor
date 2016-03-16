@@ -124,6 +124,7 @@ var BABYLON;
                 this.addTool(new EDITOR.StandardMaterialTool(this));
                 this.addTool(new EDITOR.SkyMaterialTool(this));
                 this.addTool(new EDITOR.PBRMaterialTool(this));
+                this.addTool(new EDITOR.WaterMaterialTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {

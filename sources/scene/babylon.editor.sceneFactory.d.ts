@@ -25,11 +25,14 @@ declare module BABYLON.EDITOR {
         static AddDirectionalLight(core: EditorCore): DirectionalLight;
         static AddSpotLight(core: EditorCore): SpotLight;
         static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddBoxMesh(core: EditorCore): Mesh;
+        static AddSphereMesh(core: EditorCore): Mesh;
         static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
         static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
         static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
         static AddReflectionProbe(core: EditorCore): ReflectionProbe;
         static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
         static AddSkyMesh(core: EditorCore): Mesh;
+        static AddWaterMesh(core: EditorCore): Mesh;
     }
 }

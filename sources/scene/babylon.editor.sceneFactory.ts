@@ -147,6 +147,30 @@
             return light;
         }
 
+        // Adds a box
+        static AddBoxMesh(core: EditorCore): Mesh {
+            var box = Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
+            box.id = this.GenerateUUID();
+            Tags.EnableFor(box);
+            Tags.AddTagsTo(box, "added");
+
+            Event.sendSceneEvent(box, SceneEventType.OBJECT_ADDED, core);
+
+            return box;
+        }
+
+        // Adds a sphere
+        static AddSphereMesh(core: EditorCore): Mesh {
+            var sphere = Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
+            sphere.id = this.GenerateUUID();
+            Tags.EnableFor(sphere);
+            Tags.AddTagsTo(sphere, "added");
+
+            Event.sendSceneEvent(sphere, SceneEventType.OBJECT_ADDED, core);
+
+            return sphere;
+        }
+
         // Adds a particle system
         static AddParticleSystem(core: EditorCore, chooseEmitter: boolean = true): void {
             // Pick emitter
@@ -282,6 +306,21 @@
             Event.sendSceneEvent(skybox, SceneEventType.OBJECT_ADDED, core);
 
             return skybox;
+        }
+
+        // Adds a water mesh (with water material)
+        static AddWaterMesh(core: EditorCore): Mesh {
+            var waterMaterial = new WaterMaterial("waterMaterail", core.currentScene);
+
+            var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
+            water.id = this.GenerateUUID();
+            water.material = waterMaterial;
+            Tags.EnableFor(water);
+            Tags.AddTagsTo(water, "added");
+
+            Event.sendSceneEvent(water, SceneEventType.OBJECT_ADDED, core);
+
+            return water;
         }
     }
 }

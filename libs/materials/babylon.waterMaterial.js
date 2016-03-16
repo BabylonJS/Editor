@@ -142,15 +142,25 @@ var BABYLON;
             enumerable: true,
             configurable: true
         });
+        Object.defineProperty(WaterMaterial.prototype, "renderTargetsEnabled", {
+            get: function () {
+                return !(this._refractionRTT.refreshRate === 0);
+            },
+            enumerable: true,
+            configurable: true
+        });
         // Methods
-        WaterMaterial.prototype.addToRenderList = function (node) {
-            this._refractionRTT.renderList.push(node);
-            this._reflectionRTT.renderList.push(node);
-        };
         WaterMaterial.prototype.enableRenderTargets = function (enable) {
             var refreshRate = enable ? 1 : 0;
             this._refractionRTT.refreshRate = refreshRate;
             this._reflectionRTT.refreshRate = refreshRate;
+        };
+        WaterMaterial.prototype.addToRenderList = function (node) {
+            this._refractionRTT.renderList.push(node);
+            this._reflectionRTT.renderList.push(node);
+        };
+        WaterMaterial.prototype.getRenderList = function () {
+            return this._refractionRTT.renderList;
         };
         WaterMaterial.prototype.needAlphaBlending = function () {
             return (this.alpha < 1.0);
