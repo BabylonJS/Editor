@@ -19,6 +19,7 @@ var BABYLON;
                 this.tab = "MATERIAL.TAB";
                 // Private members
                 this._dummyProperty = "";
+                this._libraryDummyProperty = "";
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
@@ -90,9 +91,10 @@ var BABYLON;
                 var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
                 if (material)
                     materialsLibraryFolder.close();
+                this._configureMaterialsLibrary(materialsLibraryFolder);
+                // Common
                 if (!material)
                     return true;
-                // Common
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(material, "name").name("Name");
                 generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
@@ -107,6 +109,33 @@ var BABYLON;
                 if (material.disableLighting !== undefined)
                     optionsFolder.add(material, "disableLighting").name("Disable Lighting");
                 return true;
+            };
+            // Configure materials library
+            MaterialTool.prototype._configureMaterialsLibrary = function (folder) {
+                var _this = this;
+                var items = [
+                    "StandardMaterial",
+                    "PBRMaterial",
+                    "FireMaterial",
+                    "GradientMaterial",
+                    "FurMaterial",
+                    "GridMaterial",
+                    "LavaMaterial",
+                    "NormalMaterial",
+                    "SkyMaterial",
+                    "TerrainMaterial",
+                    "TriPlanarMaterial",
+                    "WaterMaterial"
+                ];
+                var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
+                this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
+                folder.add(this, "_libraryDummyProperty", items).name("Material").onChange(function (result) {
+                    var material = new BABYLON[result]("New Material", _this._editionTool.core.currentScene);
+                    _this.object.material = material;
+                    if (material instanceof String) {
+                    }
+                    _this._editionTool.updateEditionTool();
+                });
             };
             // Removes the current material
             MaterialTool.prototype._removeMaterial = function () {

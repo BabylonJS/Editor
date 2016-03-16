@@ -88,7 +88,7 @@ var BABYLON;
             *
             */
             Tools.GetConstructorName = function (obj) {
-                return obj.constructor ? obj.constructor.name : "";
+                return (obj && obj.constructor) ? obj.constructor.name : "";
             };
             return Tools;
         })();

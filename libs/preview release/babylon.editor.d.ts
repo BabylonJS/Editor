@@ -497,6 +497,7 @@ declare module BABYLON.EDITOR {
     class MaterialTool extends AbstractDatTool {
         tab: string;
         private _dummyProperty;
+        private _libraryDummyProperty;
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -505,6 +506,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
+        private _configureMaterialsLibrary(folder);
         private _removeMaterial();
         private _setMaterialsLibrary();
     }
@@ -664,6 +666,127 @@ declare module BABYLON.EDITOR {
         private _getFileFolder(name, type, files);
         private _lockPanel(message);
         private _unlockPanel();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    /**
+    * Event Type
+    */
+    enum EventType {
+        SCENE_EVENT = 0,
+        GUI_EVENT = 1,
+        UNKNOWN = 2,
+    }
+    enum GUIEventType {
+        FORM_CHANGED = 0,
+        FORM_TOOLBAR_CLICKED = 1,
+        LAYOUT_CHANGED = 2,
+        PANEL_CHANGED = 3,
+        GRAPH_SELECTED = 4,
+        GRAPH_DOUBLE_SELECTED = 5,
+        TAB_CHANGED = 6,
+        TOOLBAR_MENU_SELECTED = 7,
+        GRAPH_MENU_SELECTED = 8,
+        GRID_SELECTED = 9,
+        GRID_ROW_REMOVED = 10,
+        GRID_ROW_ADDED = 11,
+        GRID_ROW_EDITED = 12,
+        GRID_MENU_SELECTED = 13,
+        WINDOW_BUTTON_CLICKED = 14,
+        OBJECT_PICKED = 15,
+        UNKNOWN = 16,
+    }
+    enum SceneEventType {
+        OBJECT_PICKED = 0,
+        OBJECT_ADDED = 1,
+        OBJECT_REMOVED = 2,
+        OBJECT_CHANGED = 3,
+        UNKNOWN = 4,
+    }
+    /**
+    * Base Event
+    */
+    class BaseEvent {
+        data: any;
+        constructor(data?: Object);
+    }
+    /**
+    * Scene Event
+    */
+    class SceneEvent extends BaseEvent {
+        object: any;
+        eventType: SceneEventType;
+        /**
+        * Constructor
+        * @param object: the object generating the event
+        */
+        constructor(object: any, eventType: number, data?: Object);
+    }
+    /**
+    * GUI Event
+    */
+    class GUIEvent extends BaseEvent {
+        caller: GUI.IGUIElement;
+        eventType: GUIEventType;
+        /**
+        * Constructor
+        * @param caller: gui element calling the event
+        * @param eventType: the gui event type
+        */
+        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
+    }
+    /**
+    * IEvent implementation
+    */
+    class Event implements IEvent {
+        eventType: EventType;
+        sceneEvent: SceneEvent;
+        guiEvent: GUIEvent;
+        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
+        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class Tools {
+        /**
+        * Returns a vector3 string from a vector3
+        */
+        static GetStringFromVector3(vector: Vector3): string;
+        /**
+        * Returns a vector3 from a vector3 string
+        */
+        static GetVector3FromString(vector: string): Vector3;
+        /**
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
+        */
+        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
+        /**
+        * Opens a window popup
+        */
+        static OpenWindowPopup(url: string, width: number, height: number): any;
+        /**
+        * Returns the base URL of the window
+        */
+        static getBaseURL(): string;
+        /**
+        * Creates an input element
+        */
+        static CreateFileInpuElement(id: string): JQuery;
+        /**
+        * Beautify a variable name (escapeds + upper case)
+        */
+        static BeautifyName(name: string): string;
+        /**
+        * Cleans an editor project
+        */
+        static CleanProject(project: INTERNAL.IProjectRoot): void;
+        /**
+        *
+        */
+        static GetConstructorName(obj: any): string;
     }
 }
 
@@ -937,127 +1060,6 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    /**
-    * Event Type
-    */
-    enum EventType {
-        SCENE_EVENT = 0,
-        GUI_EVENT = 1,
-        UNKNOWN = 2,
-    }
-    enum GUIEventType {
-        FORM_CHANGED = 0,
-        FORM_TOOLBAR_CLICKED = 1,
-        LAYOUT_CHANGED = 2,
-        PANEL_CHANGED = 3,
-        GRAPH_SELECTED = 4,
-        GRAPH_DOUBLE_SELECTED = 5,
-        TAB_CHANGED = 6,
-        TOOLBAR_MENU_SELECTED = 7,
-        GRAPH_MENU_SELECTED = 8,
-        GRID_SELECTED = 9,
-        GRID_ROW_REMOVED = 10,
-        GRID_ROW_ADDED = 11,
-        GRID_ROW_EDITED = 12,
-        GRID_MENU_SELECTED = 13,
-        WINDOW_BUTTON_CLICKED = 14,
-        OBJECT_PICKED = 15,
-        UNKNOWN = 16,
-    }
-    enum SceneEventType {
-        OBJECT_PICKED = 0,
-        OBJECT_ADDED = 1,
-        OBJECT_REMOVED = 2,
-        OBJECT_CHANGED = 3,
-        UNKNOWN = 4,
-    }
-    /**
-    * Base Event
-    */
-    class BaseEvent {
-        data: any;
-        constructor(data?: Object);
-    }
-    /**
-    * Scene Event
-    */
-    class SceneEvent extends BaseEvent {
-        object: any;
-        eventType: SceneEventType;
-        /**
-        * Constructor
-        * @param object: the object generating the event
-        */
-        constructor(object: any, eventType: number, data?: Object);
-    }
-    /**
-    * GUI Event
-    */
-    class GUIEvent extends BaseEvent {
-        caller: GUI.IGUIElement;
-        eventType: GUIEventType;
-        /**
-        * Constructor
-        * @param caller: gui element calling the event
-        * @param eventType: the gui event type
-        */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
-    }
-    /**
-    * IEvent implementation
-    */
-    class Event implements IEvent {
-        eventType: EventType;
-        sceneEvent: SceneEvent;
-        guiEvent: GUIEvent;
-        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
-        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class Tools {
-        /**
-        * Returns a vector3 string from a vector3
-        */
-        static GetStringFromVector3(vector: Vector3): string;
-        /**
-        * Returns a vector3 from a vector3 string
-        */
-        static GetVector3FromString(vector: string): Vector3;
-        /**
-        * Converts a base64 string to array buffer
-        * Largely used to convert images, converted into base64 string
-        */
-        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
-        /**
-        * Opens a window popup
-        */
-        static OpenWindowPopup(url: string, width: number, height: number): any;
-        /**
-        * Returns the base URL of the window
-        */
-        static getBaseURL(): string;
-        /**
-        * Creates an input element
-        */
-        static CreateFileInpuElement(id: string): JQuery;
-        /**
-        * Beautify a variable name (escapeds + upper case)
-        */
-        static BeautifyName(name: string): string;
-        /**
-        * Cleans an editor project
-        */
-        static CleanProject(project: INTERNAL.IProjectRoot): void;
-        /**
-        *
-        */
-        static GetConstructorName(obj: any): string;
     }
 }
 

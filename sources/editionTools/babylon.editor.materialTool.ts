@@ -5,6 +5,7 @@
 
         // Private members
         private _dummyProperty: string = "";
+        private _libraryDummyProperty: string = "";
 
         /**
         * Constructor
@@ -98,10 +99,12 @@
             if (material)
                 materialsLibraryFolder.close();
 
-            if (!material)
-                return true;
+            this._configureMaterialsLibrary(materialsLibraryFolder);
 
             // Common
+            if (!material)
+                return true;
+            
             var generalFolder = this._element.addFolder("Common");
             generalFolder.add(material, "name").name("Name");
             generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
@@ -119,6 +122,38 @@
                 optionsFolder.add(material, "disableLighting").name("Disable Lighting");
 
             return true;
+        }
+
+        // Configure materials library
+        private _configureMaterialsLibrary(folder: dat.IFolderElement): void {
+            var items = [
+                "StandardMaterial",
+                "PBRMaterial",
+                "FireMaterial",
+                "GradientMaterial",
+                "FurMaterial",
+                "GridMaterial",
+                "LavaMaterial",
+                "NormalMaterial",
+                "SkyMaterial",
+                "TerrainMaterial",
+                "TriPlanarMaterial",
+                "WaterMaterial"
+            ];
+
+            var ctr = Tools.GetConstructorName(this.object.material);
+            this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
+
+            folder.add(this, "_libraryDummyProperty", items).name("Material").onChange((result: any) => {
+                var material = new BABYLON[result]("New Material", this._editionTool.core.currentScene);
+                this.object.material = material;
+
+                if (material instanceof String) {
+
+                }
+
+                this._editionTool.updateEditionTool();
+            });
         }
 
         // Removes the current material

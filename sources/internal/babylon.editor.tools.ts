@@ -104,7 +104,7 @@
         *
         */
         public static GetConstructorName(obj: any): string {
-            return obj.constructor ? obj.constructor.name : "";
+            return (obj && obj.constructor) ? obj.constructor.name : "";
         }
     }
 }
