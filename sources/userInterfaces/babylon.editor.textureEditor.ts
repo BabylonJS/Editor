@@ -96,6 +96,10 @@
                     return;
 
                 var selectedTexture = this._core.currentScene.textures[selected[0]];
+
+                if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
+                    return;
+
                 var serializationObject = selectedTexture.serialize();
 
                 if (this._targetTexture)

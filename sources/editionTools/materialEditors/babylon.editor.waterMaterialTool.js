@@ -24,6 +24,13 @@ var BABYLON;
                 var _this = this;
                 if (!_super.prototype.update.call(this))
                     return false;
+                // Colors
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
+                this.addColorFolder(this.material.specularColor, "Specular Color", true);
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump");
+                bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
+                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
                 // Wind
                 var windFolder = this._element.addFolder("Wind");
                 windFolder.add(this.material, "windForce").min(0.0).step(0.01).name("Wind Force");
@@ -33,10 +40,6 @@ var BABYLON;
                 waveFolder.add(this.material, "waveHeight").min(0.0).step(0.01).name("Wave Height");
                 waveFolder.add(this.material, "waveLength").min(0.0).step(0.01).name("Wave Length");
                 waveFolder.add(this.material, "waveSpeed").min(0.0).step(0.01).name("Wave Speed");
-                // Bump
-                var bumpFolder = this._element.addFolder("Bump");
-                bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
-                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
                 // Color
                 var colorFolder = this._element.addFolder("Color");
                 colorFolder.add(this.material, "colorBlendFactor").min(0.0).max(1.0).step(0.01).name("Blend Factor");

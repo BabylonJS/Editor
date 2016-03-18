@@ -18,6 +18,16 @@
         }
 
         // Private members
+        private static _ConfigureObject(object: any, core: EditorCore): void {
+
+            if (object instanceof AbstractMesh || object instanceof Scene)
+                SceneManager.ConfigureObject(object, core);
+
+            Tags.EnableFor(object);
+            Tags.AddTagsTo(object, "added");
+
+            Event.sendSceneEvent(object, SceneEventType.OBJECT_ADDED, core);
+        }
 
         // Public members
         public static HDRPipeline: HDRRenderingPipeline = null;
@@ -81,11 +91,11 @@
             var cameras: Camera[] = core.currentScene.cameras;
 
             var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
-            ssao.fallOff = 0.000001;
-            ssao.area = 0.0075;
-            ssao.radius = 0.0001;
-            ssao.totalStrength = 2;
-            ssao.base = 1;
+            //ssao.fallOff = 0.000001;
+            //ssao.area = 0.0075;
+            //ssao.radius = 0.0001;
+            //ssao.totalStrength = 2;
+            //ssao.base = 1;
 
             this.SSAOPipeline = ssao;
             return ssao;
@@ -99,10 +109,7 @@
             var light = new PointLight("New PointLight", new Vector3(10, 10, 10), core.currentScene);
             light.id = this.GenerateUUID();
 
-            Tags.EnableFor(light);
-            Tags.AddTagsTo(light, "added");
-
-            Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(light, core);
 
             return light;
         }
@@ -113,10 +120,7 @@
             light.position = new Vector3(10, 10, 10);
             light.id = this.GenerateUUID();
 
-            Tags.EnableFor(light);
-            Tags.AddTagsTo(light, "added");
-
-            Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(light, core);
 
             return light;
         }
@@ -126,10 +130,7 @@
             var light = new SpotLight("New SpotLight", new Vector3(10, 10, 10), new Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
             light.id = this.GenerateUUID();
 
-            Tags.EnableFor(light);
-            Tags.AddTagsTo(light, "added");
-
-            Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(light, core);
 
             return light;
         }
@@ -139,10 +140,7 @@
             var light = new HemisphericLight("New HemisphericLight", new Vector3(-1, -2, -1), core.currentScene);
             light.id = this.GenerateUUID();
 
-            Tags.EnableFor(light);
-            Tags.AddTagsTo(light, "added");
-
-            Event.sendSceneEvent(light, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(light, core);
 
             return light;
         }
@@ -151,10 +149,8 @@
         static AddBoxMesh(core: EditorCore): Mesh {
             var box = Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
             box.id = this.GenerateUUID();
-            Tags.EnableFor(box);
-            Tags.AddTagsTo(box, "added");
-
-            Event.sendSceneEvent(box, SceneEventType.OBJECT_ADDED, core);
+            
+            this._ConfigureObject(box, core);
 
             return box;
         }
@@ -163,10 +159,8 @@
         static AddSphereMesh(core: EditorCore): Mesh {
             var sphere = Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
             sphere.id = this.GenerateUUID();
-            Tags.EnableFor(sphere);
-            Tags.AddTagsTo(sphere, "added");
 
-            Event.sendSceneEvent(sphere, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(sphere, core);
 
             return sphere;
         }
@@ -277,7 +271,7 @@
         static AddReflectionProbe(core: EditorCore): ReflectionProbe {
             var rp = new ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
 
-            Event.sendSceneEvent(rp, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(rp, core);
 
             return rp;
         }
@@ -287,7 +281,7 @@
             var rt = new RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
             core.currentScene.customRenderTargets.push(rt);
 
-            Event.sendSceneEvent(rt, SceneEventType.OBJECT_ADDED, core);
+            this._ConfigureObject(rt, core);
 
             return rt;
         }
@@ -300,10 +294,8 @@
             var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
             skybox.id = this.GenerateUUID();
             skybox.material = skyboxMaterial;
-            Tags.EnableFor(skybox);
-            Tags.AddTagsTo(skybox, "added");
-
-            Event.sendSceneEvent(skybox, SceneEventType.OBJECT_ADDED, core);
+            
+            this._ConfigureObject(skybox, core);
 
             return skybox;
         }
@@ -315,10 +307,13 @@
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
             water.id = this.GenerateUUID();
             water.material = waterMaterial;
-            Tags.EnableFor(water);
-            Tags.AddTagsTo(water, "added");
+            
+            this._ConfigureObject(water, core);
 
-            Event.sendSceneEvent(water, SceneEventType.OBJECT_ADDED, core);
+            // Add meshes in reflection automatically
+            for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {
+                waterMaterial.addToRenderList(core.currentScene.meshes[i]);
+            }
 
             return water;
         }

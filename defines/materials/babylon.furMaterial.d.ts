@@ -15,6 +15,7 @@ declare module BABYLON {
         furTexture: DynamicTexture;
         disableLighting: boolean;
         highLevelFur: boolean;
+        _meshes: AbstractMesh[];
         private _worldViewProjectionMatrix;
         private _scaledDiffuse;
         private _renderId;
@@ -26,6 +27,7 @@ declare module BABYLON {
         needAlphaBlending(): boolean;
         needAlphaTesting(): boolean;
         getAlphaTestTexture(): BaseTexture;
+        updateFur(): void;
         private _checkCache(scene, mesh?, useInstances?);
         isReady(mesh?: AbstractMesh, useInstances?: boolean): boolean;
         bindOnlyWorldMatrix(world: Matrix): void;

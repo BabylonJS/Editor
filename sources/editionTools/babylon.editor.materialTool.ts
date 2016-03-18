@@ -94,32 +94,28 @@
 
             materialFolder.add(this, "_removeMaterial").name("Remove Material");
 
-            // Materials Library
-            var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
-            if (material)
-                materialsLibraryFolder.close();
-
-            this._configureMaterialsLibrary(materialsLibraryFolder);
-
             // Common
-            if (!material)
-                return true;
-            
-            var generalFolder = this._element.addFolder("Common");
-            generalFolder.add(material, "name").name("Name");
-            generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
+            if (material) {
+                var generalFolder = this._element.addFolder("Common");
+                generalFolder.add(material, "name").name("Name");
+                generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
 
-            // Options
-            var optionsFolder = this._element.addFolder("Options");
-            optionsFolder.add(material, "wireframe").name("Wire frame");
-            optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
-            optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
-            optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
-            optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
-            optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
+                // Options
+                var optionsFolder = this._element.addFolder("Options");
+                optionsFolder.add(material, "wireframe").name("Wire frame");
+                optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
+                optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
+                optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
+                optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
+                optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
 
-            if ((<any>material).disableLighting !== undefined)
-                optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                if ((<any>material).disableLighting !== undefined)
+                    optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+            }
+
+            // Materials Library
+            var materialsLibraryFolder = this._element.addFolder("Materials Library");
+            this._configureMaterialsLibrary(materialsLibraryFolder);
 
             return true;
         }
@@ -144,16 +140,22 @@
             var ctr = Tools.GetConstructorName(this.object.material);
             this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
 
-            folder.add(this, "_libraryDummyProperty", items).name("Material").onChange((result: any) => {
-                var material = new BABYLON[result]("New Material", this._editionTool.core.currentScene);
-                this.object.material = material;
+            folder.add(this, "_libraryDummyProperty", items).name("Material");
+            folder.add(this, "_applyMaterial").name("Apply Material");
+        }
 
-                if (material instanceof String) {
+        // Apply the selected material
+        private _applyMaterial(): void {
+            var material = new BABYLON[this._libraryDummyProperty]("New Material " + SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
+            this.object.material = material;
 
-                }
+            if (material instanceof FurMaterial) {
+                var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
+                (<FurMaterial>material).furTexture = furTexture;
+                FurMaterial.FurifyMesh(this.object, 30);
+            }
 
-                this._editionTool.updateEditionTool();
-            });
+            this._editionTool.updateEditionTool();
         }
 
         // Removes the current material

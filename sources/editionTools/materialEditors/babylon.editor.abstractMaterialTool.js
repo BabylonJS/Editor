@@ -65,32 +65,41 @@ var BABYLON;
                 return true;
             };
             // Add a color element
-            AbstractMaterialTool.prototype.addColorFolder = function (property, propertyName, open, parent) {
+            AbstractMaterialTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
+                var properties = ["r", "g", "b"];
+                if (color instanceof BABYLON.Color4)
+                    properties.push("a");
                 var folder = this._element.addFolder(propertyName, parent);
-                folder.add(property, "r").min(0).max(1).name("Red");
-                folder.add(property, "g").min(0).max(1).name("Green");
-                folder.add(property, "b").min(0).max(1).name("Blue");
-                if (property instanceof BABYLON.Color4)
-                    folder.add(property, "a").min(0).max(1).name("Alpha");
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
                 if (!open)
                     folder.close();
                 return folder;
             };
             // Add a vector element
-            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent) {
+            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
-                var folder = this._element.addFolder(propertyName, parent);
-                folder.add(vector, "x").min(0).max(1).name("X");
-                folder.add(vector, "y").min(0).max(1).name("Y");
+                var properties = ["x", "y"];
                 if (vector instanceof BABYLON.Vector3)
-                    folder.add(vector, "z").min(0).max(1).name("Z");
+                    properties.push("z");
+                var folder = this._element.addFolder(propertyName, parent);
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
                 if (!open)
                     folder.close();
                 return folder;
             };
             // Adds a texture element
-            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
+            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
                 var _this = this;
                 var stringName = name.replace(" ", "");
                 var functionName = "_set" + stringName;
@@ -118,6 +127,8 @@ var BABYLON;
                             }
                         }
                     }
+                    if (callback)
+                        callback();
                 });
                 return null;
             };

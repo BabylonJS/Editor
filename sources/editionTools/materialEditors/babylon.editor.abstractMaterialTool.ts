@@ -74,14 +74,18 @@
         }
 
         // Add a color element
-        protected addColorFolder(property: Color3 | Color4, propertyName: string, open: boolean = false, parent?: dat.IFolderElement): dat.IFolderElement {
-            var folder = this._element.addFolder(propertyName, parent);
-            folder.add(property, "r").min(0).max(1).name("Red");
-            folder.add(property, "g").min(0).max(1).name("Green");
-            folder.add(property, "b").min(0).max(1).name("Blue");
+        protected addColorFolder(color: Color3 | Color4, propertyName: string, open: boolean = false, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement {
+            var properties = ["r", "g", "b"];
+            if (color instanceof Color4)
+                properties.push("a");
 
-            if (property instanceof Color4)
-                folder.add(property, "a").min(0).max(1).name("Alpha");
+            var folder = this._element.addFolder(propertyName, parent);
+            for (var i = 0; i < properties.length; i++) {
+                folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange((result: any) => {
+                    if (callback)
+                        callback();
+                });
+            }
 
             if (!open)
                 folder.close();
@@ -90,13 +94,18 @@
         }
 
         // Add a vector element
-        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open: boolean = false, parent?: dat.IFolderElement): dat.IFolderElement {
-            var folder = this._element.addFolder(propertyName, parent);
-            folder.add(vector, "x").min(0).max(1).name("X");
-            folder.add(vector, "y").min(0).max(1).name("Y");
-
+        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open: boolean = false, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement {
+            var properties = ["x", "y"];
             if (vector instanceof Vector3)
-                folder.add(vector, "z").min(0).max(1).name("Z");
+                properties.push("z");
+
+            var folder = this._element.addFolder(propertyName, parent);
+            for (var i = 0; i < properties.length; i++) {
+                folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange((result: any) => {
+                    if (callback)
+                        callback();
+                });
+            }
 
             if (!open)
                 folder.close();
@@ -105,7 +114,7 @@
         }
 
         // Adds a texture element
-        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement): dat.IFolderElement {
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement {
             var stringName = name.replace(" ", "");
             var functionName = "_set" + stringName;
             var textures = ["None"];
@@ -135,6 +144,9 @@
                         }
                     }
                 }
+
+                if (callback)
+                    callback();
             });
 
             return null;

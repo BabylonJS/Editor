@@ -34,6 +34,7 @@ var BABYLON;
                 this._addSphereMesh = "ADD-SPHERE-MESH";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
+                this._addWaterMesh = "ADD-WATER-MESH";
                 this._addLensFlare = "ADD-LENS-FLARE";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
@@ -139,6 +140,9 @@ var BABYLON;
                         else if (selected.selected === this._addSkyMesh) {
                             EDITOR.SceneFactory.AddSkyMesh(this._core);
                         }
+                        else if (selected.selected === this._addWaterMesh) {
+                            EDITOR.SceneFactory.AddWaterMesh(this._core);
+                        }
                         else if (selected.selected === this._addReflectionProbe) {
                             EDITOR.SceneFactory.AddReflectionProbe(this._core);
                         }
@@ -208,6 +212,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
+                this.toolbar.createMenuItem(menu, "button", this._addWaterMesh, "Add Water", "icon-water");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");

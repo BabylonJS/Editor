@@ -87,32 +87,29 @@ var BABYLON;
                     _this._editionTool.updateEditionTool();
                 });
                 materialFolder.add(this, "_removeMaterial").name("Remove Material");
-                // Materials Library
-                var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
-                if (material)
-                    materialsLibraryFolder.close();
-                this._configureMaterialsLibrary(materialsLibraryFolder);
                 // Common
-                if (!material)
-                    return true;
-                var generalFolder = this._element.addFolder("Common");
-                generalFolder.add(material, "name").name("Name");
-                generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
-                // Options
-                var optionsFolder = this._element.addFolder("Options");
-                optionsFolder.add(material, "wireframe").name("Wire frame");
-                optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
-                optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
-                optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
-                optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
-                optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
-                if (material.disableLighting !== undefined)
-                    optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                if (material) {
+                    var generalFolder = this._element.addFolder("Common");
+                    generalFolder.add(material, "name").name("Name");
+                    generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
+                    // Options
+                    var optionsFolder = this._element.addFolder("Options");
+                    optionsFolder.add(material, "wireframe").name("Wire frame");
+                    optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
+                    optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
+                    optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
+                    optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
+                    optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
+                    if (material.disableLighting !== undefined)
+                        optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                }
+                // Materials Library
+                var materialsLibraryFolder = this._element.addFolder("Materials Library");
+                this._configureMaterialsLibrary(materialsLibraryFolder);
                 return true;
             };
             // Configure materials library
             MaterialTool.prototype._configureMaterialsLibrary = function (folder) {
-                var _this = this;
                 var items = [
                     "StandardMaterial",
                     "PBRMaterial",
@@ -129,13 +126,19 @@ var BABYLON;
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
                 this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
-                folder.add(this, "_libraryDummyProperty", items).name("Material").onChange(function (result) {
-                    var material = new BABYLON[result]("New Material", _this._editionTool.core.currentScene);
-                    _this.object.material = material;
-                    if (material instanceof String) {
-                    }
-                    _this._editionTool.updateEditionTool();
-                });
+                folder.add(this, "_libraryDummyProperty", items).name("Material");
+                folder.add(this, "_applyMaterial").name("Apply Material");
+            };
+            // Apply the selected material
+            MaterialTool.prototype._applyMaterial = function () {
+                var material = new BABYLON[this._libraryDummyProperty]("New Material " + EDITOR.SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
+                this.object.material = material;
+                if (material instanceof BABYLON.FurMaterial) {
+                    var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
+                    material.furTexture = furTexture;
+                    BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                }
+                this._editionTool.updateEditionTool();
             };
             // Removes the current material
             MaterialTool.prototype._removeMaterial = function () {

@@ -2154,32 +2154,29 @@ var BABYLON;
                     _this._editionTool.updateEditionTool();
                 });
                 materialFolder.add(this, "_removeMaterial").name("Remove Material");
-                // Materials Library
-                var materialsLibraryFolder = this._element.addFolder("Materials Library", materialFolder);
-                if (material)
-                    materialsLibraryFolder.close();
-                this._configureMaterialsLibrary(materialsLibraryFolder);
                 // Common
-                if (!material)
-                    return true;
-                var generalFolder = this._element.addFolder("Common");
-                generalFolder.add(material, "name").name("Name");
-                generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
-                // Options
-                var optionsFolder = this._element.addFolder("Options");
-                optionsFolder.add(material, "wireframe").name("Wire frame");
-                optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
-                optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
-                optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
-                optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
-                optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
-                if (material.disableLighting !== undefined)
-                    optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                if (material) {
+                    var generalFolder = this._element.addFolder("Common");
+                    generalFolder.add(material, "name").name("Name");
+                    generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
+                    // Options
+                    var optionsFolder = this._element.addFolder("Options");
+                    optionsFolder.add(material, "wireframe").name("Wire frame");
+                    optionsFolder.add(material, "fogEnabled").name("Fog Enabled");
+                    optionsFolder.add(material, "backFaceCulling").name("Back Face Culling");
+                    optionsFolder.add(material, "checkReadyOnEveryCall").name("Check Ready On every Call");
+                    optionsFolder.add(material, "checkReadyOnlyOnce").name("Check Ready Only Once");
+                    optionsFolder.add(material, "disableDepthWrite").name("Disable Depth Write");
+                    if (material.disableLighting !== undefined)
+                        optionsFolder.add(material, "disableLighting").name("Disable Lighting");
+                }
+                // Materials Library
+                var materialsLibraryFolder = this._element.addFolder("Materials Library");
+                this._configureMaterialsLibrary(materialsLibraryFolder);
                 return true;
             };
             // Configure materials library
             MaterialTool.prototype._configureMaterialsLibrary = function (folder) {
-                var _this = this;
                 var items = [
                     "StandardMaterial",
                     "PBRMaterial",
@@ -2196,13 +2193,19 @@ var BABYLON;
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
                 this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
-                folder.add(this, "_libraryDummyProperty", items).name("Material").onChange(function (result) {
-                    var material = new BABYLON[result]("New Material", _this._editionTool.core.currentScene);
-                    _this.object.material = material;
-                    if (material instanceof String) {
-                    }
-                    _this._editionTool.updateEditionTool();
-                });
+                folder.add(this, "_libraryDummyProperty", items).name("Material");
+                folder.add(this, "_applyMaterial").name("Apply Material");
+            };
+            // Apply the selected material
+            MaterialTool.prototype._applyMaterial = function () {
+                var material = new BABYLON[this._libraryDummyProperty]("New Material " + EDITOR.SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
+                this.object.material = material;
+                if (material instanceof BABYLON.FurMaterial) {
+                    var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
+                    material.furTexture = furTexture;
+                    BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                }
+                this._editionTool.updateEditionTool();
             };
             // Removes the current material
             MaterialTool.prototype._removeMaterial = function () {
@@ -2849,32 +2852,41 @@ var BABYLON;
                 return true;
             };
             // Add a color element
-            AbstractMaterialTool.prototype.addColorFolder = function (property, propertyName, open, parent) {
+            AbstractMaterialTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
+                var properties = ["r", "g", "b"];
+                if (color instanceof BABYLON.Color4)
+                    properties.push("a");
                 var folder = this._element.addFolder(propertyName, parent);
-                folder.add(property, "r").min(0).max(1).name("Red");
-                folder.add(property, "g").min(0).max(1).name("Green");
-                folder.add(property, "b").min(0).max(1).name("Blue");
-                if (property instanceof BABYLON.Color4)
-                    folder.add(property, "a").min(0).max(1).name("Alpha");
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
                 if (!open)
                     folder.close();
                 return folder;
             };
             // Add a vector element
-            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent) {
+            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
-                var folder = this._element.addFolder(propertyName, parent);
-                folder.add(vector, "x").min(0).max(1).name("X");
-                folder.add(vector, "y").min(0).max(1).name("Y");
+                var properties = ["x", "y"];
                 if (vector instanceof BABYLON.Vector3)
-                    folder.add(vector, "z").min(0).max(1).name("Z");
+                    properties.push("z");
+                var folder = this._element.addFolder(propertyName, parent);
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
                 if (!open)
                     folder.close();
                 return folder;
             };
             // Adds a texture element
-            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder) {
+            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
                 var _this = this;
                 var stringName = name.replace(" ", "");
                 var functionName = "_set" + stringName;
@@ -2902,6 +2914,8 @@ var BABYLON;
                             }
                         }
                     }
+                    if (callback)
+                        callback();
                 });
                 return null;
             };
@@ -3204,6 +3218,13 @@ var BABYLON;
                 var _this = this;
                 if (!_super.prototype.update.call(this))
                     return false;
+                // Colors
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
+                this.addColorFolder(this.material.specularColor, "Specular Color", true);
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump");
+                bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
+                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
                 // Wind
                 var windFolder = this._element.addFolder("Wind");
                 windFolder.add(this.material, "windForce").min(0.0).step(0.01).name("Wind Force");
@@ -3213,10 +3234,6 @@ var BABYLON;
                 waveFolder.add(this.material, "waveHeight").min(0.0).step(0.01).name("Wave Height");
                 waveFolder.add(this.material, "waveLength").min(0.0).step(0.01).name("Wave Length");
                 waveFolder.add(this.material, "waveSpeed").min(0.0).step(0.01).name("Wave Speed");
-                // Bump
-                var bumpFolder = this._element.addFolder("Bump");
-                bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
-                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
                 // Color
                 var colorFolder = this._element.addFolder("Color");
                 colorFolder.add(this.material, "colorBlendFactor").min(0.0).max(1.0).step(0.01).name("Blend Factor");
@@ -3255,6 +3272,97 @@ var BABYLON;
             return WaterMaterialTool;
         })(EDITOR.AbstractMaterialTool);
         EDITOR.WaterMaterialTool = WaterMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var LavaMaterialTool = (function (_super) {
+            __extends(LavaMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function LavaMaterialTool(editionTool) {
+                _super.call(this, editionTool, "LAVA-MATERIAL", "LAVA", "Lava");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.LavaMaterial; };
+            }
+            // Update
+            LavaMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Diffuse
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
+                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder);
+                // Lava
+                var lavaFolder = this._element.addFolder("Lava");
+                this.addTextureButton("Noise Texture", "noiseTexture", lavaFolder);
+                lavaFolder.add(this.material, "movingSpeed").min(0).name("Moving Speed");
+                lavaFolder.add(this.material, "lowFrequencySpeed").min(0).name("Low Frequency Speed");
+                // Fog
+                var fogFolder = this._element.addFolder("Fog");
+                this.addColorFolder(this.material.fogColor, "Fog Color", true, fogFolder);
+                fogFolder.add(this.material, "fogDensity").min(0).name("Fog Density");
+                // Finish
+                return true;
+            };
+            return LavaMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.LavaMaterialTool = LavaMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var FurMaterialTool = (function (_super) {
+            __extends(FurMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function FurMaterialTool(editionTool) {
+                _super.call(this, editionTool, "FUR-MATERIAL", "FUR", "Fur");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.FurMaterial; };
+            }
+            // Update
+            FurMaterialTool.prototype.update = function () {
+                var _this = this;
+                if (!_super.prototype.update.call(this))
+                    return false;
+                var callback = function () {
+                    _this.material.updateFur();
+                };
+                // Diffuse
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder, callback);
+                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder, callback);
+                // Fur
+                var furFolder = this._element.addFolder("Fur");
+                this.addColorFolder(this.material.furColor, "Fur Color", true, furFolder, callback);
+                furFolder.add(this.material, "furLength").min(0).step(0.01).name("Fur Length").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furAngle").min(0).step(0.01).name("Fur Angle").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furSpacing").min(0).step(0.01).name("Fur Spacing").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furSpeed").min(0).max(1000).step(0.01).name("Fur Speed").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furDensity").min(0).step(0.01).name("Fur Density").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "highLevelFur").name("High Level Fur").onChange(function (result) { callback(); });
+                this.addVectorFolder(this.material.furGravity, "Gravity", true, furFolder, callback);
+                // Finish
+                return true;
+            };
+            return FurMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.FurMaterialTool = FurMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;
@@ -3461,6 +3569,8 @@ var BABYLON;
                 this.addTool(new EDITOR.SkyMaterialTool(this));
                 this.addTool(new EDITOR.PBRMaterialTool(this));
                 this.addTool(new EDITOR.WaterMaterialTool(this));
+                this.addTool(new EDITOR.LavaMaterialTool(this));
+                this.addTool(new EDITOR.FurMaterialTool(this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {
@@ -3771,6 +3881,7 @@ var BABYLON;
                 this._addSphereMesh = "ADD-SPHERE-MESH";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
+                this._addWaterMesh = "ADD-WATER-MESH";
                 this._addLensFlare = "ADD-LENS-FLARE";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
@@ -3876,6 +3987,9 @@ var BABYLON;
                         else if (selected.selected === this._addSkyMesh) {
                             EDITOR.SceneFactory.AddSkyMesh(this._core);
                         }
+                        else if (selected.selected === this._addWaterMesh) {
+                            EDITOR.SceneFactory.AddWaterMesh(this._core);
+                        }
                         else if (selected.selected === this._addReflectionProbe) {
                             EDITOR.SceneFactory.AddReflectionProbe(this._core);
                         }
@@ -3945,6 +4059,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
+                this.toolbar.createMenuItem(menu, "button", this._addWaterMesh, "Add Water", "icon-water");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
@@ -5283,6 +5398,14 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
+            // Private members
+            SceneFactory._ConfigureObject = function (object, core) {
+                if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)
+                    EDITOR.SceneManager.ConfigureObject(object, core);
+                BABYLON.Tags.EnableFor(object);
+                BABYLON.Tags.AddTagsTo(object, "added");
+                EDITOR.Event.sendSceneEvent(object, EDITOR.SceneEventType.OBJECT_ADDED, core);
+            };
             /**
             * Post-Processes
             */
@@ -5324,11 +5447,11 @@ var BABYLON;
                 }
                 var cameras = core.currentScene.cameras;
                 var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
-                ssao.fallOff = 0.000001;
-                ssao.area = 0.0075;
-                ssao.radius = 0.0001;
-                ssao.totalStrength = 2;
-                ssao.base = 1;
+                //ssao.fallOff = 0.000001;
+                //ssao.area = 0.0075;
+                //ssao.radius = 0.0001;
+                //ssao.totalStrength = 2;
+                //ssao.base = 1;
                 this.SSAOPipeline = ssao;
                 return ssao;
             };
@@ -5339,9 +5462,7 @@ var BABYLON;
             SceneFactory.AddPointLight = function (core) {
                 var light = new BABYLON.PointLight("New PointLight", new BABYLON.Vector3(10, 10, 10), core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a directional light
@@ -5349,45 +5470,35 @@ var BABYLON;
                 var light = new BABYLON.DirectionalLight("New DirectionalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.position = new BABYLON.Vector3(10, 10, 10);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a spot light
             SceneFactory.AddSpotLight = function (core) {
                 var light = new BABYLON.SpotLight("New SpotLight", new BABYLON.Vector3(10, 10, 10), new BABYLON.Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a hemispheric light
             SceneFactory.AddHemisphericLight = function (core) {
                 var light = new BABYLON.HemisphericLight("New HemisphericLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a box
             SceneFactory.AddBoxMesh = function (core) {
                 var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
                 box.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(box);
-                BABYLON.Tags.AddTagsTo(box, "added");
-                EDITOR.Event.sendSceneEvent(box, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(box, core);
                 return box;
             };
             // Adds a sphere
             SceneFactory.AddSphereMesh = function (core) {
                 var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
                 sphere.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(sphere);
-                BABYLON.Tags.AddTagsTo(sphere, "added");
-                EDITOR.Event.sendSceneEvent(sphere, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(sphere, core);
                 return sphere;
             };
             // Adds a particle system
@@ -5475,14 +5586,14 @@ var BABYLON;
             // Adds a reflection probe
             SceneFactory.AddReflectionProbe = function (core) {
                 var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
-                EDITOR.Event.sendSceneEvent(rp, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(rp, core);
                 return rp;
             };
             // Adds a render target
             SceneFactory.AddRenderTargetTexture = function (core) {
                 var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
                 core.currentScene.customRenderTargets.push(rt);
-                EDITOR.Event.sendSceneEvent(rt, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(rt, core);
                 return rt;
             };
             // Adds a skynode
@@ -5492,9 +5603,7 @@ var BABYLON;
                 var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
-                BABYLON.Tags.EnableFor(skybox);
-                BABYLON.Tags.AddTagsTo(skybox, "added");
-                EDITOR.Event.sendSceneEvent(skybox, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(skybox, core);
                 return skybox;
             };
             // Adds a water mesh (with water material)
@@ -5503,12 +5612,13 @@ var BABYLON;
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
-                BABYLON.Tags.EnableFor(water);
-                BABYLON.Tags.AddTagsTo(water, "added");
-                EDITOR.Event.sendSceneEvent(water, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(water, core);
+                // Add meshes in reflection automatically
+                for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {
+                    waterMaterial.addToRenderList(core.currentScene.meshes[i]);
+                }
                 return water;
             };
-            // Private members
             // Public members
             SceneFactory.HDRPipeline = null;
             SceneFactory.SSAOPipeline = null;
@@ -6412,6 +6522,8 @@ var BABYLON;
                 // Render targets
                 for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
                     var rt = core.currentScene.customRenderTargets[index];
+                    if (!BABYLON.Tags.HasTags(rt) || !BABYLON.Tags.MatchesQuery(rt, "added"))
+                        continue;
                     var obj = {
                         isProbe: false,
                         serializationObject: rt.serialize()
@@ -6513,22 +6625,30 @@ var BABYLON;
                                     var subMaterial = material.subMaterials[materialIndex];
                                     if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
                                         var matObj = {
-                                            meshName: node.name,
+                                            meshesNames: [node.name],
                                             newInstance: true,
                                             serializedValues: subMaterial.serialize()
                                         };
+                                        this._ConfigureMaterial(material, matObj);
                                         project.materials.push(matObj);
                                         this._RequestMaterial(core, project, subMaterial);
                                     }
                                 }
                             }
-                            var matObj = {
-                                meshName: node.name,
-                                newInstance: true,
-                                serializedValues: material.serialize()
-                            };
-                            project.materials.push(matObj);
-                            this._RequestMaterial(core, project, material);
+                            var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                            if (serializedMaterial) {
+                                serializedMaterial.meshesNames.push(node.name);
+                            }
+                            else {
+                                var matObj = {
+                                    meshesNames: [node.name],
+                                    newInstance: true,
+                                    serializedValues: material.serialize()
+                                };
+                                this._ConfigureMaterial(material, matObj);
+                                project.materials.push(matObj);
+                                this._RequestMaterial(core, project, material);
+                            }
                         }
                         // Check modified nodes
                         var nodeObj = {
@@ -6618,6 +6738,23 @@ var BABYLON;
                 if (index === -1)
                     project.requestedMaterials.push(constructorName);
             };
+            // Returns if a material has been already serialized
+            ProjectExporter._GetSerializedMaterial = function (project, materialName) {
+                for (var i = 0; i < project.materials.length; i++) {
+                    if (project.materials[i].serializedValues.name === materialName)
+                        return project.materials[i];
+                }
+                return null;
+            };
+            // Configures the material (configure base64 textures etc.)
+            ProjectExporter._ConfigureMaterial = function (material, projectMaterial) {
+                for (var thing in material) {
+                    var value = material[thing];
+                    if (!(value instanceof BABYLON.BaseTexture) || !projectMaterial.serializedValues[thing] || !value._buffer)
+                        continue;
+                    projectMaterial.serializedValues[thing].base64String = value._buffer;
+                }
+            };
             // Fills array of root nodes
             ProjectExporter._FillRootNodes = function (core, data, propertyPath) {
                 var scene = core.currentScene;
@@ -6672,7 +6809,7 @@ var BABYLON;
                     if (!material.newInstance || !material.serializedValues.customType)
                         continue;
                     var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
-                    materialType.Parse(material.serializedValues, core.currentScene, "./");
+                    material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
                 }
                 // Parse the nodes
                 for (var i = 0; i < project.nodes.length; i++) {
@@ -6817,6 +6954,17 @@ var BABYLON;
                             rt.waitingTexture.renderList.push(obj);
                     }
                 }
+                // Set materials
+                for (var i = 0; i < project.materials.length; i++) {
+                    if (!project.materials[i].meshesNames)
+                        continue;
+                    var meshesNames = project.materials[i].meshesNames;
+                    for (var meshName = 0; meshName < meshesNames.length; meshName++) {
+                        var mesh = core.currentScene.getMeshByName(meshesNames[meshName]);
+                        if (mesh)
+                            mesh.material = project.materials[i]._babylonMaterial;
+                    }
+                }
             };
             return ProjectImporter;
         })();
@@ -6910,7 +7058,7 @@ var BABYLON;
                 this._lockPanel("Saving on OneDrive...");
                 this._updateFileList(function () {
                     var files = [
-                        { name: "scene.js", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
+                        { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
                     _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
                         _this._unlockPanel();
@@ -8590,6 +8738,8 @@ var BABYLON;
                     if (selected.length === 0)
                         return;
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
+                    if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
+                        return;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();

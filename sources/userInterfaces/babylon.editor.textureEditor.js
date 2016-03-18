@@ -70,6 +70,8 @@ var BABYLON;
                     if (selected.length === 0)
                         return;
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
+                    if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
+                        return;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();

@@ -34,6 +34,7 @@
         private _addSphereMesh: string = "ADD-SPHERE-MESH";
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _addSkyMesh: string = "ADD-SKY-MESH";
+        private _addWaterMesh: string = "ADD-WATER-MESH";
         private _addLensFlare: string = "ADD-LENS-FLARE";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
         private _addRenderTarget: string = "ADD-RENDER-TARGET";
@@ -168,6 +169,9 @@
                     else if (selected.selected === this._addSkyMesh) {
                         SceneFactory.AddSkyMesh(this._core);
                     }
+                    else if (selected.selected === this._addWaterMesh) {
+                        SceneFactory.AddWaterMesh(this._core);
+                    }
 
                     else if (selected.selected === this._addReflectionProbe) {
                         SceneFactory.AddReflectionProbe(this._core);
@@ -252,6 +256,7 @@
             this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
+            this.toolbar.createMenuItem(menu, "button", this._addWaterMesh, "Add Water", "icon-water");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
             this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");

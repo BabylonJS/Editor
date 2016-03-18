@@ -24,6 +24,15 @@
             if (!super.update())
                 return false;
 
+            // Colors
+            this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
+            this.addColorFolder(this.material.specularColor, "Specular Color", true);
+
+            // Bump
+            var bumpFolder = this._element.addFolder("Bump");
+            bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
+            this.addTextureButton("Texture", "bumpTexture", bumpFolder);
+
             // Wind
             var windFolder = this._element.addFolder("Wind");
             windFolder.add(this.material, "windForce").min(0.0).step(0.01).name("Wind Force");
@@ -34,11 +43,6 @@
             waveFolder.add(this.material, "waveHeight").min(0.0).step(0.01).name("Wave Height");
             waveFolder.add(this.material, "waveLength").min(0.0).step(0.01).name("Wave Length");
             waveFolder.add(this.material, "waveSpeed").min(0.0).step(0.01).name("Wave Speed");
-
-            // Bump
-            var bumpFolder = this._element.addFolder("Bump");
-            bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
-            this.addTextureButton("Texture", "bumpTexture", bumpFolder);
 
             // Color
             var colorFolder = this._element.addFolder("Color");

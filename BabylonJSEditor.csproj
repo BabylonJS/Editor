@@ -30,6 +30,7 @@
     <Content Include="css\images\camera.png" />
     <Content Include="css\images\clone.png" />
     <Content Include="css\images\console.png" />
+    <Content Include="css\images\copy.png" />
     <Content Include="css\images\cube.png" />
     <Content Include="css\images\diffuse_color.png" />
     <Content Include="css\images\directional_light.png" />
@@ -38,8 +39,11 @@
     <Content Include="css\images\error.png" />
     <Content Include="css\images\export.png" />
     <Content Include="css\images\focus.png" />
+    <Content Include="css\images\helpers.png" />
     <Content Include="css\images\hill_plane.png" />
+    <Content Include="css\images\lens_flare.png" />
     <Content Include="css\images\light.png" />
+    <Content Include="css\images\onedrive.png" />
     <Content Include="css\images\open.png" />
     <Content Include="css\images\particles.png" />
     <Content Include="css\images\play_game.png" />
@@ -54,6 +58,7 @@
     <Content Include="css\images\shaders.png" />
     <Content Include="css\images\sound.png" />
     <Content Include="css\images\sphere.png" />
+    <Content Include="css\images\water.png" />
     <Content Include="css\images\wireframe.png" />
     <Content Include="css\w2ui-1.4.1.css" />
     <Content Include="gulpfile.js" />
@@ -149,9 +154,12 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.abstractMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.furMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.lavaMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.pbrMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.skyMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.standardMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.waterMaterialTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectExporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectImporter.ts" />

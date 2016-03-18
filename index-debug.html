@@ -88,6 +88,8 @@
     <script src="sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/materialEditors/babylon.editor.waterMaterialTool.js" type="text/javascript"></script>
+    <script src="sources/editionTools/materialEditors/babylon.editor.lavaMaterialTool.js" type="text/javascript"></script>
+    <script src="sources/editionTools/materialEditors/babylon.editor.furMaterialTool.js" type="text/javascript"></script>
 
     <!-- USER INTERFACES -->
     <script src="../sources/userInterfaces/babylon.editor.particleSystemEditor.js" type="text/javascript"></script>
@@ -217,7 +219,7 @@
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        //createPBRScene();
+        createPBRScene();
         
         var animation = new BABYLON.Animation("anim", "fogStart", 1, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, true);
         animation.setKeys([

@@ -85,7 +85,7 @@ var BABYLON;
                 this._lockPanel("Saving on OneDrive...");
                 this._updateFileList(function () {
                     var files = [
-                        { name: "scene.js", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
+                        { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
                     _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
                         _this._unlockPanel();

@@ -109,6 +109,22 @@ var BABYLON;
         FurMaterial.prototype.getAlphaTestTexture = function () {
             return null;
         };
+        FurMaterial.prototype.updateFur = function () {
+            for (var i = 1; i < this._meshes.length; i++) {
+                var offsetFur = this._meshes[i].material;
+                offsetFur.furLength = this.furLength;
+                offsetFur.furAngle = this.furAngle;
+                offsetFur.furGravity = this.furGravity;
+                offsetFur.furSpacing = this.furSpacing;
+                offsetFur.furSpeed = this.furSpeed;
+                offsetFur.furColor = this.furColor;
+                offsetFur.diffuseTexture = this.diffuseTexture;
+                offsetFur.furTexture = this.furTexture;
+                offsetFur.highLevelFur = this.highLevelFur;
+                offsetFur.furTime = this.furTime;
+                offsetFur.furDensity = this.furDensity;
+            }
+        };
         // Methods   
         FurMaterial.prototype._checkCache = function (scene, mesh, useInstances) {
             if (!mesh) {
@@ -512,6 +528,7 @@ var BABYLON;
             }
             for (i = 1; i < quality; i++) {
                 var offsetFur = new BABYLON.FurMaterial(mat.name + i, sourceMesh.getScene());
+                sourceMesh.getScene().materials.pop();
                 offsetFur.furLength = mat.furLength;
                 offsetFur.furAngle = mat.furAngle;
                 offsetFur.furGravity = mat.furGravity;
@@ -527,11 +544,13 @@ var BABYLON;
                 var offsetMesh = sourceMesh.clone(sourceMesh.name + i);
                 offsetMesh.material = offsetFur;
                 offsetMesh.skeleton = sourceMesh.skeleton;
+                offsetMesh.position = BABYLON.Vector3.Zero();
                 meshes.push(offsetMesh);
             }
-            for (i = 1; i < quality; i++) {
+            for (i = 1; i < meshes.length; i++) {
                 meshes[i].parent = sourceMesh;
             }
+            sourceMesh.material._meshes = meshes;
             return meshes;
         };
         __decorate([

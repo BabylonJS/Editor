@@ -47,8 +47,9 @@ declare module BABYLON.EDITOR.INTERNAL {
     */
     interface IMaterial {
         serializedValues: any;
-        meshName?: string;
+        meshesNames?: string[];
         newInstance?: boolean;
+        _babylonMaterial?: Material;
     }
     /**
     * Modified nodes in the editor (custom animations, for custom materials, etc.)

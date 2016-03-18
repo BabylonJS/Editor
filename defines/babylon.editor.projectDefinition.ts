@@ -56,8 +56,10 @@ declare module BABYLON.EDITOR.INTERNAL {
     */
     interface IMaterial {
         serializedValues: any; // The serialized object from BABYLON[TheMaterial]
-        meshName?: string;
+        meshesNames?: string[]; // Array of meshes names that share this material
         newInstance?: boolean;
+
+        _babylonMaterial?: Material; // Internally used
     }
 
     /**

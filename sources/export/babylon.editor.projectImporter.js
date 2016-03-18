@@ -38,7 +38,7 @@ var BABYLON;
                     if (!material.newInstance || !material.serializedValues.customType)
                         continue;
                     var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
-                    materialType.Parse(material.serializedValues, core.currentScene, "./");
+                    material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
                 }
                 // Parse the nodes
                 for (var i = 0; i < project.nodes.length; i++) {
@@ -181,6 +181,17 @@ var BABYLON;
                         var obj = core.currentScene.getMeshByID(rt.serializationObject.renderList[renderId]);
                         if (obj)
                             rt.waitingTexture.renderList.push(obj);
+                    }
+                }
+                // Set materials
+                for (var i = 0; i < project.materials.length; i++) {
+                    if (!project.materials[i].meshesNames)
+                        continue;
+                    var meshesNames = project.materials[i].meshesNames;
+                    for (var meshName = 0; meshName < meshesNames.length; meshName++) {
+                        var mesh = core.currentScene.getMeshByName(meshesNames[meshName]);
+                        if (mesh)
+                            mesh.material = project.materials[i]._babylonMaterial;
                     }
                 }
             };

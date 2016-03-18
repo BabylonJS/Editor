@@ -12,6 +12,14 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
+            // Private members
+            SceneFactory._ConfigureObject = function (object, core) {
+                if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)
+                    EDITOR.SceneManager.ConfigureObject(object, core);
+                BABYLON.Tags.EnableFor(object);
+                BABYLON.Tags.AddTagsTo(object, "added");
+                EDITOR.Event.sendSceneEvent(object, EDITOR.SceneEventType.OBJECT_ADDED, core);
+            };
             /**
             * Post-Processes
             */
@@ -53,11 +61,11 @@ var BABYLON;
                 }
                 var cameras = core.currentScene.cameras;
                 var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
-                ssao.fallOff = 0.000001;
-                ssao.area = 0.0075;
-                ssao.radius = 0.0001;
-                ssao.totalStrength = 2;
-                ssao.base = 1;
+                //ssao.fallOff = 0.000001;
+                //ssao.area = 0.0075;
+                //ssao.radius = 0.0001;
+                //ssao.totalStrength = 2;
+                //ssao.base = 1;
                 this.SSAOPipeline = ssao;
                 return ssao;
             };
@@ -68,9 +76,7 @@ var BABYLON;
             SceneFactory.AddPointLight = function (core) {
                 var light = new BABYLON.PointLight("New PointLight", new BABYLON.Vector3(10, 10, 10), core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a directional light
@@ -78,45 +84,35 @@ var BABYLON;
                 var light = new BABYLON.DirectionalLight("New DirectionalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.position = new BABYLON.Vector3(10, 10, 10);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a spot light
             SceneFactory.AddSpotLight = function (core) {
                 var light = new BABYLON.SpotLight("New SpotLight", new BABYLON.Vector3(10, 10, 10), new BABYLON.Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a hemispheric light
             SceneFactory.AddHemisphericLight = function (core) {
                 var light = new BABYLON.HemisphericLight("New HemisphericLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(light);
-                BABYLON.Tags.AddTagsTo(light, "added");
-                EDITOR.Event.sendSceneEvent(light, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(light, core);
                 return light;
             };
             // Adds a box
             SceneFactory.AddBoxMesh = function (core) {
                 var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
                 box.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(box);
-                BABYLON.Tags.AddTagsTo(box, "added");
-                EDITOR.Event.sendSceneEvent(box, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(box, core);
                 return box;
             };
             // Adds a sphere
             SceneFactory.AddSphereMesh = function (core) {
                 var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
                 sphere.id = this.GenerateUUID();
-                BABYLON.Tags.EnableFor(sphere);
-                BABYLON.Tags.AddTagsTo(sphere, "added");
-                EDITOR.Event.sendSceneEvent(sphere, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(sphere, core);
                 return sphere;
             };
             // Adds a particle system
@@ -204,14 +200,14 @@ var BABYLON;
             // Adds a reflection probe
             SceneFactory.AddReflectionProbe = function (core) {
                 var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
-                EDITOR.Event.sendSceneEvent(rp, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(rp, core);
                 return rp;
             };
             // Adds a render target
             SceneFactory.AddRenderTargetTexture = function (core) {
                 var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
                 core.currentScene.customRenderTargets.push(rt);
-                EDITOR.Event.sendSceneEvent(rt, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(rt, core);
                 return rt;
             };
             // Adds a skynode
@@ -221,9 +217,7 @@ var BABYLON;
                 var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
-                BABYLON.Tags.EnableFor(skybox);
-                BABYLON.Tags.AddTagsTo(skybox, "added");
-                EDITOR.Event.sendSceneEvent(skybox, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(skybox, core);
                 return skybox;
             };
             // Adds a water mesh (with water material)
@@ -232,12 +226,13 @@ var BABYLON;
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
-                BABYLON.Tags.EnableFor(water);
-                BABYLON.Tags.AddTagsTo(water, "added");
-                EDITOR.Event.sendSceneEvent(water, EDITOR.SceneEventType.OBJECT_ADDED, core);
+                this._ConfigureObject(water, core);
+                // Add meshes in reflection automatically
+                for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {
+                    waterMaterial.addToRenderList(core.currentScene.meshes[i]);
+                }
                 return water;
             };
-            // Private members
             // Public members
             SceneFactory.HDRPipeline = null;
             SceneFactory.SSAOPipeline = null;

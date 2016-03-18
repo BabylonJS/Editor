@@ -50,6 +50,8 @@
       "sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.waterMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.lavaMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.furMaterialTool.js",
       
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",

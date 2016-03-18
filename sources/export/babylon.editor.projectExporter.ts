@@ -94,6 +94,9 @@
             // Render targets
             for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
                 var rt = core.currentScene.customRenderTargets[index];
+
+                if (!Tags.HasTags(rt) || !Tags.MatchesQuery(rt, "added"))
+                    continue;
                 
                 var obj: INTERNAL.IRenderTarget = {
                     isProbe: false,
@@ -222,11 +225,12 @@
 
                                 if (!(subMaterial instanceof StandardMaterial)) {
                                     var matObj: INTERNAL.IMaterial = {
-                                        meshName: node.name,
+                                        meshesNames: [node.name],
                                         newInstance: true,
                                         serializedValues: subMaterial.serialize()
                                     };
 
+                                    this._ConfigureMaterial(material, matObj);
                                     project.materials.push(matObj);
 
                                     this._RequestMaterial(core, project, subMaterial);
@@ -234,15 +238,22 @@
                             }
                         }
 
-                        var matObj: INTERNAL.IMaterial = {
-                            meshName: node.name,
-                            newInstance: true,
-                            serializedValues: material.serialize()
-                        };
+                        var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                        if (serializedMaterial) {
+                            serializedMaterial.meshesNames.push(node.name);
+                        }
+                        else {
+                            var matObj: INTERNAL.IMaterial = {
+                                meshesNames: [node.name],
+                                newInstance: true,
+                                serializedValues: material.serialize()
+                            };
 
-                        project.materials.push(matObj);
+                            this._ConfigureMaterial(material, matObj);
+                            project.materials.push(matObj);
 
-                        this._RequestMaterial(core, project, material);
+                            this._RequestMaterial(core, project, material);
+                        }
                     }
 
                     // Check modified nodes
@@ -351,6 +362,28 @@
 
             if (index === -1)
                 project.requestedMaterials.push(constructorName);
+        }
+
+        // Returns if a material has been already serialized
+        private static _GetSerializedMaterial(project: INTERNAL.IProjectRoot, materialName: string): INTERNAL.IMaterial {
+            for (var i = 0; i < project.materials.length; i++) {
+                if (project.materials[i].serializedValues.name === materialName)
+                    return project.materials[i];
+            }
+
+            return null;
+        }
+
+        // Configures the material (configure base64 textures etc.)
+        private static _ConfigureMaterial(material: Material, projectMaterial: INTERNAL.IMaterial): void {
+            for (var thing in material) {
+                var value = material[thing];
+
+                if (!(value instanceof BaseTexture) || !projectMaterial.serializedValues[thing] || !(<any>value)._buffer)
+                    continue;
+
+                projectMaterial.serializedValues[thing].base64String = (<any>value)._buffer;
+            }
         }
 
         // Fills array of root nodes

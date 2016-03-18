@@ -173,3 +173,7 @@ html, body {
 .w2ui-icon.icon-sphere-mesh {
     background: url("images/billboard.png");
 }
+
+.w2ui-icon.icon-water {
+    background: url("images/water.png");
+}

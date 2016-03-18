@@ -108,7 +108,7 @@
 
             this._updateFileList(() => {
                 var files: IStorageUploadFile[] = [
-                    { name: "scene.js", content: ProjectExporter.ExportProject(this.core) }
+                    { name: "scene.editorproject", content: ProjectExporter.ExportProject(this.core) }
                 ];
 
                 this._storage.createFiles(files, StorageExporter._projectFolder, () => {

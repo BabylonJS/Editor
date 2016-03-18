@@ -12,6 +12,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): boolean;
         private _configureMaterialsLibrary(folder);
+        private _applyMaterial();
         private _removeMaterial();
         private _setMaterialsLibrary();
     }

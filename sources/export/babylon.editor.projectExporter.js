@@ -81,6 +81,8 @@ var BABYLON;
                 // Render targets
                 for (index = 0; index < core.currentScene.customRenderTargets.length; index++) {
                     var rt = core.currentScene.customRenderTargets[index];
+                    if (!BABYLON.Tags.HasTags(rt) || !BABYLON.Tags.MatchesQuery(rt, "added"))
+                        continue;
                     var obj = {
                         isProbe: false,
                         serializationObject: rt.serialize()
@@ -182,22 +184,30 @@ var BABYLON;
                                     var subMaterial = material.subMaterials[materialIndex];
                                     if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
                                         var matObj = {
-                                            meshName: node.name,
+                                            meshesNames: [node.name],
                                             newInstance: true,
                                             serializedValues: subMaterial.serialize()
                                         };
+                                        this._ConfigureMaterial(material, matObj);
                                         project.materials.push(matObj);
                                         this._RequestMaterial(core, project, subMaterial);
                                     }
                                 }
                             }
-                            var matObj = {
-                                meshName: node.name,
-                                newInstance: true,
-                                serializedValues: material.serialize()
-                            };
-                            project.materials.push(matObj);
-                            this._RequestMaterial(core, project, material);
+                            var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                            if (serializedMaterial) {
+                                serializedMaterial.meshesNames.push(node.name);
+                            }
+                            else {
+                                var matObj = {
+                                    meshesNames: [node.name],
+                                    newInstance: true,
+                                    serializedValues: material.serialize()
+                                };
+                                this._ConfigureMaterial(material, matObj);
+                                project.materials.push(matObj);
+                                this._RequestMaterial(core, project, material);
+                            }
                         }
                         // Check modified nodes
                         var nodeObj = {
@@ -286,6 +296,23 @@ var BABYLON;
                 var index = project.requestedMaterials.indexOf(constructorName);
                 if (index === -1)
                     project.requestedMaterials.push(constructorName);
+            };
+            // Returns if a material has been already serialized
+            ProjectExporter._GetSerializedMaterial = function (project, materialName) {
+                for (var i = 0; i < project.materials.length; i++) {
+                    if (project.materials[i].serializedValues.name === materialName)
+                        return project.materials[i];
+                }
+                return null;
+            };
+            // Configures the material (configure base64 textures etc.)
+            ProjectExporter._ConfigureMaterial = function (material, projectMaterial) {
+                for (var thing in material) {
+                    var value = material[thing];
+                    if (!(value instanceof BABYLON.BaseTexture) || !projectMaterial.serializedValues[thing] || !value._buffer)
+                        continue;
+                    projectMaterial.serializedValues[thing].base64String = value._buffer;
+                }
             };
             // Fills array of root nodes
             ProjectExporter._FillRootNodes = function (core, data, propertyPath) {
