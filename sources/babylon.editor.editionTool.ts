@@ -158,6 +158,9 @@
             this.addTool(new WaterMaterialTool(this));
             this.addTool(new LavaMaterialTool(this));
             this.addTool(new FurMaterialTool(this));
+
+            for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
+                this.addTool(new PluginManager.EditionToolPlugins[i](this));
         }
 
         // Adds a tool

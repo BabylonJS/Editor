@@ -25,6 +25,9 @@
                     var texture = <RenderTargetTexture>Texture.Parse(rt.serializationObject, core.currentScene, "./");
                     texture._waitingRenderList = undefined;
                     rt.waitingTexture = texture;
+
+                    Tags.EnableFor(texture);
+                    Tags.AddTagsTo(texture, "added");
                 }
             }
 

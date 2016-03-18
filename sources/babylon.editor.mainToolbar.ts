@@ -4,14 +4,15 @@
         public container: string = "BABYLON-EDITOR-MAIN-TOOLBAR";
         public toolbar: GUI.GUIToolbar = null;
         public panel: GUI.GUIPanel = null;
+        public core: EditorCore;
 
         public particleSystemMenu: GUI.IToolbarMenuElement = null;
         public particleSystemCopyItem: GUI.IToolbarElement = null;
         public particleSystemPasteItem: GUI.IToolbarElement = null; 
 
         // Private members
-        private _core: EditorCore;
         private _editor: EditorMain;
+        private _plugins: ICustomToolbarMenu[] = [];
 
         private _mainProject = "MAIN-PROJECT";
         private _mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
@@ -52,13 +53,13 @@
         constructor(core: EditorCore) {
             // Initialize
             this._editor = core.editor;
-            this._core = core;
+            this.core = core;
 
             this.panel = this._editor.layouts.getPanelFromType("top");
 
             // Register this
-            this._core.updates.push(this);
-            this._core.eventReceivers.push(this);
+            this.core.updates.push(this);
+            this.core.eventReceivers.push(this);
         }
 
         // Pre update
@@ -100,24 +101,24 @@
                         }).click();
                     }
                     else if (selected.selected === this._mainProjectReload) {
-                        this._core.editor.filesInput.reload();
+                        this.core.editor.filesInput.reload();
                     }
 
                     else if (selected.selected === this._projectExportCode) {
-                        var exporter = new Exporter(this._core);
+                        var exporter = new Exporter(this.core);
                         exporter.openSceneExporter();
                     }
                     else if (selected.selected === this._projectExportBabylonScene) {
-                        var babylonExporter = new BabylonExporter(this._core);
+                        var babylonExporter = new BabylonExporter(this.core);
                         babylonExporter.createUI();
                     }
 
                     else if (selected.selected === this._projectConnectStorage) {
-                        var storageExporter = new StorageExporter(this._core);
+                        var storageExporter = new StorageExporter(this.core);
                         storageExporter.export();
                     }
                     else if (selected.selected === this._projectTemplateStorage) {
-                        var storageExporter = new StorageExporter(this._core);
+                        var storageExporter = new StorageExporter(this.core);
                         storageExporter.createTemplate();
                     }
 
@@ -127,10 +128,10 @@
                 // Edit
                 if (selected.parent === this._mainEdit) {
                     if (selected.selected === this._mainEditLaunch) {
-                        var launchEditor = new LaunchEditor(this._core);
+                        var launchEditor = new LaunchEditor(this.core);
                     }
                     else if (selected.selected === this._mainEditTextures) {
-                        var textureEditor = new GUITextureEditor(this._core, "");
+                        var textureEditor = new GUITextureEditor(this.core, "");
                     }
 
                     return true;
@@ -139,45 +140,45 @@
                 // Add
                 if (selected.parent === this._mainAdd) {
                     if (selected.selected === this._addPointLight) {
-                        SceneFactory.AddPointLight(this._core);
+                        SceneFactory.AddPointLight(this.core);
                     }
                     else if (selected.selected === this._addDirectionalLight) {
-                        SceneFactory.AddDirectionalLight(this._core);
+                        SceneFactory.AddDirectionalLight(this.core);
                     }
                     else if (selected.selected === this._addSpotLight) {
-                        SceneFactory.AddSpotLight(this._core);
+                        SceneFactory.AddSpotLight(this.core);
                     }
                     else if (selected.selected === this._addHemisphericLight) {
-                        SceneFactory.AddHemisphericLight(this._core);
+                        SceneFactory.AddHemisphericLight(this.core);
                     }
 
                     else if (selected.selected === this._addBoxMesh) {
-                        SceneFactory.AddBoxMesh(this._core);
+                        SceneFactory.AddBoxMesh(this.core);
                     }
                     else if (selected.selected === this._addSphereMesh) {
-                        SceneFactory.AddSphereMesh(this._core);
+                        SceneFactory.AddSphereMesh(this.core);
                     }
 
                     else if (selected.selected === this._addParticleSystem) {
-                        SceneFactory.AddParticleSystem(this._core);
+                        SceneFactory.AddParticleSystem(this.core);
                     }
 
                     else if (selected.selected === this._addLensFlare) {
-                        SceneFactory.AddLensFlareSystem(this._core);
+                        SceneFactory.AddLensFlareSystem(this.core);
                     }
                     
                     else if (selected.selected === this._addSkyMesh) {
-                        SceneFactory.AddSkyMesh(this._core);
+                        SceneFactory.AddSkyMesh(this.core);
                     }
                     else if (selected.selected === this._addWaterMesh) {
-                        SceneFactory.AddWaterMesh(this._core);
+                        SceneFactory.AddWaterMesh(this.core);
                     }
 
                     else if (selected.selected === this._addReflectionProbe) {
-                        SceneFactory.AddReflectionProbe(this._core);
+                        SceneFactory.AddReflectionProbe(this.core);
                     }
                     else if (selected.selected === this._addRenderTarget) {
-                        SceneFactory.AddRenderTargetTexture(this._core);
+                        SceneFactory.AddRenderTargetTexture(this.core);
                     }
 
                     return true;
@@ -193,25 +194,30 @@
                             return true;
                         
                         //var emitter = GUIParticleSystemEditor._CopiedParticleSystem.emitter;
-                        var selectedEmitter = this._core.editor.sceneGraphTool.sidebar.getSelectedNode();
+                        var selectedEmitter = this.core.editor.sceneGraphTool.sidebar.getSelectedNode();
 
                         if (!selectedEmitter || !selectedEmitter.data || !selectedEmitter.data.position)
                             return true;
 
-                        var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), GUIParticleSystemEditor._CopiedParticleSystem, selectedEmitter.data);
+                        var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), GUIParticleSystemEditor._CopiedParticleSystem, selectedEmitter.data);
 
-                        Event.sendSceneEvent(newParticleSystem, SceneEventType.OBJECT_ADDED, this._core);
+                        Event.sendSceneEvent(newParticleSystem, SceneEventType.OBJECT_ADDED, this.core);
                         this._editor.editionTool.updateEditionTool();
                     }
 
                     else if (selected.selected === this._particlesPlay) {
-                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, true);
+                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this.core.currentScene, true);
                     }
                     else if (selected.selected === this._particlesStop) {
-                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, false);
+                        GUIParticleSystemEditor.PlayStopAllParticleSystems(this.core.currentScene, false);
                     }
 
                     return true;
+                }
+
+                for (var i = 0; i < this._plugins.length; i++) {
+                    if (this._plugins[i].onMenuItemSelected(selected.selected))
+                        return true;
                 }
             }
 
@@ -223,7 +229,7 @@
             if (this.toolbar != null)
                 this.toolbar.destroy();
 
-            this.toolbar = new GUI.GUIToolbar(this.container, this._core);
+            this.toolbar = new GUI.GUIToolbar(this.container, this.core);
 
             var menu = this.toolbar.createMenu("menu", this._mainProject, "Project", "icon-folder");
             this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
@@ -269,6 +275,9 @@
             this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
             this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
             //...
+
+            for (var i = 0; i < PluginManager.MainToolbarPlugin.length; i++)
+                this._plugins.push(new PluginManager.MainToolbarPlugin[i](this));
 
             // Build element
             this.toolbar.buildElement(this.container);

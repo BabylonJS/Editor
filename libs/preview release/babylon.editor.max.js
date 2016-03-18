@@ -3571,6 +3571,8 @@ var BABYLON;
                 this.addTool(new EDITOR.WaterMaterialTool(this));
                 this.addTool(new EDITOR.LavaMaterialTool(this));
                 this.addTool(new EDITOR.FurMaterialTool(this));
+                for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
+                    this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };
             // Adds a tool
             EditionTool.prototype.addTool = function (tool) {
@@ -3862,6 +3864,7 @@ var BABYLON;
                 this.particleSystemMenu = null;
                 this.particleSystemCopyItem = null;
                 this.particleSystemPasteItem = null;
+                this._plugins = [];
                 this._mainProject = "MAIN-PROJECT";
                 this._mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
                 this._mainProjectReload = "MAIN-PROJECT-RELOAD";
@@ -3892,11 +3895,11 @@ var BABYLON;
                 this._particlesStop = "PARTICLES-STOP";
                 // Initialize
                 this._editor = core.editor;
-                this._core = core;
+                this.core = core;
                 this.panel = this._editor.layouts.getPanelFromType("top");
                 // Register this
-                this._core.updates.push(this);
-                this._core.eventReceivers.push(this);
+                this.core.updates.push(this);
+                this.core.eventReceivers.push(this);
             }
             // Pre update
             MainToolbar.prototype.onPreUpdate = function () {
@@ -3928,22 +3931,22 @@ var BABYLON;
                             }).click();
                         }
                         else if (selected.selected === this._mainProjectReload) {
-                            this._core.editor.filesInput.reload();
+                            this.core.editor.filesInput.reload();
                         }
                         else if (selected.selected === this._projectExportCode) {
-                            var exporter = new EDITOR.Exporter(this._core);
+                            var exporter = new EDITOR.Exporter(this.core);
                             exporter.openSceneExporter();
                         }
                         else if (selected.selected === this._projectExportBabylonScene) {
-                            var babylonExporter = new EDITOR.BabylonExporter(this._core);
+                            var babylonExporter = new EDITOR.BabylonExporter(this.core);
                             babylonExporter.createUI();
                         }
                         else if (selected.selected === this._projectConnectStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this._core);
+                            var storageExporter = new EDITOR.StorageExporter(this.core);
                             storageExporter.export();
                         }
                         else if (selected.selected === this._projectTemplateStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this._core);
+                            var storageExporter = new EDITOR.StorageExporter(this.core);
                             storageExporter.createTemplate();
                         }
                         return true;
@@ -3951,50 +3954,50 @@ var BABYLON;
                     // Edit
                     if (selected.parent === this._mainEdit) {
                         if (selected.selected === this._mainEditLaunch) {
-                            var launchEditor = new EDITOR.LaunchEditor(this._core);
+                            var launchEditor = new EDITOR.LaunchEditor(this.core);
                         }
                         else if (selected.selected === this._mainEditTextures) {
-                            var textureEditor = new EDITOR.GUITextureEditor(this._core, "");
+                            var textureEditor = new EDITOR.GUITextureEditor(this.core, "");
                         }
                         return true;
                     }
                     // Add
                     if (selected.parent === this._mainAdd) {
                         if (selected.selected === this._addPointLight) {
-                            EDITOR.SceneFactory.AddPointLight(this._core);
+                            EDITOR.SceneFactory.AddPointLight(this.core);
                         }
                         else if (selected.selected === this._addDirectionalLight) {
-                            EDITOR.SceneFactory.AddDirectionalLight(this._core);
+                            EDITOR.SceneFactory.AddDirectionalLight(this.core);
                         }
                         else if (selected.selected === this._addSpotLight) {
-                            EDITOR.SceneFactory.AddSpotLight(this._core);
+                            EDITOR.SceneFactory.AddSpotLight(this.core);
                         }
                         else if (selected.selected === this._addHemisphericLight) {
-                            EDITOR.SceneFactory.AddHemisphericLight(this._core);
+                            EDITOR.SceneFactory.AddHemisphericLight(this.core);
                         }
                         else if (selected.selected === this._addBoxMesh) {
-                            EDITOR.SceneFactory.AddBoxMesh(this._core);
+                            EDITOR.SceneFactory.AddBoxMesh(this.core);
                         }
                         else if (selected.selected === this._addSphereMesh) {
-                            EDITOR.SceneFactory.AddSphereMesh(this._core);
+                            EDITOR.SceneFactory.AddSphereMesh(this.core);
                         }
                         else if (selected.selected === this._addParticleSystem) {
-                            EDITOR.SceneFactory.AddParticleSystem(this._core);
+                            EDITOR.SceneFactory.AddParticleSystem(this.core);
                         }
                         else if (selected.selected === this._addLensFlare) {
-                            EDITOR.SceneFactory.AddLensFlareSystem(this._core);
+                            EDITOR.SceneFactory.AddLensFlareSystem(this.core);
                         }
                         else if (selected.selected === this._addSkyMesh) {
-                            EDITOR.SceneFactory.AddSkyMesh(this._core);
+                            EDITOR.SceneFactory.AddSkyMesh(this.core);
                         }
                         else if (selected.selected === this._addWaterMesh) {
-                            EDITOR.SceneFactory.AddWaterMesh(this._core);
+                            EDITOR.SceneFactory.AddWaterMesh(this.core);
                         }
                         else if (selected.selected === this._addReflectionProbe) {
-                            EDITOR.SceneFactory.AddReflectionProbe(this._core);
+                            EDITOR.SceneFactory.AddReflectionProbe(this.core);
                         }
                         else if (selected.selected === this._addRenderTarget) {
-                            EDITOR.SceneFactory.AddRenderTargetTexture(this._core);
+                            EDITOR.SceneFactory.AddRenderTargetTexture(this.core);
                         }
                         return true;
                     }
@@ -4007,20 +4010,24 @@ var BABYLON;
                             if (!EDITOR.GUIParticleSystemEditor._CopiedParticleSystem)
                                 return true;
                             //var emitter = GUIParticleSystemEditor._CopiedParticleSystem.emitter;
-                            var selectedEmitter = this._core.editor.sceneGraphTool.sidebar.getSelectedNode();
+                            var selectedEmitter = this.core.editor.sceneGraphTool.sidebar.getSelectedNode();
                             if (!selectedEmitter || !selectedEmitter.data || !selectedEmitter.data.position)
                                 return true;
-                            var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(this._core.currentScene, EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), EDITOR.GUIParticleSystemEditor._CopiedParticleSystem, selectedEmitter.data);
-                            EDITOR.Event.sendSceneEvent(newParticleSystem, EDITOR.SceneEventType.OBJECT_ADDED, this._core);
+                            var newParticleSystem = EDITOR.GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, EDITOR.GUIParticleSystemEditor._CopiedParticleSystem.getCapacity(), EDITOR.GUIParticleSystemEditor._CopiedParticleSystem, selectedEmitter.data);
+                            EDITOR.Event.sendSceneEvent(newParticleSystem, EDITOR.SceneEventType.OBJECT_ADDED, this.core);
                             this._editor.editionTool.updateEditionTool();
                         }
                         else if (selected.selected === this._particlesPlay) {
-                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, true);
+                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this.core.currentScene, true);
                         }
                         else if (selected.selected === this._particlesStop) {
-                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this._core.currentScene, false);
+                            EDITOR.GUIParticleSystemEditor.PlayStopAllParticleSystems(this.core.currentScene, false);
                         }
                         return true;
+                    }
+                    for (var i = 0; i < this._plugins.length; i++) {
+                        if (this._plugins[i].onMenuItemSelected(selected.selected))
+                            return true;
                     }
                 }
                 return false;
@@ -4029,7 +4036,7 @@ var BABYLON;
             MainToolbar.prototype.createUI = function () {
                 if (this.toolbar != null)
                     this.toolbar.destroy();
-                this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
+                this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this.core);
                 var menu = this.toolbar.createMenu("menu", this._mainProject, "Project", "icon-folder");
                 this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
                 this.toolbar.createMenuItem(menu, "button", this._mainProjectReload, "Reload...", "icon-copy");
@@ -4071,6 +4078,8 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
                 this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
                 //...
+                for (var i = 0; i < EDITOR.PluginManager.MainToolbarPlugin.length; i++)
+                    this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugin[i](this));
                 // Build element
                 this.toolbar.buildElement(this.container);
             };
@@ -4221,7 +4230,8 @@ var BABYLON;
                     }
                     for (var i = 0; i < scene.customRenderTargets.length; i++) {
                         var rt = scene.customRenderTargets[i];
-                        this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
+                        if (BABYLON.Tags.HasTags(rt) && BABYLON.Tags.MatchesQuery(rt, "added"))
+                            this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
                     }
                     // Audio
                     var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
@@ -6620,34 +6630,36 @@ var BABYLON;
                         // Check materials
                         if (node instanceof BABYLON.AbstractMesh && node.material && !(node.material instanceof BABYLON.StandardMaterial)) {
                             var material = node.material;
-                            if (material instanceof BABYLON.MultiMaterial) {
-                                for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
-                                    var subMaterial = material.subMaterials[materialIndex];
-                                    if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
-                                        var matObj = {
-                                            meshesNames: [node.name],
-                                            newInstance: true,
-                                            serializedValues: subMaterial.serialize()
-                                        };
-                                        this._ConfigureMaterial(material, matObj);
-                                        project.materials.push(matObj);
-                                        this._RequestMaterial(core, project, subMaterial);
+                            if (!BABYLON.Tags.HasTags(material) || !BABYLON.Tags.MatchesQuery(material, "furShellMaterial")) {
+                                if (material instanceof BABYLON.MultiMaterial) {
+                                    for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
+                                        var subMaterial = material.subMaterials[materialIndex];
+                                        if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
+                                            var matObj = {
+                                                meshesNames: [node.name],
+                                                newInstance: true,
+                                                serializedValues: subMaterial.serialize()
+                                            };
+                                            this._ConfigureMaterial(material, matObj);
+                                            project.materials.push(matObj);
+                                            this._RequestMaterial(core, project, subMaterial);
+                                        }
                                     }
                                 }
-                            }
-                            var serializedMaterial = this._GetSerializedMaterial(project, material.name);
-                            if (serializedMaterial) {
-                                serializedMaterial.meshesNames.push(node.name);
-                            }
-                            else {
-                                var matObj = {
-                                    meshesNames: [node.name],
-                                    newInstance: true,
-                                    serializedValues: material.serialize()
-                                };
-                                this._ConfigureMaterial(material, matObj);
-                                project.materials.push(matObj);
-                                this._RequestMaterial(core, project, material);
+                                var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                                if (serializedMaterial) {
+                                    serializedMaterial.meshesNames.push(node.name);
+                                }
+                                else {
+                                    var matObj = {
+                                        meshesNames: [node.name],
+                                        newInstance: true,
+                                        serializedValues: material.serialize()
+                                    };
+                                    this._ConfigureMaterial(material, matObj);
+                                    project.materials.push(matObj);
+                                    this._RequestMaterial(core, project, material);
+                                }
                             }
                         }
                         // Check modified nodes
@@ -6797,6 +6809,8 @@ var BABYLON;
                         var texture = BABYLON.Texture.Parse(rt.serializationObject, core.currentScene, "./");
                         texture._waitingRenderList = undefined;
                         rt.waitingTexture = texture;
+                        BABYLON.Tags.EnableFor(texture);
+                        BABYLON.Tags.AddTagsTo(texture, "added");
                     }
                 }
                 // Second, create materials
@@ -8785,5 +8799,27 @@ var BABYLON;
             return GUITextureEditor;
         })();
         EDITOR.GUITextureEditor = GUITextureEditor;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var PluginManager = (function () {
+            function PluginManager() {
+            }
+            // Functions
+            PluginManager.RegisterEditionTool = function (tool) {
+                this.EditionToolPlugins.push(tool);
+            };
+            PluginManager.RegisterMainToolbarPlugin = function (plugin) {
+                this.MainToolbarPlugin.push(plugin);
+            };
+            // Plugins
+            PluginManager.EditionToolPlugins = [];
+            PluginManager.MainToolbarPlugin = [];
+            return PluginManager;
+        })();
+        EDITOR.PluginManager = PluginManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

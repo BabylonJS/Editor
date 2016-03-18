@@ -488,6 +488,12 @@ var BABYLON;
             if (this.diffuseTexture) {
                 this.diffuseTexture.dispose();
             }
+            if (this._meshes) {
+                for (var i = 1; i < this._meshes.length; i++) {
+                    this._meshes[i].material.dispose(forceDisposeEffect);
+                    this._meshes[i].dispose();
+                }
+            }
             _super.prototype.dispose.call(this, forceDisposeEffect);
         };
         FurMaterial.prototype.clone = function (name) {
@@ -497,11 +503,26 @@ var BABYLON;
         FurMaterial.prototype.serialize = function () {
             var serializationObject = BABYLON.SerializationHelper.Serialize(this);
             serializationObject.customType = "BABYLON.FurMaterial";
+            if (this._meshes) {
+                serializationObject.sourceMeshName = this._meshes[0].name;
+                serializationObject.quality = this._meshes.length;
+            }
             return serializationObject;
         };
         // Statics
         FurMaterial.Parse = function (source, scene, rootUrl) {
-            return BABYLON.SerializationHelper.Parse(function () { return new FurMaterial(source.name, scene); }, source, scene, rootUrl);
+            var material = BABYLON.SerializationHelper.Parse(function () { return new FurMaterial(source.name, scene); }, source, scene, rootUrl);
+            if (source.sourceMeshName && material.highLevelFur) {
+                scene.executeWhenReady(function () {
+                    var sourceMesh = scene.getMeshByName(source.sourceMeshName);
+                    if (sourceMesh) {
+                        var furTexture = FurMaterial.GenerateTexture("Fur Texture", scene);
+                        material.furTexture = furTexture;
+                        FurMaterial.FurifyMesh(sourceMesh, source.quality);
+                    }
+                });
+            }
+            return material;
         };
         FurMaterial.GenerateTexture = function (name, scene) {
             // Generate fur textures
@@ -529,6 +550,8 @@ var BABYLON;
             for (i = 1; i < quality; i++) {
                 var offsetFur = new BABYLON.FurMaterial(mat.name + i, sourceMesh.getScene());
                 sourceMesh.getScene().materials.pop();
+                BABYLON.Tags.EnableFor(offsetFur);
+                BABYLON.Tags.AddTagsTo(offsetFur, "furShellMaterial");
                 offsetFur.furLength = mat.furLength;
                 offsetFur.furAngle = mat.furAngle;
                 offsetFur.furGravity = mat.furGravity;
@@ -554,6 +577,15 @@ var BABYLON;
             return meshes;
         };
         __decorate([
+            BABYLON.serializeAsTexture()
+        ], FurMaterial.prototype, "diffuseTexture");
+        __decorate([
+            BABYLON.serializeAsTexture()
+        ], FurMaterial.prototype, "heightTexture");
+        __decorate([
+            BABYLON.serializeAsColor3()
+        ], FurMaterial.prototype, "diffuseColor");
+        __decorate([
             BABYLON.serialize()
         ], FurMaterial.prototype, "furLength");
         __decorate([
@@ -577,9 +609,6 @@ var BABYLON;
         __decorate([
             BABYLON.serialize()
         ], FurMaterial.prototype, "furDensity");
-        __decorate([
-            BABYLON.serializeAsTexture()
-        ], FurMaterial.prototype, "furTexture");
         __decorate([
             BABYLON.serialize()
         ], FurMaterial.prototype, "disableLighting");

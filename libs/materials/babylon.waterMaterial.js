@@ -624,6 +624,8 @@ var BABYLON;
         WaterMaterial.prototype.serialize = function () {
             var serializationObject = BABYLON.SerializationHelper.Serialize(this);
             serializationObject.customType = "BABYLON.WaterMaterial";
+            serializationObject.reflectionTexture.isRenderTarget = true;
+            serializationObject.refractionTexture.isRenderTarget = true;
             return serializationObject;
         };
         // Statics

@@ -26,6 +26,8 @@ var BABYLON;
                         var texture = BABYLON.Texture.Parse(rt.serializationObject, core.currentScene, "./");
                         texture._waitingRenderList = undefined;
                         rt.waitingTexture = texture;
+                        BABYLON.Tags.EnableFor(texture);
+                        BABYLON.Tags.AddTagsTo(texture, "added");
                     }
                 }
                 // Second, create materials

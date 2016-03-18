@@ -86,4 +86,15 @@
         */
         resize(): void;
     }
+
+    /**
+    * Custom main toolbar plugin
+    */
+    interface ICustomToolbarMenu {
+        /**
+        * Called when a menu item is selected by the user
+        * Returns true if a menu of the plugin was selected, false if no one selected
+        */
+        onMenuItemSelected(selected): boolean;
+    }
 }

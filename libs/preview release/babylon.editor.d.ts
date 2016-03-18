@@ -146,11 +146,12 @@ declare module BABYLON.EDITOR {
         container: string;
         toolbar: GUI.GUIToolbar;
         panel: GUI.GUIPanel;
+        core: EditorCore;
         particleSystemMenu: GUI.IToolbarMenuElement;
         particleSystemCopyItem: GUI.IToolbarElement;
         particleSystemPasteItem: GUI.IToolbarElement;
-        private _core;
         private _editor;
+        private _plugins;
         private _mainProject;
         private _mainProjectOpenFiles;
         private _mainProjectReload;
@@ -188,6 +189,17 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    type _EditionToolConstructor = new (editionTool: EditionTool) => ICustomEditionTool;
+    type _MainToolbarPlugin = new (toolbar: MainToolbar) => ICustomToolbarMenu;
+    class PluginManager {
+        static EditionToolPlugins: _EditionToolConstructor[];
+        static MainToolbarPlugin: _MainToolbarPlugin[];
+        static RegisterEditionTool(tool: _EditionToolConstructor): void;
+        static RegisterMainToolbarPlugin(plugin: _MainToolbarPlugin): void;
     }
 }
 

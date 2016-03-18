@@ -140,7 +140,8 @@ var BABYLON;
                     }
                     for (var i = 0; i < scene.customRenderTargets.length; i++) {
                         var rt = scene.customRenderTargets[i];
-                        this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
+                        if (BABYLON.Tags.HasTags(rt) && BABYLON.Tags.MatchesQuery(rt, "added"))
+                            this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
                     }
                     // Audio
                     var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");

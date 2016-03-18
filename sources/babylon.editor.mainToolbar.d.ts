@@ -3,11 +3,12 @@ declare module BABYLON.EDITOR {
         container: string;
         toolbar: GUI.GUIToolbar;
         panel: GUI.GUIPanel;
+        core: EditorCore;
         particleSystemMenu: GUI.IToolbarMenuElement;
         particleSystemCopyItem: GUI.IToolbarElement;
         particleSystemPasteItem: GUI.IToolbarElement;
-        private _core;
         private _editor;
+        private _plugins;
         private _mainProject;
         private _mainProjectOpenFiles;
         private _mainProjectReload;

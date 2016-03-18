@@ -179,34 +179,36 @@ var BABYLON;
                         // Check materials
                         if (node instanceof BABYLON.AbstractMesh && node.material && !(node.material instanceof BABYLON.StandardMaterial)) {
                             var material = node.material;
-                            if (material instanceof BABYLON.MultiMaterial) {
-                                for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
-                                    var subMaterial = material.subMaterials[materialIndex];
-                                    if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
-                                        var matObj = {
-                                            meshesNames: [node.name],
-                                            newInstance: true,
-                                            serializedValues: subMaterial.serialize()
-                                        };
-                                        this._ConfigureMaterial(material, matObj);
-                                        project.materials.push(matObj);
-                                        this._RequestMaterial(core, project, subMaterial);
+                            if (!BABYLON.Tags.HasTags(material) || !BABYLON.Tags.MatchesQuery(material, "furShellMaterial")) {
+                                if (material instanceof BABYLON.MultiMaterial) {
+                                    for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
+                                        var subMaterial = material.subMaterials[materialIndex];
+                                        if (!(subMaterial instanceof BABYLON.StandardMaterial)) {
+                                            var matObj = {
+                                                meshesNames: [node.name],
+                                                newInstance: true,
+                                                serializedValues: subMaterial.serialize()
+                                            };
+                                            this._ConfigureMaterial(material, matObj);
+                                            project.materials.push(matObj);
+                                            this._RequestMaterial(core, project, subMaterial);
+                                        }
                                     }
                                 }
-                            }
-                            var serializedMaterial = this._GetSerializedMaterial(project, material.name);
-                            if (serializedMaterial) {
-                                serializedMaterial.meshesNames.push(node.name);
-                            }
-                            else {
-                                var matObj = {
-                                    meshesNames: [node.name],
-                                    newInstance: true,
-                                    serializedValues: material.serialize()
-                                };
-                                this._ConfigureMaterial(material, matObj);
-                                project.materials.push(matObj);
-                                this._RequestMaterial(core, project, material);
+                                var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                                if (serializedMaterial) {
+                                    serializedMaterial.meshesNames.push(node.name);
+                                }
+                                else {
+                                    var matObj = {
+                                        meshesNames: [node.name],
+                                        newInstance: true,
+                                        serializedValues: material.serialize()
+                                    };
+                                    this._ConfigureMaterial(material, matObj);
+                                    project.materials.push(matObj);
+                                    this._RequestMaterial(core, project, material);
+                                }
                             }
                         }
                         // Check modified nodes

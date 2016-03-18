@@ -175,7 +175,9 @@
 
                 for (var i = 0; i < scene.customRenderTargets.length; i++) {
                     var rt = scene.customRenderTargets[i];
-                    this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
+
+                    if (Tags.HasTags(rt) && Tags.MatchesQuery(rt, "added"))
+                        this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
                 }
 
                 // Audio

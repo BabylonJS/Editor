@@ -219,40 +219,43 @@
                     if (node instanceof AbstractMesh && node.material && !(node.material instanceof StandardMaterial)) {
                         var material = node.material;
 
-                        if (material instanceof MultiMaterial) {
-                            for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
-                                var subMaterial = material.subMaterials[materialIndex];
+                        if (!Tags.HasTags(material) || !Tags.MatchesQuery(material, "furShellMaterial")) {
 
-                                if (!(subMaterial instanceof StandardMaterial)) {
-                                    var matObj: INTERNAL.IMaterial = {
-                                        meshesNames: [node.name],
-                                        newInstance: true,
-                                        serializedValues: subMaterial.serialize()
-                                    };
+                            if (material instanceof MultiMaterial) {
+                                for (var materialIndex = 0; materialIndex < material.subMaterials.length; materialIndex++) {
+                                    var subMaterial = material.subMaterials[materialIndex];
 
-                                    this._ConfigureMaterial(material, matObj);
-                                    project.materials.push(matObj);
+                                    if (!(subMaterial instanceof StandardMaterial)) {
+                                        var matObj: INTERNAL.IMaterial = {
+                                            meshesNames: [node.name],
+                                            newInstance: true,
+                                            serializedValues: subMaterial.serialize()
+                                        };
 
-                                    this._RequestMaterial(core, project, subMaterial);
+                                        this._ConfigureMaterial(material, matObj);
+                                        project.materials.push(matObj);
+
+                                        this._RequestMaterial(core, project, subMaterial);
+                                    }
                                 }
                             }
-                        }
 
-                        var serializedMaterial = this._GetSerializedMaterial(project, material.name);
-                        if (serializedMaterial) {
-                            serializedMaterial.meshesNames.push(node.name);
-                        }
-                        else {
-                            var matObj: INTERNAL.IMaterial = {
-                                meshesNames: [node.name],
-                                newInstance: true,
-                                serializedValues: material.serialize()
-                            };
+                            var serializedMaterial = this._GetSerializedMaterial(project, material.name);
+                            if (serializedMaterial) {
+                                serializedMaterial.meshesNames.push(node.name);
+                            }
+                            else {
+                                var matObj: INTERNAL.IMaterial = {
+                                    meshesNames: [node.name],
+                                    newInstance: true,
+                                    serializedValues: material.serialize()
+                                };
 
-                            this._ConfigureMaterial(material, matObj);
-                            project.materials.push(matObj);
+                                this._ConfigureMaterial(material, matObj);
+                                project.materials.push(matObj);
 
-                            this._RequestMaterial(core, project, material);
+                                this._RequestMaterial(core, project, material);
+                            }
                         }
                     }
 
