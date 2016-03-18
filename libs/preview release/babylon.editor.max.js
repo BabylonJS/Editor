@@ -2899,7 +2899,7 @@ var BABYLON;
                     var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, _this.material.name + " - " + name, _this.material, property);
                 };
                 this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
-                var folder = this._element.addFolder("Texture", parentFolder);
+                var folder = this._element.addFolder(name, parentFolder);
                 folder.close();
                 folder.add(this, functionName).name("Browse...");
                 folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
@@ -2917,7 +2917,7 @@ var BABYLON;
                     if (callback)
                         callback();
                 });
-                return null;
+                return folder;
             };
             return AbstractMaterialTool;
         })(EDITOR.AbstractDatTool);
@@ -3157,20 +3157,20 @@ var BABYLON;
                 var diffuseFolder = this._element.addFolder("Diffuse");
                 this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
                 diffuseFolder.add(this.material, "useAlphaFromDiffuseTexture").name("Use Alpha From Diffuse Texture");
-                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder);
+                this.addTextureButton("Diffuse Texture", "diffuseTexture", diffuseFolder);
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
+                this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Specular
                 var specularFolder = this._element.addFolder("Specular");
                 this.addColorFolder(this.material.specularColor, "Specular Color", true, specularFolder);
                 specularFolder.add(this.material, "specularPower").min(0).step(0.01).name("Specular Power");
                 specularFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
                 specularFolder.add(this.material, "useGlossinessFromSpecularMapAlpha").name("Use Glossiness From Specular Map Alpha");
-                this.addTextureButton("Texture", "specularTexture", specularFolder);
+                this.addTextureButton("Specular Texture", "specularTexture", specularFolder);
                 // Emissive
                 var emissiveFolder = this._element.addFolder("Emissive");
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
@@ -3179,15 +3179,15 @@ var BABYLON;
                 // Ambient
                 var ambientFolder = this._element.addFolder("Ambient");
                 this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
-                this.addTextureButton("Texture", "ambientTexture", ambientFolder);
+                this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
                 // Reflection
                 var reflectionFolder = this._element.addFolder("Reflection");
-                this.addTextureButton("Texture", "reflectionTexture", reflectionFolder);
+                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder);
                 // Refraction
                 var refractionFolder = this._element.addFolder("Refraction");
                 refractionFolder.add(this.material, "indexOfRefraction").name("Index of Refraction");
                 refractionFolder.add(this.material, "invertRefractionY").name("Invert Y");
-                this.addTextureButton("Texture", "refractionTexture", refractionFolder);
+                this.addTextureButton("Refraction Texture", "refractionTexture", refractionFolder);
                 var t;
                 // Finish
                 return true;
@@ -3363,6 +3363,142 @@ var BABYLON;
             return FurMaterialTool;
         })(EDITOR.AbstractMaterialTool);
         EDITOR.FurMaterialTool = FurMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GradientMaterialTool = (function (_super) {
+            __extends(GradientMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function GradientMaterialTool(editionTool) {
+                _super.call(this, editionTool, "GRADIENT-MATERIAL", "GRADIENT", "Gradient");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.GradientMaterial; };
+            }
+            // Update
+            GradientMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Top
+                var topFolder = this._element.addFolder("Top");
+                this.addColorFolder(this.material.topColor, "Top Color", true, topFolder);
+                topFolder.add(this.material, "topColorAlpha").min(0).max(1).step(0.01).name("Top Color Alpha");
+                // Bottom
+                var bottomFolder = this._element.addFolder("Bottom");
+                this.addColorFolder(this.material.bottomColor, "Bottom Color", true, topFolder);
+                topFolder.add(this.material, "bottomColorAlpha").min(0).max(1).step(0.01).name("Bottom Color Alpha");
+                // Gradient
+                var gradientFolder = this._element.addFolder("Gradient");
+                gradientFolder.add(this.material, "offset").step(0.01).name("Offset");
+                gradientFolder.add(this.material, "smoothness").step(0.01).name("Smoothness");
+                // Finish
+                return true;
+            };
+            return GradientMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.GradientMaterialTool = GradientMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var TerrainMaterialTool = (function (_super) {
+            __extends(TerrainMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function TerrainMaterialTool(editionTool) {
+                _super.call(this, editionTool, "TERRAIN-MATERIAL", "TERRAIN", "Terrain");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.TerrainMaterial; };
+            }
+            // Update
+            TerrainMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Mix Texture
+                this.addTextureButton("Mix Texture", "mixTexture", null).open();
+                // Diffuse
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
+                this.addTextureButton("Diffuse Texture R", "diffuseTexture1", diffuseFolder).open();
+                this.addTextureButton("Diffuse Texture G", "diffuseTexture2", diffuseFolder).open();
+                this.addTextureButton("Diffuse Texture B", "diffuseTexture3", diffuseFolder).open();
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump");
+                this.addTextureButton("Bump Texture R", "bumpTexture1", bumpFolder).open();
+                this.addTextureButton("Bump Texture G", "bumpTexture2", bumpFolder).open();
+                this.addTextureButton("Bump Texture B", "bumpTexture3", bumpFolder).open();
+                // Specular
+                var specularFolder = this._element.addFolder("Specular");
+                this.addColorFolder(this.material.specularColor, "Specular Color", true, specularFolder);
+                specularFolder.add(this.material, "specularPower").min(0).step(0.5).name("Specular Power");
+                // Finish
+                return true;
+            };
+            return TerrainMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.TerrainMaterialTool = TerrainMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var TriPlanarMaterialTool = (function (_super) {
+            __extends(TriPlanarMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function TriPlanarMaterialTool(editionTool) {
+                _super.call(this, editionTool, "TRI-PLANAR-MATERIAL", "TRI-PLANAR", "Tri Planar");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.TriPlanarMaterial; };
+            }
+            // Update
+            TriPlanarMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Tri Planar
+                this._element.add(this.material, "tileSize").min(0).step(0.01).name("Tile Size");
+                // Diffuse
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
+                this.addTextureButton("Diffuse Texture X", "diffuseTextureX", diffuseFolder).open();
+                this.addTextureButton("Diffuse Texture Y", "diffuseTextureY", diffuseFolder).open();
+                this.addTextureButton("Diffuse Texture Z", "diffuseTextureZ", diffuseFolder).open();
+                // Bump
+                var bumpFolder = this._element.addFolder("Bump");
+                this.addTextureButton("Bump Texture X", "normalTextureX", bumpFolder).open();
+                this.addTextureButton("Bump Texture Y", "normalTextureY", bumpFolder).open();
+                this.addTextureButton("Bump Texture Z", "normalTextureZ", bumpFolder).open();
+                // Specular
+                var specularFolder = this._element.addFolder("Specular");
+                this.addColorFolder(this.material.specularColor, "Specular Color", true, specularFolder);
+                specularFolder.add(this.material, "specularPower").min(0).step(0.5).name("Specular Power");
+                // Finish
+                return true;
+            };
+            return TriPlanarMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.TriPlanarMaterialTool = TriPlanarMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;
@@ -3571,6 +3707,9 @@ var BABYLON;
                 this.addTool(new EDITOR.WaterMaterialTool(this));
                 this.addTool(new EDITOR.LavaMaterialTool(this));
                 this.addTool(new EDITOR.FurMaterialTool(this));
+                this.addTool(new EDITOR.GradientMaterialTool(this));
+                this.addTool(new EDITOR.TerrainMaterialTool(this));
+                this.addTool(new EDITOR.TriPlanarMaterialTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };

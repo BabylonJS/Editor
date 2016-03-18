@@ -127,6 +127,9 @@ var BABYLON;
                 this.addTool(new EDITOR.WaterMaterialTool(this));
                 this.addTool(new EDITOR.LavaMaterialTool(this));
                 this.addTool(new EDITOR.FurMaterialTool(this));
+                this.addTool(new EDITOR.GradientMaterialTool(this));
+                this.addTool(new EDITOR.TerrainMaterialTool(this));
+                this.addTool(new EDITOR.TriPlanarMaterialTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };

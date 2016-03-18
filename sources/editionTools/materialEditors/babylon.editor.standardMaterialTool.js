@@ -40,20 +40,20 @@ var BABYLON;
                 var diffuseFolder = this._element.addFolder("Diffuse");
                 this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
                 diffuseFolder.add(this.material, "useAlphaFromDiffuseTexture").name("Use Alpha From Diffuse Texture");
-                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder);
+                this.addTextureButton("Diffuse Texture", "diffuseTexture", diffuseFolder);
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump & Parallax");
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-                this.addTextureButton("Texture", "bumpTexture", bumpFolder);
+                this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Specular
                 var specularFolder = this._element.addFolder("Specular");
                 this.addColorFolder(this.material.specularColor, "Specular Color", true, specularFolder);
                 specularFolder.add(this.material, "specularPower").min(0).step(0.01).name("Specular Power");
                 specularFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
                 specularFolder.add(this.material, "useGlossinessFromSpecularMapAlpha").name("Use Glossiness From Specular Map Alpha");
-                this.addTextureButton("Texture", "specularTexture", specularFolder);
+                this.addTextureButton("Specular Texture", "specularTexture", specularFolder);
                 // Emissive
                 var emissiveFolder = this._element.addFolder("Emissive");
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
@@ -62,15 +62,15 @@ var BABYLON;
                 // Ambient
                 var ambientFolder = this._element.addFolder("Ambient");
                 this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
-                this.addTextureButton("Texture", "ambientTexture", ambientFolder);
+                this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
                 // Reflection
                 var reflectionFolder = this._element.addFolder("Reflection");
-                this.addTextureButton("Texture", "reflectionTexture", reflectionFolder);
+                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder);
                 // Refraction
                 var refractionFolder = this._element.addFolder("Refraction");
                 refractionFolder.add(this.material, "indexOfRefraction").name("Index of Refraction");
                 refractionFolder.add(this.material, "invertRefractionY").name("Invert Y");
-                this.addTextureButton("Texture", "refractionTexture", refractionFolder);
+                this.addTextureButton("Refraction Texture", "refractionTexture", refractionFolder);
                 var t;
                 // Finish
                 return true;

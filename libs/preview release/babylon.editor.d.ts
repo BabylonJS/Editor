@@ -1390,6 +1390,17 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class GradientMaterialTool extends AbstractMaterialTool<GradientMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
     class LavaMaterialTool extends AbstractMaterialTool<LavaMaterial> {
         /**
         * Constructor
@@ -1429,6 +1440,28 @@ declare module BABYLON.EDITOR {
 
 declare module BABYLON.EDITOR {
     class StandardMaterialTool extends AbstractMaterialTool<StandardMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class TerrainMaterialTool extends AbstractMaterialTool<TerrainMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class TriPlanarMaterialTool extends AbstractMaterialTool<TriPlanarMaterial> {
         /**
         * Constructor
         * @param editionTool: edition tool instance

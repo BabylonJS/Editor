@@ -129,7 +129,7 @@
             };
             this[stringName] = (this.material[property] && this.material[property] instanceof BaseTexture) ? this.material[property].name : textures[0];
 
-            var folder = this._element.addFolder("Texture", parentFolder);
+            var folder = this._element.addFolder(name, parentFolder);
             folder.close();
             folder.add(this, functionName).name("Browse...");
             folder.add(this, stringName, textures).name("Choose").onChange((result: any) => {
@@ -149,7 +149,7 @@
                     callback();
             });
 
-            return null;
+            return folder;
         }
     }
 }
