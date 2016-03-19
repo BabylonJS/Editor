@@ -36,11 +36,11 @@ var BABYLON;
                 // Fur
                 var furFolder = this._element.addFolder("Fur");
                 this.addColorFolder(this.material.furColor, "Fur Color", true, furFolder, callback);
-                furFolder.add(this.material, "furLength").min(0).step(0.01).name("Fur Length").onChange(function (result) { callback(); });
-                furFolder.add(this.material, "furAngle").min(0).step(0.01).name("Fur Angle").onChange(function (result) { callback(); });
-                furFolder.add(this.material, "furSpacing").min(0).step(0.01).name("Fur Spacing").onChange(function (result) { callback(); });
-                furFolder.add(this.material, "furSpeed").min(0).max(1000).step(0.01).name("Fur Speed").onChange(function (result) { callback(); });
-                furFolder.add(this.material, "furDensity").min(0).step(0.01).name("Fur Density").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furLength").min(0).step(0.1).name("Fur Length").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furAngle").min(0).step(0.1).name("Fur Angle").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furSpacing").min(0).step(0.1).name("Fur Spacing").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furSpeed").min(1).max(1000).step(0.01).name("Fur Speed").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furDensity").min(0).step(0.1).name("Fur Density").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "highLevelFur").name("High Level Fur").onChange(function (result) { callback(); });
                 this.addVectorFolder(this.material.furGravity, "Gravity", true, furFolder, callback);
                 // Finish

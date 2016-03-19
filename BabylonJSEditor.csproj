@@ -70,6 +70,7 @@
     <Content Include="libs\dat.gui.min.js" />
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\loaders\babylon.objFileLoader.js" />
+    <Content Include="libs\loaders\babylon.stlFileLoader.js" />
     <Content Include="libs\materials\babylon.fireMaterial.js" />
     <Content Include="libs\materials\babylon.furMaterial.js" />
     <Content Include="libs\materials\babylon.gradientMaterial.js" />
@@ -136,6 +137,7 @@
     <TypeScriptCompile Include="sources\babylon.editor.editPanel.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.main.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.mainToolbar.ts" />
+    <TypeScriptCompile Include="sources\babylon.editor.pluginManager.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneGraphTool.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.sceneToolbar.ts" />
     <TypeScriptCompile Include="sources\babylon.editor.timeline.ts" />
@@ -155,10 +157,13 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.abstractMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.furMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.gradientMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.lavaMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.pbrMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.skyMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.standardMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.terrainMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.triPlanarMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.waterMaterialTool.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="sources\export\babylon.editor.projectExporter.ts" />
