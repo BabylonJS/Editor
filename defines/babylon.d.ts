@@ -652,6 +652,7 @@ declare module BABYLON {
         _cachedMaterial: Material;
         private _renderId;
         private _executeWhenReadyTimeoutId;
+        private _intermediateRendering;
         _toBeDisposed: SmartArray<IDisposable>;
         private _onReadyCallbacks;
         private _pendingData;
@@ -855,12 +856,6 @@ declare module BABYLON {
          */
         getParticleSystemByID(id: string): ParticleSystem;
         /**
-         * get a particle system by name
-         * @param name {string} the particle system name
-         * @return {BABYLON.ParticleSystem|null} the corresponding system or null if none found.
-         */
-        getParticleSystemByName(name: string): ParticleSystem;
-        /**
          * get a geometry using its ID
          * @param {string} the geometry's id
          * @return {BABYLON.Geometry|null} the geometry or null if none found.
@@ -913,6 +908,7 @@ declare module BABYLON {
         getSkeletonByName(name: string): Skeleton;
         isActiveMesh(mesh: Mesh): boolean;
         private _evaluateSubMesh(subMesh, mesh);
+        _isInIntermediateRendering(): boolean;
         private _evaluateActiveMeshes();
         private _activeMesh(mesh);
         updateTransformMatrix(force?: boolean): void;
@@ -2919,6 +2915,7 @@ declare module BABYLON {
         toString(): string;
     }
     class Material {
+        name: string;
         private static _TriangleFillMode;
         private static _WireFrameFillMode;
         private static _PointFillMode;
@@ -2936,7 +2933,6 @@ declare module BABYLON {
         alpha: number;
         backFaceCulling: boolean;
         sideOrientation: number;
-        name: string;
         onCompiled: (effect: Effect) => void;
         onError: (effect: Effect, errors: string) => void;
         onDispose: () => void;
@@ -3839,6 +3835,7 @@ declare module BABYLON {
         getBoundingInfo(): BoundingInfo;
         useBones: boolean;
         _preActivate(): void;
+        _preActivateForIntermediateRendering(renderId: number): void;
         _activate(renderId: number): void;
         getWorldMatrix(): Matrix;
         worldMatrixFromCache: Matrix;
@@ -4366,6 +4363,7 @@ declare module BABYLON {
         /**  This function affects parametric shapes on update only : ribbons, tubes, etc. It has no effect at all on other shapes */
         unfreezeNormals(): void;
         _preActivate(): void;
+        _preActivateForIntermediateRendering(renderId: number): void;
         _registerInstanceForRenderId(instance: InstancedMesh, renderId: number): void;
         refreshBoundingInfo(): void;
         _createGlobalSubMesh(): SubMesh;
@@ -4763,7 +4761,7 @@ declare module BABYLON {
          * The parameter `pathArray` is a required array of paths, what are each an array of successive Vector3. The pathArray parameter depicts the ribbon geometry.
          * The parameter `closeArray` (boolean, default false) creates a seam between the first and the last paths of the path array.
          * The parameter `closePath` (boolean, default false) creates a seam between the first and the last points of each path of the path array.
-         * The optional parameter èinstance` is an instance of an existing Ribbon object to be updated with the passed `pathArray` parameter : http://doc.babylonjs.com/tutorials/How_to_dynamically_morph_a_mesh#ribbon
+         * The optional parameter `instance` is an instance of an existing Ribbon object to be updated with the passed `pathArray` parameter : http://doc.babylonjs.com/tutorials/How_to_dynamically_morph_a_mesh#ribbon
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
@@ -4981,16 +4979,16 @@ declare module BABYLON {
          * The lathe is a shape with a symetry axis : a 2D model shape is rotated around this axis to design the lathe.
          * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#lathe
          *
-         * The parameter "shape" is a required array of successive Vector3. This array depicts the shape to be rotated in its local space : the shape must be designed in the xOy plane and will be
+         * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be rotated in its local space : the shape must be designed in the xOy plane and will be
          * rotated around the Y axis. It's usually a 2D shape, so the Vector3 z coordinates are often set to zero.
-         * The parameter "radius" (positive float, default 1) is the radius value of the lathe.
-         * The parameter "tessellation" (positive integer, default 64) is the side number of the lathe.
-         * The parameter "arc" (positive float, default 1) is the ratio of the lathe. 0.5 builds for instance half a lathe, so an opened shape.
-         * The parameter "closed" (boolean, default true) opens/closes the lathe circumference. This should be set to false when used with the parameter "arc".
-         * The parameter "cap" sets the way the extruded shape is capped. Possible values : BABYLON.Mesh.NO_CAP (default), BABYLON.Mesh.CAP_START, BABYLON.Mesh.CAP_END, BABYLON.Mesh.CAP_ALL
+         * The parameter `radius` (positive float, default 1) is the radius value of the lathe.
+         * The parameter `tessellation` (positive integer, default 64) is the side number of the lathe.
+         * The parameter `arc` (positive float, default 1) is the ratio of the lathe. 0.5 builds for instance half a lathe, so an opened shape.
+         * The parameter `closed` (boolean, default true) opens/closes the lathe circumference. This should be set to false when used with the parameter "arc".
+         * The parameter `cap` sets the way the extruded shape is capped. Possible values : BABYLON.Mesh.NO_CAP (default), BABYLON.Mesh.CAP_START, BABYLON.Mesh.CAP_END, BABYLON.Mesh.CAP_ALL
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
-         * The mesh can be set to updatable with the boolean parameter "updatable" (default false) if its internal geometry is supposed to change once created.
+         * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         static CreateLathe(name: string, options: {
             shape: Vector3[];
@@ -5082,6 +5080,27 @@ declare module BABYLON {
             updatable?: boolean;
             onReady?: (mesh: GroundMesh) => void;
         }, scene: Scene): GroundMesh;
+        /**
+         * Creates a tube mesh.
+         * The tube is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
+         *
+         * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#tube
+         * The parameter `path` is a required array of successive `Vector3`. It is the curve used as the axis of the tube.
+         * The parameter `radius` (positive float, default 1) sets the tube radius size.
+         * The parameter `tessellation` (positive float, default 64) is the number of sides on the tubular surface.
+         * The parameter `radiusFunction` (javascript function, default null) is a vanilla javascript function. If it is not null, it overwrittes the parameter `radius`.
+         * This function is called on each point of the tube path and is passed the index `i` of the i-th point and the distance of this point from the first point of the path.
+         * It must return a radius value (positive float) :
+         * ```var radiusFunction = function(i, distance) {
+         *   // do things
+         *   return radius; }```
+         * The parameter `arc` (positive float, maximum 1, default 1) is the ratio to apply to the tube circumference : 2 x PI x arc.
+         * The parameter `cap` sets the way the extruded shape is capped. Possible values : BABYLON.Mesh.NO_CAP (default), BABYLON.Mesh.CAP_START, BABYLON.Mesh.CAP_END, BABYLON.Mesh.CAP_ALL
+         * The optional parameter `instance` is an instance of an existing Tube object to be updated with the passed `pathArray` parameter : http://doc.babylonjs.com/tutorials/How_to_dynamically_morph_a_mesh#tube
+         * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
+         * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
+         */
         static CreateTube(name: string, options: {
             path: Vector3[];
             radius?: number;
@@ -5095,6 +5114,23 @@ declare module BABYLON {
             sideOrientation?: number;
             instance?: Mesh;
         }, scene: Scene): Mesh;
+        /**
+         * Creates a polyhedron mesh.
+         *
+         * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#polyhedron
+         * The parameter `type` (positive integer, max 14, default 0) sets the polyhedron type to build among the 15 embbeded types. Please refer to the type sheet in the tutorial
+         *  to choose the wanted type.
+         * The parameter `size` (positive float, default 1) sets the polygon size.
+         * You can overwrite the `size` on each dimension bu using the parameters `sizeX`, `sizeY` or `sizeZ` (positive floats, default to `size` value).
+         * You can build other polyhedron types than the 15 embbeded ones by setting the parameter `custom` (`polyhedronObject`, default null). If you set the parameter `custom`, this overwrittes the parameter `type`.
+         * A `polyhedronObject` is a formatted javascript object. You'll find a full file with pre-set polyhedra here : https://github.com/BabylonJS/Extensions/tree/master/Polyhedron
+         * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (`Color4`, default `(1, 1, 1, 1)`) and faceUV (`Vector4`, default `(0, 0, 1, 1)`).
+         * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
+         * The parameter `flat` (boolean, default true). If set to false, it gives the polyhedron a single global face, so less vertices and shared normals. In this case, `faceColors` and `faceUV` are ignored.
+         * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
+         * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
+         * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
+         */
         static CreatePolyhedron(name: string, options: {
             type?: number;
             size?: number;
@@ -5108,6 +5144,15 @@ declare module BABYLON {
             updatable?: boolean;
             sideOrientation?: number;
         }, scene: Scene): Mesh;
+        /**
+         * Creates a decal mesh.
+         * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#decals
+         * A decal is a mesh usually applied as a model onto the surface of another mesh. So don't forget the parameter `sourceMesh` depicting the decal.
+         * The parameter `position` (`Vector3`, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
+         * The parameter `normal` (`Vector3`, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
+         * The parameter `size` (`Vector3`, default `(1, 1, 1)`) sets the decal scaling.
+         * The parameter `angle` (float in radian, default 0) sets the angle to rotate the decal.
+         */
         static CreateDecal(name: string, sourceMesh: AbstractMesh, options: {
             position?: Vector3;
             normal?: Vector3;
@@ -5517,10 +5562,10 @@ declare module BABYLON {
         vars: any;
         /**
         * This array is populated when the SPS is set as 'pickable'.
-        * Each key of this array is a faceId value that you can get from a pickResult object.
-        * Each element of this array is an object {idx: int, faceId: int}.
-        * idx is the picked particle index in the SPS.particles array
-        * faceId is the picked face index counted within this particles
+        * Each key of this array is a `faceId` value that you can get from a pickResult object.
+        * Each element of this array is an object `{idx: int, faceId: int}`.
+        * `idx` is the picked particle index in the `SPS.particles` array
+        * `faceId` is the picked face index counted within this particle.
         * Please read : http://doc.babylonjs.com/tutorials/Solid_Particle_System#pickable-particles
         */
         pickedParticles: {
@@ -5585,9 +5630,10 @@ declare module BABYLON {
         private _maximum;
         /**
         * Creates a SPS (Solid Particle System) object.
-        * @param name the SPS name, this will be the underlying mesh name
-        * @param scene the scene in which the SPS is added
-        * @param options "updatable" (default true) : if the SPS must be updatable or immutable, "isPickable" (default false) : if the solid particles must be pickable
+        * `name` (String) is the SPS name, this will be the underlying mesh name.
+        * `scene` (Scene) is the scene in which the SPS is added.
+        * `updatableè (default true) : if the SPS must be updatable or immutable.
+        * `isPickable` (default false) : if the solid particles must be pickable.
         */
         constructor(name: string, scene: Scene, options?: {
             updatable?: boolean;
@@ -5595,34 +5641,35 @@ declare module BABYLON {
         });
         /**
         * Builds the SPS underlying mesh. Returns a standard Mesh.
-        * If no model shape was added to the SPS, the return mesh is only a single triangular plane.
+        * If no model shape was added to the SPS, the returned mesh is just a single triangular plane.
         */
         buildMesh(): Mesh;
         /**
-        * Digests the mesh and generates as many solid particles in the system as wanted.
+        * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
         * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
-        * Thus the particles generated from digest() have their property "positiion" yet set.
-        * @param mesh the mesh to be digested
-        * @param facetNb the number of mesh facets per particle (optional, default 1), this parameter is overriden by the parameter "number" if any
-        * @param delta the random extra number of facets per partical (optional, default 0), each particle will have between facetNb and facetNb + delta facets
-        * @param number the wanted number of particles : each particle is built with mesh_total_facets / number facets (optional)
+        * Thus the particles generated from `digest()` have their property `position` set yet.
+        * `mesh` (`Mesh`) is the mesh to be digested
+        * `facetNb` (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
+        * `delta` (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
+        * `number` (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
         */
         digest(mesh: Mesh, options?: {
             facetNb?: number;
             number?: number;
             delta?: number;
-        }): void;
+        }): SolidParticleSystem;
         private _resetCopy();
         private _meshBuilder(p, shape, positions, meshInd, indices, meshUV, uvs, meshCol, colors, idx, idxInShape, options);
         private _posToShape(positions);
         private _uvsToShapeUV(uvs);
         private _addParticle(idx, idxpos, model, shapeId, idxInShape);
         /**
-        * Adds some particles to the SPS from the model shape.
+        * Adds some particles to the SPS from the model shape. Returns the shape id.
         * Please read the doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#create-an-immutable-sps
-        * @param mesh any Mesh object that will be used as a model for the solid particles.
-        * @param nb the number of particles to be created from this model
-        * @param options positionFunction is an optional javascript function to called for each particle on SPS creation. vertexFunction an optional javascript function to called for each vertex of each particle on SPS creation
+        * `mesh` is any `Mesh` object that will be used as a model for the solid particles.
+        * `nb` (positive integer) the number of particles to be created from this model
+        * `positionFunction` is an optional javascript function to called for each particle on SPS creation.
+        * `vertexFunction` is an optional javascript function to called for each vertex of each particle on SPS creation
         */
         addShape(mesh: Mesh, nb: number, options?: {
             positionFunction?: any;
@@ -5635,7 +5682,7 @@ declare module BABYLON {
         rebuildMesh(): void;
         /**
         *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
-        *  This method calls updateParticle() for each particles of the SPS.
+        *  This method calls `updateParticle()` for each particle of the SPS.
         *  For an animated SPS, it is usually called within the render loop.
         * @param start (default 0) the particle index in the particle array where to start to compute the particle property values
         * @param end (default nbParticle - 1)  the particle index in the particle array where to stop to compute the particle property values
@@ -5649,62 +5696,57 @@ declare module BABYLON {
         */
         dispose(): void;
         /**
-        *  Visibilty helper : Recomputes the visible size according to the mesh bounding box
+        * Visibilty helper : Recomputes the visible size according to the mesh bounding box
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#sps-visibility
         */
         refreshVisibleSize(): void;
-        /** Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
+        /**
+        * Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
         * @param size the size (float) of the visibility box
         * note : this doesn't lock the SPS mesh bounding box.
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#sps-visibility
         */
         setVisibilityBox(size: number): void;
         /**
-        * True if the SPS is set as always visible
-        */
-        /**
         * Sets the SPS as always visible or not
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#sps-visibility
         */
         isAlwaysVisible: boolean;
-        /**
-        * True if the SPS visibility box is locked. The underlying mesh bounding box is then not updatable any more.
-        */
         /**
         * Sets the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#sps-visibility
         */
         isVisibilityBoxLocked: boolean;
         /**
-        * Tells to setParticles() to compute the particle rotations or not.
+        * Tells to `setParticles()` to compute the particle rotations or not.
         * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle rotations aren't stored values, so setting computeParticleRotation to false will prevents the particle to rotate.
+        * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
         */
         computeParticleRotation: boolean;
         /**
-        * Tells to setParticles() to compute the particle colors or not.
+        * Tells to `setParticles()` to compute the particle colors or not.
         * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle colors are stored values, so setting computeParticleColor to false will keep yet the last colors set.
+        * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
         */
         computeParticleColor: boolean;
         /**
-        * Tells to setParticles() to compute the particle textures or not.
+        * Tells to `setParticles()` to compute the particle textures or not.
         * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle textures are stored values, so setting computeParticleTexture to false will keep yet the last colors set.
+        * Note : the particle textures are stored values, so setting `computeParticleTexture` to false will keep yet the last colors set.
         */
         computeParticleTexture: boolean;
         /**
-        * Tells to setParticles() to call the vertex function for each vertex of each particle, or not.
+        * Tells to `setParticles()` to call the vertex function for each vertex of each particle, or not.
         * Default value : false. The SPS is faster when it's set to false.
         * Note : the particle custom vertex positions aren't stored values.
         */
         computeParticleVertex: boolean;
         /**
-        * Tells to setParticles() to compute or not the mesh bounding box when computing the particle positions.
+        * Tells to `setParticles()` to compute or not the mesh bounding box when computing the particle positions.
         */
         computeBoundingBox: boolean;
         /**
-        * This function does nothing. It may be overwritten to set all the particles first values.
+        * This function does nothing. It may be overwritten to set all the particle first values.
         * The SPS doesn't call this function, you may have to call it by your own.
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#particle-management
         */
@@ -5717,14 +5759,14 @@ declare module BABYLON {
         recycleParticle(particle: SolidParticle): SolidParticle;
         /**
         * Updates a particle : this function should  be overwritten by the user.
-        * It is called on each particle by setParticles(). This is the place to code each particle behavior.
+        * It is called on each particle by `setParticles()`. This is the place to code each particle behavior.
         * doc : http://doc.babylonjs.com/tutorials/Solid_Particle_System#particle-management
         * ex : just set a particle position or velocity and recycle conditions
         */
         updateParticle(particle: SolidParticle): SolidParticle;
         /**
         * Updates a vertex of a particle : it can be overwritten by the user.
-        * This will be called on each vertex particle by setParticles() if computeParticleVertex is set to true only.
+        * This will be called on each vertex particle by `setParticles()` if `computeParticleVertex` is set to true only.
         * @param particle the current particle
         * @param vertex the current index of the current particle
         * @param pt the index of the current vertex in the particle shape
@@ -5733,7 +5775,7 @@ declare module BABYLON {
         */
         updateParticleVertex(particle: SolidParticle, vertex: Vector3, pt: number): Vector3;
         /**
-        * This will be called before any other treatment by setParticles() and will be passed three parameters.
+        * This will be called before any other treatment by `setParticles()` and will be passed three parameters.
         * This does nothing and may be overwritten by the user.
         * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
         * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
@@ -5741,7 +5783,7 @@ declare module BABYLON {
         */
         beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void;
         /**
-        * This will be called  by setParticles() after all the other treatments and just before the actual mesh update.
+        * This will be called  by `setParticles()` after all the other treatments and just before the actual mesh update.
         * This will be passed three parameters.
         * This does nothing and may be overwritten by the user.
         * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
@@ -5782,11 +5824,11 @@ declare module BABYLON {
         static BoxImpostor: number;
         static PlaneImpostor: number;
         static MeshImpostor: number;
+        static CylinderImpostor: number;
+        static HeightmapImpostor: number;
         static CapsuleImpostor: number;
         static ConeImpostor: number;
-        static CylinderImpostor: number;
         static ConvexHullImpostor: number;
-        static HeightmapImpostor: number;
         static Epsilon: number;
         private _impostors;
         private _joints;
@@ -5840,7 +5882,7 @@ declare module BABYLON {
         sleepBody(impostor: PhysicsImpostor): any;
         wakeUpBody(impostor: PhysicsImpostor): any;
         updateDistanceJoint(joint: DistanceJoint, maxDistance: number, minDistance?: number): any;
-        setMotor(joint: IMotorEnabledJoint, force?: number, maxForce?: number, motorIndex?: number): any;
+        setMotor(joint: IMotorEnabledJoint, speed: number, maxForce?: number, motorIndex?: number): any;
         setLimit(joint: IMotorEnabledJoint, upperLimit: number, lowerLimit?: number, motorIndex?: number): any;
         dispose(): any;
     }
@@ -5984,10 +6026,8 @@ declare module BABYLON {
         static BoxImpostor: number;
         static PlaneImpostor: number;
         static MeshImpostor: number;
-        static CapsuleImpostor: number;
-        static ConeImpostor: number;
         static CylinderImpostor: number;
-        static ConvexHullImpostor: number;
+        static ParticleImpostor: number;
         static HeightmapImpostor: number;
     }
 }
@@ -6157,10 +6197,6 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    interface IHDRRenderingPipelineRatio {
-        blurRatio: number;
-        finalRatio: number;
-    }
     class HDRRenderingPipeline extends PostProcessRenderPipeline implements IDisposable {
         /**
         * Public members
@@ -6191,15 +6227,6 @@ declare module BABYLON {
         */
         exposure: number;
         /**
-        * Exposure adjustment, related to the tonemap post-process
-        * @type {number}
-        */
-        /**
-        * Exposure adjustment, related to the tonemap post-process
-        * @type {number}
-        */
-        exposureAdjustment: number;
-        /**
         * Minimum luminance that the post-process can output. Luminance is >= 0
         * @type {number}
         */
@@ -6225,29 +6252,21 @@ declare module BABYLON {
         */
         brightThreshold: number;
         /**
-        * Power of the lens dirt effect
-        * @type {number}
-        */
-        lensDirtPower: number;
-        /**
         * Private members
         */
         private _guassianBlurHPostProcess;
         private _guassianBlurVPostProcess;
         private _brightPassPostProcess;
-        private _toneMappingPostProcess;
         private _textureAdderPostProcess;
         private _downSampleX4PostProcess;
         private _originalPostProcess;
         private _hdrPostProcess;
         private _hdrCurrentLuminance;
         private _hdrOutputLuminance;
-        private _lensTexture;
         static LUM_STEPS: number;
         private _downSamplePostProcesses;
         private _scene;
         private _needUpdate;
-        private _ratio;
         /**
          * @constructor
          * @param {string} name - The rendering pipeline name
@@ -6256,7 +6275,7 @@ declare module BABYLON {
          * @param {BABYLON.PostProcess} originalPostProcess - the custom original color post-process. Must be "reusable". Can be null.
          * @param {BABYLON.Camera[]} cameras - The array of cameras that the rendering pipeline will be attached to
          */
-        constructor(name: string, scene: Scene, ratio: number | IHDRRenderingPipelineRatio, originalPostProcess?: PostProcess, cameras?: Camera[], lensTexture?: Texture);
+        constructor(name: string, scene: Scene, ratio: number, originalPostProcess?: PostProcess, cameras?: Camera[]);
         /**
         * Tells the pipeline to update its post-processes
         */
@@ -6273,13 +6292,6 @@ declare module BABYLON {
         * Releases the rendering pipeline and its internal effects. Detaches pipeline from cameras
         */
         dispose(): void;
-        /**
-        * Returns the lens texture
-        */
-        /**
-        * Sets the lens texture
-        */
-        lensTexture: Texture;
         /**
         * Creates the HDR post-process and computes the luminance adaptation
         */
@@ -6400,7 +6412,7 @@ declare module BABYLON {
 
 declare module BABYLON {
     class PassPostProcess extends PostProcess {
-        constructor(name: string, ratio: number, camera: Camera, samplingMode?: number, engine?: Engine, reusable?: boolean, textureFormat?: number);
+        constructor(name: string, ratio: number, camera: Camera, samplingMode?: number, engine?: Engine, reusable?: boolean);
     }
 }
 
@@ -6522,8 +6534,6 @@ declare module BABYLON {
         * @type {number}
         */
         base: number;
-        blurX: number;
-        blurY: number;
         private _scene;
         private _depthTexture;
         private _randomTexture;
@@ -6531,7 +6541,6 @@ declare module BABYLON {
         private _ssaoPostProcess;
         private _blurHPostProcess;
         private _blurVPostProcess;
-        private _bilateralBlur;
         private _ssaoCombinePostProcess;
         private _firstUpdate;
         /**
@@ -6556,36 +6565,9 @@ declare module BABYLON {
          * Removes the internal pipeline assets and detatches the pipeline from the scene cameras
          */
         dispose(disableDepthRender?: boolean): void;
-        private _createBilateralBlur(ratio);
         private _createSSAOPostProcess(ratio);
         private _createSSAOCombinePostProcess(ratio);
         private _createRandomTexture();
-    }
-}
-
-declare module BABYLON {
-    class StandardRenderingPipeline extends PostProcessRenderPipeline implements IDisposable {
-        useBloom: boolean;
-        radius: number;
-        intensity: number;
-        threshold: number;
-        private _effects;
-        private _passRenderEffect;
-        private _brightRenderEffect;
-        private _downSampleRenderEffect;
-        private _gaussianBlurVRenderEffect;
-        private _gaussianBlurHRenderEffect;
-        private _standardRenderEffect;
-        private _useBloom;
-        constructor(name: string, scene: Scene, ratio: number, camera: Camera[]);
-        /**
-        * Updates the rendering pipeline
-        */
-        private _updatePipeline();
-        /**
-        * Calculate the blur weights
-        */
-        private _calculateBlurWeights(weights, coeff, standDev, mean);
     }
 }
 
@@ -7633,57 +7615,6 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    class VRCameraMetrics {
-        hResolution: number;
-        vResolution: number;
-        hScreenSize: number;
-        vScreenSize: number;
-        vScreenCenter: number;
-        eyeToScreenDistance: number;
-        lensSeparationDistance: number;
-        interpupillaryDistance: number;
-        distortionK: number[];
-        chromaAbCorrection: number[];
-        postProcessScaleFactor: number;
-        lensCenterOffset: number;
-        compensateDistortion: boolean;
-        aspectRatio: number;
-        aspectRatioFov: number;
-        leftHMatrix: Matrix;
-        rightHMatrix: Matrix;
-        leftPreViewMatrix: Matrix;
-        rightPreViewMatrix: Matrix;
-        static GetDefault(): VRCameraMetrics;
-    }
-}
-
-declare module BABYLON {
-    class VRDeviceOrientationFreeCamera extends FreeCamera {
-        constructor(name: string, position: Vector3, scene: Scene, compensateDistortion?: boolean);
-        getTypeName(): string;
-    }
-}
-
-declare var HMDVRDevice: any;
-declare var PositionSensorVRDevice: any;
-declare module BABYLON {
-    class WebVRFreeCamera extends FreeCamera {
-        _hmdDevice: any;
-        _sensorDevice: any;
-        _cacheState: any;
-        _cacheQuaternion: Quaternion;
-        _cacheRotation: Vector3;
-        _vrEnabled: boolean;
-        constructor(name: string, position: Vector3, scene: Scene, compensateDistortion?: boolean);
-        private _getWebVRDevices(devices);
-        _checkInputs(): void;
-        attachControl(element: HTMLElement, noPreventDefault?: boolean): void;
-        detachControl(element: HTMLElement): void;
-        getTypeName(): string;
-    }
-}
-
-declare module BABYLON {
     class ArcRotateCameraGamepadInput implements ICameraInput<ArcRotateCamera> {
         camera: ArcRotateCamera;
         gamepad: Gamepad;
@@ -7892,6 +7823,57 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
+    class VRCameraMetrics {
+        hResolution: number;
+        vResolution: number;
+        hScreenSize: number;
+        vScreenSize: number;
+        vScreenCenter: number;
+        eyeToScreenDistance: number;
+        lensSeparationDistance: number;
+        interpupillaryDistance: number;
+        distortionK: number[];
+        chromaAbCorrection: number[];
+        postProcessScaleFactor: number;
+        lensCenterOffset: number;
+        compensateDistortion: boolean;
+        aspectRatio: number;
+        aspectRatioFov: number;
+        leftHMatrix: Matrix;
+        rightHMatrix: Matrix;
+        leftPreViewMatrix: Matrix;
+        rightPreViewMatrix: Matrix;
+        static GetDefault(): VRCameraMetrics;
+    }
+}
+
+declare module BABYLON {
+    class VRDeviceOrientationFreeCamera extends FreeCamera {
+        constructor(name: string, position: Vector3, scene: Scene, compensateDistortion?: boolean);
+        getTypeName(): string;
+    }
+}
+
+declare var HMDVRDevice: any;
+declare var PositionSensorVRDevice: any;
+declare module BABYLON {
+    class WebVRFreeCamera extends FreeCamera {
+        _hmdDevice: any;
+        _sensorDevice: any;
+        _cacheState: any;
+        _cacheQuaternion: Quaternion;
+        _cacheRotation: Vector3;
+        _vrEnabled: boolean;
+        constructor(name: string, position: Vector3, scene: Scene, compensateDistortion?: boolean);
+        private _getWebVRDevices(devices);
+        _checkInputs(): void;
+        attachControl(element: HTMLElement, noPreventDefault?: boolean): void;
+        detachControl(element: HTMLElement): void;
+        getTypeName(): string;
+    }
+}
+
+declare module BABYLON {
     interface IOctreeContainer<T> {
         blocks: Array<OctreeBlock<T>>;
     }
@@ -8002,19 +7984,19 @@ declare module BABYLON.Internals {
 declare module BABYLON {
     class BaseTexture {
         name: string;
-        delayLoadState: number;
         hasAlpha: boolean;
         getAlphaFromRGB: boolean;
         level: number;
-        isCube: boolean;
-        isRenderTarget: boolean;
-        animations: Animation[];
-        onDispose: () => void;
         coordinatesIndex: number;
         coordinatesMode: number;
         wrapU: number;
         wrapV: number;
         anisotropicFilteringLevel: number;
+        isCube: boolean;
+        isRenderTarget: boolean;
+        animations: Animation[];
+        onDispose: () => void;
+        delayLoadState: number;
         _cachedAnisotropicFilteringLevel: number;
         private _scene;
         _texture: WebGLTexture;
@@ -8048,11 +8030,10 @@ declare module BABYLON {
         private _textureMatrix;
         static CreateFromImages(files: string[], scene: Scene, noMipmap?: boolean): CubeTexture;
         constructor(rootUrl: string, scene: Scene, extensions?: string[], noMipmap?: boolean, files?: string[]);
-        clone(): CubeTexture;
         delayLoad(): void;
         getReflectionTextureMatrix(): Matrix;
         static Parse(parsedTexture: any, scene: Scene, rootUrl: string): CubeTexture;
-        serialize(): any;
+        clone(): CubeTexture;
     }
 }
 
@@ -8264,7 +8245,6 @@ declare module BABYLON {
         getTextureMatrix(): Matrix;
         getReflectionTextureMatrix(): Matrix;
         clone(): Texture;
-        serialize(): any;
         static CreateFromBase64String(data: string, name: string, scene: Scene, noMipmap?: boolean, invertY?: boolean, samplingMode?: number, onLoad?: () => void, onError?: () => void): Texture;
         static Parse(parsedTexture: any, scene: Scene, rootUrl: string): BaseTexture;
     }
@@ -8369,7 +8349,7 @@ declare module BABYLON {
         sleepBody(impostor: PhysicsImpostor): void;
         wakeUpBody(impostor: PhysicsImpostor): void;
         updateDistanceJoint(joint: IMotorEnabledJoint, maxDistance: number, minDistance?: number): void;
-        setMotor(joint: IMotorEnabledJoint, force?: number, maxForce?: number, motorIndex?: number): void;
+        setMotor(joint: IMotorEnabledJoint, speed: number, maxForce?: number, motorIndex?: number): void;
         setLimit(joint: IMotorEnabledJoint, upperLimit: number, lowerLimit?: number, motorIndex?: number): void;
         dispose(): void;
     }
@@ -8438,7 +8418,6 @@ declare module BABYLON {
         constructor(engine: Engine, name: string);
         isSupported: boolean;
         addEffect(renderEffect: PostProcessRenderEffect): void;
-        removeEffect(renderEffect: PostProcessRenderEffect): void;
         _enableEffect(renderEffectName: string, cameras: Camera): any;
         _enableEffect(renderEffectName: string, cameras: Camera[]): any;
         _disableEffect(renderEffectName: string, cameras: Camera): any;
