@@ -170,13 +170,13 @@ var BABYLON;
                 var _this = this;
                 if ((this.core.isPlaying && this.core.currentScene.activeCamera !== this.core.camera) || !this.core.editor.renderHelpers)
                     return;
+                var engine = this._scene.getEngine();
+                engine.setAlphaTesting(true);
                 if (this._planeMaterial.isReady(this._helperPlane)) {
                     this._subMesh = this._helperPlane.subMeshes[0];
                     var effect = this._planeMaterial.getEffect();
-                    var engine = this._scene.getEngine();
                     this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
                     engine.enableEffect(effect);
-                    engine.setAlphaTesting(true);
                     this._helperPlane._bind(this._subMesh, effect, BABYLON.Material.TriangleFillMode);
                     // Cameras
                     this._planeMaterial.diffuseTexture = this._cameraTexture;
