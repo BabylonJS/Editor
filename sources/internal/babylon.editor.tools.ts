@@ -101,7 +101,7 @@
         }
 
         /**
-        *
+        * Returns the constructor name of an object
         */
         public static GetConstructorName(obj: any): string {
             return (obj && obj.constructor) ? obj.constructor.name : "";

@@ -34,7 +34,7 @@ declare module BABYLON.EDITOR {
         */
         static CleanProject(project: INTERNAL.IProjectRoot): void;
         /**
-        *
+        * Returns the constructor name of an object
         */
         static GetConstructorName(obj: any): string;
     }

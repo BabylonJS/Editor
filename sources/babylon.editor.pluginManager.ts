@@ -1,6 +1,6 @@
 ﻿module BABYLON.EDITOR {
     export type _EditionToolConstructor = new (editionTool: EditionTool) => ICustomEditionTool;
-    export type _MainToolbarPlugin = new (toolbar: MainToolbar) => ICustomToolbarMenu;
+    export type _MainToolbarPlugin = new (mainToolbar: MainToolbar) => ICustomToolbarMenu;
 
     export class PluginManager {
         // Plugins

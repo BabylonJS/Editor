@@ -24,8 +24,6 @@ declare module BABYLON.EDITOR {
         private _addDirectionalLight;
         private _addSpotLight;
         private _addHemisphericLight;
-        private _addBoxMesh;
-        private _addSphereMesh;
         private _addParticleSystem;
         private _addSkyMesh;
         private _addWaterMesh;

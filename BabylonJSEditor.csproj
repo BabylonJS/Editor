@@ -124,6 +124,7 @@
     <TypeScriptCompile Include="defines\materials\babylon.lavaMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.normalMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.pbrMaterial.d.ts" />
+    <TypeScriptCompile Include="defines\materials\babylon.simpleMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.skyMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.terrainMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.triPlanarMaterial.d.ts" />
@@ -182,6 +183,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiWindow.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
+    <TypeScriptCompile Include="sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />

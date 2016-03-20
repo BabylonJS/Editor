@@ -13,7 +13,7 @@ var BABYLON;
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
             // Private members
-            SceneFactory._ConfigureObject = function (object, core) {
+            SceneFactory.ConfigureObject = function (object, core) {
                 if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)
                     EDITOR.SceneManager.ConfigureObject(object, core);
                 BABYLON.Tags.EnableFor(object);
@@ -76,7 +76,7 @@ var BABYLON;
             SceneFactory.AddPointLight = function (core) {
                 var light = new BABYLON.PointLight("New PointLight", new BABYLON.Vector3(10, 10, 10), core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a directional light
@@ -84,36 +84,43 @@ var BABYLON;
                 var light = new BABYLON.DirectionalLight("New DirectionalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.position = new BABYLON.Vector3(10, 10, 10);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a spot light
             SceneFactory.AddSpotLight = function (core) {
                 var light = new BABYLON.SpotLight("New SpotLight", new BABYLON.Vector3(10, 10, 10), new BABYLON.Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a hemispheric light
             SceneFactory.AddHemisphericLight = function (core) {
                 var light = new BABYLON.HemisphericLight("New HemisphericLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a box
             SceneFactory.AddBoxMesh = function (core) {
                 var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
                 box.id = this.GenerateUUID();
-                this._ConfigureObject(box, core);
+                this.ConfigureObject(box, core);
                 return box;
             };
             // Adds a sphere
             SceneFactory.AddSphereMesh = function (core) {
                 var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
                 sphere.id = this.GenerateUUID();
-                this._ConfigureObject(sphere, core);
+                this.ConfigureObject(sphere, core);
                 return sphere;
+            };
+            // Adds a plane
+            SceneFactory.AddPlaneMesh = function (core) {
+                var plane = BABYLON.Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
+                plane.id = this.GenerateUUID();
+                this.ConfigureObject(plane, core);
+                return plane;
             };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
@@ -200,14 +207,14 @@ var BABYLON;
             // Adds a reflection probe
             SceneFactory.AddReflectionProbe = function (core) {
                 var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
-                this._ConfigureObject(rp, core);
+                this.ConfigureObject(rp, core);
                 return rp;
             };
             // Adds a render target
             SceneFactory.AddRenderTargetTexture = function (core) {
                 var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
                 core.currentScene.customRenderTargets.push(rt);
-                this._ConfigureObject(rt, core);
+                this.ConfigureObject(rt, core);
                 return rt;
             };
             // Adds a skynode
@@ -217,7 +224,7 @@ var BABYLON;
                 var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
-                this._ConfigureObject(skybox, core);
+                this.ConfigureObject(skybox, core);
                 return skybox;
             };
             // Adds a water mesh (with water material)
@@ -226,7 +233,7 @@ var BABYLON;
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
-                this._ConfigureObject(water, core);
+                this.ConfigureObject(water, core);
                 // Add meshes in reflection automatically
                 for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {
                     waterMaterial.addToRenderList(core.currentScene.meshes[i]);

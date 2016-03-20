@@ -134,7 +134,9 @@
                 "SkyMaterial",
                 "TerrainMaterial",
                 "TriPlanarMaterial",
-                "WaterMaterial"
+                "WaterMaterial",
+
+                "SimpleMaterial"
             ];
 
             var ctr = Tools.GetConstructorName(this.object.material);

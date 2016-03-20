@@ -8,7 +8,7 @@ declare module BABYLON.EDITOR {
     }
     class SceneFactory {
         static GenerateUUID(): string;
-        private static _ConfigureObject(object, core);
+        static ConfigureObject(object: any, core: EditorCore): void;
         static HDRPipeline: HDRRenderingPipeline;
         static SSAOPipeline: SSAORenderingPipeline;
         static EnabledPostProcesses: IEnabledPostProcesses;
@@ -28,6 +28,7 @@ declare module BABYLON.EDITOR {
         static AddHemisphericLight(core: EditorCore): HemisphericLight;
         static AddBoxMesh(core: EditorCore): Mesh;
         static AddSphereMesh(core: EditorCore): Mesh;
+        static AddPlaneMesh(core: EditorCore): Mesh;
         static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
         static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
         static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;

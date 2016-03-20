@@ -31,8 +31,6 @@ var BABYLON;
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
                 this._addSpotLight = "ADD-SPOT-LIGHT";
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
-                this._addBoxMesh = "ADD-BOX-MESH";
-                this._addSphereMesh = "ADD-SPHERE-MESH";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
                 this._addWaterMesh = "ADD-WATER-MESH";
@@ -126,12 +124,6 @@ var BABYLON;
                         else if (selected.selected === this._addHemisphericLight) {
                             EDITOR.SceneFactory.AddHemisphericLight(this.core);
                         }
-                        else if (selected.selected === this._addBoxMesh) {
-                            EDITOR.SceneFactory.AddBoxMesh(this.core);
-                        }
-                        else if (selected.selected === this._addSphereMesh) {
-                            EDITOR.SceneFactory.AddSphereMesh(this.core);
-                        }
                         else if (selected.selected === this._addParticleSystem) {
                             EDITOR.SceneFactory.AddParticleSystem(this.core);
                         }
@@ -177,8 +169,10 @@ var BABYLON;
                         return true;
                     }
                     for (var i = 0; i < this._plugins.length; i++) {
-                        if (this._plugins[i].onMenuItemSelected(selected.selected))
+                        if (selected.parent === this._plugins[i].menuID) {
+                            this._plugins[i].onMenuItemSelected(selected.selected);
                             return true;
+                        }
                     }
                 }
                 return false;
@@ -208,9 +202,6 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
-                this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._addBoxMesh, "Add Box", "icon-box-mesh");
-                this.toolbar.createMenuItem(menu, "button", this._addSphereMesh, "Add Sphere", "icon-sphere-mesh");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
                 this.toolbar.addBreak(menu);

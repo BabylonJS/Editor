@@ -90,8 +90,9 @@
     ]
   },
   "plugins": {
-    "files": [      
-        
+    "files": [
+      "sources/plugins/babylon.editor.simpleMaterialTool.js",
+      "sources/plugins/babylon.editor.geometriesMenu.js"
     ]
   }
 }

@@ -367,9 +367,9 @@ var BABYLON;
             // Create transformers
             Transformer.prototype._createTransformers = function () {
                 var colors = [
-                    new BABYLON.Color3(0, 0, 1),
                     new BABYLON.Color3(1, 0, 0),
-                    new BABYLON.Color3(0, 1, 0)
+                    new BABYLON.Color3(0, 1, 0),
+                    new BABYLON.Color3(0, 0, 1)
                 ];
                 var x = null;
                 var y = null;

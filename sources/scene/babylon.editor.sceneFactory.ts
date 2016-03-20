@@ -18,7 +18,7 @@
         }
 
         // Private members
-        private static _ConfigureObject(object: any, core: EditorCore): void {
+        public static ConfigureObject(object: any, core: EditorCore): void {
 
             if (object instanceof AbstractMesh || object instanceof Scene)
                 SceneManager.ConfigureObject(object, core);
@@ -109,7 +109,7 @@
             var light = new PointLight("New PointLight", new Vector3(10, 10, 10), core.currentScene);
             light.id = this.GenerateUUID();
 
-            this._ConfigureObject(light, core);
+            this.ConfigureObject(light, core);
 
             return light;
         }
@@ -120,7 +120,7 @@
             light.position = new Vector3(10, 10, 10);
             light.id = this.GenerateUUID();
 
-            this._ConfigureObject(light, core);
+            this.ConfigureObject(light, core);
 
             return light;
         }
@@ -130,7 +130,7 @@
             var light = new SpotLight("New SpotLight", new Vector3(10, 10, 10), new Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
             light.id = this.GenerateUUID();
 
-            this._ConfigureObject(light, core);
+            this.ConfigureObject(light, core);
 
             return light;
         }
@@ -140,7 +140,7 @@
             var light = new HemisphericLight("New HemisphericLight", new Vector3(-1, -2, -1), core.currentScene);
             light.id = this.GenerateUUID();
 
-            this._ConfigureObject(light, core);
+            this.ConfigureObject(light, core);
 
             return light;
         }
@@ -150,7 +150,7 @@
             var box = Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
             box.id = this.GenerateUUID();
             
-            this._ConfigureObject(box, core);
+            this.ConfigureObject(box, core);
 
             return box;
         }
@@ -160,9 +160,19 @@
             var sphere = Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
             sphere.id = this.GenerateUUID();
 
-            this._ConfigureObject(sphere, core);
+            this.ConfigureObject(sphere, core);
 
             return sphere;
+        }
+
+        // Adds a plane
+        static AddPlaneMesh(core: EditorCore): Mesh {
+            var plane = Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
+            plane.id = this.GenerateUUID();
+
+            this.ConfigureObject(plane, core);
+
+            return plane;
         }
 
         // Adds a particle system
@@ -271,7 +281,7 @@
         static AddReflectionProbe(core: EditorCore): ReflectionProbe {
             var rp = new ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
 
-            this._ConfigureObject(rp, core);
+            this.ConfigureObject(rp, core);
 
             return rp;
         }
@@ -281,7 +291,7 @@
             var rt = new RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
             core.currentScene.customRenderTargets.push(rt);
 
-            this._ConfigureObject(rt, core);
+            this.ConfigureObject(rt, core);
 
             return rt;
         }
@@ -295,7 +305,7 @@
             skybox.id = this.GenerateUUID();
             skybox.material = skyboxMaterial;
             
-            this._ConfigureObject(skybox, core);
+            this.ConfigureObject(skybox, core);
 
             return skybox;
         }
@@ -308,7 +318,7 @@
             water.id = this.GenerateUUID();
             water.material = waterMaterial;
             
-            this._ConfigureObject(water, core);
+            this.ConfigureObject(water, core);
 
             // Add meshes in reflection automatically
             for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {

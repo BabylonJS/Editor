@@ -170,8 +170,12 @@ html, body {
     background: url("images/cube.png");
 }
 
-.w2ui-icon.icon-sphere-mesh {
+.w2ui-icon.icon-billboard-mesh {
     background: url("images/billboard.png");
+}
+
+.w2ui-icon.icon-sphere-mesh {
+    background: url("images/sphere.png");
 }
 
 .w2ui-icon.icon-water {

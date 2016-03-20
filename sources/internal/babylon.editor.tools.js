@@ -85,7 +85,7 @@ var BABYLON;
                 project.renderTargets = project.renderTargets || [];
             };
             /**
-            *
+            * Returns the constructor name of an object
             */
             Tools.GetConstructorName = function (obj) {
                 return (obj && obj.constructor) ? obj.constructor.name : "";

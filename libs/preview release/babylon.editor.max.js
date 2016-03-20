@@ -214,7 +214,7 @@ var BABYLON;
                 project.renderTargets = project.renderTargets || [];
             };
             /**
-            *
+            * Returns the constructor name of an object
             */
             Tools.GetConstructorName = function (obj) {
                 return (obj && obj.constructor) ? obj.constructor.name : "";
@@ -2189,7 +2189,8 @@ var BABYLON;
                     "SkyMaterial",
                     "TerrainMaterial",
                     "TriPlanarMaterial",
-                    "WaterMaterial"
+                    "WaterMaterial",
+                    "SimpleMaterial"
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
                 this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
@@ -4019,8 +4020,6 @@ var BABYLON;
                 this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
                 this._addSpotLight = "ADD-SPOT-LIGHT";
                 this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
-                this._addBoxMesh = "ADD-BOX-MESH";
-                this._addSphereMesh = "ADD-SPHERE-MESH";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
                 this._addWaterMesh = "ADD-WATER-MESH";
@@ -4114,12 +4113,6 @@ var BABYLON;
                         else if (selected.selected === this._addHemisphericLight) {
                             EDITOR.SceneFactory.AddHemisphericLight(this.core);
                         }
-                        else if (selected.selected === this._addBoxMesh) {
-                            EDITOR.SceneFactory.AddBoxMesh(this.core);
-                        }
-                        else if (selected.selected === this._addSphereMesh) {
-                            EDITOR.SceneFactory.AddSphereMesh(this.core);
-                        }
                         else if (selected.selected === this._addParticleSystem) {
                             EDITOR.SceneFactory.AddParticleSystem(this.core);
                         }
@@ -4165,8 +4158,10 @@ var BABYLON;
                         return true;
                     }
                     for (var i = 0; i < this._plugins.length; i++) {
-                        if (this._plugins[i].onMenuItemSelected(selected.selected))
+                        if (selected.parent === this._plugins[i].menuID) {
+                            this._plugins[i].onMenuItemSelected(selected.selected);
                             return true;
+                        }
                     }
                 }
                 return false;
@@ -4196,9 +4191,6 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
                 this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
-                this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._addBoxMesh, "Add Box", "icon-box-mesh");
-                this.toolbar.createMenuItem(menu, "button", this._addSphereMesh, "Add Sphere", "icon-sphere-mesh");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
                 this.toolbar.addBreak(menu);
@@ -5378,9 +5370,9 @@ var BABYLON;
             // Create transformers
             Transformer.prototype._createTransformers = function () {
                 var colors = [
-                    new BABYLON.Color3(0, 0, 1),
                     new BABYLON.Color3(1, 0, 0),
-                    new BABYLON.Color3(0, 1, 0)
+                    new BABYLON.Color3(0, 1, 0),
+                    new BABYLON.Color3(0, 0, 1)
                 ];
                 var x = null;
                 var y = null;
@@ -5548,7 +5540,7 @@ var BABYLON;
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
             // Private members
-            SceneFactory._ConfigureObject = function (object, core) {
+            SceneFactory.ConfigureObject = function (object, core) {
                 if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)
                     EDITOR.SceneManager.ConfigureObject(object, core);
                 BABYLON.Tags.EnableFor(object);
@@ -5611,7 +5603,7 @@ var BABYLON;
             SceneFactory.AddPointLight = function (core) {
                 var light = new BABYLON.PointLight("New PointLight", new BABYLON.Vector3(10, 10, 10), core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a directional light
@@ -5619,36 +5611,43 @@ var BABYLON;
                 var light = new BABYLON.DirectionalLight("New DirectionalLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.position = new BABYLON.Vector3(10, 10, 10);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a spot light
             SceneFactory.AddSpotLight = function (core) {
                 var light = new BABYLON.SpotLight("New SpotLight", new BABYLON.Vector3(10, 10, 10), new BABYLON.Vector3(-1, -2, -1), 0.8, 2, core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a hemispheric light
             SceneFactory.AddHemisphericLight = function (core) {
                 var light = new BABYLON.HemisphericLight("New HemisphericLight", new BABYLON.Vector3(-1, -2, -1), core.currentScene);
                 light.id = this.GenerateUUID();
-                this._ConfigureObject(light, core);
+                this.ConfigureObject(light, core);
                 return light;
             };
             // Adds a box
             SceneFactory.AddBoxMesh = function (core) {
                 var box = BABYLON.Mesh.CreateBox("New Box", 1.0, core.currentScene, false);
                 box.id = this.GenerateUUID();
-                this._ConfigureObject(box, core);
+                this.ConfigureObject(box, core);
                 return box;
             };
             // Adds a sphere
             SceneFactory.AddSphereMesh = function (core) {
                 var sphere = BABYLON.Mesh.CreateSphere("New Sphere", 32, 1, core.currentScene, false);
                 sphere.id = this.GenerateUUID();
-                this._ConfigureObject(sphere, core);
+                this.ConfigureObject(sphere, core);
                 return sphere;
+            };
+            // Adds a plane
+            SceneFactory.AddPlaneMesh = function (core) {
+                var plane = BABYLON.Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
+                plane.id = this.GenerateUUID();
+                this.ConfigureObject(plane, core);
+                return plane;
             };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
@@ -5735,14 +5734,14 @@ var BABYLON;
             // Adds a reflection probe
             SceneFactory.AddReflectionProbe = function (core) {
                 var rp = new BABYLON.ReflectionProbe("New Reflection Probe", 512, core.currentScene, true);
-                this._ConfigureObject(rp, core);
+                this.ConfigureObject(rp, core);
                 return rp;
             };
             // Adds a render target
             SceneFactory.AddRenderTargetTexture = function (core) {
                 var rt = new BABYLON.RenderTargetTexture("New Render Target Texture", 512, core.currentScene, false);
                 core.currentScene.customRenderTargets.push(rt);
-                this._ConfigureObject(rt, core);
+                this.ConfigureObject(rt, core);
                 return rt;
             };
             // Adds a skynode
@@ -5752,7 +5751,7 @@ var BABYLON;
                 var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
-                this._ConfigureObject(skybox, core);
+                this.ConfigureObject(skybox, core);
                 return skybox;
             };
             // Adds a water mesh (with water material)
@@ -5761,7 +5760,7 @@ var BABYLON;
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
-                this._ConfigureObject(water, core);
+                this.ConfigureObject(water, core);
                 // Add meshes in reflection automatically
                 for (var i = 0; i < core.currentScene.meshes.length - 1; i++) {
                     waterMaterial.addToRenderList(core.currentScene.meshes[i]);
@@ -8960,5 +8959,87 @@ var BABYLON;
             return PluginManager;
         })();
         EDITOR.PluginManager = PluginManager;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var SimpleMaterialTool = (function (_super) {
+            __extends(SimpleMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function SimpleMaterialTool(editionTool) {
+                _super.call(this, editionTool, "SIMPLE-MATERIAL", "SIMPLE", "Simple");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.SimpleMaterial; };
+            }
+            // Update
+            SimpleMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Begin here
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
+                this.addTextureButton("Diffuse Texture", "diffuseTexture").open();
+                // Finish
+                return true;
+            };
+            return SimpleMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.SimpleMaterialTool = SimpleMaterialTool;
+        // Finally, register the plugin using the plugin manager
+        EDITOR.PluginManager.RegisterEditionTool(SimpleMaterialTool);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GeometriesMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param toolbar: the main toolbar instance
+            */
+            function GeometriesMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "GEOMETRIES-MENU";
+                this._createCubeID = "CREATE-CUBE";
+                this._createSphereID = "CREATE-SPHERE";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Geometry", "icon-bounding-box");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
+                // Etc.
+            }
+            /**
+            * Called when a menu item is selected by the user
+            * Returns true if a menu of the plugin was selected, false if no one selected
+            */
+            GeometriesMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                // 
+                switch (selected) {
+                    case this._createCubeID:
+                        EDITOR.SceneFactory.AddBoxMesh(this._core);
+                        break;
+                    case this._createSphereID:
+                        EDITOR.SceneFactory.AddSphereMesh(this._core);
+                        break;
+                    default: break;
+                }
+            };
+            return GeometriesMenuPlugin;
+        })();
+        EDITOR.GeometriesMenuPlugin = GeometriesMenuPlugin;
+        // Finally, register the plugin using the plugin manager
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(GeometriesMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

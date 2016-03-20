@@ -122,7 +122,8 @@ var BABYLON;
                     "SkyMaterial",
                     "TerrainMaterial",
                     "TriPlanarMaterial",
-                    "WaterMaterial"
+                    "WaterMaterial",
+                    "SimpleMaterial"
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
                 this._libraryDummyProperty = ctr === "" ? items[0] : ctr;

@@ -16,8 +16,12 @@ var webserver = require("gulp-webserver");
 * Configure files
 */
 var files = [].concat(config.core.defines);
+
 for (var i=0; i < config.core.files.length; i++) {
     files.push(config.core.files[i].replace(".js", ".ts"));
+}
+for (var i = 0; i < config.plugins.files.length; i++) {
+    files.push(config.plugins.files[i].replace(".js", ".ts"));
 }
 
 /*
