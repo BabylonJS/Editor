@@ -632,6 +632,22 @@ var BABYLON;
                     _this.core.removeEventReceiver(_this);
                 };
             };
+            // Static method that gives the last animation frame of an object
+            GUIAnimationEditor.GetEndFrameOfObject = function (object) {
+                var count = 0;
+                if (!object.animations)
+                    return count;
+                for (var animIndex = 0; animIndex < object.animations.length; animIndex++) {
+                    var anim = object.animations[animIndex];
+                    var keys = anim.getKeys();
+                    for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                        if (keys[keyIndex].frame > count) {
+                            count = keys[keyIndex].frame;
+                        }
+                    }
+                }
+                return count;
+            };
             // Static methods that gives the last scene frame
             GUIAnimationEditor.GetSceneFrameCount = function (scene) {
                 var count = 0;

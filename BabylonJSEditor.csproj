@@ -159,6 +159,7 @@
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.abstractMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.furMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.gradientMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.gridMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.lavaMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.pbrMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.skyMaterialTool.ts" />

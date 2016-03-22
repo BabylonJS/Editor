@@ -4880,7 +4880,8 @@ var BABYLON;
                     _this._mousey = BABYLON.MathTools.Clamp(event.pageY - _this._paper.canvas.getBoundingClientRect().top, 0, _this._paper.height);
                     _this._currentTime = _this._getFrame();
                     _this._selectorRect.attr("x", _this._mousex);
-                    EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
+                    if (_this._currentTime >= 0 && _this._currentTime < _this._maxFrame - 1)
+                        EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
                     _this._overlayText.text("Frame: " + BABYLON.Tools.Format(_this._currentTime, 0));
                     _this._overlayObj.css({ left: event.pageX });
                 };
@@ -8149,6 +8150,22 @@ var BABYLON;
                     _this._graphPaper.clear();
                     _this.core.removeEventReceiver(_this);
                 };
+            };
+            // Static method that gives the last animation frame of an object
+            GUIAnimationEditor.GetEndFrameOfObject = function (object) {
+                var count = 0;
+                if (!object.animations)
+                    return count;
+                for (var animIndex = 0; animIndex < object.animations.length; animIndex++) {
+                    var anim = object.animations[animIndex];
+                    var keys = anim.getKeys();
+                    for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                        if (keys[keyIndex].frame > count) {
+                            count = keys[keyIndex].frame;
+                        }
+                    }
+                }
+                return count;
             };
             // Static methods that gives the last scene frame
             GUIAnimationEditor.GetSceneFrameCount = function (scene) {
