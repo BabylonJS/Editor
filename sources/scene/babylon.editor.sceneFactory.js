@@ -69,6 +69,13 @@ var BABYLON;
                 this.SSAOPipeline = ssao;
                 return ssao;
             };
+            // Creates a Volumetric Light Scattering post-process
+            SceneFactory.CreateVLSPostProcess = function (core, serializationObject) {
+                if (serializationObject === void 0) { serializationObject = {}; }
+                var vls = new BABYLON.VolumetricLightScatteringPostProcess("vls", { passRatio: 0.5, postProcessRatio: 1.0 }, core.camera, null, 100);
+                this.ConfigureObject(vls.mesh, core);
+                return vls;
+            };
             /**
             * Nodes
             */
@@ -243,12 +250,14 @@ var BABYLON;
             // Public members
             SceneFactory.HDRPipeline = null;
             SceneFactory.SSAOPipeline = null;
+            SceneFactory.VLSPostProcess = null;
             SceneFactory.EnabledPostProcesses = {
                 hdr: false,
                 attachHDR: true,
                 ssao: false,
                 ssaoOnly: false,
                 attachSSAO: true,
+                vls: false
             };
             SceneFactory.NodesToStart = [];
             SceneFactory.AnimationSpeed = 1.0;

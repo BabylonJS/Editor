@@ -64,73 +64,9 @@ var BABYLON;
                 this._element.remember(object);
                 return true;
             };
-            // Add a color element
-            AbstractMaterialTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
-                if (open === void 0) { open = false; }
-                var properties = ["r", "g", "b"];
-                if (color instanceof BABYLON.Color4)
-                    properties.push("a");
-                var folder = this._element.addFolder(propertyName, parent);
-                for (var i = 0; i < properties.length; i++) {
-                    folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange(function (result) {
-                        if (callback)
-                            callback();
-                    });
-                }
-                if (!open)
-                    folder.close();
-                return folder;
-            };
-            // Add a vector element
-            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
-                if (open === void 0) { open = false; }
-                var properties = ["x", "y"];
-                if (vector instanceof BABYLON.Vector3)
-                    properties.push("z");
-                var folder = this._element.addFolder(propertyName, parent);
-                for (var i = 0; i < properties.length; i++) {
-                    folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange(function (result) {
-                        if (callback)
-                            callback();
-                    });
-                }
-                if (!open)
-                    folder.close();
-                return folder;
-            };
             // Adds a texture element
             AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
-                var _this = this;
-                var stringName = name.replace(" ", "");
-                var functionName = "_set" + stringName;
-                var textures = ["None"];
-                var scene = this.material.getScene();
-                for (var i = 0; i < scene.textures.length; i++) {
-                    textures.push(scene.textures[i].name);
-                }
-                this[functionName] = function () {
-                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, _this.material.name + " - " + name, _this.material, property);
-                };
-                this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
-                var folder = this._element.addFolder(name, parentFolder);
-                folder.close();
-                folder.add(this, functionName).name("Browse...");
-                folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
-                    if (result === "None") {
-                        _this.material[property] = undefined;
-                    }
-                    else {
-                        for (var i = 0; i < scene.textures.length; i++) {
-                            if (scene.textures[i].name === result) {
-                                _this.material[property] = scene.textures[i];
-                                break;
-                            }
-                        }
-                    }
-                    if (callback)
-                        callback();
-                });
-                return folder;
+                return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, callback);
             };
             return AbstractMaterialTool;
         })(EDITOR.AbstractDatTool);

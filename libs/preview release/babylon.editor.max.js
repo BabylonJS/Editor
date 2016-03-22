@@ -1434,6 +1434,77 @@ var BABYLON;
                 if (this._element)
                     this._element.width = this._editionTool.panel.width - 15;
             };
+            /**
+            * Static methods
+            */
+            // Add a color element
+            AbstractDatTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
+                if (open === void 0) { open = false; }
+                var properties = ["r", "g", "b"];
+                if (color instanceof BABYLON.Color4)
+                    properties.push("a");
+                var folder = this._element.addFolder(propertyName, parent);
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
+                if (!open)
+                    folder.close();
+                return folder;
+            };
+            // Add a vector element
+            AbstractDatTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
+                if (open === void 0) { open = false; }
+                var properties = ["x", "y"];
+                if (vector instanceof BABYLON.Vector3)
+                    properties.push("z");
+                var folder = this._element.addFolder(propertyName, parent);
+                for (var i = 0; i < properties.length; i++) {
+                    folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange(function (result) {
+                        if (callback)
+                            callback();
+                    });
+                }
+                if (!open)
+                    folder.close();
+                return folder;
+            };
+            // Adds a texture element
+            AbstractDatTool.prototype.addTextureFolder = function (object, name, property, parentFolder, callback) {
+                var _this = this;
+                var stringName = name.replace(" ", "");
+                var functionName = "_set" + stringName;
+                var textures = ["None"];
+                var scene = this._editionTool.core.currentScene;
+                for (var i = 0; i < scene.textures.length; i++) {
+                    textures.push(scene.textures[i].name);
+                }
+                this[functionName] = function () {
+                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, name, object, property);
+                };
+                this[stringName] = (object[property] && object[property] instanceof BABYLON.BaseTexture) ? object[property].name : textures[0];
+                var folder = this._element.addFolder(name, parentFolder);
+                folder.close();
+                folder.add(this, functionName).name("Browse...");
+                folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
+                    if (result === "None") {
+                        object[property] = undefined;
+                    }
+                    else {
+                        for (var i = 0; i < scene.textures.length; i++) {
+                            if (scene.textures[i].name === result) {
+                                object[property] = scene.textures[i];
+                                break;
+                            }
+                        }
+                    }
+                    if (callback)
+                        callback();
+                });
+                return folder;
+            };
             return AbstractDatTool;
         })(EDITOR.AbstractTool);
         EDITOR.AbstractDatTool = AbstractDatTool;
@@ -2365,7 +2436,7 @@ var BABYLON;
                     });
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                     hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
-                    hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+                    this.addTextureFolder(EDITOR.SceneFactory.HDRPipeline, "Lens Texture", "lensTexture", hdrFolder).open();
                     var debugFolder = hdrFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline);
                 }
@@ -2387,18 +2458,39 @@ var BABYLON;
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
-                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
+                    ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.000001).name("Fall Off");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
+                    /*
                     var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
-                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    hBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+    
                     var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
-                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    vBlurFolder.add(EDITOR.SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    */
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
+                }
+                var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
+                vlsFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange(function (result) {
+                    if (result === true)
+                        EDITOR.SceneFactory.VLSPostProcess = EDITOR.SceneFactory.CreateVLSPostProcess(_this._editionTool.core);
+                    else {
+                        EDITOR.SceneFactory.VLSPostProcess.dispose(_this._editionTool.core.camera);
+                        EDITOR.SceneFactory.VLSPostProcess = null;
+                    }
+                    _this.update();
+                });
+                if (EDITOR.SceneFactory.VLSPostProcess) {
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "exposure").min(0).max(1).name("Exposure");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "decay").min(0).max(1).name("Decay");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "weight").min(0).max(1).name("Weight");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "density").min(0).max(1).name("Density");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "invert").name("Invert");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "useDiffuseColor").name("use Diffuse Color");
                 }
                 return true;
             };
@@ -2852,73 +2944,9 @@ var BABYLON;
                 this._element.remember(object);
                 return true;
             };
-            // Add a color element
-            AbstractMaterialTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
-                if (open === void 0) { open = false; }
-                var properties = ["r", "g", "b"];
-                if (color instanceof BABYLON.Color4)
-                    properties.push("a");
-                var folder = this._element.addFolder(propertyName, parent);
-                for (var i = 0; i < properties.length; i++) {
-                    folder.add(color, properties[i]).min(0).max(1).name(properties[i]).onChange(function (result) {
-                        if (callback)
-                            callback();
-                    });
-                }
-                if (!open)
-                    folder.close();
-                return folder;
-            };
-            // Add a vector element
-            AbstractMaterialTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
-                if (open === void 0) { open = false; }
-                var properties = ["x", "y"];
-                if (vector instanceof BABYLON.Vector3)
-                    properties.push("z");
-                var folder = this._element.addFolder(propertyName, parent);
-                for (var i = 0; i < properties.length; i++) {
-                    folder.add(vector, properties[i]).step(0.01).name(properties[i]).onChange(function (result) {
-                        if (callback)
-                            callback();
-                    });
-                }
-                if (!open)
-                    folder.close();
-                return folder;
-            };
             // Adds a texture element
             AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
-                var _this = this;
-                var stringName = name.replace(" ", "");
-                var functionName = "_set" + stringName;
-                var textures = ["None"];
-                var scene = this.material.getScene();
-                for (var i = 0; i < scene.textures.length; i++) {
-                    textures.push(scene.textures[i].name);
-                }
-                this[functionName] = function () {
-                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, _this.material.name + " - " + name, _this.material, property);
-                };
-                this[stringName] = (this.material[property] && this.material[property] instanceof BABYLON.BaseTexture) ? this.material[property].name : textures[0];
-                var folder = this._element.addFolder(name, parentFolder);
-                folder.close();
-                folder.add(this, functionName).name("Browse...");
-                folder.add(this, stringName, textures).name("Choose").onChange(function (result) {
-                    if (result === "None") {
-                        _this.material[property] = undefined;
-                    }
-                    else {
-                        for (var i = 0; i < scene.textures.length; i++) {
-                            if (scene.textures[i].name === result) {
-                                _this.material[property] = scene.textures[i];
-                                break;
-                            }
-                        }
-                    }
-                    if (callback)
-                        callback();
-                });
-                return folder;
+                return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, callback);
             };
             return AbstractMaterialTool;
         })(EDITOR.AbstractDatTool);
@@ -3506,6 +3534,43 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var GridMaterialTool = (function (_super) {
+            __extends(GridMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function GridMaterialTool(editionTool) {
+                _super.call(this, editionTool, "GRID-MATERIAL", "GRID", "Grid");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.GridMaterial; };
+            }
+            // Update
+            GridMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Colors
+                this.addColorFolder(this.material.mainColor, "Main Color", true);
+                this.addColorFolder(this.material.lineColor, "Line Color", true);
+                this._element.add(this.material, "opacity").min(0).name("Opacity");
+                this._element.add(this.material, "gridRatio").step(0.1).name("Grid Ratio");
+                this._element.add(this.material, "majorUnitFrequency").name("Major Unit Frequency");
+                this._element.add(this.material, "minorUnitVisibility").name("Minor Unit Frequency");
+                // Finish
+                return true;
+            };
+            return GridMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.GridMaterialTool = GridMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var EditorCore = (function () {
             /**
             * Constructor
@@ -3711,6 +3776,7 @@ var BABYLON;
                 this.addTool(new EDITOR.GradientMaterialTool(this));
                 this.addTool(new EDITOR.TerrainMaterialTool(this));
                 this.addTool(new EDITOR.TriPlanarMaterialTool(this));
+                this.addTool(new EDITOR.GridMaterialTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };
@@ -5596,6 +5662,13 @@ var BABYLON;
                 this.SSAOPipeline = ssao;
                 return ssao;
             };
+            // Creates a Volumetric Light Scattering post-process
+            SceneFactory.CreateVLSPostProcess = function (core, serializationObject) {
+                if (serializationObject === void 0) { serializationObject = {}; }
+                var vls = new BABYLON.VolumetricLightScatteringPostProcess("vls", { passRatio: 0.5, postProcessRatio: 1.0 }, core.camera, null, 100);
+                this.ConfigureObject(vls.mesh, core);
+                return vls;
+            };
             /**
             * Nodes
             */
@@ -5770,12 +5843,14 @@ var BABYLON;
             // Public members
             SceneFactory.HDRPipeline = null;
             SceneFactory.SSAOPipeline = null;
+            SceneFactory.VLSPostProcess = null;
             SceneFactory.EnabledPostProcesses = {
                 hdr: false,
                 attachHDR: true,
                 ssao: false,
                 ssaoOnly: false,
                 attachSSAO: true,
+                vls: false
             };
             SceneFactory.NodesToStart = [];
             SceneFactory.AnimationSpeed = 1.0;
@@ -7108,7 +7183,8 @@ var BABYLON;
                 }
                 // Set materials
                 for (var i = 0; i < project.materials.length; i++) {
-                    if (!project.materials[i].meshesNames)
+                    var material = project.materials[i];
+                    if (!material.meshesNames || !material.serializedValues.customType)
                         continue;
                     var meshesNames = project.materials[i].meshesNames;
                     for (var meshName = 0; meshName < meshesNames.length; meshName++) {
@@ -8926,7 +9002,8 @@ var BABYLON;
             GUITextureEditor.prototype._onReadFileCallback = function (name) {
                 var _this = this;
                 return function (data) {
-                    BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    var texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    texture.name = texture.name.replace("data:", "");
                     _this._texturesList.addRow({
                         name: name,
                         recid: _this._texturesList.getRowCount() - 1
@@ -8983,9 +9060,13 @@ var BABYLON;
             SimpleMaterialTool.prototype.update = function () {
                 if (!_super.prototype.update.call(this))
                     return false;
-                // Begin here
-                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
-                this.addTextureButton("Diffuse Texture", "diffuseTexture").open();
+                // Add a simple element
+                this._element.add(this.material, "name").name("Name");
+                // Add a folder
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                // Add color and texture elements with "diffuseFolder" as parent
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
+                this.addTextureButton("Diffuse Texture", "diffuseTexture", diffuseFolder).open();
                 // Finish
                 return true;
             };

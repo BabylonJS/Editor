@@ -55,6 +55,7 @@
       "sources/editionTools/materialEditors/babylon.editor.gradientMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.terrainMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.triPlanarMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js",
 
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",

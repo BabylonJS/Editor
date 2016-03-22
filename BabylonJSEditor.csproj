@@ -183,6 +183,7 @@
     <TypeScriptCompile Include="sources\gui\babylon.editor.guiWindow.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.event.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
+    <TypeScriptCompile Include="sources\plugins\babylon.editor.geometriesMenu.ts" />
     <TypeScriptCompile Include="sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />

@@ -6,6 +6,8 @@
         ssao: boolean;
         ssaoOnly: boolean;
         attachSSAO: boolean;
+
+        vls: boolean;
     }
 
     export class SceneFactory {
@@ -32,6 +34,7 @@
         // Public members
         public static HDRPipeline: HDRRenderingPipeline = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
+        public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
             hdr: false,
             attachHDR: true,
@@ -39,6 +42,8 @@
             ssao: false,
             ssaoOnly: false,
             attachSSAO: true,
+
+            vls: false
         }
 
         public static NodesToStart: IAnimatable[] = [];
@@ -99,6 +104,15 @@
 
             this.SSAOPipeline = ssao;
             return ssao;
+        }
+
+        // Creates a Volumetric Light Scattering post-process
+        static CreateVLSPostProcess(core: EditorCore, serializationObject: any = {}): VolumetricLightScatteringPostProcess {
+            var vls = new VolumetricLightScatteringPostProcess("vls", { passRatio: 0.5, postProcessRatio: 1.0 }, core.camera, null, 100);
+
+            this.ConfigureObject(vls.mesh, core);
+
+            return vls;
         }
 
         /**

@@ -85,7 +85,7 @@
                 });
                 hdrFolder.add(SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
                 hdrFolder.add(SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
-                hdrFolder.add(this, "_loadHDRLensDirtTexture").name("Load Dirt Texture ...");
+                this.addTextureFolder(SceneFactory.HDRPipeline, "Lens Texture", "lensTexture", hdrFolder).open();
 
                 var debugFolder = hdrFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.HDRPipeline);
@@ -111,9 +111,10 @@
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
-                ssaoFolder.add(SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.00001).name("Fall Off");
+                ssaoFolder.add(SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.000001).name("Fall Off");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
 
+                /*
                 var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
                 hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
                 hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
@@ -123,9 +124,30 @@
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
                 vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                */
 
                 var debugFolder = ssaoFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
+            }
+
+            var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
+            vlsFolder.add(SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.VLSPostProcess = SceneFactory.CreateVLSPostProcess(this._editionTool.core);
+                else {
+                    SceneFactory.VLSPostProcess.dispose(this._editionTool.core.camera);
+                    SceneFactory.VLSPostProcess = null;
+                }
+                this.update();
+            });
+
+            if (SceneFactory.VLSPostProcess) {
+                vlsFolder.add(SceneFactory.VLSPostProcess, "exposure").min(0).max(1).name("Exposure");
+                vlsFolder.add(SceneFactory.VLSPostProcess, "decay").min(0).max(1).name("Decay");
+                vlsFolder.add(SceneFactory.VLSPostProcess, "weight").min(0).max(1).name("Weight");
+                vlsFolder.add(SceneFactory.VLSPostProcess, "density").min(0).max(1).name("Density");
+                vlsFolder.add(SceneFactory.VLSPostProcess, "invert").name("Invert");
+                vlsFolder.add(SceneFactory.VLSPostProcess, "useDiffuseColor").name("use Diffuse Color");
             }
 
             return true;

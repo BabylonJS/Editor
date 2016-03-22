@@ -5,12 +5,14 @@ declare module BABYLON.EDITOR {
         ssao: boolean;
         ssaoOnly: boolean;
         attachSSAO: boolean;
+        vls: boolean;
     }
     class SceneFactory {
         static GenerateUUID(): string;
         static ConfigureObject(object: any, core: EditorCore): void;
         static HDRPipeline: HDRRenderingPipeline;
         static SSAOPipeline: SSAORenderingPipeline;
+        static VLSPostProcess: VolumetricLightScatteringPostProcess;
         static EnabledPostProcesses: IEnabledPostProcesses;
         static NodesToStart: IAnimatable[];
         static AnimationSpeed: number;
@@ -19,6 +21,7 @@ declare module BABYLON.EDITOR {
         */
         static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
         static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
+        static CreateVLSPostProcess(core: EditorCore, serializationObject?: any): VolumetricLightScatteringPostProcess;
         /**
         * Nodes
         */

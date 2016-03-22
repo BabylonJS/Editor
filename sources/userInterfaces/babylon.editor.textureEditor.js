@@ -106,7 +106,8 @@ var BABYLON;
             GUITextureEditor.prototype._onReadFileCallback = function (name) {
                 var _this = this;
                 return function (data) {
-                    BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    var texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    texture.name = texture.name.replace("data:", "");
                     _this._texturesList.addRow({
                         name: name,
                         recid: _this._texturesList.getRowCount() - 1

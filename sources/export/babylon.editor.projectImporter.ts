@@ -214,7 +214,9 @@
 
             // Set materials
             for (var i = 0; i < project.materials.length; i++) {
-                if (!project.materials[i].meshesNames)
+                var material = project.materials[i];
+
+                if (!material.meshesNames || !material.serializedValues.customType)
                     continue;
 
                 var meshesNames = project.materials[i].meshesNames;
