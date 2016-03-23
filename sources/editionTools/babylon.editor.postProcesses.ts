@@ -130,15 +130,32 @@
                 this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
             }
 
+            /**
+            * VLS
+            */
             var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
             vlsFolder.add(SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange((result: any) => {
-                if (result === true)
-                    SceneFactory.VLSPostProcess = SceneFactory.CreateVLSPostProcess(this._editionTool.core);
+                if (result === true) {
+                    var picker = new ObjectPicker(this._editionTool.core);
+                    picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+                    picker.minSelectCount = 0;
+                    picker.closeButtonName = "Cancel";
+                    picker.selectButtonName = "Add";
+                    picker.windowName = "Select an emitter?";
+
+                    picker.onObjectPicked = (names: string[]) => {
+                        var mesh = <Mesh>this._editionTool.core.currentScene.getMeshByName(names[0]);
+                        SceneFactory.VLSPostProcess = SceneFactory.CreateVLSPostProcess(this._editionTool.core, mesh);
+                        this.update();
+                    };
+
+                    picker.open();
+                }
                 else {
                     SceneFactory.VLSPostProcess.dispose(this._editionTool.core.camera);
                     SceneFactory.VLSPostProcess = null;
+                    this.update();
                 }
-                this.update();
             });
 
             if (SceneFactory.VLSPostProcess) {
@@ -148,9 +165,32 @@
                 vlsFolder.add(SceneFactory.VLSPostProcess, "density").min(0).max(1).name("Density");
                 vlsFolder.add(SceneFactory.VLSPostProcess, "invert").name("Invert");
                 vlsFolder.add(SceneFactory.VLSPostProcess, "useDiffuseColor").name("use Diffuse Color");
+
+                vlsFolder.add(SceneFactory.VLSPostProcess, "useCustomMeshPosition").name("Use Custom Position");
+                this.addVectorFolder(SceneFactory.VLSPostProcess.customMeshPosition, "Position", true, vlsFolder);
+                vlsFolder.add(this, "_setVLSAttachedNode").name("Attach Node...");
             }
 
             return true;
+        }
+
+        // Set up attached node of VLS
+        private _setVLSAttachedNode(): void {
+            var picker = new ObjectPicker(this._editionTool.core);
+            picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+            picker.objectLists.push(this._editionTool.core.currentScene.lights);
+            picker.objectLists.push(this._editionTool.core.currentScene.cameras);
+            picker.minSelectCount = 0;
+
+            picker.onObjectPicked = (names: string[]) => {
+                var node: any = null;
+                if (names.length > 0)
+                    node = this._editionTool.core.currentScene.getNodeByName(names[0]);
+
+                SceneFactory.VLSPostProcess.attachedNode = node;
+            };
+
+            picker.open();
         }
 
         // Set up debug mode

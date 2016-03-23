@@ -118,15 +118,30 @@ var BABYLON;
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
+                /**
+                * VLS
+                */
                 var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
                 vlsFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange(function (result) {
-                    if (result === true)
-                        EDITOR.SceneFactory.VLSPostProcess = EDITOR.SceneFactory.CreateVLSPostProcess(_this._editionTool.core);
+                    if (result === true) {
+                        var picker = new EDITOR.ObjectPicker(_this._editionTool.core);
+                        picker.objectLists.push(_this._editionTool.core.currentScene.meshes);
+                        picker.minSelectCount = 0;
+                        picker.closeButtonName = "Cancel";
+                        picker.selectButtonName = "Add";
+                        picker.windowName = "Select an emitter?";
+                        picker.onObjectPicked = function (names) {
+                            var mesh = _this._editionTool.core.currentScene.getMeshByName(names[0]);
+                            EDITOR.SceneFactory.VLSPostProcess = EDITOR.SceneFactory.CreateVLSPostProcess(_this._editionTool.core, mesh);
+                            _this.update();
+                        };
+                        picker.open();
+                    }
                     else {
                         EDITOR.SceneFactory.VLSPostProcess.dispose(_this._editionTool.core.camera);
                         EDITOR.SceneFactory.VLSPostProcess = null;
+                        _this.update();
                     }
-                    _this.update();
                 });
                 if (EDITOR.SceneFactory.VLSPostProcess) {
                     vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "exposure").min(0).max(1).name("Exposure");
@@ -135,8 +150,27 @@ var BABYLON;
                     vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "density").min(0).max(1).name("Density");
                     vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "invert").name("Invert");
                     vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "useDiffuseColor").name("use Diffuse Color");
+                    vlsFolder.add(EDITOR.SceneFactory.VLSPostProcess, "useCustomMeshPosition").name("Use Custom Position");
+                    this.addVectorFolder(EDITOR.SceneFactory.VLSPostProcess.customMeshPosition, "Position", true, vlsFolder);
+                    vlsFolder.add(this, "_setVLSAttachedNode").name("Attach Node...");
                 }
                 return true;
+            };
+            // Set up attached node of VLS
+            PostProcessesTool.prototype._setVLSAttachedNode = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+                picker.objectLists.push(this._editionTool.core.currentScene.lights);
+                picker.objectLists.push(this._editionTool.core.currentScene.cameras);
+                picker.minSelectCount = 0;
+                picker.onObjectPicked = function (names) {
+                    var node = null;
+                    if (names.length > 0)
+                        node = _this._editionTool.core.currentScene.getNodeByName(names[0]);
+                    EDITOR.SceneFactory.VLSPostProcess.attachedNode = node;
+                };
+                picker.open();
             };
             // Set up debug mode
             PostProcessesTool.prototype._setupDebugPipeline = function (folder, pipeline) {

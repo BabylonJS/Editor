@@ -58,18 +58,19 @@ var BABYLON;
                         if (checked) {
                             this._core.engine.resize();
                             this._core.isPlaying = true;
+                            var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
                                 var node = EDITOR.SceneFactory.NodesToStart[i];
                                 if (node instanceof BABYLON.Sound) {
                                     node.stop();
-                                    node.play();
+                                    node.play(0, time);
                                     continue;
                                 }
                                 this._core.currentScene.stopAnimation(node);
                                 this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
-                            this._core.editor.timeline.play();
+                            this._editor.timeline.play();
                         }
                         else {
                             this._core.engine.resize();

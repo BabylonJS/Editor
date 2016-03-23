@@ -158,17 +158,33 @@
             };
 
             if (SceneFactory.HDRPipeline) {
+                /*
                 config.push({
                     attach: SceneFactory.EnabledPostProcesses.attachHDR,
                     name: "HDRPipeline",
                     serializationObject: serialize(SceneFactory.HDRPipeline)
                 });
+                */
+
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
+                    name: "HDRPipeline",
+                    serializationObject: this._ConfigureBase64Texture(SceneFactory.HDRPipeline, SceneFactory.HDRPipeline.serialize())
+                });
             }
             if (SceneFactory.SSAOPipeline) {
+                /*
                 config.push({
                     attach: SceneFactory.EnabledPostProcesses.attachSSAO,
                     name: "SSAOPipeline",
                     serializationObject: serialize(SceneFactory.SSAOPipeline)
+                });
+                */
+
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
+                    name: "SSAOPipeline",
+                    serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
                 });
             }
 
@@ -387,6 +403,20 @@
 
                 projectMaterial.serializedValues[thing].base64String = (<any>value)._buffer;
             }
+        }
+
+        // Configures the texture (configure base64 texture)
+        private static _ConfigureBase64Texture(source: Object, objectToConfigure: Object): any {
+            for (var thing in source) {
+                var value = source[thing];
+
+                if (!(value instanceof BaseTexture) || !objectToConfigure[thing] || !(<any>value)._buffer)
+                    continue;
+
+                objectToConfigure[thing].base64String = (<any>value)._buffer;
+            }
+
+            return objectToConfigure;
         }
 
         // Fills array of root nodes

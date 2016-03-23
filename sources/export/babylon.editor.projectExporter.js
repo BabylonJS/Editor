@@ -129,17 +129,31 @@ var BABYLON;
                     return obj;
                 };
                 if (EDITOR.SceneFactory.HDRPipeline) {
+                    /*
+                    config.push({
+                        attach: SceneFactory.EnabledPostProcesses.attachHDR,
+                        name: "HDRPipeline",
+                        serializationObject: serialize(SceneFactory.HDRPipeline)
+                    });
+                    */
                     config.push({
                         attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
                         name: "HDRPipeline",
-                        serializationObject: serialize(EDITOR.SceneFactory.HDRPipeline)
+                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.HDRPipeline, EDITOR.SceneFactory.HDRPipeline.serialize())
                     });
                 }
                 if (EDITOR.SceneFactory.SSAOPipeline) {
+                    /*
+                    config.push({
+                        attach: SceneFactory.EnabledPostProcesses.attachSSAO,
+                        name: "SSAOPipeline",
+                        serializationObject: serialize(SceneFactory.SSAOPipeline)
+                    });
+                    */
                     config.push({
                         attach: EDITOR.SceneFactory.EnabledPostProcesses.attachSSAO,
                         name: "SSAOPipeline",
-                        serializationObject: serialize(EDITOR.SceneFactory.SSAOPipeline)
+                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.SSAOPipeline, EDITOR.SceneFactory.SSAOPipeline.serialize())
                     });
                 }
                 return config;
@@ -315,6 +329,16 @@ var BABYLON;
                         continue;
                     projectMaterial.serializedValues[thing].base64String = value._buffer;
                 }
+            };
+            // Configures the texture (configure base64 texture)
+            ProjectExporter._ConfigureBase64Texture = function (source, objectToConfigure) {
+                for (var thing in source) {
+                    var value = source[thing];
+                    if (!(value instanceof BABYLON.BaseTexture) || !objectToConfigure[thing] || !value._buffer)
+                        continue;
+                    objectToConfigure[thing].base64String = value._buffer;
+                }
+                return objectToConfigure;
             };
             // Fills array of root nodes
             ProjectExporter._FillRootNodes = function (core, data, propertyPath) {

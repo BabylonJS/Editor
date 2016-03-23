@@ -79,20 +79,22 @@
                         this._core.engine.resize();
                         this._core.isPlaying = true;
 
+                        var time = (this._editor.timeline.currentTime * 1) / GUIAnimationEditor.FramesPerSecond / SceneFactory.AnimationSpeed; 
+
                         // Animate at launch
                         for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
                             var node = SceneFactory.NodesToStart[i];
 
                             if (node instanceof Sound) {
                                 (<any>node).stop();
-                                (<any>node).play();
+                                (<any>node).play(0, time);
                                 continue;
                             }
 
                             this._core.currentScene.stopAnimation(node);
                             this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, SceneFactory.AnimationSpeed);
                         }
-                        this._core.editor.timeline.play();
+                        this._editor.timeline.play();
                     }
                     else {
                         this._core.engine.resize();

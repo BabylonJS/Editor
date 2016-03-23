@@ -187,7 +187,7 @@
             // Post processes
             for (var i = 0; i < project.postProcesses.length; i++) {
                 var pp = project.postProcesses[i];
-
+                
                 if (SceneFactory["Create" + pp.name]) {
                     var newPp = SceneFactory["Create" + pp.name](core, pp.serializationObject);
 

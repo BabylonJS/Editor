@@ -21,7 +21,7 @@ declare module BABYLON.EDITOR {
         */
         static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
         static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
-        static CreateVLSPostProcess(core: EditorCore, serializationObject?: any): VolumetricLightScatteringPostProcess;
+        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
         /**
         * Nodes
         */

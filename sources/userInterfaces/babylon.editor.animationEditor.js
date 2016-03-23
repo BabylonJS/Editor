@@ -678,10 +678,10 @@ var BABYLON;
                 return count;
             };
             // Static methods that sets the current frame
-            GUIAnimationEditor.SetCurrentFrame = function (scene, objs, frame) {
+            GUIAnimationEditor.SetCurrentFrame = function (core, objs, frame) {
                 for (var i = 0; i < objs.length; i++) {
-                    scene.stopAnimation(objs[i]);
-                    scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
+                    core.currentScene.stopAnimation(objs[i]);
+                    core.currentScene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
                 }
             };
             // Static members

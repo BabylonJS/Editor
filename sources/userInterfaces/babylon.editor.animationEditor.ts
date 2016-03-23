@@ -832,10 +832,10 @@
         }
 
         // Static methods that sets the current frame
-        public static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void {
+        public static SetCurrentFrame(core: EditorCore, objs: IAnimatable[], frame: number): void {
             for (var i = 0; i < objs.length; i++) {
-                scene.stopAnimation(objs[i]);
-                scene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
+                core.currentScene.stopAnimation(objs[i]);
+                core.currentScene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
             }
         }
     }

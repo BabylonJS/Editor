@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR {
         private static _RequestMaterial(core, project, material);
         private static _GetSerializedMaterial(project, materialName);
         private static _ConfigureMaterial(material, projectMaterial);
+        private static _ConfigureBase64Texture(source, objectToConfigure);
         private static _FillRootNodes(core, data, propertyPath);
     }
 }

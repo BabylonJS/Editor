@@ -117,7 +117,7 @@ var BABYLON;
                     _this._currentTime = _this._getFrame();
                     _this._selectorRect.attr("x", _this._mousex);
                     if (_this._currentTime >= 0 && _this._currentTime < _this._maxFrame - 1)
-                        EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core.currentScene, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
+                        EDITOR.GUIAnimationEditor.SetCurrentFrame(_this._core, EDITOR.SceneFactory.NodesToStart, _this._currentTime);
                     _this._overlayText.text("Frame: " + BABYLON.Tools.Format(_this._currentTime, 0));
                     _this._overlayObj.css({ left: event.pageX });
                 };

@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
+        private _setVLSAttachedNode();
         private _setupDebugPipeline(folder, pipeline);
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();

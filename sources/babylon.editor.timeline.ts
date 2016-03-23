@@ -148,7 +148,7 @@
                 this._selectorRect.attr("x", this._mousex);
 
                 if (this._currentTime >= 0 && this._currentTime < this._maxFrame - 1)
-                    GUIAnimationEditor.SetCurrentFrame(this._core.currentScene, SceneFactory.NodesToStart, this._currentTime);
+                    GUIAnimationEditor.SetCurrentFrame(this._core, SceneFactory.NodesToStart, this._currentTime);
 
                 this._overlayText.text("Frame: " + BABYLON.Tools.Format(this._currentTime, 0));
                 this._overlayObj.css({ left: event.pageX });

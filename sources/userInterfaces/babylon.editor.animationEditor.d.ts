@@ -45,6 +45,6 @@ declare module BABYLON.EDITOR {
         private _createUI();
         static GetEndFrameOfObject(object: IAnimatable): number;
         static GetSceneFrameCount(scene: Scene): number;
-        static SetCurrentFrame(scene: Scene, objs: IAnimatable[], frame: number): void;
+        static SetCurrentFrame(core: EditorCore, objs: IAnimatable[], frame: number): void;
     }
 }

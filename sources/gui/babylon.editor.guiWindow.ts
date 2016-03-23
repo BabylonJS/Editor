@@ -95,7 +95,7 @@
             w2popup.message({
                 width: 400,
                 height: 180,
-                html: "<div style=\"padding: 60px; text-align: center\">" + message + "</div>\"" +
+                html: "<div style=\"padding: 60px; text-align: center\">" + message + "</div>" +
                       "<div style=\"text- align: center\"><button class=\"btn\" onclick=\"w2popup.message()\">Close</button>"
             });
         }
