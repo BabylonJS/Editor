@@ -28,6 +28,7 @@ var BABYLON;
                 this._addAnimationForm = null;
                 this._addAnimationName = "New Animation";
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                this._editedAnimation = null;
                 this._graphPaper = null;
                 this._graphLines = [];
                 this._graphValueTexts = [];
@@ -342,6 +343,18 @@ var BABYLON;
             };
             // On add animation
             GUIAnimationEditor.prototype._onAddAnimation = function () {
+                if (this._editedAnimation) {
+                    this._editedAnimation.name = this._addAnimationName;
+                    this._editedAnimation.loopMode = this._addAnimationType;
+                    this._editedAnimation = null;
+                    var selectedRows = this._animationsList.getSelectedRows();
+                    if (selectedRows.length > 0) {
+                        this._animationsList.modifyRow(selectedRows[0], {
+                            name: this._editedAnimation.name
+                        });
+                    }
+                    return;
+                }
                 var node = this._addAnimationGraph.getSelectedNode();
                 if (!node)
                     return;
@@ -545,9 +558,10 @@ var BABYLON;
                 this._animationsList.showOptions = false;
                 this._animationsList.showDelete = true;
                 this._animationsList.showAdd = true;
-                this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "");
-                this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "");
-                this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "");
+                this._animationsList.showEdit = true;
+                this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "icon-copy");
+                this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "icon-copy");
+                this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "icon-copy");
                 this._animationsList.buildElement(animationsListID);
                 for (var i = 0; i < this.object.animations.length; i++) {
                     this._animationsList.addRow({
@@ -560,6 +574,13 @@ var BABYLON;
                 };
                 this._animationsList.onAdd = function () {
                     _this._createAnimation();
+                };
+                this._animationsList.onEdit = function () {
+                    var selectedRows = _this._animationsList.getSelectedRows();
+                    if (selectedRows.length > 0) {
+                        _this._editedAnimation = _this.object.animations[selectedRows[0]];
+                        _this._createAnimation();
+                    }
                 };
                 this._animationsList.onMenuClick = function (id) {
                     _this._onAnimationMenuSelected(id);

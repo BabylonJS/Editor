@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         private _addAnimationForm;
         private _addAnimationName;
         private _addAnimationType;
+        private _editedAnimation;
         private _graphPaper;
         private _graphLines;
         private _graphValueTexts;

@@ -33,6 +33,7 @@
         private _addAnimationForm: GUI.GUIEditForm = null;
         private _addAnimationName: string = "New Animation";
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
+        private _editedAnimation: Animation = null;
         
         private _graphPaper: Paper = null;
         private _graphLines: Path[] = [];
@@ -431,6 +432,22 @@
         
         // On add animation
         private _onAddAnimation(): void {
+            if (this._editedAnimation) {
+                this._editedAnimation.name = this._addAnimationName;
+                this._editedAnimation.loopMode = this._addAnimationType;
+                this._editedAnimation = null;
+
+                var selectedRows = this._animationsList.getSelectedRows();
+
+                if (selectedRows.length > 0) {
+                    this._animationsList.modifyRow(selectedRows[0], {
+                        name: this._editedAnimation.name
+                    });
+                }
+
+                return;
+            }
+
             var node = this._addAnimationGraph.getSelectedNode();
 
             if (!node)
@@ -671,9 +688,10 @@
             this._animationsList.showOptions = false;
             this._animationsList.showDelete = true;
             this._animationsList.showAdd = true;
-            this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "");
-            this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "");
-            this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "");
+            this._animationsList.showEdit = true;
+            this._animationsList.addMenu(EContextMenuID.COPY, "Copy", "icon-copy");
+            this._animationsList.addMenu(EContextMenuID.PASTE, "Paste", "icon-copy");
+            this._animationsList.addMenu(EContextMenuID.PASTE_KEYS, "Paste Keys", "icon-copy");
             this._animationsList.buildElement(animationsListID);
 
             for (var i = 0; i < this.object.animations.length; i++) {
@@ -688,6 +706,13 @@
             };
             this._animationsList.onAdd = () => {
                 this._createAnimation();
+            };
+            this._animationsList.onEdit = () => {
+                var selectedRows = this._animationsList.getSelectedRows();
+                if (selectedRows.length > 0) {
+                    this._editedAnimation = this.object.animations[selectedRows[0]];
+                    this._createAnimation();
+                }
             };
             this._animationsList.onMenuClick = (id: number) => {
                 this._onAnimationMenuSelected(id);
