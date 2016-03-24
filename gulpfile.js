@@ -87,3 +87,11 @@ gulp.task("webserver", function() {
       fallback: "index-debug.html"
     }));
 });
+
+/**
+ * Gulp watch
+ */
+gulp.task("watch", function() {
+	gulp.watch(files, ["typescript-compile"]);
+});
+

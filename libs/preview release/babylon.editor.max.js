@@ -7620,6 +7620,7 @@ var BABYLON;
                 this._addAnimationForm = null;
                 this._addAnimationName = "New Animation";
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+                this._addAnimationTypeName = "Cycle";
                 this._editedAnimation = null;
                 this._graphPaper = null;
                 this._graphLines = [];
@@ -7662,6 +7663,20 @@ var BABYLON;
             // Creates an animation
             GUIAnimationEditor.prototype._createAnimation = function () {
                 var _this = this;
+                if (this._editedAnimation) {
+                    this._addAnimationName = this._editedAnimation.name;
+                    this._addAnimationTypeName = "Cycle";
+                    switch (this._addAnimationType) {
+                        case BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE:
+                            this._addAnimationTypeName = "Relative";
+                            break;
+                        case BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT:
+                            this._addAnimationTypeName = "Constant";
+                            break;
+                        default: break;
+                    }
+                }
+                // HTML elements
                 var layoutID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD";
                 var graphID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-GRAPH";
                 var editID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-EDIT";
@@ -7690,7 +7705,7 @@ var BABYLON;
                 this._addAnimationForm.buildElement(editID);
                 this._addAnimationForm.add(this, "_addAnimationName").name("Name");
                 this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
-                this._addAnimationForm.add(this, "_addAnimationType", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange(function (result) {
+                this._addAnimationForm.add(this, "_addAnimationTypeName", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange(function (result) {
                     switch (result) {
                         case "Relative":
                             _this._addAnimationType = BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE;
@@ -7936,16 +7951,12 @@ var BABYLON;
             // On add animation
             GUIAnimationEditor.prototype._onAddAnimation = function () {
                 if (this._editedAnimation) {
-                    this._editedAnimation.name = this._addAnimationName;
-                    this._editedAnimation.loopMode = this._addAnimationType;
-                    this._editedAnimation = null;
                     var selectedRows = this._animationsList.getSelectedRows();
                     if (selectedRows.length > 0) {
                         this._animationsList.modifyRow(selectedRows[0], {
-                            name: this._editedAnimation.name
+                            name: this._addAnimationName
                         });
                     }
-                    return;
                 }
                 var node = this._addAnimationGraph.getSelectedNode();
                 if (!node)
@@ -7979,19 +7990,29 @@ var BABYLON;
                     default: return;
                 }
                 var animation = new BABYLON.Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
-                animation.setKeys([{
-                        frame: 0,
-                        value: data
-                    }, {
-                        frame: 1,
-                        value: data
-                    }]);
-                this.object.animations.push(animation);
-                BABYLON.Tags.AddTagsTo(animation, "modified");
-                this._animationsList.addRow({
-                    name: this._addAnimationName
-                });
+                if (!this._editedAnimation) {
+                    animation.setKeys([{
+                            frame: 0,
+                            value: data
+                        }, {
+                            frame: 1,
+                            value: data
+                        }]);
+                    this.object.animations.push(animation);
+                    this._animationsList.addRow({
+                        name: this._addAnimationName
+                    });
+                }
+                else {
+                    animation.setKeys(this._editedAnimation.getKeys());
+                    var selectedRows = this._animationsList.getSelectedRows();
+                    if (selectedRows.length > 0) {
+                        this.object.animations[selectedRows[0]] = animation;
+                    }
+                }
                 // Finish
+                if (!BABYLON.Tags.HasTags(animation) || !BABYLON.Tags.MatchesQuery(animation, "modified"))
+                    BABYLON.Tags.AddTagsTo(animation, "modified");
                 this.core.editor.timeline.reset();
                 this._addAnimationWindow.close();
             };

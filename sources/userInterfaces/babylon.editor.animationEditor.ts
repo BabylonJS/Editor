@@ -33,6 +33,7 @@
         private _addAnimationForm: GUI.GUIEditForm = null;
         private _addAnimationName: string = "New Animation";
         private _addAnimationType: number = Animation.ANIMATIONLOOPMODE_CYCLE;
+        private _addAnimationTypeName: string = "Cycle";
         private _editedAnimation: Animation = null;
         
         private _graphPaper: Paper = null;
@@ -98,6 +99,18 @@
 
         // Creates an animation
         private _createAnimation(): void {
+            if (this._editedAnimation) {
+                this._addAnimationName = this._editedAnimation.name;
+                
+                this._addAnimationTypeName = "Cycle";
+                switch (this._addAnimationType) {
+                    case Animation.ANIMATIONLOOPMODE_RELATIVE: this._addAnimationTypeName = "Relative"; break;
+                    case Animation.ANIMATIONLOOPMODE_CONSTANT: this._addAnimationTypeName = "Constant"; break;
+                    default: break;
+                }
+            }
+            
+            // HTML elements
             var layoutID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD";
             var graphID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-GRAPH";
             var editID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-EDIT";
@@ -135,7 +148,7 @@
             this._addAnimationForm.add(this, "_addAnimationName").name("Name");
 
             this._addAnimationType = Animation.ANIMATIONLOOPMODE_CYCLE;
-            this._addAnimationForm.add(this, "_addAnimationType", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange((result: any) => {
+            this._addAnimationForm.add(this, "_addAnimationTypeName", ["Cycle", "Relative", "Constant"], "Loop Mode").onFinishChange((result: any) => {
                 switch (result) {
                     case "Relative": this._addAnimationType = Animation.ANIMATIONLOOPMODE_RELATIVE; break;
                     case "Cycle": this._addAnimationType = Animation.ANIMATIONLOOPMODE_CYCLE; break;
@@ -433,19 +446,13 @@
         // On add animation
         private _onAddAnimation(): void {
             if (this._editedAnimation) {
-                this._editedAnimation.name = this._addAnimationName;
-                this._editedAnimation.loopMode = this._addAnimationType;
-                this._editedAnimation = null;
-
                 var selectedRows = this._animationsList.getSelectedRows();
 
                 if (selectedRows.length > 0) {
                     this._animationsList.modifyRow(selectedRows[0], {
-                        name: this._editedAnimation.name
+                        name: this._addAnimationName
                     });
                 }
-
-                return;
             }
 
             var node = this._addAnimationGraph.getSelectedNode();
@@ -477,21 +484,35 @@
             }
 
             var animation = new Animation(this._addAnimationName, property, GUIAnimationEditor.FramesPerSecond, dataType, this._addAnimationType);
-            animation.setKeys([{
-                frame: 0,
-                value: data
-            }, {
-                frame: 1,
-                value: data
-            }]);
-            this.object.animations.push(animation);
-            BABYLON.Tags.AddTagsTo(animation, "modified");
+            
+            if (!this._editedAnimation) {
+                animation.setKeys([{
+                    frame: 0,
+                    value: data
+                }, {
+                    frame: 1,
+                    value: data
+                }]);
+                
+                this.object.animations.push(animation);
 
-            this._animationsList.addRow({
-                name: this._addAnimationName
-            });
+                this._animationsList.addRow({
+                    name: this._addAnimationName
+                });
+            }
+            else {
+                animation.setKeys(this._editedAnimation.getKeys());
+                
+                var selectedRows = this._animationsList.getSelectedRows();
+                if (selectedRows.length > 0) {
+                    this.object.animations[selectedRows[0]] = animation;
+                }
+            }
                 
             // Finish
+            if (!Tags.HasTags(animation) || !Tags.MatchesQuery(animation, "modified"))
+                BABYLON.Tags.AddTagsTo(animation, "modified");
+            
             this.core.editor.timeline.reset();
             this._addAnimationWindow.close();
         }
