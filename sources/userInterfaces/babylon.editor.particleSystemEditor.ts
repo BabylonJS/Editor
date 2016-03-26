@@ -102,9 +102,8 @@
                 }
                 else if (tabID === this._editorTabID) {
                     editor.show();
-
                     var exporter = this.core.editor.exporter;
-                    this._editor.setValue("var " + exporter._exportParticleSystem(this._particleSystemToEdit), -1);
+                    this._editor.setValue("var " + new Exporter(this.core)._exportParticleSystem(this._particleSystemToEdit).replace("\t", ""), -1);
                 }
 
                 return true;
@@ -179,6 +178,7 @@
             this._editor.getSession().setMode("ace/mode/javascript");
 
             this._editor.getSession().on("change", (e: any) => {
+                /*
                 var value = this._editor.getValue() + "\ncallback;";
                 try {
                     var result = eval.call(window, value);
@@ -192,6 +192,7 @@
                     // Catch silently
                     debugger;
                 }
+                */
             });
 
             $(this._editor.container).hide();
