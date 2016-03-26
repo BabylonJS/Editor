@@ -153,7 +153,6 @@ var BABYLON;
                         for (var i = 0; i < instances.length; i++) {
                             if (value instanceof BABYLON[instances[i]]) {
                                 canAdd = true;
-                                break;
                             }
                         }
                         if (!canAdd)
@@ -207,9 +206,10 @@ var BABYLON;
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
                 var changedFrame = false;
-                if (this._currentKey.frame !== frame)
+                var frameValue = parseFloat(frame);
+                if (this._currentKey.frame !== frameValue)
                     changedFrame = true;
-                this._currentKey.frame = frame;
+                this._currentKey.frame = frameValue;
                 if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
                     this._currentKey.value = parseFloat(value);
                 }
@@ -380,9 +380,9 @@ var BABYLON;
                 // Create animation
                 var constructorName = EDITOR.Tools.GetConstructorName(data);
                 var dataType = -1;
-                switch (constructorName) {
-                    case "Number":
-                    case "Boolean":
+                switch (constructorName.toLowerCase()) {
+                    case "number":
+                    case "boolean":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
                         break;
                     case "Vector3":
@@ -444,6 +444,8 @@ var BABYLON;
                     this._onSelectedAnimation();
                     this._currentKey = key;
                 }
+                else
+                    this._configureGraph();
                 this._keysList.setSelected([indice]);
             };
             // On animation menu selected
@@ -534,7 +536,7 @@ var BABYLON;
                 this._keysList.addRow({
                     key: frame,
                     value: this._getFrameTime(frame),
-                    recid: keys.length
+                    recid: keys.length - 1
                 });
                 // Reset list
                 this._onSelectedAnimation();

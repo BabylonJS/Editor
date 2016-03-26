@@ -88,7 +88,11 @@ var BABYLON;
             * Returns the constructor name of an object
             */
             Tools.GetConstructorName = function (obj) {
-                return (obj && obj.constructor) ? obj.constructor.name : "";
+                var ctrName = (obj && obj.constructor) ? obj.constructor.name : "";
+                if (ctrName === "") {
+                    ctrName = typeof obj;
+                }
+                return ctrName;
             };
             return Tools;
         })();

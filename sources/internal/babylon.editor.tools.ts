@@ -104,7 +104,13 @@
         * Returns the constructor name of an object
         */
         public static GetConstructorName(obj: any): string {
-            return (obj && obj.constructor) ? obj.constructor.name : "";
+            var ctrName = (obj && obj.constructor) ? obj.constructor.name : "";
+            
+            if (ctrName === "") {
+                ctrName = typeof obj;
+            }
+            
+            return ctrName;
         }
     }
 }

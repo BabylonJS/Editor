@@ -31,9 +31,10 @@ var BABYLON;
             GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 11] = "GRID_ROW_ADDED";
             GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 12] = "GRID_ROW_EDITED";
             GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 13] = "GRID_MENU_SELECTED";
-            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 14] = "WINDOW_BUTTON_CLICKED";
-            GUIEventType[GUIEventType["OBJECT_PICKED"] = 15] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 16] = "UNKNOWN";
+            GUIEventType[GUIEventType["GRID_RELOADED"] = 14] = "GRID_RELOADED";
+            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 15] = "WINDOW_BUTTON_CLICKED";
+            GUIEventType[GUIEventType["OBJECT_PICKED"] = 16] = "OBJECT_PICKED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 17] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -217,7 +218,11 @@ var BABYLON;
             * Returns the constructor name of an object
             */
             Tools.GetConstructorName = function (obj) {
-                return (obj && obj.constructor) ? obj.constructor.name : "";
+                var ctrName = (obj && obj.constructor) ? obj.constructor.name : "";
+                if (ctrName === "") {
+                    ctrName = typeof obj;
+                }
+                return ctrName;
             };
             return Tools;
         })();
@@ -807,6 +812,14 @@ var BABYLON;
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
+                            _this.core.sendEvent(ev);
+                        },
+                        onReload: function (event) {
+                            if (_this.onReload)
+                                _this.onReload();
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_RELOADED);
                             _this.core.sendEvent(ev);
                         }
                     });
@@ -7745,7 +7758,6 @@ var BABYLON;
                         for (var i = 0; i < instances.length; i++) {
                             if (value instanceof BABYLON[instances[i]]) {
                                 canAdd = true;
-                                break;
                             }
                         }
                         if (!canAdd)
@@ -7799,9 +7811,10 @@ var BABYLON;
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
                 var changedFrame = false;
-                if (this._currentKey.frame !== frame)
+                var frameValue = parseFloat(frame);
+                if (this._currentKey.frame !== frameValue)
                     changedFrame = true;
-                this._currentKey.frame = frame;
+                this._currentKey.frame = frameValue;
                 if (typeof this._currentKey.value === "number" || typeof this._currentKey.value === "boolean") {
                     this._currentKey.value = parseFloat(value);
                 }
@@ -7972,9 +7985,9 @@ var BABYLON;
                 // Create animation
                 var constructorName = EDITOR.Tools.GetConstructorName(data);
                 var dataType = -1;
-                switch (constructorName) {
-                    case "Number":
-                    case "Boolean":
+                switch (constructorName.toLowerCase()) {
+                    case "number":
+                    case "boolean":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
                         break;
                     case "Vector3":
@@ -8036,6 +8049,8 @@ var BABYLON;
                     this._onSelectedAnimation();
                     this._currentKey = key;
                 }
+                else
+                    this._configureGraph();
                 this._keysList.setSelected([indice]);
             };
             // On animation menu selected
@@ -8126,7 +8141,7 @@ var BABYLON;
                 this._keysList.addRow({
                     key: frame,
                     value: this._getFrameTime(frame),
-                    recid: keys.length
+                    recid: keys.length - 1
                 });
                 // Reset list
                 this._onSelectedAnimation();
@@ -9042,6 +9057,7 @@ var BABYLON;
                 this._texturesList = null;
                 // Initialize
                 this._core = core;
+                this._core.eventReceivers.push(this);
                 this._core.editor.editPanel.close();
                 this.object = object;
                 this.propertyPath = propertyPath;
@@ -9056,6 +9072,16 @@ var BABYLON;
                 // Finish
                 this._createUI();
             }
+            // On Event
+            GUITextureEditor.prototype.onEvent = function (ev) {
+                if (ev.eventType === EDITOR.EventType.SCENE_EVENT) {
+                    var eventType = ev.sceneEvent.eventType;
+                    if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
+                        this._fillTextureList();
+                    }
+                }
+                return false;
+            };
             // Creates the UI
             GUITextureEditor.prototype._createUI = function () {
                 var _this = this;
@@ -9088,12 +9114,7 @@ var BABYLON;
                 this._texturesList.showOptions = false;
                 this._texturesList.showAdd = true;
                 this._texturesList.buildElement(texturesListID);
-                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    this._texturesList.addRow({
-                        name: this._core.currentScene.textures[i].name,
-                        recid: i
-                    });
-                }
+                this._fillTextureList();
                 this._texturesList.onClick = function (selected) {
                     if (selected.length === 0)
                         return;
@@ -9109,6 +9130,9 @@ var BABYLON;
                     else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
                         serializationObject.name = selectedTexture.url;
                     }
+                    else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                        return;
+                    }
                     _this._targetTexture = BABYLON.Texture.Parse(serializationObject, scene, "");
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
@@ -9123,12 +9147,26 @@ var BABYLON;
                     };
                     inputFiles.click();
                 };
+                this._texturesList.onReload = function () {
+                    _this._fillTextureList();
+                };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
                     scene.dispose();
                     engine.dispose();
+                    _this._core.removeEventReceiver(_this);
                 };
+            };
+            // Fills the texture list
+            GUITextureEditor.prototype._fillTextureList = function () {
+                this._texturesList.clear();
+                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    this._texturesList.addRow({
+                        name: this._core.currentScene.textures[i].name,
+                        recid: i
+                    });
+                }
             };
             // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {

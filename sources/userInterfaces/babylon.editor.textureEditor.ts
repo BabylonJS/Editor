@@ -3,7 +3,7 @@
         name: string;
     }
 
-    export class GUITextureEditor {
+    export class GUITextureEditor implements IEventReceiver {
         // Public members
         public object: Object;
         public propertyPath: string;
@@ -26,6 +26,7 @@
         constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string) {
             // Initialize
             this._core = core;
+            this._core.eventReceivers.push(this);
             this._core.editor.editPanel.close();
 
             this.object = object;
@@ -43,6 +44,19 @@
 
             // Finish
             this._createUI();
+        }
+        
+        // On Event
+        public onEvent(ev: Event): boolean {
+            if (ev.eventType === EventType.SCENE_EVENT) {
+                var eventType = ev.sceneEvent.eventType;
+                
+                if (eventType === SceneEventType.OBJECT_ADDED || eventType === SceneEventType.OBJECT_REMOVED) {
+                    this._fillTextureList();
+                }
+            }
+            
+            return false;
         }
 
         // Creates the UI
@@ -83,13 +97,8 @@
             this._texturesList.showOptions = false;
             this._texturesList.showAdd = true;
             this._texturesList.buildElement(texturesListID);
-
-            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                this._texturesList.addRow({
-                    name: this._core.currentScene.textures[i].name,
-                    recid: i
-                });
-            }
+            
+            this._fillTextureList();
 
             this._texturesList.onClick = (selected: number[]) => {
                 if (selected.length === 0)
@@ -111,6 +120,9 @@
                 else if (FilesInput.FilesTextures[selectedTexture.name]) {
                     serializationObject.name = (<Texture>selectedTexture).url;
                 }
+                else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                    return;
+                }
 
                 this._targetTexture = Texture.Parse(serializationObject, scene, "");
 
@@ -129,6 +141,10 @@
                 };
                 inputFiles.click();
             };
+            
+            this._texturesList.onReload = () => {
+                this._fillTextureList();
+            };
 
             // Finish
             this._core.editor.editPanel.onClose = () => {
@@ -136,7 +152,21 @@
 
                 scene.dispose();
                 engine.dispose();
+                
+                this._core.removeEventReceiver(this);
             };
+        }
+        
+        // Fills the texture list
+        private _fillTextureList(): void {
+            this._texturesList.clear();
+            
+            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                this._texturesList.addRow({
+                    name: this._core.currentScene.textures[i].name,
+                    recid: i
+                });
+            }
         }
 
         // On readed texture file callback

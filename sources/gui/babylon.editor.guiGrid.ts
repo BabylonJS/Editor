@@ -22,6 +22,7 @@
         public onDelete: (selected: number[]) => void;
         public onAdd: () => void;
         public onEdit: (selected: number[]) => void;
+        public onReload: () => void;
 
         // Private members
 
@@ -211,6 +212,16 @@
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_EDITED, data);
+                    this.core.sendEvent(ev);
+                },
+                
+                onReload: (event) => {
+                    if (this.onReload)
+                        this.onReload();
+                        
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_RELOADED);
                     this.core.sendEvent(ev);
                 }
             });

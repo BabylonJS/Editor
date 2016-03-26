@@ -31,9 +31,10 @@ var BABYLON;
             GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 11] = "GRID_ROW_ADDED";
             GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 12] = "GRID_ROW_EDITED";
             GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 13] = "GRID_MENU_SELECTED";
-            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 14] = "WINDOW_BUTTON_CLICKED";
-            GUIEventType[GUIEventType["OBJECT_PICKED"] = 15] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 16] = "UNKNOWN";
+            GUIEventType[GUIEventType["GRID_RELOADED"] = 14] = "GRID_RELOADED";
+            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 15] = "WINDOW_BUTTON_CLICKED";
+            GUIEventType[GUIEventType["OBJECT_PICKED"] = 16] = "OBJECT_PICKED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 17] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {

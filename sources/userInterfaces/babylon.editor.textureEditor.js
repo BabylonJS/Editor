@@ -14,6 +14,7 @@ var BABYLON;
                 this._texturesList = null;
                 // Initialize
                 this._core = core;
+                this._core.eventReceivers.push(this);
                 this._core.editor.editPanel.close();
                 this.object = object;
                 this.propertyPath = propertyPath;
@@ -28,6 +29,16 @@ var BABYLON;
                 // Finish
                 this._createUI();
             }
+            // On Event
+            GUITextureEditor.prototype.onEvent = function (ev) {
+                if (ev.eventType === EDITOR.EventType.SCENE_EVENT) {
+                    var eventType = ev.sceneEvent.eventType;
+                    if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
+                        this._fillTextureList();
+                    }
+                }
+                return false;
+            };
             // Creates the UI
             GUITextureEditor.prototype._createUI = function () {
                 var _this = this;
@@ -60,12 +71,7 @@ var BABYLON;
                 this._texturesList.showOptions = false;
                 this._texturesList.showAdd = true;
                 this._texturesList.buildElement(texturesListID);
-                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    this._texturesList.addRow({
-                        name: this._core.currentScene.textures[i].name,
-                        recid: i
-                    });
-                }
+                this._fillTextureList();
                 this._texturesList.onClick = function (selected) {
                     if (selected.length === 0)
                         return;
@@ -81,6 +87,9 @@ var BABYLON;
                     else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
                         serializationObject.name = selectedTexture.url;
                     }
+                    else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                        return;
+                    }
                     _this._targetTexture = BABYLON.Texture.Parse(serializationObject, scene, "");
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
@@ -95,12 +104,26 @@ var BABYLON;
                     };
                     inputFiles.click();
                 };
+                this._texturesList.onReload = function () {
+                    _this._fillTextureList();
+                };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
                     scene.dispose();
                     engine.dispose();
+                    _this._core.removeEventReceiver(_this);
                 };
+            };
+            // Fills the texture list
+            GUITextureEditor.prototype._fillTextureList = function () {
+                this._texturesList.clear();
+                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    this._texturesList.addRow({
+                        name: this._core.currentScene.textures[i].name,
+                        recid: i
+                    });
+                }
             };
             // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {

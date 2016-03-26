@@ -179,6 +179,14 @@ var BABYLON;
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
                             _this.core.sendEvent(ev);
+                        },
+                        onReload: function (event) {
+                            if (_this.onReload)
+                                _this.onReload();
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_RELOADED);
+                            _this.core.sendEvent(ev);
                         }
                     });
                 };
