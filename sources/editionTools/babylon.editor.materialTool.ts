@@ -123,6 +123,8 @@
         // Configure materials library
         private _configureMaterialsLibrary(folder: dat.IFolderElement): void {
             var items = [
+                "None",
+                
                 "StandardMaterial",
                 "PBRMaterial",
                 "FireMaterial",
@@ -140,7 +142,7 @@
             ];
 
             var ctr = Tools.GetConstructorName(this.object.material);
-            this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
+            this._libraryDummyProperty = ctr === "undefined" ? items[0] : ctr;
 
             folder.add(this, "_libraryDummyProperty", items).name("Material");
             folder.add(this, "_applyMaterial").name("Apply Material");
@@ -154,7 +156,11 @@
             if (material instanceof FurMaterial) {
                 var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                 (<FurMaterial>material).furTexture = furTexture;
-                FurMaterial.FurifyMesh(this.object, 30);
+                
+                var meshes = FurMaterial.FurifyMesh(this.object, 30);
+                for (var i = 0; i < meshes.length; i++) {
+                    meshes[i].material;
+                }
             }
 
             this._editionTool.updateEditionTool();

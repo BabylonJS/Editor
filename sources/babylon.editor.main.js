@@ -138,6 +138,7 @@ var BABYLON;
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();
+                    EDITOR.SceneFactory.NodesToStart = [];
                     _this.timeline.reset();
                 };
             };

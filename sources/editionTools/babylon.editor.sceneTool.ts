@@ -4,6 +4,7 @@
         public tab: string = "SCENE.TAB";
 
         // Private members
+        private _fogType: string = "";
 
         /**
         * Constructor
@@ -78,12 +79,20 @@
 
             // Fog
             var fogFolder = this._element.addFolder("Fog");
-            fogFolder.add(object, "fogMode", [
-                "None",
-                "Exp",
-                "Exp2",
-                "Linear"
-            ]).name("Fog Mode").onFinishChange((result: any) => {
+            
+            var fogTypes = [
+                 "None",
+                "Exp", "Exp2",
+                "Linear" 
+            ];
+            switch (object.fogMode) {
+                case Scene.FOGMODE_EXP: this._fogType = "Exp"; break;
+                case Scene.FOGMODE_EXP2: this._fogType = "Exp2"; break;
+                case Scene.FOGMODE_LINEAR: this._fogType = "Linear"; break;
+                default: this._fogType = "None"; break;
+            }
+            
+            fogFolder.add(this, "_fogType", fogTypes).name("Fog Mode").onFinishChange((result: any) => {
                 switch (result) {
                     case "Exp": object.fogMode = Scene.FOGMODE_EXP; break;
                     case "Exp2": object.fogMode = Scene.FOGMODE_EXP2; break;

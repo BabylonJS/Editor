@@ -33,6 +33,9 @@ var BABYLON;
                     }
                     return true;
                 }
+                else if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                    this._editor.resize(true);
+                }
                 return false;
             };
             // Create the UI

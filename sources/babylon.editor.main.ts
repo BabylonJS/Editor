@@ -185,6 +185,8 @@
                 // Reset UI
                 this.sceneGraphTool.createUI();
                 this.sceneGraphTool.fillGraph();
+                
+                SceneFactory.NodesToStart = [];
                 this.timeline.reset();
             };
         }

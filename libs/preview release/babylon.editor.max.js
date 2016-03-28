@@ -2262,6 +2262,7 @@ var BABYLON;
             // Configure materials library
             MaterialTool.prototype._configureMaterialsLibrary = function (folder) {
                 var items = [
+                    "None",
                     "StandardMaterial",
                     "PBRMaterial",
                     "FireMaterial",
@@ -2277,7 +2278,7 @@ var BABYLON;
                     "SimpleMaterial"
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
-                this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
+                this._libraryDummyProperty = ctr === "undefined" ? items[0] : ctr;
                 folder.add(this, "_libraryDummyProperty", items).name("Material");
                 folder.add(this, "_applyMaterial").name("Apply Material");
             };
@@ -2288,7 +2289,10 @@ var BABYLON;
                 if (material instanceof BABYLON.FurMaterial) {
                     var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                     material.furTexture = furTexture;
-                    BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                    var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                    for (var i = 0; i < meshes.length; i++) {
+                        meshes[i].material;
+                    }
                 }
                 this._editionTool.updateEditionTool();
             };
@@ -2820,7 +2824,6 @@ var BABYLON;
     (function (EDITOR) {
         var SceneTool = (function (_super) {
             __extends(SceneTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -2829,6 +2832,8 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "SCENE.TAB";
+                // Private members
+                this._fogType = "";
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
@@ -2880,12 +2885,26 @@ var BABYLON;
                 audioFolder.add(object, "audioEnabled").name("Audio Enabled");
                 // Fog
                 var fogFolder = this._element.addFolder("Fog");
-                fogFolder.add(object, "fogMode", [
+                var fogTypes = [
                     "None",
-                    "Exp",
-                    "Exp2",
+                    "Exp", "Exp2",
                     "Linear"
-                ]).name("Fog Mode").onFinishChange(function (result) {
+                ];
+                switch (object.fogMode) {
+                    case BABYLON.Scene.FOGMODE_EXP:
+                        this._fogType = "Exp";
+                        break;
+                    case BABYLON.Scene.FOGMODE_EXP2:
+                        this._fogType = "Exp2";
+                        break;
+                    case BABYLON.Scene.FOGMODE_LINEAR:
+                        this._fogType = "Linear";
+                        break;
+                    default:
+                        this._fogType = "None";
+                        break;
+                }
+                fogFolder.add(this, "_fogType", fogTypes).name("Fog Mode").onFinishChange(function (result) {
                     switch (result) {
                         case "Exp":
                             object.fogMode = BABYLON.Scene.FOGMODE_EXP;
@@ -3618,6 +3637,45 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var FireMaterialTool = (function (_super) {
+            __extends(FireMaterialTool, _super);
+            // Public members
+            // Private members
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function FireMaterialTool(editionTool) {
+                _super.call(this, editionTool, "FIRE-MATERIAL", "FIRE", "Fire");
+                // Initialize
+                this.onObjectSupported = function (material) { return material instanceof BABYLON.FireMaterial; };
+            }
+            // Update
+            FireMaterialTool.prototype.update = function () {
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Diffuse
+                var diffuseFolder = this._element.addFolder("Diffuse");
+                this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder);
+                this.addTextureButton("Diffuse Texture", "diffuseTexture", diffuseFolder).open();
+                // Fire
+                var fireFolder = this._element.addFolder("Fire");
+                fireFolder.add(this.material, "speed").min(0).step(0.01).name("Speed");
+                this.addTextureButton("Distortion Texture", "distortionTexture", fireFolder).open();
+                this.addTextureButton("Opacity Texture", "opacityTexture", fireFolder).open();
+                // Finish
+                return true;
+            };
+            return FireMaterialTool;
+        })(EDITOR.AbstractMaterialTool);
+        EDITOR.FireMaterialTool = FireMaterialTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var EditorCore = (function () {
             /**
             * Constructor
@@ -3824,6 +3882,7 @@ var BABYLON;
                 this.addTool(new EDITOR.TerrainMaterialTool(this));
                 this.addTool(new EDITOR.TriPlanarMaterialTool(this));
                 this.addTool(new EDITOR.GridMaterialTool(this));
+                this.addTool(new EDITOR.FireMaterialTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };
@@ -4034,6 +4093,7 @@ var BABYLON;
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();
+                    EDITOR.SceneFactory.NodesToStart = [];
                     _this.timeline.reset();
                 };
             };
@@ -8376,6 +8436,9 @@ var BABYLON;
                     }
                     return true;
                 }
+                else if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                    this._editor.resize(true);
+                }
                 return false;
             };
             // Create the UI
@@ -8719,7 +8782,7 @@ var BABYLON;
                     else if (tabID === this._editorTabID) {
                         editor.show();
                         var exporter = this.core.editor.exporter;
-                        this._editor.setValue("var " + exporter._exportParticleSystem(this._particleSystemToEdit), -1);
+                        this._editor.setValue("var " + new EDITOR.Exporter(this.core)._exportParticleSystem(this._particleSystemToEdit).replace("\t", ""), -1);
                     }
                     return true;
                 }
@@ -8780,17 +8843,21 @@ var BABYLON;
                 this._editor.setTheme("ace/theme/clouds");
                 this._editor.getSession().setMode("ace/mode/javascript");
                 this._editor.getSession().on("change", function (e) {
-                    var value = _this._editor.getValue() + "\ncallback;";
+                    /*
+                    var value = this._editor.getValue() + "\ncallback;";
                     try {
                         var result = eval.call(window, value);
+    
                         //Test function
-                        result(_this._particleSystem._stockParticles);
-                        _this._particleSystem.updateFunction = result;
+                        result((<any>this._particleSystem)._stockParticles);
+    
+                        this._particleSystem.updateFunction = result;
                     }
                     catch (e) {
                         // Catch silently
                         debugger;
                     }
+                    */
                 });
                 $(this._editor.container).hide();
             };
@@ -9054,7 +9121,12 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._currentRenderTarget = null;
+                this._currentPixels = null;
+                this._dynamicTexture = null;
                 this._texturesList = null;
+                this._engine = null;
+                this._scene = null;
                 // Initialize
                 this._core = core;
                 this._core.eventReceivers.push(this);
@@ -9080,6 +9152,11 @@ var BABYLON;
                         this._fillTextureList();
                     }
                 }
+                else if (ev.eventType === EDITOR.EventType.GUI_EVENT) {
+                    if (ev.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                        this._engine.resize();
+                    }
+                }
                 return false;
             };
             // Creates the UI
@@ -9094,17 +9171,17 @@ var BABYLON;
                 this._core.editor.editPanel.addContainer(texturesListElement, texturesListID);
                 this._core.editor.editPanel.addContainer(canvasElement, canvasID);
                 // Texture canvas
-                var engine = new BABYLON.Engine($("#" + canvasID)[0], true);
-                var scene = new BABYLON.Scene(engine);
-                scene.clearColor = new BABYLON.Color3(0, 0, 0);
-                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), scene);
+                this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
+                this._scene = new BABYLON.Scene(this._engine);
+                this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
+                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), this._scene);
                 var postProcess = new BABYLON.PassPostProcess("PostProcessTextureEditor", 1.0, camera);
                 postProcess.onApply = function (effect) {
                     if (_this._targetTexture)
                         effect.setTexture("textureSampler", _this._targetTexture);
                 };
-                engine.runRenderLoop(function () {
-                    scene.render();
+                this._engine.runRenderLoop(function () {
+                    _this._scene.render();
                 });
                 // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
@@ -9118,22 +9195,32 @@ var BABYLON;
                 this._texturesList.onClick = function (selected) {
                     if (selected.length === 0)
                         return;
+                    if (_this._currentRenderTarget)
+                        _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
                     if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                         return;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
+                    // Guess texture
                     if (selectedTexture._buffer) {
                         serializationObject.base64String = selectedTexture._buffer;
                     }
                     else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
                         serializationObject.name = selectedTexture.url;
                     }
-                    else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                    else if (selectedTexture.isCube) {
                         return;
                     }
-                    _this._targetTexture = BABYLON.Texture.Parse(serializationObject, scene, "");
+                    // If render target, configure canvas. Else, set target texture 
+                    if (selectedTexture.isRenderTarget) {
+                        _this._currentRenderTarget = selectedTexture;
+                        _this._configureRenderTarget();
+                    }
+                    else {
+                        _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
+                    }
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
@@ -9153,10 +9240,37 @@ var BABYLON;
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
-                    scene.dispose();
-                    engine.dispose();
+                    _this._scene.dispose();
+                    _this._engine.dispose();
                     _this._core.removeEventReceiver(_this);
                 };
+            };
+            // Configures a render target to be rendered
+            GUITextureEditor.prototype._configureRenderTarget = function () {
+                var _this = this;
+                var width = this._currentRenderTarget.getSize().width;
+                var height = this._currentRenderTarget.getSize().height;
+                var imgData = new ImageData(width, height);
+                this._currentOnAfterRender = this._currentRenderTarget.onAfterRender;
+                this._dynamicTexture = new BABYLON.DynamicTexture("RenderTargetTexture", { width: width, height: height }, this._scene, false);
+                this._currentRenderTarget.onAfterRender = function (faceIndex) {
+                    if (_this._currentOnAfterRender)
+                        _this._currentOnAfterRender(faceIndex);
+                    _this._currentPixels = _this._core.engine.readPixels(0, 0, width, height);
+                    for (var i = 0; i < _this._currentPixels.length; i++)
+                        imgData.data[i] = _this._currentPixels[i];
+                    _this._dynamicTexture.getContext().putImageData(imgData, 0, 0);
+                    _this._dynamicTexture.update(false);
+                };
+                this._targetTexture = this._dynamicTexture;
+            };
+            // Restores the render target
+            GUITextureEditor.prototype._restorRenderTarget = function () {
+                this._currentRenderTarget.onAfterRender = this._currentOnAfterRender;
+                this._dynamicTexture.dispose();
+                this._dynamicTexture = null;
+                this._currentPixels = null;
+                this._currentRenderTarget = null;
             };
             // Fills the texture list
             GUITextureEditor.prototype._fillTextureList = function () {

@@ -52,7 +52,7 @@
         private static _Login(core: EditorCore, success: () => void): void {
             // OneDrive
             var now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
-
+            
             if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                 var uri = "https://login.live.com/oauth20_authorize.srf"
                     + "?client_id=" + OneDriveStorage._ClientID

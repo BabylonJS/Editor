@@ -9,7 +9,6 @@ var BABYLON;
     (function (EDITOR) {
         var SceneTool = (function (_super) {
             __extends(SceneTool, _super);
-            // Private members
             /**
             * Constructor
             * @param editionTool: edition tool instance
@@ -18,6 +17,8 @@ var BABYLON;
                 _super.call(this, editionTool);
                 // Public members
                 this.tab = "SCENE.TAB";
+                // Private members
+                this._fogType = "";
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
@@ -69,12 +70,26 @@ var BABYLON;
                 audioFolder.add(object, "audioEnabled").name("Audio Enabled");
                 // Fog
                 var fogFolder = this._element.addFolder("Fog");
-                fogFolder.add(object, "fogMode", [
+                var fogTypes = [
                     "None",
-                    "Exp",
-                    "Exp2",
+                    "Exp", "Exp2",
                     "Linear"
-                ]).name("Fog Mode").onFinishChange(function (result) {
+                ];
+                switch (object.fogMode) {
+                    case BABYLON.Scene.FOGMODE_EXP:
+                        this._fogType = "Exp";
+                        break;
+                    case BABYLON.Scene.FOGMODE_EXP2:
+                        this._fogType = "Exp2";
+                        break;
+                    case BABYLON.Scene.FOGMODE_LINEAR:
+                        this._fogType = "Linear";
+                        break;
+                    default:
+                        this._fogType = "None";
+                        break;
+                }
+                fogFolder.add(this, "_fogType", fogTypes).name("Fog Mode").onFinishChange(function (result) {
                     switch (result) {
                         case "Exp":
                             object.fogMode = BABYLON.Scene.FOGMODE_EXP;

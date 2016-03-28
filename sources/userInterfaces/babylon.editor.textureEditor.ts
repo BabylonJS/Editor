@@ -14,8 +14,16 @@
         private _targetObject: Object;
         private _targetTexture: BaseTexture = null;
         private _objectName: string;
+        
+        private _currentRenderTarget: RenderTargetTexture = null;
+        private _currentPixels: Uint8Array = null;
+        private _currentOnAfterRender: (faceIndex: number) => void;
+        private _dynamicTexture: DynamicTexture = null;
 
         private _texturesList: GUI.GUIGrid<ITextureRow> = null;
+        
+        private _engine: Engine = null;
+        private _scene: Scene = null;
 
         /**
         * Constructor
@@ -56,6 +64,12 @@
                 }
             }
             
+            else if (ev.eventType === EventType.GUI_EVENT) {
+                if (ev.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED) {
+                    this._engine.resize();
+                }
+            }
+            
             return false;
         }
 
@@ -74,10 +88,10 @@
             this._core.editor.editPanel.addContainer(canvasElement, canvasID);
 
             // Texture canvas
-            var engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0], true);
-            var scene = new Scene(engine);
-            scene.clearColor = new Color3(0, 0, 0);
-            var camera = new Camera("TextureEditorCamera", Vector3.Zero(), scene);
+            this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0], true);
+            this._scene = new Scene(this._engine);
+            this._scene.clearColor = new Color3(0, 0, 0);
+            var camera = new Camera("TextureEditorCamera", Vector3.Zero(), this._scene);
 
             var postProcess = new PassPostProcess("PostProcessTextureEditor", 1.0, camera);
             postProcess.onApply = (effect: Effect) => {
@@ -85,8 +99,8 @@
                     effect.setTexture("textureSampler", this._targetTexture);
             };
 
-            engine.runRenderLoop(() => {
-                scene.render();
+            this._engine.runRenderLoop(() => {
+                this._scene.render();
             });
 
             // Textures list
@@ -104,6 +118,9 @@
                 if (selected.length === 0)
                     return;
 
+                if (this._currentRenderTarget)
+                    this._restorRenderTarget();
+                
                 var selectedTexture = this._core.currentScene.textures[selected[0]];
 
                 if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
@@ -114,18 +131,26 @@
                 if (this._targetTexture)
                     this._targetTexture.dispose();
 
+                // Guess texture
                 if ((<any>selectedTexture)._buffer) {
                     serializationObject.base64String = (<any>selectedTexture)._buffer;
                 }
                 else if (FilesInput.FilesTextures[selectedTexture.name]) {
                     serializationObject.name = (<Texture>selectedTexture).url;
                 }
-                else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                else if (selectedTexture.isCube) {
                     return;
                 }
-
-                this._targetTexture = Texture.Parse(serializationObject, scene, "");
-
+                
+                // If render target, configure canvas. Else, set target texture 
+                if (selectedTexture.isRenderTarget) {
+                    this._currentRenderTarget = <RenderTargetTexture>selectedTexture;
+                    this._configureRenderTarget();
+                }
+                else {
+                    this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
+                }
+                
                 if (this.object) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
@@ -150,11 +175,47 @@
             this._core.editor.editPanel.onClose = () => {
                 this._texturesList.destroy();
 
-                scene.dispose();
-                engine.dispose();
+                this._scene.dispose();
+                this._engine.dispose();
                 
                 this._core.removeEventReceiver(this);
             };
+        }
+        
+        // Configures a render target to be rendered
+        private _configureRenderTarget(): void {
+            var width = this._currentRenderTarget.getSize().width;
+            var height = this._currentRenderTarget.getSize().height;
+            var imgData = new ImageData(width, height);
+            
+            this._currentOnAfterRender = this._currentRenderTarget.onAfterRender;
+            this._dynamicTexture = new DynamicTexture("RenderTargetTexture", { width: width, height: height }, this._scene, false);
+            
+            this._currentRenderTarget.onAfterRender = (faceIndex: number) => {
+                
+                if (this._currentOnAfterRender)
+                    this._currentOnAfterRender(faceIndex);
+                
+                this._currentPixels = this._core.engine.readPixels(0, 0, width, height);
+                
+                for (var i = 0; i < this._currentPixels.length; i++)
+                    imgData.data[i] = this._currentPixels[i];
+                
+                this._dynamicTexture.getContext().putImageData(imgData, 0, 0);
+                this._dynamicTexture.update(false);
+            };
+            
+            this._targetTexture = this._dynamicTexture;
+        }
+        
+        // Restores the render target
+        private _restorRenderTarget(): void {
+            this._currentRenderTarget.onAfterRender = this._currentOnAfterRender;
+            
+            this._dynamicTexture.dispose();
+            this._dynamicTexture = null;
+            this._currentPixels = null;
+            this._currentRenderTarget = null;
         }
         
         // Fills the texture list

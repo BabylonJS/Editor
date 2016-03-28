@@ -11,7 +11,12 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._currentRenderTarget = null;
+                this._currentPixels = null;
+                this._dynamicTexture = null;
                 this._texturesList = null;
+                this._engine = null;
+                this._scene = null;
                 // Initialize
                 this._core = core;
                 this._core.eventReceivers.push(this);
@@ -37,6 +42,11 @@ var BABYLON;
                         this._fillTextureList();
                     }
                 }
+                else if (ev.eventType === EDITOR.EventType.GUI_EVENT) {
+                    if (ev.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                        this._engine.resize();
+                    }
+                }
                 return false;
             };
             // Creates the UI
@@ -51,17 +61,17 @@ var BABYLON;
                 this._core.editor.editPanel.addContainer(texturesListElement, texturesListID);
                 this._core.editor.editPanel.addContainer(canvasElement, canvasID);
                 // Texture canvas
-                var engine = new BABYLON.Engine($("#" + canvasID)[0], true);
-                var scene = new BABYLON.Scene(engine);
-                scene.clearColor = new BABYLON.Color3(0, 0, 0);
-                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), scene);
+                this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
+                this._scene = new BABYLON.Scene(this._engine);
+                this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
+                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), this._scene);
                 var postProcess = new BABYLON.PassPostProcess("PostProcessTextureEditor", 1.0, camera);
                 postProcess.onApply = function (effect) {
                     if (_this._targetTexture)
                         effect.setTexture("textureSampler", _this._targetTexture);
                 };
-                engine.runRenderLoop(function () {
-                    scene.render();
+                this._engine.runRenderLoop(function () {
+                    _this._scene.render();
                 });
                 // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
@@ -75,22 +85,32 @@ var BABYLON;
                 this._texturesList.onClick = function (selected) {
                     if (selected.length === 0)
                         return;
+                    if (_this._currentRenderTarget)
+                        _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
                     if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                         return;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
+                    // Guess texture
                     if (selectedTexture._buffer) {
                         serializationObject.base64String = selectedTexture._buffer;
                     }
                     else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
                         serializationObject.name = selectedTexture.url;
                     }
-                    else if (selectedTexture.isCube || selectedTexture.isRenderTarget) {
+                    else if (selectedTexture.isCube) {
                         return;
                     }
-                    _this._targetTexture = BABYLON.Texture.Parse(serializationObject, scene, "");
+                    // If render target, configure canvas. Else, set target texture 
+                    if (selectedTexture.isRenderTarget) {
+                        _this._currentRenderTarget = selectedTexture;
+                        _this._configureRenderTarget();
+                    }
+                    else {
+                        _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
+                    }
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
@@ -110,10 +130,37 @@ var BABYLON;
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
-                    scene.dispose();
-                    engine.dispose();
+                    _this._scene.dispose();
+                    _this._engine.dispose();
                     _this._core.removeEventReceiver(_this);
                 };
+            };
+            // Configures a render target to be rendered
+            GUITextureEditor.prototype._configureRenderTarget = function () {
+                var _this = this;
+                var width = this._currentRenderTarget.getSize().width;
+                var height = this._currentRenderTarget.getSize().height;
+                var imgData = new ImageData(width, height);
+                this._currentOnAfterRender = this._currentRenderTarget.onAfterRender;
+                this._dynamicTexture = new BABYLON.DynamicTexture("RenderTargetTexture", { width: width, height: height }, this._scene, false);
+                this._currentRenderTarget.onAfterRender = function (faceIndex) {
+                    if (_this._currentOnAfterRender)
+                        _this._currentOnAfterRender(faceIndex);
+                    _this._currentPixels = _this._core.engine.readPixels(0, 0, width, height);
+                    for (var i = 0; i < _this._currentPixels.length; i++)
+                        imgData.data[i] = _this._currentPixels[i];
+                    _this._dynamicTexture.getContext().putImageData(imgData, 0, 0);
+                    _this._dynamicTexture.update(false);
+                };
+                this._targetTexture = this._dynamicTexture;
+            };
+            // Restores the render target
+            GUITextureEditor.prototype._restorRenderTarget = function () {
+                this._currentRenderTarget.onAfterRender = this._currentOnAfterRender;
+                this._dynamicTexture.dispose();
+                this._dynamicTexture = null;
+                this._currentPixels = null;
+                this._currentRenderTarget = null;
             };
             // Fills the texture list
             GUITextureEditor.prototype._fillTextureList = function () {

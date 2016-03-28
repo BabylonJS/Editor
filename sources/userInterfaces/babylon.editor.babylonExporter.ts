@@ -42,6 +42,9 @@
 
                 return true;
             }
+            else if (event.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED) {
+                this._editor.resize(true);
+            }
 
             return false;
         }

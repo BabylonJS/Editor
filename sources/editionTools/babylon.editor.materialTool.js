@@ -111,6 +111,7 @@ var BABYLON;
             // Configure materials library
             MaterialTool.prototype._configureMaterialsLibrary = function (folder) {
                 var items = [
+                    "None",
                     "StandardMaterial",
                     "PBRMaterial",
                     "FireMaterial",
@@ -126,7 +127,7 @@ var BABYLON;
                     "SimpleMaterial"
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);
-                this._libraryDummyProperty = ctr === "" ? items[0] : ctr;
+                this._libraryDummyProperty = ctr === "undefined" ? items[0] : ctr;
                 folder.add(this, "_libraryDummyProperty", items).name("Material");
                 folder.add(this, "_applyMaterial").name("Apply Material");
             };
@@ -137,7 +138,10 @@ var BABYLON;
                 if (material instanceof BABYLON.FurMaterial) {
                     var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                     material.furTexture = furTexture;
-                    BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                    var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);
+                    for (var i = 0; i < meshes.length; i++) {
+                        meshes[i].material;
+                    }
                 }
                 this._editionTool.updateEditionTool();
             };

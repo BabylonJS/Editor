@@ -162,6 +162,7 @@
             this.addTool(new TerrainMaterialTool(this));
             this.addTool(new TriPlanarMaterialTool(this));
             this.addTool(new GridMaterialTool(this));
+            this.addTool(new FireMaterialTool(this));
 
             for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
                 this.addTool(new PluginManager.EditionToolPlugins[i](this));

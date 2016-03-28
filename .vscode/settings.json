@@ -8,5 +8,7 @@
         "**.config": true,
         "**.csproj": true,
         "**.sln": true
-	}
+	},
+    
+    "editor.quickSuggestionsDelay": 0
 }
