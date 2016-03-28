@@ -394,6 +394,17 @@
         * The columns size
         */
         size: string;
+        
+        /**
+        * If the column is editable
+        */
+        editable?: {
+            type: string;
+        }
+        /**
+        * The column style
+        */
+        style?: string;
     }
 
     interface IGridElement<T> extends IElement {
@@ -441,6 +452,10 @@
         * Records of the grid
         */
         records: T[];
+        /**
+        * Returns the changed elements (if editable)
+        */
+        getChanges(): T[];
     }
 
     /**
@@ -515,4 +530,8 @@ declare var w2utils: {
     lock(box: HTMLElement | JQuery, options: { msg: string; spinner: boolean; opacity: number; });
 
     unlock(box: HTMLElement | JQuery): void;
+}
+
+declare var w2ui: {
+    
 }

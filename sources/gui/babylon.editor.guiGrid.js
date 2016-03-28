@@ -24,7 +24,9 @@ var BABYLON;
                     _super.call(this, name, core);
                     // Public members
                     this.columns = [];
-                    this.header = "New Grid";
+                    this.records = [];
+                    this.header = "";
+                    this.fixedBody = true;
                     this.showToolbar = true;
                     this.showFooter = false;
                     this.showDelete = false;
@@ -32,7 +34,9 @@ var BABYLON;
                     this.showEdit = false;
                     this.showOptions = true;
                     this.showSearch = true;
+                    this.showColumnHeaders = true;
                     this.menus = [];
+                    this.hasSubGrid = false;
                 }
                 // Adds a menu
                 GUIGrid.prototype.addMenu = function (id, text, icon) {
@@ -43,10 +47,10 @@ var BABYLON;
                     });
                 };
                 // Creates a column
-                GUIGrid.prototype.createColumn = function (id, text, size) {
+                GUIGrid.prototype.createColumn = function (id, text, size, style) {
                     if (!size)
                         size = "50%";
-                    this.columns.push({ field: id, caption: text, size: size });
+                    this.columns.push({ field: id, caption: text, size: size, style: style });
                 };
                 // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
@@ -111,6 +115,18 @@ var BABYLON;
                 GUIGrid.prototype.modifyRow = function (indice, data) {
                     this.element.set(indice, data);
                 };
+                // Returns the changed rows
+                GUIGrid.prototype.getChanges = function (recid) {
+                    var changes = this.element.getChanges();
+                    if (recid) {
+                        for (var i = 0; i < changes.length; i++) {
+                            if (changes[i].recid === recid)
+                                return [changes[i]];
+                        }
+                        return [];
+                    }
+                    return changes;
+                };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
                     var _this = this;
@@ -124,12 +140,14 @@ var BABYLON;
                             toolbarEdit: this.showEdit,
                             toolbarSearch: this.showSearch,
                             toolbarColumns: this.showOptions,
-                            header: !(this.header === "")
+                            header: !(this.header === ""),
+                            columnHeaders: this.showColumnHeaders
                         },
                         menu: this.menus,
                         header: this.header,
+                        fixedBody: this.fixedBody,
                         columns: this.columns,
-                        records: [],
+                        records: this.records,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();
@@ -186,6 +204,32 @@ var BABYLON;
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_RELOADED);
+                            _this.core.sendEvent(ev);
+                        },
+                        onExpand: !this.hasSubGrid ? undefined : function (event) {
+                            if (!_this.onExpand)
+                                return;
+                            var id = "subgrid-" + event.recid + event.target;
+                            if (w2ui.hasOwnProperty(id))
+                                w2ui[id].destroy();
+                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
+                            var subGrid = _this.onExpand(id);
+                            subGrid.fixedBody = true;
+                            subGrid.showToolbar = false;
+                            subGrid.buildElement(event.box_id);
+                            setTimeout(function () {
+                                w2ui[id].resize();
+                            }, 300);
+                        },
+                        onChange: function (event) {
+                            if (!event.recid)
+                                return;
+                            var data = { recid: event.recid, value: event.value_new };
+                            if (_this.onEditField)
+                                _this.onEditField(data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
                             _this.core.sendEvent(ev);
                         }
                     });

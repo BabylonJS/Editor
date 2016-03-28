@@ -2,6 +2,11 @@
     interface ITextureRow extends GUI.IGridRowData {
         name: string;
     }
+    
+    interface ISubTextureRow extends GUI.IGridRowData {
+        name: string;
+        value: string;
+    }
 
     export class GUITextureEditor implements IEventReceiver {
         // Public members
@@ -13,6 +18,7 @@
 
         private _targetObject: Object;
         private _targetTexture: BaseTexture = null;
+        private _originalTexture: BaseTexture = null;
         private _objectName: string;
         
         private _currentRenderTarget: RenderTargetTexture = null;
@@ -110,6 +116,7 @@
             this._texturesList.showSearch = false;
             this._texturesList.showOptions = false;
             this._texturesList.showAdd = true;
+            this._texturesList.hasSubGrid = true;
             this._texturesList.buildElement(texturesListID);
             
             this._fillTextureList();
@@ -130,6 +137,8 @@
 
                 if (this._targetTexture)
                     this._targetTexture.dispose();
+                    
+                this._originalTexture = null;
 
                 // Guess texture
                 if ((<any>selectedTexture)._buffer) {
@@ -151,6 +160,8 @@
                     this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                 }
                 
+                this._originalTexture = selectedTexture;
+                
                 if (this.object) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
@@ -169,6 +180,45 @@
             
             this._texturesList.onReload = () => {
                 this._fillTextureList();
+            };
+            
+            this._texturesList.onExpand = (id: string) => {
+                var subGrid = new GUI.GUIGrid<ISubTextureRow>(id, this._core);
+                subGrid.showColumnHeaders = false;
+                
+                subGrid.columns = [
+                   { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
+                   { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
+                ];
+                
+                subGrid.records = <any>[
+                    { name: "width", value: this._targetTexture.getSize().width, recid: 0 },
+                    { name: "height", value: this._targetTexture.getSize().height, recid: 1 },
+                    
+                    { name: "name", value: this._targetTexture.name, recid: 2 },
+                    { name: "getAlphaFromRGB", value: this._targetTexture.getAlphaFromRGB, recid: 3 },
+                    { name: "hasAlpha", value: this._targetTexture.hasAlpha, recid: 4 }
+                ];
+                
+                subGrid.onEditField = (data) => {
+                    var record = subGrid.records[data.recid];
+                    var value = this._originalTexture[record.name];
+                    
+                    if (value === undefined)
+                        return;
+                        
+                    if (typeof value === "boolean") {
+                        this._originalTexture[record.name] = data.value === "true";
+                    }
+                    else if (typeof value === "number") {
+                        this._originalTexture[record.name] = parseFloat(data.value);
+                    }
+                    else { // String
+                        this._originalTexture[record.name] = data.value;
+                    }
+                };
+                
+                return subGrid;
             };
 
             // Finish
@@ -223,10 +273,19 @@
             this._texturesList.clear();
             
             for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                this._texturesList.addRow({
+                var row: ITextureRow = {
                     name: this._core.currentScene.textures[i].name,
                     recid: i
-                });
+                };
+                
+                if (this._core.currentScene.textures[i].isCube) {
+                    row.style = "background-color: #FBFEC0";
+                }
+                else if (this._core.currentScene.textures[i].isRenderTarget) {
+                    row.style = "background-color: #C2F5B4";
+                }
+                
+                this._texturesList.addRow(row);
             }
         }
 

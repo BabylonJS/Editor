@@ -11,6 +11,7 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._originalTexture = null;
                 this._currentRenderTarget = null;
                 this._currentPixels = null;
                 this._dynamicTexture = null;
@@ -80,6 +81,7 @@ var BABYLON;
                 this._texturesList.showSearch = false;
                 this._texturesList.showOptions = false;
                 this._texturesList.showAdd = true;
+                this._texturesList.hasSubGrid = true;
                 this._texturesList.buildElement(texturesListID);
                 this._fillTextureList();
                 this._texturesList.onClick = function (selected) {
@@ -93,6 +95,7 @@ var BABYLON;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
+                    _this._originalTexture = null;
                     // Guess texture
                     if (selectedTexture._buffer) {
                         serializationObject.base64String = selectedTexture._buffer;
@@ -111,6 +114,7 @@ var BABYLON;
                     else {
                         _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                     }
+                    _this._originalTexture = selectedTexture;
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
@@ -126,6 +130,37 @@ var BABYLON;
                 };
                 this._texturesList.onReload = function () {
                     _this._fillTextureList();
+                };
+                this._texturesList.onExpand = function (id) {
+                    var subGrid = new EDITOR.GUI.GUIGrid(id, _this._core);
+                    subGrid.showColumnHeaders = false;
+                    subGrid.columns = [
+                        { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
+                        { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
+                    ];
+                    subGrid.records = [
+                        { name: "width", value: _this._targetTexture.getSize().width, recid: 0 },
+                        { name: "height", value: _this._targetTexture.getSize().height, recid: 1 },
+                        { name: "name", value: _this._targetTexture.name, recid: 2 },
+                        { name: "getAlphaFromRGB", value: _this._targetTexture.getAlphaFromRGB, recid: 3 },
+                        { name: "hasAlpha", value: _this._targetTexture.hasAlpha, recid: 4 }
+                    ];
+                    subGrid.onEditField = function (data) {
+                        var record = subGrid.records[data.recid];
+                        var value = _this._originalTexture[record.name];
+                        if (value === undefined)
+                            return;
+                        if (typeof value === "boolean") {
+                            _this._originalTexture[record.name] = data.value === "true";
+                        }
+                        else if (typeof value === "number") {
+                            _this._originalTexture[record.name] = parseFloat(data.value);
+                        }
+                        else {
+                            _this._originalTexture[record.name] = data.value;
+                        }
+                    };
+                    return subGrid;
                 };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
@@ -166,10 +201,17 @@ var BABYLON;
             GUITextureEditor.prototype._fillTextureList = function () {
                 this._texturesList.clear();
                 for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    this._texturesList.addRow({
+                    var row = {
                         name: this._core.currentScene.textures[i].name,
                         recid: i
-                    });
+                    };
+                    if (this._core.currentScene.textures[i].isCube) {
+                        row.style = "background-color: #FBFEC0";
+                    }
+                    else if (this._core.currentScene.textures[i].isRenderTarget) {
+                        row.style = "background-color: #C2F5B4";
+                    }
+                    this._texturesList.addRow(row);
                 }
             };
             // On readed texture file callback

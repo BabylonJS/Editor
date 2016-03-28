@@ -658,7 +658,9 @@ var BABYLON;
                     _super.call(this, name, core);
                     // Public members
                     this.columns = [];
-                    this.header = "New Grid";
+                    this.records = [];
+                    this.header = "";
+                    this.fixedBody = true;
                     this.showToolbar = true;
                     this.showFooter = false;
                     this.showDelete = false;
@@ -666,7 +668,9 @@ var BABYLON;
                     this.showEdit = false;
                     this.showOptions = true;
                     this.showSearch = true;
+                    this.showColumnHeaders = true;
                     this.menus = [];
+                    this.hasSubGrid = false;
                 }
                 // Adds a menu
                 GUIGrid.prototype.addMenu = function (id, text, icon) {
@@ -677,10 +681,10 @@ var BABYLON;
                     });
                 };
                 // Creates a column
-                GUIGrid.prototype.createColumn = function (id, text, size) {
+                GUIGrid.prototype.createColumn = function (id, text, size, style) {
                     if (!size)
                         size = "50%";
-                    this.columns.push({ field: id, caption: text, size: size });
+                    this.columns.push({ field: id, caption: text, size: size, style: style });
                 };
                 // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
@@ -745,6 +749,18 @@ var BABYLON;
                 GUIGrid.prototype.modifyRow = function (indice, data) {
                     this.element.set(indice, data);
                 };
+                // Returns the changed rows
+                GUIGrid.prototype.getChanges = function (recid) {
+                    var changes = this.element.getChanges();
+                    if (recid) {
+                        for (var i = 0; i < changes.length; i++) {
+                            if (changes[i].recid === recid)
+                                return [changes[i]];
+                        }
+                        return [];
+                    }
+                    return changes;
+                };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
                     var _this = this;
@@ -758,12 +774,14 @@ var BABYLON;
                             toolbarEdit: this.showEdit,
                             toolbarSearch: this.showSearch,
                             toolbarColumns: this.showOptions,
-                            header: !(this.header === "")
+                            header: !(this.header === ""),
+                            columnHeaders: this.showColumnHeaders
                         },
                         menu: this.menus,
                         header: this.header,
+                        fixedBody: this.fixedBody,
                         columns: this.columns,
-                        records: [],
+                        records: this.records,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();
@@ -820,6 +838,32 @@ var BABYLON;
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_RELOADED);
+                            _this.core.sendEvent(ev);
+                        },
+                        onExpand: !this.hasSubGrid ? undefined : function (event) {
+                            if (!_this.onExpand)
+                                return;
+                            var id = "subgrid-" + event.recid + event.target;
+                            if (w2ui.hasOwnProperty(id))
+                                w2ui[id].destroy();
+                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
+                            var subGrid = _this.onExpand(id);
+                            subGrid.fixedBody = true;
+                            subGrid.showToolbar = false;
+                            subGrid.buildElement(event.box_id);
+                            setTimeout(function () {
+                                w2ui[id].resize();
+                            }, 300);
+                        },
+                        onChange: function (event) {
+                            if (!event.recid)
+                                return;
+                            var data = { recid: event.recid, value: event.value_new };
+                            if (_this.onEditField)
+                                _this.onEditField(data);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
                             _this.core.sendEvent(ev);
                         }
                     });
@@ -9121,6 +9165,7 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._originalTexture = null;
                 this._currentRenderTarget = null;
                 this._currentPixels = null;
                 this._dynamicTexture = null;
@@ -9190,6 +9235,7 @@ var BABYLON;
                 this._texturesList.showSearch = false;
                 this._texturesList.showOptions = false;
                 this._texturesList.showAdd = true;
+                this._texturesList.hasSubGrid = true;
                 this._texturesList.buildElement(texturesListID);
                 this._fillTextureList();
                 this._texturesList.onClick = function (selected) {
@@ -9203,6 +9249,7 @@ var BABYLON;
                     var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
+                    _this._originalTexture = null;
                     // Guess texture
                     if (selectedTexture._buffer) {
                         serializationObject.base64String = selectedTexture._buffer;
@@ -9221,6 +9268,7 @@ var BABYLON;
                     else {
                         _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                     }
+                    _this._originalTexture = selectedTexture;
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
@@ -9236,6 +9284,37 @@ var BABYLON;
                 };
                 this._texturesList.onReload = function () {
                     _this._fillTextureList();
+                };
+                this._texturesList.onExpand = function (id) {
+                    var subGrid = new EDITOR.GUI.GUIGrid(id, _this._core);
+                    subGrid.showColumnHeaders = false;
+                    subGrid.columns = [
+                        { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
+                        { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
+                    ];
+                    subGrid.records = [
+                        { name: "width", value: _this._targetTexture.getSize().width, recid: 0 },
+                        { name: "height", value: _this._targetTexture.getSize().height, recid: 1 },
+                        { name: "name", value: _this._targetTexture.name, recid: 2 },
+                        { name: "getAlphaFromRGB", value: _this._targetTexture.getAlphaFromRGB, recid: 3 },
+                        { name: "hasAlpha", value: _this._targetTexture.hasAlpha, recid: 4 }
+                    ];
+                    subGrid.onEditField = function (data) {
+                        var record = subGrid.records[data.recid];
+                        var value = _this._originalTexture[record.name];
+                        if (value === undefined)
+                            return;
+                        if (typeof value === "boolean") {
+                            _this._originalTexture[record.name] = data.value === "true";
+                        }
+                        else if (typeof value === "number") {
+                            _this._originalTexture[record.name] = parseFloat(data.value);
+                        }
+                        else {
+                            _this._originalTexture[record.name] = data.value;
+                        }
+                    };
+                    return subGrid;
                 };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
@@ -9276,10 +9355,17 @@ var BABYLON;
             GUITextureEditor.prototype._fillTextureList = function () {
                 this._texturesList.clear();
                 for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    this._texturesList.addRow({
+                    var row = {
                         name: this._core.currentScene.textures[i].name,
                         recid: i
-                    });
+                    };
+                    if (this._core.currentScene.textures[i].isCube) {
+                        row.style = "background-color: #FBFEC0";
+                    }
+                    else if (this._core.currentScene.textures[i].isRenderTarget) {
+                        row.style = "background-color: #C2F5B4";
+                    }
+                    this._texturesList.addRow(row);
                 }
             };
             // On readed texture file callback
@@ -9368,7 +9454,7 @@ var BABYLON;
         var GeometriesMenuPlugin = (function () {
             /**
             * Constructor
-            * @param toolbar: the main toolbar instance
+            * @param mainToolbar: the main toolbar instance
             */
             function GeometriesMenuPlugin(mainToolbar) {
                 // Public members
@@ -9381,7 +9467,7 @@ var BABYLON;
                 var menu = toolbar.createMenu("menu", this.menuID, "Geometry", "icon-bounding-box");
                 // Create items
                 toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
-                toolbar.addBreak(menu);
+                toolbar.addBreak(menu); // Or not
                 toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
                 // Etc.
             }
@@ -9390,7 +9476,7 @@ var BABYLON;
             * Returns true if a menu of the plugin was selected, false if no one selected
             */
             GeometriesMenuPlugin.prototype.onMenuItemSelected = function (selected) {
-                // 
+                // Switch selected menu id
                 switch (selected) {
                     case this._createCubeID:
                         EDITOR.SceneFactory.AddBoxMesh(this._core);

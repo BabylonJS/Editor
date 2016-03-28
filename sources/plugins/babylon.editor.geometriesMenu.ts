@@ -11,7 +11,7 @@
 
         /**
         * Constructor
-        * @param toolbar: the main toolbar instance
+        * @param mainToolbar: the main toolbar instance
         */
         constructor(mainToolbar: MainToolbar) {
             var toolbar = mainToolbar.toolbar;
@@ -22,7 +22,7 @@
             
             // Create items
             toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
-            toolbar.addBreak(menu);
+            toolbar.addBreak(menu); // Or not
             toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
             // Etc.
         }
@@ -32,7 +32,7 @@
         * Returns true if a menu of the plugin was selected, false if no one selected
         */
         public onMenuItemSelected(selected: string): void {
-            // 
+            // Switch selected menu id
             switch (selected) {
                 case this._createCubeID:
                     SceneFactory.AddBoxMesh(this._core);

@@ -3,11 +3,13 @@
     var gridButtons = w2obj.grid.prototype.buttons;
     gridButtons["add"].caption = w2utils.lang("");
     gridButtons["delete"].caption = w2utils.lang("");
-
-    export class GUIGrid<T> extends GUIElement<W2UI.IGridElement<T>> {
+    
+    export class GUIGrid<T extends IGridRowData> extends GUIElement<W2UI.IGridElement<T>> {
         // Public members
-        public columns: Array<W2UI.IGridColumnData> = [];
-        public header: string = "New Grid";
+        public columns: W2UI.IGridColumnData[] = [];
+        public records: T[] = [];
+        public header: string = "";
+        public fixedBody: boolean = true;
         public showToolbar: boolean = true;
         public showFooter: boolean = false;
         public showDelete: boolean = false;
@@ -15,6 +17,7 @@
         public showEdit: boolean = false;
         public showOptions: boolean = true;
         public showSearch: boolean = true;
+        public showColumnHeaders: boolean = true;
         public menus: W2UI.IGridMenu[] = [];
 
         public onClick: (selected: number[]) => void;
@@ -23,9 +26,14 @@
         public onAdd: () => void;
         public onEdit: (selected: number[]) => void;
         public onReload: () => void;
+        public onEditField: (data: { recid: number, value: string }) => void;
+        
+        public hasSubGrid: boolean = false;
+        public subGridHeight: number;
+        public onExpand: (id: string) => GUIGrid<IGridRowData>;
 
         // Private members
-
+        
         /**
         * Constructor
         * @param name: the form name
@@ -45,11 +53,11 @@
         }
 
         // Creates a column
-        public createColumn(id: string, text: string, size?: string): void {
+        public createColumn(id: string, text: string, size?: string, style?: string): void {
             if (!size)
                 size = "50%";
 
-            this.columns.push({ field: id, caption: text, size: size });
+            this.columns.push({ field: id, caption: text, size: size, style: style });
         }
 
         // Adds a row and refreshes the grid
@@ -129,6 +137,22 @@
         public modifyRow(indice: number, data: T): void {
             this.element.set(indice, data);
         }
+        
+        // Returns the changed rows
+        public getChanges(recid?: number): T[] {
+            var changes = this.element.getChanges();
+            
+            if (recid) {
+                for (var i = 0; i < changes.length; i++) {
+                    if (changes[i].recid === recid)
+                        return [changes[i]];
+                }
+                
+                return [];
+            }
+            
+            return changes;
+        }
 
         // Build element
         public buildElement(parent: string): void {
@@ -143,14 +167,17 @@
                     toolbarEdit: this.showEdit,
                     toolbarSearch: this.showSearch,
                     toolbarColumns: this.showOptions,
-                    header: !(this.header === "")
+                    header: !(this.header === ""),
+                    columnHeaders: this.showColumnHeaders
                 },
 
                 menu: this.menus,
 
                 header: this.header,
+                fixedBody: this.fixedBody,
+                
                 columns: this.columns,
-                records: [],
+                records: this.records,
 
                 onClick: (event: any) => {
                     event.onComplete = () => {
@@ -222,6 +249,42 @@
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_RELOADED);
+                    this.core.sendEvent(ev);
+                },
+                
+                onExpand: !this.hasSubGrid ? undefined : (event) => {
+                    if (!this.onExpand)
+                        return;
+                        
+                    var id = "subgrid-" + event.recid + event.target;
+                    if (w2ui.hasOwnProperty(id))
+                        w2ui[id].destroy();
+                    
+                    $('#'+ event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (this.subGridHeight || 105) + "px" }, 100);
+                    
+                    var subGrid = this.onExpand(id);
+                    subGrid.fixedBody = true;
+                    subGrid.showToolbar = false;
+                    
+                    subGrid.buildElement(event.box_id);
+                    
+                    setTimeout(() => {
+                        w2ui[id].resize();
+                    }, 300);
+                },
+                
+                onChange: (event) => {
+                    if (!event.recid)
+                        return;
+                        
+                    var data = { recid: event.recid, value: event.value_new };
+                    
+                    if (this.onEditField)
+                        this.onEditField(data);
+                    
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_EDITED, data);
                     this.core.sendEvent(ev);
                 }
             });

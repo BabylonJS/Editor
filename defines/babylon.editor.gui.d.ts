@@ -384,6 +384,11 @@
         * The id of the row (line number)
         */
         recid?: number;
+        
+        /**
+        * The row style
+        */
+        style?: string;
     }
 
     interface IGridColumnData extends W2UI.IGridColumnData
