@@ -24,14 +24,15 @@
         GRID_ROW_REMOVED = 10,
         GRID_ROW_ADDED = 11,
         GRID_ROW_EDITED = 12,
-        GRID_MENU_SELECTED = 13,
-        GRID_RELOADED = 14,
+        GRID_ROW_CHANGED = 13,
+        GRID_MENU_SELECTED = 14,
+        GRID_RELOADED = 15,
 
-        WINDOW_BUTTON_CLICKED = 15,
+        WINDOW_BUTTON_CLICKED = 16,
 
-        OBJECT_PICKED = 16,
+        OBJECT_PICKED = 17,
 
-        UNKNOWN = 17
+        UNKNOWN = 18
     }
 
     export enum SceneEventType {

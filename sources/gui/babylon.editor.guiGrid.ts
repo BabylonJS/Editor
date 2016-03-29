@@ -30,7 +30,7 @@
         
         public hasSubGrid: boolean = false;
         public subGridHeight: number;
-        public onExpand: (id: string) => GUIGrid<IGridRowData>;
+        public onExpand: (id: string, recid: number) => GUIGrid<IGridRowData>;
 
         // Private members
         
@@ -68,8 +68,14 @@
 
         // Adds a record without refreshing the grid
         public addRecord(data: T): void {
-            (<any>data).recid = this.element.records.length;
-            this.element.records.push(data);
+            if (!this.element) {
+                data.recid = this.records.length;
+                this.records.push(data);
+            }
+            else {   
+                data.recid = this.element.records.length;
+                this.element.records.push(data);
+            }
         }
 
         // Removes a row and refreshes the list
@@ -152,6 +158,12 @@
             }
             
             return changes;
+        }
+        
+        // Scroll into view, giving the indice of the row
+        public scrollIntoView(indice: number): void {
+            if (indice >= 0 && indice < this.element.records.length)
+                this.element.scrollIntoView(indice);
         }
 
         // Build element
@@ -260,13 +272,16 @@
                     if (w2ui.hasOwnProperty(id))
                         w2ui[id].destroy();
                     
-                    $('#'+ event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (this.subGridHeight || 105) + "px" }, 100);
+                    var subGrid = this.onExpand(id, parseInt(event.recid));
+                    if (!subGrid)
+                        return;
                     
-                    var subGrid = this.onExpand(id);
                     subGrid.fixedBody = true;
                     subGrid.showToolbar = false;
                     
                     subGrid.buildElement(event.box_id);
+                    
+                    $('#'+ event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (this.subGridHeight || 105) + "px" }, 100);
                     
                     setTimeout(() => {
                         w2ui[id].resize();
@@ -276,7 +291,7 @@
                 onChange: (event) => {
                     if (!event.recid)
                         return;
-                        
+                    
                     var data = { recid: event.recid, value: event.value_new };
                     
                     if (this.onEditField)
@@ -284,7 +299,7 @@
                     
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
-                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_EDITED, data);
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_CHANGED, data);
                     this.core.sendEvent(ev);
                 }
             });

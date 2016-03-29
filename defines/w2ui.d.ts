@@ -456,6 +456,10 @@
         * Returns the changed elements (if editable)
         */
         getChanges(): T[];
+        /**
+        * Scroll into view, giving the indice of the row
+        */
+        scrollIntoView(indice: number): void;
     }
 
     /**

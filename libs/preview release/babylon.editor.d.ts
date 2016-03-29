@@ -827,7 +827,7 @@ declare module BABYLON.EDITOR.GUI {
         }) => void;
         hasSubGrid: boolean;
         subGridHeight: number;
-        onExpand: (id: string) => GUIGrid<IGridRowData>;
+        onExpand: (id: string, recid: number) => GUIGrid<IGridRowData>;
         /**
         * Constructor
         * @param name: the form name
@@ -850,6 +850,7 @@ declare module BABYLON.EDITOR.GUI {
         getRow(indice: number): T;
         modifyRow(indice: number, data: T): void;
         getChanges(recid?: number): T[];
+        scrollIntoView(indice: number): void;
         buildElement(parent: string): void;
     }
 }
@@ -1002,11 +1003,12 @@ declare module BABYLON.EDITOR {
         GRID_ROW_REMOVED = 10,
         GRID_ROW_ADDED = 11,
         GRID_ROW_EDITED = 12,
-        GRID_MENU_SELECTED = 13,
-        GRID_RELOADED = 14,
-        WINDOW_BUTTON_CLICKED = 15,
-        OBJECT_PICKED = 16,
-        UNKNOWN = 17,
+        GRID_ROW_CHANGED = 13,
+        GRID_MENU_SELECTED = 14,
+        GRID_RELOADED = 15,
+        WINDOW_BUTTON_CLICKED = 16,
+        OBJECT_PICKED = 17,
+        UNKNOWN = 18,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,
@@ -1098,36 +1100,14 @@ declare module BABYLON.EDITOR {
         * Returns the constructor name of an object
         */
         static GetConstructorName(obj: any): string;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
         /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
+        * Converts a boolean to integer
         */
-        constructor(mainToolbar: MainToolbar);
+        static BooleanToInt(value: boolean): number;
         /**
-        * Called when a menu item is selected by the user
-        * Returns true if a menu of the plugin was selected, false if no one selected
+        * Converts a number to boolean
         */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
+        static IntToBoolean(value: number): boolean;
     }
 }
 
@@ -1192,6 +1172,36 @@ declare module BABYLON.EDITOR {
         static ResetConfiguredObjects(): void;
         static SwitchActionManager(): void;
         static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * Returns true if a menu of the plugin was selected, false if no one selected
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
     }
 }
 
@@ -1402,7 +1412,6 @@ declare module BABYLON.EDITOR {
         private _core;
         private _targetObject;
         private _targetTexture;
-        private _originalTexture;
         private _objectName;
         private _currentRenderTarget;
         private _currentPixels;

@@ -112,5 +112,19 @@
             
             return ctrName;
         }
+        
+        /**
+        * Converts a boolean to integer
+        */
+        public static BooleanToInt(value: boolean): number {
+            return (value === true) ? 1.0 : 0.0;
+        }
+        
+        /**
+        * Converts a number to boolean
+        */
+        public static IntToBoolean(value: number): boolean {
+            return !(value === 0.0);
+        }
     }
 }

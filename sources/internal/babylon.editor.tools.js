@@ -94,6 +94,18 @@ var BABYLON;
                 }
                 return ctrName;
             };
+            /**
+            * Converts a boolean to integer
+            */
+            Tools.BooleanToInt = function (value) {
+                return (value === true) ? 1.0 : 0.0;
+            };
+            /**
+            * Converts a number to boolean
+            */
+            Tools.IntToBoolean = function (value) {
+                return !(value === 0.0);
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

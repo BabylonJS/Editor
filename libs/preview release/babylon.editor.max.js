@@ -30,11 +30,12 @@ var BABYLON;
             GUIEventType[GUIEventType["GRID_ROW_REMOVED"] = 10] = "GRID_ROW_REMOVED";
             GUIEventType[GUIEventType["GRID_ROW_ADDED"] = 11] = "GRID_ROW_ADDED";
             GUIEventType[GUIEventType["GRID_ROW_EDITED"] = 12] = "GRID_ROW_EDITED";
-            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 13] = "GRID_MENU_SELECTED";
-            GUIEventType[GUIEventType["GRID_RELOADED"] = 14] = "GRID_RELOADED";
-            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 15] = "WINDOW_BUTTON_CLICKED";
-            GUIEventType[GUIEventType["OBJECT_PICKED"] = 16] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 17] = "UNKNOWN";
+            GUIEventType[GUIEventType["GRID_ROW_CHANGED"] = 13] = "GRID_ROW_CHANGED";
+            GUIEventType[GUIEventType["GRID_MENU_SELECTED"] = 14] = "GRID_MENU_SELECTED";
+            GUIEventType[GUIEventType["GRID_RELOADED"] = 15] = "GRID_RELOADED";
+            GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 16] = "WINDOW_BUTTON_CLICKED";
+            GUIEventType[GUIEventType["OBJECT_PICKED"] = 17] = "OBJECT_PICKED";
+            GUIEventType[GUIEventType["UNKNOWN"] = 18] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -223,6 +224,18 @@ var BABYLON;
                     ctrName = typeof obj;
                 }
                 return ctrName;
+            };
+            /**
+            * Converts a boolean to integer
+            */
+            Tools.BooleanToInt = function (value) {
+                return (value === true) ? 1.0 : 0.0;
+            };
+            /**
+            * Converts a number to boolean
+            */
+            Tools.IntToBoolean = function (value) {
+                return !(value === 0.0);
             };
             return Tools;
         })();
@@ -693,8 +706,14 @@ var BABYLON;
                 };
                 // Adds a record without refreshing the grid
                 GUIGrid.prototype.addRecord = function (data) {
-                    data.recid = this.element.records.length;
-                    this.element.records.push(data);
+                    if (!this.element) {
+                        data.recid = this.records.length;
+                        this.records.push(data);
+                    }
+                    else {
+                        data.recid = this.element.records.length;
+                        this.element.records.push(data);
+                    }
                 };
                 // Removes a row and refreshes the list
                 GUIGrid.prototype.removeRow = function (recid) {
@@ -760,6 +779,11 @@ var BABYLON;
                         return [];
                     }
                     return changes;
+                };
+                // Scroll into view, giving the indice of the row
+                GUIGrid.prototype.scrollIntoView = function (indice) {
+                    if (indice >= 0 && indice < this.element.records.length)
+                        this.element.scrollIntoView(indice);
                 };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
@@ -846,11 +870,13 @@ var BABYLON;
                             var id = "subgrid-" + event.recid + event.target;
                             if (w2ui.hasOwnProperty(id))
                                 w2ui[id].destroy();
-                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
-                            var subGrid = _this.onExpand(id);
+                            var subGrid = _this.onExpand(id, parseInt(event.recid));
+                            if (!subGrid)
+                                return;
                             subGrid.fixedBody = true;
                             subGrid.showToolbar = false;
                             subGrid.buildElement(event.box_id);
+                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
                             setTimeout(function () {
                                 w2ui[id].resize();
                             }, 300);
@@ -863,7 +889,7 @@ var BABYLON;
                                 _this.onEditField(data);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, data);
                             _this.core.sendEvent(ev);
                         }
                     });
@@ -9165,7 +9191,6 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
-                this._originalTexture = null;
                 this._currentRenderTarget = null;
                 this._currentPixels = null;
                 this._dynamicTexture = null;
@@ -9246,33 +9271,37 @@ var BABYLON;
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
                     if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                         return;
-                    var serializationObject = selectedTexture.serialize();
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
-                    _this._originalTexture = null;
-                    // Guess texture
-                    if (selectedTexture._buffer) {
-                        serializationObject.base64String = selectedTexture._buffer;
-                    }
-                    else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
-                        serializationObject.name = selectedTexture.url;
-                    }
-                    else if (selectedTexture.isCube) {
-                        return;
-                    }
                     // If render target, configure canvas. Else, set target texture 
-                    if (selectedTexture.isRenderTarget) {
+                    if (selectedTexture.isRenderTarget && !selectedTexture.isCube) {
                         _this._currentRenderTarget = selectedTexture;
                         _this._configureRenderTarget();
                     }
                     else {
-                        _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
+                        var serializationObject = selectedTexture.serialize();
+                        // Guess texture
+                        if (selectedTexture._buffer) {
+                            serializationObject.base64String = selectedTexture._buffer;
+                        }
+                        else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                            serializationObject.name = selectedTexture.url;
+                        }
+                        if (!selectedTexture.isCube)
+                            _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                     }
-                    _this._originalTexture = selectedTexture;
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
                 };
+                if (this.object && this.object[this.propertyPath]) {
+                    var index = this._core.currentScene.textures.indexOf(this.object[this.propertyPath]);
+                    if (index !== -1) {
+                        this._texturesList.setSelected([index]);
+                        this._texturesList.onClick([index]);
+                        this._texturesList.scrollIntoView(index);
+                    }
+                }
                 this._texturesList.onAdd = function () {
                     var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
                     inputFiles[0].onchange = function (data) {
@@ -9285,33 +9314,38 @@ var BABYLON;
                 this._texturesList.onReload = function () {
                     _this._fillTextureList();
                 };
-                this._texturesList.onExpand = function (id) {
+                this._texturesList.onExpand = function (id, recid) {
+                    var originalTexture = _this._core.currentScene.textures[recid];
+                    if (!originalTexture)
+                        null;
                     var subGrid = new EDITOR.GUI.GUIGrid(id, _this._core);
                     subGrid.showColumnHeaders = false;
                     subGrid.columns = [
                         { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
                         { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
                     ];
-                    subGrid.records = [
-                        { name: "width", value: _this._targetTexture.getSize().width, recid: 0 },
-                        { name: "height", value: _this._targetTexture.getSize().height, recid: 1 },
-                        { name: "name", value: _this._targetTexture.name, recid: 2 },
-                        { name: "getAlphaFromRGB", value: _this._targetTexture.getAlphaFromRGB, recid: 3 },
-                        { name: "hasAlpha", value: _this._targetTexture.hasAlpha, recid: 4 }
-                    ];
+                    subGrid.addRecord({ name: "width", value: originalTexture.getSize().width });
+                    subGrid.addRecord({ name: "height", value: originalTexture.getSize().height });
+                    subGrid.addRecord({ name: "name", value: originalTexture.name });
+                    subGrid.addRecord({ name: "getAlphaFromRGB", value: EDITOR.Tools.BooleanToInt(originalTexture.getAlphaFromRGB) });
+                    subGrid.addRecord({ name: "hasAlpha", value: EDITOR.Tools.BooleanToInt(originalTexture.hasAlpha) });
+                    if (originalTexture instanceof BABYLON.Texture) {
+                        subGrid.addRecord({ name: "uScale", value: originalTexture.uScale });
+                        subGrid.addRecord({ name: "vScale", value: originalTexture.vScale });
+                    }
                     subGrid.onEditField = function (data) {
                         var record = subGrid.records[data.recid];
-                        var value = _this._originalTexture[record.name];
+                        var value = originalTexture[record.name];
                         if (value === undefined)
                             return;
                         if (typeof value === "boolean") {
-                            _this._originalTexture[record.name] = data.value === "true";
+                            originalTexture[record.name] = EDITOR.Tools.IntToBoolean(parseFloat(data.value));
                         }
                         else if (typeof value === "number") {
-                            _this._originalTexture[record.name] = parseFloat(data.value);
+                            originalTexture[record.name] = parseFloat(data.value);
                         }
                         else {
-                            _this._originalTexture[record.name] = data.value;
+                            originalTexture[record.name] = data.value;
                         }
                     };
                     return subGrid;
@@ -9365,8 +9399,9 @@ var BABYLON;
                     else if (this._core.currentScene.textures[i].isRenderTarget) {
                         row.style = "background-color: #C2F5B4";
                     }
-                    this._texturesList.addRow(row);
+                    this._texturesList.addRecord(row);
                 }
+                this._texturesList.refresh();
             };
             // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {

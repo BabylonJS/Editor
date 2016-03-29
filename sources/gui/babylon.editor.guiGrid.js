@@ -59,8 +59,14 @@ var BABYLON;
                 };
                 // Adds a record without refreshing the grid
                 GUIGrid.prototype.addRecord = function (data) {
-                    data.recid = this.element.records.length;
-                    this.element.records.push(data);
+                    if (!this.element) {
+                        data.recid = this.records.length;
+                        this.records.push(data);
+                    }
+                    else {
+                        data.recid = this.element.records.length;
+                        this.element.records.push(data);
+                    }
                 };
                 // Removes a row and refreshes the list
                 GUIGrid.prototype.removeRow = function (recid) {
@@ -126,6 +132,11 @@ var BABYLON;
                         return [];
                     }
                     return changes;
+                };
+                // Scroll into view, giving the indice of the row
+                GUIGrid.prototype.scrollIntoView = function (indice) {
+                    if (indice >= 0 && indice < this.element.records.length)
+                        this.element.scrollIntoView(indice);
                 };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
@@ -212,11 +223,13 @@ var BABYLON;
                             var id = "subgrid-" + event.recid + event.target;
                             if (w2ui.hasOwnProperty(id))
                                 w2ui[id].destroy();
-                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
-                            var subGrid = _this.onExpand(id);
+                            var subGrid = _this.onExpand(id, parseInt(event.recid));
+                            if (!subGrid)
+                                return;
                             subGrid.fixedBody = true;
                             subGrid.showToolbar = false;
                             subGrid.buildElement(event.box_id);
+                            $('#' + event.box_id).css({ margin: "0px", padding: "0px", width: "100%" }).animate({ height: (_this.subGridHeight || 105) + "px" }, 100);
                             setTimeout(function () {
                                 w2ui[id].resize();
                             }, 300);
@@ -229,7 +242,7 @@ var BABYLON;
                                 _this.onEditField(data);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_EDITED, data);
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, data);
                             _this.core.sendEvent(ev);
                         }
                     });

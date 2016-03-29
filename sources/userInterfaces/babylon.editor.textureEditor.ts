@@ -18,7 +18,6 @@
 
         private _targetObject: Object;
         private _targetTexture: BaseTexture = null;
-        private _originalTexture: BaseTexture = null;
         private _objectName: string;
         
         private _currentRenderTarget: RenderTargetTexture = null;
@@ -133,39 +132,42 @@
                 if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                     return;
 
-                var serializationObject = selectedTexture.serialize();
-
                 if (this._targetTexture)
                     this._targetTexture.dispose();
-                    
-                this._originalTexture = null;
-
-                // Guess texture
-                if ((<any>selectedTexture)._buffer) {
-                    serializationObject.base64String = (<any>selectedTexture)._buffer;
-                }
-                else if (FilesInput.FilesTextures[selectedTexture.name]) {
-                    serializationObject.name = (<Texture>selectedTexture).url;
-                }
-                else if (selectedTexture.isCube) {
-                    return;
-                }
                 
                 // If render target, configure canvas. Else, set target texture 
-                if (selectedTexture.isRenderTarget) {
+                if (selectedTexture.isRenderTarget && !selectedTexture.isCube) {
                     this._currentRenderTarget = <RenderTargetTexture>selectedTexture;
                     this._configureRenderTarget();
                 }
                 else {
-                    this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
+                    var serializationObject = selectedTexture.serialize();
+                    
+                    // Guess texture
+                    if ((<any>selectedTexture)._buffer) {
+                        serializationObject.base64String = (<any>selectedTexture)._buffer;
+                    }
+                    else if (FilesInput.FilesTextures[selectedTexture.name]) {
+                        serializationObject.name = (<Texture>selectedTexture).url;
+                    }
+                    
+                    if (!selectedTexture.isCube)
+                        this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                 }
-                
-                this._originalTexture = selectedTexture;
                 
                 if (this.object) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
             };
+            
+            if (this.object && this.object[this.propertyPath]) {
+                var index = this._core.currentScene.textures.indexOf(this.object[this.propertyPath]);
+                if (index !== -1) {
+                    this._texturesList.setSelected([index]);
+                    this._texturesList.onClick([index]);
+                    this._texturesList.scrollIntoView(index);
+                }
+            }
 
             this._texturesList.onAdd = () => {
                 var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
@@ -182,7 +184,11 @@
                 this._fillTextureList();
             };
             
-            this._texturesList.onExpand = (id: string) => {
+            this._texturesList.onExpand = (id: string, recid: number) => {
+                var originalTexture = this._core.currentScene.textures[recid];
+                if (!originalTexture)
+                    null;
+                
                 var subGrid = new GUI.GUIGrid<ISubTextureRow>(id, this._core);
                 subGrid.showColumnHeaders = false;
                 
@@ -191,30 +197,32 @@
                    { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
                 ];
                 
-                subGrid.records = <any>[
-                    { name: "width", value: this._targetTexture.getSize().width, recid: 0 },
-                    { name: "height", value: this._targetTexture.getSize().height, recid: 1 },
-                    
-                    { name: "name", value: this._targetTexture.name, recid: 2 },
-                    { name: "getAlphaFromRGB", value: this._targetTexture.getAlphaFromRGB, recid: 3 },
-                    { name: "hasAlpha", value: this._targetTexture.hasAlpha, recid: 4 }
-                ];
+                subGrid.addRecord(<any>{ name: "width", value: originalTexture.getSize().width });
+                subGrid.addRecord(<any>{ name: "height", value: originalTexture.getSize().height });
+                subGrid.addRecord(<any>{ name: "name", value: originalTexture.name });
+                subGrid.addRecord(<any>{ name: "getAlphaFromRGB", value: Tools.BooleanToInt(originalTexture.getAlphaFromRGB) });
+                subGrid.addRecord(<any>{ name: "hasAlpha", value: Tools.BooleanToInt(originalTexture.hasAlpha) });
+                
+                if (originalTexture instanceof Texture) {
+                    subGrid.addRecord(<any>{ name: "uScale", value: originalTexture.uScale });
+                    subGrid.addRecord(<any>{ name: "vScale", value: originalTexture.vScale });
+                }
                 
                 subGrid.onEditField = (data) => {
                     var record = subGrid.records[data.recid];
-                    var value = this._originalTexture[record.name];
+                    var value = originalTexture[record.name];
                     
                     if (value === undefined)
                         return;
-                        
+                    
                     if (typeof value === "boolean") {
-                        this._originalTexture[record.name] = data.value === "true";
+                        originalTexture[record.name] = Tools.IntToBoolean(parseFloat(data.value));
                     }
                     else if (typeof value === "number") {
-                        this._originalTexture[record.name] = parseFloat(data.value);
+                        originalTexture[record.name] = parseFloat(data.value);
                     }
                     else { // String
-                        this._originalTexture[record.name] = data.value;
+                        originalTexture[record.name] = data.value;
                     }
                 };
                 
@@ -285,8 +293,10 @@
                     row.style = "background-color: #C2F5B4";
                 }
                 
-                this._texturesList.addRow(row);
+                this._texturesList.addRecord(row);
             }
+            
+            this._texturesList.refresh();
         }
 
         // On readed texture file callback
