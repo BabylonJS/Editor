@@ -62,6 +62,7 @@ var BABYLON;
                                     }
                                     this.sidebar.removeNode(this.sidebar.getSelected());
                                     this.sidebar.refresh();
+                                    EDITOR.Event.sendSceneEvent(object, EDITOR.SceneEventType.OBJECT_REMOVED, this._core);
                                 }
                                 return true;
                             }

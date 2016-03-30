@@ -8,6 +8,9 @@
 
         private _createCubeID = "CREATE-CUBE";
         private _createSphereID = "CREATE-SPHERE";
+        
+        private _createGroundID = "CREATE-GROUND";
+        private _createHeightMap = "CREATE-HEIGHTMAP";
 
         /**
         * Constructor
@@ -22,8 +25,9 @@
             
             // Create items
             toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
-            toolbar.addBreak(menu); // Or not
             toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
+            toolbar.addBreak(menu); // Or not
+            toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-mesh");
             // Etc.
         }
 
@@ -39,6 +43,9 @@
                     break;
                 case this._createSphereID:
                     SceneFactory.AddSphereMesh(this._core);
+                    break;
+                case this._createGroundID:
+                    SceneFactory.AddGroundMesh(this._core);
                     break;
                 default: break;
             }

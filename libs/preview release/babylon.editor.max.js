@@ -683,6 +683,7 @@ var BABYLON;
                     this.showSearch = true;
                     this.showColumnHeaders = true;
                     this.menus = [];
+                    this.autoMergeChanges = true;
                     this.hasSubGrid = false;
                 }
                 // Adds a menu
@@ -698,6 +699,12 @@ var BABYLON;
                     if (!size)
                         size = "50%";
                     this.columns.push({ field: id, caption: text, size: size, style: style });
+                };
+                // Creates and editable column
+                GUIGrid.prototype.createEditableColumn = function (id, text, editable, size, style) {
+                    if (!size)
+                        size = "50%";
+                    this.columns.push({ field: id, caption: text, size: size, style: style, editable: editable });
                 };
                 // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
@@ -784,6 +791,10 @@ var BABYLON;
                 GUIGrid.prototype.scrollIntoView = function (indice) {
                     if (indice >= 0 && indice < this.element.records.length)
                         this.element.scrollIntoView(indice);
+                };
+                // Merges user changes into the records array
+                GUIGrid.prototype.mergeChanges = function () {
+                    this.element.mergeChanges();
                 };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
@@ -884,13 +895,26 @@ var BABYLON;
                         onChange: function (event) {
                             if (!event.recid)
                                 return;
-                            var data = { recid: event.recid, value: event.value_new };
                             if (_this.onEditField)
-                                _this.onEditField(data);
+                                _this.onEditField(event.recid, event.value_new);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, data);
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: event.recid, value: event.value_new });
                             _this.core.sendEvent(ev);
+                            if (_this.autoMergeChanges)
+                                _this.element.mergeChanges();
+                        },
+                        onEditField: function (event) {
+                            if (!event.recid)
+                                return;
+                            if (_this.onEditField)
+                                _this.onEditField(parseInt(event.recid), event.value);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: parseInt(event.recid), value: event.value });
+                            _this.core.sendEvent(ev);
+                            if (_this.autoMergeChanges)
+                                _this.element.mergeChanges();
                         }
                     });
                 };
@@ -4526,6 +4550,7 @@ var BABYLON;
                                     }
                                     this.sidebar.removeNode(this.sidebar.getSelected());
                                     this.sidebar.refresh();
+                                    EDITOR.Event.sendSceneEvent(object, EDITOR.SceneEventType.OBJECT_REMOVED, this._core);
                                 }
                                 return true;
                             }
@@ -5914,6 +5939,20 @@ var BABYLON;
                 plane.id = this.GenerateUUID();
                 this.ConfigureObject(plane, core);
                 return plane;
+            };
+            // Adds a ground
+            SceneFactory.AddGroundMesh = function (core) {
+                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+                ground.id = this.GenerateUUID();
+                this.ConfigureObject(ground, core);
+                return ground;
+            };
+            // Adds a height map
+            SceneFactory.AddHeightMap = function (core) {
+                var heightMap = BABYLON.Mesh.CreateGroundFromHeightMap("New Height Map", "", 10, 10, 32, 1, 1, core.currentScene, false);
+                heightMap.id = this.GenerateUUID();
+                this.ConfigureObject(heightMap, core);
+                return heightMap;
             };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
@@ -9182,6 +9221,17 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var coordinatesModes = [
+            { id: 0, text: "EXPLICIT_MODE" },
+            { id: 1, text: "SPHERICAL_MODE" },
+            { id: 2, text: "PLANAR_MODE" },
+            { id: 3, text: "CUBIC_MODE" },
+            { id: 4, text: "PROJECTION_MODE" },
+            { id: 5, text: "SKYBOX_MODE" },
+            { id: 6, text: "INVCUBIC_MODE" },
+            { id: 7, text: "EQUIRECTANGULAR_MODE" },
+            { id: 8, text: "FIXED_EQUIRECTANGULAR_MODE" }
+        ];
         var GUITextureEditor = (function () {
             /**
             * Constructor
@@ -9256,9 +9306,12 @@ var BABYLON;
                 // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
                 this._texturesList.header = this._objectName ? this._objectName : "Textures ";
-                this._texturesList.createColumn("name", "name", "100%");
-                this._texturesList.showSearch = false;
-                this._texturesList.showOptions = false;
+                this._texturesList.createColumn("name", "name", "100px");
+                this._texturesList.createEditableColumn("coordinatesMode", "Coordinates Mode", { type: "select", items: coordinatesModes }, "80px");
+                this._texturesList.createEditableColumn("uScale", "uScale", { type: "float" }, "80px");
+                this._texturesList.createEditableColumn("uScale", "vScale", { type: "float" }, "80px");
+                this._texturesList.showSearch = true;
+                this._texturesList.showOptions = true;
                 this._texturesList.showAdd = true;
                 this._texturesList.hasSubGrid = true;
                 this._texturesList.buildElement(texturesListID);
@@ -9320,35 +9373,31 @@ var BABYLON;
                         null;
                     var subGrid = new EDITOR.GUI.GUIGrid(id, _this._core);
                     subGrid.showColumnHeaders = false;
-                    subGrid.columns = [
-                        { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
-                        { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
-                    ];
+                    subGrid.createColumn("name", "Property", "25%", "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;");
+                    subGrid.createColumn("value", "Value", "75%");
                     subGrid.addRecord({ name: "width", value: originalTexture.getSize().width });
                     subGrid.addRecord({ name: "height", value: originalTexture.getSize().height });
                     subGrid.addRecord({ name: "name", value: originalTexture.name });
-                    subGrid.addRecord({ name: "getAlphaFromRGB", value: EDITOR.Tools.BooleanToInt(originalTexture.getAlphaFromRGB) });
-                    subGrid.addRecord({ name: "hasAlpha", value: EDITOR.Tools.BooleanToInt(originalTexture.hasAlpha) });
                     if (originalTexture instanceof BABYLON.Texture) {
-                        subGrid.addRecord({ name: "uScale", value: originalTexture.uScale });
-                        subGrid.addRecord({ name: "vScale", value: originalTexture.vScale });
+                        subGrid.addRecord({ name: "url", value: originalTexture.url });
                     }
-                    subGrid.onEditField = function (data) {
-                        var record = subGrid.records[data.recid];
-                        var value = originalTexture[record.name];
-                        if (value === undefined)
-                            return;
-                        if (typeof value === "boolean") {
-                            originalTexture[record.name] = EDITOR.Tools.IntToBoolean(parseFloat(data.value));
-                        }
-                        else if (typeof value === "number") {
-                            originalTexture[record.name] = parseFloat(data.value);
-                        }
-                        else {
-                            originalTexture[record.name] = data.value;
-                        }
-                    };
                     return subGrid;
+                };
+                this._texturesList.onEditField = function (recid, value) {
+                    var changes = _this._texturesList.getChanges();
+                    for (var i = 0; i < changes.length; i++) {
+                        var diff = changes[i];
+                        var texture = _this._core.currentScene.textures[diff.recid];
+                        delete diff.recid;
+                        for (var thing in diff) {
+                            if (thing === "coordinatesMode") {
+                                texture.coordinatesMode = parseInt(diff.coordinatesMode);
+                            }
+                            else {
+                                texture[thing] = diff[thing];
+                            }
+                        }
+                    }
                 };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
@@ -9389,14 +9438,18 @@ var BABYLON;
             GUITextureEditor.prototype._fillTextureList = function () {
                 this._texturesList.clear();
                 for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    var texture = this._core.currentScene.textures[i];
                     var row = {
-                        name: this._core.currentScene.textures[i].name,
+                        name: texture.name,
+                        coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                        uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
+                        vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
                         recid: i
                     };
-                    if (this._core.currentScene.textures[i].isCube) {
+                    if (texture.isCube) {
                         row.style = "background-color: #FBFEC0";
                     }
-                    else if (this._core.currentScene.textures[i].isRenderTarget) {
+                    else if (texture.isRenderTarget) {
                         row.style = "background-color: #C2F5B4";
                     }
                     this._texturesList.addRecord(row);
@@ -9411,6 +9464,9 @@ var BABYLON;
                     texture.name = texture.name.replace("data:", "");
                     _this._texturesList.addRow({
                         name: name,
+                        coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                        uScale: texture.uScale,
+                        vScale: texture.vScale,
                         recid: _this._texturesList.getRowCount() - 1
                     });
                     _this._core.editor.editionTool.isObjectSupported(_this._core.editor.editionTool.object);
@@ -9496,14 +9552,17 @@ var BABYLON;
                 this.menuID = "GEOMETRIES-MENU";
                 this._createCubeID = "CREATE-CUBE";
                 this._createSphereID = "CREATE-SPHERE";
+                this._createGroundID = "CREATE-GROUND";
+                this._createHeightMap = "CREATE-HEIGHTMAP";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
                 var menu = toolbar.createMenu("menu", this.menuID, "Geometry", "icon-bounding-box");
                 // Create items
                 toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
-                toolbar.addBreak(menu); // Or not
                 toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
+                toolbar.addBreak(menu); // Or not
+                toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-mesh");
                 // Etc.
             }
             /**
@@ -9518,6 +9577,9 @@ var BABYLON;
                         break;
                     case this._createSphereID:
                         EDITOR.SceneFactory.AddSphereMesh(this._core);
+                        break;
+                    case this._createGroundID:
+                        EDITOR.SceneFactory.AddGroundMesh(this._core);
                         break;
                     default: break;
                 }

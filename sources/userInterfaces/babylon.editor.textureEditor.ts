@@ -1,6 +1,21 @@
 ﻿module BABYLON.EDITOR {
+    var coordinatesModes = [
+        { id: 0, text: "EXPLICIT_MODE" },
+        { id: 1, text: "SPHERICAL_MODE" },
+        { id: 2, text: "PLANAR_MODE" },
+        { id: 3, text: "CUBIC_MODE" },
+        { id: 4, text: "PROJECTION_MODE" },
+        { id: 5, text: "SKYBOX_MODE" },
+        { id: 6, text: "INVCUBIC_MODE" },
+        { id: 7, text: "EQUIRECTANGULAR_MODE" },
+        { id: 8, text: "FIXED_EQUIRECTANGULAR_MODE" }
+    ];
+    
     interface ITextureRow extends GUI.IGridRowData {
         name: string;
+        coordinatesMode: string;
+        uScale: number;
+        vScale: number;
     }
     
     interface ISubTextureRow extends GUI.IGridRowData {
@@ -111,9 +126,12 @@
             // Textures list
             this._texturesList = new GUI.GUIGrid<ITextureRow>(texturesListID, this._core);
             this._texturesList.header = this._objectName ? this._objectName : "Textures ";
-            this._texturesList.createColumn("name", "name", "100%");
-            this._texturesList.showSearch = false;
-            this._texturesList.showOptions = false;
+            this._texturesList.createColumn("name", "name", "100px");
+            this._texturesList.createEditableColumn("coordinatesMode", "Coordinates Mode", { type: "select", items: coordinatesModes }, "80px");
+            this._texturesList.createEditableColumn("uScale", "uScale", { type: "float" }, "80px");
+            this._texturesList.createEditableColumn("uScale", "vScale", { type: "float" }, "80px");
+            this._texturesList.showSearch = true;
+            this._texturesList.showOptions = true;
             this._texturesList.showAdd = true;
             this._texturesList.hasSubGrid = true;
             this._texturesList.buildElement(texturesListID);
@@ -192,41 +210,38 @@
                 var subGrid = new GUI.GUIGrid<ISubTextureRow>(id, this._core);
                 subGrid.showColumnHeaders = false;
                 
-                subGrid.columns = [
-                   { field: "name", caption: "Property", size: "25%", style: "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;" },
-                   { field: "value", caption: "Value", size: "75%", editable: { type: "text" } }
-                ];
+                subGrid.createColumn("name", "Property", "25%", "background-color: #efefef; border-bottom: 1px solid white; padding-right: 5px;");
+                subGrid.createColumn("value", "Value", "75%");
                 
                 subGrid.addRecord(<any>{ name: "width", value: originalTexture.getSize().width });
                 subGrid.addRecord(<any>{ name: "height", value: originalTexture.getSize().height });
                 subGrid.addRecord(<any>{ name: "name", value: originalTexture.name });
-                subGrid.addRecord(<any>{ name: "getAlphaFromRGB", value: Tools.BooleanToInt(originalTexture.getAlphaFromRGB) });
-                subGrid.addRecord(<any>{ name: "hasAlpha", value: Tools.BooleanToInt(originalTexture.hasAlpha) });
                 
                 if (originalTexture instanceof Texture) {
-                    subGrid.addRecord(<any>{ name: "uScale", value: originalTexture.uScale });
-                    subGrid.addRecord(<any>{ name: "vScale", value: originalTexture.vScale });
+                    subGrid.addRecord(<any>{ name: "url", value: originalTexture.url });
                 }
                 
-                subGrid.onEditField = (data) => {
-                    var record = subGrid.records[data.recid];
-                    var value = originalTexture[record.name];
-                    
-                    if (value === undefined)
-                        return;
-                    
-                    if (typeof value === "boolean") {
-                        originalTexture[record.name] = Tools.IntToBoolean(parseFloat(data.value));
-                    }
-                    else if (typeof value === "number") {
-                        originalTexture[record.name] = parseFloat(data.value);
-                    }
-                    else { // String
-                        originalTexture[record.name] = data.value;
-                    }
-                };
-                
                 return subGrid;
+            };
+            
+            this._texturesList.onEditField = (recid: number, value: any) => {
+                var changes = this._texturesList.getChanges();
+                
+                for (var i = 0; i < changes.length; i++) {
+                    var diff = changes[i];
+                    var texture = this._core.currentScene.textures[diff.recid];
+                    
+                    delete diff.recid;
+                    
+                    for (var thing in diff) {
+                        if (thing === "coordinatesMode") {
+                            texture.coordinatesMode = parseInt(diff.coordinatesMode);
+                        }
+                        else {
+                            texture[thing] = diff[thing];
+                        }
+                    }
+                }
             };
 
             // Finish
@@ -281,15 +296,20 @@
             this._texturesList.clear();
             
             for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                var texture = this._core.currentScene.textures[i];
+                
                 var row: ITextureRow = {
-                    name: this._core.currentScene.textures[i].name,
+                    name: texture.name,
+                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                    uScale: texture instanceof Texture ? texture.uScale : 0,
+                    vScale: texture instanceof Texture ? texture.vScale : 0,
                     recid: i
                 };
                 
-                if (this._core.currentScene.textures[i].isCube) {
+                if (texture.isCube) {
                     row.style = "background-color: #FBFEC0";
                 }
-                else if (this._core.currentScene.textures[i].isRenderTarget) {
+                else if (texture.isRenderTarget) {
                     row.style = "background-color: #C2F5B4";
                 }
                 
@@ -307,6 +327,9 @@
 
                 this._texturesList.addRow({
                     name: name,
+                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                    uScale: texture.uScale,
+                    vScale: texture.vScale,
                     recid: this._texturesList.getRowCount() - 1
                 });
 

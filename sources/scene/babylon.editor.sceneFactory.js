@@ -143,6 +143,20 @@ var BABYLON;
                 this.ConfigureObject(plane, core);
                 return plane;
             };
+            // Adds a ground
+            SceneFactory.AddGroundMesh = function (core) {
+                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+                ground.id = this.GenerateUUID();
+                this.ConfigureObject(ground, core);
+                return ground;
+            };
+            // Adds a height map
+            SceneFactory.AddHeightMap = function (core) {
+                var heightMap = BABYLON.Mesh.CreateGroundFromHeightMap("New Height Map", "", 10, 10, 32, 1, 1, core.currentScene, false);
+                heightMap.id = this.GenerateUUID();
+                this.ConfigureObject(heightMap, core);
+                return heightMap;
+            };
             // Adds a particle system
             SceneFactory.AddParticleSystem = function (core, chooseEmitter) {
                 var _this = this;

@@ -391,6 +391,9 @@
         style?: string;
     }
 
+    interface IGridColumnEditable extends W2UI.IGridColumnEditable
+    { }
+    
     interface IGridColumnData extends W2UI.IGridColumnData
     { }
 

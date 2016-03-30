@@ -19,6 +19,7 @@
         public showSearch: boolean = true;
         public showColumnHeaders: boolean = true;
         public menus: W2UI.IGridMenu[] = [];
+        public autoMergeChanges: boolean = true;
 
         public onClick: (selected: number[]) => void;
         public onMenuClick: (id: number) => void;
@@ -26,7 +27,7 @@
         public onAdd: () => void;
         public onEdit: (selected: number[]) => void;
         public onReload: () => void;
-        public onEditField: (data: { recid: number, value: string }) => void;
+        public onEditField: (recid: number, value: any) => void;
         
         public hasSubGrid: boolean = false;
         public subGridHeight: number;
@@ -58,6 +59,14 @@
                 size = "50%";
 
             this.columns.push({ field: id, caption: text, size: size, style: style });
+        }
+        
+        // Creates and editable column
+        public createEditableColumn(id: string, text: string, editable: IGridColumnEditable, size?: string, style?: string): void {
+            if (!size)
+                size = "50%";
+
+            this.columns.push({ field: id, caption: text, size: size, style: style, editable: editable });
         }
 
         // Adds a row and refreshes the grid
@@ -164,6 +173,11 @@
         public scrollIntoView(indice: number): void {
             if (indice >= 0 && indice < this.element.records.length)
                 this.element.scrollIntoView(indice);
+        }
+        
+        // Merges user changes into the records array
+        public mergeChanges(): void {
+            this.element.mergeChanges();
         }
 
         // Build element
@@ -292,15 +306,32 @@
                     if (!event.recid)
                         return;
                     
-                    var data = { recid: event.recid, value: event.value_new };
-                    
                     if (this.onEditField)
-                        this.onEditField(data);
+                        this.onEditField(event.recid, event.value_new);
                     
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
-                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_CHANGED, data);
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_CHANGED, { recid: event.recid, value: event.value_new });
                     this.core.sendEvent(ev);
+                    
+                    if (this.autoMergeChanges)
+                        this.element.mergeChanges();
+                },
+                
+                onEditField: (event) => {
+                    if (!event.recid)
+                        return;
+                        
+                    if (this.onEditField)
+                        this.onEditField(parseInt(event.recid), event.value);
+                        
+                    var ev = new Event();
+                    ev.eventType = EventType.GUI_EVENT;
+                    ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_CHANGED, { recid: parseInt(event.recid), value: event.value });
+                    this.core.sendEvent(ev);
+                    
+                    if (this.autoMergeChanges)
+                        this.element.mergeChanges();
                 }
             });
         }

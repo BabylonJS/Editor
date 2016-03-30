@@ -345,6 +345,17 @@
     /**
     * List element
     */
+    interface IListItem {
+        /**
+        * The item ID
+        */
+        id: number;
+        /**
+        * The item's text
+        */
+        text: string;
+    }
+    
     interface IListElement extends IElement {
         /**
         * List of items
@@ -380,6 +391,18 @@
         */
         recid: number;
     }
+    
+    interface IGridColumnEditable {
+        /**
+        * The type edition. Can be "text", "combo", "select", etc.
+        */
+        type: string;
+        
+        /**
+        *  If the type is "combo"
+        */
+        items?: IListItem[] | string[];
+    }
 
     interface IGridColumnData {
         /**
@@ -398,9 +421,7 @@
         /**
         * If the column is editable
         */
-        editable?: {
-            type: string;
-        }
+        editable?: IGridColumnEditable;
         /**
         * The column style
         */
@@ -460,6 +481,10 @@
         * Scroll into view, giving the indice of the row
         */
         scrollIntoView(indice: number): void;
+        /**
+        * Merges user changes into the records array
+        */
+        mergeChanges(): void;
     }
 
     /**

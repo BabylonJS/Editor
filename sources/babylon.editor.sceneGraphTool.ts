@@ -79,6 +79,8 @@
 
                                 this.sidebar.removeNode(this.sidebar.getSelected());
                                 this.sidebar.refresh();
+                                
+                                Event.sendSceneEvent(object, SceneEventType.OBJECT_REMOVED, this._core);
                             }
                             return true;
                         }

@@ -206,6 +206,26 @@
 
             return plane;
         }
+        
+        // Adds a ground
+        static AddGroundMesh(core: EditorCore): Mesh {
+            var ground = Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+            ground.id = this.GenerateUUID();
+            
+            this.ConfigureObject(ground, core);
+            
+            return ground;
+        }
+        
+        // Adds a height map
+        static AddHeightMap(core: EditorCore): Mesh {
+            var heightMap = Mesh.CreateGroundFromHeightMap("New Height Map", "", 10, 10, 32, 1, 1, core.currentScene, false);
+            heightMap.id = this.GenerateUUID();
+            
+            this.ConfigureObject(heightMap, core);
+            
+            return heightMap;
+        }
 
         // Adds a particle system
         static AddParticleSystem(core: EditorCore, chooseEmitter: boolean = true): void {

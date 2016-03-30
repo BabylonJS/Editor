@@ -36,6 +36,7 @@ var BABYLON;
                     this.showSearch = true;
                     this.showColumnHeaders = true;
                     this.menus = [];
+                    this.autoMergeChanges = true;
                     this.hasSubGrid = false;
                 }
                 // Adds a menu
@@ -51,6 +52,12 @@ var BABYLON;
                     if (!size)
                         size = "50%";
                     this.columns.push({ field: id, caption: text, size: size, style: style });
+                };
+                // Creates and editable column
+                GUIGrid.prototype.createEditableColumn = function (id, text, editable, size, style) {
+                    if (!size)
+                        size = "50%";
+                    this.columns.push({ field: id, caption: text, size: size, style: style, editable: editable });
                 };
                 // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
@@ -137,6 +144,10 @@ var BABYLON;
                 GUIGrid.prototype.scrollIntoView = function (indice) {
                     if (indice >= 0 && indice < this.element.records.length)
                         this.element.scrollIntoView(indice);
+                };
+                // Merges user changes into the records array
+                GUIGrid.prototype.mergeChanges = function () {
+                    this.element.mergeChanges();
                 };
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
@@ -237,13 +248,26 @@ var BABYLON;
                         onChange: function (event) {
                             if (!event.recid)
                                 return;
-                            var data = { recid: event.recid, value: event.value_new };
                             if (_this.onEditField)
-                                _this.onEditField(data);
+                                _this.onEditField(event.recid, event.value_new);
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
-                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, data);
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: event.recid, value: event.value_new });
                             _this.core.sendEvent(ev);
+                            if (_this.autoMergeChanges)
+                                _this.element.mergeChanges();
+                        },
+                        onEditField: function (event) {
+                            if (!event.recid)
+                                return;
+                            if (_this.onEditField)
+                                _this.onEditField(parseInt(event.recid), event.value);
+                            var ev = new EDITOR.Event();
+                            ev.eventType = EDITOR.EventType.GUI_EVENT;
+                            ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: parseInt(event.recid), value: event.value });
+                            _this.core.sendEvent(ev);
+                            if (_this.autoMergeChanges)
+                                _this.element.mergeChanges();
                         }
                     });
                 };
