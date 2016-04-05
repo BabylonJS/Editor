@@ -1173,13 +1173,14 @@ var BABYLON;
                     this.menus = [];
                 }
                 // Creates a new menu
-                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
+                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked, tooltip) {
                     var menu = {
                         type: type,
                         id: id,
                         text: text,
                         img: icon,
                         checked: checked || false,
+                        hint: tooltip,
                         items: []
                     };
                     this.menus.push(menu);
@@ -5258,11 +5259,11 @@ var BABYLON;
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 // Play game
-                this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game");
+                this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
                 this.toolbar.addBreak();
-                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position");
-                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation");
-                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling");
+                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Set Position...");
+                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation", undefined, "Set Rotation...");
+                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling", undefined, "Set Scale...");
                 // Build element
                 this.toolbar.buildElement(this.container);
             };
@@ -8159,14 +8160,14 @@ var BABYLON;
                     case "boolean":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
                         break;
-                    case "Vector3":
+                    case "vector3":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
                         break;
-                    case "Color3":
-                    case "Color4":
+                    case "color3":
+                    case "color4":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_COLOR3;
                         break;
-                    case "Vector2":
+                    case "vector2":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR2;
                         break;
                     default: return;

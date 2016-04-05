@@ -6,7 +6,7 @@ declare module BABYLON.EDITOR.GUI {
         * @param name: the form name
         */
         constructor(name: string, core: EditorCore);
-        createMenu(type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarMenuElement;
+        createMenu(type: string, id: string, text: string, icon: string, checked?: boolean, tooltip?: string): IToolbarMenuElement;
         createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement;
         createInput(id: string, inputId: string, text: string, size?: number): IToolbarMenuElement;
         addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;

@@ -273,7 +273,7 @@
                 
                 for (var i = 0; i < this._currentPixels.length; i++)
                     imgData.data[i] = this._currentPixels[i];
-                
+
                 this._dynamicTexture.getContext().putImageData(imgData, 0, 0);
                 this._dynamicTexture.update(false);
             };

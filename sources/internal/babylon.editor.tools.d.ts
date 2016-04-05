@@ -37,5 +37,13 @@ declare module BABYLON.EDITOR {
         * Returns the constructor name of an object
         */
         static GetConstructorName(obj: any): string;
+        /**
+        * Converts a boolean to integer
+        */
+        static BooleanToInt(value: boolean): number;
+        /**
+        * Converts a number to boolean
+        */
+        static IntToBoolean(value: number): boolean;
     }
 }

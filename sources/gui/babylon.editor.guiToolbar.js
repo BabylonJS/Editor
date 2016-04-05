@@ -22,13 +22,14 @@ var BABYLON;
                     this.menus = [];
                 }
                 // Creates a new menu
-                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked) {
+                GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked, tooltip) {
                     var menu = {
                         type: type,
                         id: id,
                         text: text,
                         img: icon,
                         checked: checked || false,
+                        hint: tooltip,
                         items: []
                     };
                     this.menus.push(menu);

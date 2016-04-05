@@ -385,14 +385,14 @@ var BABYLON;
                     case "boolean":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_FLOAT;
                         break;
-                    case "Vector3":
+                    case "vector3":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
                         break;
-                    case "Color3":
-                    case "Color4":
+                    case "color3":
+                    case "color4":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_COLOR3;
                         break;
-                    case "Vector2":
+                    case "vector2":
                         dataType = BABYLON.Animation.ANIMATIONTYPE_VECTOR2;
                         break;
                     default: return;

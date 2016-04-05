@@ -157,6 +157,7 @@
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.reflectionProbeTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\babylon.editor.sceneTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.abstractMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.fireMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.furMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.gradientMaterialTool.ts" />
     <TypeScriptCompile Include="sources\editionTools\materialEditors\babylon.editor.gridMaterialTool.ts" />

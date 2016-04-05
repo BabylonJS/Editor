@@ -14,13 +14,14 @@
         }
 
         // Creates a new menu
-        public createMenu(type: string, id: string, text: string, icon: string, checked?: boolean): IToolbarMenuElement {
+        public createMenu(type: string, id: string, text: string, icon: string, checked?: boolean, tooltip?: string): IToolbarMenuElement {
             var menu = {
                 type: type,
                 id: id,
                 text: text,
                 img: icon,
                 checked: checked || false,
+                hint: tooltip,
                 items: []
             };
             this.menus.push(menu);

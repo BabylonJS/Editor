@@ -100,11 +100,11 @@ var BABYLON;
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 // Play game
-                this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game");
+                this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
                 this.toolbar.addBreak();
-                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position");
-                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation");
-                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling");
+                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Set Position...");
+                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation", undefined, "Set Rotation...");
+                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling", undefined, "Set Scale...");
                 // Build element
                 this.toolbar.buildElement(this.container);
             };

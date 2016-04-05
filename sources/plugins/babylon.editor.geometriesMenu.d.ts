@@ -4,9 +4,11 @@ declare module BABYLON.EDITOR {
         private _core;
         private _createCubeID;
         private _createSphereID;
+        private _createGroundID;
+        private _createHeightMap;
         /**
         * Constructor
-        * @param toolbar: the main toolbar instance
+        * @param mainToolbar: the main toolbar instance
         */
         constructor(mainToolbar: MainToolbar);
         /**

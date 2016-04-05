@@ -21,10 +21,12 @@ declare module BABYLON.EDITOR {
         GRID_ROW_REMOVED = 10,
         GRID_ROW_ADDED = 11,
         GRID_ROW_EDITED = 12,
-        GRID_MENU_SELECTED = 13,
-        WINDOW_BUTTON_CLICKED = 14,
-        OBJECT_PICKED = 15,
-        UNKNOWN = 16,
+        GRID_ROW_CHANGED = 13,
+        GRID_MENU_SELECTED = 14,
+        GRID_RELOADED = 15,
+        WINDOW_BUTTON_CLICKED = 16,
+        OBJECT_PICKED = 17,
+        UNKNOWN = 18,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,

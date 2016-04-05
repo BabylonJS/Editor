@@ -477,9 +477,9 @@
 
             switch (constructorName.toLowerCase()) {
                 case "number": case "boolean": dataType = Animation.ANIMATIONTYPE_FLOAT; break;
-                case "Vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
-                case "Color3": case "Color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
-                case "Vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
+                case "vector3": dataType = Animation.ANIMATIONTYPE_VECTOR3; break;
+                case "color3": case "color4": dataType = Animation.ANIMATIONTYPE_COLOR3; break;
+                case "vector2": dataType = Animation.ANIMATIONTYPE_VECTOR2; break;
                 default: return;
             }
 
