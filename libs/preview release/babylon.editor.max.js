@@ -237,6 +237,16 @@ var BABYLON;
             Tools.IntToBoolean = function (value) {
                 return !(value === 0.0);
             };
+            /**
+            * Returns a particle system by its name
+            */
+            Tools.GetParticleSystemByName = function (scene, name) {
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    if (scene.particleSystems[i].name === name)
+                        return scene.particleSystems[i];
+                }
+                return null;
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;
@@ -7411,7 +7421,7 @@ var BABYLON;
                             EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getSoundByName(animated.name));
                             break;
                         case "ParticleSystem":
-                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getParticleSystemByName(animated.name));
+                            EDITOR.SceneFactory.NodesToStart.push(EDITOR.Tools.GetParticleSystemByName(core.currentScene, animated.name));
                             break;
                         default: break;
                     }
@@ -8677,7 +8687,8 @@ var BABYLON;
                             node = core.currentScene;
                         // Particle system
                         if (!node) {
-                            node = core.currentScene.getParticleSystemByName(names[i]);
+                            //node = core.currentScene.getParticleSystemByName(names[i]);
+                            node = EDITOR.Tools.GetParticleSystemByName(core.currentScene, names[i]);
                         }
                         if (!node) {
                             // Sound ?

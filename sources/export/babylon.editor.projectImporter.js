@@ -158,7 +158,7 @@ var BABYLON;
                             EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getSoundByName(animated.name));
                             break;
                         case "ParticleSystem":
-                            EDITOR.SceneFactory.NodesToStart.push(core.currentScene.getParticleSystemByName(animated.name));
+                            EDITOR.SceneFactory.NodesToStart.push(EDITOR.Tools.GetParticleSystemByName(core.currentScene, animated.name));
                             break;
                         default: break;
                     }

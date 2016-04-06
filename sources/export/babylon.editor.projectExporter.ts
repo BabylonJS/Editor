@@ -186,6 +186,7 @@
                     name: "SSAOPipeline",
                     serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
                 });
+                
             }
 
             return config;

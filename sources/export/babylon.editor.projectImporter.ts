@@ -179,7 +179,7 @@
                     case "Scene": SceneFactory.NodesToStart.push(core.currentScene); break;
                     case "Node": SceneFactory.NodesToStart.push(core.currentScene.getNodeByName(animated.name)); break;
                     case "Sound": SceneFactory.NodesToStart.push(<any>core.currentScene.getSoundByName(animated.name)); break;
-                    case "ParticleSystem": SceneFactory.NodesToStart.push(core.currentScene.getParticleSystemByName(animated.name)); break;
+                    case "ParticleSystem": SceneFactory.NodesToStart.push(Tools.GetParticleSystemByName(core.currentScene, animated.name)); break;
                     default: break;
                 }
             }

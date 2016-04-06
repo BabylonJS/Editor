@@ -1,3 +1,4 @@
+
 var BABYLON;
 (function (BABYLON) {
     /**
@@ -57,7 +58,7 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set tghe color into the material
-                        material.diffuseColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
+                        material.diffuseColor = BABYLON.Color3.FromArray(color);
                     }
                     else if (key === "ka") {
                         // Ambient color (color under shadow) using RGB values
@@ -65,7 +66,7 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set tghe color into the material
-                        material.ambientColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
+                        material.ambientColor = BABYLON.Color3.FromArray(color);
                     }
                     else if (key === "ks") {
                         // Specular color (color when light is reflected from shiny surface) using RGB values
@@ -73,15 +74,15 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set the color into the material
-                        material.specularColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
+                        material.specularColor = BABYLON.Color3.FromArray(color);
                     }
                     else if (key === "ns") {
                         //value = "Integer"
-                        material.specularPower = parseFloat(value);
+                        material.specularPower = value;
                     }
                     else if (key === "d") {
                         //d is dissolve for current material. It mean alpha for BABYLON
-                        material.alpha = parseFloat(value);
+                        material.alpha = value;
                     }
                     else if (key === "map_ka") {
                         // ambient texture map with a loaded image
@@ -186,13 +187,13 @@ var BABYLON;
             // vt float float
             this.uvPattern = /vt( +[\d|\.|\+|\-|e|E]+)( +[\d|\.|\+|\-|e|E]+)/;
             // f vertex vertex vertex ...
-            this.facePattern1 = /f\s(([\d]{1,}[\s]?){3,})+/;
+            this.facePattern1 = /f\s+(([\d]{1,}[\s]?){3,})+/;
             // f vertex/uvs vertex/uvs vertex/uvs ...
-            this.facePattern2 = /f\s((([\d]{1,}\/[\d]{1,}[\s]?){3,})+)/;
+            this.facePattern2 = /f\s+((([\d]{1,}\/[\d]{1,}[\s]?){3,})+)/;
             // f vertex/uvs/normal vertex/uvs/normal vertex/uvs/normal ...
-            this.facePattern3 = /f\s((([\d]{1,}\/[\d]{1,}\/[\d]{1,}[\s]?){3,})+)/;
+            this.facePattern3 = /f\s+((([\d]{1,}\/[\d]{1,}\/[\d]{1,}[\s]?){3,})+)/;
             // f vertex//normal vertex//normal vertex//normal ...
-            this.facePattern4 = /f\s((([\d]{1,}\/\/[\d]{1,}[\s]?){3,})+)/;
+            this.facePattern4 = /f\s+((([\d]{1,}\/\/[\d]{1,}[\s]?){3,})+)/;
         }
         /**
          * Calls synchronously the MTL file attached to this obj.
@@ -209,7 +210,7 @@ var BABYLON;
             //The complete path to the mtl file
             var pathOfFile = BABYLON.Tools.BaseUrl + rootUrl + url;
             // Loads through the babylon tools to allow fileInput search.
-            BABYLON.Tools.LoadFile(pathOfFile, onSuccess, null, null, false, function () { console.warn("Error - Unable to load " + pathOfFile); });
+            BABYLON.Tools.LoadFile(pathOfFile, onSuccess, null, null, false, function () { console.warn("Error - Unable to load " + pathOfFile); }, true /* synchronous call */);
         };
         OBJFileLoader.prototype.importMesh = function (meshesNames, scene, data, rootUrl, meshes, particleSystems, skeletons) {
             //get the meshes from OBJ file
@@ -353,6 +354,13 @@ var BABYLON;
                     unwrappedNormalsForBabylon.push(wrappedNormalsForBabylon[l].x, wrappedNormalsForBabylon[l].y, wrappedNormalsForBabylon[l].z);
                     unwrappedUVForBabylon.push(wrappedUvsForBabylon[l].x, wrappedUvsForBabylon[l].y); //z is an optional value not supported by BABYLON
                 }
+				// Reset arrays for the next new meshes
+                wrappedPositionForBabylon = [];
+                wrappedNormalsForBabylon = [];
+                wrappedUvsForBabylon = [];
+                tuplePosNorm = [];
+                curPositionInIndices = 0;
+                
             };
             /**
              * Create triangles from polygons by recursion
@@ -497,7 +505,7 @@ var BABYLON;
                     indicesForBabylon = [];
                     unwrappedPositionsForBabylon = [];
                     unwrappedNormalsForBabylon = [];
-                    unwrappedUVForBabylon = [];
+                    unwrappedUVForBabylon = [];  
                 }
             };
             //Main function
@@ -563,7 +571,7 @@ var BABYLON;
                 else if (this.group.test(line) || this.obj.test(line)) {
                     //Create a new mesh corresponding to the name of the group.
                     //Definition of the mesh
-                    var objMesh =
+                    var objMesh = 
                     //Set the name of the current obj mesh
                     {
                         name: line.substring(2).trim(),
@@ -589,7 +597,7 @@ var BABYLON;
                         //Set the data for the previous mesh
                         addPreviousObjMesh();
                         //Create a new mesh
-                        var objMesh =
+                        var objMesh = 
                         //Set the name of the current obj mesh
                         {
                             name: objMeshName + "_mm" + increment.toString(),
@@ -652,7 +660,6 @@ var BABYLON;
                 });
             }
             //Create a BABYLON.Mesh list
-            var vertexData = new BABYLON.VertexData(); //The container for the values
             var babylonMeshesArray = []; //The mesh for babylon
             var materialToUse = [];
             //Set data for each mesh
@@ -679,6 +686,8 @@ var BABYLON;
                 //This is indispensable for the importMesh function
                 materialToUse.push(meshesFromObj[j].materialName);
                 //Set the data for the babylonMesh
+                
+                var vertexData = new BABYLON.VertexData(); //The container for the values
                 vertexData.positions = handledMesh.positions;
                 vertexData.normals = handledMesh.normals;
                 vertexData.uvs = handledMesh.uvs;

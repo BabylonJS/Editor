@@ -29,7 +29,8 @@ var BABYLON;
                             node = core.currentScene;
                         // Particle system
                         if (!node) {
-                            node = core.currentScene.getParticleSystemByName(names[i]);
+                            //node = core.currentScene.getParticleSystemByName(names[i]);
+                            node = EDITOR.Tools.GetParticleSystemByName(core.currentScene, names[i]);
                         }
                         if (!node) {
                             // Sound ?

@@ -106,6 +106,16 @@ var BABYLON;
             Tools.IntToBoolean = function (value) {
                 return !(value === 0.0);
             };
+            /**
+            * Returns a particle system by its name
+            */
+            Tools.GetParticleSystemByName = function (scene, name) {
+                for (var i = 0; i < scene.particleSystems.length; i++) {
+                    if (scene.particleSystems[i].name === name)
+                        return scene.particleSystems[i];
+                }
+                return null;
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;

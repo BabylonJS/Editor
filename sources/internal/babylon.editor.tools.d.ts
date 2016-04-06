@@ -45,5 +45,9 @@ declare module BABYLON.EDITOR {
         * Converts a number to boolean
         */
         static IntToBoolean(value: number): boolean;
+        /**
+        * Returns a particle system by its name
+        */
+        static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
     }
 }

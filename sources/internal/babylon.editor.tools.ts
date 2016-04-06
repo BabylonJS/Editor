@@ -126,5 +126,17 @@
         public static IntToBoolean(value: number): boolean {
             return !(value === 0.0);
         }
+
+        /**
+        * Returns a particle system by its name
+        */
+        public static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem {
+            for (var i = 0; i < scene.particleSystems.length; i++) {
+                if (scene.particleSystems[i].name === name)
+                    return scene.particleSystems[i];
+            }
+
+            return null;
+        }
     }
 }

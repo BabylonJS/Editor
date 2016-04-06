@@ -41,7 +41,8 @@
 
                     // Particle system
                     if (!node) {
-                        node = core.currentScene.getParticleSystemByName(names[i]);
+                        //node = core.currentScene.getParticleSystemByName(names[i]);
+                        node = Tools.GetParticleSystemByName(core.currentScene, names[i]);
                     }
 
                     if (!node) {

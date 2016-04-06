@@ -123,7 +123,6 @@
     <TypeScriptCompile Include="defines\materials\babylon.gridMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.lavaMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.normalMaterial.d.ts" />
-    <TypeScriptCompile Include="defines\materials\babylon.pbrMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.simpleMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.skyMaterial.d.ts" />
     <TypeScriptCompile Include="defines\materials\babylon.terrainMaterial.d.ts" />
