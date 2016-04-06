@@ -1,4 +1,4 @@
-Babylon.js Editor v0.8
+Babylon.js Editor v0.9
 ======
 
 Getting started with the Babylon.js Editor?
@@ -30,9 +30,45 @@ The branch "**master**" contains the online version of the editor, available at 
 If you want to contribute, you can use the branch "**dev**" and pull request.
 The **master** branch will be merged with the **dev** branch at each stable version, even preview :)
 
-Roadmap for v1.0
+Build
+======
+
+Install gulp-cli:
+```
+npm install -g gulp-cli
+```
+
+Install dependencies:
+```
+npm install
+```
+
+Compile the TypeScript files into their respective JS files:
+```
+gulp typescript-compile
+```
+
+Watch
+```
+gulp watch
+```
+
+Build the Babylon.js Editor including minified and maximized versions
+```
+gulp build
+```
+
+Test and run webserver
+```
+gulp webserver
+```
+
+Roadmap for v0.9
 ======
 * Introduce Materials Editor
+
+Roadmap for v1.0
+======
 * Introduce Actions Builder
 
 Licence
