@@ -14,7 +14,7 @@ Features
 * Create and edit particle systems
 * Create and edit animations
 * Create and edit lens flares systems
-* Create and edit materials (complete materials editor will come in version 1.0)
+* Create and edit materials & textures (including materials library and render target textures preview)
 * Save projects on OneDrive (Drop Box will come in future versions)
 * Deploy project template on OneDrive (Drop Box will come in future versions)
 * Cinematics Editor
