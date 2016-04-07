@@ -143,7 +143,7 @@
             this.playLayouts.on({ execute: "after", type: "resize" }, () => {
                 var panelHeight = this.layouts.getPanelFromType("main").height;
                 var toolbarHeight = this.sceneToolbar.toolbar.element.box.clientHeight;
-                this.core.canvas.height = panelHeight - toolbarHeight * 1.5 - this.playLayouts.getPanelFromType("preview").height;
+                this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
             });
         }
 

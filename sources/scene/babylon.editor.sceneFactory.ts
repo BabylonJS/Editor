@@ -365,6 +365,7 @@
         // Adds a water mesh (with water material)
         static AddWaterMesh(core: EditorCore): Mesh {
             var waterMaterial = new WaterMaterial("waterMaterail", core.currentScene);
+            waterMaterial.bumpTexture = new Texture("website/textures/normal.png", core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
 
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
             water.id = this.GenerateUUID();

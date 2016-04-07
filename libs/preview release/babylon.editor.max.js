@@ -4163,7 +4163,7 @@ var BABYLON;
                 this.playLayouts.on({ execute: "after", type: "resize" }, function () {
                     var panelHeight = _this.layouts.getPanelFromType("main").height;
                     var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
-                    _this.core.canvas.height = panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height;
+                    _this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
             };
             /**
@@ -6073,6 +6073,7 @@ var BABYLON;
             // Adds a water mesh (with water material)
             SceneFactory.AddWaterMesh = function (core) {
                 var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
+                waterMaterial.bumpTexture = new BABYLON.Texture("website/textures/normal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;

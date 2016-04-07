@@ -103,7 +103,7 @@ var BABYLON;
                 this.playLayouts.on({ execute: "after", type: "resize" }, function () {
                     var panelHeight = _this.layouts.getPanelFromType("main").height;
                     var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
-                    _this.core.canvas.height = panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height;
+                    _this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
             };
             /**

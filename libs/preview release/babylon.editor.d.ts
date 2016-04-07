@@ -980,184 +980,6 @@ declare module BABYLON.EDITOR {
     }
 }
 
-declare module BABYLON.EDITOR {
-    class GUIAnimationEditor implements IEventReceiver {
-        core: EditorCore;
-        object: IAnimatable;
-        private _animationsList;
-        private _keysList;
-        private _valuesForm;
-        private _currentAnimation;
-        private _currentKey;
-        private _addAnimationWindow;
-        private _addAnimationLayout;
-        private _addAnimationGraph;
-        private _addAnimationForm;
-        private _addAnimationName;
-        private _addAnimationType;
-        private _addAnimationTypeName;
-        private _editedAnimation;
-        private _graphPaper;
-        private _graphLines;
-        private _graphValueTexts;
-        private _graphMiddleLine;
-        private _graphTimeLines;
-        private _graphTimeTexts;
-        static FramesPerSecond: number;
-        private static _CopiedAnimations;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore, object: Node);
-        onEvent(event: Event): boolean;
-        private _createAnimation();
-        _getEffectiveTarget(value?: any): any;
-        private _getFrameTime(frame);
-        private _setRecords(frame, value);
-        private _setFrameValue();
-        private _getFrameValue();
-        private _configureGraph();
-        private _onSelectedAnimation();
-        private _onAddAnimation();
-        private _onModifyKey();
-        private _onAnimationMenuSelected(id);
-        private _onDeleteAnimations();
-        private _onKeySelected();
-        private _onAddKey();
-        private _onRemoveKeys();
-        private _createUI();
-        static GetEndFrameOfObject(object: IAnimatable): number;
-        static GetSceneFrameCount(scene: Scene): number;
-        static SetCurrentFrame(core: EditorCore, objs: IAnimatable[], frame: number): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class BabylonExporter implements IEventReceiver {
-        private _core;
-        private _window;
-        private _layout;
-        private _editor;
-        private _configForm;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        createUI(): void;
-        static GenerateFinalBabylonFile(core: EditorCore): any;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LaunchEditor {
-        core: EditorCore;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ObjectPicker implements IEventReceiver {
-        core: EditorCore;
-        objectLists: Array<any[]>;
-        selectedObjects: Array<any>;
-        onObjectPicked: (names: string[]) => void;
-        onClosedPicker: () => void;
-        minSelectCount: number;
-        windowName: string;
-        selectButtonName: string;
-        closeButtonName: string;
-        private _window;
-        private _list;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        open(): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GUIParticleSystemEditor implements IEventReceiver {
-        core: EditorCore;
-        private _window;
-        private _layouts;
-        private _leftPanel;
-        private _layoutID;
-        private _formTabID;
-        private _editorTabID;
-        private _editElement;
-        private _editElementID;
-        private _inputElementID;
-        private _editor;
-        private _editorElementID;
-        private _engine;
-        private _scene;
-        private _camera;
-        private _particleSystem;
-        private _particleSystemToEdit;
-        private _uiCreated;
-        private _particleSystemCapacity;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore, particleSystem?: ParticleSystem, createUI?: boolean);
-        onEvent(event: Event): boolean;
-        private _createUI();
-        _createEditor(container?: string): GUI.GUIEditForm;
-        private _setParticleSystem();
-        private _editParticleSystem();
-        private _startParticleSystem();
-        private _stopParticleSystem();
-        private _updateGraphNode(result, data?);
-        static _CurrentParticleSystem: ParticleSystem;
-        static _CopiedParticleSystem: ParticleSystem;
-        private _setParticleTexture();
-        static PlayStopAllParticleSystems(scene: Scene, play: boolean): void;
-        static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GUITextureEditor implements IEventReceiver {
-        object: Object;
-        propertyPath: string;
-        private _core;
-        private _targetObject;
-        private _targetTexture;
-        private _objectName;
-        private _currentRenderTarget;
-        private _currentPixels;
-        private _currentOnAfterRender;
-        private _dynamicTexture;
-        private _texturesList;
-        private _engine;
-        private _scene;
-        /**
-        * Constructor
-        * @param core: the editor core
-        * @param object: the object to edit
-        * @param propertyPath: the path to the texture property of the object
-        */
-        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string);
-        onEvent(ev: Event): boolean;
-        private _createUI();
-        private _configureRenderTarget();
-        private _restorRenderTarget();
-        private _fillTextureList();
-        private _onReadFileCallback(name);
-    }
-}
-
 declare module BABYLON.EDITOR.GUI {
     class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
@@ -1441,6 +1263,184 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GUIAnimationEditor implements IEventReceiver {
+        core: EditorCore;
+        object: IAnimatable;
+        private _animationsList;
+        private _keysList;
+        private _valuesForm;
+        private _currentAnimation;
+        private _currentKey;
+        private _addAnimationWindow;
+        private _addAnimationLayout;
+        private _addAnimationGraph;
+        private _addAnimationForm;
+        private _addAnimationName;
+        private _addAnimationType;
+        private _addAnimationTypeName;
+        private _editedAnimation;
+        private _graphPaper;
+        private _graphLines;
+        private _graphValueTexts;
+        private _graphMiddleLine;
+        private _graphTimeLines;
+        private _graphTimeTexts;
+        static FramesPerSecond: number;
+        private static _CopiedAnimations;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore, object: Node);
+        onEvent(event: Event): boolean;
+        private _createAnimation();
+        _getEffectiveTarget(value?: any): any;
+        private _getFrameTime(frame);
+        private _setRecords(frame, value);
+        private _setFrameValue();
+        private _getFrameValue();
+        private _configureGraph();
+        private _onSelectedAnimation();
+        private _onAddAnimation();
+        private _onModifyKey();
+        private _onAnimationMenuSelected(id);
+        private _onDeleteAnimations();
+        private _onKeySelected();
+        private _onAddKey();
+        private _onRemoveKeys();
+        private _createUI();
+        static GetEndFrameOfObject(object: IAnimatable): number;
+        static GetSceneFrameCount(scene: Scene): number;
+        static SetCurrentFrame(core: EditorCore, objs: IAnimatable[], frame: number): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class BabylonExporter implements IEventReceiver {
+        private _core;
+        private _window;
+        private _layout;
+        private _editor;
+        private _configForm;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        createUI(): void;
+        static GenerateFinalBabylonFile(core: EditorCore): any;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LaunchEditor {
+        core: EditorCore;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ObjectPicker implements IEventReceiver {
+        core: EditorCore;
+        objectLists: Array<any[]>;
+        selectedObjects: Array<any>;
+        onObjectPicked: (names: string[]) => void;
+        onClosedPicker: () => void;
+        minSelectCount: number;
+        windowName: string;
+        selectButtonName: string;
+        closeButtonName: string;
+        private _window;
+        private _list;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        open(): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GUIParticleSystemEditor implements IEventReceiver {
+        core: EditorCore;
+        private _window;
+        private _layouts;
+        private _leftPanel;
+        private _layoutID;
+        private _formTabID;
+        private _editorTabID;
+        private _editElement;
+        private _editElementID;
+        private _inputElementID;
+        private _editor;
+        private _editorElementID;
+        private _engine;
+        private _scene;
+        private _camera;
+        private _particleSystem;
+        private _particleSystemToEdit;
+        private _uiCreated;
+        private _particleSystemCapacity;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore, particleSystem?: ParticleSystem, createUI?: boolean);
+        onEvent(event: Event): boolean;
+        private _createUI();
+        _createEditor(container?: string): GUI.GUIEditForm;
+        private _setParticleSystem();
+        private _editParticleSystem();
+        private _startParticleSystem();
+        private _stopParticleSystem();
+        private _updateGraphNode(result, data?);
+        static _CurrentParticleSystem: ParticleSystem;
+        static _CopiedParticleSystem: ParticleSystem;
+        private _setParticleTexture();
+        static PlayStopAllParticleSystems(scene: Scene, play: boolean): void;
+        static CreateParticleSystem(scene: Scene, capacity: number, particleSystem?: ParticleSystem, emitter?: Node): ParticleSystem;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GUITextureEditor implements IEventReceiver {
+        object: Object;
+        propertyPath: string;
+        private _core;
+        private _targetObject;
+        private _targetTexture;
+        private _objectName;
+        private _currentRenderTarget;
+        private _currentPixels;
+        private _currentOnAfterRender;
+        private _dynamicTexture;
+        private _texturesList;
+        private _engine;
+        private _scene;
+        /**
+        * Constructor
+        * @param core: the editor core
+        * @param object: the object to edit
+        * @param propertyPath: the path to the texture property of the object
+        */
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string);
+        onEvent(ev: Event): boolean;
+        private _createUI();
+        private _configureRenderTarget();
+        private _restorRenderTarget();
+        private _fillTextureList();
+        private _onReadFileCallback(name);
     }
 }
 
