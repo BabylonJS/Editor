@@ -65,7 +65,7 @@
 
                     this.toolbar.setItemChecked(id, !checked);
 
-                    this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
+                    //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
 
                     return true;
                 }
@@ -76,6 +76,8 @@
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
 
                     if (checked) {
+                        this._editor.transformer.setNode(null);
+
                         this._core.engine.resize();
                         this._core.isPlaying = true;
 

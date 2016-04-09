@@ -14,6 +14,5 @@ declare module BABYLON.EDITOR {
         private _addLensFlare();
         private _reset();
         private _setupRemove(indice);
-        private _setupChangeTexture(indice);
     }
 }

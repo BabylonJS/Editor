@@ -457,7 +457,7 @@ var BABYLON;
                 }
                 else {
                     var finalString = "";
-                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
+                    if (node.id.indexOf(EDITOR.SceneFactory.DummyNodeID) === -1 && node !== this.core.camera) {
                         finalString = "\t// Configure node " + node.name + "\n";
                         var foundParticleSystems = false;
                         for (var i = 0; i < scene.particleSystems.length; i++) {

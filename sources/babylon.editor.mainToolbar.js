@@ -64,10 +64,6 @@ var BABYLON;
                         return false;
                     }
                     var id = event.guiEvent.data;
-                    //var finalIDs = id.split(":");
-                    //var item = this.toolbar.getItemByID(finalIDs[finalIDs.length - 1]);
-                    //if (item === null)
-                    //    return false;
                     var selected = this.toolbar.decomposeSelectedMenu(id);
                     if (!selected || !selected.hasParent)
                         return false;

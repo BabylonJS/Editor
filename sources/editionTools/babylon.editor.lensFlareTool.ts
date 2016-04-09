@@ -86,8 +86,7 @@
             lfFolder.add(lensFlare, "position").step(0.1).name("Position");
             lfFolder.add(lensFlare, "size").step(0.1).name("Size");
 
-            this._setupChangeTexture(this._currentLensFlareId);
-            lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
+            this.addTextureFolder(lensFlare, "Texture", "texture", lfFolder).open();
 
             this._setupRemove(this._currentLensFlareId);
             lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
@@ -123,31 +122,6 @@
             this["_removeLensFlare" + indice] = () => {
                 (<LensFlareSystem>this.object).lensFlares[indice].dispose();
                 this._reset();
-            };
-        }
-
-        // Creates a function to change texture of a flare
-        private _setupChangeTexture(indice: number): void {
-            this["_changeTexture" + indice] = () => {
-                var input = Tools.CreateFileInpuElement("LENS-FLARE-LOAD-TEXTURE");
-
-                input.change((data: any) => {
-                    var files: File[] = data.target.files || data.currentTarget.files;
-
-                    if (files.length < 1)
-                        return;
-
-                    var file = files[0];
-                    BABYLON.Tools.ReadFileAsDataURL(file, (result: string) => {
-                        var texture = Texture.CreateFromBase64String(result, file.name, this._editionTool.core.currentScene);
-                        texture.name = texture.name.replace("data:", "");
-
-                        (<LensFlareSystem>this.object).lensFlares[indice].texture = texture;
-                        input.remove();
-                    }, null);
-                });
-
-                input.click();
             };
         }
     }

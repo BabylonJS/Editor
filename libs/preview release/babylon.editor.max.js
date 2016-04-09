@@ -256,6 +256,100 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var ManipulationHelper = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
+            function ManipulationHelper(core) {
+                var _this = this;
+                this._currentNode = null;
+                this._cameraAttached = true;
+                this._actionStack = [];
+                // Initialize
+                this._core = core;
+                core.eventReceivers.push(this);
+                core.updates.push(this);
+                // Create scene
+                this._scene = new BABYLON.Scene(core.engine);
+                this._scene.autoClear = false;
+                this._scene.postProcessesEnabled = false;
+                // Events
+                this._pointerObserver = this._scene.onPointerObservable.add(function (p, s) { return _this._pointerCallback(p, s); }, -1, true);
+                // Manipulator
+                this._manipulator = new ManipulationHelpers.ManipulatorInteractionHelper(this._scene);
+            }
+            // On event
+            ManipulationHelper.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                    var object = event.sceneEvent.object;
+                    //if (object && object.position || object.rotation || object.rotationQuaternion || object.scaling)
+                    this.setNode(object);
+                }
+                return false;
+            };
+            // On pre update
+            ManipulationHelper.prototype.onPreUpdate = function () {
+                // Update camera
+                this._scene.activeCamera = this._core.currentScene.activeCamera;
+            };
+            // On post update
+            ManipulationHelper.prototype.onPostUpdate = function () { };
+            // Get internal scene
+            ManipulationHelper.prototype.getScene = function () {
+                return this._scene;
+            };
+            // Sets the node to manupulate
+            ManipulationHelper.prototype.setNode = function (node) {
+                if (this._currentNode)
+                    this._manipulator.detachManipulatedNode(this._currentNode);
+                if (node)
+                    this._manipulator.attachManipulatedNode(node);
+                this._currentNode = node;
+            };
+            // Pointer event callback
+            ManipulationHelper.prototype._pointerCallback = function (pointer, event) {
+                this._detectActionChanged(pointer, event);
+                switch (this._getCurrentAction()) {
+                    case 1 /* Selector */:
+                        event.skipNextObservers = true;
+                        break;
+                    case 2 /* Camerator */:
+                        if (pointer.type & (BABYLON.PointerEventTypes.POINTERUP | BABYLON.PointerEventTypes.POINTERWHEEL)) {
+                            this._actionStack.pop();
+                        }
+                        break;
+                }
+            };
+            // Detect action changed
+            ManipulationHelper.prototype._detectActionChanged = function (p, s) {
+                // Detect switch from selection to camerator
+                if (this._getCurrentAction() === 1 /* Selector */) {
+                    if (p.type === BABYLON.PointerEventTypes.POINTERDOWN) {
+                        if (!p.pickInfo.hit)
+                            this._actionStack.push(2 /* Camerator */);
+                    }
+                    else if (p.type === BABYLON.PointerEventTypes.POINTERWHEEL) {
+                        this._actionStack.push(2 /* Camerator */);
+                    }
+                }
+            };
+            // Returns the current action
+            ManipulationHelper.prototype._getCurrentAction = function () {
+                if (this._actionStack.length === 0) {
+                    return 1 /* Selector */;
+                }
+                return this._actionStack[this._actionStack.length - 1];
+            };
+            return ManipulationHelper;
+        })();
+        EDITOR.ManipulationHelper = ManipulationHelper;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var GUI;
         (function (GUI) {
             var GUIElement = (function () {
@@ -1718,21 +1812,21 @@ var BABYLON;
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
-                    positionFolder.add(object.position, "x").step(0.1).name("x").listen();
-                    positionFolder.add(object.position, "y").step(0.1).name("y").listen();
-                    positionFolder.add(object.position, "z").step(0.1).name("z").listen();
+                    positionFolder.add(object.position, "x").step(0.1).name("x");
+                    positionFolder.add(object.position, "y").step(0.1).name("y");
+                    positionFolder.add(object.position, "z").step(0.1).name("z");
                 }
                 if (object.rotation) {
                     var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                    rotationFolder.add(object.rotation, "x").name("x").step(0.1).listen();
-                    rotationFolder.add(object.rotation, "y").name("y").step(0.1).listen();
-                    rotationFolder.add(object.rotation, "z").name("z").step(0.1).listen();
+                    rotationFolder.add(object.rotation, "x").name("x").step(0.1);
+                    rotationFolder.add(object.rotation, "y").name("y").step(0.1);
+                    rotationFolder.add(object.rotation, "z").name("z").step(0.1);
                 }
                 if (object.scaling) {
                     var scalingFolder = this._element.addFolder("Scaling", transformFolder);
-                    scalingFolder.add(object.scaling, "x").name("x").step(0.1).listen();
-                    scalingFolder.add(object.scaling, "y").name("y").step(0.1).listen();
-                    scalingFolder.add(object.scaling, "z").name("z").step(0.1).listen();
+                    scalingFolder.add(object.scaling, "x").name("x").step(0.1);
+                    scalingFolder.add(object.scaling, "y").name("y").step(0.1);
+                    scalingFolder.add(object.scaling, "z").name("z").step(0.1);
                 }
                 // Rendering
                 if (object instanceof BABYLON.AbstractMesh) {
@@ -2079,8 +2173,7 @@ var BABYLON;
                 colorFolder.add(lensFlare.color, "b").min(0).max(1).name("B");
                 lfFolder.add(lensFlare, "position").step(0.1).name("Position");
                 lfFolder.add(lensFlare, "size").step(0.1).name("Size");
-                this._setupChangeTexture(this._currentLensFlareId);
-                lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
+                this.addTextureFolder(lensFlare, "Texture", "texture", lfFolder).open();
                 this._setupRemove(this._currentLensFlareId);
                 lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
                 // Finish
@@ -2111,26 +2204,6 @@ var BABYLON;
                 this["_removeLensFlare" + indice] = function () {
                     _this.object.lensFlares[indice].dispose();
                     _this._reset();
-                };
-            };
-            // Creates a function to change texture of a flare
-            LensFlareTool.prototype._setupChangeTexture = function (indice) {
-                var _this = this;
-                this["_changeTexture" + indice] = function () {
-                    var input = EDITOR.Tools.CreateFileInpuElement("LENS-FLARE-LOAD-TEXTURE");
-                    input.change(function (data) {
-                        var files = data.target.files || data.currentTarget.files;
-                        if (files.length < 1)
-                            return;
-                        var file = files[0];
-                        BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
-                            var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
-                            texture.name = texture.name.replace("data:", "");
-                            _this.object.lensFlares[indice].texture = texture;
-                            input.remove();
-                        }, null);
-                    });
-                    input.click();
                 };
             };
             return LensFlareTool;
@@ -4063,6 +4136,8 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
+            // private members
+            // Statics
             /**
             * Constructor
             */
@@ -4100,7 +4175,8 @@ var BABYLON;
                 this.sceneToolbar = new EDITOR.SceneToolbar(this.core);
                 this.sceneToolbar.createUI();
                 // Transformer
-                this.transformer = new EDITOR.Transformer(this.core);
+                //this.transformer = new Transformer(this.core);
+                this.transformer = new EDITOR.ManipulationHelper(this.core);
                 // Edit panel
                 this.editPanel = new EDITOR.EditPanel(this.core);
                 // Timeline
@@ -4112,15 +4188,6 @@ var BABYLON;
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
             }
-            Object.defineProperty(EditorMain, "DummyNodeID", {
-                // private members
-                // Statics
-                get: function () {
-                    return "BABYLON-EDITOR-DUMMY-NODE";
-                },
-                enumerable: true,
-                configurable: true
-            });
             /**
             * Event receiver
             */
@@ -4331,10 +4398,6 @@ var BABYLON;
                         return false;
                     }
                     var id = event.guiEvent.data;
-                    //var finalIDs = id.split(":");
-                    //var item = this.toolbar.getItemByID(finalIDs[finalIDs.length - 1]);
-                    //if (item === null)
-                    //    return false;
                     var selected = this.toolbar.decomposeSelectedMenu(id);
                     if (!selected || !selected.hasParent)
                         return false;
@@ -4844,6 +4907,7 @@ var BABYLON;
                 this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 this._renderHelpersID = "RENDER-HELPERS";
+                this._renderDebugLayerID = "RENDER-DEBUG-LAYER";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -4865,32 +4929,41 @@ var BABYLON;
                         return false;
                     }
                     var id = event.guiEvent.data;
-                    var finalID = id.split(":");
-                    var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+                    var selected = this.toolbar.decomposeSelectedMenu(id);
                     var scene = this._core.currentScene;
-                    if (item === null)
+                    if (!selected || !selected.parent)
                         return false;
-                    if (id.indexOf(this._wireframeID) !== -1) {
+                    id = selected.parent;
+                    if (id === this._wireframeID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         scene.forceWireframe = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._boundingBoxID) !== -1) {
+                    else if (id === this._boundingBoxID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         scene.forceShowBoundingBoxes = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._renderHelpersID) !== -1) {
+                    else if (id === this._renderHelpersID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         this._core.editor.renderHelpers = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._centerOnObjectID) !== -1) {
+                    else if (id === this._centerOnObjectID) {
                         var object = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
                         this.setFocusOnObject(object);
+                        return true;
+                    }
+                    else if (id === this._renderDebugLayerID) {
+                        var checked = !this.toolbar.isItemChecked(id);
+                        if (checked)
+                            scene.debugLayer.show(true, scene.activeCamera, scene.getEngine().getRenderingCanvas());
+                        else
+                            scene.debugLayer.hide();
+                        this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
                 }
@@ -4911,6 +4984,7 @@ var BABYLON;
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();
+                this.toolbar.createMenu("button", this._renderDebugLayerID, "Debug Layer", "icon-wireframe");
                 this.toolbar.addSpacer();
                 this.toolbar.createInput("SCENE-TOOLBAR-FPS", "SCENE-TOOLBAR-FPS-INPUT", "FPS :", 5);
                 // Build element
@@ -5217,7 +5291,7 @@ var BABYLON;
                         this.toolbar.setItemChecked(this._transformerRotationID, false);
                         this.toolbar.setItemChecked(this._transformerScalingID, false);
                         this.toolbar.setItemChecked(id, !checked);
-                        this._editor.transformer.transformerType = checked ? EDITOR.TransformerType.NOTHING : transformerIndex;
+                        //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
                         return true;
                     }
                     else if (id.indexOf(this._playGameID) !== -1) {
@@ -5225,6 +5299,7 @@ var BABYLON;
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
+                            this._editor.transformer.setNode(null);
                             this._core.engine.resize();
                             this._core.isPlaying = true;
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
@@ -5820,6 +5895,13 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
+            Object.defineProperty(SceneFactory, "DummyNodeID", {
+                get: function () {
+                    return "BABYLON-EDITOR-DUMMY-NODE";
+                },
+                enumerable: true,
+                configurable: true
+            });
             // Private members
             SceneFactory.ConfigureObject = function (object, core) {
                 if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)
@@ -6220,18 +6302,6 @@ var BABYLON;
             function OneDriveStorage(core) {
                 _super.call(this, core);
                 this._editor = core.editor;
-                // OneDrive
-                /*
-                if (OneDriveStorage._TOKEN === "") {
-                    var uri = "https://login.live.com/oauth20_authorize.srf"
-                        + "?client_id=" + OneDriveStorage._ClientID
-                        //+ "&redirect_uri=" + "http://localhost:33404/website/redirect.html"//window.location.href
-                        + "&redirect_uri=" + Tools.getBaseURL() + "redirect.html"
-                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
-                    
-                    Tools.OpenWindowPopup(uri, 512, 512);
-                }
-                */
             }
             // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
             OneDriveStorage._OnAuthentificated = function () {
@@ -6846,7 +6916,7 @@ var BABYLON;
                 }
                 else {
                     var finalString = "";
-                    if (node.id.indexOf(EDITOR.EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
+                    if (node.id.indexOf(EDITOR.SceneFactory.DummyNodeID) === -1 && node !== this.core.camera) {
                         finalString = "\t// Configure node " + node.name + "\n";
                         var foundParticleSystems = false;
                         for (var i = 0; i < scene.particleSystems.length; i++) {

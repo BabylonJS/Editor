@@ -76,8 +76,7 @@ var BABYLON;
                 colorFolder.add(lensFlare.color, "b").min(0).max(1).name("B");
                 lfFolder.add(lensFlare, "position").step(0.1).name("Position");
                 lfFolder.add(lensFlare, "size").step(0.1).name("Size");
-                this._setupChangeTexture(this._currentLensFlareId);
-                lfFolder.add(this, "_changeTexture" + this._currentLensFlareId).name("Set Texture...");
+                this.addTextureFolder(lensFlare, "Texture", "texture", lfFolder).open();
                 this._setupRemove(this._currentLensFlareId);
                 lfFolder.add(this, "_removeLensFlare" + this._currentLensFlareId).name("Remove...");
                 // Finish
@@ -108,26 +107,6 @@ var BABYLON;
                 this["_removeLensFlare" + indice] = function () {
                     _this.object.lensFlares[indice].dispose();
                     _this._reset();
-                };
-            };
-            // Creates a function to change texture of a flare
-            LensFlareTool.prototype._setupChangeTexture = function (indice) {
-                var _this = this;
-                this["_changeTexture" + indice] = function () {
-                    var input = EDITOR.Tools.CreateFileInpuElement("LENS-FLARE-LOAD-TEXTURE");
-                    input.change(function (data) {
-                        var files = data.target.files || data.currentTarget.files;
-                        if (files.length < 1)
-                            return;
-                        var file = files[0];
-                        BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
-                            var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
-                            texture.name = texture.name.replace("data:", "");
-                            _this.object.lensFlares[indice].texture = texture;
-                            input.remove();
-                        }, null);
-                    });
-                    input.click();
                 };
             };
             return LensFlareTool;

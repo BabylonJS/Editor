@@ -76,19 +76,6 @@
             super(core);
 
             this._editor = core.editor;
-
-            // OneDrive
-            /*
-            if (OneDriveStorage._TOKEN === "") {
-                var uri = "https://login.live.com/oauth20_authorize.srf"
-                    + "?client_id=" + OneDriveStorage._ClientID
-                    //+ "&redirect_uri=" + "http://localhost:33404/website/redirect.html"//window.location.href
-                    + "&redirect_uri=" + Tools.getBaseURL() + "redirect.html"
-                    + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite onedrive.appfolder wl.offline_access";
-                
-                Tools.OpenWindowPopup(uri, 512, 512);
-            }
-            */
         }
 
         // Creates folders

@@ -576,7 +576,7 @@
             else {
                 var finalString = "";
 
-                if (node.id.indexOf(EditorMain.DummyNodeID) === -1 && node !== this.core.camera) {
+                if (node.id.indexOf(SceneFactory.DummyNodeID) === -1 && node !== this.core.camera) {
                     finalString = "\t// Configure node " + node.name + "\n";
 
                     var foundParticleSystems = false;

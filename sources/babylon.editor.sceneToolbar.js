@@ -17,6 +17,7 @@ var BABYLON;
                 this._boundingBoxID = "BOUNDINGBOX";
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 this._renderHelpersID = "RENDER-HELPERS";
+                this._renderDebugLayerID = "RENDER-DEBUG-LAYER";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -38,32 +39,41 @@ var BABYLON;
                         return false;
                     }
                     var id = event.guiEvent.data;
-                    var finalID = id.split(":");
-                    var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+                    var selected = this.toolbar.decomposeSelectedMenu(id);
                     var scene = this._core.currentScene;
-                    if (item === null)
+                    if (!selected || !selected.parent)
                         return false;
-                    if (id.indexOf(this._wireframeID) !== -1) {
+                    id = selected.parent;
+                    if (id === this._wireframeID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         scene.forceWireframe = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._boundingBoxID) !== -1) {
+                    else if (id === this._boundingBoxID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         scene.forceShowBoundingBoxes = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._renderHelpersID) !== -1) {
+                    else if (id === this._renderHelpersID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         this._core.editor.renderHelpers = checked;
                         this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
-                    else if (id.indexOf(this._centerOnObjectID) !== -1) {
+                    else if (id === this._centerOnObjectID) {
                         var object = this._core.editor.sceneGraphTool.sidebar.getSelectedData();
                         this.setFocusOnObject(object);
+                        return true;
+                    }
+                    else if (id === this._renderDebugLayerID) {
+                        var checked = !this.toolbar.isItemChecked(id);
+                        if (checked)
+                            scene.debugLayer.show(true, scene.activeCamera, scene.getEngine().getRenderingCanvas());
+                        else
+                            scene.debugLayer.hide();
+                        this.toolbar.setItemChecked(id, checked);
                         return true;
                     }
                 }
@@ -84,6 +94,7 @@ var BABYLON;
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._centerOnObjectID, "Focus object", "icon-focus");
                 this.toolbar.addBreak();
+                this.toolbar.createMenu("button", this._renderDebugLayerID, "Debug Layer", "icon-wireframe");
                 this.toolbar.addSpacer();
                 this.toolbar.createInput("SCENE-TOOLBAR-FPS", "SCENE-TOOLBAR-FPS-INPUT", "FPS :", 5);
                 // Build element

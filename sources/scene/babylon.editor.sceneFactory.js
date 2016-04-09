@@ -12,6 +12,13 @@ var BABYLON;
                 };
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
             };
+            Object.defineProperty(SceneFactory, "DummyNodeID", {
+                get: function () {
+                    return "BABYLON-EDITOR-DUMMY-NODE";
+                },
+                enumerable: true,
+                configurable: true
+            });
             // Private members
             SceneFactory.ConfigureObject = function (object, core) {
                 if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene)

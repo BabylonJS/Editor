@@ -48,7 +48,7 @@ var BABYLON;
                         this.toolbar.setItemChecked(this._transformerRotationID, false);
                         this.toolbar.setItemChecked(this._transformerScalingID, false);
                         this.toolbar.setItemChecked(id, !checked);
-                        this._editor.transformer.transformerType = checked ? EDITOR.TransformerType.NOTHING : transformerIndex;
+                        //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
                         return true;
                     }
                     else if (id.indexOf(this._playGameID) !== -1) {
@@ -56,6 +56,7 @@ var BABYLON;
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
+                            this._editor.transformer.setNode(null);
                             this._core.engine.resize();
                             this._core.isPlaying = true;
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;

@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR {
     }
     class SceneFactory {
         static GenerateUUID(): string;
+        static DummyNodeID: string;
         static ConfigureObject(object: any, core: EditorCore): void;
         static HDRPipeline: HDRRenderingPipeline;
         static SSAOPipeline: SSAORenderingPipeline;

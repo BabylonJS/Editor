@@ -3,6 +3,8 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
+            // private members
+            // Statics
             /**
             * Constructor
             */
@@ -40,7 +42,8 @@ var BABYLON;
                 this.sceneToolbar = new EDITOR.SceneToolbar(this.core);
                 this.sceneToolbar.createUI();
                 // Transformer
-                this.transformer = new EDITOR.Transformer(this.core);
+                //this.transformer = new Transformer(this.core);
+                this.transformer = new EDITOR.ManipulationHelper(this.core);
                 // Edit panel
                 this.editPanel = new EDITOR.EditPanel(this.core);
                 // Timeline
@@ -52,15 +55,6 @@ var BABYLON;
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
             }
-            Object.defineProperty(EditorMain, "DummyNodeID", {
-                // private members
-                // Statics
-                get: function () {
-                    return "BABYLON-EDITOR-DUMMY-NODE";
-                },
-                enumerable: true,
-                configurable: true
-            });
             /**
             * Event receiver
             */

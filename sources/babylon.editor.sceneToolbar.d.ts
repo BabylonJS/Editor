@@ -10,6 +10,7 @@ declare module BABYLON.EDITOR {
         private _boundingBoxID;
         private _centerOnObjectID;
         private _renderHelpersID;
+        private _renderDebugLayerID;
         /**
         * Constructor
         * @param core: the editor core instance

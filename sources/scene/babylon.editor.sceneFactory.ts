@@ -19,6 +19,10 @@
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         }
 
+        public static get DummyNodeID(): string {
+            return "BABYLON-EDITOR-DUMMY-NODE";
+        }
+
         // Private members
         public static ConfigureObject(object: any, core: EditorCore): void {
 

@@ -19,6 +19,7 @@
     "files": [
       "sources/internal/babylon.editor.event.js",
       "sources/internal/babylon.editor.tools.js",
+      "sources/internal/babylon.editor.manipulationHelpers.js",
 
       "sources/gui/babylon.editor.guiElement.js",
       "sources/gui/babylon.editor.guiDialog.js",

@@ -93,6 +93,11 @@
         onFinishChange(callback: (result?: any) => void): IGUIElement;
 
         /**
+        * When a function is called
+        */
+        onFire(callback: () => void): IGUIElement;
+
+        /**
         * Sets the minimum value
         */
         min(min: number): IGUIElement;

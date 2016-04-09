@@ -6,7 +6,7 @@ declare module BABYLON.EDITOR {
         mainToolbar: MainToolbar;
         toolsToolbar: ToolsToolbar;
         sceneToolbar: SceneToolbar;
-        transformer: Transformer;
+        transformer: ManipulationHelper;
         editPanel: EditPanel;
         timeline: Timeline;
         container: string;
@@ -19,7 +19,6 @@ declare module BABYLON.EDITOR {
         exporter: Exporter;
         renderMainScene: boolean;
         renderHelpers: boolean;
-        static DummyNodeID: string;
         /**
         * Constructor
         */

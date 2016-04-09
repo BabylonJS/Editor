@@ -8,7 +8,8 @@
         public mainToolbar: MainToolbar;
         public toolsToolbar: ToolsToolbar;
         public sceneToolbar: SceneToolbar;
-        public transformer: Transformer;
+        //public transformer: Transformer;
+        public transformer: ManipulationHelper;
         public editPanel: EditPanel;
         public timeline: Timeline;
 
@@ -29,9 +30,6 @@
         // private members
 
         // Statics
-        public static get DummyNodeID(): string {
-            return "BABYLON-EDITOR-DUMMY-NODE";
-        }
 
         /**
         * Constructor
@@ -72,7 +70,8 @@
             this.sceneToolbar.createUI();
 
             // Transformer
-            this.transformer = new Transformer(this.core);
+            //this.transformer = new Transformer(this.core);
+            this.transformer = new ManipulationHelper(this.core);
 
             // Edit panel
             this.editPanel = new EditPanel(this.core);
