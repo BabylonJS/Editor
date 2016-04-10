@@ -12,6 +12,7 @@ var BABYLON;
                 this._currentNode = null;
                 this._cameraAttached = true;
                 this._actionStack = [];
+                this._enabled = false;
                 // Initialize
                 this._core = core;
                 core.eventReceivers.push(this);
@@ -24,12 +25,15 @@ var BABYLON;
                 this._pointerObserver = this._scene.onPointerObservable.add(function (p, s) { return _this._pointerCallback(p, s); }, -1, true);
                 // Manipulator
                 this._manipulator = new ManipulationHelpers.ManipulatorInteractionHelper(this._scene);
+                this._manipulator.detachManipulatedNode(null);
+                this.enabled = this._enabled;
             }
             // On event
             ManipulationHelper.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
                     var object = event.sceneEvent.object;
-                    //if (object && object.position || object.rotation || object.rotationQuaternion || object.scaling)
+                    if (!(object instanceof BABYLON.Node))
+                        object = null;
                     this.setNode(object);
                 }
                 return false;
@@ -45,11 +49,29 @@ var BABYLON;
             ManipulationHelper.prototype.getScene = function () {
                 return this._scene;
             };
+            Object.defineProperty(ManipulationHelper.prototype, "enabled", {
+                // Returns if the manipulators are enabled
+                get: function () {
+                    return this._enabled;
+                },
+                // Sets if the manipulators are enabled
+                set: function (enabled) {
+                    this._enabled = enabled;
+                    if (!enabled) {
+                        this.setNode(null);
+                    }
+                    else if (this._currentNode) {
+                        this._manipulator.attachManipulatedNode(this._currentNode);
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
             // Sets the node to manupulate
             ManipulationHelper.prototype.setNode = function (node) {
                 if (this._currentNode)
                     this._manipulator.detachManipulatedNode(this._currentNode);
-                if (node)
+                if (node && this._enabled)
                     this._manipulator.attachManipulatedNode(node);
                 this._currentNode = node;
             };

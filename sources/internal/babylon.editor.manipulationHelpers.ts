@@ -19,6 +19,8 @@
         private _actionStack: SIHCurrentAction[] = [];
         private _manipulator: ManipulationHelpers.ManipulatorInteractionHelper;
 
+        private _enabled: boolean = false;
+
         /**
         * Constructor
         * @param core: the editor core instance
@@ -39,6 +41,8 @@
 
             // Manipulator
             this._manipulator = new ManipulationHelpers.ManipulatorInteractionHelper(this._scene);
+            this._manipulator.detachManipulatedNode(null);
+            this.enabled = this._enabled;
         }
 
         // On event
@@ -46,8 +50,10 @@
             if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
                 var object = event.sceneEvent.object;
 
-                //if (object && object.position || object.rotation || object.rotationQuaternion || object.scaling)
-                    this.setNode(object);
+                if (!(object instanceof Node))
+                    object = null;
+
+                this.setNode(object);
             }
 
             return false;
@@ -68,12 +74,29 @@
             return this._scene;
         }
 
+        // Returns if the manipulators are enabled
+        public get enabled(): boolean {
+            return this._enabled;
+        }
+
+        // Sets if the manipulators are enabled
+        public set enabled(enabled: boolean) {
+            this._enabled = enabled;
+
+            if (!enabled) {
+                this.setNode(null);
+            }
+            else if (this._currentNode) {
+                this._manipulator.attachManipulatedNode(this._currentNode);
+            }
+        }
+
         // Sets the node to manupulate
         public setNode(node: Node) {
             if (this._currentNode)
                 this._manipulator.detachManipulatedNode(this._currentNode);
 
-            if (node)
+            if (node && this._enabled)
                 this._manipulator.attachManipulatedNode(node);
 
             this._currentNode = node;

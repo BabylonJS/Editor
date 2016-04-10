@@ -12,8 +12,6 @@
         private _playGameID: string = "PLAY-GAME";
 
         private _transformerPositionID: string = "TRANSFORMER-POSITION";
-        private _transformerRotationID: string = "TRANSFORMER-ROTATION";
-        private _transformerScalingID: string = "TRANSFORMER-SCALING";
 
         /**
         * Constructor
@@ -48,28 +46,32 @@
                     return false;
                 }
 
+                /*
                 var id: string = event.guiEvent.data;
                 var finalID = id.split(":");
                 var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
-
+                
                 if (item === null)
                     return false;
+                */
 
-                var transformerIndex = [this._transformerPositionID, this._transformerRotationID, this._transformerScalingID].indexOf(id);
-                if (transformerIndex !== -1) {
+                var id: string = event.guiEvent.data;
+                var selected = this.toolbar.decomposeSelectedMenu(id);
+
+                if (!selected || !selected.parent)
+                    return false;
+
+                id = selected.parent;
+                
+                if (id === this._transformerPositionID) {
                     var checked = this.toolbar.isItemChecked(id);
-
-                    this.toolbar.setItemChecked(this._transformerPositionID, false);
-                    this.toolbar.setItemChecked(this._transformerRotationID, false);
-                    this.toolbar.setItemChecked(this._transformerScalingID, false);
-
                     this.toolbar.setItemChecked(id, !checked);
 
-                    //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
+                    this._editor.transformer.enabled = !checked;
 
                     return true;
                 }
-                else if (id.indexOf(this._playGameID) !== -1) {
+                else if (id === this._playGameID) {
                     var checked = !this.toolbar.isItemChecked(id);
 
                     //if (this._core.playCamera) {
@@ -77,6 +79,7 @@
 
                     if (checked) {
                         this._editor.transformer.setNode(null);
+                        this._editor.transformer.enabled = false;
 
                         this._core.engine.resize();
                         this._core.isPlaying = true;
@@ -99,6 +102,7 @@
                         this._editor.timeline.play();
                     }
                     else {
+                        this._editor.transformer.enabled = true;
                         this._core.engine.resize();
 
                         // Animate at launch
@@ -119,7 +123,6 @@
 
                     for (var i = 0; i < this._core.currentScene.meshes.length; i++)
                         this._core.currentScene.meshes[i].showBoundingBox = false;
-                    //}
 
                     return true;
                 }
@@ -139,9 +142,7 @@
             this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
             this.toolbar.addBreak();
 
-            this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Set Position...");
-            this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation", undefined, "Set Rotation...");
-            this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling", undefined, "Set Scale...");
+            this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
 
             // Build element
             this.toolbar.buildElement(this.container);

@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR {
         private _pointerObserver;
         private _actionStack;
         private _manipulator;
+        private _enabled;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -16,6 +17,7 @@ declare module BABYLON.EDITOR {
         onPreUpdate(): void;
         onPostUpdate(): void;
         getScene(): Scene;
+        enabled: boolean;
         setNode(node: Node): void;
         private _pointerCallback(pointer, event);
         private _detectActionChanged(p, s);

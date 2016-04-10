@@ -266,6 +266,7 @@ var BABYLON;
                 this._currentNode = null;
                 this._cameraAttached = true;
                 this._actionStack = [];
+                this._enabled = false;
                 // Initialize
                 this._core = core;
                 core.eventReceivers.push(this);
@@ -278,12 +279,15 @@ var BABYLON;
                 this._pointerObserver = this._scene.onPointerObservable.add(function (p, s) { return _this._pointerCallback(p, s); }, -1, true);
                 // Manipulator
                 this._manipulator = new ManipulationHelpers.ManipulatorInteractionHelper(this._scene);
+                this._manipulator.detachManipulatedNode(null);
+                this.enabled = this._enabled;
             }
             // On event
             ManipulationHelper.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
                     var object = event.sceneEvent.object;
-                    //if (object && object.position || object.rotation || object.rotationQuaternion || object.scaling)
+                    if (!(object instanceof BABYLON.Node))
+                        object = null;
                     this.setNode(object);
                 }
                 return false;
@@ -299,11 +303,29 @@ var BABYLON;
             ManipulationHelper.prototype.getScene = function () {
                 return this._scene;
             };
+            Object.defineProperty(ManipulationHelper.prototype, "enabled", {
+                // Returns if the manipulators are enabled
+                get: function () {
+                    return this._enabled;
+                },
+                // Sets if the manipulators are enabled
+                set: function (enabled) {
+                    this._enabled = enabled;
+                    if (!enabled) {
+                        this.setNode(null);
+                    }
+                    else if (this._currentNode) {
+                        this._manipulator.attachManipulatedNode(this._currentNode);
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
             // Sets the node to manupulate
             ManipulationHelper.prototype.setNode = function (node) {
                 if (this._currentNode)
                     this._manipulator.detachManipulatedNode(this._currentNode);
-                if (node)
+                if (node && this._enabled)
                     this._manipulator.attachManipulatedNode(node);
                 this._currentNode = node;
             };
@@ -1807,6 +1829,8 @@ var BABYLON;
                             result = true;
                         }
                     });
+                    cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
+                    cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
                 }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
@@ -2254,8 +2278,9 @@ var BABYLON;
                 this._element.remember(object);
                 // Common
                 var commonFolder = this._element.addFolder("Common");
-                commonFolder.add(object, "intensity").name("Intensity").min(0.0);
+                commonFolder.add(object, "intensity").min(0.0).name("Intensity");
                 commonFolder.add(object, "range").name("Range").min(0.0);
+                commonFolder.add(object, "radius").min(0.0).step(0.001).name("Radius");
                 // Vectors
                 if (object instanceof BABYLON.DirectionalLight) {
                     var directionFolder = this._element.addFolder("Direction");
@@ -2268,6 +2293,12 @@ var BABYLON;
                     var spotFolder = this._element.addFolder("Spot Light");
                     spotFolder.add(object, "exponent").min(0.0).name("Exponent");
                     spotFolder.add(object, "angle").min(0.0).name("Angle");
+                }
+                // Hemispheric light
+                if (object instanceof BABYLON.HemisphericLight) {
+                    var hemiFolder = this._element.addFolder("Hemispheric Light");
+                    this.addVectorFolder(object.direction, "Direction", true, hemiFolder);
+                    this.addColorFolder(object.groundColor, "Ground Color", true, hemiFolder);
                 }
                 // Colors
                 var colorsFolder = this._element.addFolder("Colors");
@@ -5257,8 +5288,6 @@ var BABYLON;
                 this.panel = null;
                 this._playGameID = "PLAY-GAME";
                 this._transformerPositionID = "TRANSFORMER-POSITION";
-                this._transformerRotationID = "TRANSFORMER-ROTATION";
-                this._transformerScalingID = "TRANSFORMER-SCALING";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -5279,27 +5308,32 @@ var BABYLON;
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
-                    var id = event.guiEvent.data;
+                    /*
+                    var id: string = event.guiEvent.data;
                     var finalID = id.split(":");
                     var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+                    
                     if (item === null)
                         return false;
-                    var transformerIndex = [this._transformerPositionID, this._transformerRotationID, this._transformerScalingID].indexOf(id);
-                    if (transformerIndex !== -1) {
+                    */
+                    var id = event.guiEvent.data;
+                    var selected = this.toolbar.decomposeSelectedMenu(id);
+                    if (!selected || !selected.parent)
+                        return false;
+                    id = selected.parent;
+                    if (id === this._transformerPositionID) {
                         var checked = this.toolbar.isItemChecked(id);
-                        this.toolbar.setItemChecked(this._transformerPositionID, false);
-                        this.toolbar.setItemChecked(this._transformerRotationID, false);
-                        this.toolbar.setItemChecked(this._transformerScalingID, false);
                         this.toolbar.setItemChecked(id, !checked);
-                        //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
+                        this._editor.transformer.enabled = !checked;
                         return true;
                     }
-                    else if (id.indexOf(this._playGameID) !== -1) {
+                    else if (id === this._playGameID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
                             this._editor.transformer.setNode(null);
+                            this._editor.transformer.enabled = false;
                             this._core.engine.resize();
                             this._core.isPlaying = true;
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
@@ -5317,6 +5351,7 @@ var BABYLON;
                             this._editor.timeline.play();
                         }
                         else {
+                            this._editor.transformer.enabled = true;
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
@@ -5332,7 +5367,6 @@ var BABYLON;
                         EDITOR.SceneManager.SwitchActionManager();
                         for (var i = 0; i < this._core.currentScene.meshes.length; i++)
                             this._core.currentScene.meshes[i].showBoundingBox = false;
-                        //}
                         return true;
                     }
                 }
@@ -5346,9 +5380,7 @@ var BABYLON;
                 // Play game
                 this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
                 this.toolbar.addBreak();
-                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Set Position...");
-                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation", undefined, "Set Rotation...");
-                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling", undefined, "Set Scale...");
+                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
                 // Build element
                 this.toolbar.buildElement(this.container);
             };

@@ -46,8 +46,9 @@ var BABYLON;
                 this._element.remember(object);
                 // Common
                 var commonFolder = this._element.addFolder("Common");
-                commonFolder.add(object, "intensity").name("Intensity").min(0.0);
+                commonFolder.add(object, "intensity").min(0.0).name("Intensity");
                 commonFolder.add(object, "range").name("Range").min(0.0);
+                commonFolder.add(object, "radius").min(0.0).step(0.001).name("Radius");
                 // Vectors
                 if (object instanceof BABYLON.DirectionalLight) {
                     var directionFolder = this._element.addFolder("Direction");
@@ -60,6 +61,12 @@ var BABYLON;
                     var spotFolder = this._element.addFolder("Spot Light");
                     spotFolder.add(object, "exponent").min(0.0).name("Exponent");
                     spotFolder.add(object, "angle").min(0.0).name("Angle");
+                }
+                // Hemispheric light
+                if (object instanceof BABYLON.HemisphericLight) {
+                    var hemiFolder = this._element.addFolder("Hemispheric Light");
+                    this.addVectorFolder(object.direction, "Direction", true, hemiFolder);
+                    this.addColorFolder(object.groundColor, "Ground Color", true, hemiFolder);
                 }
                 // Colors
                 var colorsFolder = this._element.addFolder("Colors");

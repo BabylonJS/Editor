@@ -14,8 +14,6 @@ var BABYLON;
                 this.panel = null;
                 this._playGameID = "PLAY-GAME";
                 this._transformerPositionID = "TRANSFORMER-POSITION";
-                this._transformerRotationID = "TRANSFORMER-ROTATION";
-                this._transformerScalingID = "TRANSFORMER-SCALING";
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -36,27 +34,32 @@ var BABYLON;
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
-                    var id = event.guiEvent.data;
+                    /*
+                    var id: string = event.guiEvent.data;
                     var finalID = id.split(":");
                     var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
+                    
                     if (item === null)
                         return false;
-                    var transformerIndex = [this._transformerPositionID, this._transformerRotationID, this._transformerScalingID].indexOf(id);
-                    if (transformerIndex !== -1) {
+                    */
+                    var id = event.guiEvent.data;
+                    var selected = this.toolbar.decomposeSelectedMenu(id);
+                    if (!selected || !selected.parent)
+                        return false;
+                    id = selected.parent;
+                    if (id === this._transformerPositionID) {
                         var checked = this.toolbar.isItemChecked(id);
-                        this.toolbar.setItemChecked(this._transformerPositionID, false);
-                        this.toolbar.setItemChecked(this._transformerRotationID, false);
-                        this.toolbar.setItemChecked(this._transformerScalingID, false);
                         this.toolbar.setItemChecked(id, !checked);
-                        //this._editor.transformer.transformerType = checked ? TransformerType.NOTHING : <TransformerType>transformerIndex;
+                        this._editor.transformer.enabled = !checked;
                         return true;
                     }
-                    else if (id.indexOf(this._playGameID) !== -1) {
+                    else if (id === this._playGameID) {
                         var checked = !this.toolbar.isItemChecked(id);
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
                             this._editor.transformer.setNode(null);
+                            this._editor.transformer.enabled = false;
                             this._core.engine.resize();
                             this._core.isPlaying = true;
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
@@ -74,6 +77,7 @@ var BABYLON;
                             this._editor.timeline.play();
                         }
                         else {
+                            this._editor.transformer.enabled = true;
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
@@ -89,7 +93,6 @@ var BABYLON;
                         EDITOR.SceneManager.SwitchActionManager();
                         for (var i = 0; i < this._core.currentScene.meshes.length; i++)
                             this._core.currentScene.meshes[i].showBoundingBox = false;
-                        //}
                         return true;
                     }
                 }
@@ -103,9 +106,7 @@ var BABYLON;
                 // Play game
                 this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
                 this.toolbar.addBreak();
-                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Set Position...");
-                this.toolbar.createMenu("button", this._transformerRotationID, "", "icon-rotation", undefined, "Set Rotation...");
-                this.toolbar.createMenu("button", this._transformerScalingID, "", "icon-scaling", undefined, "Set Scale...");
+                this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
                 // Build element
                 this.toolbar.buildElement(this.container);
             };

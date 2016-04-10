@@ -7,8 +7,6 @@ declare module BABYLON.EDITOR {
         private _editor;
         private _playGameID;
         private _transformerPositionID;
-        private _transformerRotationID;
-        private _transformerScalingID;
         /**
         * Constructor
         * @param core: the editor core instance

@@ -96,6 +96,9 @@
                         result = true;
                     }
                 });
+
+                cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
+                cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
             }
 
             // Transforms
