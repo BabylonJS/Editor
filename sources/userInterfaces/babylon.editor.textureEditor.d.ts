@@ -25,6 +25,7 @@ declare module BABYLON.EDITOR {
         private _configureRenderTarget();
         private _restorRenderTarget();
         private _fillTextureList();
+        private _addTextureToList(texture);
         private _onReadFileCallback(name);
     }
 }

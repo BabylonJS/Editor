@@ -320,6 +320,17 @@ var BABYLON;
                             rt.renderList.splice(meshIndex, 1);
                     }
                 }
+                if (object instanceof BABYLON.AbstractMesh) {
+                    var mesh = object;
+                    var childMeshes = mesh.getChildMeshes(true);
+                    // Fur material
+                    for (index = 0; index < childMeshes.length; index++) {
+                        if (BABYLON.Tags.MatchesQuery(childMeshes[index], "FurAdded")) {
+                            childMeshes[index].dispose(true);
+                            this._ensureObjectDispose(childMeshes[index]);
+                        }
+                    }
+                }
             };
             return SceneGraphTool;
         })();

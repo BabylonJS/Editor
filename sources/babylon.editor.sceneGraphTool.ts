@@ -397,6 +397,19 @@
                         rt.renderList.splice(meshIndex, 1);
                 }
             }
+            
+            if (object instanceof AbstractMesh) {
+                var mesh = <AbstractMesh>object;
+                var childMeshes = mesh.getChildMeshes(true);
+
+                // Fur material
+                for (index = 0; index < childMeshes.length; index++) {
+                    if (Tags.MatchesQuery(childMeshes[index], "FurAdded")) {
+                        childMeshes[index].dispose(true);
+                        this._ensureObjectDispose(childMeshes[index]);
+                    }
+                }
+            }
         }
 
     }

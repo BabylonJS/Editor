@@ -247,6 +247,15 @@ var BABYLON;
                 }
                 return null;
             };
+            /**
+            * Creates a new worker on the fly
+            */
+            Tools.CreateWorker = function () {
+                //var blob = new Blob(["self.onmessage = " + onMessage], { type: 'application/javascript' });
+                var blob = new Blob(["self.onmessage = function(event) { postMessage(event.data); }"], { type: 'application/javascript' });
+                var worker = new Worker(URL.createObjectURL(blob));
+                return worker;
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;
@@ -2500,7 +2509,8 @@ var BABYLON;
                     material.furTexture = furTexture;
                     var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);
                     for (var i = 0; i < meshes.length; i++) {
-                        meshes[i].material;
+                        BABYLON.Tags.EnableFor(meshes[i]);
+                        BABYLON.Tags.AddTagsTo(meshes[i], "FurAdded");
                     }
                 }
                 this._editionTool.updateEditionTool();
@@ -4911,6 +4921,17 @@ var BABYLON;
                     for (var meshIndex = 0; meshIndex < rt.renderList.length; meshIndex++) {
                         if (rt.renderList[meshIndex] === object)
                             rt.renderList.splice(meshIndex, 1);
+                    }
+                }
+                if (object instanceof BABYLON.AbstractMesh) {
+                    var mesh = object;
+                    var childMeshes = mesh.getChildMeshes(true);
+                    // Fur material
+                    for (index = 0; index < childMeshes.length; index++) {
+                        if (BABYLON.Tags.MatchesQuery(childMeshes[index], "FurAdded")) {
+                            childMeshes[index].dispose(true);
+                            this._ensureObjectDispose(childMeshes[index]);
+                        }
                     }
                 }
             };
@@ -9474,7 +9495,23 @@ var BABYLON;
                     var inputFiles = $("#BABYLON-EDITOR-LOAD-TEXTURE-FILE");
                     inputFiles[0].onchange = function (data) {
                         for (var i = 0; i < data.target.files.length; i++) {
-                            BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(data.target.files[i].name), null);
+                            var name = data.target.files[i].name;
+                            var lowerName = name.toLowerCase();
+                            if (name.indexOf(".babylon.hdr") !== -1) {
+                                BABYLON.Tools.ReadFile(data.target.files[i], _this._onReadFileCallback(name), null, true);
+                            }
+                            else if (name.indexOf(".hdr") !== -1) {
+                                BABYLON.FilesInput.FilesToLoad[name] = data.target.files[i];
+                                BABYLON.HDRCubeTexture.generateBabylonHDR("file:" + name, 256, _this._onReadFileCallback(name), function () {
+                                    EDITOR.GUI.GUIWindow.CreateAlert("An error occured when converting HDR Texture", "HR Error");
+                                });
+                            }
+                            else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
+                                BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(name), null);
+                            }
+                            else {
+                                EDITOR.GUI.GUIWindow.CreateAlert("Texture format not supported", "Textre Format Error");
+                            }
                         }
                     };
                     inputFiles.click();
@@ -9571,20 +9608,38 @@ var BABYLON;
                 }
                 this._texturesList.refresh();
             };
+            GUITextureEditor.prototype._addTextureToList = function (texture) {
+                this._texturesList.addRow({
+                    name: texture.name,
+                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                    uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
+                    vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
+                    recid: this._texturesList.getRowCount() - 1
+                });
+                this._core.editor.editionTool.updateEditionTool();
+                //this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
+            };
             // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {
                 var _this = this;
                 return function (data) {
-                    var texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
-                    texture.name = texture.name.replace("data:", "");
-                    _this._texturesList.addRow({
-                        name: name,
-                        coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                        uScale: texture.uScale,
-                        vScale: texture.vScale,
-                        recid: _this._texturesList.getRowCount() - 1
-                    });
-                    _this._core.editor.editionTool.isObjectSupported(_this._core.editor.editionTool.object);
+                    var texture = null;
+                    if (name.indexOf(".hdr") !== -1) {
+                        var hdrData = new Blob([data], { type: 'application/octet-stream' });
+                        var hdrUrl = window.URL.createObjectURL(hdrData);
+                        try {
+                            texture = new BABYLON.HDRCubeTexture(hdrUrl, _this._core.currentScene);
+                            texture.name = name;
+                        }
+                        catch (e) {
+                            EDITOR.GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");
+                        }
+                    }
+                    else {
+                        texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                        texture.name = texture.name.replace("data:", "");
+                    }
+                    _this._addTextureToList(texture);
                 };
             };
             return GUITextureEditor;

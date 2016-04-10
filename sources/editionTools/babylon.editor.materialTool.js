@@ -140,7 +140,8 @@ var BABYLON;
                     material.furTexture = furTexture;
                     var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);
                     for (var i = 0; i < meshes.length; i++) {
-                        meshes[i].material;
+                        BABYLON.Tags.EnableFor(meshes[i]);
+                        BABYLON.Tags.AddTagsTo(meshes[i], "FurAdded");
                     }
                 }
                 this._editionTool.updateEditionTool();

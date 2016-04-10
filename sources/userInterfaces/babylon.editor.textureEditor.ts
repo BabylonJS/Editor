@@ -192,7 +192,24 @@
 
                 inputFiles[0].onchange = (data: any) => {
                     for (var i = 0; i < data.target.files.length; i++) {
-                        BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(data.target.files[i].name), null);
+                        var name: string = data.target.files[i].name;
+                        var lowerName = name.toLowerCase();
+
+                        if (name.indexOf(".babylon.hdr") !== -1) {
+                            BABYLON.Tools.ReadFile(data.target.files[i], this._onReadFileCallback(name), null, true);
+                        }
+                        else if (name.indexOf(".hdr") !== -1) {
+                            BABYLON.FilesInput.FilesToLoad[name] = data.target.files[i];
+                            HDRCubeTexture.generateBabylonHDR("file:" + name, 256, this._onReadFileCallback(name), function () {
+                                GUI.GUIWindow.CreateAlert("An error occured when converting HDR Texture", "HR Error");
+                            });
+                        }
+                        else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
+                            BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(name), null);
+                        }
+                        else {
+                            GUI.GUIWindow.CreateAlert("Texture format not supported", "Textre Format Error");
+                        }
                     }
                 };
                 inputFiles.click();
@@ -319,21 +336,42 @@
             this._texturesList.refresh();
         }
 
+        private _addTextureToList(texture: BaseTexture): void {
+            this._texturesList.addRow({
+                name: texture.name,
+                coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
+                uScale: texture instanceof Texture ? texture.uScale : 0,
+                vScale: texture instanceof Texture ? texture.vScale : 0,
+                recid: this._texturesList.getRowCount() - 1
+            });
+
+            this._core.editor.editionTool.updateEditionTool();
+            //this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
+        }
+
         // On readed texture file callback
         private _onReadFileCallback(name: string): (data: string) => void {
-            return (data: string) => {
-                var texture = Texture.CreateFromBase64String(data, name, this._core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
-                texture.name = texture.name.replace("data:", "");
+            return (data: string | ArrayBuffer) => {
+                var texture: BaseTexture = null;
 
-                this._texturesList.addRow({
-                    name: name,
-                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                    uScale: texture.uScale,
-                    vScale: texture.vScale,
-                    recid: this._texturesList.getRowCount() - 1
-                });
+                if (name.indexOf(".hdr") !== -1) {
+                    var hdrData = new Blob([data], { type: 'application/octet-stream' });
+                    var hdrUrl = window.URL.createObjectURL(hdrData);
 
-                this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
+                    try {
+                        texture = new BABYLON.HDRCubeTexture(hdrUrl, this._core.currentScene);
+                        texture.name = name;
+                    }
+                    catch (e) {
+                        GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");
+                    }
+                }
+                else {
+                    texture = Texture.CreateFromBase64String(<string>data, name, this._core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+                    texture.name = texture.name.replace("data:", "");
+                }
+
+                this._addTextureToList(texture);
             };
         }
     }

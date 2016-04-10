@@ -44,7 +44,7 @@ var BABYLON;
             return Math.min(max, Math.max(min, value));
         };
         return MathTools;
-    })();
+    }());
     BABYLON.MathTools = MathTools;
     var Color3 = (function () {
         function Color3(r, g, b) {
@@ -199,7 +199,7 @@ var BABYLON;
         Color3.Yellow = function () { return new Color3(1, 1, 0); };
         Color3.Gray = function () { return new Color3(0.5, 0.5, 0.5); };
         return Color3;
-    })();
+    }());
     BABYLON.Color3 = Color3;
     var Color4 = (function () {
         function Color4(r, g, b, a) {
@@ -320,7 +320,7 @@ var BABYLON;
             return colors;
         };
         return Color4;
-    })();
+    }());
     BABYLON.Color4 = Color4;
     var Vector2 = (function () {
         function Vector2(x, y) {
@@ -508,7 +508,7 @@ var BABYLON;
             return (x * x) + (y * y);
         };
         return Vector2;
-    })();
+    }());
     BABYLON.Vector2 = Vector2;
     var Vector3 = (function () {
         function Vector3(x, y, z) {
@@ -1007,7 +1007,7 @@ var BABYLON;
             ref.z = roll;
         };
         return Vector3;
-    })();
+    }());
     BABYLON.Vector3 = Vector3;
     //Vector4 class created for EulerAngle class conversion to Quaternion
     var Vector4 = (function () {
@@ -1267,7 +1267,7 @@ var BABYLON;
             return center;
         };
         return Vector4;
-    })();
+    }());
     BABYLON.Vector4 = Vector4;
     var Quaternion = (function () {
         function Quaternion(x, y, z, w) {
@@ -1553,7 +1553,7 @@ var BABYLON;
             return new Quaternion((num3 * left.x) + (num2 * right.x), (num3 * left.y) + (num2 * right.y), (num3 * left.z) + (num2 * right.z), (num3 * left.w) + (num2 * right.w));
         };
         return Quaternion;
-    })();
+    }());
     BABYLON.Quaternion = Quaternion;
     var Matrix = (function () {
         function Matrix() {
@@ -2208,7 +2208,7 @@ var BABYLON;
         Matrix._yAxis = Vector3.Zero();
         Matrix._zAxis = Vector3.Zero();
         return Matrix;
-    })();
+    }());
     BABYLON.Matrix = Matrix;
     var Plane = (function () {
         function Plane(a, b, c, d) {
@@ -2301,7 +2301,7 @@ var BABYLON;
             return Vector3.Dot(point, normal) + d;
         };
         return Plane;
-    })();
+    }());
     BABYLON.Plane = Plane;
     var Viewport = (function () {
         function Viewport(x, y, width, height) {
@@ -2314,7 +2314,7 @@ var BABYLON;
             return new Viewport(this.x * renderWidth, this.y * renderHeight, this.width * renderWidth, this.height * renderHeight);
         };
         return Viewport;
-    })();
+    }());
     BABYLON.Viewport = Viewport;
     var Frustum = (function () {
         function Frustum() {
@@ -2366,7 +2366,7 @@ var BABYLON;
             frustumPlanes[5].normalize();
         };
         return Frustum;
-    })();
+    }());
     BABYLON.Frustum = Frustum;
     (function (Space) {
         Space[Space["LOCAL"] = 0] = "LOCAL";
@@ -2380,7 +2380,7 @@ var BABYLON;
         Axis.Y = new Vector3(0, 1, 0);
         Axis.Z = new Vector3(0, 0, 1);
         return Axis;
-    })();
+    }());
     BABYLON.Axis = Axis;
     ;
     var BezierCurve = (function () {
@@ -2406,7 +2406,7 @@ var BABYLON;
                 Math.pow(refinedT, 3);
         };
         return BezierCurve;
-    })();
+    }());
     BABYLON.BezierCurve = BezierCurve;
     (function (Orientation) {
         Orientation[Orientation["CW"] = 0] = "CW";
@@ -2434,7 +2434,7 @@ var BABYLON;
             return new Angle(degrees * Math.PI / 180);
         };
         return Angle;
-    })();
+    }());
     BABYLON.Angle = Angle;
     var Arc2 = (function () {
         function Arc2(startPoint, midPoint, endPoint) {
@@ -2464,7 +2464,7 @@ var BABYLON;
             this.angle = Angle.FromDegrees(this.orientation === Orientation.CW ? a1 - a3 : a3 - a1);
         }
         return Arc2;
-    })();
+    }());
     BABYLON.Arc2 = Arc2;
     var Path2 = (function () {
         function Path2(x, y) {
@@ -2549,7 +2549,7 @@ var BABYLON;
             return new Path2(x, y);
         };
         return Path2;
-    })();
+    }());
     BABYLON.Path2 = Path2;
     var Path3D = (function () {
         /**
@@ -2717,7 +2717,7 @@ var BABYLON;
             return normal0;
         };
         return Path3D;
-    })();
+    }());
     BABYLON.Path3D = Path3D;
     var Curve3 = (function () {
         /**
@@ -2820,7 +2820,7 @@ var BABYLON;
             return l;
         };
         return Curve3;
-    })();
+    }());
     BABYLON.Curve3 = Curve3;
     // SphericalHarmonics
     var SphericalHarmonics = (function () {
@@ -2860,7 +2860,7 @@ var BABYLON;
             this.L22 = this.L22.scale(scale);
         };
         return SphericalHarmonics;
-    })();
+    }());
     BABYLON.SphericalHarmonics = SphericalHarmonics;
     // SphericalPolynomial
     var SphericalPolynomial = (function () {
@@ -2895,7 +2895,7 @@ var BABYLON;
             return result;
         };
         return SphericalPolynomial;
-    })();
+    }());
     BABYLON.SphericalPolynomial = SphericalPolynomial;
     // Vertex formats
     var PositionNormalVertex = (function () {
@@ -2909,7 +2909,7 @@ var BABYLON;
             return new PositionNormalVertex(this.position.clone(), this.normal.clone());
         };
         return PositionNormalVertex;
-    })();
+    }());
     BABYLON.PositionNormalVertex = PositionNormalVertex;
     var PositionNormalTextureVertex = (function () {
         function PositionNormalTextureVertex(position, normal, uv) {
@@ -2924,7 +2924,7 @@ var BABYLON;
             return new PositionNormalTextureVertex(this.position.clone(), this.normal.clone(), this.uv.clone());
         };
         return PositionNormalTextureVertex;
-    })();
+    }());
     BABYLON.PositionNormalTextureVertex = PositionNormalTextureVertex;
     // Temporary pre-allocated objects for engine internal use
     // usage in any internal function :
@@ -2944,7 +2944,7 @@ var BABYLON;
             Matrix.Zero(), Matrix.Zero(),
             Matrix.Zero(), Matrix.Zero()]; // 6 temp Matrices at once should be enough
         return Tmp;
-    })();
+    }());
     BABYLON.Tmp = Tmp;
 })(BABYLON || (BABYLON = {}));
 
@@ -3094,7 +3094,7 @@ var BABYLON;
             return destination;
         };
         return SerializationHelper;
-    })();
+    }());
     BABYLON.SerializationHelper = SerializationHelper;
 })(BABYLON || (BABYLON = {}));
 
@@ -3112,7 +3112,7 @@ var BABYLON;
             this.skipNextObservers = skipNextObservers;
         }
         return EventState;
-    })();
+    }());
     BABYLON.EventState = EventState;
     var Observer = (function () {
         function Observer(callback, mask) {
@@ -3120,7 +3120,7 @@ var BABYLON;
             this.mask = mask;
         }
         return Observer;
-    })();
+    }());
     BABYLON.Observer = Observer;
     var Observable = (function () {
         function Observable() {
@@ -3211,7 +3211,7 @@ var BABYLON;
             return result;
         };
         return Observable;
-    })();
+    }());
     BABYLON.Observable = Observable;
 })(BABYLON || (BABYLON = {}));
 
@@ -3725,7 +3725,7 @@ var BABYLON;
             }
         };
         return Database;
-    })();
+    }());
     BABYLON.Database = Database;
 })(BABYLON || (BABYLON = {}));
 
@@ -3990,7 +3990,7 @@ var BABYLON;
             TGATools._ORIGIN_UL = 0x02;
             TGATools._ORIGIN_UR = 0x03;
             return TGATools;
-        })();
+        }());
         Internals.TGATools = TGATools;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -4060,7 +4060,7 @@ var BABYLON;
         // Statics
         SmartArray._GlobalId = 0;
         return SmartArray;
-    })();
+    }());
     BABYLON.SmartArray = SmartArray;
 })(BABYLON || (BABYLON = {}));
 
@@ -4161,7 +4161,7 @@ var BABYLON;
             }
         };
         return SmartCollection;
-    })();
+    }());
     BABYLON.SmartCollection = SmartCollection;
 })(BABYLON || (BABYLON = {}));
 
@@ -4973,7 +4973,7 @@ var BABYLON;
         Tools.StartPerformanceCounter = Tools._StartPerformanceCounterDisabled;
         Tools.EndPerformanceCounter = Tools._EndPerformanceCounterDisabled;
         return Tools;
-    })();
+    }());
     BABYLON.Tools = Tools;
     /**
      * An implementation of a loop for asynchronous functions.
@@ -5057,7 +5057,7 @@ var BABYLON;
             }, callback);
         };
         return AsyncLoop;
-    })();
+    }());
     BABYLON.AsyncLoop = AsyncLoop;
 })(BABYLON || (BABYLON = {}));
 
@@ -5136,7 +5136,7 @@ var BABYLON;
                 }
             };
             return _AlphaState;
-        })();
+        }());
         Internals._AlphaState = _AlphaState;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -5311,7 +5311,7 @@ var BABYLON;
                 }
             };
             return _DepthCullingState;
-        })();
+        }());
         Internals._DepthCullingState = _DepthCullingState;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -5421,7 +5421,7 @@ var BABYLON;
         function EngineCapabilities() {
         }
         return EngineCapabilities;
-    })();
+    }());
     BABYLON.EngineCapabilities = EngineCapabilities;
     /**
      * The engine class is responsible for interfacing with all lower-level APIs such as WebGL and Audio.
@@ -6893,6 +6893,10 @@ var BABYLON;
             }
             return texture;
         };
+        Engine.prototype.updateTextureSize = function (texture, width, height) {
+            texture._width = width;
+            texture._height = height;
+        };
         Engine.prototype.createRawCubeTexture = function (url, scene, size, format, type, noMipmap, callback, mipmmapGenerator) {
             var _this = this;
             var gl = this._gl;
@@ -6920,6 +6924,9 @@ var BABYLON;
                     gl.TEXTURE_CUBE_MAP_POSITIVE_X, gl.TEXTURE_CUBE_MAP_POSITIVE_Y, gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
                     gl.TEXTURE_CUBE_MAP_NEGATIVE_X, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
                 ];
+                width = texture._width;
+                height = texture._height;
+                isPot = (BABYLON.Tools.IsExponentOfTwo(width) && BABYLON.Tools.IsExponentOfTwo(height));
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
                 if (!noMipmap && isPot) {
@@ -7258,7 +7265,7 @@ var BABYLON;
         Engine.CodeRepository = "src/";
         Engine.ShadersRepository = "src/Shaders/";
         return Engine;
-    })();
+    }());
     BABYLON.Engine = Engine;
 })(BABYLON || (BABYLON = {}));
 
@@ -7552,7 +7559,7 @@ var BABYLON;
             BABYLON.serialize()
         ], Node.prototype, "state", void 0);
         return Node;
-    })();
+    }());
     BABYLON.Node = Node;
 })(BABYLON || (BABYLON = {}));
 
@@ -7620,7 +7627,7 @@ var BABYLON;
                         case "image/jpeg":
                         case "image/png":
                         case "image/bmp":
-                            FilesInput.FilesTextures[this._filesToLoad[i].name] = this._filesToLoad[i];
+                            FilesInput.FilesTextures[this._filesToLoad[i].name.toLowerCase()] = this._filesToLoad[i];
                             break;
                         case "image/targa":
                         case "image/vnd.ms-dds":
@@ -7631,11 +7638,11 @@ var BABYLON;
                         case "audio/mpeg3":
                         case "audio/x-mpeg-3":
                         case "audio/ogg":
-                            FilesInput.FilesToLoad[this._filesToLoad[i].name] = this._filesToLoad[i];
+                            FilesInput.FilesToLoad[this._filesToLoad[i].name.toLowerCase()] = this._filesToLoad[i];
                             break;
                         default:
                             if (this._filesToLoad[i].name.indexOf(".mtl") !== -1) {
-                                FilesInput.FilesToLoad[this._filesToLoad[i].name] = this._filesToLoad[i];
+                                FilesInput.FilesToLoad[this._filesToLoad[i].name.toLowerCase()] = this._filesToLoad[i];
                             }
                             else if ((this._filesToLoad[i].name.indexOf(".babylon") !== -1 ||
                                 this._filesToLoad[i].name.indexOf(".stl") !== -1 ||
@@ -7707,7 +7714,7 @@ var BABYLON;
             this.subMeshId = 0;
         }
         return IntersectionInfo;
-    })();
+    }());
     BABYLON.IntersectionInfo = IntersectionInfo;
     var PickingInfo = (function () {
         function PickingInfo() {
@@ -7769,7 +7776,7 @@ var BABYLON;
             return new BABYLON.Vector2(uv0.x + uv1.x + uv2.x, uv0.y + uv1.y + uv2.y);
         };
         return PickingInfo;
-    })();
+    }());
     BABYLON.PickingInfo = PickingInfo;
 })(BABYLON || (BABYLON = {}));
 
@@ -7819,7 +7826,7 @@ var BABYLON;
             return true;
         };
         return BoundingSphere;
-    })();
+    }());
     BABYLON.BoundingSphere = BoundingSphere;
 })(BABYLON || (BABYLON = {}));
 
@@ -7963,7 +7970,7 @@ var BABYLON;
             return true;
         };
         return BoundingBox;
-    })();
+    }());
     BABYLON.BoundingBox = BoundingBox;
 })(BABYLON || (BABYLON = {}));
 
@@ -8083,7 +8090,7 @@ var BABYLON;
             return true;
         };
         return BoundingInfo;
-    })();
+    }());
     BABYLON.BoundingInfo = BoundingInfo;
 })(BABYLON || (BABYLON = {}));
 
@@ -8358,7 +8365,7 @@ var BABYLON;
         Ray.smallnum = 0.00000001;
         Ray.rayl = 10e8;
         return Ray;
-    })();
+    }());
     BABYLON.Ray = Ray;
 })(BABYLON || (BABYLON = {}));
 
@@ -9391,7 +9398,7 @@ var BABYLON;
         AbstractMesh._BILLBOARDMODE_Z = 4;
         AbstractMesh._BILLBOARDMODE_ALL = 7;
         return AbstractMesh;
-    })(BABYLON.Node);
+    }(BABYLON.Node));
     BABYLON.AbstractMesh = AbstractMesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -9581,7 +9588,7 @@ var BABYLON;
             BABYLON.serialize()
         ], Light.prototype, "radius", void 0);
         return Light;
-    })(BABYLON.Node);
+    }(BABYLON.Node));
     BABYLON.Light = Light;
 })(BABYLON || (BABYLON = {}));
 
@@ -9664,7 +9671,7 @@ var BABYLON;
             BABYLON.serializeAsVector3()
         ], PointLight.prototype, "position", void 0);
         return PointLight;
-    })(BABYLON.Light);
+    }(BABYLON.Light));
     BABYLON.PointLight = PointLight;
 })(BABYLON || (BABYLON = {}));
 
@@ -9758,7 +9765,7 @@ var BABYLON;
             BABYLON.serialize()
         ], SpotLight.prototype, "exponent", void 0);
         return SpotLight;
-    })(BABYLON.Light);
+    }(BABYLON.Light));
     BABYLON.SpotLight = SpotLight;
 })(BABYLON || (BABYLON = {}));
 
@@ -9805,7 +9812,7 @@ var BABYLON;
             BABYLON.serializeAsVector3()
         ], HemisphericLight.prototype, "direction", void 0);
         return HemisphericLight;
-    })(BABYLON.Light);
+    }(BABYLON.Light));
     BABYLON.HemisphericLight = HemisphericLight;
 })(BABYLON || (BABYLON = {}));
 
@@ -9930,7 +9937,7 @@ var BABYLON;
             BABYLON.serialize()
         ], DirectionalLight.prototype, "autoUpdateExtends", void 0);
         return DirectionalLight;
-    })(BABYLON.Light);
+    }(BABYLON.Light));
     BABYLON.DirectionalLight = DirectionalLight;
 })(BABYLON || (BABYLON = {}));
 
@@ -10336,7 +10343,7 @@ var BABYLON;
         ShadowGenerator._FILTER_POISSONSAMPLING = 2;
         ShadowGenerator._FILTER_BLURVARIANCESHADOWMAP = 3;
         return ShadowGenerator;
-    })();
+    }());
     BABYLON.ShadowGenerator = ShadowGenerator;
 })(BABYLON || (BABYLON = {}));
 
@@ -10609,7 +10616,7 @@ var BABYLON;
             this._destinationPoint.subtractToRef(this.intersectionPoint, vel);
         };
         return Collider;
-    })();
+    }());
     BABYLON.Collider = Collider;
 })(BABYLON || (BABYLON = {}));
 
@@ -10820,7 +10827,7 @@ var BABYLON;
             };
         };
         return CollisionCoordinatorWorker;
-    })();
+    }());
     BABYLON.CollisionCoordinatorWorker = CollisionCoordinatorWorker;
     var CollisionCoordinatorLegacy = (function () {
         function CollisionCoordinatorLegacy() {
@@ -10883,7 +10890,7 @@ var BABYLON;
             this._collideWithWorld(position, velocity, collider, maximumRetry, finalPosition, excludedMesh);
         };
         return CollisionCoordinatorLegacy;
-    })();
+    }());
     BABYLON.CollisionCoordinatorLegacy = CollisionCoordinatorLegacy;
 })(BABYLON || (BABYLON = {}));
 
@@ -11520,7 +11527,7 @@ var BABYLON;
             BABYLON.serialize()
         ], Camera.prototype, "isStereoscopicSideBySide", void 0);
         return Camera;
-    })(BABYLON.Node);
+    }(BABYLON.Node));
     BABYLON.Camera = Camera;
 })(BABYLON || (BABYLON = {}));
 
@@ -11654,7 +11661,7 @@ var BABYLON;
             }
         };
         return CameraInputsManager;
-    })();
+    }());
     BABYLON.CameraInputsManager = CameraInputsManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -11747,7 +11754,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCameraMouseInput.prototype, "angularSensibility", void 0);
         return FreeCameraMouseInput;
-    })();
+    }());
     BABYLON.FreeCameraMouseInput = FreeCameraMouseInput;
     BABYLON.CameraInputTypes["FreeCameraMouseInput"] = FreeCameraMouseInput;
 })(BABYLON || (BABYLON = {}));
@@ -11860,7 +11867,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCameraKeyboardMoveInput.prototype, "keysRight", void 0);
         return FreeCameraKeyboardMoveInput;
-    })();
+    }());
     BABYLON.FreeCameraKeyboardMoveInput = FreeCameraKeyboardMoveInput;
     BABYLON.CameraInputTypes["FreeCameraKeyboardMoveInput"] = FreeCameraKeyboardMoveInput;
 })(BABYLON || (BABYLON = {}));
@@ -11978,7 +11985,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCameraTouchInput.prototype, "touchMoveSensibility", void 0);
         return FreeCameraTouchInput;
-    })();
+    }());
     BABYLON.FreeCameraTouchInput = FreeCameraTouchInput;
     BABYLON.CameraInputTypes["FreeCameraTouchInput"] = FreeCameraTouchInput;
 })(BABYLON || (BABYLON = {}));
@@ -12050,7 +12057,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCameraDeviceOrientationInput.prototype, "moveSensibility", void 0);
         return FreeCameraDeviceOrientationInput;
-    })();
+    }());
     BABYLON.FreeCameraDeviceOrientationInput = FreeCameraDeviceOrientationInput;
     BABYLON.CameraInputTypes["FreeCameraDeviceOrientationInput"] = FreeCameraDeviceOrientationInput;
 })(BABYLON || (BABYLON = {}));
@@ -12104,7 +12111,7 @@ var BABYLON;
             return "VRDeviceOrientation";
         };
         return FreeCameraVRDeviceOrientationInput;
-    })();
+    }());
     BABYLON.FreeCameraVRDeviceOrientationInput = FreeCameraVRDeviceOrientationInput;
     BABYLON.CameraInputTypes["FreeCameraVRDeviceOrientationInput"] = FreeCameraVRDeviceOrientationInput;
 })(BABYLON || (BABYLON = {}));
@@ -12166,7 +12173,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCameraGamepadInput.prototype, "gamepadMoveSensibility", void 0);
         return FreeCameraGamepadInput;
-    })();
+    }());
     BABYLON.FreeCameraGamepadInput = FreeCameraGamepadInput;
     BABYLON.CameraInputTypes["FreeCameraGamepadInput"] = FreeCameraGamepadInput;
 })(BABYLON || (BABYLON = {}));
@@ -12221,7 +12228,7 @@ var BABYLON;
             return "virtualJoystick";
         };
         return FreeCameraVirtualJoystickInput;
-    })();
+    }());
     BABYLON.FreeCameraVirtualJoystickInput = FreeCameraVirtualJoystickInput;
     BABYLON.CameraInputTypes["FreeCameraVirtualJoystickInput"] = FreeCameraVirtualJoystickInput;
 })(BABYLON || (BABYLON = {}));
@@ -12330,7 +12337,7 @@ var BABYLON;
             BABYLON.serialize()
         ], ArcRotateCameraKeyboardMoveInput.prototype, "keysRight", void 0);
         return ArcRotateCameraKeyboardMoveInput;
-    })();
+    }());
     BABYLON.ArcRotateCameraKeyboardMoveInput = ArcRotateCameraKeyboardMoveInput;
     BABYLON.CameraInputTypes["ArcRotateCameraKeyboardMoveInput"] = ArcRotateCameraKeyboardMoveInput;
 })(BABYLON || (BABYLON = {}));
@@ -12383,7 +12390,7 @@ var BABYLON;
             BABYLON.serialize()
         ], ArcRotateCameraMouseWheelInput.prototype, "wheelPrecision", void 0);
         return ArcRotateCameraMouseWheelInput;
-    })();
+    }());
     BABYLON.ArcRotateCameraMouseWheelInput = ArcRotateCameraMouseWheelInput;
     BABYLON.CameraInputTypes["ArcRotateCameraMouseWheelInput"] = ArcRotateCameraMouseWheelInput;
 })(BABYLON || (BABYLON = {}));
@@ -12590,7 +12597,7 @@ var BABYLON;
             BABYLON.serialize()
         ], ArcRotateCameraPointersInput.prototype, "panningSensibility", void 0);
         return ArcRotateCameraPointersInput;
-    })();
+    }());
     BABYLON.ArcRotateCameraPointersInput = ArcRotateCameraPointersInput;
     BABYLON.CameraInputTypes["ArcRotateCameraPointersInput"] = ArcRotateCameraPointersInput;
 })(BABYLON || (BABYLON = {}));
@@ -12657,7 +12664,7 @@ var BABYLON;
             BABYLON.serialize()
         ], ArcRotateCameraGamepadInput.prototype, "gamepadMoveSensibility", void 0);
         return ArcRotateCameraGamepadInput;
-    })();
+    }());
     BABYLON.ArcRotateCameraGamepadInput = ArcRotateCameraGamepadInput;
     BABYLON.CameraInputTypes["ArcRotateCameraGamepadInput"] = ArcRotateCameraGamepadInput;
 })(BABYLON || (BABYLON = {}));
@@ -12706,7 +12713,7 @@ var BABYLON;
             return "VRDeviceOrientation";
         };
         return ArcRotateCameraVRDeviceOrientationInput;
-    })();
+    }());
     BABYLON.ArcRotateCameraVRDeviceOrientationInput = ArcRotateCameraVRDeviceOrientationInput;
     BABYLON.CameraInputTypes["ArcRotateCameraVRDeviceOrientationInput"] = ArcRotateCameraVRDeviceOrientationInput;
 })(BABYLON || (BABYLON = {}));
@@ -12967,7 +12974,7 @@ var BABYLON;
             BABYLON.serializeAsMeshReference("lockedTargetId")
         ], TargetCamera.prototype, "lockedTarget", void 0);
         return TargetCamera;
-    })(BABYLON.Camera);
+    }(BABYLON.Camera));
     BABYLON.TargetCamera = TargetCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -13148,7 +13155,7 @@ var BABYLON;
             BABYLON.serialize()
         ], FreeCamera.prototype, "applyGravity", void 0);
         return FreeCamera;
-    })(BABYLON.TargetCamera);
+    }(BABYLON.TargetCamera));
     BABYLON.FreeCamera = FreeCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -13195,7 +13202,7 @@ var BABYLON;
             return this;
         };
         return FreeCameraInputsManager;
-    })(BABYLON.CameraInputsManager);
+    }(BABYLON.CameraInputsManager));
     BABYLON.FreeCameraInputsManager = FreeCameraInputsManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -13280,7 +13287,7 @@ var BABYLON;
             BABYLON.serializeAsMeshReference("lockedTargetId")
         ], FollowCamera.prototype, "target", void 0);
         return FollowCamera;
-    })(BABYLON.TargetCamera);
+    }(BABYLON.TargetCamera));
     BABYLON.FollowCamera = FollowCamera;
     var ArcFollowCamera = (function (_super) {
         __extends(ArcFollowCamera, _super);
@@ -13308,7 +13315,7 @@ var BABYLON;
             return "ArcFollowCamera";
         };
         return ArcFollowCamera;
-    })(BABYLON.TargetCamera);
+    }(BABYLON.TargetCamera));
     BABYLON.ArcFollowCamera = ArcFollowCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -13368,7 +13375,7 @@ var BABYLON;
             }
         };
         return TouchCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.TouchCamera = TouchCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -13902,7 +13909,7 @@ var BABYLON;
             BABYLON.serialize()
         ], ArcRotateCamera.prototype, "allowUpsideDown", void 0);
         return ArcRotateCamera;
-    })(BABYLON.TargetCamera);
+    }(BABYLON.TargetCamera));
     BABYLON.ArcRotateCamera = ArcRotateCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -13940,7 +13947,7 @@ var BABYLON;
             return this;
         };
         return ArcRotateCameraInputsManager;
-    })(BABYLON.CameraInputsManager);
+    }(BABYLON.CameraInputsManager));
     BABYLON.ArcRotateCameraInputsManager = ArcRotateCameraInputsManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -14049,7 +14056,7 @@ var BABYLON;
         };
         RenderingManager.MAX_RENDERINGGROUPS = 4;
         return RenderingManager;
-    })();
+    }());
     BABYLON.RenderingManager = RenderingManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -14146,7 +14153,7 @@ var BABYLON;
             }
         };
         return RenderingGroup;
-    })();
+    }());
     BABYLON.RenderingGroup = RenderingGroup;
 })(BABYLON || (BABYLON = {}));
 
@@ -14196,7 +14203,7 @@ var BABYLON;
         PointerEventTypes._POINTERWHEEL = 0x08;
         PointerEventTypes._POINTERPICK = 0x10;
         return PointerEventTypes;
-    })();
+    }());
     BABYLON.PointerEventTypes = PointerEventTypes;
     /**
      * This type contains all the data related to a pointer event in Babylon.js.
@@ -14209,7 +14216,7 @@ var BABYLON;
             this.pickInfo = pickInfo;
         }
         return PointerInfo;
-    })();
+    }());
     BABYLON.PointerInfo = PointerInfo;
     /**
      * Represents a scene to be rendered by the engine.
@@ -16454,7 +16461,7 @@ var BABYLON;
         Scene.MinDeltaTime = 1.0;
         Scene.MaxDeltaTime = 1000.0;
         return Scene;
-    })();
+    }());
     BABYLON.Scene = Scene;
 })(BABYLON || (BABYLON = {}));
 
@@ -16665,7 +16672,7 @@ var BABYLON;
         VertexBuffer._MatricesIndicesExtraKind = "matricesIndicesExtra";
         VertexBuffer._MatricesWeightsExtraKind = "matricesWeightsExtra";
         return VertexBuffer;
-    })();
+    }());
     BABYLON.VertexBuffer = VertexBuffer;
 })(BABYLON || (BABYLON = {}));
 
@@ -16823,7 +16830,7 @@ var BABYLON;
             _super.prototype.dispose.call(this, doNotRecurse);
         };
         return InstancedMesh;
-    })(BABYLON.AbstractMesh);
+    }(BABYLON.AbstractMesh));
     BABYLON.InstancedMesh = InstancedMesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -16842,7 +16849,7 @@ var BABYLON;
             this.renderSelf = new Array();
         }
         return _InstancesBatch;
-    })();
+    }());
     BABYLON._InstancesBatch = _InstancesBatch;
     var Mesh = (function (_super) {
         __extends(Mesh, _super);
@@ -19078,7 +19085,7 @@ var BABYLON;
         Mesh._CAP_END = 2;
         Mesh._CAP_ALL = 3;
         return Mesh;
-    })(BABYLON.AbstractMesh);
+    }(BABYLON.AbstractMesh));
     BABYLON.Mesh = Mesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -19263,7 +19270,7 @@ var BABYLON;
             return new SubMesh(materialIndex, minVertexIndex, maxVertexIndex - minVertexIndex + 1, startIndex, indexCount, mesh, renderingMesh);
         };
         return SubMesh;
-    })();
+    }());
     BABYLON.SubMesh = SubMesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -20267,7 +20274,7 @@ var BABYLON;
             return extrudedGeneric;
         };
         return MeshBuilder;
-    })();
+    }());
     BABYLON.MeshBuilder = MeshBuilder;
 })(BABYLON || (BABYLON = {}));
 
@@ -20433,7 +20440,7 @@ var BABYLON;
             BABYLON.serialize()
         ], BaseTexture.prototype, "isRenderTarget", void 0);
         return BaseTexture;
-    })();
+    }());
     BABYLON.BaseTexture = BaseTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -20696,7 +20703,7 @@ var BABYLON;
             BABYLON.serialize()
         ], Texture.prototype, "wAng", void 0);
         return Texture;
-    })(BABYLON.BaseTexture);
+    }(BABYLON.BaseTexture));
     BABYLON.Texture = Texture;
 })(BABYLON || (BABYLON = {}));
 
@@ -20780,7 +20787,7 @@ var BABYLON;
             }, this);
         };
         return CubeTexture;
-    })(BABYLON.BaseTexture);
+    }(BABYLON.BaseTexture));
     BABYLON.CubeTexture = CubeTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21039,7 +21046,7 @@ var BABYLON;
         RenderTargetTexture._REFRESHRATE_RENDER_ONEVERYFRAME = 1;
         RenderTargetTexture._REFRESHRATE_RENDER_ONEVERYTWOFRAMES = 2;
         return RenderTargetTexture;
-    })(BABYLON.Texture);
+    }(BABYLON.Texture));
     BABYLON.RenderTargetTexture = RenderTargetTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21317,7 +21324,7 @@ var BABYLON;
             _super.prototype.dispose.call(this);
         };
         return ProceduralTexture;
-    })(BABYLON.Texture);
+    }(BABYLON.Texture));
     BABYLON.ProceduralTexture = ProceduralTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21373,7 +21380,7 @@ var BABYLON;
             return serializationObject;
         };
         return MirrorTexture;
-    })(BABYLON.RenderTargetTexture);
+    }(BABYLON.RenderTargetTexture));
     BABYLON.MirrorTexture = MirrorTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21427,7 +21434,7 @@ var BABYLON;
             return serializationObject;
         };
         return RefractionTexture;
-    })(BABYLON.RenderTargetTexture);
+    }(BABYLON.RenderTargetTexture));
     BABYLON.RefractionTexture = RefractionTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21522,7 +21529,7 @@ var BABYLON;
             return newTexture;
         };
         return DynamicTexture;
-    })(BABYLON.Texture);
+    }(BABYLON.Texture));
     BABYLON.DynamicTexture = DynamicTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21607,7 +21614,7 @@ var BABYLON;
             return true;
         };
         return VideoTexture;
-    })(BABYLON.Texture);
+    }(BABYLON.Texture));
     BABYLON.VideoTexture = VideoTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21733,7 +21740,7 @@ var BABYLON;
             configurable: true
         });
         return CustomProceduralTexture;
-    })(BABYLON.ProceduralTexture);
+    }(BABYLON.ProceduralTexture));
     BABYLON.CustomProceduralTexture = CustomProceduralTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -21785,7 +21792,7 @@ var BABYLON;
             return currentDefines;
         };
         return EffectFallbacks;
-    })();
+    }());
     BABYLON.EffectFallbacks = EffectFallbacks;
     var Effect = (function () {
         function Effect(baseName, attributesNames, uniformsNames, samplers, engine, defines, fallbacks, onCompiled, onError) {
@@ -22187,7 +22194,7 @@ var BABYLON;
         Effect.ShadersStore = {};
         Effect.IncludesShadersStore = {};
         return Effect;
-    })();
+    }());
     BABYLON.Effect = Effect;
 })(BABYLON || (BABYLON = {}));
 
@@ -22392,7 +22399,7 @@ var BABYLON;
             }
         };
         return MaterialHelper;
-    })();
+    }());
     BABYLON.MaterialHelper = MaterialHelper;
 })(BABYLON || (BABYLON = {}));
 
@@ -22430,7 +22437,7 @@ var BABYLON;
             return fresnelParameters;
         };
         return FresnelParameters;
-    })();
+    }());
     BABYLON.FresnelParameters = FresnelParameters;
 })(BABYLON || (BABYLON = {}));
 
@@ -22480,7 +22487,7 @@ var BABYLON;
             return result;
         };
         return MaterialDefines;
-    })();
+    }());
     BABYLON.MaterialDefines = MaterialDefines;
     var Material = (function () {
         function Material(name, scene, doNotAdd) {
@@ -22754,7 +22761,7 @@ var BABYLON;
             BABYLON.serialize()
         ], Material.prototype, "fillMode", null);
         return Material;
-    })();
+    }());
     BABYLON.Material = Material;
 })(BABYLON || (BABYLON = {}));
 
@@ -22858,7 +22865,7 @@ var BABYLON;
             this._keys = Object.keys(this);
         }
         return StandardMaterialDefines;
-    })(BABYLON.MaterialDefines);
+    }(BABYLON.MaterialDefines));
     var StandardMaterial = (function (_super) {
         __extends(StandardMaterial, _super);
         function StandardMaterial(name, scene) {
@@ -23608,7 +23615,7 @@ var BABYLON;
             BABYLON.serialize()
         ], StandardMaterial.prototype, "useLogarithmicDepth", null);
         return StandardMaterial;
-    })(BABYLON.Material);
+    }(BABYLON.Material));
     BABYLON.StandardMaterial = StandardMaterial;
 })(BABYLON || (BABYLON = {}));
 
@@ -23678,7 +23685,7 @@ var BABYLON;
             return serializationObject;
         };
         return MultiMaterial;
-    })(BABYLON.Material);
+    }(BABYLON.Material));
     BABYLON.MultiMaterial = MultiMaterial;
 })(BABYLON || (BABYLON = {}));
 
@@ -23941,7 +23948,7 @@ var BABYLON;
         // Members
         SceneLoader._registeredPlugins = new Array();
         return SceneLoader;
-    })();
+    }());
     BABYLON.SceneLoader = SceneLoader;
     ;
 })(BABYLON || (BABYLON = {}));
@@ -24632,7 +24639,7 @@ var BABYLON;
             }
         };
         return SpriteManager;
-    })();
+    }());
     BABYLON.SpriteManager = SpriteManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -24714,7 +24721,7 @@ var BABYLON;
             }
         };
         return Sprite;
-    })();
+    }());
     BABYLON.Sprite = Sprite;
 })(BABYLON || (BABYLON = {}));
 
@@ -24810,7 +24817,7 @@ var BABYLON;
             }
         };
         return Layer;
-    })();
+    }());
     BABYLON.Layer = Layer;
 })(BABYLON || (BABYLON = {}));
 
@@ -24840,7 +24847,7 @@ var BABYLON;
             other.angularSpeed = this.angularSpeed;
         };
         return Particle;
-    })();
+    }());
     BABYLON.Particle = Particle;
 })(BABYLON || (BABYLON = {}));
 
@@ -25268,14 +25275,16 @@ var BABYLON;
             particleSystem.targetStopDuration = parsedParticleSystem.targetStopDuration;
             particleSystem.textureMask = BABYLON.Color4.FromArray(parsedParticleSystem.textureMask);
             particleSystem.blendMode = parsedParticleSystem.blendMode;
-            particleSystem.start();
+            if (!parsedParticleSystem.preventAutoStart) {
+                particleSystem.start();
+            }
             return particleSystem;
         };
         // Statics
         ParticleSystem.BLENDMODE_ONEONE = 0;
         ParticleSystem.BLENDMODE_STANDARD = 1;
         return ParticleSystem;
-    })();
+    }());
     BABYLON.ParticleSystem = ParticleSystem;
 })(BABYLON || (BABYLON = {}));
 
@@ -25291,7 +25300,7 @@ var BABYLON;
             return new AnimationRange(this.name, this.from, this.to);
         };
         return AnimationRange;
-    })();
+    }());
     BABYLON.AnimationRange = AnimationRange;
     /**
      * Composed of a frame, and an action function
@@ -25304,7 +25313,7 @@ var BABYLON;
             this.isDone = false;
         }
         return AnimationEvent;
-    })();
+    }());
     BABYLON.AnimationEvent = AnimationEvent;
     var PathCursor = (function () {
         function PathCursor(path) {
@@ -25361,7 +25370,7 @@ var BABYLON;
             return this;
         };
         return PathCursor;
-    })();
+    }());
     BABYLON.PathCursor = PathCursor;
     var Animation = (function () {
         function Animation(name, targetProperty, framePerSecond, dataType, loopMode, enableBlending) {
@@ -25978,7 +25987,7 @@ var BABYLON;
         Animation._ANIMATIONLOOPMODE_CYCLE = 1;
         Animation._ANIMATIONLOOPMODE_CONSTANT = 2;
         return Animation;
-    })();
+    }());
     BABYLON.Animation = Animation;
 })(BABYLON || (BABYLON = {}));
 
@@ -26111,7 +26120,7 @@ var BABYLON;
             return running;
         };
         return Animatable;
-    })();
+    }());
     BABYLON.Animatable = Animatable;
 })(BABYLON || (BABYLON = {}));
 
@@ -26176,7 +26185,7 @@ var BABYLON;
         EasingFunction._EASINGMODE_EASEOUT = 1;
         EasingFunction._EASINGMODE_EASEINOUT = 2;
         return EasingFunction;
-    })();
+    }());
     BABYLON.EasingFunction = EasingFunction;
     var CircleEase = (function (_super) {
         __extends(CircleEase, _super);
@@ -26188,7 +26197,7 @@ var BABYLON;
             return (1.0 - Math.sqrt(1.0 - (gradient * gradient)));
         };
         return CircleEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.CircleEase = CircleEase;
     var BackEase = (function (_super) {
         __extends(BackEase, _super);
@@ -26202,7 +26211,7 @@ var BABYLON;
             return (Math.pow(gradient, 3.0) - ((gradient * num) * Math.sin(3.1415926535897931 * gradient)));
         };
         return BackEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.BackEase = BackEase;
     var BounceEase = (function (_super) {
         __extends(BounceEase, _super);
@@ -26234,7 +26243,7 @@ var BABYLON;
             return (((-Math.pow(1.0 / bounciness, y - num3) / (num2 * num2)) * (num6 - num2)) * (num6 + num2));
         };
         return BounceEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.BounceEase = BounceEase;
     var CubicEase = (function (_super) {
         __extends(CubicEase, _super);
@@ -26245,7 +26254,7 @@ var BABYLON;
             return (gradient * gradient * gradient);
         };
         return CubicEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.CubicEase = CubicEase;
     var ElasticEase = (function (_super) {
         __extends(ElasticEase, _super);
@@ -26269,7 +26278,7 @@ var BABYLON;
             return (num2 * Math.sin(((6.2831853071795862 * num3) + 1.5707963267948966) * gradient));
         };
         return ElasticEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.ElasticEase = ElasticEase;
     var ExponentialEase = (function (_super) {
         __extends(ExponentialEase, _super);
@@ -26285,7 +26294,7 @@ var BABYLON;
             return ((Math.exp(this.exponent * gradient) - 1.0) / (Math.exp(this.exponent) - 1.0));
         };
         return ExponentialEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.ExponentialEase = ExponentialEase;
     var PowerEase = (function (_super) {
         __extends(PowerEase, _super);
@@ -26299,7 +26308,7 @@ var BABYLON;
             return Math.pow(gradient, y);
         };
         return PowerEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.PowerEase = PowerEase;
     var QuadraticEase = (function (_super) {
         __extends(QuadraticEase, _super);
@@ -26310,7 +26319,7 @@ var BABYLON;
             return (gradient * gradient);
         };
         return QuadraticEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.QuadraticEase = QuadraticEase;
     var QuarticEase = (function (_super) {
         __extends(QuarticEase, _super);
@@ -26321,7 +26330,7 @@ var BABYLON;
             return (gradient * gradient * gradient * gradient);
         };
         return QuarticEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.QuarticEase = QuarticEase;
     var QuinticEase = (function (_super) {
         __extends(QuinticEase, _super);
@@ -26332,7 +26341,7 @@ var BABYLON;
             return (gradient * gradient * gradient * gradient * gradient);
         };
         return QuinticEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.QuinticEase = QuinticEase;
     var SineEase = (function (_super) {
         __extends(SineEase, _super);
@@ -26343,7 +26352,7 @@ var BABYLON;
             return (1.0 - Math.sin(1.5707963267948966 * (1.0 - gradient)));
         };
         return SineEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.SineEase = SineEase;
     var BezierCurveEase = (function (_super) {
         __extends(BezierCurveEase, _super);
@@ -26362,7 +26371,7 @@ var BABYLON;
             return BABYLON.BezierCurve.interpolate(gradient, this.x1, this.y1, this.x2, this.y2);
         };
         return BezierCurveEase;
-    })(EasingFunction);
+    }(EasingFunction));
     BABYLON.BezierCurveEase = BezierCurveEase;
 })(BABYLON || (BABYLON = {}));
 
@@ -26493,7 +26502,7 @@ var BABYLON;
             return true;
         };
         return Bone;
-    })(BABYLON.Node);
+    }(BABYLON.Node));
     BABYLON.Bone = Bone;
 })(BABYLON || (BABYLON = {}));
 
@@ -26816,7 +26825,7 @@ var BABYLON;
             return skeleton;
         };
         return Skeleton;
-    })();
+    }());
     BABYLON.Skeleton = Skeleton;
 })(BABYLON || (BABYLON = {}));
 
@@ -26940,7 +26949,7 @@ var BABYLON;
             }
         };
         return PostProcess;
-    })();
+    }());
     BABYLON.PostProcess = PostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -27070,7 +27079,7 @@ var BABYLON;
             }
         };
         return PostProcessManager;
-    })();
+    }());
     BABYLON.PostProcessManager = PostProcessManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -27088,7 +27097,7 @@ var BABYLON;
             _super.call(this, name, "pass", null, null, ratio, camera, samplingMode, engine, reusable);
         }
         return PassPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.PassPostProcess = PassPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -27155,7 +27164,7 @@ var BABYLON;
         //Cannon only at the moment
         PhysicsJoint.SpringJoint = 9;
         return PhysicsJoint;
-    })();
+    }());
     BABYLON.PhysicsJoint = PhysicsJoint;
     /**
      * A class representing a physics distance joint.
@@ -27172,8 +27181,32 @@ var BABYLON;
             this._physicsPlugin.updateDistanceJoint(this, maxDistance, minDistance);
         };
         return DistanceJoint;
-    })(PhysicsJoint);
+    }(PhysicsJoint));
     BABYLON.DistanceJoint = DistanceJoint;
+    var MotorEnabledJoint = (function (_super) {
+        __extends(MotorEnabledJoint, _super);
+        function MotorEnabledJoint(type, jointData) {
+            _super.call(this, type, jointData);
+        }
+        /**
+         * Set the motor values.
+         * Attention, this function is plugin specific. Engines won't react 100% the same.
+         * @param {number} force the force to apply
+         * @param {number} maxForce max force for this motor.
+         */
+        MotorEnabledJoint.prototype.setMotor = function (force, maxForce) {
+            this._physicsPlugin.setMotor(this, force, maxForce);
+        };
+        /**
+         * Set the motor's limits.
+         * Attention, this function is plugin specific. Engines won't react 100% the same.
+         */
+        MotorEnabledJoint.prototype.setLimit = function (upperLimit, lowerLimit) {
+            this._physicsPlugin.setLimit(this, upperLimit, lowerLimit);
+        };
+        return MotorEnabledJoint;
+    }(PhysicsJoint));
+    BABYLON.MotorEnabledJoint = MotorEnabledJoint;
     /**
      * This class represents a single hinge physics joint
      */
@@ -27199,7 +27232,7 @@ var BABYLON;
             this._physicsPlugin.setLimit(this, upperLimit, lowerLimit);
         };
         return HingeJoint;
-    })(PhysicsJoint);
+    }(MotorEnabledJoint));
     BABYLON.HingeJoint = HingeJoint;
     /**
      * This class represents a dual hinge physics joint (same as wheel joint)
@@ -27232,7 +27265,7 @@ var BABYLON;
             this._physicsPlugin.setLimit(this, upperLimit, lowerLimit, motorIndex);
         };
         return Hinge2Joint;
-    })(PhysicsJoint);
+    }(MotorEnabledJoint));
     BABYLON.Hinge2Joint = Hinge2Joint;
 })(BABYLON || (BABYLON = {}));
 
@@ -27285,6 +27318,8 @@ var BABYLON;
             };
             //event and body object due to cannon's event-based architecture.
             this.onCollide = function (e) {
+                if (!_this._onPhysicsCollideCallbacks.length)
+                    return;
                 var otherImpostor = _this._physicsEngine.getImpostorWithPhysicsBody(e.body);
                 if (otherImpostor) {
                     _this._onPhysicsCollideCallbacks.filter(function (obj) {
@@ -27592,7 +27627,7 @@ var BABYLON;
         PhysicsImpostor.ParticleImpostor = 8;
         PhysicsImpostor.HeightmapImpostor = 9;
         return PhysicsImpostor;
-    })();
+    }());
     BABYLON.PhysicsImpostor = PhysicsImpostor;
 })(BABYLON || (BABYLON = {}));
 
@@ -27744,7 +27779,7 @@ var BABYLON;
         PhysicsEngine.ConvexHullImpostor = -1;
         PhysicsEngine.Epsilon = 0.001;
         return PhysicsEngine;
-    })();
+    }());
     BABYLON.PhysicsEngine = PhysicsEngine;
 })(BABYLON || (BABYLON = {}));
 
@@ -29567,7 +29602,7 @@ var BABYLON;
             geometry.setAllVerticesData(vertexData, parsedVertexData.updatable);
         };
         return VertexData;
-    })();
+    }());
     BABYLON.VertexData = VertexData;
 })(BABYLON || (BABYLON = {}));
 
@@ -29670,7 +29705,7 @@ var BABYLON;
             return BABYLON.Internals.AndOrNotEvaluator.Eval(tagsQuery, function (r) { return Tags.HasTags(obj) && obj._tags[r]; });
         };
         return Tags;
-    })();
+    }());
     BABYLON.Tags = Tags;
 })(BABYLON || (BABYLON = {}));
 
@@ -29765,7 +29800,7 @@ var BABYLON;
                 return booleanString;
             };
             return AndOrNotEvaluator;
-        })();
+        }());
         Internals.AndOrNotEvaluator = AndOrNotEvaluator;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -29809,7 +29844,7 @@ var BABYLON;
             return this._renderTexture;
         };
         return PostProcessRenderPass;
-    })();
+    }());
     BABYLON.PostProcessRenderPass = PostProcessRenderPass;
 })(BABYLON || (BABYLON = {}));
 
@@ -29962,7 +29997,7 @@ var BABYLON;
             }
         };
         return PostProcessRenderEffect;
-    })();
+    }());
     BABYLON.PostProcessRenderEffect = PostProcessRenderEffect;
 })(BABYLON || (BABYLON = {}));
 
@@ -30187,7 +30222,7 @@ var BABYLON;
             }
         };
         return PostProcessRenderPipelineManager;
-    })();
+    }());
     BABYLON.PostProcessRenderPipelineManager = PostProcessRenderPipelineManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -30269,7 +30304,7 @@ var BABYLON;
             this._scene.getEngine()._releaseBuffer(this._ib);
         };
         return BoundingBoxRenderer;
-    })();
+    }());
     BABYLON.BoundingBoxRenderer = BoundingBoxRenderer;
 })(BABYLON || (BABYLON = {}));
 
@@ -30295,7 +30330,7 @@ var BABYLON;
             return this._actionManager._getEffectiveTarget(target, propertyPath);
         };
         return Condition;
-    })();
+    }());
     BABYLON.Condition = Condition;
     var ValueCondition = (function (_super) {
         __extends(ValueCondition, _super);
@@ -30362,7 +30397,7 @@ var BABYLON;
         ValueCondition._IsGreater = 2;
         ValueCondition._IsLesser = 3;
         return ValueCondition;
-    })(Condition);
+    }(Condition));
     BABYLON.ValueCondition = ValueCondition;
     var PredicateCondition = (function (_super) {
         __extends(PredicateCondition, _super);
@@ -30374,7 +30409,7 @@ var BABYLON;
             return this.predicate();
         };
         return PredicateCondition;
-    })(Condition);
+    }(Condition));
     BABYLON.PredicateCondition = PredicateCondition;
     var StateCondition = (function (_super) {
         __extends(StateCondition, _super);
@@ -30388,7 +30423,7 @@ var BABYLON;
             return this._target.state === this.value;
         };
         return StateCondition;
-    })(Condition);
+    }(Condition));
     BABYLON.StateCondition = StateCondition;
 })(BABYLON || (BABYLON = {}));
 
@@ -30461,7 +30496,7 @@ var BABYLON;
             return this._actionManager._getEffectiveTarget(target, propertyPath);
         };
         return Action;
-    })();
+    }());
     BABYLON.Action = Action;
 })(BABYLON || (BABYLON = {}));
 
@@ -30514,7 +30549,7 @@ var BABYLON;
             return new ActionEvent(null, scene.pointerX, scene.pointerY, scene.meshUnderPointer, evt);
         };
         return ActionEvent;
-    })();
+    }());
     BABYLON.ActionEvent = ActionEvent;
     /**
      * Action Manager manages all events to be triggered on a given mesh or the global scene.
@@ -30935,7 +30970,7 @@ var BABYLON;
         ActionManager.DragMovementThreshold = 10; // in pixels
         ActionManager.LongPressDelay = 500; // in milliseconds
         return ActionManager;
-    })();
+    }());
     BABYLON.ActionManager = ActionManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -31002,7 +31037,7 @@ var BABYLON;
             scene.beginDirectAnimation(this._target, [animation], 0, 100, false, 1, this.onInterpolationDone);
         };
         return InterpolateValueAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.InterpolateValueAction = InterpolateValueAction;
 })(BABYLON || (BABYLON = {}));
 
@@ -31029,7 +31064,7 @@ var BABYLON;
             this._target[this._property] = !this._target[this._property];
         };
         return SwitchBooleanAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.SwitchBooleanAction = SwitchBooleanAction;
     var SetStateAction = (function (_super) {
         __extends(SetStateAction, _super);
@@ -31042,7 +31077,7 @@ var BABYLON;
             this._target.state = this.value;
         };
         return SetStateAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.SetStateAction = SetStateAction;
     var SetValueAction = (function (_super) {
         __extends(SetValueAction, _super);
@@ -31060,7 +31095,7 @@ var BABYLON;
             this._target[this._property] = this.value;
         };
         return SetValueAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.SetValueAction = SetValueAction;
     var IncrementValueAction = (function (_super) {
         __extends(IncrementValueAction, _super);
@@ -31081,7 +31116,7 @@ var BABYLON;
             this._target[this._property] += this.value;
         };
         return IncrementValueAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.IncrementValueAction = IncrementValueAction;
     var PlayAnimationAction = (function (_super) {
         __extends(PlayAnimationAction, _super);
@@ -31099,7 +31134,7 @@ var BABYLON;
             scene.beginAnimation(this._target, this.from, this.to, this.loop);
         };
         return PlayAnimationAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.PlayAnimationAction = PlayAnimationAction;
     var StopAnimationAction = (function (_super) {
         __extends(StopAnimationAction, _super);
@@ -31114,7 +31149,7 @@ var BABYLON;
             scene.stopAnimation(this._target);
         };
         return StopAnimationAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.StopAnimationAction = StopAnimationAction;
     var DoNothingAction = (function (_super) {
         __extends(DoNothingAction, _super);
@@ -31125,7 +31160,7 @@ var BABYLON;
         DoNothingAction.prototype.execute = function () {
         };
         return DoNothingAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.DoNothingAction = DoNothingAction;
     var CombineAction = (function (_super) {
         __extends(CombineAction, _super);
@@ -31145,7 +31180,7 @@ var BABYLON;
             }
         };
         return CombineAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.CombineAction = CombineAction;
     var ExecuteCodeAction = (function (_super) {
         __extends(ExecuteCodeAction, _super);
@@ -31157,7 +31192,7 @@ var BABYLON;
             this.func(evt);
         };
         return ExecuteCodeAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.ExecuteCodeAction = ExecuteCodeAction;
     var SetParentAction = (function (_super) {
         __extends(SetParentAction, _super);
@@ -31178,7 +31213,7 @@ var BABYLON;
             this._target.parent = this._parent;
         };
         return SetParentAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.SetParentAction = SetParentAction;
     var PlaySoundAction = (function (_super) {
         __extends(PlaySoundAction, _super);
@@ -31193,7 +31228,7 @@ var BABYLON;
                 this._sound.play();
         };
         return PlaySoundAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.PlaySoundAction = PlaySoundAction;
     var StopSoundAction = (function (_super) {
         __extends(StopSoundAction, _super);
@@ -31208,7 +31243,7 @@ var BABYLON;
                 this._sound.stop();
         };
         return StopSoundAction;
-    })(BABYLON.Action);
+    }(BABYLON.Action));
     BABYLON.StopSoundAction = StopSoundAction;
 })(BABYLON || (BABYLON = {}));
 
@@ -31894,7 +31929,7 @@ var BABYLON;
             return geometry;
         };
         return Geometry;
-    })();
+    }());
     BABYLON.Geometry = Geometry;
     /////// Primitives //////////////////////////////////////////////
     var Geometry;
@@ -31952,7 +31987,7 @@ var BABYLON;
                     return serializationObject;
                 };
                 return _Primitive;
-            })(Geometry);
+            }(Geometry));
             Primitives._Primitive = _Primitive;
             var Ribbon = (function (_super) {
                 __extends(Ribbon, _super);
@@ -31973,7 +32008,7 @@ var BABYLON;
                     return new Ribbon(id, this.getScene(), this.pathArray, this.closeArray, this.closePath, this.offset, this.canBeRegenerated(), null, this.side);
                 };
                 return Ribbon;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Ribbon = Ribbon;
             var Box = (function (_super) {
                 __extends(Box, _super);
@@ -32005,7 +32040,7 @@ var BABYLON;
                     return box;
                 };
                 return Box;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Box = Box;
             var Sphere = (function (_super) {
                 __extends(Sphere, _super);
@@ -32038,7 +32073,7 @@ var BABYLON;
                     return sphere;
                 };
                 return Sphere;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Sphere = Sphere;
             var Disc = (function (_super) {
                 __extends(Disc, _super);
@@ -32057,7 +32092,7 @@ var BABYLON;
                     return new Disc(id, this.getScene(), this.radius, this.tessellation, this.canBeRegenerated(), null, this.side);
                 };
                 return Disc;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Disc = Disc;
             var Cylinder = (function (_super) {
                 __extends(Cylinder, _super);
@@ -32096,7 +32131,7 @@ var BABYLON;
                     return cylinder;
                 };
                 return Cylinder;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Cylinder = Cylinder;
             var Torus = (function (_super) {
                 __extends(Torus, _super);
@@ -32131,7 +32166,7 @@ var BABYLON;
                     return torus;
                 };
                 return Torus;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Torus = Torus;
             var Ground = (function (_super) {
                 __extends(Ground, _super);
@@ -32164,7 +32199,7 @@ var BABYLON;
                     return ground;
                 };
                 return Ground;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Ground = Ground;
             var TiledGround = (function (_super) {
                 __extends(TiledGround, _super);
@@ -32184,7 +32219,7 @@ var BABYLON;
                     return new TiledGround(id, this.getScene(), this.xmin, this.zmin, this.xmax, this.zmax, this.subdivisions, this.precision, this.canBeRegenerated(), null);
                 };
                 return TiledGround;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.TiledGround = TiledGround;
             var Plane = (function (_super) {
                 __extends(Plane, _super);
@@ -32215,7 +32250,7 @@ var BABYLON;
                     return plane;
                 };
                 return Plane;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.Plane = Plane;
             var TorusKnot = (function (_super) {
                 __extends(TorusKnot, _super);
@@ -32257,7 +32292,7 @@ var BABYLON;
                     return torusKnot;
                 };
                 return TorusKnot;
-            })(_Primitive);
+            }(_Primitive));
             Primitives.TorusKnot = TorusKnot;
         })(Primitives = Geometry.Primitives || (Geometry.Primitives = {}));
     })(Geometry = BABYLON.Geometry || (BABYLON.Geometry = {}));
@@ -32454,7 +32489,7 @@ var BABYLON;
             }
         };
         return GroundMesh;
-    })(BABYLON.Mesh);
+    }(BABYLON.Mesh));
     BABYLON.GroundMesh = GroundMesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -32556,7 +32591,7 @@ var BABYLON;
             return new LinesMesh(name, this.getScene(), newParent, this, doNotCloneChildren);
         };
         return LinesMesh;
-    })(BABYLON.Mesh);
+    }(BABYLON.Mesh));
     BABYLON.LinesMesh = LinesMesh;
 })(BABYLON || (BABYLON = {}));
 
@@ -33236,7 +33271,7 @@ var BABYLON;
             }
         };
         return DebugLayer;
-    })();
+    }());
     BABYLON.DebugLayer = DebugLayer;
 })(BABYLON || (BABYLON = {}));
 
@@ -33365,7 +33400,7 @@ var BABYLON;
             configurable: true
         });
         return DefaultLoadingScreen;
-    })();
+    }());
     BABYLON.DefaultLoadingScreen = DefaultLoadingScreen;
 })(BABYLON || (BABYLON = {}));
 
@@ -33472,7 +33507,7 @@ var BABYLON;
             }
         };
         return AudioEngine;
-    })();
+    }());
     BABYLON.AudioEngine = AudioEngine;
 })(BABYLON || (BABYLON = {}));
 
@@ -34127,7 +34162,7 @@ var BABYLON;
             }
         };
         return SoundTrack;
-    })();
+    }());
     BABYLON.SoundTrack = SoundTrack;
 })(BABYLON || (BABYLON = {}));
 
@@ -34159,7 +34194,7 @@ var BABYLON;
             SIMD.float32x4.storeXYZ(result._data, 0, r);
         };
         return SIMDVector3;
-    })();
+    }());
     BABYLON.SIMDVector3 = SIMDVector3;
     var SIMDMatrix = (function () {
         function SIMDMatrix() {
@@ -34336,7 +34371,7 @@ var BABYLON;
             SIMD.float32x4.store(out, 12, SIMD.float32x4.add(SIMD.float32x4.mul(SIMD.float32x4.swizzle(b3, 0, 0, 0, 0), a0), SIMD.float32x4.add(SIMD.float32x4.mul(SIMD.float32x4.swizzle(b3, 1, 1, 1, 1), a1), SIMD.float32x4.add(SIMD.float32x4.mul(SIMD.float32x4.swizzle(b3, 2, 2, 2, 2), a2), SIMD.float32x4.mul(SIMD.float32x4.swizzle(b3, 3, 3, 3, 3), a3)))));
         };
         return SIMDMatrix;
-    })();
+    }());
     BABYLON.SIMDMatrix = SIMDMatrix;
     var previousMultiplyToArray = BABYLON.Matrix.prototype.multiplyToArray;
     var previousInvertToRef = BABYLON.Matrix.prototype.invertToRef;
@@ -34397,7 +34432,7 @@ var BABYLON;
         };
         SIMDHelper._isEnabled = false;
         return SIMDHelper;
-    })();
+    }());
     BABYLON.SIMDHelper = SIMDHelper;
 })(BABYLON || (BABYLON = {}));
 
@@ -34743,7 +34778,7 @@ var BABYLON;
             return material;
         };
         return ShaderMaterial;
-    })(BABYLON.Material);
+    }(BABYLON.Material));
     BABYLON.ShaderMaterial = ShaderMaterial;
 })(BABYLON || (BABYLON = {}));
 
@@ -34927,7 +34962,7 @@ var BABYLON;
                 }
             };
             return DDSTools;
-        })();
+        }());
         Internals.DDSTools = DDSTools;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -35355,7 +35390,7 @@ var BABYLON;
             //nothing to do, actually.
         };
         return CannonJSPlugin;
-    })();
+    }());
     BABYLON.CannonJSPlugin = CannonJSPlugin;
 })(BABYLON || (BABYLON = {}));
 
@@ -35461,7 +35496,8 @@ var BABYLON;
                         x: impostor.object.rotationQuaternion.x,
                         y: impostor.object.rotationQuaternion.y,
                         z: impostor.object.rotationQuaternion.z,
-                        s: impostor.object.rotationQuaternion.w });
+                        s: impostor.object.rotationQuaternion.w
+                    });
                     var extendSize = i.getObjectExtendSize();
                     if (i === impostor) {
                         var center = impostor.getObjectCenter();
@@ -35591,8 +35627,16 @@ var BABYLON;
             nativeJointData.type = type;
             impostorJoint.joint.physicsJoint = new OIMO.Link(nativeJointData).joint; //this.world.add(nativeJointData);
         };
-        OimoJSPlugin.prototype.removeJoint = function (joint) {
-            joint.joint.physicsJoint.dispose();
+        OimoJSPlugin.prototype.removeJoint = function (impostorJoint) {
+            //Bug in Oimo prevents us from disposing a joint in the playground
+            //joint.joint.physicsJoint.dispose();
+            //So we will bruteforce it!
+            try {
+                this.world.removeJoint(impostorJoint.joint.physicsJoint);
+            }
+            catch (e) {
+                BABYLON.Tools.Warn(e);
+            }
         };
         OimoJSPlugin.prototype.isSupported = function () {
             return OIMO !== undefined;
@@ -35664,13 +35708,15 @@ var BABYLON;
             }
         };
         OimoJSPlugin.prototype.setMotor = function (joint, speed, maxForce, motorIndex) {
-            var motor = motorIndex ? joint.physicsJoint.rotationalLimitMotor2 : joint.physicsJoint.rotationalLimitMotor1 || joint.physicsJoint.limitMotor;
+            //TODO separate rotational and transational motors.
+            var motor = motorIndex ? joint.physicsJoint.rotationalLimitMotor2 : joint.physicsJoint.rotationalLimitMotor1 || joint.physicsJoint.rotationalLimitMotor || joint.physicsJoint.limitMotor;
             if (motor) {
                 motor.setMotor(speed, maxForce);
             }
         };
         OimoJSPlugin.prototype.setLimit = function (joint, upperLimit, lowerLimit, motorIndex) {
-            var motor = motorIndex ? joint.physicsJoint.rotationalLimitMotor2 : joint.physicsJoint.rotationalLimitMotor1 || joint.physicsJoint.limitMotor;
+            //TODO separate rotational and transational motors.
+            var motor = motorIndex ? joint.physicsJoint.rotationalLimitMotor2 : joint.physicsJoint.rotationalLimitMotor1 || joint.physicsJoint.rotationalLimitMotor || joint.physicsJoint.limitMotor;
             if (motor) {
                 motor.setLimit(upperLimit, lowerLimit === void 0 ? -upperLimit : lowerLimit);
             }
@@ -35679,7 +35725,7 @@ var BABYLON;
             this.world.clear();
         };
         return OimoJSPlugin;
-    })();
+    }());
     BABYLON.OimoJSPlugin = OimoJSPlugin;
 })(BABYLON || (BABYLON = {}));
 
@@ -35697,7 +35743,7 @@ var BABYLON;
             _super.call(this, name, "displayPass", ["passSampler"], ["passSampler"], ratio, camera, samplingMode, engine, reusable);
         }
         return DisplayPassPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.DisplayPassPostProcess = DisplayPassPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -35710,7 +35756,7 @@ var BABYLON;
             this.optimizeMesh = optimizeMesh;
         }
         return SimplificationSettings;
-    })();
+    }());
     BABYLON.SimplificationSettings = SimplificationSettings;
     var SimplificationQueue = (function () {
         function SimplificationQueue() {
@@ -35780,7 +35826,7 @@ var BABYLON;
             }
         };
         return SimplificationQueue;
-    })();
+    }());
     BABYLON.SimplificationQueue = SimplificationQueue;
     /**
      * The implemented types of simplification.
@@ -35800,7 +35846,7 @@ var BABYLON;
             this.borderFactor = 0;
         }
         return DecimationTriangle;
-    })();
+    }());
     BABYLON.DecimationTriangle = DecimationTriangle;
     var DecimationVertex = (function () {
         function DecimationVertex(position, id) {
@@ -35816,7 +35862,7 @@ var BABYLON;
             this.position.copyFrom(newPosition);
         };
         return DecimationVertex;
-    })();
+    }());
     BABYLON.DecimationVertex = DecimationVertex;
     var QuadraticMatrix = (function () {
         function QuadraticMatrix(data) {
@@ -35861,7 +35907,7 @@ var BABYLON;
             return [a * a, a * b, a * c, a * d, b * b, b * c, b * d, c * c, c * d, d * d];
         };
         return QuadraticMatrix;
-    })();
+    }());
     BABYLON.QuadraticMatrix = QuadraticMatrix;
     var Reference = (function () {
         function Reference(vertexId, triangleId) {
@@ -35869,7 +35915,7 @@ var BABYLON;
             this.triangleId = triangleId;
         }
         return Reference;
-    })();
+    }());
     BABYLON.Reference = Reference;
     /**
      * An implementation of the Quadratic Error simplification algorithm.
@@ -36356,7 +36402,7 @@ var BABYLON;
             return error;
         };
         return QuadraticErrorSimplification;
-    })();
+    }());
     BABYLON.QuadraticErrorSimplification = QuadraticErrorSimplification;
 })(BABYLON || (BABYLON = {}));
 
@@ -36680,7 +36726,7 @@ var BABYLON;
             return serializationObject;
         };
         return SceneSerializer;
-    })();
+    }());
     BABYLON.SceneSerializer = SceneSerializer;
 })(BABYLON || (BABYLON = {}));
 
@@ -36718,7 +36764,7 @@ var BABYLON;
             return new Vertex(BABYLON.Vector3.Lerp(this.pos, other.pos, t), BABYLON.Vector3.Lerp(this.normal, other.normal, t), BABYLON.Vector2.Lerp(this.uv, other.uv, t));
         };
         return Vertex;
-    })();
+    }());
     // # class Plane
     // Represents a plane in 3D space.
     var Plane = (function () {
@@ -36810,7 +36856,7 @@ var BABYLON;
         // point is on the plane.
         Plane.EPSILON = 1e-5;
         return Plane;
-    })();
+    }());
     // # class Polygon
     // Represents a convex polygon. The vertices used to initialize a polygon must
     // be coplanar and form a convex loop.
@@ -36833,7 +36879,7 @@ var BABYLON;
             this.plane.flip();
         };
         return Polygon;
-    })();
+    }());
     // # class Node
     // Holds a node in a BSP tree. A BSP tree is built from a collection of polygons
     // by picking a polygon to split along. That polygon (and all other coplanar
@@ -36939,7 +36985,7 @@ var BABYLON;
             }
         };
         return Node;
-    })();
+    }());
     var CSG = (function () {
         function CSG() {
             this.polygons = new Array();
@@ -37194,7 +37240,7 @@ var BABYLON;
             return mesh;
         };
         return CSG;
-    })();
+    }());
     BABYLON.CSG = CSG;
 })(BABYLON || (BABYLON = {}));
 
@@ -37235,7 +37281,7 @@ var BABYLON;
             };
         }
         return VRDistortionCorrectionPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.VRDistortionCorrectionPostProcess = VRDistortionCorrectionPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -37532,7 +37578,7 @@ var BABYLON;
         // Used to draw the virtual joystick inside a 2D canvas on top of the WebGL rendering canvas
         VirtualJoystick._globalJoystickIndex = 0;
         return VirtualJoystick;
-    })();
+    }());
     BABYLON.VirtualJoystick = VirtualJoystick;
 })(BABYLON || (BABYLON = {}));
 
@@ -37552,7 +37598,7 @@ var BABYLON;
             this.inputs.addVirtualJoystick();
         }
         return VirtualJoysticksCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.VirtualJoysticksCamera = VirtualJoysticksCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -37570,7 +37616,7 @@ var BABYLON;
             _super.call(this, name, "anaglyph", null, ["leftSampler"], ratio, camera, samplingMode, engine, reusable);
         }
         return AnaglyphPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.AnaglyphPostProcess = AnaglyphPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -37656,7 +37702,7 @@ var BABYLON;
             return this._effect.isReady();
         };
         return OutlineRenderer;
-    })();
+    }());
     BABYLON.OutlineRenderer = OutlineRenderer;
 })(BABYLON || (BABYLON = {}));
 
@@ -37689,7 +37735,7 @@ var BABYLON;
             });
         };
         return MeshAssetTask;
-    })();
+    }());
     BABYLON.MeshAssetTask = MeshAssetTask;
     var TextFileAssetTask = (function () {
         function TextFileAssetTask(name, url) {
@@ -37714,7 +37760,7 @@ var BABYLON;
             });
         };
         return TextFileAssetTask;
-    })();
+    }());
     BABYLON.TextFileAssetTask = TextFileAssetTask;
     var BinaryFileAssetTask = (function () {
         function BinaryFileAssetTask(name, url) {
@@ -37739,7 +37785,7 @@ var BABYLON;
             });
         };
         return BinaryFileAssetTask;
-    })();
+    }());
     BABYLON.BinaryFileAssetTask = BinaryFileAssetTask;
     var ImageAssetTask = (function () {
         function ImageAssetTask(name, url) {
@@ -37767,7 +37813,7 @@ var BABYLON;
             img.src = this.url;
         };
         return ImageAssetTask;
-    })();
+    }());
     BABYLON.ImageAssetTask = ImageAssetTask;
     var TextureAssetTask = (function () {
         function TextureAssetTask(name, url, noMipmap, invertY, samplingMode) {
@@ -37797,7 +37843,7 @@ var BABYLON;
             this.texture = new BABYLON.Texture(this.url, scene, this.noMipmap, this.invertY, this.samplingMode, onload, onerror);
         };
         return TextureAssetTask;
-    })();
+    }());
     BABYLON.TextureAssetTask = TextureAssetTask;
     var AssetsManager = (function () {
         function AssetsManager(scene) {
@@ -37877,7 +37923,7 @@ var BABYLON;
             return this;
         };
         return AssetsManager;
-    })();
+    }());
     BABYLON.AssetsManager = AssetsManager;
 })(BABYLON || (BABYLON = {}));
 
@@ -37950,7 +37996,7 @@ var BABYLON;
             return result;
         };
         return VRCameraMetrics;
-    })();
+    }());
     BABYLON.VRCameraMetrics = VRCameraMetrics;
 })(BABYLON || (BABYLON = {}));
 
@@ -37976,7 +38022,7 @@ var BABYLON;
             return "VRDeviceOrientationFreeCamera";
         };
         return VRDeviceOrientationFreeCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.VRDeviceOrientationFreeCamera = VRDeviceOrientationFreeCamera;
     var VRDeviceOrientationArcRotateCamera = (function (_super) {
         __extends(VRDeviceOrientationArcRotateCamera, _super);
@@ -37992,7 +38038,7 @@ var BABYLON;
             return "VRDeviceOrientationArcRotateCamera";
         };
         return VRDeviceOrientationArcRotateCamera;
-    })(BABYLON.ArcRotateCamera);
+    }(BABYLON.ArcRotateCamera));
     BABYLON.VRDeviceOrientationArcRotateCamera = VRDeviceOrientationArcRotateCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -38071,7 +38117,7 @@ var BABYLON;
             return "WebVRFreeCamera";
         };
         return WebVRFreeCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.WebVRFreeCamera = WebVRFreeCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -38093,7 +38139,7 @@ var BABYLON;
             };
         }
         return SceneOptimization;
-    })();
+    }());
     BABYLON.SceneOptimization = SceneOptimization;
     var TextureOptimization = (function (_super) {
         __extends(TextureOptimization, _super);
@@ -38122,7 +38168,7 @@ var BABYLON;
             };
         }
         return TextureOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.TextureOptimization = TextureOptimization;
     var HardwareScalingOptimization = (function (_super) {
         __extends(HardwareScalingOptimization, _super);
@@ -38141,7 +38187,7 @@ var BABYLON;
             };
         }
         return HardwareScalingOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.HardwareScalingOptimization = HardwareScalingOptimization;
     var ShadowsOptimization = (function (_super) {
         __extends(ShadowsOptimization, _super);
@@ -38153,7 +38199,7 @@ var BABYLON;
             };
         }
         return ShadowsOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.ShadowsOptimization = ShadowsOptimization;
     var PostProcessesOptimization = (function (_super) {
         __extends(PostProcessesOptimization, _super);
@@ -38165,7 +38211,7 @@ var BABYLON;
             };
         }
         return PostProcessesOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.PostProcessesOptimization = PostProcessesOptimization;
     var LensFlaresOptimization = (function (_super) {
         __extends(LensFlaresOptimization, _super);
@@ -38177,7 +38223,7 @@ var BABYLON;
             };
         }
         return LensFlaresOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.LensFlaresOptimization = LensFlaresOptimization;
     var ParticlesOptimization = (function (_super) {
         __extends(ParticlesOptimization, _super);
@@ -38189,7 +38235,7 @@ var BABYLON;
             };
         }
         return ParticlesOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.ParticlesOptimization = ParticlesOptimization;
     var RenderTargetsOptimization = (function (_super) {
         __extends(RenderTargetsOptimization, _super);
@@ -38201,7 +38247,7 @@ var BABYLON;
             };
         }
         return RenderTargetsOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.RenderTargetsOptimization = RenderTargetsOptimization;
     var MergeMeshesOptimization = (function (_super) {
         __extends(MergeMeshesOptimization, _super);
@@ -38284,7 +38330,7 @@ var BABYLON;
         });
         MergeMeshesOptimization._UpdateSelectionTree = false;
         return MergeMeshesOptimization;
-    })(SceneOptimization);
+    }(SceneOptimization));
     BABYLON.MergeMeshesOptimization = MergeMeshesOptimization;
     // Options
     var SceneOptimizerOptions = (function () {
@@ -38353,7 +38399,7 @@ var BABYLON;
             return result;
         };
         return SceneOptimizerOptions;
-    })();
+    }());
     BABYLON.SceneOptimizerOptions = SceneOptimizerOptions;
     // Scene optimizer tool
     var SceneOptimizer = (function () {
@@ -38407,7 +38453,7 @@ var BABYLON;
             });
         };
         return SceneOptimizer;
-    })();
+    }());
     BABYLON.SceneOptimizer = SceneOptimizer;
 })(BABYLON || (BABYLON = {}));
 
@@ -38421,7 +38467,7 @@ var BABYLON;
                 this.mesh = mesh;
             }
             return MeshLODLevel;
-        })();
+        }());
         Internals.MeshLODLevel = MeshLODLevel;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -38481,7 +38527,7 @@ var BABYLON;
             return new RawTexture(data, width, height, BABYLON.Engine.TEXTUREFORMAT_RGBA, scene, generateMipMaps, invertY, samplingMode);
         };
         return RawTexture;
-    })(BABYLON.Texture);
+    }(BABYLON.Texture));
     BABYLON.RawTexture = RawTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -38500,7 +38546,7 @@ var BABYLON;
             this.index = index;
         }
         return IndexedVector2;
-    })(BABYLON.Vector2);
+    }(BABYLON.Vector2));
     var PolygonPoints = (function () {
         function PolygonPoints() {
             this.elements = new Array();
@@ -38544,7 +38590,7 @@ var BABYLON;
             };
         };
         return PolygonPoints;
-    })();
+    }());
     var Polygon = (function () {
         function Polygon() {
         }
@@ -38581,7 +38627,7 @@ var BABYLON;
             return BABYLON.Path2.StartingAt(x, y);
         };
         return Polygon;
-    })();
+    }());
     BABYLON.Polygon = Polygon;
     var PolygonMeshBuilder = (function () {
         function PolygonMeshBuilder(name, contours, scene) {
@@ -38728,7 +38774,7 @@ var BABYLON;
             ;
         };
         return PolygonMeshBuilder;
-    })();
+    }());
     BABYLON.PolygonMeshBuilder = PolygonMeshBuilder;
 })(BABYLON || (BABYLON = {}));
 
@@ -38817,7 +38863,7 @@ var BABYLON;
             }
         };
         return Octree;
-    })();
+    }());
     BABYLON.Octree = Octree;
 })(BABYLON || (BABYLON = {}));
 
@@ -38940,7 +38986,7 @@ var BABYLON;
             BABYLON.Octree._CreateBlocks(this._minPoint, this._maxPoint, this.entries, this._capacity, this._depth, this._maxDepth, this, this._creationFunc);
         };
         return OctreeBlock;
-    })();
+    }());
     BABYLON.OctreeBlock = OctreeBlock;
 })(BABYLON || (BABYLON = {}));
 
@@ -38967,7 +39013,7 @@ var BABYLON;
             };
         }
         return BlurPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.BlurPostProcess = BlurPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39005,7 +39051,7 @@ var BABYLON;
             _super.prototype.dispose.call(this, camera);
         };
         return RefractionPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.RefractionPostProcess = RefractionPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39023,7 +39069,7 @@ var BABYLON;
             _super.call(this, name, "blackAndWhite", null, null, ratio, camera, samplingMode, engine, reusable);
         }
         return BlackAndWhitePostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.BlackAndWhitePostProcess = BlackAndWhitePostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39055,7 +39101,7 @@ var BABYLON;
         ConvolutionPostProcess.EmbossKernel = [-2, -1, 0, -1, 1, 1, 0, 1, 2];
         ConvolutionPostProcess.GaussianKernel = [0, 1, 0, 1, 1, 1, 0, 1, 0];
         return ConvolutionPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.ConvolutionPostProcess = ConvolutionPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39078,7 +39124,7 @@ var BABYLON;
             };
         }
         return FilterPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.FilterPostProcess = FilterPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39104,7 +39150,7 @@ var BABYLON;
             };
         }
         return FxaaPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.FxaaPostProcess = FxaaPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39131,7 +39177,7 @@ var BABYLON;
             };
         }
         return StereoscopicInterlacePostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.StereoscopicInterlacePostProcess = StereoscopicInterlacePostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -39155,7 +39201,7 @@ var BABYLON;
             system.lensFlares.push(this);
         }
         return LensFlare;
-    })();
+    }());
     BABYLON.LensFlare = LensFlare;
 })(BABYLON || (BABYLON = {}));
 
@@ -39422,7 +39468,7 @@ var BABYLON;
             return "DeviceOrientationCamera";
         };
         return DeviceOrientationCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.DeviceOrientationCamera = DeviceOrientationCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -39475,7 +39521,7 @@ var BABYLON;
             return "UniversalCamera";
         };
         return UniversalCamera;
-    })(BABYLON.TouchCamera);
+    }(BABYLON.TouchCamera));
     BABYLON.UniversalCamera = UniversalCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -39610,7 +39656,7 @@ var BABYLON;
             }
         };
         return Gamepads;
-    })();
+    }());
     BABYLON.Gamepads = Gamepads;
     var StickValues = (function () {
         function StickValues(x, y) {
@@ -39618,7 +39664,7 @@ var BABYLON;
             this.y = y;
         }
         return StickValues;
-    })();
+    }());
     BABYLON.StickValues = StickValues;
     var Gamepad = (function () {
         function Gamepad(id, index, browserGamepad) {
@@ -39673,7 +39719,7 @@ var BABYLON;
             }
         };
         return Gamepad;
-    })();
+    }());
     BABYLON.Gamepad = Gamepad;
     var GenericPad = (function (_super) {
         __extends(GenericPad, _super);
@@ -39708,7 +39754,7 @@ var BABYLON;
             }
         };
         return GenericPad;
-    })(Gamepad);
+    }(Gamepad));
     BABYLON.GenericPad = GenericPad;
     (function (Xbox360Button) {
         Xbox360Button[Xbox360Button["A"] = 0] = "A";
@@ -39977,7 +40023,7 @@ var BABYLON;
             this.dPadRight = this.browserGamepad.buttons[15].value;
         };
         return Xbox360Pad;
-    })(Gamepad);
+    }(Gamepad));
     BABYLON.Xbox360Pad = Xbox360Pad;
 })(BABYLON || (BABYLON = {}));
 
@@ -40030,7 +40076,7 @@ var BABYLON;
             return "GamepadCamera";
         };
         return GamepadCamera;
-    })(BABYLON.UniversalCamera);
+    }(BABYLON.UniversalCamera));
     BABYLON.GamepadCamera = GamepadCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -40142,7 +40188,7 @@ var BABYLON;
             }
         };
         return Analyser;
-    })();
+    }());
     BABYLON.Analyser = Analyser;
 })(BABYLON || (BABYLON = {}));
 
@@ -40271,7 +40317,7 @@ var BABYLON;
             this._depthMap.dispose();
         };
         return DepthRenderer;
-    })();
+    }());
     BABYLON.DepthRenderer = DepthRenderer;
 })(BABYLON || (BABYLON = {}));
 
@@ -40905,7 +40951,7 @@ var BABYLON;
             BABYLON.serialize()
         ], VolumetricLightScatteringPostProcess.prototype, "density", void 0);
         return VolumetricLightScatteringPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.VolumetricLightScatteringPostProcess = VolumetricLightScatteringPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -41136,7 +41182,7 @@ var BABYLON;
             this._grainTexture.update(false);
         };
         return LensRenderingPipeline;
-    })(BABYLON.PostProcessRenderPipeline);
+    }(BABYLON.PostProcessRenderPipeline));
     BABYLON.LensRenderingPipeline = LensRenderingPipeline;
 })(BABYLON || (BABYLON = {}));
 
@@ -41175,7 +41221,7 @@ var BABYLON;
             };
         }
         return ColorCorrectionPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.ColorCorrectionPostProcess = ColorCorrectionPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -41198,7 +41244,7 @@ var BABYLON;
             return "AnaglyphFreeCamera";
         };
         return AnaglyphFreeCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.AnaglyphFreeCamera = AnaglyphFreeCamera;
     var AnaglyphArcRotateCamera = (function (_super) {
         __extends(AnaglyphArcRotateCamera, _super);
@@ -41211,7 +41257,7 @@ var BABYLON;
             return "AnaglyphArcRotateCamera";
         };
         return AnaglyphArcRotateCamera;
-    })(BABYLON.ArcRotateCamera);
+    }(BABYLON.ArcRotateCamera));
     BABYLON.AnaglyphArcRotateCamera = AnaglyphArcRotateCamera;
     var AnaglyphGamepadCamera = (function (_super) {
         __extends(AnaglyphGamepadCamera, _super);
@@ -41224,7 +41270,7 @@ var BABYLON;
             return "AnaglyphGamepadCamera";
         };
         return AnaglyphGamepadCamera;
-    })(BABYLON.GamepadCamera);
+    }(BABYLON.GamepadCamera));
     BABYLON.AnaglyphGamepadCamera = AnaglyphGamepadCamera;
     var AnaglyphUniversalCamera = (function (_super) {
         __extends(AnaglyphUniversalCamera, _super);
@@ -41237,7 +41283,7 @@ var BABYLON;
             return "AnaglyphUniversalCamera";
         };
         return AnaglyphUniversalCamera;
-    })(BABYLON.UniversalCamera);
+    }(BABYLON.UniversalCamera));
     BABYLON.AnaglyphUniversalCamera = AnaglyphUniversalCamera;
     var StereoscopicFreeCamera = (function (_super) {
         __extends(StereoscopicFreeCamera, _super);
@@ -41251,7 +41297,7 @@ var BABYLON;
             return "StereoscopicFreeCamera";
         };
         return StereoscopicFreeCamera;
-    })(BABYLON.FreeCamera);
+    }(BABYLON.FreeCamera));
     BABYLON.StereoscopicFreeCamera = StereoscopicFreeCamera;
     var StereoscopicArcRotateCamera = (function (_super) {
         __extends(StereoscopicArcRotateCamera, _super);
@@ -41265,7 +41311,7 @@ var BABYLON;
             return "StereoscopicArcRotateCamera";
         };
         return StereoscopicArcRotateCamera;
-    })(BABYLON.ArcRotateCamera);
+    }(BABYLON.ArcRotateCamera));
     BABYLON.StereoscopicArcRotateCamera = StereoscopicArcRotateCamera;
     var StereoscopicGamepadCamera = (function (_super) {
         __extends(StereoscopicGamepadCamera, _super);
@@ -41279,7 +41325,7 @@ var BABYLON;
             return "StereoscopicGamepadCamera";
         };
         return StereoscopicGamepadCamera;
-    })(BABYLON.GamepadCamera);
+    }(BABYLON.GamepadCamera));
     BABYLON.StereoscopicGamepadCamera = StereoscopicGamepadCamera;
     var StereoscopicUniversalCamera = (function (_super) {
         __extends(StereoscopicUniversalCamera, _super);
@@ -41293,7 +41339,7 @@ var BABYLON;
             return "StereoscopicUniversalCamera";
         };
         return StereoscopicUniversalCamera;
-    })(BABYLON.UniversalCamera);
+    }(BABYLON.UniversalCamera));
     BABYLON.StereoscopicUniversalCamera = StereoscopicUniversalCamera;
 })(BABYLON || (BABYLON = {}));
 
@@ -41847,7 +41893,7 @@ var BABYLON;
             this.edgesConnectedCount = 0;
         }
         return FaceAdjacencies;
-    })();
+    }());
     var EdgesRenderer = (function () {
         // Beware when you use this class with complex objects as the adjacencies computation can be really long
         function EdgesRenderer(source, epsilon, checkVerticesInsteadOfIndices) {
@@ -42081,7 +42127,7 @@ var BABYLON;
             engine.setDepthWrite(true);
         };
         return EdgesRenderer;
-    })();
+    }());
     BABYLON.EdgesRenderer = EdgesRenderer;
 })(BABYLON || (BABYLON = {}));
 
@@ -42126,7 +42172,7 @@ var BABYLON;
             };
         }
         return TonemapPostProcess;
-    })(BABYLON.PostProcess);
+    }(BABYLON.PostProcess));
     BABYLON.TonemapPostProcess = TonemapPostProcess;
 })(BABYLON || (BABYLON = {}));
 
@@ -42140,6 +42186,7 @@ var BABYLON;
             this._viewMatrix = BABYLON.Matrix.Identity();
             this._target = BABYLON.Vector3.Zero();
             this._add = BABYLON.Vector3.Zero();
+            this.invertYAxis = false;
             this.position = BABYLON.Vector3.Zero();
             this._scene = scene;
             this._scene.reflectionProbes.push(this);
@@ -42153,10 +42200,10 @@ var BABYLON;
                         _this._add.copyFromFloats(-1, 0, 0);
                         break;
                     case 2:
-                        _this._add.copyFromFloats(0, -1, 0);
+                        _this._add.copyFromFloats(0, _this.invertYAxis ? 1 : -1, 0);
                         break;
                     case 3:
-                        _this._add.copyFromFloats(0, 1, 0);
+                        _this._add.copyFromFloats(0, _this.invertYAxis ? -1 : 1, 0);
                         break;
                     case 4:
                         _this._add.copyFromFloats(0, 0, 1);
@@ -42219,7 +42266,7 @@ var BABYLON;
             }
         };
         return ReflectionProbe;
-    })();
+    }());
     BABYLON.ReflectionProbe = ReflectionProbe;
 })(BABYLON || (BABYLON = {}));
 
@@ -42263,7 +42310,7 @@ var BABYLON;
             configurable: true
         });
         return SolidParticle;
-    })();
+    }());
     BABYLON.SolidParticle = SolidParticle;
     var ModelShape = (function () {
         function ModelShape(id, shape, shapeUV, posFunction, vtxFunction) {
@@ -42274,7 +42321,7 @@ var BABYLON;
             this._vertexFunction = vtxFunction;
         }
         return ModelShape;
-    })();
+    }());
     BABYLON.ModelShape = ModelShape;
 })(BABYLON || (BABYLON = {}));
 
@@ -43099,7 +43146,7 @@ var BABYLON;
         SolidParticleSystem.prototype.afterUpdateParticles = function (start, stop, update) {
         };
         return SolidParticleSystem;
-    })();
+    }());
     BABYLON.SolidParticleSystem = SolidParticleSystem;
 })(BABYLON || (BABYLON = {}));
 
@@ -43115,7 +43162,7 @@ var BABYLON;
                 this.worldAxisForFileY = worldAxisForFileY;
             }
             return FileFaceOrientation;
-        })();
+        }());
         ;
         /**
          * Helper class dealing with the extraction of spherical polynomial dataArray
@@ -43216,7 +43263,7 @@ var BABYLON;
                 new FileFaceOrientation("back", new BABYLON.Vector3(0, 0, -1), new BABYLON.Vector3(-1, 0, 0), new BABYLON.Vector3(0, -1, 0)) // -Z bottom
             ];
             return CubeMapToSphericalPolynomialTools;
-        })();
+        }());
         Internals.CubeMapToSphericalPolynomialTools = CubeMapToSphericalPolynomialTools;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -43356,7 +43403,7 @@ var BABYLON;
                 new BABYLON.Vector3(1.0, -1.0, -1.0)
             ];
             return PanoramaToCubeMapTools;
-        })();
+        }());
         Internals.PanoramaToCubeMapTools = PanoramaToCubeMapTools;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -43559,7 +43606,7 @@ var BABYLON;
                 return resultArray;
             };
             return HDRTools;
-        })();
+        }());
         Internals.HDRTools = HDRTools;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -43622,7 +43669,7 @@ var BABYLON;
             CMGBoundinBox.MAX = Number.MAX_VALUE;
             CMGBoundinBox.MIN = Number.MIN_VALUE;
             return CMGBoundinBox;
-        })();
+        }());
         /**
          * Helper class to PreProcess a cubemap in order to generate mipmap according to the level of blur
          * required by the glossinees of a material.
@@ -44620,7 +44667,7 @@ var BABYLON;
                 [PMREMGenerator.CP_CORNER_PPN, PMREMGenerator.CP_CORNER_NPN, PMREMGenerator.CP_CORNER_PNN, PMREMGenerator.CP_CORNER_NNN] // ZNEG face
             ];
             return PMREMGenerator;
-        })();
+        }());
         Internals.PMREMGenerator = PMREMGenerator;
     })(Internals = BABYLON.Internals || (BABYLON.Internals = {}));
 })(BABYLON || (BABYLON = {}));
@@ -44646,7 +44693,7 @@ var BABYLON;
          *
          * @param url The location of the HDR raw data (Panorama stored in RGBE format)
          * @param scene The scene the texture will be used in
-         * @param size The cubemap desired size (the more it increases the longer the generation will be)
+         * @param size The cubemap desired size (the more it increases the longer the generation will be) If the size is omitted this implies you are using a preprocessed cubemap.
          * @param noMipmap Forces to not generate the mipmap if true
          * @param generateHarmonics Specifies wether you want to extract the polynomial harmonics during the generation process
          * @param useInGammaSpace Specifies if the texture will be use in gamma or linear space (the PBR material requires those texture in linear space, but the standard material would require them in Gamma space)
@@ -44660,6 +44707,7 @@ var BABYLON;
             _super.call(this, scene);
             this._useInGammaSpace = false;
             this._generateHarmonics = true;
+            this._isBABYLONPreprocessed = false;
             /**
              * The texture coordinates mode. As this texture is stored in a cube format, please modify carefully.
              */
@@ -44673,18 +44721,29 @@ var BABYLON;
              * This is usefull at run time to apply the good shader.
              */
             this.isPMREM = false;
-            this.name = url;
-            this.url = url;
-            this._noMipmap = noMipmap;
-            this.hasAlpha = false;
-            this._size = size;
-            this._useInGammaSpace = useInGammaSpace;
-            this._usePMREMGenerator = usePMREMGenerator && scene.getEngine().getCaps().textureLOD;
-            this.isPMREM = this._usePMREMGenerator;
             if (!url) {
                 return;
             }
-            this._texture = this._getFromCache(url, noMipmap);
+            this.name = url;
+            this.url = url;
+            this.hasAlpha = false;
+            this.isCube = true;
+            this._textureMatrix = BABYLON.Matrix.Identity();
+            if (size) {
+                this._isBABYLONPreprocessed = false;
+                this._noMipmap = noMipmap;
+                this._size = size;
+                this._useInGammaSpace = useInGammaSpace;
+                this._usePMREMGenerator = usePMREMGenerator && scene.getEngine().getCaps().textureLOD;
+            }
+            else {
+                this._isBABYLONPreprocessed = true;
+                this._noMipmap = false;
+                this._useInGammaSpace = false;
+                this._usePMREMGenerator = scene.getEngine().getCaps().textureLOD;
+            }
+            this.isPMREM = this._usePMREMGenerator;
+            this._texture = this._getFromCache(url, this._noMipmap);
             if (!this._texture) {
                 if (!scene.useDelayedTextureLoading) {
                     this.loadTexture();
@@ -44693,10 +44752,102 @@ var BABYLON;
                     this.delayLoadState = BABYLON.Engine.DELAYLOADSTATE_NOTLOADED;
                 }
             }
-            this.isCube = true;
-            this._textureMatrix = BABYLON.Matrix.Identity();
         }
-        HDRCubeTexture.prototype.loadTexture = function () {
+        /**
+         * Occurs when the file is a preprocessed .babylon.hdr file.
+         */
+        HDRCubeTexture.prototype.loadBabylonTexture = function () {
+            var _this = this;
+            var mipLevels = 0;
+            var floatArrayView = null;
+            var mipmapGenerator = function (data) {
+                var mips = [];
+                var startIndex = 30;
+                for (var level = 0; level < mipLevels; level++) {
+                    mips.push([]);
+                    // Fill each pixel of the mip level.
+                    var faceSize = Math.pow(_this._size >> level, 2) * 3;
+                    for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
+                        var faceData = floatArrayView.subarray(startIndex, startIndex + faceSize);
+                        mips[level].push(faceData);
+                        startIndex += faceSize;
+                    }
+                }
+                return mips;
+            };
+            var callback = function (buffer) {
+                // Create Native Array Views
+                var intArrayView = new Int32Array(buffer);
+                floatArrayView = new Float32Array(buffer);
+                // Fill header.
+                var version = intArrayView[0]; // Version 1. (MAy be use in case of format changes for backward compaibility)
+                _this._size = intArrayView[1]; // CubeMap max mip face size.
+                // Update Texture Information.
+                _this.getScene().getEngine().updateTextureSize(_this._texture, _this._size, _this._size);
+                // Fill polynomial information.
+                _this.sphericalPolynomial = new BABYLON.SphericalPolynomial();
+                _this.sphericalPolynomial.x.copyFromFloats(floatArrayView[2], floatArrayView[3], floatArrayView[4]);
+                _this.sphericalPolynomial.y.copyFromFloats(floatArrayView[5], floatArrayView[6], floatArrayView[7]);
+                _this.sphericalPolynomial.z.copyFromFloats(floatArrayView[8], floatArrayView[9], floatArrayView[10]);
+                _this.sphericalPolynomial.xx.copyFromFloats(floatArrayView[11], floatArrayView[12], floatArrayView[13]);
+                _this.sphericalPolynomial.yy.copyFromFloats(floatArrayView[14], floatArrayView[15], floatArrayView[16]);
+                _this.sphericalPolynomial.zz.copyFromFloats(floatArrayView[17], floatArrayView[18], floatArrayView[19]);
+                _this.sphericalPolynomial.xy.copyFromFloats(floatArrayView[20], floatArrayView[21], floatArrayView[22]);
+                _this.sphericalPolynomial.yz.copyFromFloats(floatArrayView[23], floatArrayView[24], floatArrayView[25]);
+                _this.sphericalPolynomial.zx.copyFromFloats(floatArrayView[26], floatArrayView[27], floatArrayView[28]);
+                // Fill pixel data.
+                mipLevels = intArrayView[29]; // Number of mip levels.
+                var startIndex = 30;
+                var data = [];
+                var faceSize = Math.pow(_this._size, 2) * 3;
+                for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
+                    data.push(floatArrayView.subarray(startIndex, startIndex + faceSize));
+                }
+                var results = [];
+                var byteArray = null;
+                // Create uintarray fallback.
+                if (!_this.getScene().getEngine().getCaps().textureFloat) {
+                    // 3 channels of 1 bytes per pixel in bytes.
+                    var byteBuffer = new ArrayBuffer(faceSize);
+                    byteArray = new Uint8Array(byteBuffer);
+                    mipmapGenerator = null;
+                }
+                // Push each faces.
+                for (var j = 0; j < 6; j++) {
+                    var dataFace = data[j];
+                    // If special cases.
+                    if (_this._useInGammaSpace || byteArray) {
+                        for (var i = 0; i < _this._size * _this._size; i++) {
+                            // Put in gamma space if requested.
+                            if (_this._useInGammaSpace) {
+                                dataFace[(i * 3) + 0] = Math.pow(dataFace[(i * 3) + 0], BABYLON.ToGammaSpace);
+                                dataFace[(i * 3) + 1] = Math.pow(dataFace[(i * 3) + 1], BABYLON.ToGammaSpace);
+                                dataFace[(i * 3) + 2] = Math.pow(dataFace[(i * 3) + 2], BABYLON.ToGammaSpace);
+                            }
+                            // Convert to int texture for fallback.
+                            if (byteArray) {
+                                // R
+                                byteArray[(i * 3) + 0] = dataFace[(i * 3) + 0] * 255;
+                                byteArray[(i * 3) + 0] = Math.min(255, byteArray[(i * 3) + 0]);
+                                // G
+                                byteArray[(i * 3) + 1] = dataFace[(i * 3) + 1] * 255;
+                                byteArray[(i * 3) + 1] = Math.min(255, byteArray[(i * 3) + 1]);
+                                // B
+                                byteArray[(i * 3) + 2] = dataFace[(i * 3) + 2] * 255;
+                                byteArray[(i * 3) + 2] = Math.min(255, byteArray[(i * 3) + 2]);
+                            }
+                        }
+                    }
+                    results.push(dataFace);
+                }
+                return results;
+            };
+            this._texture = this.getScene().getEngine().createRawCubeTexture(this.url, this.getScene(), this._size, BABYLON.Engine.TEXTUREFORMAT_RGB, BABYLON.Engine.TEXTURETYPE_FLOAT, this._noMipmap, callback, mipmapGenerator);
+        };
+        /**
+         * Occurs when the file is raw .hdr file.
+         */
+        HDRCubeTexture.prototype.loadHDRTexture = function () {
             var _this = this;
             var callback = function (buffer) {
                 // Extract the raw linear data.
@@ -44753,8 +44904,20 @@ var BABYLON;
             }
             this._texture = this.getScene().getEngine().createRawCubeTexture(this.url, this.getScene(), this._size, BABYLON.Engine.TEXTUREFORMAT_RGB, BABYLON.Engine.TEXTURETYPE_FLOAT, this._noMipmap, callback, mipmapGenerator);
         };
+        /**
+         * Starts the loading process of the texture.
+         */
+        HDRCubeTexture.prototype.loadTexture = function () {
+            if (this._isBABYLONPreprocessed) {
+                this.loadBabylonTexture();
+            }
+            else {
+                this.loadHDRTexture();
+            }
+        };
         HDRCubeTexture.prototype.clone = function () {
-            var newTexture = new HDRCubeTexture(this.url, this.getScene(), this._size, this._noMipmap, this._generateHarmonics, this._useInGammaSpace, this._usePMREMGenerator);
+            var size = this._isBABYLONPreprocessed ? null : this._size;
+            var newTexture = new HDRCubeTexture(this.url, this.getScene(), size, this._noMipmap, this._generateHarmonics, this._useInGammaSpace, this._usePMREMGenerator);
             // Base texture
             newTexture.level = this.level;
             newTexture.wrapU = this.wrapU;
@@ -44780,7 +44943,8 @@ var BABYLON;
         HDRCubeTexture.Parse = function (parsedTexture, scene, rootUrl) {
             var texture = null;
             if (parsedTexture.name && !parsedTexture.isRenderTarget) {
-                texture = new BABYLON.HDRCubeTexture(rootUrl + parsedTexture.name, scene, parsedTexture.size, texture.generateHarmonics, texture.useInGammaSpace, texture.usePMREMGenerator);
+                var size = parsedTexture.isBABYLONPreprocessed ? null : parsedTexture.size;
+                texture = new BABYLON.HDRCubeTexture(rootUrl + parsedTexture.name, scene, size, texture.generateHarmonics, texture.useInGammaSpace, texture.usePMREMGenerator);
                 texture.name = parsedTexture.name;
                 texture.hasAlpha = parsedTexture.hasAlpha;
                 texture.level = parsedTexture.level;
@@ -44802,7 +44966,116 @@ var BABYLON;
             serializationObject.useInGammaSpace = this._useInGammaSpace;
             serializationObject.generateHarmonics = this._generateHarmonics;
             serializationObject.usePMREMGenerator = this._usePMREMGenerator;
+            serializationObject.isBABYLONPreprocessed = this._isBABYLONPreprocessed;
             return serializationObject;
+        };
+        /**
+         * Saves as a file the data contained in the texture in a binary format.
+         * This can be used to prevent the long loading tie associated with creating the seamless texture as well
+         * as the spherical used in the lighting.
+         * @param url The HDR file url.
+         * @param size The size of the texture data to generate (one of the cubemap face desired width).
+         * @param onError Method called if any error happens during download.
+         * @return The packed binary data.
+         */
+        HDRCubeTexture.generateBabylonHDROnDisk = function (url, size, onError) {
+            if (onError === void 0) { onError = null; }
+            var callback = function (buffer) {
+                var data = new Blob([buffer], { type: 'application/octet-stream' });
+                // Returns a URL you can use as a href.
+                var objUrl = window.URL.createObjectURL(data);
+                // Simulates a link to it and click to dowload.
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style.display = "none";
+                a.href = objUrl;
+                a.download = "envmap.babylon.hdr";
+                a.click();
+            };
+            HDRCubeTexture.generateBabylonHDR(url, size, callback, onError);
+        };
+        /**
+         * Serializes the data contained in the texture in a binary format.
+         * This can be used to prevent the long loading tie associated with creating the seamless texture as well
+         * as the spherical used in the lighting.
+         * @param url The HDR file url.
+         * @param size The size of the texture data to generate (one of the cubemap face desired width).
+         * @param onError Method called if any error happens during download.
+         * @return The packed binary data.
+         */
+        HDRCubeTexture.generateBabylonHDR = function (url, size, callback, onError) {
+            if (onError === void 0) { onError = null; }
+            // Needs the url tho create the texture.
+            if (!url) {
+                return null;
+            }
+            // Check Power of two size.
+            if (!BABYLON.Tools.IsExponentOfTwo(size)) {
+                return null;
+            }
+            var getDataCallback = function (dataBuffer) {
+                // Extract the raw linear data.
+                var cubeData = BABYLON.Internals.HDRTools.GetCubeMapTextureData(dataBuffer, size);
+                // Generate harmonics if needed.
+                var sphericalPolynomial = BABYLON.Internals.CubeMapToSphericalPolynomialTools.ConvertCubeMapToSphericalPolynomial(cubeData);
+                // Generate seamless faces
+                var mipGeneratorArray = [];
+                // Data are known to be in +X +Y +Z -X -Y -Z
+                // mipmmapGenerator data is expected to be order in +X -X +Y -Y +Z -Z
+                mipGeneratorArray.push(cubeData.right); // +X
+                mipGeneratorArray.push(cubeData.left); // -X
+                mipGeneratorArray.push(cubeData.up); // +Y
+                mipGeneratorArray.push(cubeData.down); // -Y
+                mipGeneratorArray.push(cubeData.front); // +Z
+                mipGeneratorArray.push(cubeData.back); // -Z
+                // Custom setup of the generator matching with the PBR shader values.
+                var generator = new BABYLON.Internals.PMREMGenerator(mipGeneratorArray, size, size, 0, 3, true, 2048, 0.25, false, true);
+                var mippedData = generator.filterCubeMap();
+                // Compute required byte length.
+                var byteLength = 1 * 4; // Raw Data Version int32.
+                byteLength += 4; // CubeMap max mip face size int32.
+                byteLength += (9 * 3 * 4); // Spherical polynomial byte length 9 Vector 3 of floats.
+                // Add data size.
+                byteLength += 4; // Number of mip levels int32.
+                for (var level = 0; level < mippedData.length; level++) {
+                    var mipSize = size >> level;
+                    byteLength += (6 * mipSize * mipSize * 3 * 4); // 6 faces of size squared rgb float pixels.
+                }
+                // Prepare binary structure.
+                var buffer = new ArrayBuffer(byteLength);
+                var intArrayView = new Int32Array(buffer);
+                var floatArrayView = new Float32Array(buffer);
+                // Fill header.
+                intArrayView[0] = 1; // Version 1.
+                intArrayView[1] = size; // CubeMap max mip face size.
+                // Fill polynomial information.
+                sphericalPolynomial.x.toArray(floatArrayView, 2);
+                sphericalPolynomial.y.toArray(floatArrayView, 5);
+                sphericalPolynomial.z.toArray(floatArrayView, 8);
+                sphericalPolynomial.xx.toArray(floatArrayView, 11);
+                sphericalPolynomial.yy.toArray(floatArrayView, 14);
+                sphericalPolynomial.zz.toArray(floatArrayView, 17);
+                sphericalPolynomial.xy.toArray(floatArrayView, 20);
+                sphericalPolynomial.yz.toArray(floatArrayView, 23);
+                sphericalPolynomial.zx.toArray(floatArrayView, 26);
+                // Fill pixel data.
+                intArrayView[29] = mippedData.length; // Number of mip levels.
+                var startIndex = 30;
+                for (var level = 0; level < mippedData.length; level++) {
+                    // Fill each pixel of the mip level.
+                    var faceSize = Math.pow(size >> level, 2) * 3;
+                    for (var faceIndex = 0; faceIndex < 6; faceIndex++) {
+                        floatArrayView.set(mippedData[level][faceIndex], startIndex);
+                        startIndex += faceSize;
+                    }
+                }
+                // Callback.
+                callback(buffer);
+            };
+            // Download and process.
+            BABYLON.Tools.LoadFile(url, function (data) {
+                getDataCallback(data);
+            }, null, null, true, onError);
         };
         HDRCubeTexture._facesMapping = [
             "right",
@@ -44813,7 +45086,7 @@ var BABYLON;
             "back"
         ];
         return HDRCubeTexture;
-    })(BABYLON.BaseTexture);
+    }(BABYLON.BaseTexture));
     BABYLON.HDRCubeTexture = HDRCubeTexture;
 })(BABYLON || (BABYLON = {}));
 
@@ -44950,7 +45223,7 @@ var BABYLON;
                 }
             };
             return SkeletonViewer;
-        })();
+        }());
         Debug.SkeletonViewer = SkeletonViewer;
     })(Debug = BABYLON.Debug || (BABYLON.Debug = {}));
 })(BABYLON || (BABYLON = {}));
@@ -45062,7 +45335,7 @@ var BABYLON;
             this._keys = Object.keys(this);
         }
         return PBRMaterialDefines;
-    })(BABYLON.MaterialDefines);
+    }(BABYLON.MaterialDefines));
     /**
      * The Physically based material of BJS.
      *
@@ -46175,7 +46448,7 @@ var BABYLON;
             BABYLON.serialize()
         ], PBRMaterial.prototype, "useLogarithmicDepth", null);
         return PBRMaterial;
-    })(BABYLON.Material);
+    }(BABYLON.Material));
     BABYLON.PBRMaterial = PBRMaterial;
 })(BABYLON || (BABYLON = {}));
 

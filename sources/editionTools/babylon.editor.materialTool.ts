@@ -159,7 +159,8 @@
                 
                 var meshes = FurMaterial.FurifyMesh(this.object, 30);
                 for (var i = 0; i < meshes.length; i++) {
-                    meshes[i].material;
+                    Tags.EnableFor(meshes[i]);
+                    Tags.AddTagsTo(meshes[i], "FurAdded");
                 }
             }
 
