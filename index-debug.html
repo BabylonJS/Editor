@@ -179,6 +179,15 @@
 
             var woodPlank = BABYLON.MeshBuilder.CreateBox("plane", { width: 65, height: 1, depth: 65 }, scene);
 
+            woodPlank.isPickable = true;
+            woodPlank.actionManager = new BABYLON.ActionManager(scene);
+            var condition = new BABYLON.StateCondition(woodPlank.actionManager, woodPlank, "");
+            woodPlank.actionManager.registerAction(
+                new BABYLON.SwitchBooleanAction(BABYLON.ActionManager.OnLeftPickTrigger, sphereGlass, "isVisible", null)
+            ).then(
+                new BABYLON.SwitchBooleanAction(BABYLON.ActionManager.OnLeftPickTrigger, sphereGlass, "isVisible", condition)
+            )
+
             // Create materials
             var glass = new BABYLON.PBRMaterial("glass", scene);
             glass.reflectionTexture = hdrTexture;
@@ -233,7 +242,7 @@
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        //createPBRScene();
+        createPBRScene();
         
         var animation = new BABYLON.Animation("anim", "fogStart", 1, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, true);
         animation.setKeys([

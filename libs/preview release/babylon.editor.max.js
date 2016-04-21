@@ -343,7 +343,7 @@ var BABYLON;
                 this._detectActionChanged(pointer, event);
                 switch (this._getCurrentAction()) {
                     case 1 /* Selector */:
-                        event.skipNextObservers = true;
+                        //event.skipNextObservers = true;
                         break;
                     case 2 /* Camerator */:
                         if (pointer.type & (BABYLON.PointerEventTypes.POINTERUP | BABYLON.PointerEventTypes.POINTERWHEEL)) {
@@ -4918,6 +4918,8 @@ var BABYLON;
                 // Render targets
                 for (index = 0; index < scene.customRenderTargets.length; index++) {
                     var rt = scene.customRenderTargets[index];
+                    if (!rt.renderList)
+                        continue;
                     for (var meshIndex = 0; meshIndex < rt.renderList.length; meshIndex++) {
                         if (rt.renderList[meshIndex] === object)
                             rt.renderList.splice(meshIndex, 1);
@@ -5350,13 +5352,13 @@ var BABYLON;
                     }
                     else if (id === this._playGameID) {
                         var checked = !this.toolbar.isItemChecked(id);
+                        this._core.isPlaying = checked;
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
                             this._editor.transformer.setNode(null);
                             this._editor.transformer.enabled = false;
                             this._core.engine.resize();
-                            this._core.isPlaying = true;
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
@@ -5872,7 +5874,8 @@ var BABYLON;
         var FilesInput = (function (_super) {
             __extends(FilesInput, _super);
             function FilesInput(core, sceneLoadedCallback, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, startingProcessingFilesCallback) {
-                _super.call(this, core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, this), progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core));
+                _super.call(this, core.engine, core.currentScene, core.canvas, null, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core));
+                this._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, this);
             }
             FilesInput._callbackStart = function (core) {
                 return function () {
@@ -8743,7 +8746,12 @@ var BABYLON;
             };
             // Generates the final .babylon file
             BabylonExporter.GenerateFinalBabylonFile = function (core) {
+                // Set action managers, serialize and reset action managers
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
                 // Set auto play

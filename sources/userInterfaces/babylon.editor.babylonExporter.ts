@@ -120,7 +120,14 @@
 
         // Generates the final .babylon file
         public static GenerateFinalBabylonFile(core: EditorCore): any {
+            // Set action managers, serialize and reset action managers
+            if (!core.isPlaying)
+                SceneManager.SwitchActionManager();
+
             var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+
+            if (!core.isPlaying)
+                SceneManager.SwitchActionManager();
 
             if (core.playCamera)
                 obj.activeCameraID = core.playCamera.id;

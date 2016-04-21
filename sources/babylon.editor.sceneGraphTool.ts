@@ -392,6 +392,10 @@
             // Render targets
             for (index = 0; index < scene.customRenderTargets.length; index++) {
                 var rt = scene.customRenderTargets[index];
+
+                if (!rt.renderList)
+                    continue;
+
                 for (var meshIndex = 0; meshIndex < rt.renderList.length; meshIndex++) {
                     if (rt.renderList[meshIndex] === object)
                         rt.renderList.splice(meshIndex, 1);

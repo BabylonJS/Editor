@@ -73,6 +73,7 @@
                 }
                 else if (id === this._playGameID) {
                     var checked = !this.toolbar.isItemChecked(id);
+                    this._core.isPlaying = checked;
 
                     //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
@@ -82,7 +83,6 @@
                         this._editor.transformer.enabled = false;
 
                         this._core.engine.resize();
-                        this._core.isPlaying = true;
 
                         var time = (this._editor.timeline.currentTime * 1) / GUIAnimationEditor.FramesPerSecond / SceneFactory.AnimationSpeed; 
 

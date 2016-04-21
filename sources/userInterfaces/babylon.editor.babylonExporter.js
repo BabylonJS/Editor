@@ -96,7 +96,12 @@ var BABYLON;
             };
             // Generates the final .babylon file
             BabylonExporter.GenerateFinalBabylonFile = function (core) {
+                // Set action managers, serialize and reset action managers
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
                 // Set auto play

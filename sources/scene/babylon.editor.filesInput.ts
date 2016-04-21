@@ -4,9 +4,11 @@
             additionnalRenderLoopLogicCallback, textureLoadingCallback,
             startingProcessingFilesCallback)
         {
-            super(core.engine, core.currentScene, core.canvas, FilesInput._callback(sceneLoadedCallback, core, this),
+            super(core.engine, core.currentScene, core.canvas, null,
                 progressCallback, additionnalRenderLoopLogicCallback,
                 textureLoadingCallback, FilesInput._callbackStart(core));
+
+            (<any>this)._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, this)
         }
 
         private static _callbackStart(core: EditorCore): () => void {

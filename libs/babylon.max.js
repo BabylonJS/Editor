@@ -7627,7 +7627,7 @@ var BABYLON;
                         case "image/jpeg":
                         case "image/png":
                         case "image/bmp":
-                            FilesInput.FilesTextures[this._filesToLoad[i].name.toLowerCase()] = this._filesToLoad[i];
+                            FilesInput.FilesTextures[this._filesToLoad[i].name] = this._filesToLoad[i];
                             break;
                         case "image/targa":
                         case "image/vnd.ms-dds":
@@ -31062,6 +31062,9 @@ var BABYLON;
         };
         SwitchBooleanAction.prototype.execute = function () {
             this._target[this._property] = !this._target[this._property];
+        };
+        SwitchBooleanAction.prototype.serialize = function () {
+            return {};
         };
         return SwitchBooleanAction;
     }(BABYLON.Action));
