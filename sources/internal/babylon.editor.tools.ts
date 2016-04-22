@@ -138,5 +138,16 @@
 
             return null;
         }
+
+        /**
+        * Creates a new worker on the fly
+        */
+        public static CreateWorker(): Worker {
+            //var blob = new Blob(["self.onmessage = " + onMessage], { type: 'application/javascript' });
+            var blob = new Blob(["self.onmessage = function(event) { postMessage(event.data); }"], { type: 'application/javascript' });  
+            var worker = new Worker(URL.createObjectURL(blob));
+
+            return worker;
+        }
     }
 }

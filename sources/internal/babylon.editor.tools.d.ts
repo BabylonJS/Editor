@@ -49,5 +49,9 @@ declare module BABYLON.EDITOR {
         * Returns a particle system by its name
         */
         static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
+        /**
+        * Creates a new worker on the fly
+        */
+        static CreateWorker(): Worker;
     }
 }

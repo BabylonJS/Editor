@@ -56,6 +56,11 @@ var BABYLON;
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
                 }
+                // Actions Builder
+                if (object instanceof BABYLON.Scene || object instanceof BABYLON.AbstractMesh) {
+                    var actionsBuilderFolder = this._element.addFolder("Actions Builder");
+                    actionsBuilderFolder.add(this, "_openActionsBuilder").name("Open Actions Builder");
+                }
                 return true;
             };
             // Loads the animations tool
@@ -71,6 +76,26 @@ var BABYLON;
                 var object = this.object = this._editionTool.object;
                 var scene = object.getScene();
                 scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+            };
+            // Opens the actions builder. Creates the action manager if does not exist
+            AnimationTool.prototype._openActionsBuilder = function () {
+                var actionManager = null;
+                var object = this.object;
+                if (this.object instanceof BABYLON.Scene)
+                    actionManager = this.object.actionManager;
+                else
+                    actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this.object.id].actionManager;
+                if (!actionManager) {
+                    actionManager = new BABYLON.ActionManager(this._editionTool.core.currentScene);
+                    if (this.object instanceof BABYLON.Scene)
+                        this.object.actionManager = actionManager;
+                    else
+                        EDITOR.SceneManager._ConfiguredObjectsIDs[object.id] = {
+                            mesh: object,
+                            actionManager: actionManager
+                        };
+                }
+                var actionsBuilder = new EDITOR.GUIActionsBuilder(this._editionTool.core, this.object, actionManager);
             };
             return AnimationTool;
         })(EDITOR.AbstractDatTool);

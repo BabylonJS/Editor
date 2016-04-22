@@ -1,6 +1,6 @@
 ﻿module BABYLON.EDITOR {
     // Configured object interface
-    interface IObjectConfiguration {
+    export interface IObjectConfiguration {
         mesh: AbstractMesh;
         actionManager: ActionManager;
     }
@@ -11,17 +11,17 @@
         /**
         * Objects configuration
         */
-        private static _alreadyConfiguredObjectsIDs: Object = { };
+        public static _ConfiguredObjectsIDs: Object = { };
 
         // Reset configured objects
         static ResetConfiguredObjects(): void {
-            this._alreadyConfiguredObjectsIDs = { };
+            this._ConfiguredObjectsIDs = { };
         }
 
         // Switch action manager (editor and scene itself)
         static SwitchActionManager(): void {
-            for (var thing in this._alreadyConfiguredObjectsIDs) {
-                var obj: IObjectConfiguration = this._alreadyConfiguredObjectsIDs[thing];
+            for (var thing in this._ConfiguredObjectsIDs) {
+                var obj: IObjectConfiguration = this._ConfiguredObjectsIDs[thing];
                 var actionManager = obj.mesh.actionManager;
                 obj.mesh.actionManager = obj.actionManager;
                 obj.actionManager = actionManager;
@@ -42,7 +42,7 @@
                 if (mesh instanceof Mesh && !mesh.geometry)
                     return;
 
-                this._alreadyConfiguredObjectsIDs[mesh.id] = <IObjectConfiguration>{
+                this._ConfiguredObjectsIDs[mesh.id] = <IObjectConfiguration>{
                     mesh: mesh,
                     actionManager: mesh.actionManager
                 };

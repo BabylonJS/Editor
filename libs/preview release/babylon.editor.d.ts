@@ -521,6 +521,7 @@ declare module BABYLON.EDITOR {
         private _editAnimations();
         private _playAnimations();
         private _playSkeletonAnimations();
+        private _openActionsBuilder();
     }
 }
 
@@ -978,6 +979,38 @@ declare module BABYLON.EDITOR.GUI {
 }
 
 declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createHeightMap;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * Returns true if a menu of the plugin was selected, false if no one selected
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
     /**
     * Event Type
     */
@@ -1144,38 +1177,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createHeightMap;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * Returns true if a menu of the plugin was selected, false if no one selected
-        */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class OneDriveStorage extends Storage {
         private _editor;
         private static _ClientID;
@@ -1284,14 +1285,32 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
     class SceneManager {
         /**
         * Objects configuration
         */
-        private static _alreadyConfiguredObjectsIDs;
+        static _ConfiguredObjectsIDs: Object;
         static ResetConfiguredObjects(): void;
         static SwitchActionManager(): void;
         static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GUIActionsBuilder {
+        private _window;
+        /**
+        * Constructor
+        * @param core: the editor core
+        * @param object: the object to edit
+        * @param propertyPath: the path to the texture property of the object
+        */
+        constructor(core: EditorCore, object: AbstractMesh | Scene, actionManager: ActionManager);
+        private _getNames(objects, func);
     }
 }
 

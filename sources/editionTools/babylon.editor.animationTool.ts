@@ -36,7 +36,7 @@
 
         // Update
         public update(): boolean {
-            var object: Node = this.object = this._editionTool.object;
+            var object: { animations: Animation[] } = this.object = this._editionTool.object;
 
             super.update();
 
@@ -61,6 +61,12 @@
                 skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
             }
 
+            // Actions Builder
+            if (object instanceof Scene || object instanceof AbstractMesh) {
+                var actionsBuilderFolder = this._element.addFolder("Actions Builder");
+                actionsBuilderFolder.add(this, "_openActionsBuilder").name("Open Actions Builder");
+            }
+
             return true;
         }
 
@@ -80,6 +86,31 @@
             var scene = object.getScene();
 
             scene.beginAnimation(object.skeleton, 0, Number.MAX_VALUE, this._loopAnimation, this._animationSpeed);
+        }
+
+        // Opens the actions builder. Creates the action manager if does not exist
+        private _openActionsBuilder(): void {
+            var actionManager = null;
+            var object: Scene | AbstractMesh = this.object;
+
+            if (this.object instanceof Scene)
+                actionManager = this.object.actionManager;
+            else
+                actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : SceneManager._ConfiguredObjectsIDs[this.object.id].actionManager;
+
+            if (!actionManager) {
+                actionManager = new ActionManager(this._editionTool.core.currentScene);
+
+                if (this.object instanceof Scene)
+                    this.object.actionManager = actionManager;
+                else
+                    SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id] = <IObjectConfiguration>{
+                        mesh: object,
+                        actionManager: actionManager
+                    }
+            }
+
+            var actionsBuilder = new GUIActionsBuilder(this._editionTool.core, this.object, actionManager);
         }
     }
 }

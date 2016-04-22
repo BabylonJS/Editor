@@ -65,6 +65,15 @@
     <Content Include="libs\ace\ace.js" />
     <Content Include="libs\ace\mode-javascript.js" />
     <Content Include="libs\ace\theme-clouds.js" />
+    <Content Include="libs\actionsBuilder\actionsbuilder.max.js" />
+    <Content Include="libs\actionsBuilder\fonts.css" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.svg" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300LightItalic.svg" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-500Medium.svg" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.svg" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans_NOTICE.txt" />
+    <Content Include="libs\actionsBuilder\index.css" />
+    <Content Include="libs\actionsBuilder\index.html" />
     <Content Include="libs\babylon.js" />
     <Content Include="libs\babylon.max.js" />
     <Content Include="libs\dat.gui.min.js" />
@@ -96,6 +105,22 @@
   <ItemGroup>
     <Content Include="templates\Template.xml" />
     <Content Include="config.json" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.eot" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.otf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.ttf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.woff" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300LightItalic.eot" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300LightItalic.otf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300LightItalic.ttf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300LightItalic.woff" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-500Medium.eot" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-500Medium.otf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-500Medium.ttf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-500Medium.woff" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.eot" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.otf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.ttf" />
+    <Content Include="libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.woff" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -195,6 +220,7 @@
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.oneDriveStorage.ts" />
     <TypeScriptCompile Include="sources\storage\babylon.editor.storage.ts" />
+    <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.babylonExporter.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.launchEditor.ts" />
     <TypeScriptCompile Include="sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />

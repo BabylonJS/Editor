@@ -108,7 +108,7 @@
 
             switch (this._getCurrentAction()) {
                 case SIHCurrentAction.Selector:
-                    event.skipNextObservers = true;
+                    //event.skipNextObservers = true;
                     break;
                 case SIHCurrentAction.Camerator:
                     if (pointer.type & (PointerEventTypes.POINTERUP | PointerEventTypes.POINTERWHEEL)) {

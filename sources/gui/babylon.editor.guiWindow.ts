@@ -8,6 +8,7 @@
         public modal: boolean = true;
         public showClose: boolean = true;
         public showMax: boolean = true;
+
         public onButtonClicked: (buttonId: string) => void;
 
         // Private members

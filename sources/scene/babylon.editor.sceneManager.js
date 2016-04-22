@@ -7,12 +7,12 @@ var BABYLON;
             }
             // Reset configured objects
             SceneManager.ResetConfiguredObjects = function () {
-                this._alreadyConfiguredObjectsIDs = {};
+                this._ConfiguredObjectsIDs = {};
             };
             // Switch action manager (editor and scene itself)
             SceneManager.SwitchActionManager = function () {
-                for (var thing in this._alreadyConfiguredObjectsIDs) {
-                    var obj = this._alreadyConfiguredObjectsIDs[thing];
+                for (var thing in this._ConfiguredObjectsIDs) {
+                    var obj = this._ConfiguredObjectsIDs[thing];
                     var actionManager = obj.mesh.actionManager;
                     obj.mesh.actionManager = obj.actionManager;
                     obj.actionManager = actionManager;
@@ -29,7 +29,7 @@ var BABYLON;
                     */
                     if (mesh instanceof BABYLON.Mesh && !mesh.geometry)
                         return;
-                    this._alreadyConfiguredObjectsIDs[mesh.id] = {
+                    this._ConfiguredObjectsIDs[mesh.id] = {
                         mesh: mesh,
                         actionManager: mesh.actionManager
                     };
@@ -67,7 +67,7 @@ var BABYLON;
             /**
             * Objects configuration
             */
-            SceneManager._alreadyConfiguredObjectsIDs = {};
+            SceneManager._ConfiguredObjectsIDs = {};
             return SceneManager;
         })();
         EDITOR.SceneManager = SceneManager;

@@ -80,7 +80,7 @@ var BABYLON;
                 this._detectActionChanged(pointer, event);
                 switch (this._getCurrentAction()) {
                     case 1 /* Selector */:
-                        event.skipNextObservers = true;
+                        //event.skipNextObservers = true;
                         break;
                     case 2 /* Camerator */:
                         if (pointer.type & (BABYLON.PointerEventTypes.POINTERUP | BABYLON.PointerEventTypes.POINTERWHEEL)) {

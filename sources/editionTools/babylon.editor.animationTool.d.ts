@@ -14,5 +14,6 @@ declare module BABYLON.EDITOR {
         private _editAnimations();
         private _playAnimations();
         private _playSkeletonAnimations();
+        private _openActionsBuilder();
     }
 }

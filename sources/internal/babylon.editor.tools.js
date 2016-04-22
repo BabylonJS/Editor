@@ -116,6 +116,15 @@ var BABYLON;
                 }
                 return null;
             };
+            /**
+            * Creates a new worker on the fly
+            */
+            Tools.CreateWorker = function () {
+                //var blob = new Blob(["self.onmessage = " + onMessage], { type: 'application/javascript' });
+                var blob = new Blob(["self.onmessage = function(event) { postMessage(event.data); }"], { type: 'application/javascript' });
+                var worker = new Worker(URL.createObjectURL(blob));
+                return worker;
+            };
             return Tools;
         })();
         EDITOR.Tools = Tools;
