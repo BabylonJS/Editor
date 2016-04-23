@@ -9697,7 +9697,7 @@ var BABYLON;
                 var iframeID = "BABYLON-EDITOR-ACTIONS-BUILDER-IFRAME";
                 var iframe = EDITOR.GUI.GUIElement.CreateElement("iframe sandbox=\"allow-same-origin allow-scripts\"", iframeID, "width: 100%; height: 100%");
                 var objectName = object instanceof BABYLON.Node ? object.name : "Scene";
-                this._window = new EDITOR.GUI.GUIWindow("BABYLON-ACTIONS-BUILDER-WINDOW", core, "Actions Builder - " + name, iframe);
+                this._window = new EDITOR.GUI.GUIWindow("BABYLON-ACTIONS-BUILDER-WINDOW", core, "Actions Builder - " + objectName, iframe);
                 this._window.modal = true;
                 this._window.showMax = true;
                 this._window.buttons = [
@@ -9752,7 +9752,7 @@ var BABYLON;
                         var oldActionManager = object.actionManager;
                         BABYLON.ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof BABYLON.Scene ? null : object, core.currentScene);
                         if (!core.isPlaying && !(object instanceof BABYLON.Scene)) {
-                            EDITOR.SceneManager._ConfiguredObjectsIDs[object.name].actionManager = object.actionManager;
+                            EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = object.actionManager;
                             object.actionManager = oldActionManager;
                         }
                         _this._window.close();

@@ -30912,6 +30912,15 @@ var BABYLON;
                     name: ActionManager.GetTriggerName(this.actions[i].trigger),
                     properties: []
                 };
+                var triggerOptions = this.actions[i].triggerOptions;
+                if (triggerOptions) {
+                    if (triggerOptions instanceof BABYLON.Node) {
+                        triggerObject.properties.push(BABYLON.Action._GetTargetProperty(triggerOptions.trigger));
+                    }
+                    else {
+                        triggerObject.properties.push({ name: "parameter", value: triggerOptions.parameter });
+                    }
+                }
                 // Serialize child action, recursively
                 this.actions[i].serialize(triggerObject);
                 // Add serialized trigger

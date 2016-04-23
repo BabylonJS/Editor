@@ -17,7 +17,7 @@
             var iframe = GUI.GUIElement.CreateElement("iframe sandbox=\"allow-same-origin allow-scripts\"", iframeID, "width: 100%; height: 100%");
             var objectName = object instanceof Node ? object.name : "Scene";
 
-            this._window = new GUI.GUIWindow("BABYLON-ACTIONS-BUILDER-WINDOW", core, "Actions Builder - " + name, iframe);
+            this._window = new GUI.GUIWindow("BABYLON-ACTIONS-BUILDER-WINDOW", core, "Actions Builder - " + objectName, iframe);
             this._window.modal = true;
             this._window.showMax = true;
             this._window.buttons = [
@@ -88,7 +88,7 @@
                     ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof Scene ? null : <AbstractMesh>object, core.currentScene);
 
                     if (!core.isPlaying && !(object instanceof Scene)) {
-                        SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).name].actionManager = object.actionManager;
+                        SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id].actionManager = object.actionManager;
                         object.actionManager = oldActionManager;
                     }
 
