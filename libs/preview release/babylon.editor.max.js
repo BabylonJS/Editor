@@ -1998,6 +1998,8 @@ var BABYLON;
                 if (object instanceof BABYLON.AbstractMesh && object.skeleton) {
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
+                    object.skeleton.needInitialSkinMatrix = object.skeleton.needInitialSkinMatrix || false;
+                    skeletonFolder.add(object.skeleton, "needInitialSkinMatrix").name("Need Initial Skin Matrix");
                 }
                 // Actions Builder
                 if (object instanceof BABYLON.Scene || object instanceof BABYLON.AbstractMesh) {

@@ -30590,7 +30590,7 @@ var BABYLON;
                 targetType: target instanceof BABYLON.Mesh ? "MeshProperties"
                     : target instanceof BABYLON.Light ? "LightProperties"
                         : target instanceof BABYLON.Camera ? "CameraProperties"
-                            : "Scene",
+                            : "SceneProperties",
                 value: target instanceof BABYLON.Scene ? "Scene" : target.name
             };
         };
@@ -30913,12 +30913,12 @@ var BABYLON;
                     properties: []
                 };
                 var triggerOptions = this.actions[i].triggerOptions;
-                if (triggerOptions) {
-                    if (triggerOptions instanceof BABYLON.Node) {
-                        triggerObject.properties.push(BABYLON.Action._GetTargetProperty(triggerOptions.trigger));
+                if (triggerOptions && typeof triggerOptions !== "number") {
+                    if (triggerOptions.parameter instanceof BABYLON.Node) {
+                        triggerObject.properties.push(BABYLON.Action._GetTargetProperty(triggerOptions.parameter));
                     }
                     else {
-                        triggerObject.properties.push({ name: "parameter", value: triggerOptions.parameter });
+                        triggerObject.properties.push({ name: "parameter", targetType: null, value: triggerOptions.parameter });
                     }
                 }
                 // Serialize child action, recursively
