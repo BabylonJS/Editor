@@ -11,9 +11,13 @@ var BABYLON;
             };
             // Switch action manager (editor and scene itself)
             SceneManager.SwitchActionManager = function () {
+                var actionManager = this._SceneConfiguration.actionManager;
+                this._SceneConfiguration.actionManager = this._SceneConfiguration.scene.actionManager;
+                this._SceneConfiguration.scene.actionManager = actionManager;
+                // Meshes configuration
                 for (var thing in this._ConfiguredObjectsIDs) {
                     var obj = this._ConfiguredObjectsIDs[thing];
-                    var actionManager = obj.mesh.actionManager;
+                    actionManager = obj.mesh.actionManager;
                     obj.mesh.actionManager = obj.actionManager;
                     obj.actionManager = actionManager;
                 }

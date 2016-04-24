@@ -59,6 +59,9 @@
             if (object instanceof AbstractMesh && object.skeleton) {
                 var skeletonFolder = this._element.addFolder("Skeleton");
                 skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
+
+                object.skeleton.needInitialSkinMatrix = object.skeleton.needInitialSkinMatrix || false;
+                skeletonFolder.add(object.skeleton, "needInitialSkinMatrix").name("Need Initial Skin Matrix");
             }
 
             // Actions Builder
@@ -94,7 +97,7 @@
             var object: Scene | AbstractMesh = this.object;
 
             if (this.object instanceof Scene)
-                actionManager = this.object.actionManager;
+                actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : SceneManager._SceneConfiguration.actionManager;
             else
                 actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : SceneManager._ConfiguredObjectsIDs[this.object.id].actionManager;
 
@@ -102,12 +105,9 @@
                 actionManager = new ActionManager(this._editionTool.core.currentScene);
 
                 if (this.object instanceof Scene)
-                    this.object.actionManager = actionManager;
+                    SceneManager._SceneConfiguration.actionManager = actionManager;
                 else
-                    SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id] = <IObjectConfiguration>{
-                        mesh: object,
-                        actionManager: actionManager
-                    }
+                    SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id].actionManager = actionManager;
             }
 
             var actionsBuilder = new GUIActionsBuilder(this._editionTool.core, this.object, actionManager);

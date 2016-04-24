@@ -55,6 +55,8 @@ var BABYLON;
                 if (object instanceof BABYLON.AbstractMesh && object.skeleton) {
                     var skeletonFolder = this._element.addFolder("Skeleton");
                     skeletonFolder.add(this, "_playSkeletonAnimations").name("Play Animations");
+                    object.skeleton.needInitialSkinMatrix = object.skeleton.needInitialSkinMatrix || false;
+                    skeletonFolder.add(object.skeleton, "needInitialSkinMatrix").name("Need Initial Skin Matrix");
                 }
                 // Actions Builder
                 if (object instanceof BABYLON.Scene || object instanceof BABYLON.AbstractMesh) {
@@ -82,18 +84,15 @@ var BABYLON;
                 var actionManager = null;
                 var object = this.object;
                 if (this.object instanceof BABYLON.Scene)
-                    actionManager = this.object.actionManager;
+                    actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
                 else
                     actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this.object.id].actionManager;
                 if (!actionManager) {
                     actionManager = new BABYLON.ActionManager(this._editionTool.core.currentScene);
                     if (this.object instanceof BABYLON.Scene)
-                        this.object.actionManager = actionManager;
+                        EDITOR.SceneManager._SceneConfiguration.actionManager = actionManager;
                     else
-                        EDITOR.SceneManager._ConfiguredObjectsIDs[object.id] = {
-                            mesh: object,
-                            actionManager: actionManager
-                        };
+                        EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = actionManager;
                 }
                 var actionsBuilder = new EDITOR.GUIActionsBuilder(this._editionTool.core, this.object, actionManager);
             };

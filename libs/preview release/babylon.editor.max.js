@@ -2027,18 +2027,15 @@ var BABYLON;
                 var actionManager = null;
                 var object = this.object;
                 if (this.object instanceof BABYLON.Scene)
-                    actionManager = this.object.actionManager;
+                    actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
                 else
                     actionManager = this._editionTool.core.isPlaying ? this.object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this.object.id].actionManager;
                 if (!actionManager) {
                     actionManager = new BABYLON.ActionManager(this._editionTool.core.currentScene);
                     if (this.object instanceof BABYLON.Scene)
-                        this.object.actionManager = actionManager;
+                        EDITOR.SceneManager._SceneConfiguration.actionManager = actionManager;
                     else
-                        EDITOR.SceneManager._ConfiguredObjectsIDs[object.id] = {
-                            mesh: object,
-                            actionManager: actionManager
-                        };
+                        EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = actionManager;
                 }
                 var actionsBuilder = new EDITOR.GUIActionsBuilder(this._editionTool.core, this.object, actionManager);
             };
@@ -4162,12 +4159,23 @@ var BABYLON;
                 this.onClose = null;
                 // Private members
                 this._containers = [];
+                this._panelID = "BABYLON-EDITOR-PREVIEW-PANEL";
+                this._closeButtonID = "BABYLON-EDITOR-PREVIEW-PANEL-CLOSE";
                 // Initialize
                 this.core = core;
                 this.editor = core.editor;
+                this.core.eventReceivers.push(this);
                 this.panel = this.editor.layouts.getPanelFromType("preview");
                 this._mainPanel = this.editor.layouts.getPanelFromType("main");
+                this._addCloseButton();
             }
+            // On event
+            EditPanel.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                    this._configureCloseButton();
+                }
+                return false;
+            };
             // Adds a new element to the panel
             // Returns true if added, false if already exists by providing the ID
             EditPanel.prototype.addContainer = function (container, id) {
@@ -4176,7 +4184,7 @@ var BABYLON;
                     if (exists)
                         return false;
                 }
-                $("#BABYLON-EDITOR-PREVIEW-PANEL").append(container);
+                $("#" + this._panelID).append(container);
                 return true;
             };
             // Closes the panel
@@ -4184,15 +4192,37 @@ var BABYLON;
                 if (this.onClose)
                     this.onClose();
                 // Empty div
-                $("#BABYLON-EDITOR-PREVIEW-PANEL").empty();
+                $("#" + this._panelID).empty();
                 // Free
                 this.onClose = null;
+                // Create close button
+                this._addCloseButton();
             };
             // Sets the panel size
             EditPanel.prototype.setPanelSize = function (percents) {
                 var height = this.panel._panelElement.height;
                 height += this._mainPanel._panelElement.height;
                 this.editor.layouts.setPanelSize("preview", height * percents / 100);
+            };
+            // Creates close button
+            EditPanel.prototype._addCloseButton = function () {
+                var _this = this;
+                $("#" + this._panelID).append(EDITOR.GUI.GUIElement.CreateElement("button class=\"btn w2ui-msg-title w2ui-msg-button\"", this._closeButtonID, ""));
+                this._closeButton = $("#" + this._closeButtonID);
+                this._closeButton.text("x");
+                this._configureCloseButton();
+                this._closeButton.click(function (event) {
+                    _this.close();
+                    _this.setPanelSize(0);
+                });
+            };
+            // Configures close button
+            EditPanel.prototype._configureCloseButton = function () {
+                this._closeButton.css("position", "absolute");
+                this._closeButton.css("right", "0%");
+                this._closeButton.css("z-index", 1000); // Should be enough
+                this._closeButton.css("min-width", "0px");
+                this._closeButton.css("width", "15px");
             };
             return EditPanel;
         })();
@@ -4330,6 +4360,12 @@ var BABYLON;
                     for (var i = 0; i < scene.meshes.length; i++) {
                         EDITOR.SceneManager.ConfigureObject(scene.meshes[i], _this.core, parent);
                     }
+                    // Configure scene
+                    EDITOR.SceneManager._SceneConfiguration = {
+                        scene: scene,
+                        actionManager: scene.actionManager
+                    };
+                    scene.actionManager = null;
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();
@@ -5358,14 +5394,6 @@ var BABYLON;
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
-                    /*
-                    var id: string = event.guiEvent.data;
-                    var finalID = id.split(":");
-                    var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
-                    
-                    if (item === null)
-                        return false;
-                    */
                     var id = event.guiEvent.data;
                     var selected = this.toolbar.decomposeSelectedMenu(id);
                     if (!selected || !selected.parent)
@@ -5385,6 +5413,7 @@ var BABYLON;
                         if (checked) {
                             this._editor.transformer.setNode(null);
                             this._editor.transformer.enabled = false;
+                            this.toolbar.setItemChecked(this._transformerPositionID, false);
                             this._core.engine.resize();
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
                             // Animate at launch
@@ -5401,7 +5430,6 @@ var BABYLON;
                             this._editor.timeline.play();
                         }
                         else {
-                            this._editor.transformer.enabled = true;
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
@@ -6281,9 +6309,13 @@ var BABYLON;
             };
             // Switch action manager (editor and scene itself)
             SceneManager.SwitchActionManager = function () {
+                var actionManager = this._SceneConfiguration.actionManager;
+                this._SceneConfiguration.actionManager = this._SceneConfiguration.scene.actionManager;
+                this._SceneConfiguration.scene.actionManager = actionManager;
+                // Meshes configuration
                 for (var thing in this._ConfiguredObjectsIDs) {
                     var obj = this._ConfiguredObjectsIDs[thing];
-                    var actionManager = obj.mesh.actionManager;
+                    actionManager = obj.mesh.actionManager;
                     obj.mesh.actionManager = obj.actionManager;
                     obj.actionManager = actionManager;
                 }
@@ -9753,8 +9785,11 @@ var BABYLON;
                         var parsedActionManager = iframeDocument.getElementById("ActionsBuilderJSON").value;
                         var oldActionManager = object.actionManager;
                         BABYLON.ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof BABYLON.Scene ? null : object, core.currentScene);
-                        if (!core.isPlaying && !(object instanceof BABYLON.Scene)) {
-                            EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = object.actionManager;
+                        if (!core.isPlaying) {
+                            if (object instanceof BABYLON.Scene)
+                                EDITOR.SceneManager._SceneConfiguration.actionManager = object.actionManager;
+                            else
+                                EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = object.actionManager;
                             object.actionManager = oldActionManager;
                         }
                         _this._window.close();

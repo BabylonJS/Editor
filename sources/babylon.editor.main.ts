@@ -181,6 +181,13 @@
                     SceneManager.ConfigureObject(scene.meshes[i], this.core, parent);
                 }
 
+                // Configure scene
+                SceneManager._SceneConfiguration = {
+                    scene: scene,
+                    actionManager: scene.actionManager
+                };
+                scene.actionManager = null;
+
                 // Reset UI
                 this.sceneGraphTool.createUI();
                 this.sceneGraphTool.fillGraph();

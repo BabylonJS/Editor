@@ -69,8 +69,11 @@ var BABYLON;
                         var parsedActionManager = iframeDocument.getElementById("ActionsBuilderJSON").value;
                         var oldActionManager = object.actionManager;
                         BABYLON.ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof BABYLON.Scene ? null : object, core.currentScene);
-                        if (!core.isPlaying && !(object instanceof BABYLON.Scene)) {
-                            EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = object.actionManager;
+                        if (!core.isPlaying) {
+                            if (object instanceof BABYLON.Scene)
+                                EDITOR.SceneManager._SceneConfiguration.actionManager = object.actionManager;
+                            else
+                                EDITOR.SceneManager._ConfiguredObjectsIDs[object.id].actionManager = object.actionManager;
                             object.actionManager = oldActionManager;
                         }
                         _this._window.close();

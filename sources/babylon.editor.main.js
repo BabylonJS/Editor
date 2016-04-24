@@ -129,6 +129,12 @@ var BABYLON;
                     for (var i = 0; i < scene.meshes.length; i++) {
                         EDITOR.SceneManager.ConfigureObject(scene.meshes[i], _this.core, parent);
                     }
+                    // Configure scene
+                    EDITOR.SceneManager._SceneConfiguration = {
+                        scene: scene,
+                        actionManager: scene.actionManager
+                    };
+                    scene.actionManager = null;
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();

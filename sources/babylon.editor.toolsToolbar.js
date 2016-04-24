@@ -34,14 +34,6 @@ var BABYLON;
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
-                    /*
-                    var id: string = event.guiEvent.data;
-                    var finalID = id.split(":");
-                    var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
-                    
-                    if (item === null)
-                        return false;
-                    */
                     var id = event.guiEvent.data;
                     var selected = this.toolbar.decomposeSelectedMenu(id);
                     if (!selected || !selected.parent)
@@ -61,6 +53,7 @@ var BABYLON;
                         if (checked) {
                             this._editor.transformer.setNode(null);
                             this._editor.transformer.enabled = false;
+                            this.toolbar.setItemChecked(this._transformerPositionID, false);
                             this._core.engine.resize();
                             var time = (this._editor.timeline.currentTime * 1) / EDITOR.GUIAnimationEditor.FramesPerSecond / EDITOR.SceneFactory.AnimationSpeed;
                             // Animate at launch
@@ -77,7 +70,6 @@ var BABYLON;
                             this._editor.timeline.play();
                         }
                         else {
-                            this._editor.transformer.enabled = true;
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {

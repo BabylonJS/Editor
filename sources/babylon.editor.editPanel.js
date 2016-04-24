@@ -10,12 +10,23 @@ var BABYLON;
                 this.onClose = null;
                 // Private members
                 this._containers = [];
+                this._panelID = "BABYLON-EDITOR-PREVIEW-PANEL";
+                this._closeButtonID = "BABYLON-EDITOR-PREVIEW-PANEL-CLOSE";
                 // Initialize
                 this.core = core;
                 this.editor = core.editor;
+                this.core.eventReceivers.push(this);
                 this.panel = this.editor.layouts.getPanelFromType("preview");
                 this._mainPanel = this.editor.layouts.getPanelFromType("main");
+                this._addCloseButton();
             }
+            // On event
+            EditPanel.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                    this._configureCloseButton();
+                }
+                return false;
+            };
             // Adds a new element to the panel
             // Returns true if added, false if already exists by providing the ID
             EditPanel.prototype.addContainer = function (container, id) {
@@ -24,7 +35,7 @@ var BABYLON;
                     if (exists)
                         return false;
                 }
-                $("#BABYLON-EDITOR-PREVIEW-PANEL").append(container);
+                $("#" + this._panelID).append(container);
                 return true;
             };
             // Closes the panel
@@ -32,15 +43,37 @@ var BABYLON;
                 if (this.onClose)
                     this.onClose();
                 // Empty div
-                $("#BABYLON-EDITOR-PREVIEW-PANEL").empty();
+                $("#" + this._panelID).empty();
                 // Free
                 this.onClose = null;
+                // Create close button
+                this._addCloseButton();
             };
             // Sets the panel size
             EditPanel.prototype.setPanelSize = function (percents) {
                 var height = this.panel._panelElement.height;
                 height += this._mainPanel._panelElement.height;
                 this.editor.layouts.setPanelSize("preview", height * percents / 100);
+            };
+            // Creates close button
+            EditPanel.prototype._addCloseButton = function () {
+                var _this = this;
+                $("#" + this._panelID).append(EDITOR.GUI.GUIElement.CreateElement("button class=\"btn w2ui-msg-title w2ui-msg-button\"", this._closeButtonID, ""));
+                this._closeButton = $("#" + this._closeButtonID);
+                this._closeButton.text("x");
+                this._configureCloseButton();
+                this._closeButton.click(function (event) {
+                    _this.close();
+                    _this.setPanelSize(0);
+                });
+            };
+            // Configures close button
+            EditPanel.prototype._configureCloseButton = function () {
+                this._closeButton.css("position", "absolute");
+                this._closeButton.css("right", "0%");
+                this._closeButton.css("z-index", 1000); // Should be enough
+                this._closeButton.css("min-width", "0px");
+                this._closeButton.css("width", "15px");
             };
             return EditPanel;
         })();

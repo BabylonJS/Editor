@@ -5,13 +5,23 @@
         actionManager: ActionManager;
     }
 
+    export interface ISceneConfiguration {
+        scene: Scene;
+        actionManager: ActionManager;
+    }
+
+    export interface IObjectConfigurationDefinition {
+        [index: string]: IObjectConfiguration;
+    }
+
     export class SceneManager {
         // Public members
 
         /**
         * Objects configuration
         */
-        public static _ConfiguredObjectsIDs: Object = { };
+        public static _ConfiguredObjectsIDs: IObjectConfigurationDefinition = { };
+        public static _SceneConfiguration: ISceneConfiguration;
 
         // Reset configured objects
         static ResetConfiguredObjects(): void {
@@ -20,9 +30,14 @@
 
         // Switch action manager (editor and scene itself)
         static SwitchActionManager(): void {
+            var actionManager = this._SceneConfiguration.actionManager;
+            this._SceneConfiguration.actionManager = this._SceneConfiguration.scene.actionManager;
+            this._SceneConfiguration.scene.actionManager = actionManager;
+
+            // Meshes configuration
             for (var thing in this._ConfiguredObjectsIDs) {
-                var obj: IObjectConfiguration = this._ConfiguredObjectsIDs[thing];
-                var actionManager = obj.mesh.actionManager;
+                var obj = this._ConfiguredObjectsIDs[thing];
+                actionManager = obj.mesh.actionManager;
                 obj.mesh.actionManager = obj.actionManager;
                 obj.actionManager = actionManager;
             }
@@ -42,7 +57,7 @@
                 if (mesh instanceof Mesh && !mesh.geometry)
                     return;
 
-                this._ConfiguredObjectsIDs[mesh.id] = <IObjectConfiguration>{
+                this._ConfiguredObjectsIDs[mesh.id] = {
                     mesh: mesh,
                     actionManager: mesh.actionManager
                 };

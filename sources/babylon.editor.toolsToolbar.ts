@@ -46,15 +46,6 @@
                     return false;
                 }
 
-                /*
-                var id: string = event.guiEvent.data;
-                var finalID = id.split(":");
-                var item = this.toolbar.getItemByID(finalID[finalID.length - 1]);
-                
-                if (item === null)
-                    return false;
-                */
-
                 var id: string = event.guiEvent.data;
                 var selected = this.toolbar.decomposeSelectedMenu(id);
 
@@ -81,6 +72,7 @@
                     if (checked) {
                         this._editor.transformer.setNode(null);
                         this._editor.transformer.enabled = false;
+                        this.toolbar.setItemChecked(this._transformerPositionID, false);
 
                         this._core.engine.resize();
 
@@ -102,7 +94,6 @@
                         this._editor.timeline.play();
                     }
                     else {
-                        this._editor.transformer.enabled = true;
                         this._core.engine.resize();
 
                         // Animate at launch

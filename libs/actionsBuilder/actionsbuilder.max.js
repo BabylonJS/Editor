@@ -1201,7 +1201,7 @@ var ActionsBuilder;
             });
         }
         Toolbar.prototype.onResize = function () {
-            this.toolbarElement.style.top = this._viewer.viewerElement.clientHeight + 20 + "px";
+            this.toolbarElement.style.top = this._viewer.viewerElement.clientHeight + 25 + "px";
         };
         Toolbar.prototype.drawSaveActionGraphButton = function (draw) {
             this.saveActionGraphElement.style.display = draw ? "block" : "none";

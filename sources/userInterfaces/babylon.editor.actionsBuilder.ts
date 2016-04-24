@@ -87,8 +87,12 @@
 
                     ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof Scene ? null : <AbstractMesh>object, core.currentScene);
 
-                    if (!core.isPlaying && !(object instanceof Scene)) {
-                        SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id].actionManager = object.actionManager;
+                    if (!core.isPlaying) {
+                        if (object instanceof Scene)
+                            SceneManager._SceneConfiguration.actionManager = object.actionManager;
+                        else
+                            SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>object).id].actionManager = object.actionManager;
+
                         object.actionManager = oldActionManager;
                     }
 
