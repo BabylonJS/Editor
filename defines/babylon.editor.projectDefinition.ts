@@ -70,6 +70,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         id: string; // The node id
         type: string; // The type of node (Node, Scene or Sound)
         animations: IAnimation[]; // Animations of the node
+        actions?: any;
 
         serializationObject?: any;
     }
@@ -124,6 +125,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         postProcesses: IPostProcess[];
         lensFlares: ILensFlare[];
         renderTargets: IRenderTarget[];
+        actions: any;
 
         requestedMaterials?: string[];
     }

@@ -120,6 +120,22 @@
                     Tags.EnableFor(newAnimation);
                     Tags.AddTagsTo(newAnimation, "modified");
                 }
+
+                // Actions
+                if (newNode instanceof AbstractMesh) {
+                    var oldActionManager = newNode.actionManager;
+
+                    if (node.actions) {
+                        ActionManager.Parse(node.actions, <AbstractMesh>newNode, core.currentScene);
+                        Tags.EnableFor((<AbstractMesh>newNode).actionManager);
+                        Tags.AddTagsTo((<AbstractMesh>newNode).actionManager, "added");
+
+                        if (SceneManager._ConfiguredObjectsIDs[newNode.id])
+                            SceneManager._ConfiguredObjectsIDs[newNode.id].actionManager = newNode.actionManager;
+
+                        newNode.actionManager = oldActionManager; // Created by the editor
+                    }
+                }
             }
 
             // Particle systems
@@ -164,6 +180,15 @@
 
                     return false;
                 });
+            }
+
+            // Actions
+            if (project.actions) {
+                ActionManager.Parse(project.actions, null, core.currentScene);
+                Tags.EnableFor(core.currentScene.actionManager);
+                Tags.AddTagsTo(core.currentScene.actionManager, "added");
+
+                SceneManager._SceneConfiguration.actionManager = core.currentScene.actionManager;
             }
 
             // Set global animations

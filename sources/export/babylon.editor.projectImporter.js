@@ -106,6 +106,18 @@ var BABYLON;
                         BABYLON.Tags.EnableFor(newAnimation);
                         BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
+                    // Actions
+                    if (newNode instanceof BABYLON.AbstractMesh) {
+                        var oldActionManager = newNode.actionManager;
+                        if (node.actions) {
+                            BABYLON.ActionManager.Parse(node.actions, newNode, core.currentScene);
+                            BABYLON.Tags.EnableFor(newNode.actionManager);
+                            BABYLON.Tags.AddTagsTo(newNode.actionManager, "added");
+                            if (EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id])
+                                EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id].actionManager = newNode.actionManager;
+                            newNode.actionManager = oldActionManager; // Created by the editor
+                        }
+                    }
                 }
                 // Particle systems
                 for (var i = 0; i < project.particleSystems.length; i++) {
@@ -140,6 +152,13 @@ var BABYLON;
                         }
                         return false;
                     });
+                }
+                // Actions
+                if (project.actions) {
+                    BABYLON.ActionManager.Parse(project.actions, null, core.currentScene);
+                    BABYLON.Tags.EnableFor(core.currentScene.actionManager);
+                    BABYLON.Tags.AddTagsTo(core.currentScene.actionManager, "added");
+                    EDITOR.SceneManager._SceneConfiguration.actionManager = core.currentScene.actionManager;
                 }
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;

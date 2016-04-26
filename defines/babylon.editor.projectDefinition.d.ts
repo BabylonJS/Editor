@@ -2,10 +2,10 @@
 * File format definitions of the Babylon.js Editor
 * to save projects with custom properties
 * such as:
-    - Tagged animations (created with the editor) including events
-    - Configurations:
-        - Nodes | Scene | Sound to animate on play
-        - Sounds to play, on play
+   - Tagged animations (created with the editor) including events
+   - Configurations:
+       - Nodes | Scene | Sound to animate on play
+       - Sounds to play, on play
 */
 declare module BABYLON.EDITOR.INTERNAL {
     /**
@@ -59,6 +59,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         id: string;
         type: string;
         animations: IAnimation[];
+        actions?: any;
         serializationObject?: any;
     }
     /**
@@ -104,6 +105,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         postProcesses: IPostProcess[];
         lensFlares: ILensFlare[];
         renderTargets: IRenderTarget[];
+        actions: any;
         requestedMaterials?: string[];
     }
 }

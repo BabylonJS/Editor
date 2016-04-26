@@ -9,6 +9,9 @@
         // Exports the project
         public static ExportProject(core: EditorCore, requestMaterials: boolean = false): string {
             SceneSerializer.ClearCache();
+
+            if (!core.isPlaying)
+                SceneManager.SwitchActionManager();
             
             var project: INTERNAL.IProjectRoot = {
                 globalConfiguration: this._SerializeGlobalAnimations(),
@@ -19,11 +22,15 @@
                 postProcesses: this._SerializePostProcesses(),
                 lensFlares: this._SerializeLensFlares(core),
                 renderTargets: this._SerializeRenderTargets(core),
+                actions: this._SerializeActionManager(core.currentScene),
 
                 requestedMaterials: requestMaterials ? [] : undefined
             };
 
             this._TraverseNodes(core, null, project);
+
+            if (!core.isPlaying)
+                SceneManager.SwitchActionManager();
 
             return JSON.stringify(project, null, "\t");
         }
@@ -299,8 +306,10 @@
                             if (node instanceof Mesh) {
                                 nodeObj.serializationObject = SceneSerializer.SerializeMesh(node, false, false);
 
-                                for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++)
+                                for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
                                     delete nodeObj.serializationObject.meshes[meshIndex].animations;
+                                    delete nodeObj.serializationObject.meshes[meshIndex].actions;
+                                }
                             }
                             else {
                                 nodeObj.serializationObject = (<Light | Camera>node).serialize();
@@ -355,6 +364,10 @@
                         }
                     }
 
+                    // Actions
+                    if (node instanceof AbstractMesh)
+                        nodeObj.actions = this._SerializeActionManager(node);
+
                     // Add
                     if (addNodeObj) {
                         project.nodes.push(nodeObj);
@@ -367,6 +380,16 @@
                     }
                 }
             }
+        }
+
+        // Serializes action manager of an object or scene
+        // Returns null if does not exists or not added from the editor
+        private static _SerializeActionManager(object: AbstractMesh | Scene): any {
+            if (object.actionManager && Tags.HasTags(object.actionManager) && Tags.MatchesQuery(object.actionManager, "added")) {
+                return object.actionManager.serialize(object instanceof Scene ? "Scene" : (<AbstractMesh>object).name);
+            }
+
+            return null;
         }
 
         // Setups the requested materials (to be uploaded in template or release)

@@ -243,7 +243,8 @@
             editorMain._handleSceneLoaded()(null, scene);
         };
 
-        createPBRScene();
+        //createPBRScene();
+        editorMain._handleSceneLoaded()(null, core.currentScene);
         
         var animation = new BABYLON.Animation("anim", "fogStart", 1, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, true);
         animation.setKeys([

@@ -1778,7 +1778,7 @@ var BABYLON;
             }
             // Object supported
             GeneralTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh
+                if (object instanceof BABYLON.AbstractMesh
                     || object instanceof BABYLON.Light
                     || object instanceof BABYLON.Camera
                     || object instanceof BABYLON.LensFlareSystem) {
@@ -2432,7 +2432,7 @@ var BABYLON;
                         return true;
                 }
                 */
-                if (object instanceof BABYLON.Mesh) {
+                if (object instanceof BABYLON.AbstractMesh) {
                     if (object.material && (object.material instanceof BABYLON.MultiMaterial))
                         return false;
                     return true;
@@ -2468,13 +2468,13 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.name : materials[0];
+                this._dummyProperty = material ? material.id : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
-                        var newmaterial = scene.getMaterialByName(result);
+                        var newmaterial = scene.getMaterialByID(result);
                         _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
@@ -2483,7 +2483,7 @@ var BABYLON;
                 // Common
                 if (material) {
                     var generalFolder = this._element.addFolder("Common");
-                    generalFolder.add(material, "name").name("Name");
+                    generalFolder.add(material, "id").name("Id");
                     generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
                     // Options
                     var optionsFolder = this._element.addFolder("Options");
@@ -3217,7 +3217,7 @@ var BABYLON;
             }
             // Object supported
             AbstractMaterialTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh) {
+                if (object instanceof BABYLON.AbstractMesh) {
                     if (object.material && !(object.material instanceof BABYLON.MultiMaterial) && this.onObjectSupported(object.material))
                         return true;
                 }
@@ -4222,7 +4222,9 @@ var BABYLON;
                 this._closeButton.css("right", "0%");
                 this._closeButton.css("z-index", 1000); // Should be enough
                 this._closeButton.css("min-width", "0px");
-                this._closeButton.css("width", "15px");
+                this._closeButton.css("min-height", "0px");
+                //this._closeButton.css("width", "25px");
+                //this._closeButton.css("height", "25px");
             };
             return EditPanel;
         })();
@@ -4234,7 +4236,7 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // private members
+            // Private members
             // Statics
             /**
             * Constructor
@@ -4907,7 +4909,7 @@ var BABYLON;
             };
             // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
             SceneGraphTool.prototype._getObjectIcon = function (node) {
-                if (node instanceof BABYLON.Mesh) {
+                if (node instanceof BABYLON.AbstractMesh) {
                     if (node.skeleton)
                         return "icon-animated-mesh";
                     return "icon-mesh";
@@ -5427,7 +5429,8 @@ var BABYLON;
                                 this._core.currentScene.stopAnimation(node);
                                 this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
-                            this._editor.timeline.play();
+                            if (EDITOR.SceneFactory.NodesToStart.length > 0)
+                                this._editor.timeline.play();
                         }
                         else {
                             this._core.engine.resize();
@@ -6352,7 +6355,6 @@ var BABYLON;
                         if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
                             EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
                             core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
-                            core.editor.sceneToolbar.setFocusOnObject(mesh);
                         }
                     }));
                     if (parentNode && !mesh.parent) {
@@ -7106,6 +7108,8 @@ var BABYLON;
             ProjectExporter.ExportProject = function (core, requestMaterials) {
                 if (requestMaterials === void 0) { requestMaterials = false; }
                 BABYLON.SceneSerializer.ClearCache();
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 var project = {
                     globalConfiguration: this._SerializeGlobalAnimations(),
                     materials: [],
@@ -7115,9 +7119,12 @@ var BABYLON;
                     postProcesses: this._SerializePostProcesses(),
                     lensFlares: this._SerializeLensFlares(core),
                     renderTargets: this._SerializeRenderTargets(core),
+                    actions: this._SerializeActionManager(core.currentScene),
                     requestedMaterials: requestMaterials ? [] : undefined
                 };
                 this._TraverseNodes(core, null, project);
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 return JSON.stringify(project, null, "\t");
             };
             // Serialize global animations
@@ -7337,8 +7344,10 @@ var BABYLON;
                                 addNodeObj = true;
                                 if (node instanceof BABYLON.Mesh) {
                                     nodeObj.serializationObject = BABYLON.SceneSerializer.SerializeMesh(node, false, false);
-                                    for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++)
+                                    for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
                                         delete nodeObj.serializationObject.meshes[meshIndex].animations;
+                                        delete nodeObj.serializationObject.meshes[meshIndex].actions;
+                                    }
                                 }
                                 else {
                                     nodeObj.serializationObject = node.serialize();
@@ -7383,6 +7392,9 @@ var BABYLON;
                                 nodeObj.animations.push(animObj);
                             }
                         }
+                        // Actions
+                        if (node instanceof BABYLON.AbstractMesh)
+                            nodeObj.actions = this._SerializeActionManager(node);
                         // Add
                         if (addNodeObj) {
                             project.nodes.push(nodeObj);
@@ -7394,6 +7406,14 @@ var BABYLON;
                         }
                     }
                 }
+            };
+            // Serializes action manager of an object or scene
+            // Returns null if does not exists or not added from the editor
+            ProjectExporter._SerializeActionManager = function (object) {
+                if (object.actionManager && BABYLON.Tags.HasTags(object.actionManager) && BABYLON.Tags.MatchesQuery(object.actionManager, "added")) {
+                    return object.actionManager.serialize(object instanceof BABYLON.Scene ? "Scene" : object.name);
+                }
+                return null;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {
@@ -7555,6 +7575,18 @@ var BABYLON;
                         BABYLON.Tags.EnableFor(newAnimation);
                         BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
+                    // Actions
+                    if (newNode instanceof BABYLON.AbstractMesh) {
+                        var oldActionManager = newNode.actionManager;
+                        if (node.actions) {
+                            BABYLON.ActionManager.Parse(node.actions, newNode, core.currentScene);
+                            BABYLON.Tags.EnableFor(newNode.actionManager);
+                            BABYLON.Tags.AddTagsTo(newNode.actionManager, "added");
+                            if (EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id])
+                                EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id].actionManager = newNode.actionManager;
+                            newNode.actionManager = oldActionManager; // Created by the editor
+                        }
+                    }
                 }
                 // Particle systems
                 for (var i = 0; i < project.particleSystems.length; i++) {
@@ -7589,6 +7621,13 @@ var BABYLON;
                         }
                         return false;
                     });
+                }
+                // Actions
+                if (project.actions) {
+                    BABYLON.ActionManager.Parse(project.actions, null, core.currentScene);
+                    BABYLON.Tags.EnableFor(core.currentScene.actionManager);
+                    BABYLON.Tags.AddTagsTo(core.currentScene.actionManager, "added");
+                    EDITOR.SceneManager._SceneConfiguration.actionManager = core.currentScene.actionManager;
                 }
                 // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
@@ -9785,6 +9824,8 @@ var BABYLON;
                         var parsedActionManager = iframeDocument.getElementById("ActionsBuilderJSON").value;
                         var oldActionManager = object.actionManager;
                         BABYLON.ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof BABYLON.Scene ? null : object, core.currentScene);
+                        BABYLON.Tags.EnableFor(object.actionManager);
+                        BABYLON.Tags.AddTagsTo(object.actionManager, "added");
                         if (!core.isPlaying) {
                             if (object instanceof BABYLON.Scene)
                                 EDITOR.SceneManager._SceneConfiguration.actionManager = object.actionManager;

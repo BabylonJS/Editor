@@ -3,7 +3,7 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // private members
+            // Private members
             // Statics
             /**
             * Constructor

@@ -84,7 +84,7 @@
                     if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
                         Event.sendSceneEvent(mesh, SceneEventType.OBJECT_PICKED, core);
                         core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
-                        core.editor.sceneToolbar.setFocusOnObject(mesh);
+                        //core.editor.sceneToolbar.setFocusOnObject(mesh);
                     }
                 }));
 

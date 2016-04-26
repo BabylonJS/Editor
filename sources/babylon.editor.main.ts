@@ -27,7 +27,7 @@
         public renderMainScene: boolean = true;
         public renderHelpers: boolean = true;
 
-        // private members
+        // Private members
 
         // Statics
 

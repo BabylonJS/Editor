@@ -69,6 +69,8 @@ var BABYLON;
                         var parsedActionManager = iframeDocument.getElementById("ActionsBuilderJSON").value;
                         var oldActionManager = object.actionManager;
                         BABYLON.ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof BABYLON.Scene ? null : object, core.currentScene);
+                        BABYLON.Tags.EnableFor(object.actionManager);
+                        BABYLON.Tags.AddTagsTo(object.actionManager, "added");
                         if (!core.isPlaying) {
                             if (object instanceof BABYLON.Scene)
                                 EDITOR.SceneManager._SceneConfiguration.actionManager = object.actionManager;

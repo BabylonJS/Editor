@@ -28,7 +28,7 @@ var BABYLON;
             }
             // Object supported
             GeneralTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh
+                if (object instanceof BABYLON.AbstractMesh
                     || object instanceof BABYLON.Light
                     || object instanceof BABYLON.Camera
                     || object instanceof BABYLON.LensFlareSystem) {

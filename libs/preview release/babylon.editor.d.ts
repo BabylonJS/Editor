@@ -425,6 +425,7 @@ declare module BABYLON.EDITOR {
         private static _SerializeLensFlares(core);
         private static _SerializePostProcesses();
         private static _TraverseNodes(core, node, project);
+        private static _SerializeActionManager(object);
         private static _RequestMaterial(core, project, material);
         private static _GetSerializedMaterial(project, materialName);
         private static _ConfigureMaterial(material, projectMaterial);
@@ -803,6 +804,231 @@ declare module BABYLON.EDITOR {
     }
 }
 
+declare module BABYLON.EDITOR {
+    class AbstractDatTool extends AbstractTool {
+        protected _element: GUI.GUIEditForm;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+        resize(): void;
+        /**
+        * Static methods
+        */
+        protected addColorFolder(color: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class AbstractTool implements ICustomEditionTool {
+        object: any;
+        containers: Array<string>;
+        tab: string;
+        protected _editionTool: EditionTool;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        apply(): void;
+        resize(): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class AnimationTool extends AbstractDatTool {
+        tab: string;
+        private _animationSpeed;
+        private _loopAnimation;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _editAnimations();
+        private _playAnimations();
+        private _playSkeletonAnimations();
+        private _openActionsBuilder();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class AudioTool extends AbstractDatTool {
+        tab: string;
+        private _volume;
+        private _playbackRate;
+        private _position;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _positionCallback(sound);
+        private _pauseSound();
+        private _playSound();
+        private _stopSound();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeneralTool extends AbstractDatTool {
+        object: Node;
+        tab: string;
+        private _isActiveCamera;
+        private _isActivePlayCamera;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _castShadows;
+        private _setChildrenCastingShadows(node);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LensFlareTool extends AbstractDatTool {
+        tab: string;
+        private _dummyProperty;
+        private _currentLensFlareId;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _addLensFlare();
+        private _reset();
+        private _setupRemove(indice);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightTool extends AbstractDatTool {
+        tab: string;
+        private _customShadowsGeneratorSize;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _createShadowsGenerator();
+        private _removeShadowGenerator();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class MaterialTool extends AbstractDatTool {
+        tab: string;
+        private _dummyProperty;
+        private _libraryDummyProperty;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _configureMaterialsLibrary(folder);
+        private _applyMaterial();
+        private _removeMaterial();
+        private _setMaterialsLibrary();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ParticleSystemTool extends AbstractDatTool {
+        tab: string;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class PostProcessesTool extends AbstractDatTool {
+        tab: string;
+        private _renderEffects;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _setVLSAttachedNode();
+        private _setupDebugPipeline(folder, pipeline);
+        private _attachDetachPipeline(attach, pipeline);
+        private _getPipelineCameras();
+        private _loadHDRLensDirtTexture();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ReflectionProbeTool extends AbstractDatTool implements IEventReceiver {
+        tab: string;
+        private _window;
+        private _excludedMeshesList;
+        private _includedMeshesList;
+        private _layouts;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        onEvent(event: Event): boolean;
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+        private _exportRenderTarget();
+        private _attachToMesh();
+        private _setIncludedMeshes();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SceneTool extends AbstractDatTool {
+        tab: string;
+        private _fogType;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+    }
+}
+
 declare module BABYLON.EDITOR.GUI {
     class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
@@ -1086,231 +1312,6 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class AbstractDatTool extends AbstractTool {
-        protected _element: GUI.GUIEditForm;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-        resize(): void;
-        /**
-        * Static methods
-        */
-        protected addColorFolder(color: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
-        protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
-        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class AbstractTool implements ICustomEditionTool {
-        object: any;
-        containers: Array<string>;
-        tab: string;
-        protected _editionTool: EditionTool;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        apply(): void;
-        resize(): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class AnimationTool extends AbstractDatTool {
-        tab: string;
-        private _animationSpeed;
-        private _loopAnimation;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _editAnimations();
-        private _playAnimations();
-        private _playSkeletonAnimations();
-        private _openActionsBuilder();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class AudioTool extends AbstractDatTool {
-        tab: string;
-        private _volume;
-        private _playbackRate;
-        private _position;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _positionCallback(sound);
-        private _pauseSound();
-        private _playSound();
-        private _stopSound();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GeneralTool extends AbstractDatTool {
-        object: Node;
-        tab: string;
-        private _isActiveCamera;
-        private _isActivePlayCamera;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _castShadows;
-        private _setChildrenCastingShadows(node);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LensFlareTool extends AbstractDatTool {
-        tab: string;
-        private _dummyProperty;
-        private _currentLensFlareId;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _addLensFlare();
-        private _reset();
-        private _setupRemove(indice);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LightTool extends AbstractDatTool {
-        tab: string;
-        private _customShadowsGeneratorSize;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _createShadowsGenerator();
-        private _removeShadowGenerator();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class MaterialTool extends AbstractDatTool {
-        tab: string;
-        private _dummyProperty;
-        private _libraryDummyProperty;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _configureMaterialsLibrary(folder);
-        private _applyMaterial();
-        private _removeMaterial();
-        private _setMaterialsLibrary();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ParticleSystemTool extends AbstractDatTool {
-        tab: string;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class PostProcessesTool extends AbstractDatTool {
-        tab: string;
-        private _renderEffects;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _setVLSAttachedNode();
-        private _setupDebugPipeline(folder, pipeline);
-        private _attachDetachPipeline(attach, pipeline);
-        private _getPipelineCameras();
-        private _loadHDRLensDirtTexture();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ReflectionProbeTool extends AbstractDatTool implements IEventReceiver {
-        tab: string;
-        private _window;
-        private _excludedMeshesList;
-        private _includedMeshesList;
-        private _layouts;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        onEvent(event: Event): boolean;
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
-        private _exportRenderTarget();
-        private _attachToMesh();
-        private _setIncludedMeshes();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SceneTool extends AbstractDatTool {
-        tab: string;
-        private _fogType;
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        update(): boolean;
     }
 }
 

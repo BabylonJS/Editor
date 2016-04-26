@@ -87,6 +87,9 @@
 
                     ActionManager.Parse(JSON.parse(parsedActionManager), object instanceof Scene ? null : <AbstractMesh>object, core.currentScene);
 
+                    Tags.EnableFor(object.actionManager);
+                    Tags.AddTagsTo(object.actionManager, "added");
+
                     if (!core.isPlaying) {
                         if (object instanceof Scene)
                             SceneManager._SceneConfiguration.actionManager = object.actionManager;

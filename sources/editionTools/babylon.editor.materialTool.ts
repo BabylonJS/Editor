@@ -34,7 +34,7 @@
                     return true;
             }
             */
-            if (object instanceof Mesh) {
+            if (object instanceof AbstractMesh) {
                 if (object.material && (object.material instanceof MultiMaterial))
                     return false;
 
@@ -80,13 +80,13 @@
             for (var i = 0; i < scene.materials.length; i++)
                 materials.push(scene.materials[i].name);
 
-            this._dummyProperty = material ? material.name : materials[0];
+            this._dummyProperty = material ? material.id : materials[0];
             materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
                 if (result === "None") {
                     this._removeMaterial();
                 }
                 else {
-                    var newmaterial = scene.getMaterialByName(result);
+                    var newmaterial = scene.getMaterialByID(result);
                     this._editionTool.object.material = newmaterial;
                 }
                 this._editionTool.updateEditionTool();
@@ -97,7 +97,7 @@
             // Common
             if (material) {
                 var generalFolder = this._element.addFolder("Common");
-                generalFolder.add(material, "name").name("Name");
+                generalFolder.add(material, "id").name("Id");
                 generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
 
                 // Options

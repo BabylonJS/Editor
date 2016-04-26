@@ -28,7 +28,7 @@ var BABYLON;
             }
             // Object supported
             AbstractMaterialTool.prototype.isObjectSupported = function (object) {
-                if (object instanceof BABYLON.Mesh) {
+                if (object instanceof BABYLON.AbstractMesh) {
                     if (object.material && !(object.material instanceof BABYLON.MultiMaterial) && this.onObjectSupported(object.material))
                         return true;
                 }

@@ -101,7 +101,9 @@
             this._closeButton.css("right", "0%");
             this._closeButton.css("z-index", 1000); // Should be enough
             this._closeButton.css("min-width", "0px");
-            this._closeButton.css("width", "15px");
+            this._closeButton.css("min-height", "0px");
+            //this._closeButton.css("width", "25px");
+            //this._closeButton.css("height", "25px");
         }
     }
 }

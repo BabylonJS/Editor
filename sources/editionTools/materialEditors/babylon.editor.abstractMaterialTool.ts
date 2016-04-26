@@ -27,7 +27,7 @@
 
         // Object supported
         public isObjectSupported(object: any): boolean {
-            if (object instanceof Mesh) {
+            if (object instanceof AbstractMesh) {
                 if (object.material && !(object.material instanceof MultiMaterial) && this.onObjectSupported(object.material))
                     return true;
             }

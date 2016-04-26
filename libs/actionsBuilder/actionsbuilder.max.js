@@ -1433,6 +1433,7 @@ var ActionsBuilder;
         "StandardMaterial"
     ];
     SceneElements.MESH.material = new BABYLON.StandardMaterial("material", SceneElements.SCENE);
+    SceneElements.MESH.rotation = new BABYLON.Vector3(0, 0, 0);
     var addSpecialType = function (object, properties, thing) {
         for (var specialThing in object[thing]) {
             if (object[thing].hasOwnProperty(specialThing) && SceneElements.TestInstanceOf(object[thing][specialThing], specialThing)) {
@@ -1455,7 +1456,8 @@ var ActionsBuilder;
     // Configure properties
     for (var thing in SceneElements.MESH) {
         var instance = SceneElements.GetInstanceOf(SceneElements.MESH[thing]);
-        if (SceneElements.MESH.hasOwnProperty(thing)) {
+        //if (SceneElements.MESH.hasOwnProperty(thing)) {
+        if (SceneElements.MESH[thing] !== undefined && SceneElements.MESH[thing] !== null) {
             if (specialTypes.indexOf(instance) !== -1) {
                 addSpecialType(SceneElements.MESH, SceneElements.MESH_PROPERTIES, thing);
             }

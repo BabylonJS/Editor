@@ -241,7 +241,7 @@ var BABYLON;
             };
             // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
             SceneGraphTool.prototype._getObjectIcon = function (node) {
-                if (node instanceof BABYLON.Mesh) {
+                if (node instanceof BABYLON.AbstractMesh) {
                     if (node.skeleton)
                         return "icon-animated-mesh";
                     return "icon-mesh";

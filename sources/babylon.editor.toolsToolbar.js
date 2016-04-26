@@ -67,7 +67,8 @@ var BABYLON;
                                 this._core.currentScene.stopAnimation(node);
                                 this._core.currentScene.beginAnimation(node, this._editor.timeline.currentTime, Number.MAX_VALUE, false, EDITOR.SceneFactory.AnimationSpeed);
                             }
-                            this._editor.timeline.play();
+                            if (EDITOR.SceneFactory.NodesToStart.length > 0)
+                                this._editor.timeline.play();
                         }
                         else {
                             this._core.engine.resize();

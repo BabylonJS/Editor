@@ -305,7 +305,7 @@
 
         // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
         private _getObjectIcon(node: Node): string {
-            if (node instanceof BABYLON.Mesh) {
+            if (node instanceof AbstractMesh) {
                 if (node.skeleton)
                     return "icon-animated-mesh";
 

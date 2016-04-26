@@ -13,6 +13,8 @@ var BABYLON;
             ProjectExporter.ExportProject = function (core, requestMaterials) {
                 if (requestMaterials === void 0) { requestMaterials = false; }
                 BABYLON.SceneSerializer.ClearCache();
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 var project = {
                     globalConfiguration: this._SerializeGlobalAnimations(),
                     materials: [],
@@ -22,9 +24,12 @@ var BABYLON;
                     postProcesses: this._SerializePostProcesses(),
                     lensFlares: this._SerializeLensFlares(core),
                     renderTargets: this._SerializeRenderTargets(core),
+                    actions: this._SerializeActionManager(core.currentScene),
                     requestedMaterials: requestMaterials ? [] : undefined
                 };
                 this._TraverseNodes(core, null, project);
+                if (!core.isPlaying)
+                    EDITOR.SceneManager.SwitchActionManager();
                 return JSON.stringify(project, null, "\t");
             };
             // Serialize global animations
@@ -244,8 +249,10 @@ var BABYLON;
                                 addNodeObj = true;
                                 if (node instanceof BABYLON.Mesh) {
                                     nodeObj.serializationObject = BABYLON.SceneSerializer.SerializeMesh(node, false, false);
-                                    for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++)
+                                    for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
                                         delete nodeObj.serializationObject.meshes[meshIndex].animations;
+                                        delete nodeObj.serializationObject.meshes[meshIndex].actions;
+                                    }
                                 }
                                 else {
                                     nodeObj.serializationObject = node.serialize();
@@ -290,6 +297,9 @@ var BABYLON;
                                 nodeObj.animations.push(animObj);
                             }
                         }
+                        // Actions
+                        if (node instanceof BABYLON.AbstractMesh)
+                            nodeObj.actions = this._SerializeActionManager(node);
                         // Add
                         if (addNodeObj) {
                             project.nodes.push(nodeObj);
@@ -301,6 +311,14 @@ var BABYLON;
                         }
                     }
                 }
+            };
+            // Serializes action manager of an object or scene
+            // Returns null if does not exists or not added from the editor
+            ProjectExporter._SerializeActionManager = function (object) {
+                if (object.actionManager && BABYLON.Tags.HasTags(object.actionManager) && BABYLON.Tags.MatchesQuery(object.actionManager, "added")) {
+                    return object.actionManager.serialize(object instanceof BABYLON.Scene ? "Scene" : object.name);
+                }
+                return null;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {

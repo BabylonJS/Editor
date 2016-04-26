@@ -39,7 +39,7 @@ var BABYLON;
                         return true;
                 }
                 */
-                if (object instanceof BABYLON.Mesh) {
+                if (object instanceof BABYLON.AbstractMesh) {
                     if (object.material && (object.material instanceof BABYLON.MultiMaterial))
                         return false;
                     return true;
@@ -75,13 +75,13 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.name : materials[0];
+                this._dummyProperty = material ? material.id : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
-                        var newmaterial = scene.getMaterialByName(result);
+                        var newmaterial = scene.getMaterialByID(result);
                         _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
@@ -90,7 +90,7 @@ var BABYLON;
                 // Common
                 if (material) {
                     var generalFolder = this._element.addFolder("Common");
-                    generalFolder.add(material, "name").name("Name");
+                    generalFolder.add(material, "id").name("Id");
                     generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
                     // Options
                     var optionsFolder = this._element.addFolder("Options");
