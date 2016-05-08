@@ -3,36 +3,26 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var Exporter = (function () {
-            /**
-            * Constructor
-            */
             function Exporter(core) {
-                // private members
                 this._window = null;
                 this._editor = null;
                 this._editorID = "BABYLON-EDITOR-EXPORT-WINDOW-EDITOR";
                 this._generatedCode = "";
-                // Initialize
                 this.core = core;
             }
-            // Opens the scene exporter
             Exporter.prototype.openSceneExporter = function (babylonScene) {
                 var _this = this;
-                // Create window
                 var windowBody = EDITOR.GUI.GUIElement.CreateDivElement(this._editorID, "width: 100%; height: 100%");
                 this._window = new EDITOR.GUI.GUIWindow("WindowExport", this.core, "Export Project", windowBody);
                 this._window.buildElement(null);
                 this._window.onToggle = function (maximized, width, height) {
                     _this._editor.resize();
                 };
-                // Create ace editor
                 this._editor = ace.edit(this._editorID);
                 this._editor.setTheme("ace/theme/clouds");
                 this._editor.getSession().setMode("ace/mode/javascript");
-                // Finish
                 this._generatedCode = this.generateCode(babylonScene);
             };
-            // Generates the code
             Exporter.prototype.generateCode = function (babylonScene) {
                 var scene = this.core.currentScene;
                 var finalString = "";
@@ -41,23 +31,6 @@ var BABYLON;
                     finalString = JSON.stringify(obj, null, "\t");
                 }
                 else {
-                    /*
-                    finalString = [
-                        "var getTextureByName = " + this._getTextureByName + "\n",
-                        "function CreateBabylonScene(scene) {",
-                        "\tvar engine = scene.getEngine();",
-                        "\tvar node = null;",
-                        "\tvar animation = null;",
-                        "\tvar keys = null;",
-                        "\tvar particleSystem = null;\n",
-                        this._exportPostProcesses(),
-                        this._exportScene(),
-                        this._exportReflectionProbes(),
-                        this._traverseNodes(),
-                        this._exportSceneValues(),
-                        "}\n"
-                    ].join("\n");
-                    */
                     finalString = EDITOR.ProjectExporter.ExportProject(this.core, true);
                 }
                 if (this._editor) {
@@ -67,7 +40,6 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Exports the code
             Exporter.ExportCode = function (core) {
                 var exporter = new Exporter(core);
                 var finalString = [
@@ -87,9 +59,7 @@ var BABYLON;
                 ].join("\n");
                 return finalString;
             };
-            // Export the scene values
             Exporter.prototype._exportSceneValues = function () {
-                // Common values
                 var finalString = "\n" +
                     "\tif (BABYLON.EDITOR) {\n" +
                     "\t    BABYLON.EDITOR.SceneFactory.AnimationSpeed = " + EDITOR.SceneFactory.AnimationSpeed + ";\n";
@@ -112,11 +82,9 @@ var BABYLON;
                 finalString += "\t}\n";
                 return finalString;
             };
-            // Export scene
             Exporter.prototype._exportScene = function () {
                 var scene = this.core.currentScene;
                 var finalString = "\n\t// Export scene\n";
-                // Set values
                 for (var thing in scene) {
                     var value = scene[thing];
                     var result = "";
@@ -140,7 +108,6 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Export reflection probes
             Exporter.prototype._exportReflectionProbes = function () {
                 var scene = this.core.currentScene;
                 var finalString = "\t// Export reflection probes\n";
@@ -152,7 +119,6 @@ var BABYLON;
                     if (rp.name === "")
                         continue;
                     finalString += "\treflectionProbe = new BABYLON.ReflectionProbe(\"" + rp.name + "\", " + texture.getSize().width + ", scene, " + texture._generateMipMaps + ");\n";
-                    // Render list
                     for (var j = 0; j < rp.renderList.length; j++) {
                         var node = rp.renderList[j];
                         finalString += "\treflectionProbe.renderList.push(scene.getNodeByName(\"" + node.name + "\"));\n";
@@ -160,7 +126,6 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Export node's transformation
             Exporter.prototype._exportNodeTransform = function (node) {
                 var finalString = "";
                 if (node.position) {
@@ -177,9 +142,7 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Returns a BaseTexture from its name
             Exporter.prototype._getTextureByName = function (name, scene) {
-                // "this" is forbidden since this code is exported directly
                 for (var i = 0; i < scene.textures.length; i++) {
                     var texture = scene.textures[i];
                     if (texture.name === name) {
@@ -188,7 +151,6 @@ var BABYLON;
                 }
                 return null;
             };
-            // Exports the post-processes
             Exporter.prototype._exportPostProcesses = function () {
                 var finalString = "";
                 if (EDITOR.SceneFactory.HDRPipeline) {
@@ -216,13 +178,10 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Export node's animations
             Exporter.prototype._exportAnimations = function (node) {
                 var finalString = "\n";
                 for (var i = 0; i < node.animations.length; i++) {
                     var anim = node.animations[i];
-                    // Check tags here
-                    // ....
                     if (!BABYLON.Tags.HasTags(anim) || !BABYLON.Tags.MatchesQuery(anim, "modified"))
                         continue;
                     var keys = anim.getKeys();
@@ -250,10 +209,8 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Export node's material
             Exporter.prototype._exportNodeMaterial = function (node, subMeshId) {
                 var material = null;
-                //node.material;
                 if (node instanceof BABYLON.AbstractMesh) {
                     material = node.material;
                 }
@@ -264,7 +221,6 @@ var BABYLON;
                 if (!material || (isStandard && !BABYLON.Tags.HasTags(material)))
                     return "";
                 var finalString = "\n";
-                // Set constructor
                 var materialString = "\tnode.material";
                 if (node instanceof BABYLON.SubMesh) {
                     materialString = "\tnode.material.subMaterials[" + subMeshId + "]";
@@ -277,7 +233,6 @@ var BABYLON;
                 else if (material instanceof BABYLON.SkyMaterial) {
                     finalString += materialString + " =  new BABYLON.SkyMaterial(\"" + material.name + "\", scene);\n";
                 }
-                // Set values
                 for (var thing in material) {
                     var value = material[thing];
                     var result = "";
@@ -359,7 +314,6 @@ var BABYLON;
                     finalString += "\tparticleSystem.start();\n";
                 return finalString;
             };
-            // Exports a light
             Exporter.prototype._exportLight = function (light) {
                 var finalString = "";
                 var shadows = light.getShadowGenerator();
@@ -390,14 +344,13 @@ var BABYLON;
                     finalString += "\tnode." + thing + " = " + result + ";\n";
                 }
                 finalString += "\n";
-                // Shadow generator
                 var shadowsGenerator = light.getShadowGenerator();
                 if (!shadowsGenerator)
                     return finalString;
                 var serializationObject = shadowsGenerator.serialize();
                 finalString +=
                     "\tvar shadowGenerator = node.getShadowGenerator();\n"
-                        + "\tif (!shadowGenerator) {\n" // Do not create another
+                        + "\tif (!shadowGenerator) {\n"
                         + "\t\tshadowGenerator = new BABYLON.ShadowGenerator(" + serializationObject.mapSize + ", node);\n";
                 for (var i = 0; i < serializationObject.renderList.length; i++) {
                     var mesh = serializationObject.renderList[i];
@@ -421,27 +374,21 @@ var BABYLON;
                 }
                 return finalString;
             };
-            // Exports a BABYLON.Vector2
             Exporter.prototype._exportVector2 = function (vector) {
                 return "new BABYLON.Vector2(" + vector.x + ", " + vector.y + ")";
             };
-            // Exports a BABYLON.Vector3
             Exporter.prototype._exportVector3 = function (vector) {
                 return "new BABYLON.Vector3(" + vector.x + ", " + vector.y + ", " + vector.z + ")";
             };
-            // Exports a BABYLON.Quaternion
             Exporter.prototype._exportQuaternion = function (quaternion) {
                 return "new BABYLON.Quaternion(" + quaternion.x + ", " + quaternion.y + ", " + quaternion.z + ", " + quaternion.w + ")";
             };
-            // Exports a BABYLON.Color3
             Exporter.prototype._exportColor3 = function (color) {
                 return "new BABYLON.Color3(" + color.r + ", " + color.g + ", " + color.b + ")";
             };
-            // Exports a BABYLON.Color4
             Exporter.prototype._exportColor4 = function (color) {
                 return "new BABYLON.Color4(" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ")";
             };
-            // Traverses nodes
             Exporter.prototype._traverseNodes = function (node) {
                 var scene = this.core.currentScene;
                 if (!node) {
@@ -476,11 +423,9 @@ var BABYLON;
                         }
                         if (!foundSky)
                             finalString += "\tnode = scene.getNodeByName(\"" + node.name + "\");\n";
-                        // Transformation
                         if (foundParticleSystems || foundSky)
                             finalString += this._exportNodeTransform(node);
                         if (node instanceof BABYLON.AbstractMesh) {
-                            // Material
                             if (node.material instanceof BABYLON.MultiMaterial) {
                                 for (var i = 0; i < node.subMeshes.length; i++) {
                                     finalString += this._exportNodeMaterial(node.subMeshes[i], i);
@@ -503,7 +448,6 @@ var BABYLON;
                     return finalString;
                 }
             };
-            // Fills array of root nodes
             Exporter.prototype._fillRootNodes = function (data, propertyPath) {
                 var scene = this.core.currentScene;
                 var nodes = scene[propertyPath];
@@ -513,7 +457,7 @@ var BABYLON;
                 }
             };
             return Exporter;
-        })();
+        }());
         EDITOR.Exporter = Exporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -135,6 +135,11 @@
 
                         newNode.actionManager = oldActionManager; // Created by the editor
                     }
+
+                    // Register node
+                    if (!SceneManager._ConfiguredObjectsIDs[newNode.id]) {
+                        SceneManager.ConfigureObject(newNode, core);
+                    }
                 }
             }
 

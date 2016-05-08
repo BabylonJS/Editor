@@ -14,15 +14,8 @@ var BABYLON;
             gridButtons["delete"].caption = w2utils.lang("");
             var GUIGrid = (function (_super) {
                 __extends(GUIGrid, _super);
-                // Private members
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param core: the editor core
-                */
                 function GUIGrid(name, core) {
                     _super.call(this, name, core);
-                    // Public members
                     this.columns = [];
                     this.records = [];
                     this.header = "";
@@ -39,7 +32,6 @@ var BABYLON;
                     this.autoMergeChanges = true;
                     this.hasSubGrid = false;
                 }
-                // Adds a menu
                 GUIGrid.prototype.addMenu = function (id, text, icon) {
                     this.menus.push({
                         id: id,
@@ -47,24 +39,20 @@ var BABYLON;
                         icon: icon
                     });
                 };
-                // Creates a column
                 GUIGrid.prototype.createColumn = function (id, text, size, style) {
                     if (!size)
                         size = "50%";
                     this.columns.push({ field: id, caption: text, size: size, style: style });
                 };
-                // Creates and editable column
                 GUIGrid.prototype.createEditableColumn = function (id, text, editable, size, style) {
                     if (!size)
                         size = "50%";
                     this.columns.push({ field: id, caption: text, size: size, style: style, editable: editable });
                 };
-                // Adds a row and refreshes the grid
                 GUIGrid.prototype.addRow = function (data) {
                     data.recid = this.getRowCount();
                     this.element.add(data);
                 };
-                // Adds a record without refreshing the grid
                 GUIGrid.prototype.addRecord = function (data) {
                     if (!this.element) {
                         data.recid = this.records.length;
@@ -75,60 +63,48 @@ var BABYLON;
                         this.element.records.push(data);
                     }
                 };
-                // Removes a row and refreshes the list
                 GUIGrid.prototype.removeRow = function (recid) {
                     this.element.remove(recid);
                 };
-                // Removes a record, need to refresh the list after
                 GUIGrid.prototype.removeRecord = function (recid) {
                     this.element.records.splice(recid, 1);
                 };
-                // Refresh the element (W2UI)
                 GUIGrid.prototype.refresh = function () {
                     for (var i = 0; i < this.element.records.length; i++) {
                         this.element.records[i].recid = i;
                     }
                     _super.prototype.refresh.call(this);
                 };
-                // Returns the number of rows
                 GUIGrid.prototype.getRowCount = function () {
                     return this.element.total;
                 };
-                // Clear
                 GUIGrid.prototype.clear = function () {
                     this.element.clear();
                     this.element.total = 0;
                 };
-                // Locks the grid
                 GUIGrid.prototype.lock = function (message, spinner) {
                     this.element.lock(message, spinner);
                 };
-                // Unlock the grid
                 GUIGrid.prototype.unlock = function () {
                     this.element.unlock();
                 };
-                // Returns the selected rows
                 GUIGrid.prototype.getSelectedRows = function () {
                     return this.element.getSelection();
                 };
-                // sets the selected rows
                 GUIGrid.prototype.setSelected = function (selected) {
                     for (var i = 0; i < selected.length; i++) {
                         this.element.select(selected[i]);
                     }
                 };
-                // Returns the row at indice
                 GUIGrid.prototype.getRow = function (indice) {
                     if (indice >= 0) {
                         return this.element.get(indice);
                     }
                     return null;
                 };
-                // Modifies the row at indice
                 GUIGrid.prototype.modifyRow = function (indice, data) {
                     this.element.set(indice, data);
                 };
-                // Returns the changed rows
                 GUIGrid.prototype.getChanges = function (recid) {
                     var changes = this.element.getChanges();
                     if (recid) {
@@ -140,16 +116,13 @@ var BABYLON;
                     }
                     return changes;
                 };
-                // Scroll into view, giving the indice of the row
                 GUIGrid.prototype.scrollIntoView = function (indice) {
                     if (indice >= 0 && indice < this.element.records.length)
                         this.element.scrollIntoView(indice);
                 };
-                // Merges user changes into the records array
                 GUIGrid.prototype.mergeChanges = function () {
                     this.element.mergeChanges();
                 };
-                // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
                     var _this = this;
                     this.element = $("#" + parent).w2grid({
@@ -272,7 +245,7 @@ var BABYLON;
                     });
                 };
                 return GUIGrid;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIGrid = GUIGrid;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

@@ -3,12 +3,7 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var ObjectPicker = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            */
             function ObjectPicker(core) {
-                // Public members
                 this.core = null;
                 this.objectLists = new Array();
                 this.selectedObjects = new Array();
@@ -16,16 +11,12 @@ var BABYLON;
                 this.windowName = "Select Object...";
                 this.selectButtonName = "Select";
                 this.closeButtonName = "Close";
-                // Private members
                 this._window = null;
                 this._list = null;
-                // Initialize
                 this.core = core;
                 this.core.eventReceivers.push(this);
             }
-            // On event received
             ObjectPicker.prototype.onEvent = function (event) {
-                // Manage event
                 if (event.eventType !== EDITOR.EventType.GUI_EVENT)
                     return false;
                 if (event.guiEvent.eventType !== EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED)
@@ -57,13 +48,10 @@ var BABYLON;
                 }
                 return false;
             };
-            // Opens the object picker
             ObjectPicker.prototype.open = function () {
                 var _this = this;
-                //IDs
                 var listID = "OBJECT-PICKER-LIST";
                 var listDiv = EDITOR.GUI.GUIElement.CreateElement("div", listID);
-                // Create window
                 this._window = new EDITOR.GUI.GUIWindow("OBJECT-PICKER-WINDOW", this.core, this.windowName, listDiv);
                 this._window.modal = true;
                 this._window.showMax = false;
@@ -76,7 +64,6 @@ var BABYLON;
                     _this._list.destroy();
                 });
                 this._window.buildElement(null);
-                // Create list
                 this._list = new EDITOR.GUI.GUIGrid(listID, this.core);
                 this._list.header = "Objects";
                 this._list.createColumn("name", "name", "100%");
@@ -98,12 +85,11 @@ var BABYLON;
                     }
                 }
                 this._list.refresh();
-                // Set selected
                 if (selected.length > 0)
                     this._list.setSelected(selected);
             };
             return ObjectPicker;
-        })();
+        }());
         EDITOR.ObjectPicker = ObjectPicker;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -9,33 +9,22 @@ var BABYLON;
     (function (EDITOR) {
         var LightTool = (function (_super) {
             __extends(LightTool, _super);
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function LightTool(editionTool) {
                 _super.call(this, editionTool);
-                // Public members
                 this.tab = "LIGHT.TAB";
-                // Private members
                 this._customShadowsGeneratorSize = 512;
-                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-LIGHT"
                 ];
             }
-            // Object supported
             LightTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.Light)
                     return true;
                 return false;
             };
-            // Creates the UI
             LightTool.prototype.createUI = function () {
-                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Light" });
             };
-            // Update
             LightTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
@@ -44,31 +33,26 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
-                // Common
                 var commonFolder = this._element.addFolder("Common");
                 commonFolder.add(object, "intensity").min(0.0).name("Intensity");
                 commonFolder.add(object, "range").name("Range").min(0.0);
                 commonFolder.add(object, "radius").min(0.0).step(0.001).name("Radius");
-                // Vectors
                 if (object instanceof BABYLON.DirectionalLight) {
                     var directionFolder = this._element.addFolder("Direction");
                     directionFolder.add(object.direction, "x").step(0.1);
                     directionFolder.add(object.direction, "y").step(0.1);
                     directionFolder.add(object.direction, "z").step(0.1);
                 }
-                // Spot light
                 if (object instanceof BABYLON.SpotLight) {
                     var spotFolder = this._element.addFolder("Spot Light");
                     spotFolder.add(object, "exponent").min(0.0).name("Exponent");
                     spotFolder.add(object, "angle").min(0.0).name("Angle");
                 }
-                // Hemispheric light
                 if (object instanceof BABYLON.HemisphericLight) {
                     var hemiFolder = this._element.addFolder("Hemispheric Light");
                     this.addVectorFolder(object.direction, "Direction", true, hemiFolder);
                     this.addColorFolder(object.groundColor, "Ground Color", true, hemiFolder);
                 }
-                // Colors
                 var colorsFolder = this._element.addFolder("Colors");
                 if (object.diffuse) {
                     var diffuseFolder = colorsFolder.addFolder("Diffuse Color");
@@ -84,7 +68,6 @@ var BABYLON;
                     specularFolder.add(object.specular, "g").min(0.0).max(1.0).step(0.01);
                     specularFolder.add(object.specular, "b").min(0.0).max(1.0).step(0.01);
                 }
-                // Shadows
                 var shadowsFolder = this._element.addFolder("Shadows");
                 var shadows = object.getShadowGenerator();
                 if (shadows) {
@@ -105,21 +88,15 @@ var BABYLON;
                 }
                 return true;
             };
-            // Creates a new shadows generator
             LightTool.prototype._createShadowsGenerator = function () {
-                // Assume that object exists
                 var object = this.object = this._editionTool.object;
-                // Shadows Generator
                 var shadows = new BABYLON.ShadowGenerator(this._customShadowsGeneratorSize, object);
                 BABYLON.Tags.EnableFor(shadows);
                 BABYLON.Tags.AddTagsTo(shadows, "added");
-                // Refresh UI
                 this._editionTool.updateEditionTool();
             };
-            // Removes a shadows generator
             LightTool.prototype._removeShadowGenerator = function () {
                 var object = this.object = this._editionTool.object;
-                // Shadows Generator
                 var shadows = object.getShadowGenerator();
                 if (shadows)
                     shadows.dispose();
@@ -127,7 +104,7 @@ var BABYLON;
                 this.update();
             };
             return LightTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.LightTool = LightTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

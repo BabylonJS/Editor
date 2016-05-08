@@ -3,33 +3,23 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var SceneGraphTool = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core instance
-            */
             function SceneGraphTool(core) {
-                // Public members
                 this.container = "BABYLON-EDITOR-SCENE-GRAPH-TOOL";
                 this.sidebar = null;
                 this.panel = null;
                 this._graphRootName = "RootScene";
                 this._menuDeleteId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
                 this._menuCloneId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
-                // Initialize
                 this._editor = core.editor;
                 this._core = core;
                 this.panel = this._editor.layouts.getPanelFromType("right");
-                // Register this
                 this._core.updates.push(this);
                 this._core.eventReceivers.push(this);
             }
-            // Pre update
             SceneGraphTool.prototype.onPreUpdate = function () {
             };
-            // Post update
             SceneGraphTool.prototype.onPostUpdate = function () {
             };
-            // Event
             SceneGraphTool.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
                     if (event.guiEvent.caller === this.sidebar) {
@@ -121,18 +111,15 @@ var BABYLON;
                 }
                 return false;
             };
-            // Fills the graph of nodes (meshes, lights, cameras, etc.)
             SceneGraphTool.prototype.fillGraph = function (node, graphNodeID) {
                 var children = null;
                 var root = null;
                 var scene = this._core.currentScene;
                 if (!graphNodeID) {
                     this.sidebar.clear();
-                    // Add root
                     var rootNode = this.sidebar.createNode(this._graphRootName, "Scene", "icon-scene", this._core.currentScene);
                     this.sidebar.addNodes(rootNode);
                     root = this._graphRootName;
-                    // Reflection probes
                     var rpNode = this.sidebar.createNode(this._graphRootName + "TARGETS", "Render Targets", "icon-folder");
                     this.sidebar.addNodes(rpNode, this._graphRootName);
                     for (var i = 0; i < scene.reflectionProbes.length; i++) {
@@ -144,7 +131,6 @@ var BABYLON;
                         if (BABYLON.Tags.HasTags(rt) && BABYLON.Tags.MatchesQuery(rt, "added"))
                             this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
                     }
-                    // Audio
                     var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
                     this.sidebar.addNodes(audioNode, this._graphRootName);
                     for (var i = 0; i < scene.soundTracks.length; i++) {
@@ -170,7 +156,6 @@ var BABYLON;
                     children = node.getDescendants ? node.getDescendants() : [];
                 if (root === this._graphRootName)
                     this.sidebar.setNodeExpanded(root, true);
-                // Check particles
                 if (node && scene.particleSystems.length > 0) {
                     for (var i = 0; i < scene.particleSystems.length; i++) {
                         var ps = scene.particleSystems[i];
@@ -180,7 +165,6 @@ var BABYLON;
                         }
                     }
                 }
-                // Check lens flares
                 if (node && scene.lensFlareSystems.length > 0) {
                     for (var i = 0; i < scene.lensFlareSystems.length; i++) {
                         var system = scene.lensFlareSystems[i];
@@ -190,7 +174,6 @@ var BABYLON;
                         }
                     }
                 }
-                // If submeshes
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                     var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
                     subMeshesNode.count = node.subMeshes.length;
@@ -201,9 +184,7 @@ var BABYLON;
                         this.sidebar.addNodes(subMeshNode, subMeshesNode.id);
                     }
                 }
-                // If children, then fill the graph recursively
                 if (children !== null) {
-                    // Set elements before
                     for (var i = 0; i < children.length; i++) {
                         var object = children[i];
                         var childrenLength = object.getDescendants().length;
@@ -216,21 +197,16 @@ var BABYLON;
                     }
                 }
             };
-            // Creates the UI
             SceneGraphTool.prototype.createUI = function () {
                 if (this.sidebar != null)
                     this.sidebar.destroy();
                 this.sidebar = new EDITOR.GUI.GUIGraph(this.container, this._core);
-                // Set menus
                 this.sidebar.addMenu(this._menuDeleteId, "Remove", "icon-error");
                 this.sidebar.addMenu(this._menuCloneId, "Clone", "icon-clone");
-                // Build element
                 this.sidebar.buildElement(this.container);
-                /// Default node
                 var node = this.sidebar.createNode(this._graphRootName, "Scene", "icon-scene", this._core.currentScene);
                 this.sidebar.addNodes(node);
             };
-            // Fills the result array of nodes when the node hasn't any parent
             SceneGraphTool.prototype._getRootNodes = function (result, entities) {
                 var elements = this._core.currentScene[entities];
                 for (var i = 0; i < elements.length; i++) {
@@ -239,7 +215,6 @@ var BABYLON;
                     }
                 }
             };
-            // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
             SceneGraphTool.prototype._getObjectIcon = function (node) {
                 if (node instanceof BABYLON.AbstractMesh) {
                     if (node.skeleton)
@@ -269,11 +244,9 @@ var BABYLON;
                 }
                 return "";
             };
-            // Removes or adds a node from/to the graph
             SceneGraphTool.prototype._modifyElement = function (node, parentNode, id) {
                 if (!node)
                     return;
-                // Add node
                 var icon = this._getObjectIcon(node);
                 if (parentNode) {
                     var parent = this.sidebar.getNode(parentNode.id);
@@ -285,23 +258,19 @@ var BABYLON;
                 this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
                 this.sidebar.refresh();
             };
-            // Ensures that the object will delete all his dependencies
             SceneGraphTool.prototype._ensureObjectDispose = function (object) {
                 var index;
                 var scene = this._core.currentScene;
-                // Lens flares
                 for (index = 0; index < scene.lensFlareSystems.length; index++) {
                     var lf = scene.lensFlareSystems[index];
                     if (lf.getEmitter() === object)
                         lf.dispose();
                 }
-                // Particle systems
                 for (index = 0; index < scene.particleSystems.length; index++) {
                     var ps = scene.particleSystems[index];
                     if (ps.emitter === object)
                         ps.dispose();
                 }
-                // Shadow generators
                 for (index = 0; index < scene.lights.length; index++) {
                     var sg = scene.lights[index].getShadowGenerator();
                     if (!sg)
@@ -312,7 +281,6 @@ var BABYLON;
                             renderList.splice(meshIndex, 1);
                     }
                 }
-                // Render targets
                 for (index = 0; index < scene.customRenderTargets.length; index++) {
                     var rt = scene.customRenderTargets[index];
                     if (!rt.renderList)
@@ -325,7 +293,6 @@ var BABYLON;
                 if (object instanceof BABYLON.AbstractMesh) {
                     var mesh = object;
                     var childMeshes = mesh.getChildMeshes(true);
-                    // Fur material
                     for (index = 0; index < childMeshes.length; index++) {
                         if (BABYLON.Tags.MatchesQuery(childMeshes[index], "FurAdded")) {
                             childMeshes[index].dispose(true);
@@ -335,7 +302,7 @@ var BABYLON;
                 }
             };
             return SceneGraphTool;
-        })();
+        }());
         EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

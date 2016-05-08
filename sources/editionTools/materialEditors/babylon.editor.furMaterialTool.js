@@ -9,19 +9,10 @@ var BABYLON;
     (function (EDITOR) {
         var FurMaterialTool = (function (_super) {
             __extends(FurMaterialTool, _super);
-            // Public members
-            // Private members
-            // Protected members
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function FurMaterialTool(editionTool) {
                 _super.call(this, editionTool, "FUR-MATERIAL", "FUR", "Fur");
-                // Initialize
                 this.onObjectSupported = function (material) { return material instanceof BABYLON.FurMaterial; };
             }
-            // Update
             FurMaterialTool.prototype.update = function () {
                 var _this = this;
                 if (!_super.prototype.update.call(this))
@@ -29,11 +20,9 @@ var BABYLON;
                 var callback = function () {
                     _this.material.updateFur();
                 };
-                // Diffuse
                 var diffuseFolder = this._element.addFolder("Diffuse");
                 this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder, callback);
                 this.addTextureButton("Texture", "diffuseTexture", diffuseFolder, callback);
-                // Fur
                 var furFolder = this._element.addFolder("Fur");
                 this.addColorFolder(this.material.furColor, "Fur Color", true, furFolder, callback);
                 furFolder.add(this.material, "furLength").min(0).step(0.1).name("Fur Length").onChange(function (result) { callback(); });
@@ -43,11 +32,10 @@ var BABYLON;
                 furFolder.add(this.material, "furDensity").min(0).step(0.1).name("Fur Density").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "highLevelFur").name("High Level Fur").onChange(function (result) { callback(); });
                 this.addVectorFolder(this.material.furGravity, "Gravity", true, furFolder, callback);
-                // Finish
                 return true;
             };
             return FurMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.FurMaterialTool = FurMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

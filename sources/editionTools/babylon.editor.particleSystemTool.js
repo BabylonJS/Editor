@@ -9,37 +9,25 @@ var BABYLON;
     (function (EDITOR) {
         var ParticleSystemTool = (function (_super) {
             __extends(ParticleSystemTool, _super);
-            // Private members
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function ParticleSystemTool(editionTool) {
                 _super.call(this, editionTool);
-                // Public members
                 this.tab = "PARTICLE.SYSTEM.TAB";
-                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-PARTICLE-SYSTEM"
                 ];
             }
-            // Object supported
             ParticleSystemTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.ParticleSystem)
                     return true;
                 return false;
             };
-            // Creates the UI
             ParticleSystemTool.prototype.createUI = function () {
-                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Particles" });
             };
-            // Update
             ParticleSystemTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
                 _super.prototype.update.call(this);
-                // Configure main toolbar
                 var toolbar = this._editionTool.core.editor.mainToolbar;
                 toolbar.toolbar.setItemEnabled(toolbar.particleSystemCopyItem.id, object !== null, toolbar.particleSystemMenu.id);
                 toolbar.toolbar.setItemEnabled(toolbar.particleSystemPasteItem.id, object instanceof BABYLON.ParticleSystem, toolbar.particleSystemMenu.id);
@@ -51,7 +39,7 @@ var BABYLON;
                 return true;
             };
             return ParticleSystemTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.ParticleSystemTool = ParticleSystemTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

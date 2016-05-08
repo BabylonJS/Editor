@@ -5,16 +5,9 @@ var BABYLON;
         var ProjectImporter = (function () {
             function ProjectImporter() {
             }
-            // Public members
-            // None
-            // Private members
-            // None
-            // Imports the project
             ProjectImporter.ImportProject = function (core, data) {
                 var project = JSON.parse(data);
                 EDITOR.Tools.CleanProject(project);
-                // First, create the render targets (maybe used by the materials)
-                // (serialized materials will be able to retrieve the textures)
                 for (var i = 0; i < project.renderTargets.length; i++) {
                     var rt = project.renderTargets[i];
                     if (rt.isProbe) {
@@ -30,19 +23,13 @@ var BABYLON;
                         BABYLON.Tags.AddTagsTo(texture, "added");
                     }
                 }
-                // Second, create materials
-                // (serialized meshes will be able to retrieve the materials)
-                // Etc.
                 for (var i = 0; i < project.materials.length; i++) {
                     var material = project.materials[i];
-                    // For now, continue
-                    // If no customType, the changes can be done in the modeler (3ds Max, Blender, Unity3D, etc.)
                     if (!material.newInstance || !material.serializedValues.customType)
                         continue;
                     var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                     material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
                 }
-                // Parse the nodes
                 for (var i = 0; i < project.nodes.length; i++) {
                     var node = project.nodes[i];
                     var newNode = null;
@@ -79,7 +66,6 @@ var BABYLON;
                         default:
                             continue;
                     }
-                    // Check particles system
                     if (!newNode) {
                         for (var psIndex = 0; psIndex < project.particleSystems.length; psIndex++) {
                             var ps = project.particleSystems[psIndex];
@@ -96,7 +82,6 @@ var BABYLON;
                         BABYLON.Tools.Warn("Cannot configure node named " + node.name + " , with ID " + node.id);
                         continue;
                     }
-                    // Animations
                     if (node.animations.length > 0 && !newNode.animations)
                         newNode.animations = [];
                     for (var animationIndex = 0; animationIndex < node.animations.length; animationIndex++) {
@@ -106,7 +91,6 @@ var BABYLON;
                         BABYLON.Tags.EnableFor(newAnimation);
                         BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
-                    // Actions
                     if (newNode instanceof BABYLON.AbstractMesh) {
                         var oldActionManager = newNode.actionManager;
                         if (node.actions) {
@@ -115,11 +99,13 @@ var BABYLON;
                             BABYLON.Tags.AddTagsTo(newNode.actionManager, "added");
                             if (EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id])
                                 EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id].actionManager = newNode.actionManager;
-                            newNode.actionManager = oldActionManager; // Created by the editor
+                            newNode.actionManager = oldActionManager;
+                        }
+                        if (!EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id]) {
+                            EDITOR.SceneManager.ConfigureObject(newNode, core);
                         }
                     }
                 }
-                // Particle systems
                 for (var i = 0; i < project.particleSystems.length; i++) {
                     var ps = project.particleSystems[i];
                     var newPs = BABYLON.ParticleSystem.Parse(ps.serializationObject, core.currentScene, "./");
@@ -130,7 +116,6 @@ var BABYLON;
                         newPs.emitter.position = BABYLON.Vector3.FromArray(ps.emitterPosition);
                     newPs.emitter.attachedParticleSystem = newPs;
                 }
-                // Lens flares
                 for (var i = 0; i < project.lensFlares.length; i++) {
                     var lf = project.lensFlares[i];
                     var newLf = BABYLON.LensFlareSystem.Parse(lf.serializationObject, core.currentScene, "./");
@@ -139,7 +124,6 @@ var BABYLON;
                         newLf.lensFlares[i].texture = BABYLON.Texture.CreateFromBase64String(flare.base64Buffer, flare.base64Name.replace("data:", ""), core.currentScene);
                     }
                 }
-                // Shadow generators
                 for (var i = 0; i < project.shadowGenerators.length; i++) {
                     var shadows = project.shadowGenerators[i];
                     var newShadowGenerator = BABYLON.ShadowGenerator.Parse(shadows, core.currentScene);
@@ -153,14 +137,12 @@ var BABYLON;
                         return false;
                     });
                 }
-                // Actions
                 if (project.actions) {
                     BABYLON.ActionManager.Parse(project.actions, null, core.currentScene);
                     BABYLON.Tags.EnableFor(core.currentScene.actionManager);
                     BABYLON.Tags.AddTagsTo(core.currentScene.actionManager, "added");
                     EDITOR.SceneManager._SceneConfiguration.actionManager = core.currentScene.actionManager;
                 }
-                // Set global animations
                 EDITOR.SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
                 EDITOR.GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || EDITOR.GUIAnimationEditor.FramesPerSecond;
                 core.editor.sceneToolbar.setFramesPerSecond(EDITOR.GUIAnimationEditor.FramesPerSecond);
@@ -182,7 +164,6 @@ var BABYLON;
                         default: break;
                     }
                 }
-                // Post processes
                 for (var i = 0; i < project.postProcesses.length; i++) {
                     var pp = project.postProcesses[i];
                     if (EDITOR.SceneFactory["Create" + pp.name]) {
@@ -192,7 +173,6 @@ var BABYLON;
                         }
                     }
                 }
-                // Render tagets, fill waiting renderlists
                 for (var i = 0; i < project.renderTargets.length; i++) {
                     var rt = project.renderTargets[i];
                     if (rt.isProbe && rt.serializationObject.attachedMeshId) {
@@ -204,7 +184,6 @@ var BABYLON;
                             rt.waitingTexture.renderList.push(obj);
                     }
                 }
-                // Set materials
                 for (var i = 0; i < project.materials.length; i++) {
                     var material = project.materials[i];
                     if (!material.meshesNames || !material.serializedValues.customType)
@@ -218,7 +197,7 @@ var BABYLON;
                 }
             };
             return ProjectImporter;
-        })();
+        }());
         EDITOR.ProjectImporter = ProjectImporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

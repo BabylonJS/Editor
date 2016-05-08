@@ -9,24 +9,16 @@ var BABYLON;
     (function (EDITOR) {
         var AbstractMaterialTool = (function (_super) {
             __extends(AbstractMaterialTool, _super);
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function AbstractMaterialTool(editionTool, containerID, tabID, tabName) {
                 _super.call(this, editionTool);
-                // Public members
-                // Private members
                 this._tabName = "New Tab";
                 this.material = null;
-                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-" + containerID
                 ];
                 this.tab = "MATERIAL." + tabID;
                 this._tabName = tabName;
             }
-            // Object supported
             AbstractMaterialTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.AbstractMesh) {
                     if (object.material && !(object.material instanceof BABYLON.MultiMaterial) && this.onObjectSupported(object.material))
@@ -40,12 +32,9 @@ var BABYLON;
                 }
                 return false;
             };
-            // Creates the UI
             AbstractMaterialTool.prototype.createUI = function () {
-                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: this._tabName });
             };
-            // Update
             AbstractMaterialTool.prototype.update = function () {
                 var object = this._editionTool.object;
                 var scene = this._editionTool.core.currentScene;
@@ -64,12 +53,11 @@ var BABYLON;
                 this._element.remember(object);
                 return true;
             };
-            // Adds a texture element
             AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
                 return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, callback);
             };
             return AbstractMaterialTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.AbstractMaterialTool = AbstractMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

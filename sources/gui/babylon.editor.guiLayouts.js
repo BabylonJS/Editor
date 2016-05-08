@@ -11,13 +11,8 @@ var BABYLON;
         (function (GUI) {
             var GUILayout = (function (_super) {
                 __extends(GUILayout, _super);
-                /**
-                * Constructor
-                * @param name: layouts name
-                */
                 function GUILayout(name, core) {
                     _super.call(this, name, core);
-                    // Public members
                     this.panels = [];
                 }
                 GUILayout.prototype.createPanel = function (name, type, size, resizable) {
@@ -63,13 +58,12 @@ var BABYLON;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.LAYOUT_CHANGED);
                         _this.core.sendEvent(ev);
                     });
-                    // Set panels
                     for (var i = 0; i < this.panels.length; i++) {
                         this.panels[i]._panelElement = this.element.get(this.panels[i].type);
                     }
                 };
                 return GUILayout;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUILayout = GUILayout;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

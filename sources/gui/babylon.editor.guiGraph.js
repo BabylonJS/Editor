@@ -11,14 +11,8 @@ var BABYLON;
         (function (GUI) {
             var GUIGraph = (function (_super) {
                 __extends(GUIGraph, _super);
-                /**
-                * Constructor
-                * @param name: the form name
-                * @param header: form's header text
-                */
                 function GUIGraph(name, core) {
                     _super.call(this, name, core);
-                    // Public members
                     this.menus = [];
                 }
                 GUIGraph.prototype.addMenu = function (id, text, img) {
@@ -29,7 +23,6 @@ var BABYLON;
                         img: img
                     });
                 };
-                // Creates a new node and returns its reference
                 GUIGraph.prototype.createNode = function (id, text, img, data) {
                     if (img === void 0) { img = ""; }
                     return {
@@ -39,22 +32,18 @@ var BABYLON;
                         data: data
                     };
                 };
-                // Adds new nodes to the graph
                 GUIGraph.prototype.addNodes = function (nodes, parent) {
                     if (!parent)
                         this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
                     else
                         this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
                 };
-                // Removes the provided node
                 GUIGraph.prototype.removeNode = function (node) {
                     this.element.remove(node);
                 };
-                // Sets if the provided node is expanded or not
                 GUIGraph.prototype.setNodeExpanded = function (node, expanded) {
                     expanded ? this.element.expand(node) : this.element.collapse(node);
                 };
-                // Sets the selected node
                 GUIGraph.prototype.setSelected = function (node) {
                     var element = this.element.get(node);
                     if (!element)
@@ -67,35 +56,29 @@ var BABYLON;
                     this.element.select(node);
                     this.element.scrollIntoView(node);
                 };
-                // Returns the selected node
                 GUIGraph.prototype.getSelected = function () {
                     return this.element.selected;
                 };
-                // Returns the selected node
                 GUIGraph.prototype.getSelectedNode = function () {
                     var element = this.element.get(this.getSelected());
                     if (element)
                         return element;
                     return null;
                 };
-                // Returns the node by id
                 GUIGraph.prototype.getNode = function (id) {
                     var element = this.element.get(id);
                     return element;
                 };
-                // Returns the selected data
                 GUIGraph.prototype.getSelectedData = function () {
                     var selected = this.getSelected();
                     return this.element.get(selected).data;
                 };
-                // Clears the graph
                 GUIGraph.prototype.clear = function () {
                     var toRemove = [];
                     for (var i = 0; i < this.element.nodes.length; i++)
                         toRemove.push(this.element.nodes[i].id);
                     this.element.remove.apply(this.element, toRemove);
                 };
-                // Build element
                 GUIGraph.prototype.buildElement = function (parent) {
                     var _this = this;
                     this.element = $("#" + parent).w2sidebar({
@@ -134,7 +117,7 @@ var BABYLON;
                     });
                 };
                 return GUIGraph;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIGraph = GUIGraph;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

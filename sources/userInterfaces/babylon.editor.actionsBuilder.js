@@ -3,15 +3,8 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var GUIActionsBuilder = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            * @param object: the object to edit
-            * @param propertyPath: the path to the texture property of the object
-            */
             function GUIActionsBuilder(core, object, actionManager) {
                 var _this = this;
-                // Create window
                 var iframeID = "BABYLON-EDITOR-ACTIONS-BUILDER-IFRAME";
                 var iframe = EDITOR.GUI.GUIElement.CreateElement("iframe sandbox=\"allow-same-origin allow-scripts\"", iframeID, "width: 100%; height: 100%");
                 var objectName = object instanceof BABYLON.Node ? object.name : "Scene";
@@ -23,11 +16,9 @@ var BABYLON;
                     "Cancel"
                 ];
                 this._window.setOnCloseCallback(function () {
-                    // Empty for the moment
                 });
                 this._window.buildElement(null);
                 this._window.lock();
-                // Configure iframe
                 var iframeElement = $("#" + iframeID);
                 iframeElement.attr("src", "../libs/actionsBuilder/index.html");
                 var iframeWindow = iframeElement[0].contentWindow;
@@ -44,7 +35,6 @@ var BABYLON;
                     var iframeDocument = iframeWindow.document;
                     iframeDocument.getElementById("ActionsBuilderObjectName").value = objectName;
                     iframeDocument.getElementById("ActionsBuilderJSON").value = JSON.stringify(actionManager.serialize(objectName));
-                    // Set theme
                     iframeWindow.getList().setColorTheme("rgb(147, 148, 148)");
                     iframeWindow.getViewer().setColorTheme("-ms-linear-gradient(top, rgba(73, 74, 74, 1) 0%, rgba(125, 126, 125, 1) 100%)");
                     iframeWindow.getViewer().setColorTheme("linear-gradient(top, rgba(73, 74, 74, 1) 0%, rgba(125, 126, 125, 1) 100%)");
@@ -53,12 +43,10 @@ var BABYLON;
                     iframeDocument.getElementById("ParametersElementID").style.backgroundColor = "rgb(147, 148, 148)";
                     iframeDocument.getElementById("ParametersHelpElementID").style.backgroundColor = "rgb(64, 65, 65)";
                     iframeDocument.getElementById("ToolbarElementID").style.backgroundColor = "rgb(64, 65, 65)";
-                    // Finish
                     iframeWindow.updateObjectName();
                     iframeWindow.loadFromJSON();
                     _this._window.unlock();
                 };
-                // Configure window's button
                 this._window.onButtonClicked = function (id) {
                     if (id === "Cancel") {
                         _this._window.close();
@@ -82,13 +70,12 @@ var BABYLON;
                     }
                 };
             }
-            // Get names of a collection of nodes
             GUIActionsBuilder.prototype._getNames = function (objects, func) {
                 for (var i = 0; i < objects.length; i++)
                     func(objects[i].name);
             };
             return GUIActionsBuilder;
-        })();
+        }());
         EDITOR.GUIActionsBuilder = GUIActionsBuilder;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

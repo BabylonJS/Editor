@@ -9,33 +9,22 @@ var BABYLON;
     (function (EDITOR) {
         var SceneTool = (function (_super) {
             __extends(SceneTool, _super);
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function SceneTool(editionTool) {
                 _super.call(this, editionTool);
-                // Public members
                 this.tab = "SCENE.TAB";
-                // Private members
                 this._fogType = "";
-                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
                 ];
             }
-            // Object supported
             SceneTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.Scene)
                     return true;
                 return false;
             };
-            // Creates the UI
             SceneTool.prototype.createUI = function () {
-                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Scene" });
             };
-            // Update
             SceneTool.prototype.update = function () {
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
@@ -44,9 +33,7 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
-                // Common
                 this._element.add(EDITOR.SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
-                // Colors
                 var colorsFolder = this._element.addFolder("Colors");
                 var ambientColorFolder = colorsFolder.addFolder("Ambient Color");
                 ambientColorFolder.open();
@@ -58,17 +45,14 @@ var BABYLON;
                 clearColorFolder.add(object.clearColor, "r").min(0.0).max(1.0).step(0.01);
                 clearColorFolder.add(object.clearColor, "g").min(0.0).max(1.0).step(0.01);
                 clearColorFolder.add(object.clearColor, "b").min(0.0).max(1.0).step(0.01);
-                // Collisions
                 var collisionsFolder = this._element.addFolder("Collisions");
                 collisionsFolder.add(object, "collisionsEnabled").name("Collisions Enabled");
                 var gravityFolder = collisionsFolder.addFolder("Gravity");
                 gravityFolder.add(object.gravity, "x");
                 gravityFolder.add(object.gravity, "y");
                 gravityFolder.add(object.gravity, "z");
-                // Audio
                 var audioFolder = this._element.addFolder("Audio");
                 audioFolder.add(object, "audioEnabled").name("Audio Enabled");
-                // Fog
                 var fogFolder = this._element.addFolder("Fog");
                 var fogTypes = [
                     "None",
@@ -113,7 +97,6 @@ var BABYLON;
                 fogColorFolder.add(object.fogColor, "r").min(0.0).max(1.0).step(0.001);
                 fogColorFolder.add(object.fogColor, "g").min(0.0).max(1.0).step(0.001);
                 fogColorFolder.add(object.fogColor, "b").min(0.0).max(1.0).step(0.001);
-                // Capacities
                 var capacitiesFolder = this._element.addFolder("Capacities");
                 capacitiesFolder.close();
                 capacitiesFolder.add(object, "postProcessesEnabled").name("Post-Processes Enabled");
@@ -130,7 +113,7 @@ var BABYLON;
                 return true;
             };
             return SceneTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.SceneTool = SceneTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

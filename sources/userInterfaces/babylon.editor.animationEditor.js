@@ -9,14 +9,8 @@ var BABYLON;
             EContextMenuID[EContextMenuID["PASTE_KEYS"] = 2] = "PASTE_KEYS";
         })(EContextMenuID || (EContextMenuID = {}));
         var GUIAnimationEditor = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            */
             function GUIAnimationEditor(core, object) {
-                // Public members
                 this.core = null;
-                // Private members
                 this._animationsList = null;
                 this._keysList = null;
                 this._valuesForm = null;
@@ -36,18 +30,15 @@ var BABYLON;
                 this._graphMiddleLine = null;
                 this._graphTimeLines = [];
                 this._graphTimeTexts = [];
-                // Initialize
                 this.core = core;
                 this.core.eventReceivers.push(this);
                 this.object = object;
                 this.core.editor.editPanel.close();
                 this._createUI();
             }
-            // Event receiver
             GUIAnimationEditor.prototype.onEvent = function (event) {
                 if (event.eventType !== EDITOR.EventType.GUI_EVENT)
                     return false;
-                // Window
                 if (event.guiEvent.eventType === EDITOR.GUIEventType.WINDOW_BUTTON_CLICKED && event.guiEvent.caller === this._addAnimationWindow) {
                     var button = event.guiEvent.data;
                     if (button === "Cancel") {
@@ -57,7 +48,6 @@ var BABYLON;
                     this._onAddAnimation();
                     return true;
                 }
-                // Animations list
                 if (event.guiEvent.caller === this._animationsList) {
                     this._setRecords(0, "");
                     return true;
@@ -68,7 +58,6 @@ var BABYLON;
                 }
                 return false;
             };
-            // Creates an animation
             GUIAnimationEditor.prototype._createAnimation = function () {
                 var _this = this;
                 if (this._editedAnimation) {
@@ -84,12 +73,10 @@ var BABYLON;
                         default: break;
                     }
                 }
-                // HTML elements
                 var layoutID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD";
                 var graphID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-GRAPH";
                 var editID = "BABYLON-EDITOR-EDIT-ANIMATIONS-ADD-EDIT";
                 var layoutDiv = EDITOR.GUI.GUIElement.CreateDivElement(layoutID, "width: 100%; height: 100%;");
-                // Window
                 this._addAnimationWindow = new EDITOR.GUI.GUIWindow("AddAnimation", this.core, "Add Animation", layoutDiv, new BABYLON.Vector2(800, 600));
                 this._addAnimationWindow.modal = true;
                 this._addAnimationWindow.showClose = true;
@@ -101,14 +88,12 @@ var BABYLON;
                     _this._addAnimationGraph.destroy();
                     _this._addAnimationLayout.destroy();
                 });
-                // Layout
                 var leftDiv = EDITOR.GUI.GUIElement.CreateElement("div", graphID);
                 var rightDiv = EDITOR.GUI.GUIElement.CreateElement("div", editID);
                 this._addAnimationLayout = new EDITOR.GUI.GUILayout(layoutID, this.core);
                 this._addAnimationLayout.createPanel(leftDiv, "left", 380, false).setContent(leftDiv);
                 this._addAnimationLayout.createPanel(rightDiv, "main", 380, false).setContent(rightDiv);
                 this._addAnimationLayout.buildElement(layoutID);
-                // Edit element
                 this._addAnimationForm = new EDITOR.GUI.GUIEditForm(editID, this.core);
                 this._addAnimationForm.buildElement(editID);
                 this._addAnimationForm.add(this, "_addAnimationName").name("Name");
@@ -127,7 +112,6 @@ var BABYLON;
                         default: break;
                     }
                 });
-                // Graph
                 this._addAnimationGraph = new EDITOR.GUI.GUIGraph(graphID, this.core);
                 this._addAnimationGraph.buildElement(graphID);
                 var types = [
@@ -139,13 +123,11 @@ var BABYLON;
                 var instances = [
                     "Material", "ParticleSystem"
                 ];
-                // Fill Graph
                 var addProperties = function (property, parentNode) {
                     for (var thing in property) {
                         var value = property[thing];
                         if (value === null || value === undefined)
                             continue;
-                        // Check
                         var constructorName = EDITOR.Tools.GetConstructorName(value);
                         var canAdd = true;
                         if (thing[0] === "_" || types.indexOf(constructorName) === -1)
@@ -157,7 +139,6 @@ var BABYLON;
                         }
                         if (!canAdd)
                             continue;
-                        // Add node
                         var icon = "icon-edit";
                         if (constructorName.indexOf("Vector") !== -1)
                             icon = "icon-position";
@@ -174,7 +155,6 @@ var BABYLON;
                 };
                 addProperties(this.object, "");
             };
-            // Returns the effective target
             GUIAnimationEditor.prototype._getEffectiveTarget = function (value) {
                 var effectiveTarget = this.object;
                 for (var i = 0; i < this._currentAnimation.targetPropertyPath.length - (value ? 1 : 0); i++) {
@@ -185,7 +165,6 @@ var BABYLON;
                 }
                 return effectiveTarget;
             };
-            // Gets frame time (min,s,ms)
             GUIAnimationEditor.prototype._getFrameTime = function (frame) {
                 if (frame === 0)
                     return "0mins 0secs";
@@ -195,13 +174,11 @@ var BABYLON;
                 var secs = BABYLON.Tools.Format(seconds % 60, 1);
                 return "" + mins + "mins " + secs + "secs";
             };
-            // Sets the records
             GUIAnimationEditor.prototype._setRecords = function (frame, value) {
                 this._valuesForm.setRecord("frame", frame.toString());
                 this._valuesForm.setRecord("value", this._getFrameValue());
                 this._valuesForm.refresh();
             };
-            // Sets the frame value and returns if the frame changed
             GUIAnimationEditor.prototype._setFrameValue = function () {
                 var frame = this._valuesForm.getRecord("frame");
                 var value = this._valuesForm.getRecord("value");
@@ -232,7 +209,6 @@ var BABYLON;
                 }
                 return changedFrame;
             };
-            // Gets the frame value
             GUIAnimationEditor.prototype._getFrameValue = function () {
                 if (this._currentKey === null)
                     return "";
@@ -245,7 +221,6 @@ var BABYLON;
                 }
                 return "";
             };
-            // Configure graph
             GUIAnimationEditor.prototype._configureGraph = function () {
                 var keys = this._currentAnimation.getKeys();
                 var maxValue = 0;
@@ -268,10 +243,8 @@ var BABYLON;
                 var vectorParameters = ["x", "y", "z"];
                 var currentParameters;
                 var parametersCount = 1;
-                // Reset lines
                 for (var lineIndex = 0; lineIndex < this._graphLines.length; lineIndex++)
                     this._graphLines[lineIndex].attr("path", "");
-                // Configure drawing and max values
                 switch (this._currentAnimation.dataType) {
                     case BABYLON.Animation.ANIMATIONTYPE_VECTOR2:
                         parametersCount = 2;
@@ -297,16 +270,13 @@ var BABYLON;
                         getMaxValue();
                         break;
                 }
-                // Draw values
                 this._graphValueTexts[0].attr("y", 10);
                 this._graphValueTexts[0].attr("text", Math.floor(maxValue));
                 this._graphValueTexts[1].attr("y", middle);
                 this._graphValueTexts[1].attr("text", 0);
                 this._graphValueTexts[2].attr("y", middle * 2 - 10);
                 this._graphValueTexts[2].attr("text", -Math.floor(maxValue));
-                // Draw middle line
                 this._graphMiddleLine.attr("path", ["M", 0, middle, "L", this._graphPaper.canvas.getBoundingClientRect().width, middle]);
-                // Draw time lines and texts
                 for (var i = 0; i < 10; i++) {
                     var x = ((maxFrame / 10) * width) / maxFrame * (i + 1);
                     this._graphTimeLines[i].attr("path", ["M", x, 0, "L", x, middle * 2]);
@@ -314,7 +284,6 @@ var BABYLON;
                     this._graphTimeTexts[i].attr("y", height - 10);
                     this._graphTimeTexts[i].attr("x", x - this._graphTimeTexts[i].attr("width") * 2);
                 }
-                // Draw lines
                 for (var lineIndex = 0; lineIndex < parametersCount; lineIndex++) {
                     var path = [];
                     for (var i = 0; i < keys.length; i++) {
@@ -337,7 +306,6 @@ var BABYLON;
                     this._graphLines[lineIndex].attr("path", path);
                 }
             };
-            // On selected animation
             GUIAnimationEditor.prototype._onSelectedAnimation = function () {
                 var index = this._animationsList.getSelectedRows()[0];
                 var animation = this.object.animations[index];
@@ -356,7 +324,6 @@ var BABYLON;
                 this.core.editor.timeline.setFramesOfAnimation(animation);
                 this._configureGraph();
             };
-            // On add animation
             GUIAnimationEditor.prototype._onAddAnimation = function () {
                 if (this._editedAnimation) {
                     var selectedRows = this._animationsList.getSelectedRows();
@@ -369,7 +336,6 @@ var BABYLON;
                 var node = this._addAnimationGraph.getSelectedNode();
                 if (!node)
                     return;
-                // Build property
                 var property = "";
                 var data = node.data;
                 data = (typeof data === "number" || typeof data === "boolean") ? data : data.clone();
@@ -377,7 +343,6 @@ var BABYLON;
                     property = node.text + (property === "" ? "" : "." + property);
                     node = node.parent;
                 }
-                // Create animation
                 var constructorName = EDITOR.Tools.GetConstructorName(data);
                 var dataType = -1;
                 switch (constructorName.toLowerCase()) {
@@ -418,18 +383,12 @@ var BABYLON;
                         this.object.animations[selectedRows[0]] = animation;
                     }
                 }
-                // Finish
                 if (!BABYLON.Tags.HasTags(animation) || !BABYLON.Tags.MatchesQuery(animation, "modified"))
                     BABYLON.Tags.AddTagsTo(animation, "modified");
                 this.core.editor.timeline.reset();
                 this._addAnimationWindow.close();
             };
-            // On modify key
             GUIAnimationEditor.prototype._onModifyKey = function () {
-                /*
-                if (this._keysList.getSelectedRows().length <= 0)
-                    return;
-                */
                 if (!this._currentKey)
                     return;
                 var needRefresh = this._setFrameValue();
@@ -448,7 +407,6 @@ var BABYLON;
                     this._configureGraph();
                 this._keysList.setSelected([indice]);
             };
-            // On animation menu selected
             GUIAnimationEditor.prototype._onAnimationMenuSelected = function (id) {
                 if (id === EContextMenuID.COPY) {
                     GUIAnimationEditor._CopiedAnimations = [];
@@ -499,7 +457,6 @@ var BABYLON;
                     }
                 }
             };
-            // On delete animations
             GUIAnimationEditor.prototype._onDeleteAnimations = function () {
                 var selected = this._animationsList.getSelectedRows();
                 var offset = 0;
@@ -510,7 +467,6 @@ var BABYLON;
                 this._keysList.clear();
                 this.core.currentScene.stopAnimation(this.object);
             };
-            // Onkey selected
             GUIAnimationEditor.prototype._onKeySelected = function () {
                 var index = this._keysList.getSelectedRows()[0];
                 var key = this._currentAnimation.getKeys()[index];
@@ -518,7 +474,6 @@ var BABYLON;
                 this._setRecords(key.frame, key.value);
                 var effectiveTarget = this._getEffectiveTarget(this._currentKey.value);
             };
-            // On add key
             GUIAnimationEditor.prototype._onAddKey = function () {
                 var keys = this._currentAnimation.getKeys();
                 var lastKey = keys[keys.length - 1];
@@ -538,10 +493,8 @@ var BABYLON;
                     value: this._getFrameTime(frame),
                     recid: keys.length - 1
                 });
-                // Reset list
                 this._onSelectedAnimation();
             };
-            // On remove key(s)
             GUIAnimationEditor.prototype._onRemoveKeys = function () {
                 var selected = this._keysList.getSelectedRows();
                 var keys = this._currentAnimation.getKeys();
@@ -554,10 +507,8 @@ var BABYLON;
                     keys.splice(selected[i] - offset, 1);
                     offset++;
                 }
-                // Reset list
                 this._onSelectedAnimation();
             };
-            // Create the UI
             GUIAnimationEditor.prototype._createUI = function () {
                 var _this = this;
                 this.core.editor.editPanel.setPanelSize(40);
@@ -573,7 +524,6 @@ var BABYLON;
                 this.core.editor.editPanel.addContainer(keysListElement, keysListID);
                 this.core.editor.editPanel.addContainer(valuesFormElement, valuesFormID);
                 this.core.editor.editPanel.addContainer(graphCanvasElement, graphCanvasID);
-                // Animations List
                 this._animationsList = new EDITOR.GUI.GUIGrid(animationsListID, this.core);
                 this._animationsList.header = "Animations";
                 this._animationsList.createColumn("name", "name", "100%");
@@ -611,7 +561,6 @@ var BABYLON;
                 this._animationsList.onClick = function (selected) {
                     _this._onSelectedAnimation();
                 };
-                // Keys List
                 this._keysList = new EDITOR.GUI.GUIGrid(keysListID, this.core);
                 this._keysList.header = "Keys";
                 this._keysList.createColumn("key", "key", "20%");
@@ -630,7 +579,6 @@ var BABYLON;
                 this._keysList.onClick = function (selected) {
                     _this._onKeySelected();
                 };
-                // Values form
                 this._valuesForm = new EDITOR.GUI.GUIForm(valuesFormID, "Value", this.core);
                 this._valuesForm.header = "";
                 this._valuesForm.createField("frame", "float", "Frame :", 3);
@@ -639,7 +587,6 @@ var BABYLON;
                 this._valuesForm.onFormChanged = function () {
                     _this._onModifyKey();
                 };
-                // Graph
                 this._graphPaper = Raphael(graphCanvasID, "100%", "100%");
                 var rect = this._graphPaper.rect(0, 0, 0, 0);
                 rect.attr("width", "100%");
@@ -667,7 +614,6 @@ var BABYLON;
                     var text = this._graphPaper.text(0, 0, "");
                     this._graphTimeTexts.push(text);
                 }
-                // Finish
                 this.core.editor.editPanel.onClose = function () {
                     _this._animationsList.destroy();
                     _this._keysList.destroy();
@@ -676,7 +622,6 @@ var BABYLON;
                     _this.core.removeEventReceiver(_this);
                 };
             };
-            // Static method that gives the last animation frame of an object
             GUIAnimationEditor.GetEndFrameOfObject = function (object) {
                 var count = 0;
                 if (!object.animations)
@@ -692,7 +637,6 @@ var BABYLON;
                 }
                 return count;
             };
-            // Static methods that gives the last scene frame
             GUIAnimationEditor.GetSceneFrameCount = function (scene) {
                 var count = 0;
                 var getTotal = function (objs) {
@@ -715,24 +659,21 @@ var BABYLON;
                 getTotal(scene.lights);
                 getTotal(scene.cameras);
                 getTotal(scene.particleSystems);
-                // Skeletons
                 for (var skeletonIndex = 0; skeletonIndex < scene.skeletons.length; skeletonIndex++) {
                     getTotal(scene.skeletons[skeletonIndex].bones);
                 }
                 return count;
             };
-            // Static methods that sets the current frame
             GUIAnimationEditor.SetCurrentFrame = function (core, objs, frame) {
                 for (var i = 0; i < objs.length; i++) {
                     core.currentScene.stopAnimation(objs[i]);
                     core.currentScene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
                 }
             };
-            // Static members
             GUIAnimationEditor.FramesPerSecond = 24;
             GUIAnimationEditor._CopiedAnimations = [];
             return GUIAnimationEditor;
-        })();
+        }());
         EDITOR.GUIAnimationEditor = GUIAnimationEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

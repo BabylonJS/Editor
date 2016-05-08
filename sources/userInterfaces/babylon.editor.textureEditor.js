@@ -14,12 +14,6 @@ var BABYLON;
             { id: 8, text: "FIXED_EQUIRECTANGULAR_MODE" }
         ];
         var GUITextureEditor = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            * @param object: the object to edit
-            * @param propertyPath: the path to the texture property of the object
-            */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
                 this._currentRenderTarget = null;
@@ -28,24 +22,20 @@ var BABYLON;
                 this._texturesList = null;
                 this._engine = null;
                 this._scene = null;
-                // Initialize
                 this._core = core;
                 this._core.eventReceivers.push(this);
                 this._core.editor.editPanel.close();
                 this.object = object;
                 this.propertyPath = propertyPath;
                 this._objectName = objectName;
-                // Initialize object and property path
                 if (object && propertyPath) {
                     this._targetObject = object[propertyPath];
                     if (!this._targetObject || !(this._targetObject instanceof BABYLON.BaseTexture)) {
                         this._targetObject = null;
                     }
                 }
-                // Finish
                 this._createUI();
             }
-            // On Event
             GUITextureEditor.prototype.onEvent = function (ev) {
                 if (ev.eventType === EDITOR.EventType.SCENE_EVENT) {
                     var eventType = ev.sceneEvent.eventType;
@@ -60,18 +50,15 @@ var BABYLON;
                 }
                 return false;
             };
-            // Creates the UI
             GUITextureEditor.prototype._createUI = function () {
                 var _this = this;
                 this._core.editor.editPanel.setPanelSize(40);
-                // IDs and elements
                 var texturesListID = "BABYLON-EDITOR-TEXTURES-EDITOR-TEXTURES";
                 var canvasID = "BABYLON-EDITOR-TEXTURES-EDITOR-CANVAS";
                 var texturesListElement = EDITOR.GUI.GUIElement.CreateDivElement(texturesListID, "width: 50%; height: 100%; float: left;");
                 var canvasElement = EDITOR.GUI.GUIElement.CreateElement("canvas", canvasID, "width: 50%; height: 100%; float: right;");
                 this._core.editor.editPanel.addContainer(texturesListElement, texturesListID);
                 this._core.editor.editPanel.addContainer(canvasElement, canvasID);
-                // Texture canvas
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
                 this._scene = new BABYLON.Scene(this._engine);
                 this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
@@ -84,7 +71,6 @@ var BABYLON;
                 this._engine.runRenderLoop(function () {
                     _this._scene.render();
                 });
-                // Textures list
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
                 this._texturesList.header = this._objectName ? this._objectName : "Textures ";
                 this._texturesList.createColumn("name", "name", "100px");
@@ -107,14 +93,12 @@ var BABYLON;
                         return;
                     if (_this._targetTexture)
                         _this._targetTexture.dispose();
-                    // If render target, configure canvas. Else, set target texture 
                     if (selectedTexture.isRenderTarget && !selectedTexture.isCube) {
                         _this._currentRenderTarget = selectedTexture;
                         _this._configureRenderTarget();
                     }
                     else {
                         var serializationObject = selectedTexture.serialize();
-                        // Guess texture
                         if (selectedTexture._buffer) {
                             serializationObject.base64String = selectedTexture._buffer;
                         }
@@ -196,7 +180,6 @@ var BABYLON;
                         }
                     }
                 };
-                // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
                     _this._scene.dispose();
@@ -204,7 +187,6 @@ var BABYLON;
                     _this._core.removeEventReceiver(_this);
                 };
             };
-            // Configures a render target to be rendered
             GUITextureEditor.prototype._configureRenderTarget = function () {
                 var _this = this;
                 var width = this._currentRenderTarget.getSize().width;
@@ -223,7 +205,6 @@ var BABYLON;
                 };
                 this._targetTexture = this._dynamicTexture;
             };
-            // Restores the render target
             GUITextureEditor.prototype._restorRenderTarget = function () {
                 this._currentRenderTarget.onAfterRender = this._currentOnAfterRender;
                 this._dynamicTexture.dispose();
@@ -231,7 +212,6 @@ var BABYLON;
                 this._currentPixels = null;
                 this._currentRenderTarget = null;
             };
-            // Fills the texture list
             GUITextureEditor.prototype._fillTextureList = function () {
                 this._texturesList.clear();
                 for (var i = 0; i < this._core.currentScene.textures.length; i++) {
@@ -262,9 +242,7 @@ var BABYLON;
                     recid: this._texturesList.getRowCount() - 1
                 });
                 this._core.editor.editionTool.updateEditionTool();
-                //this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
             };
-            // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {
                 var _this = this;
                 return function (data) {
@@ -288,7 +266,7 @@ var BABYLON;
                 };
             };
             return GUITextureEditor;
-        })();
+        }());
         EDITOR.GUITextureEditor = GUITextureEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

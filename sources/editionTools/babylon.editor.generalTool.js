@@ -9,24 +9,16 @@ var BABYLON;
     (function (EDITOR) {
         var GeneralTool = (function (_super) {
             __extends(GeneralTool, _super);
-            /**
-            * Constructor
-            * @param editionTool: edition tool instance
-            */
             function GeneralTool(editionTool) {
                 _super.call(this, editionTool);
-                // Public members
                 this.object = null;
                 this.tab = "GENERAL.TAB";
-                // Private members
                 this._isActiveCamera = false;
                 this._isActivePlayCamera = false;
-                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
                 ];
             }
-            // Object supported
             GeneralTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.AbstractMesh
                     || object instanceof BABYLON.Light
@@ -36,12 +28,9 @@ var BABYLON;
                 }
                 return false;
             };
-            // Creates the UI
             GeneralTool.prototype.createUI = function () {
-                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "General" });
             };
-            // Update
             GeneralTool.prototype.update = function () {
                 var _this = this;
                 var object = this.object = this._editionTool.object;
@@ -53,7 +42,6 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
-                // General
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name").onChange(function (result) {
                     var sidebar = _this._editionTool.core.editor.sceneGraphTool.sidebar;
@@ -63,7 +51,6 @@ var BABYLON;
                         sidebar.refresh();
                     }
                 });
-                // Camera
                 if (object instanceof BABYLON.Camera) {
                     var cameraFolder = this._element.addFolder("Camera");
                     if (object !== core.camera) {
@@ -91,7 +78,6 @@ var BABYLON;
                     cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
                 }
-                // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
@@ -111,7 +97,6 @@ var BABYLON;
                     scalingFolder.add(object.scaling, "y").name("y").step(0.1);
                     scalingFolder.add(object.scaling, "z").name("z").step(0.1);
                 }
-                // Rendering
                 if (object instanceof BABYLON.AbstractMesh) {
                     var renderingFolder = this._element.addFolder("Rendering");
                     renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
@@ -132,7 +117,6 @@ var BABYLON;
                 return true;
             };
             Object.defineProperty(GeneralTool.prototype, "_castShadows", {
-                // If object casts shadows or not
                 get: function () {
                     var scene = this.object.getScene();
                     for (var i = 0; i < scene.lights.length; i++) {
@@ -149,7 +133,6 @@ var BABYLON;
                     }
                     return false;
                 },
-                // Sets if object casts shadows or not
                 set: function (cast) {
                     var scene = this.object.getScene();
                     var object = this.object;
@@ -171,7 +154,6 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
-            // Sets children casting shadows
             GeneralTool.prototype._setChildrenCastingShadows = function (node) {
                 var scene = node.getScene();
                 for (var i = 0; i < node.getDescendants().length; i++) {
@@ -192,7 +174,7 @@ var BABYLON;
                 }
             };
             return GeneralTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.GeneralTool = GeneralTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
