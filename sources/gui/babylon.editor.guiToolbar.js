@@ -11,10 +11,17 @@ var BABYLON;
         (function (GUI) {
             var GUIToolbar = (function (_super) {
                 __extends(GUIToolbar, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                */
                 function GUIToolbar(name, core) {
                     _super.call(this, name, core);
+                    // Public members
                     this.menus = [];
                 }
+                // Creates a new menu
                 GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked, tooltip) {
                     var menu = {
                         type: type,
@@ -28,6 +35,7 @@ var BABYLON;
                     this.menus.push(menu);
                     return menu;
                 };
+                // Creates a new menu item
                 GUIToolbar.prototype.createMenuItem = function (menu, type, id, text, icon, checked, disabled) {
                     var item = {
                         type: type,
@@ -40,6 +48,7 @@ var BABYLON;
                     menu.items.push(item);
                     return item;
                 };
+                // Creates a new input element
                 GUIToolbar.prototype.createInput = function (id, inputId, text, size) {
                     if (size === void 0) { size = 10; }
                     var item = {
@@ -54,6 +63,7 @@ var BABYLON;
                     this.menus.push(item);
                     return item;
                 };
+                // Adds a break
                 GUIToolbar.prototype.addBreak = function (menu) {
                     var item = {
                         type: "break",
@@ -70,6 +80,7 @@ var BABYLON;
                         this.menus.push(item);
                     return item;
                 };
+                // Adds a spacer
                 GUIToolbar.prototype.addSpacer = function () {
                     var item = {
                         type: "spacer",
@@ -83,10 +94,12 @@ var BABYLON;
                     this.menus.push(item);
                     return item;
                 };
+                // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
                     var id = menu ? menu + ":" + item : item;
                     checked ? this.element.check(id) : this.element.uncheck(id);
                 };
+                // Sets the item auto checked (true to false, false to true)
                 GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
                     var result = this.element.get(menu ? menu + ":" + item : item);
                     var checked = result ? result.checked : false;
@@ -95,12 +108,14 @@ var BABYLON;
                     else
                         this.element.uncheck(item);
                 };
+                // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
                     var result = this.element.get(menu ? menu + ":" + item : item);
                     if (result)
                         return result.checked;
                     return false;
                 };
+                // Sets an item enabled or not
                 GUIToolbar.prototype.setItemEnabled = function (item, enabled, menu) {
                     var finalID = menu ? menu + ":" + item : item;
                     var result = null;
@@ -125,6 +140,7 @@ var BABYLON;
                         return true;
                     return false;
                 };
+                // Returns an item by its ID
                 GUIToolbar.prototype.getItemByID = function (id) {
                     for (var i = 0; i < this.menus.length; i++) {
                         var menu = this.menus[i];
@@ -140,6 +156,7 @@ var BABYLON;
                     }
                     return null;
                 };
+                // Returns the decomposed selected menu IDs
                 GUIToolbar.prototype.decomposeSelectedMenu = function (id) {
                     var finalIDs = id.split(":");
                     var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
@@ -151,6 +168,7 @@ var BABYLON;
                         selected: finalIDs.length > 1 ? finalIDs[finalIDs.length - 1] : ""
                     };
                 };
+                // Build element
                 GUIToolbar.prototype.buildElement = function (parent) {
                     var _this = this;
                     this.element = $("#" + parent).w2toolbar({
@@ -166,7 +184,7 @@ var BABYLON;
                     });
                 };
                 return GUIToolbar;
-            }(GUI.GUIElement));
+            })(GUI.GUIElement);
             GUI.GUIToolbar = GUIToolbar;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

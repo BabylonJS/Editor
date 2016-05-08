@@ -94,6 +94,13 @@ declare module BABYLON.EDITOR.INTERNAL {
         waitingTexture?: RenderTargetTexture | ReflectionProbe;
     }
     /**
+    * Sounds
+    */
+    interface ISound {
+        name: string;
+        serializationObject: any;
+    }
+    /**
     * Root object of project
     */
     interface IProjectRoot {
@@ -106,6 +113,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         lensFlares: ILensFlare[];
         renderTargets: IRenderTarget[];
         actions: any;
+        sounds: ISound[];
         requestedMaterials?: string[];
     }
 }

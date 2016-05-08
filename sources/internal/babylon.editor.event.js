@@ -7,6 +7,9 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        /**
+        * Event Type
+        */
         (function (EventType) {
             EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
             EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
@@ -43,33 +46,54 @@ var BABYLON;
             SceneEventType[SceneEventType["UNKNOWN"] = 4] = "UNKNOWN";
         })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
         var SceneEventType = EDITOR.SceneEventType;
+        /**
+        * Base Event
+        */
         var BaseEvent = (function () {
             function BaseEvent(data) {
                 this.data = data;
             }
             return BaseEvent;
-        }());
+        })();
         EDITOR.BaseEvent = BaseEvent;
+        /**
+        * Scene Event
+        */
         var SceneEvent = (function (_super) {
             __extends(SceneEvent, _super);
+            /**
+            * Constructor
+            * @param object: the object generating the event
+            */
             function SceneEvent(object, eventType, data) {
                 _super.call(this, data);
                 this.object = object;
                 this.eventType = eventType;
             }
             return SceneEvent;
-        }(BaseEvent));
+        })(BaseEvent);
         EDITOR.SceneEvent = SceneEvent;
+        /**
+        * GUI Event
+        */
         var GUIEvent = (function (_super) {
             __extends(GUIEvent, _super);
+            /**
+            * Constructor
+            * @param caller: gui element calling the event
+            * @param eventType: the gui event type
+            */
             function GUIEvent(caller, eventType, data) {
                 _super.call(this, data);
                 this.caller = caller;
                 this.eventType = eventType;
             }
             return GUIEvent;
-        }(BaseEvent));
+        })(BaseEvent);
         EDITOR.GUIEvent = GUIEvent;
+        /**
+        * IEvent implementation
+        */
         var Event = (function () {
             function Event() {
                 this.eventType = EventType.UNKNOWN;
@@ -89,8 +113,14 @@ var BABYLON;
                 core.sendEvent(ev);
             };
             return Event;
-        }());
+        })();
         EDITOR.Event = Event;
+        /**
+        * Statics
+        */
+        /**
+        * Sends a scene event
+        */
         var sendSceneEvent = function (object, type, core) {
             var ev = new Event();
             ev.eventType = EventType.SCENE_EVENT;

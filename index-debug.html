@@ -126,6 +126,7 @@
     <!-- PLUGINS -->
     <script src="sources/plugins/babylon.editor.simpleMaterialTool.js" type="text/javascript"></script>
     <script src="sources/plugins/babylon.editor.geometriesMenu.js" type="text/javascript"></script>
+    <script src="sources/plugins/babylon.editor.soundsMenu.js" type="text/javascript"></script>
 
     <!-- LOADERS -->
     <script src="libs/loaders/babylon.objFileLoader.js" type="text/javascript"></script>
@@ -164,7 +165,7 @@
             hdrSkyboxMaterial.disableLighting = true;
             hdrSkybox.material = hdrSkyboxMaterial;
             hdrSkybox.infiniteDistance = true;
-
+            
             // Create meshes
             var sphereGlass = BABYLON.Mesh.CreateSphere("sphereGlass", 48, 30.0, scene);
             sphereGlass.translate(new BABYLON.Vector3(1, 0, 0), -60);

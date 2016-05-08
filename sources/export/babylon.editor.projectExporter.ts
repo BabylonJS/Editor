@@ -23,6 +23,7 @@
                 lensFlares: this._SerializeLensFlares(core),
                 renderTargets: this._SerializeRenderTargets(core),
                 actions: this._SerializeActionManager(core.currentScene),
+                sounds: this._SerializeSounds(core),
 
                 requestedMaterials: requestMaterials ? [] : undefined
             };
@@ -64,6 +65,43 @@
                 config.animatedAtLaunch.push(obj);
             }
 
+            return config;
+        }
+        
+        // Serialize sounds
+        private static _SerializeSounds(core: EditorCore): INTERNAL.ISound[] {
+            var config: INTERNAL.ISound[] = [];
+            var index = 0;
+            
+            for (index = 0; index < core.currentScene.soundTracks[0].soundCollection.length; index++) {
+                var sound = core.currentScene.soundTracks[0].soundCollection[index];
+                
+                if (!Tags.HasTags(sound) || !Tags.MatchesQuery(sound, "added"))
+                    continue;
+                    
+                var serializationObject = {
+                    url: sound.name,
+                    autoplay: sound.autoplay,
+                    loop: sound.loop,
+                    volume: sound.getVolume(),
+                    spatialSound: sound.spatialSound,
+                    maxDistance: sound.maxDistance,
+                    rolloffFactor: sound.rolloffFactor,
+                    refDistance: sound.refDistance,
+                    distanceModel: sound.distanceModel,
+                    playbackRate: 1.0
+                };
+                
+                if (sound.spatialSound) {
+                    // Nothing now
+                }
+                    
+                config.push({
+                    name: sound.name,
+                    serializationObject: serializationObject
+                });
+            }
+            
             return config;
         }
 
@@ -164,6 +202,22 @@
                 return obj;
             };
 
+            if (SceneFactory.SSAOPipeline) {
+                /*
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
+                    name: "SSAOPipeline",
+                    serializationObject: serialize(SceneFactory.SSAOPipeline)
+                });
+                */
+                
+                config.push({
+                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
+                    name: "SSAOPipeline",
+                    serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
+                });
+                
+            }
             if (SceneFactory.HDRPipeline) {
                 /*
                 config.push({
@@ -178,22 +232,6 @@
                     name: "HDRPipeline",
                     serializationObject: this._ConfigureBase64Texture(SceneFactory.HDRPipeline, SceneFactory.HDRPipeline.serialize())
                 });
-            }
-            if (SceneFactory.SSAOPipeline) {
-                /*
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: serialize(SceneFactory.SSAOPipeline)
-                });
-                */
-
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
-                });
-                
             }
 
             return config;

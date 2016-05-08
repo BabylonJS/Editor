@@ -3,7 +3,12 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var MainToolbar = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
             function MainToolbar(core) {
+                // Public members
                 this.container = "BABYLON-EDITOR-MAIN-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
@@ -37,16 +42,21 @@ var BABYLON;
                 this._particlesPaste = "PARTICLES-PASTE";
                 this._particlesPlay = "PARTICLES-PLAY";
                 this._particlesStop = "PARTICLES-STOP";
+                // Initialize
                 this._editor = core.editor;
                 this.core = core;
                 this.panel = this._editor.layouts.getPanelFromType("top");
+                // Register this
                 this.core.updates.push(this);
                 this.core.eventReceivers.push(this);
             }
+            // Pre update
             MainToolbar.prototype.onPreUpdate = function () {
             };
+            // Post update
             MainToolbar.prototype.onPostUpdate = function () {
             };
+            // Event
             MainToolbar.prototype.onEvent = function (event) {
                 var _this = this;
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
@@ -57,6 +67,7 @@ var BABYLON;
                     var selected = this.toolbar.decomposeSelectedMenu(id);
                     if (!selected || !selected.hasParent)
                         return false;
+                    // Project
                     if (selected.parent === this._mainProject) {
                         if (selected.selected === this._mainProjectOpenFiles) {
                             var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
@@ -85,6 +96,7 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // Edit
                     if (selected.parent === this._mainEdit) {
                         if (selected.selected === this._mainEditLaunch) {
                             var launchEditor = new EDITOR.LaunchEditor(this.core);
@@ -94,6 +106,7 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // Add
                     if (selected.parent === this._mainAdd) {
                         if (selected.selected === this._addPointLight) {
                             EDITOR.SceneFactory.AddPointLight(this.core);
@@ -127,6 +140,7 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // Particles
                     if (selected.parent === this._particlesMain) {
                         if (selected.selected === this._particlesCopy) {
                             EDITOR.GUIParticleSystemEditor._CopiedParticleSystem = EDITOR.GUIParticleSystemEditor._CurrentParticleSystem;
@@ -134,6 +148,7 @@ var BABYLON;
                         else if (selected.selected === this._particlesPaste) {
                             if (!EDITOR.GUIParticleSystemEditor._CopiedParticleSystem)
                                 return true;
+                            //var emitter = GUIParticleSystemEditor._CopiedParticleSystem.emitter;
                             var selectedEmitter = this.core.editor.sceneGraphTool.sidebar.getSelectedNode();
                             if (!selectedEmitter || !selectedEmitter.data || !selectedEmitter.data.position)
                                 return true;
@@ -158,6 +173,7 @@ var BABYLON;
                 }
                 return false;
             };
+            // Creates the UI
             MainToolbar.prototype.createUI = function () {
                 if (this.toolbar != null)
                     this.toolbar.destroy();
@@ -171,10 +187,12 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
                 this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
+                //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
+                //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
                 this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
                 this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
@@ -190,18 +208,21 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
+                //...
                 this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
                 this.particleSystemCopyItem = this.toolbar.createMenuItem(menu, "button", this._particlesCopy, "Copy Selected Particle System", "icon-copy", false, true);
                 this.particleSystemPasteItem = this.toolbar.createMenuItem(menu, "button", this._particlesPaste, "Paste Particle System", "icon-copy", false, true);
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
                 this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
+                //...
                 for (var i = 0; i < EDITOR.PluginManager.MainToolbarPlugin.length; i++)
                     this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugin[i](this));
+                // Build element
                 this.toolbar.buildElement(this.container);
             };
             return MainToolbar;
-        }());
+        })();
         EDITOR.MainToolbar = MainToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

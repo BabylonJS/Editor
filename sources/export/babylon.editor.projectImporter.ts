@@ -45,6 +45,14 @@
                 var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                 material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
             }
+            
+            // Sounds
+            for (var i=0; i < project.sounds.length; i++) {
+                var sound = Sound.Parse(project.sounds[i].serializationObject, core.currentScene, "file:");
+                sound.name = project.sounds[i].name;
+                Tags.EnableFor(sound);
+                Tags.AddTagsTo(sound, "added");
+            }
 
             // Parse the nodes
             for (var i = 0; i < project.nodes.length; i++) {

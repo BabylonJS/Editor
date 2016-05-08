@@ -3,7 +3,12 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var SceneToolbar = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
             function SceneToolbar(core) {
+                // Public members
                 this.container = "BABYLON-EDITOR-SCENE-TOOLBAR";
                 this.toolbar = null;
                 this.panel = null;
@@ -13,17 +18,27 @@ var BABYLON;
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 this._renderHelpersID = "RENDER-HELPERS";
                 this._renderDebugLayerID = "RENDER-DEBUG-LAYER";
+                this._drawingDebugLayer = false;
+                // Initialize
                 this._editor = core.editor;
                 this._core = core;
                 this.panel = this._editor.layouts.getPanelFromType("main");
+                // Register this
                 this._core.updates.push(this);
                 this._core.eventReceivers.push(this);
             }
+            // Pre update
             SceneToolbar.prototype.onPreUpdate = function () {
             };
+            // Post update
             SceneToolbar.prototype.onPostUpdate = function () {
             };
+            // Event
             SceneToolbar.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && this._drawingDebugLayer) {
+                    this._configureDebugLayer();
+                    return false;
+                }
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
@@ -59,8 +74,11 @@ var BABYLON;
                     }
                     else if (id === this._renderDebugLayerID) {
                         var checked = !this.toolbar.isItemChecked(id);
-                        if (checked)
-                            scene.debugLayer.show(true, scene.activeCamera, scene.getEngine().getRenderingCanvas());
+                        this._drawingDebugLayer = checked;
+                        if (checked) {
+                            scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
+                            this._configureDebugLayer();
+                        }
                         else
                             scene.debugLayer.hide();
                         this.toolbar.setItemChecked(id, checked);
@@ -69,11 +87,13 @@ var BABYLON;
                 }
                 return false;
             };
+            // Creates the UI
             SceneToolbar.prototype.createUI = function () {
                 var _this = this;
                 if (this.toolbar != null)
                     this.toolbar.destroy();
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
+                // Play game
                 this.toolbar.createMenu("button", this._wireframeID, "Wireframe", "icon-wireframe");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._boundingBoxID, "Bounding Box", "icon-bounding-box");
@@ -85,7 +105,9 @@ var BABYLON;
                 this.toolbar.createMenu("button", this._renderDebugLayerID, "Debug Layer", "icon-wireframe");
                 this.toolbar.addSpacer();
                 this.toolbar.createInput("SCENE-TOOLBAR-FPS", "SCENE-TOOLBAR-FPS-INPUT", "FPS :", 5);
+                // Build element
                 this.toolbar.buildElement(this.container);
+                // Set events
                 this._fpsInput = $("#SCENE-TOOLBAR-FPS-INPUT").w2field("int", { autoFormat: true });
                 this._fpsInput.change(function (event) {
                     EDITOR.GUIAnimationEditor.FramesPerSecond = parseFloat(_this._fpsInput.val());
@@ -93,6 +115,7 @@ var BABYLON;
                 });
                 this._fpsInput.val(String(EDITOR.GUIAnimationEditor.FramesPerSecond));
             };
+            // Sets the focus of the camera
             SceneToolbar.prototype.setFocusOnObject = function (object) {
                 if (!object || !object.position)
                     return;
@@ -117,10 +140,18 @@ var BABYLON;
                 scene.stopAnimation(camera);
                 scene.beginDirectAnimation(camera, [animation], 0, 1, false, 1);
             };
+            // Sets frames per second in FPS input
             SceneToolbar.prototype.setFramesPerSecond = function (fps) {
                 this._fpsInput.val(String(fps));
                 this._configureFramesPerSecond();
             };
+            // Configure debug layer
+            SceneToolbar.prototype._configureDebugLayer = function () {
+                var layer = $("#DebugLayer");
+                layer.css("left", "10px");
+                layer.css("top", "10px");
+            };
+            // Set new frames per second
             SceneToolbar.prototype._configureFramesPerSecond = function () {
                 var setFPS = function (objs) {
                     for (var objIndex = 0; objIndex < objs.length; objIndex++) {
@@ -138,7 +169,7 @@ var BABYLON;
                     setFPS(this._core.currentScene.skeletons[sIndex].bones);
             };
             return SceneToolbar;
-        }());
+        })();
         EDITOR.SceneToolbar = SceneToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -9,9 +9,15 @@ var BABYLON;
     (function (EDITOR) {
         var AbstractDatTool = (function (_super) {
             __extends(AbstractDatTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
             function AbstractDatTool(editionTool) {
+                // Initialize
                 _super.call(this, editionTool);
             }
+            // Update
             AbstractDatTool.prototype.update = function () {
                 if (this._element) {
                     this._element.remove();
@@ -19,10 +25,15 @@ var BABYLON;
                 }
                 return true;
             };
+            // Resize
             AbstractDatTool.prototype.resize = function () {
                 if (this._element)
                     this._element.width = this._editionTool.panel.width - 15;
             };
+            /**
+            * Static methods
+            */
+            // Add a color element
             AbstractDatTool.prototype.addColorFolder = function (color, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
                 var properties = ["r", "g", "b"];
@@ -39,6 +50,7 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Add a vector element
             AbstractDatTool.prototype.addVectorFolder = function (vector, propertyName, open, parent, callback) {
                 if (open === void 0) { open = false; }
                 var properties = ["x", "y"];
@@ -55,6 +67,7 @@ var BABYLON;
                     folder.close();
                 return folder;
             };
+            // Adds a texture element
             AbstractDatTool.prototype.addTextureFolder = function (object, name, property, parentFolder, callback) {
                 var _this = this;
                 var stringName = name.replace(" ", "");
@@ -89,7 +102,7 @@ var BABYLON;
                 return folder;
             };
             return AbstractDatTool;
-        }(EDITOR.AbstractTool));
+        })(EDITOR.AbstractTool);
         EDITOR.AbstractDatTool = AbstractDatTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

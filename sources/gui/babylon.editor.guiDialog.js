@@ -11,12 +11,19 @@ var BABYLON;
         (function (GUI) {
             var GUIDialog = (function (_super) {
                 __extends(GUIDialog, _super);
+                // Private members
+                /**
+                * Constructor
+                * @param name: the form name
+                */
                 function GUIDialog(name, core, title, body) {
                     _super.call(this, name, core);
                     this.callback = null;
+                    // Initialize
                     this.title = title;
                     this.body = body;
                 }
+                // Build element
                 GUIDialog.prototype.buildElement = function (parent) {
                     var _this = this;
                     this.element = w2confirm(this.body, this.title, function (result) {
@@ -28,6 +35,7 @@ var BABYLON;
                         _this.core.sendEvent(ev);
                     });
                 };
+                // Create a dialog on the fly
                 GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
                     w2confirm(body, title, null)
                         .yes(function () {
@@ -38,7 +46,7 @@ var BABYLON;
                     });
                 };
                 return GUIDialog;
-            }(GUI.GUIElement));
+            })(GUI.GUIElement);
             GUI.GUIDialog = GUIDialog;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

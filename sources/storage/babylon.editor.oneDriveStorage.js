@@ -9,11 +9,17 @@ var BABYLON;
     (function (EDITOR) {
         var OneDriveStorage = (function (_super) {
             __extends(OneDriveStorage, _super);
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
             function OneDriveStorage(core) {
                 _super.call(this, core);
                 this._editor = core.editor;
             }
+            // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
             OneDriveStorage._OnAuthentificated = function () {
+                // Get token from URL
                 var token = "";
                 var expires = "";
                 if (window.location.hash) {
@@ -22,8 +28,10 @@ var BABYLON;
                     token = authInfo.access_token;
                     expires = authInfo.expires_in;
                 }
+                // Close popup
                 window.opener.BABYLON.EDITOR.OneDriveStorage._ClosePopup(token, expires, window);
             };
+            // Closes the login popup
             OneDriveStorage._ClosePopup = function (token, expires, window) {
                 OneDriveStorage._TOKEN = token;
                 if (token === "") {
@@ -38,7 +46,9 @@ var BABYLON;
                 }
                 window.close();
             };
+            // Login into OneDrive
             OneDriveStorage._Login = function (core, success) {
+                // OneDrive
                 var now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
                 if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                     var uri = "https://login.live.com/oauth20_authorize.srf"
@@ -52,6 +62,7 @@ var BABYLON;
                     success();
                 }
             };
+            // Creates folders
             OneDriveStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
                 OneDriveStorage._Login(this.core, function () {
                     var count = 0;
@@ -90,6 +101,7 @@ var BABYLON;
                     }
                 });
             };
+            // Creates files
             OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
                 OneDriveStorage._Login(this.core, function () {
                     var count = 0;
@@ -124,6 +136,7 @@ var BABYLON;
                     }
                 });
             };
+            // Gets the children files of a folder
             OneDriveStorage.prototype.getFiles = function (folder, success, failed) {
                 OneDriveStorage._Login(this.core, function () {
                     $.ajax({
@@ -154,7 +167,7 @@ var BABYLON;
             OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
             OneDriveStorage._POPUP = null;
             return OneDriveStorage;
-        }(EDITOR.Storage));
+        })(EDITOR.Storage);
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

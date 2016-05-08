@@ -192,8 +192,10 @@ var BABYLON;
             */
             Tools.CreateFileInpuElement = function (id) {
                 var input = $("#" + id);
-                if (!input[0])
+                if (!input[0]) {
                     $("#BABYLON-EDITOR-UTILS").append(EDITOR.GUI.GUIElement.CreateElement("input type=\"file\"", id, "display: none;"));
+                    input = $("#" + id);
+                }
                 return input;
             };
             /**
@@ -214,6 +216,7 @@ var BABYLON;
             */
             Tools.CleanProject = function (project) {
                 project.renderTargets = project.renderTargets || [];
+                project.sounds = project.sounds || [];
             };
             /**
             * Returns the constructor name of an object
@@ -4322,7 +4325,8 @@ var BABYLON;
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
                 var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
                 //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
+                "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                    "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                     "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>");
                 mainPanel.style = "overflow: hidden;";
                 this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
@@ -5027,6 +5031,7 @@ var BABYLON;
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 this._renderHelpersID = "RENDER-HELPERS";
                 this._renderDebugLayerID = "RENDER-DEBUG-LAYER";
+                this._drawingDebugLayer = false;
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -5043,6 +5048,10 @@ var BABYLON;
             };
             // Event
             SceneToolbar.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && this._drawingDebugLayer) {
+                    this._configureDebugLayer();
+                    return false;
+                }
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
@@ -5078,8 +5087,11 @@ var BABYLON;
                     }
                     else if (id === this._renderDebugLayerID) {
                         var checked = !this.toolbar.isItemChecked(id);
-                        if (checked)
-                            scene.debugLayer.show(true, scene.activeCamera, scene.getEngine().getRenderingCanvas());
+                        this._drawingDebugLayer = checked;
+                        if (checked) {
+                            scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
+                            this._configureDebugLayer();
+                        }
                         else
                             scene.debugLayer.hide();
                         this.toolbar.setItemChecked(id, checked);
@@ -5145,6 +5157,12 @@ var BABYLON;
             SceneToolbar.prototype.setFramesPerSecond = function (fps) {
                 this._fpsInput.val(String(fps));
                 this._configureFramesPerSecond();
+            };
+            // Configure debug layer
+            SceneToolbar.prototype._configureDebugLayer = function () {
+                var layer = $("#DebugLayer");
+                layer.css("left", "10px");
+                layer.css("top", "10px");
             };
             // Set new frames per second
             SceneToolbar.prototype._configureFramesPerSecond = function () {
@@ -7120,6 +7138,7 @@ var BABYLON;
                     lensFlares: this._SerializeLensFlares(core),
                     renderTargets: this._SerializeRenderTargets(core),
                     actions: this._SerializeActionManager(core.currentScene),
+                    sounds: this._SerializeSounds(core),
                     requestedMaterials: requestMaterials ? [] : undefined
                 };
                 this._TraverseNodes(core, null, project);
@@ -7151,6 +7170,35 @@ var BABYLON;
                         type: type
                     };
                     config.animatedAtLaunch.push(obj);
+                }
+                return config;
+            };
+            // Serialize sounds
+            ProjectExporter._SerializeSounds = function (core) {
+                var config = [];
+                var index = 0;
+                for (index = 0; index < core.currentScene.soundTracks[0].soundCollection.length; index++) {
+                    var sound = core.currentScene.soundTracks[0].soundCollection[index];
+                    if (!BABYLON.Tags.HasTags(sound) || !BABYLON.Tags.MatchesQuery(sound, "added"))
+                        continue;
+                    var serializationObject = {
+                        url: sound.name,
+                        autoplay: sound.autoplay,
+                        loop: sound.loop,
+                        volume: sound.getVolume(),
+                        spatialSound: sound.spatialSound,
+                        maxDistance: sound.maxDistance,
+                        rolloffFactor: sound.rolloffFactor,
+                        refDistance: sound.refDistance,
+                        distanceModel: sound.distanceModel,
+                        playbackRate: 1.0
+                    };
+                    if (sound.spatialSound) {
+                    }
+                    config.push({
+                        name: sound.name,
+                        serializationObject: serializationObject
+                    });
                 }
                 return config;
             };
@@ -7228,20 +7276,6 @@ var BABYLON;
                     }
                     return obj;
                 };
-                if (EDITOR.SceneFactory.HDRPipeline) {
-                    /*
-                    config.push({
-                        attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: serialize(SceneFactory.HDRPipeline)
-                    });
-                    */
-                    config.push({
-                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.HDRPipeline, EDITOR.SceneFactory.HDRPipeline.serialize())
-                    });
-                }
                 if (EDITOR.SceneFactory.SSAOPipeline) {
                     /*
                     config.push({
@@ -7254,6 +7288,20 @@ var BABYLON;
                         attach: EDITOR.SceneFactory.EnabledPostProcesses.attachSSAO,
                         name: "SSAOPipeline",
                         serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.SSAOPipeline, EDITOR.SceneFactory.SSAOPipeline.serialize())
+                    });
+                }
+                if (EDITOR.SceneFactory.HDRPipeline) {
+                    /*
+                    config.push({
+                        attach: SceneFactory.EnabledPostProcesses.attachHDR,
+                        name: "HDRPipeline",
+                        serializationObject: serialize(SceneFactory.HDRPipeline)
+                    });
+                    */
+                    config.push({
+                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
+                        name: "HDRPipeline",
+                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.HDRPipeline, EDITOR.SceneFactory.HDRPipeline.serialize())
                     });
                 }
                 return config;
@@ -7511,6 +7559,13 @@ var BABYLON;
                     var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                     material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
                 }
+                // Sounds
+                for (var i = 0; i < project.sounds.length; i++) {
+                    var sound = BABYLON.Sound.Parse(project.sounds[i].serializationObject, core.currentScene, "file:");
+                    sound.name = project.sounds[i].name;
+                    BABYLON.Tags.EnableFor(sound);
+                    BABYLON.Tags.AddTagsTo(sound, "added");
+                }
                 // Parse the nodes
                 for (var i = 0; i < project.nodes.length; i++) {
                     var node = project.nodes[i];
@@ -7585,6 +7640,10 @@ var BABYLON;
                             if (EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id])
                                 EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id].actionManager = newNode.actionManager;
                             newNode.actionManager = oldActionManager; // Created by the editor
+                        }
+                        // Register node
+                        if (!EDITOR.SceneManager._ConfiguredObjectsIDs[newNode.id]) {
+                            EDITOR.SceneManager.ConfigureObject(newNode, core);
                         }
                     }
                 }
@@ -9959,5 +10018,90 @@ var BABYLON;
         EDITOR.GeometriesMenuPlugin = GeometriesMenuPlugin;
         // Finally, register the plugin using the plugin manager
         EDITOR.PluginManager.RegisterMainToolbarPlugin(GeometriesMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var SoundsMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function SoundsMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "SOUNDS-MENU";
+                this._addSoundtrackID = "ADD-SOUNDTRACK";
+                this._add3DSoundId = "ADD-3D-SOUND";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Sound", "icon-sound");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
+                toolbar.createMenuItem(menu, "button", this._add3DSoundId, "Add 3D Sounds", "icon-sound");
+                // Etc.
+            }
+            // When an item has been selected
+            SoundsMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                var _this = this;
+                // Switch selected menu id
+                switch (selected) {
+                    case this._addSoundtrackID:
+                        this._createInput(function (name, data) {
+                            var sound = new BABYLON.Sound(name, data, _this._core.currentScene);
+                            EDITOR.Event.sendSceneEvent(sound, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
+                            _this._configureSound(sound);
+                        });
+                        break;
+                    case this._add3DSoundId:
+                        EDITOR.SceneFactory.AddSphereMesh(this._core);
+                        break;
+                    default: break;
+                }
+            };
+            // Configure the sound
+            SoundsMenuPlugin.prototype._configureSound = function (sound) {
+                BABYLON.Tags.EnableFor(sound);
+                BABYLON.Tags.AddTagsTo(sound, "added");
+            };
+            // Creates an input to select file
+            SoundsMenuPlugin.prototype._createInput = function (callback) {
+                var _this = this;
+                var inputFiles = EDITOR.Tools.CreateFileInpuElement("BABYLON-EDITOR-LOAD-SOUND-FILE");
+                inputFiles[0].onchange = function (data) {
+                    for (var i = 0; i < data.target.files.length; i++) {
+                        var file = data.target.files[i];
+                        switch (file.type) {
+                            case "image/targa":
+                            case "image/vnd.ms-dds":
+                            case "audio/wav":
+                            case "audio/x-wav":
+                            case "audio/mp3":
+                            case "audio/mpeg":
+                            case "audio/mpeg3":
+                            case "audio/x-mpeg-3":
+                            case "audio/ogg":
+                                BABYLON.Tools.ReadFile(file, _this._onReadFileCallback(file.name, callback), null, true);
+                                BABYLON.FilesInput.FilesToLoad[name.toLowerCase()] = file;
+                                break;
+                        }
+                    }
+                    inputFiles.remove();
+                };
+                inputFiles.click();
+            };
+            // On read file callback
+            SoundsMenuPlugin.prototype._onReadFileCallback = function (name, callback) {
+                return function (data) {
+                    callback(name, data);
+                };
+            };
+            return SoundsMenuPlugin;
+        })();
+        EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
+        // Register plugin
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

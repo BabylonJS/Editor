@@ -131,6 +131,7 @@
             this.playLayouts = new GUI.GUILayout(this.mainContainer, this.core);
             var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
                 //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                 "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                 "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>"
             );

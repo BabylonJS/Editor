@@ -9,24 +9,34 @@ var BABYLON;
     (function (EDITOR) {
         var ReflectionProbeTool = (function (_super) {
             __extends(ReflectionProbeTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
             function ReflectionProbeTool(editionTool) {
                 _super.call(this, editionTool);
+                // Public members
                 this.tab = "REFLECTION.PROBE.TAB";
+                // Private members
                 this._window = null;
                 this._excludedMeshesList = null;
                 this._includedMeshesList = null;
                 this._layouts = null;
+                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-RENDER-TARGET"
                 ];
                 this._editionTool.core.eventReceivers.push(this);
             }
+            // On event
             ReflectionProbeTool.prototype.onEvent = function (event) {
+                // Manage event
                 if (event.eventType !== EDITOR.EventType.GUI_EVENT)
                     return false;
                 if (event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_ADDED && event.guiEvent.eventType !== EDITOR.GUIEventType.GRID_ROW_REMOVED)
                     return false;
                 var object = this.object;
+                // Manage lists
                 if (event.guiEvent.caller === this._includedMeshesList) {
                     var selected = this._includedMeshesList.getSelectedRows();
                     for (var i = 0; i < selected.length; i++) {
@@ -34,6 +44,7 @@ var BABYLON;
                         var index = object.renderList.indexOf(mesh);
                         if (index !== -1)
                             object.renderList.splice(index, 1);
+                        //this._excludedMeshesList.addRow({ name: mesh.name });
                         this._excludedMeshesList.addRecord({ name: mesh.name });
                     }
                     this._excludedMeshesList.refresh();
@@ -45,7 +56,9 @@ var BABYLON;
                     for (var i = 0; i < selected.length; i++) {
                         var mesh = this._editionTool.core.currentScene.getMeshByName(this._excludedMeshesList.getRow(selected[i]).name);
                         object.renderList.push(mesh);
+                        //this._includedMeshesList.addRow({ name: mesh.name });
                         this._includedMeshesList.addRecord({ name: mesh.name });
+                        //this._excludedMeshesList.removeRow(selected[i]);
                         this._excludedMeshesList.removeRecord(selected[i] - offset);
                         offset++;
                     }
@@ -55,6 +68,7 @@ var BABYLON;
                 }
                 return false;
             };
+            // Object supported
             ReflectionProbeTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.ReflectionProbe || object instanceof BABYLON.RenderTargetTexture
                     || (object instanceof BABYLON.Light && object.getShadowGenerator())) {
@@ -62,9 +76,12 @@ var BABYLON;
                 }
                 return false;
             };
+            // Creates the UI
             ReflectionProbeTool.prototype.createUI = function () {
+                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Render" });
             };
+            // Update
             ReflectionProbeTool.prototype.update = function () {
                 var _this = this;
                 _super.prototype.update.call(this);
@@ -78,6 +95,7 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
+                // General
                 var generalFolder = this._element.addFolder("Common");
                 generalFolder.add(object, "name").name("Name").onChange(function (result) {
                     var sidebar = _this._editionTool.core.editor.sceneGraphTool.sidebar;
@@ -93,6 +111,7 @@ var BABYLON;
                     generalFolder.add(this, "_attachToMesh").name("Attach To Mesh...");
                 if (object instanceof BABYLON.RenderTargetTexture)
                     generalFolder.add(this, "_exportRenderTarget").name("Dump Render Target");
+                // Position
                 if (object instanceof BABYLON.ReflectionProbe) {
                     var positionFolder = this._element.addFolder("Position");
                     positionFolder.add(object.position, "x").step(0.01);
@@ -101,6 +120,7 @@ var BABYLON;
                 }
                 return true;
             };
+            // Dumps the render target and opens a window
             ReflectionProbeTool.prototype._exportRenderTarget = function () {
                 var _this = this;
                 var rt = this.object;
@@ -118,6 +138,7 @@ var BABYLON;
                     tempCallback(0);
                 rt.onAfterRender = tempCallback;
             };
+            // Attaches to a mesh
             ReflectionProbeTool.prototype._attachToMesh = function () {
                 var _this = this;
                 var picker = new EDITOR.ObjectPicker(this._editionTool.core);
@@ -132,13 +153,16 @@ var BABYLON;
                 };
                 picker.open();
             };
+            // Sets the included/excluded meshes
             ReflectionProbeTool.prototype._setIncludedMeshes = function () {
                 var _this = this;
+                // IDs
                 var bodyID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT";
                 var leftPanelID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT-LEFT";
                 var rightPanelID = "REFLECTION-PROBES-RENDER-LIST-LAYOUT-RIGHT";
                 var excludedListID = "REFLECTION-PROBES-RENDER-LIST-LIST-EXCLUDED";
                 var includedListID = "REFLECTION-PROBES-RENDER-LIST-LIST-INCLUDED";
+                // Window
                 var body = EDITOR.GUI.GUIElement.CreateElement("div", bodyID);
                 this._window = new EDITOR.GUI.GUIWindow("REFLECTION-PROBES-RENDER-LIST-WINDOW", this._editionTool.core, "Configure Render List", body);
                 this._window.modal = true;
@@ -156,12 +180,14 @@ var BABYLON;
                     _this._layouts.getPanelFromType("main").width = height / 2;
                     _this._layouts.resize();
                 };
+                // Layout
                 var leftDiv = EDITOR.GUI.GUIElement.CreateElement("div", leftPanelID);
                 var rightDiv = EDITOR.GUI.GUIElement.CreateElement("div", rightPanelID);
                 this._layouts = new EDITOR.GUI.GUILayout(bodyID, this._editionTool.core);
                 this._layouts.createPanel(leftDiv, "left", 400, true).setContent(leftDiv);
                 this._layouts.createPanel(rightDiv, "main", 400, true).setContent(rightDiv);
                 this._layouts.buildElement(bodyID);
+                // Lists
                 var scene = this._editionTool.core.currentScene;
                 var object = this.object;
                 this._excludedMeshesList = new EDITOR.GUI.GUIGrid(excludedListID, this._editionTool.core);
@@ -189,7 +215,7 @@ var BABYLON;
                 this._includedMeshesList.refresh();
             };
             return ReflectionProbeTool;
-        }(EDITOR.AbstractDatTool));
+        })(EDITOR.AbstractDatTool);
         EDITOR.ReflectionProbeTool = ReflectionProbeTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -10,9 +10,15 @@ var BABYLON;
         })(EDITOR.TransformerType || (EDITOR.TransformerType = {}));
         var TransformerType = EDITOR.TransformerType;
         var Transformer = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
             function Transformer(core) {
                 var _this = this;
+                // Public members
                 this.core = null;
+                // Private members
                 this._scene = null;
                 this._node = null;
                 this._helperPlane = null;
@@ -37,12 +43,15 @@ var BABYLON;
                 this._distance = 0;
                 this._multiplier = 20;
                 this._ctrlIsDown = false;
+                //Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
                 core.updates.push(this);
+                // Create scene
                 this._scene = new BABYLON.Scene(core.engine);
                 this._scene.autoClear = false;
                 this._scene.postProcessesEnabled = false;
+                // Create events
                 core.canvas.addEventListener("mousedown", function (ev) {
                     _this._mouseDown = true;
                 });
@@ -72,9 +81,12 @@ var BABYLON;
                         _this._pickPosition = true;
                     }
                 });
+                // Create Transformers
                 this._createTransformers();
+                // Helper
                 this.createHelpers(core);
             }
+            // Create helpers
             Transformer.prototype.createHelpers = function (core) {
                 this._planeMaterial = new BABYLON.StandardMaterial("HelperPlaneMaterial", this._scene);
                 this._planeMaterial.emissiveColor = BABYLON.Color3.White();
@@ -95,6 +107,7 @@ var BABYLON;
                 this._scene.meshes.pop();
                 this._helperPlane.material = this._planeMaterial;
             };
+            // Event receiver
             Transformer.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
@@ -113,11 +126,15 @@ var BABYLON;
                 }
                 return false;
             };
+            // On pre update
             Transformer.prototype.onPreUpdate = function () {
+                // Update camera
                 this._scene.activeCamera = this.core.currentScene.activeCamera;
+                // Compute node
                 var node = this._node;
                 if (!node)
                     return;
+                // Set transformer scale
                 var distance = 0;
                 if (!this.core.isPlaying) {
                     distance = BABYLON.Vector3.Distance(this._scene.activeCamera.position, this._xTransformers[0].position) * 0.03;
@@ -127,6 +144,7 @@ var BABYLON;
                 this._sharedScale.y = scale.y;
                 this._sharedScale.z = scale.z;
                 this._distance = distance;
+                // Update transformer (position is particular)
                 var position = this._getNodePosition();
                 if (!position)
                     return;
@@ -142,10 +160,13 @@ var BABYLON;
                 this._xTransformers[2].position.copyFrom(this._xTransformers[0].position);
                 this._yTransformers[2].position.copyFrom(this._yTransformers[0].position);
                 this._zTransformers[2].position.copyFrom(this._zTransformers[0].position);
+                // Finish Transformer
                 if (this._mouseDown)
                     this._updateTransform(distance);
             };
+            // On post update
             Transformer.prototype.onPostUpdate = function () {
+                //this._helperPlane.setEnabled(!this.core.isPlaying && this.core.editor.renderHelpers);
                 var _this = this;
                 if ((this.core.isPlaying && this.core.currentScene.activeCamera !== this.core.camera) || !this.core.editor.renderHelpers)
                     return;
@@ -157,6 +178,7 @@ var BABYLON;
                     this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
                     engine.enableEffect(effect);
                     this._helperPlane._bind(this._subMesh, effect, BABYLON.Material.TriangleFillMode);
+                    // Cameras
                     this._planeMaterial.diffuseTexture = this._cameraTexture;
                     this._renderHelperPlane(this.core.currentScene.cameras, function (obj) {
                         if (obj === _this.core.currentScene.activeCamera)
@@ -164,6 +186,7 @@ var BABYLON;
                         _this._helperPlane.position.copyFrom(obj.position);
                         return true;
                     });
+                    // Sounds
                     this._planeMaterial.diffuseTexture = this._soundTexture;
                     for (var i = 0; i < this.core.currentScene.soundTracks.length; i++) {
                         var soundTrack = this.core.currentScene.soundTracks[i];
@@ -174,6 +197,7 @@ var BABYLON;
                             return true;
                         });
                     }
+                    // Lights
                     this._planeMaterial.diffuseTexture = this._lightTexture;
                     this._renderHelperPlane(this.core.currentScene.lights, function (obj) {
                         if (!obj.getAbsolutePosition)
@@ -184,11 +208,14 @@ var BABYLON;
                 }
             };
             Object.defineProperty(Transformer.prototype, "transformerType", {
+                // Get transformer type (POSITION, ROTATION or SCALING)
                 get: function () {
                     return this._transformerType;
                 },
+                // Set transformer type
                 set: function (type) {
                     this._transformerType = type;
+                    // Hide all
                     for (var i = 0; i < TransformerType.NOTHING; i++) {
                         this._xTransformers[i].setEnabled(false);
                         this._yTransformers[i].setEnabled(false);
@@ -204,22 +231,30 @@ var BABYLON;
                 configurable: true
             });
             Object.defineProperty(Transformer.prototype, "node", {
+                // Get the node to transform
                 get: function () {
                     return this._node;
                 },
+                // Set node to transform
                 set: function (node) {
                     this._node = node;
                 },
                 enumerable: true,
                 configurable: true
             });
+            // Returns the scene
             Transformer.prototype.getScene = function () {
                 return this._scene;
             };
+            // Returns the node position
             Transformer.prototype._getNodePosition = function () {
                 var node = this._node;
                 var position = null;
-                if (node._position) {
+                /*
+                if (node.getBoundingInfo && node.geometry) {
+                    position = node.getBoundingInfo().boundingSphere.centerWorld;
+                }
+                else */ if (node._position) {
                     position = node._position;
                 }
                 else if (node.position) {
@@ -227,6 +262,7 @@ var BABYLON;
                 }
                 return position;
             };
+            // Render planes
             Transformer.prototype._renderHelperPlane = function (array, onConfigure) {
                 var effect = this._planeMaterial.getEffect();
                 for (var i = 0; i < array.length; i++) {
@@ -243,8 +279,10 @@ var BABYLON;
                     });
                 }
             };
+            // Updates the transformer (picking + manage movements)
             Transformer.prototype._updateTransform = function (distance) {
                 if (this._pickingInfo === null) {
+                    // Pick
                     var pickInfo = this._scene.pick(this._scene.pointerX, this._scene.pointerY);
                     if (!pickInfo.hit && this._pickingInfo === null)
                         return;
@@ -255,6 +293,7 @@ var BABYLON;
                 var node = this._node;
                 var position = this._getNodePosition();
                 if (this._pickPosition) {
+                    // Setup planes
                     if (this._xTransformers.indexOf(mesh) !== -1) {
                         this._pickingPlane = BABYLON.Plane.FromPositionAndNormal(position, new BABYLON.Vector3(0, 0, -1));
                         this._selectedTransform = "x";
@@ -285,10 +324,13 @@ var BABYLON;
                         else {
                             this._vectorToModify = null;
                         }
+                        // TODO
+                        // Change transformer color...
                         mesh.material.emissiveColor = mesh.material.emissiveColor.multiply(new BABYLON.Color3(0.5, 0.5, 0.5));
                         this._pickPosition = false;
                     }
                 }
+                // Now, time to update
                 if (!this._vectorToModify)
                     return;
                 if (this._findMousePositionInPlane(this._pickingInfo)) {
@@ -306,6 +348,7 @@ var BABYLON;
                     }
                 }
             };
+            // Returns if the ray intersects the transformer plane
             Transformer.prototype._getIntersectionWithLine = function (linePoint, lineVect) {
                 var t2 = BABYLON.Vector3.Dot(this._pickingPlane.normal, lineVect);
                 if (t2 === 0)
@@ -314,12 +357,14 @@ var BABYLON;
                 this._mousePositionInPlane = linePoint.add(lineVect).multiplyByFloats(this._multiplier, this._multiplier, this._multiplier);
                 return true;
             };
+            // Fins the mouse position in plane
             Transformer.prototype._findMousePositionInPlane = function (pickingInfos) {
                 var ray = this._scene.createPickingRay(this._scene.pointerX, this._scene.pointerY, BABYLON.Matrix.Identity(), this._scene.activeCamera);
                 if (this._getIntersectionWithLine(ray.origin, ray.direction))
                     return true;
                 return false;
             };
+            // Create transformers
             Transformer.prototype._createTransformers = function () {
                 var colors = [
                     new BABYLON.Color3(1, 0, 0),
@@ -329,6 +374,7 @@ var BABYLON;
                 var x = null;
                 var y = null;
                 var z = null;
+                // Position
                 x = this._createPositionTransformer(colors[0], TransformerType.POSITION);
                 y = this._createPositionTransformer(colors[1], TransformerType.POSITION);
                 z = this._createPositionTransformer(colors[2], TransformerType.POSITION);
@@ -337,6 +383,7 @@ var BABYLON;
                 this._xTransformers.push(x);
                 this._yTransformers.push(y);
                 this._zTransformers.push(z);
+                // Rotation
                 x = this._createRotationTransformer(colors[0], TransformerType.ROTATION);
                 y = this._createRotationTransformer(colors[1], TransformerType.ROTATION);
                 z = this._createRotationTransformer(colors[2], TransformerType.ROTATION);
@@ -345,6 +392,7 @@ var BABYLON;
                 this._xTransformers.push(x);
                 this._yTransformers.push(y);
                 this._zTransformers.push(z);
+                // Scaling
                 x = this._createScalingTransformer(colors[0], TransformerType.SCALING);
                 y = this._createScalingTransformer(colors[1], TransformerType.SCALING);
                 z = this._createScalingTransformer(colors[2], TransformerType.SCALING);
@@ -353,12 +401,14 @@ var BABYLON;
                 this._xTransformers.push(x);
                 this._yTransformers.push(y);
                 this._zTransformers.push(z);
+                // Finish
                 for (var i = 0; i < TransformerType.NOTHING; i++) {
                     this._xTransformers[i].setEnabled(false);
                     this._yTransformers[i].setEnabled(false);
                     this._zTransformers[i].setEnabled(false);
                 }
             };
+            // Create position transformer
             Transformer.prototype._createPositionTransformer = function (color, id) {
                 var mesh = BABYLON.Mesh.CreateCylinder("PositionTransformer" + id, 8, 0.4, 0.4, 8, 1, this._scene, true);
                 mesh.scaling = this._sharedScale;
@@ -374,6 +424,7 @@ var BABYLON;
                 mesh2.material = material;
                 return mesh;
             };
+            // Create rotation transformer
             Transformer.prototype._createRotationTransformer = function (color, id) {
                 var mesh = BABYLON.Mesh.CreateTorus("RotationTransformer" + id, 20, 0.75, 35, this._scene, true);
                 mesh.scaling = this._sharedScale;
@@ -382,6 +433,7 @@ var BABYLON;
                 mesh.material = material;
                 return mesh;
             };
+            // Create scale transformer
             Transformer.prototype._createScalingTransformer = function (color, id) {
                 var mesh = BABYLON.Mesh.CreateCylinder("ScalingTransformer" + id, 8, 0.4, 0.4, 8, 1, this._scene, true);
                 mesh.scaling = this._sharedScale;
@@ -397,7 +449,7 @@ var BABYLON;
                 return mesh;
             };
             return Transformer;
-        }());
+        })();
         EDITOR.Transformer = Transformer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

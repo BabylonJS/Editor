@@ -9,22 +9,33 @@ var BABYLON;
     (function (EDITOR) {
         var PostProcessesTool = (function (_super) {
             __extends(PostProcessesTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
             function PostProcessesTool(editionTool) {
                 _super.call(this, editionTool);
+                // Public members
                 this.tab = "POSTPROCESSES.TAB";
+                // Private members
                 this._renderEffects = {};
+                // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
                 ];
             }
+            // Object supported
             PostProcessesTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.Scene)
                     return true;
                 return false;
             };
+            // Creates the UI
             PostProcessesTool.prototype.createUI = function () {
+                // Tabs
                 this._editionTool.panel.createTab({ id: this.tab, caption: "Post-Processes" });
             };
+            // Update
             PostProcessesTool.prototype.update = function () {
                 var _this = this;
                 var object = this.object = this._editionTool.object;
@@ -34,8 +45,10 @@ var BABYLON;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
+                // Ckeck checkboxes
                 EDITOR.SceneFactory.EnabledPostProcesses.hdr = EDITOR.SceneFactory.HDRPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
+                // HDR
                 var hdrFolder = this._element.addFolder("HDR");
                 hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "hdr").name("Enabled HDR").onChange(function (result) {
                     if (result === true)
@@ -71,6 +84,7 @@ var BABYLON;
                     var debugFolder = hdrFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline);
                 }
+                // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
                 ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssao").name("Enable SSAO").onChange(function (result) {
                     if (result === true)
@@ -90,9 +104,23 @@ var BABYLON;
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.000001).name("Fall Off");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
+                    /*
+                    var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+    
+                    var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
+                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
+                    */
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
+                /**
+                * VLS
+                */
                 var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
                 vlsFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange(function (result) {
                     if (result === true) {
@@ -128,6 +156,7 @@ var BABYLON;
                 }
                 return true;
             };
+            // Set up attached node of VLS
             PostProcessesTool.prototype._setVLSAttachedNode = function () {
                 var _this = this;
                 var picker = new EDITOR.ObjectPicker(this._editionTool.core);
@@ -143,6 +172,7 @@ var BABYLON;
                 };
                 picker.open();
             };
+            // Set up debug mode
             PostProcessesTool.prototype._setupDebugPipeline = function (folder, pipeline) {
                 var _this = this;
                 var renderEffects = pipeline._renderEffects;
@@ -163,6 +193,7 @@ var BABYLON;
                     });
                 }
             };
+            // Attach/detach pipeline
             PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {
                 if (attach)
                     this._editionTool.core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pipeline, this._getPipelineCameras());
@@ -175,6 +206,7 @@ var BABYLON;
                     cameras.push(this._editionTool.core.playCamera);
                 return cameras;
             };
+            // Creates a function to change texture of a flare
             PostProcessesTool.prototype._loadHDRLensDirtTexture = function () {
                 var _this = this;
                 var input = EDITOR.Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
@@ -193,7 +225,7 @@ var BABYLON;
                 input.click();
             };
             return PostProcessesTool;
-        }(EDITOR.AbstractDatTool));
+        })(EDITOR.AbstractDatTool);
         EDITOR.PostProcessesTool = PostProcessesTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

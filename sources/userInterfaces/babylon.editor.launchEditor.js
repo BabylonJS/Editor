@@ -3,7 +3,13 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var LaunchEditor = (function () {
+            // Private members
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
             function LaunchEditor(core) {
+                // Initialize
                 this.core = core;
                 var picker = new EDITOR.ObjectPicker(core);
                 picker.objectLists.push([core.currentScene]);
@@ -21,10 +27,13 @@ var BABYLON;
                         var node = core.currentScene.getNodeByName(names[i]);
                         if (!node && names[i] === "Scene")
                             node = core.currentScene;
+                        // Particle system
                         if (!node) {
+                            //node = core.currentScene.getParticleSystemByName(names[i]);
                             node = EDITOR.Tools.GetParticleSystemByName(core.currentScene, names[i]);
                         }
                         if (!node) {
+                            // Sound ?
                             node = core.currentScene.getSoundByName(names[i]);
                             if (!node)
                                 continue;
@@ -35,7 +44,7 @@ var BABYLON;
                 };
             }
             return LaunchEditor;
-        }());
+        })();
         EDITOR.LaunchEditor = LaunchEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
