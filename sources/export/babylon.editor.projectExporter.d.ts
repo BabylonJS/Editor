@@ -2,6 +2,7 @@ declare module BABYLON.EDITOR {
     class ProjectExporter {
         static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
         private static _SerializeGlobalAnimations();
+        private static _SerializeSounds(core);
         private static _SerializeRenderTargets(core);
         private static _SerializeLensFlares(core);
         private static _SerializePostProcesses();

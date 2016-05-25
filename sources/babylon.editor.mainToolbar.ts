@@ -27,17 +27,13 @@
         private _mainEditTextures = "EDIT-TEXTURES";
 
         private _mainAdd: string = "MAIN-ADD";
-        private _addPointLight: string = "ADD-POINT-LIGHT";
-        private _addDirectionalLight: string = "ADD-DIRECTIONAL-LIGHT";
-        private _addSpotLight: string = "ADD-SPOT-LIGHT";
-        private _addHemisphericLight: string = "ADD-HEMISPHERIC-LIGHT";
-        private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _addSkyMesh: string = "ADD-SKY-MESH";
         private _addWaterMesh: string = "ADD-WATER-MESH";
         private _addLensFlare: string = "ADD-LENS-FLARE";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
         private _addRenderTarget: string = "ADD-RENDER-TARGET";
 
+        private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _particlesMain: string = "PARTICLES-MAIN";
         private _particlesCopy: string = "PARTICLES-COPY";
         private _particlesPaste: string = "PARTICLES-PASTE";
@@ -131,24 +127,7 @@
 
                 // Add
                 if (selected.parent === this._mainAdd) {
-                    if (selected.selected === this._addPointLight) {
-                        SceneFactory.AddPointLight(this.core);
-                    }
-                    else if (selected.selected === this._addDirectionalLight) {
-                        SceneFactory.AddDirectionalLight(this.core);
-                    }
-                    else if (selected.selected === this._addSpotLight) {
-                        SceneFactory.AddSpotLight(this.core);
-                    }
-                    else if (selected.selected === this._addHemisphericLight) {
-                        SceneFactory.AddHemisphericLight(this.core);
-                    }
-
-                    else if (selected.selected === this._addParticleSystem) {
-                        SceneFactory.AddParticleSystem(this.core);
-                    }
-
-                    else if (selected.selected === this._addLensFlare) {
+                    if (selected.selected === this._addLensFlare) {
                         SceneFactory.AddLensFlareSystem(this.core);
                     }
                     
@@ -171,7 +150,11 @@
 
                 // Particles
                 if (selected.parent === this._particlesMain) {
-                    if (selected.selected === this._particlesCopy) {
+                    if (selected.selected === this._addParticleSystem) {
+                        SceneFactory.AddParticleSystem(this.core);
+                    }
+
+                    else if (selected.selected === this._particlesCopy) {
                         GUIParticleSystemEditor._CopiedParticleSystem = GUIParticleSystemEditor._CurrentParticleSystem;
                     }
                     else if (selected.selected === this._particlesPaste) {
@@ -237,13 +220,6 @@
             //...
 
             menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
-            this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
-            this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
-            this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
-            this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
-            this.toolbar.addBreak(menu);
-            this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
-            this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
@@ -254,6 +230,8 @@
             //...
 
             this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
+            this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+            this.toolbar.addBreak(menu);
             this.particleSystemCopyItem = this.toolbar.createMenuItem(menu, "button", this._particlesCopy, "Copy Selected Particle System", "icon-copy", false, true);
             this.particleSystemPasteItem = this.toolbar.createMenuItem(menu, "button", this._particlesPaste, "Paste Particle System", "icon-copy", false, true);
             this.toolbar.addBreak(menu);
@@ -261,8 +239,8 @@
             this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
             //...
 
-            for (var i = 0; i < PluginManager.MainToolbarPlugin.length; i++)
-                this._plugins.push(new PluginManager.MainToolbarPlugin[i](this));
+            for (var i = 0; i < PluginManager.MainToolbarPlugins.length; i++)
+                this._plugins.push(new PluginManager.MainToolbarPlugins[i](this));
 
             // Build element
             this.toolbar.buildElement(this.container);

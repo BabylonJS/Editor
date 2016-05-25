@@ -27,7 +27,7 @@ var BABYLON;
             }
             /**
             * Called when a menu item is selected by the user
-            * Returns true if a menu of the plugin was selected, false if no one selected
+            * "selected" is the id of the selected item
             */
             GeometriesMenuPlugin.prototype.onMenuItemSelected = function (selected) {
                 // Switch selected menu id

@@ -13,7 +13,7 @@ declare module BABYLON.EDITOR {
         constructor(mainToolbar: MainToolbar);
         /**
         * Called when a menu item is selected by the user
-        * Returns true if a menu of the plugin was selected, false if no one selected
+        * "selected" is the id of the selected item
         */
         onMenuItemSelected(selected: string): void;
     }

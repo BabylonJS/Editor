@@ -20,16 +20,12 @@ declare module BABYLON.EDITOR {
         private _mainEditLaunch;
         private _mainEditTextures;
         private _mainAdd;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        private _addParticleSystem;
         private _addSkyMesh;
         private _addWaterMesh;
         private _addLensFlare;
         private _addReflectionProbe;
         private _addRenderTarget;
+        private _addParticleSystem;
         private _particlesMain;
         private _particlesCopy;
         private _particlesPaste;

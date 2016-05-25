@@ -98,7 +98,6 @@
 
         /**
         * Called when a menu item is selected by the user
-        * Returns true if a menu of the plugin was selected, false if no one selected
         * @param selected: the id of the selected menu item
         */
         onMenuItemSelected(selected: string): void;

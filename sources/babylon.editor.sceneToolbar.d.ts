@@ -11,6 +11,7 @@ declare module BABYLON.EDITOR {
         private _centerOnObjectID;
         private _renderHelpersID;
         private _renderDebugLayerID;
+        private _drawingDebugLayer;
         /**
         * Constructor
         * @param core: the editor core instance
@@ -22,6 +23,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         setFocusOnObject(object: any): void;
         setFramesPerSecond(fps: number): void;
+        private _configureDebugLayer();
         private _configureFramesPerSecond();
     }
 }

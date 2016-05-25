@@ -214,7 +214,9 @@
     <TypeScriptCompile Include="sources\internal\babylon.editor.manipulationHelpers.ts" />
     <TypeScriptCompile Include="sources\internal\babylon.editor.tools.ts" />
     <TypeScriptCompile Include="sources\plugins\babylon.editor.geometriesMenu.ts" />
+    <TypeScriptCompile Include="sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="sources\plugins\babylon.editor.simpleMaterialTool.ts" />
+    <TypeScriptCompile Include="sources\plugins\babylon.editor.soundsMenu.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="sources\scene\babylon.editor.sceneManager.ts" />

@@ -168,16 +168,12 @@ declare module BABYLON.EDITOR {
         private _mainEditLaunch;
         private _mainEditTextures;
         private _mainAdd;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        private _addParticleSystem;
         private _addSkyMesh;
         private _addWaterMesh;
         private _addLensFlare;
         private _addReflectionProbe;
         private _addRenderTarget;
+        private _addParticleSystem;
         private _particlesMain;
         private _particlesCopy;
         private _particlesPaste;
@@ -198,11 +194,14 @@ declare module BABYLON.EDITOR {
 declare module BABYLON.EDITOR {
     type _EditionToolConstructor = new (editionTool: EditionTool) => ICustomEditionTool;
     type _MainToolbarConstructor = new (mainToolbar: MainToolbar) => ICustomToolbarMenu;
+    type _CustomUpdateConstructor = new (core: EditorCore) => ICustomUpdate;
     class PluginManager {
         static EditionToolPlugins: _EditionToolConstructor[];
-        static MainToolbarPlugin: _MainToolbarConstructor[];
+        static MainToolbarPlugins: _MainToolbarConstructor[];
+        static CustomUpdatePlugins: _CustomUpdateConstructor[];
         static RegisterEditionTool(tool: _EditionToolConstructor): void;
         static RegisterMainToolbarPlugin(plugin: _MainToolbarConstructor): void;
+        static RegisterCustomUpdatePlugin(plugin: _CustomUpdateConstructor): void;
     }
 }
 
@@ -1169,9 +1168,27 @@ declare module BABYLON.EDITOR {
         constructor(mainToolbar: MainToolbar);
         /**
         * Called when a menu item is selected by the user
-        * Returns true if a menu of the plugin was selected, false if no one selected
+        * "selected" is the id of the selected item
         */
         onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
     }
 }
 

@@ -4471,16 +4471,12 @@ var BABYLON;
                 this._mainEditLaunch = "EDIT-LAUNCH";
                 this._mainEditTextures = "EDIT-TEXTURES";
                 this._mainAdd = "MAIN-ADD";
-                this._addPointLight = "ADD-POINT-LIGHT";
-                this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
-                this._addSpotLight = "ADD-SPOT-LIGHT";
-                this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
-                this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._addSkyMesh = "ADD-SKY-MESH";
                 this._addWaterMesh = "ADD-WATER-MESH";
                 this._addLensFlare = "ADD-LENS-FLARE";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
+                this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._particlesMain = "PARTICLES-MAIN";
                 this._particlesCopy = "PARTICLES-COPY";
                 this._particlesPaste = "PARTICLES-PASTE";
@@ -4552,22 +4548,7 @@ var BABYLON;
                     }
                     // Add
                     if (selected.parent === this._mainAdd) {
-                        if (selected.selected === this._addPointLight) {
-                            EDITOR.SceneFactory.AddPointLight(this.core);
-                        }
-                        else if (selected.selected === this._addDirectionalLight) {
-                            EDITOR.SceneFactory.AddDirectionalLight(this.core);
-                        }
-                        else if (selected.selected === this._addSpotLight) {
-                            EDITOR.SceneFactory.AddSpotLight(this.core);
-                        }
-                        else if (selected.selected === this._addHemisphericLight) {
-                            EDITOR.SceneFactory.AddHemisphericLight(this.core);
-                        }
-                        else if (selected.selected === this._addParticleSystem) {
-                            EDITOR.SceneFactory.AddParticleSystem(this.core);
-                        }
-                        else if (selected.selected === this._addLensFlare) {
+                        if (selected.selected === this._addLensFlare) {
                             EDITOR.SceneFactory.AddLensFlareSystem(this.core);
                         }
                         else if (selected.selected === this._addSkyMesh) {
@@ -4586,7 +4567,10 @@ var BABYLON;
                     }
                     // Particles
                     if (selected.parent === this._particlesMain) {
-                        if (selected.selected === this._particlesCopy) {
+                        if (selected.selected === this._addParticleSystem) {
+                            EDITOR.SceneFactory.AddParticleSystem(this.core);
+                        }
+                        else if (selected.selected === this._particlesCopy) {
                             EDITOR.GUIParticleSystemEditor._CopiedParticleSystem = EDITOR.GUIParticleSystemEditor._CurrentParticleSystem;
                         }
                         else if (selected.selected === this._particlesPaste) {
@@ -4638,13 +4622,6 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
                 //...
                 menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");
-                this.toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
-                this.toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
-                this.toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
-                this.toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
-                this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
-                this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addLensFlare, "Add Lens Flare", "icon-lens-flare");
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addSkyMesh, "Add Sky", "icon-shaders");
@@ -4654,14 +4631,16 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
                 //...
                 this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
+                this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");
+                this.toolbar.addBreak(menu);
                 this.particleSystemCopyItem = this.toolbar.createMenuItem(menu, "button", this._particlesCopy, "Copy Selected Particle System", "icon-copy", false, true);
                 this.particleSystemPasteItem = this.toolbar.createMenuItem(menu, "button", this._particlesPaste, "Paste Particle System", "icon-copy", false, true);
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
                 this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
                 //...
-                for (var i = 0; i < EDITOR.PluginManager.MainToolbarPlugin.length; i++)
-                    this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugin[i](this));
+                for (var i = 0; i < EDITOR.PluginManager.MainToolbarPlugins.length; i++)
+                    this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugins[i](this));
                 // Build element
                 this.toolbar.buildElement(this.container);
             };
@@ -9918,11 +9897,15 @@ var BABYLON;
                 this.EditionToolPlugins.push(tool);
             };
             PluginManager.RegisterMainToolbarPlugin = function (plugin) {
-                this.MainToolbarPlugin.push(plugin);
+                this.MainToolbarPlugins.push(plugin);
+            };
+            PluginManager.RegisterCustomUpdatePlugin = function (plugin) {
+                this.CustomUpdatePlugins.push(plugin);
             };
             // Plugins
             PluginManager.EditionToolPlugins = [];
-            PluginManager.MainToolbarPlugin = [];
+            PluginManager.MainToolbarPlugins = [];
+            PluginManager.CustomUpdatePlugins = [];
             return PluginManager;
         })();
         EDITOR.PluginManager = PluginManager;
@@ -9996,7 +9979,7 @@ var BABYLON;
             }
             /**
             * Called when a menu item is selected by the user
-            * Returns true if a menu of the plugin was selected, false if no one selected
+            * "selected" is the id of the selected item
             */
             GeometriesMenuPlugin.prototype.onMenuItemSelected = function (selected) {
                 // Switch selected menu id
@@ -10103,5 +10086,60 @@ var BABYLON;
         EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var LightsMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function LightsMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "LIGHTS-MENU";
+                this._addPointLight = "ADD-POINT-LIGHT";
+                this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
+                this._addSpotLight = "ADD-SPOT-LIGHT";
+                this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Lights", "icon-light");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
+                toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
+                toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
+                toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
+            }
+            // When an item has been selected
+            LightsMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                switch (selected) {
+                    case this._addPointLight:
+                        EDITOR.SceneFactory.AddPointLight(this._core);
+                        break;
+                    case this._addDirectionalLight:
+                        EDITOR.SceneFactory.AddDirectionalLight(this._core);
+                        break;
+                    case this._addSpotLight:
+                        EDITOR.SceneFactory.AddSpotLight(this._core);
+                        break;
+                    case this._addHemisphericLight:
+                        EDITOR.SceneFactory.AddHemisphericLight(this._core);
+                        break;
+                }
+            };
+            // Configure the sound
+            LightsMenuPlugin.prototype._configureSound = function (sound) {
+                BABYLON.Tags.EnableFor(sound);
+                BABYLON.Tags.AddTagsTo(sound, "added");
+            };
+            return LightsMenuPlugin;
+        })();
+        EDITOR.LightsMenuPlugin = LightsMenuPlugin;
+        // Register plugin
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

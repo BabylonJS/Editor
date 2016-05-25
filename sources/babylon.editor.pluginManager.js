@@ -10,11 +10,15 @@ var BABYLON;
                 this.EditionToolPlugins.push(tool);
             };
             PluginManager.RegisterMainToolbarPlugin = function (plugin) {
-                this.MainToolbarPlugin.push(plugin);
+                this.MainToolbarPlugins.push(plugin);
+            };
+            PluginManager.RegisterCustomUpdatePlugin = function (plugin) {
+                this.CustomUpdatePlugins.push(plugin);
             };
             // Plugins
             PluginManager.EditionToolPlugins = [];
-            PluginManager.MainToolbarPlugin = [];
+            PluginManager.MainToolbarPlugins = [];
+            PluginManager.CustomUpdatePlugins = [];
             return PluginManager;
         })();
         EDITOR.PluginManager = PluginManager;

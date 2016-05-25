@@ -112,8 +112,8 @@ declare module BABYLON.EDITOR.INTERNAL {
         postProcesses: IPostProcess[];
         lensFlares: ILensFlare[];
         renderTargets: IRenderTarget[];
-        actions: any;
         sounds: ISound[];
+        actions: any;
         requestedMaterials?: string[];
     }
 }
