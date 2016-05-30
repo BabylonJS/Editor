@@ -10016,14 +10016,17 @@ var BABYLON;
                 // Public members
                 this.menuID = "SOUNDS-MENU";
                 this._addSoundtrackID = "ADD-SOUNDTRACK";
-                this._add3DSoundId = "ADD-3D-SOUND";
+                this._stopAllSounds = "STOP-ALL-SOUNDS";
+                this._playAllSounds = "PLAY-ALL-SOUNDS";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
                 var menu = toolbar.createMenu("menu", this.menuID, "Sound", "icon-sound");
                 // Create items
                 toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
-                toolbar.createMenuItem(menu, "button", this._add3DSoundId, "Add 3D Sounds", "icon-sound");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-stop-sound");
+                toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-sound");
                 // Etc.
             }
             // When an item has been selected
@@ -10038,10 +10041,24 @@ var BABYLON;
                             _this._configureSound(sound);
                         });
                         break;
-                    case this._add3DSoundId:
-                        EDITOR.SceneFactory.AddSphereMesh(this._core);
+                    case this._stopAllSounds:
+                        this._stopPlayAllSounds(false);
+                        break;
+                    case this._playAllSounds:
+                        this._stopPlayAllSounds(true);
                         break;
                     default: break;
+                }
+            };
+            // Stop or play all sounds
+            SoundsMenuPlugin.prototype._stopPlayAllSounds = function (play) {
+                var soundtrack = this._core.currentScene.mainSoundTrack;
+                for (var i = 0; i < soundtrack.soundCollection.length; i++) {
+                    var sound = soundtrack.soundCollection[i];
+                    if (play && !sound.isPlaying)
+                        sound.play();
+                    else
+                        sound.stop();
                 }
             };
             // Configure the sound

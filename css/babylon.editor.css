@@ -181,3 +181,11 @@ html, body {
 .w2ui-icon.icon-water {
     background: url("images/water.png");
 }
+
+.w2ui-icon.icon-stop-sound {
+    background: url("images/stop_sound.png");
+}
+
+.w2ui-icon.icon-play-sound {
+    background: url("images/play_sound.png");
+}

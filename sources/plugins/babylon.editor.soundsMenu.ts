@@ -7,7 +7,8 @@ module BABYLON.EDITOR {
         private _core: EditorCore;
 
         private _addSoundtrackID = "ADD-SOUNDTRACK";
-        private _add3DSoundId = "ADD-3D-SOUND";
+        private _stopAllSounds = "STOP-ALL-SOUNDS";
+        private _playAllSounds = "PLAY-ALL-SOUNDS";
 
         /**
         * Constructor
@@ -22,7 +23,9 @@ module BABYLON.EDITOR {
             
             // Create items
             toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
-            toolbar.createMenuItem(menu, "button", this._add3DSoundId, "Add 3D Sounds", "icon-sound");
+            toolbar.addBreak(menu);
+            toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-stop-sound");
+            toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-sound");
             // Etc.
         }
         
@@ -37,10 +40,26 @@ module BABYLON.EDITOR {
                         this._configureSound(sound);
                     });
                     break;
-                case this._add3DSoundId:
-                    SceneFactory.AddSphereMesh(this._core);
+                case this._stopAllSounds:
+                    this._stopPlayAllSounds(false);
+                    break;
+                case this._playAllSounds:
+                    this._stopPlayAllSounds(true);
                     break;
                 default: break;
+            }
+        }
+
+        // Stop or play all sounds
+        private _stopPlayAllSounds(play: boolean): void {
+            var soundtrack = this._core.currentScene.mainSoundTrack;
+            for (var i = 0; i < soundtrack.soundCollection.length; i++) {
+                var sound = soundtrack.soundCollection[i];
+
+                if (play && !sound.isPlaying)
+                    sound.play()
+                else
+                    sound.stop();
             }
         }
         
