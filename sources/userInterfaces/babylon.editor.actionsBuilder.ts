@@ -44,6 +44,20 @@
                 this._getNames(core.currentScene.cameras, iframeWindow.setCamerasNames);
                 this._getNames(core.currentScene.mainSoundTrack.soundCollection, iframeWindow.setSoundsNames);
 
+                // Set parameters
+                var parameters: string[] = [];
+                if (object instanceof AbstractMesh) {
+                    if (object.material) {
+                        parameters.push(Tools.GetConstructorName(object.material));
+                        iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
+                    }
+                }
+                else
+                    parameters.push("None"); // No additional parameters
+
+                iframeWindow.configureParameters(parameters);
+                
+                // Configure
                 if (object instanceof Scene)
                     iframeWindow.setIsScene();
                 else

@@ -4543,12 +4543,15 @@ var BABYLON;
                 maximum: maximum
             };
         };
-        Tools.ExtractMinAndMax = function (positions, start, count, bias) {
+        Tools.ExtractMinAndMax = function (positions, start, count, bias, stride) {
             if (bias === void 0) { bias = null; }
             var minimum = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
             var maximum = new BABYLON.Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
+            if (!stride) {
+                stride = 3;
+            }
             for (var index = start; index < start + count; index++) {
-                var current = new BABYLON.Vector3(positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]);
+                var current = new BABYLON.Vector3(positions[index * stride], positions[index * stride + 1], positions[index * stride + 2]);
                 minimum = BABYLON.Vector3.Minimize(current, minimum);
                 maximum = BABYLON.Vector3.Maximize(current, maximum);
             }
@@ -5835,6 +5838,9 @@ var BABYLON;
             this._activeTexturesCache = new Array(this._maxTextureChannels);
             this._compiledEffects = {};
             this._uintIndicesCurrentlySet = false;
+            this._currentBoundBuffer = new Array();
+            this._currentInstanceLocations = new Array();
+            this._currentInstanceBuffers = new Array();
             this._renderingCanvas = canvas;
             this._externalData = new BABYLON.StringDictionary();
             options = options || {};
@@ -6274,6 +6280,25 @@ var BABYLON;
             }
             this._gl.clear(mode);
         };
+        Engine.prototype.scissorClear = function (x, y, width, height, clearColor) {
+            var gl = this._gl;
+            // Save state
+            var curScissor = gl.getParameter(gl.SCISSOR_TEST);
+            var curScissorBox = gl.getParameter(gl.SCISSOR_BOX);
+            // Change state
+            gl.enable(gl.SCISSOR_TEST);
+            gl.scissor(x, y, width, height);
+            // Clear
+            this.clear(clearColor, true, true);
+            // Restore state
+            gl.scissor(curScissorBox[0], curScissorBox[1], curScissorBox[2], curScissorBox[3]);
+            if (curScissor === true) {
+                gl.enable(gl.SCISSOR_TEST);
+            }
+            else {
+                gl.disable(gl.SCISSOR_TEST);
+            }
+        };
         /**
          * Set the WebGL's viewport
          * @param {BABYLON.Viewport} viewport - the viewport element to be used.
@@ -6382,12 +6407,12 @@ var BABYLON;
         };
         // VBOs
         Engine.prototype._resetVertexBufferBinding = function () {
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, null);
+            this.bindBuffer(null, this._gl.ARRAY_BUFFER);
             this._cachedVertexBuffers = null;
         };
         Engine.prototype.createVertexBuffer = function (vertices) {
             var vbo = this._gl.createBuffer();
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
+            this.bindBuffer(vbo, this._gl.ARRAY_BUFFER);
             if (vertices instanceof Float32Array) {
                 this._gl.bufferData(this._gl.ARRAY_BUFFER, vertices, this._gl.STATIC_DRAW);
             }
@@ -6398,34 +6423,49 @@ var BABYLON;
             vbo.references = 1;
             return vbo;
         };
-        Engine.prototype.createDynamicVertexBuffer = function (capacity) {
+        Engine.prototype.createDynamicVertexBuffer = function (vertices) {
             var vbo = this._gl.createBuffer();
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, capacity, this._gl.DYNAMIC_DRAW);
+            this.bindBuffer(vbo, this._gl.ARRAY_BUFFER);
+            if (vertices instanceof Float32Array) {
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, vertices, this._gl.DYNAMIC_DRAW);
+            }
+            else {
+                this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.DYNAMIC_DRAW);
+            }
             this._resetVertexBufferBinding();
             vbo.references = 1;
             return vbo;
         };
-        Engine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, vertices, offset) {
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexBuffer);
+        Engine.prototype.updateDynamicVertexBuffer = function (vertexBuffer, vertices, offset, count) {
+            this.bindBuffer(vertexBuffer, this._gl.ARRAY_BUFFER);
             if (offset === undefined) {
                 offset = 0;
             }
-            if (vertices instanceof Float32Array) {
-                this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, vertices);
+            if (count === undefined) {
+                if (vertices instanceof Float32Array) {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, vertices);
+                }
+                else {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, new Float32Array(vertices));
+                }
             }
             else {
-                this._gl.bufferSubData(this._gl.ARRAY_BUFFER, offset, new Float32Array(vertices));
+                if (vertices instanceof Float32Array) {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, vertices.subarray(offset, offset + count));
+                }
+                else {
+                    this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, new Float32Array(vertices).subarray(offset, offset + count));
+                }
             }
             this._resetVertexBufferBinding();
         };
         Engine.prototype._resetIndexBufferBinding = function () {
-            this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, null);
+            this.bindBuffer(null, this._gl.ELEMENT_ARRAY_BUFFER);
             this._cachedIndexBuffer = null;
         };
         Engine.prototype.createIndexBuffer = function (indices) {
             var vbo = this._gl.createBuffer();
-            this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, vbo);
+            this.bindBuffer(vbo, this._gl.ELEMENT_ARRAY_BUFFER);
             // Check for 32 bits indices
             var arrayBuffer;
             var need32Bits = false;
@@ -6447,11 +6487,23 @@ var BABYLON;
             vbo.is32Bits = need32Bits;
             return vbo;
         };
-        Engine.prototype.bindBuffers = function (vertexBuffer, indexBuffer, vertexDeclaration, vertexStrideSize, effect) {
+        Engine.prototype.bindArrayBuffer = function (buffer) {
+            this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
+        };
+        Engine.prototype.updateArrayBuffer = function (data) {
+            this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, data);
+        };
+        Engine.prototype.bindBuffer = function (buffer, target) {
+            if (this._currentBoundBuffer[target] !== buffer) {
+                this._gl.bindBuffer(target, buffer);
+                this._currentBoundBuffer[target] = buffer;
+            }
+        };
+        Engine.prototype.bindBuffersDirectly = function (vertexBuffer, indexBuffer, vertexDeclaration, vertexStrideSize, effect) {
             if (this._cachedVertexBuffers !== vertexBuffer || this._cachedEffectForVertexBuffers !== effect) {
                 this._cachedVertexBuffers = vertexBuffer;
                 this._cachedEffectForVertexBuffers = effect;
-                this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexBuffer);
+                this.bindBuffer(vertexBuffer, this._gl.ARRAY_BUFFER);
                 var offset = 0;
                 for (var index = 0; index < vertexDeclaration.length; index++) {
                     var order = effect.getAttributeLocation(index);
@@ -6463,11 +6515,11 @@ var BABYLON;
             }
             if (this._cachedIndexBuffer !== indexBuffer) {
                 this._cachedIndexBuffer = indexBuffer;
-                this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                this.bindBuffer(indexBuffer, this._gl.ELEMENT_ARRAY_BUFFER);
                 this._uintIndicesCurrentlySet = indexBuffer.is32Bits;
             }
         };
-        Engine.prototype.bindMultiBuffers = function (vertexBuffers, indexBuffer, effect) {
+        Engine.prototype.bindBuffers = function (vertexBuffers, indexBuffer, effect) {
             if (this._cachedVertexBuffers !== vertexBuffers || this._cachedEffectForVertexBuffers !== effect) {
                 this._cachedVertexBuffers = vertexBuffers;
                 this._cachedEffectForVertexBuffers = effect;
@@ -6479,17 +6531,36 @@ var BABYLON;
                         if (!vertexBuffer) {
                             continue;
                         }
-                        var stride = vertexBuffer.getStrideSize();
-                        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexBuffer.getBuffer());
-                        this._gl.vertexAttribPointer(order, stride, this._gl.FLOAT, false, stride * 4, 0);
+                        var buffer = vertexBuffer.getBuffer();
+                        this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
+                        this._gl.vertexAttribPointer(order, vertexBuffer.getSize(), this._gl.FLOAT, false, vertexBuffer.getStrideSize() * 4, vertexBuffer.getOffset() * 4);
+                        if (vertexBuffer.getIsInstanced()) {
+                            this._caps.instancedArrays.vertexAttribDivisorANGLE(order, 1);
+                            this._currentInstanceLocations.push(order);
+                            this._currentInstanceBuffers.push(buffer);
+                        }
                     }
                 }
             }
             if (indexBuffer != null && this._cachedIndexBuffer !== indexBuffer) {
                 this._cachedIndexBuffer = indexBuffer;
-                this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                this.bindBuffer(indexBuffer, this._gl.ELEMENT_ARRAY_BUFFER);
                 this._uintIndicesCurrentlySet = indexBuffer.is32Bits;
             }
+        };
+        Engine.prototype.unbindInstanceAttributes = function () {
+            var boundBuffer;
+            for (var i = 0, ul = this._currentInstanceLocations.length; i < ul; i++) {
+                var instancesBuffer = this._currentInstanceBuffers[i];
+                if (boundBuffer != instancesBuffer) {
+                    boundBuffer = instancesBuffer;
+                    this.bindBuffer(instancesBuffer, this._gl.ARRAY_BUFFER);
+                }
+                var offsetLocation = this._currentInstanceLocations[i];
+                this._caps.instancedArrays.vertexAttribDivisorANGLE(offsetLocation, 0);
+            }
+            this._currentInstanceBuffers.length = 0;
+            this._currentInstanceLocations.length = 0;
         };
         Engine.prototype._releaseBuffer = function (buffer) {
             buffer.references--;
@@ -6502,7 +6573,7 @@ var BABYLON;
         Engine.prototype.createInstancesBuffer = function (capacity) {
             var buffer = this._gl.createBuffer();
             buffer.capacity = capacity;
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
+            this.bindBuffer(buffer, this._gl.ARRAY_BUFFER);
             this._gl.bufferData(this._gl.ARRAY_BUFFER, capacity, this._gl.DYNAMIC_DRAW);
             return buffer;
         };
@@ -6510,7 +6581,7 @@ var BABYLON;
             this._gl.deleteBuffer(buffer);
         };
         Engine.prototype.updateAndBindInstancesBuffer = function (instancesBuffer, data, offsetLocations) {
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, instancesBuffer);
+            this.bindBuffer(instancesBuffer, this._gl.ARRAY_BUFFER);
             if (data) {
                 this._gl.bufferSubData(this._gl.ARRAY_BUFFER, 0, data);
             }
@@ -6525,6 +6596,8 @@ var BABYLON;
                     this._gl.enableVertexAttribArray(ai.index);
                     this._gl.vertexAttribPointer(ai.index, ai.attributeSize, ai.attribyteType || this._gl.FLOAT, ai.normalized || false, stride, ai.offset);
                     this._caps.instancedArrays.vertexAttribDivisorANGLE(ai.index, 1);
+                    this._currentInstanceLocations.push(ai.index);
+                    this._currentInstanceBuffers.push(instancesBuffer);
                 }
             }
             else {
@@ -6533,23 +6606,8 @@ var BABYLON;
                     this._gl.enableVertexAttribArray(offsetLocation);
                     this._gl.vertexAttribPointer(offsetLocation, 4, this._gl.FLOAT, false, 64, index * 16);
                     this._caps.instancedArrays.vertexAttribDivisorANGLE(offsetLocation, 1);
-                }
-            }
-        };
-        Engine.prototype.unBindInstancesBuffer = function (instancesBuffer, offsetLocations) {
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, instancesBuffer);
-            if (offsetLocations[0].index !== undefined) {
-                for (var i = 0; i < offsetLocations.length; i++) {
-                    var ai = offsetLocations[i];
-                    this._gl.disableVertexAttribArray(ai.index);
-                    this._caps.instancedArrays.vertexAttribDivisorANGLE(ai.index, 0);
-                }
-            }
-            else {
-                for (var index = 0; index < 4; index++) {
-                    var offsetLocation = offsetLocations[index];
-                    this._gl.disableVertexAttribArray(offsetLocation);
-                    this._caps.instancedArrays.vertexAttribDivisorANGLE(offsetLocation, 0);
+                    this._currentInstanceLocations.push(offsetLocation);
+                    this._currentInstanceBuffers.push(instancesBuffer);
                 }
             }
         };
@@ -6664,25 +6722,33 @@ var BABYLON;
                 }
                 return;
             }
-            this._vertexAttribArrays = this._vertexAttribArrays || [];
+            this._vertexAttribArraysToUse = this._vertexAttribArraysToUse || [];
+            this._vertexAttribArraysEnabled = this._vertexAttribArraysEnabled || [];
             // Use program
             this._gl.useProgram(effect.getProgram());
-            for (var i in this._vertexAttribArrays) {
-                //make sure this is a number)
-                var iAsNumber = +i;
-                if (iAsNumber > this._gl.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArrays[iAsNumber]) {
-                    continue;
-                }
-                this._vertexAttribArrays[iAsNumber] = false;
-                this._gl.disableVertexAttribArray(iAsNumber);
+            var i, ul;
+            for (i = 0, ul = this._vertexAttribArraysToUse.length; i < ul; i++) {
+                this._vertexAttribArraysToUse[i] = false;
             }
             var attributesCount = effect.getAttributesCount();
-            for (var index = 0; index < attributesCount; index++) {
+            for (i = 0; i < attributesCount; i++) {
                 // Attributes
-                var order = effect.getAttributeLocation(index);
+                var order = effect.getAttributeLocation(i);
                 if (order >= 0) {
-                    this._vertexAttribArrays[order] = true;
-                    this._gl.enableVertexAttribArray(order);
+                    this._vertexAttribArraysToUse[order] = true;
+                }
+            }
+            for (i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
+                if (i > this._gl.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArraysEnabled[i] || this._vertexAttribArraysToUse[i]) {
+                    continue;
+                }
+                this._vertexAttribArraysEnabled[i] = false;
+                this._gl.disableVertexAttribArray(i);
+            }
+            for (i = 0, ul = this._vertexAttribArraysToUse.length; i < ul; i++) {
+                if (this._vertexAttribArraysToUse[i] && !this._vertexAttribArraysEnabled[i]) {
+                    this._vertexAttribArraysEnabled[i] = true;
+                    this._gl.enableVertexAttribArray(i);
                 }
             }
             this._currentEffect = effect;
@@ -7161,8 +7227,8 @@ var BABYLON;
                 type = Engine.TEXTURETYPE_UNSIGNED_INT;
                 BABYLON.Tools.Warn("Float textures are not supported. Render target forced to TEXTURETYPE_UNSIGNED_BYTE type");
             }
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filters.mag);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filters.min);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); //filters.mag);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); //filters.min);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, getWebGLTextureType(gl, type), null);
@@ -7389,7 +7455,7 @@ var BABYLON;
                 else {
                     noMipmap = true;
                 }
-                if (textureType == gl.FLOAT && !_this._caps.textureFloatLinearFiltering) {
+                if (textureType === gl.FLOAT && !_this._caps.textureFloatLinearFiltering) {
                     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                 }
@@ -7613,13 +7679,13 @@ var BABYLON;
                 this._gl.deleteProgram(this._compiledEffects[name]._program);
             }
             // Unbind
-            for (var i in this._vertexAttribArrays) {
-                //making sure this is a string
-                var iAsNumber = +i;
-                if (iAsNumber > this._gl.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArrays[iAsNumber]) {
-                    continue;
+            if (this._vertexAttribArraysEnabled) {
+                for (var i = 0, ul = this._vertexAttribArraysEnabled.length; i < ul; i++) {
+                    if (i > this._gl.VERTEX_ATTRIB_ARRAY_ENABLED || !this._vertexAttribArraysEnabled[i]) {
+                        continue;
+                    }
+                    this._gl.disableVertexAttribArray(i);
                 }
-                this._gl.disableVertexAttribArray(iAsNumber);
             }
             this._gl = null;
             // Events
@@ -8998,27 +9064,6 @@ var BABYLON;
                     this.onCollisionPositionChangeObservable.remove(this._onCollisionPositionChangeObserver);
                 }
                 this._onCollisionPositionChangeObserver = this.onCollisionPositionChangeObservable.add(callback);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(AbstractMesh.prototype, "actionManager", {
-            /**
-             * This scene's action manager
-             * @type {BABYLON.ActionManager}
-            */
-            get: function () {
-                if (!this._actionManager) {
-                    this.actionManager = new BABYLON.ActionManager(this.getScene());
-                }
-                return this._actionManager;
-            },
-            /**
-             * This scene's action manager
-             * @type {BABYLON.ActionManager}
-            */
-            set: function (value) {
-                this._actionManager = value;
             },
             enumerable: true,
             configurable: true
@@ -11639,6 +11684,9 @@ var BABYLON;
                     }
                     cam._postProcesses = this._postProcesses.slice(0).concat(rigPostProcess);
                     rigPostProcess.markTextureDirty();
+                }
+                else {
+                    cam._postProcesses = this._postProcesses.slice(0);
                 }
             }
         };
@@ -14994,27 +15042,6 @@ var BABYLON;
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(Scene.prototype, "actionManager", {
-            /**
-             * This scene's action manager
-             * @type {BABYLON.ActionManager}
-            */
-            get: function () {
-                if (!this._sceneActionManager) {
-                    this.actionManager = new BABYLON.ActionManager(this);
-                }
-                return this._sceneActionManager;
-            },
-            /**
-             * This scene's action manager
-             * @type {BABYLON.ActionManager}
-            */
-            set: function (value) {
-                this._sceneActionManager = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
         Object.defineProperty(Scene.prototype, "debugLayer", {
             // Properties
             get: function () {
@@ -16989,8 +17016,8 @@ var BABYLON;
 
 var BABYLON;
 (function (BABYLON) {
-    var VertexBuffer = (function () {
-        function VertexBuffer(engine, data, kind, updatable, postponeInternalCreation, stride) {
+    var Buffer = (function () {
+        function Buffer(engine, data, updatable, stride, postponeInternalCreation, instanced) {
             if (engine instanceof BABYLON.Mesh) {
                 this._engine = engine.getScene().getEngine();
             }
@@ -16999,93 +17026,165 @@ var BABYLON;
             }
             this._updatable = updatable;
             this._data = data;
+            this._strideSize = stride;
             if (!postponeInternalCreation) {
                 this.create();
             }
-            this._kind = kind;
-            if (stride) {
-                this._strideSize = stride;
-                return;
-            }
-            // Deduce stride from kind
-            switch (kind) {
-                case VertexBuffer.PositionKind:
-                    this._strideSize = 3;
-                    break;
-                case VertexBuffer.NormalKind:
-                    this._strideSize = 3;
-                    break;
-                case VertexBuffer.UVKind:
-                case VertexBuffer.UV2Kind:
-                case VertexBuffer.UV3Kind:
-                case VertexBuffer.UV4Kind:
-                case VertexBuffer.UV5Kind:
-                case VertexBuffer.UV6Kind:
-                    this._strideSize = 2;
-                    break;
-                case VertexBuffer.ColorKind:
-                    this._strideSize = 4;
-                    break;
-                case VertexBuffer.MatricesIndicesKind:
-                case VertexBuffer.MatricesIndicesExtraKind:
-                    this._strideSize = 4;
-                    break;
-                case VertexBuffer.MatricesWeightsKind:
-                case VertexBuffer.MatricesWeightsExtraKind:
-                    this._strideSize = 4;
-                    break;
-            }
+            this._instanced = instanced;
         }
+        Buffer.prototype.createVertexBuffer = function (kind, offset, size, stride) {
+            // a lot of these parameters are ignored as they are overriden by the buffer
+            return new BABYLON.VertexBuffer(this._engine, this, kind, this._updatable, true, stride ? stride : this._strideSize, this._instanced, offset, size);
+        };
         // Properties
-        VertexBuffer.prototype.isUpdatable = function () {
+        Buffer.prototype.isUpdatable = function () {
             return this._updatable;
         };
-        VertexBuffer.prototype.getData = function () {
+        Buffer.prototype.getData = function () {
             return this._data;
         };
-        VertexBuffer.prototype.getBuffer = function () {
+        Buffer.prototype.getBuffer = function () {
             return this._buffer;
         };
-        VertexBuffer.prototype.getStrideSize = function () {
+        Buffer.prototype.getStrideSize = function () {
             return this._strideSize;
         };
+        Buffer.prototype.getIsInstanced = function () {
+            return this._instanced;
+        };
         // Methods
-        VertexBuffer.prototype.create = function (data) {
+        Buffer.prototype.create = function (data) {
             if (!data && this._buffer) {
                 return; // nothing to do
             }
             data = data || this._data;
             if (!this._buffer) {
                 if (this._updatable) {
-                    this._buffer = this._engine.createDynamicVertexBuffer(data.length * 4);
+                    this._buffer = this._engine.createDynamicVertexBuffer(data);
+                    this._data = data;
                 }
                 else {
                     this._buffer = this._engine.createVertexBuffer(data);
                 }
             }
-            if (this._updatable) {
+            else if (this._updatable) {
                 this._engine.updateDynamicVertexBuffer(this._buffer, data);
                 this._data = data;
             }
         };
-        VertexBuffer.prototype.update = function (data) {
+        Buffer.prototype.update = function (data) {
             this.create(data);
         };
-        VertexBuffer.prototype.updateDirectly = function (data, offset) {
+        Buffer.prototype.updateDirectly = function (data, offset, vertexCount) {
             if (!this._buffer) {
                 return;
             }
             if (this._updatable) {
-                this._engine.updateDynamicVertexBuffer(this._buffer, data, offset);
+                this._engine.updateDynamicVertexBuffer(this._buffer, data, offset, (vertexCount ? vertexCount * this.getStrideSize() : undefined));
                 this._data = null;
             }
         };
-        VertexBuffer.prototype.dispose = function () {
+        Buffer.prototype.dispose = function () {
             if (!this._buffer) {
                 return;
             }
             if (this._engine._releaseBuffer(this._buffer)) {
                 this._buffer = null;
+            }
+        };
+        return Buffer;
+    }());
+    BABYLON.Buffer = Buffer;
+})(BABYLON || (BABYLON = {}));
+
+var BABYLON;
+(function (BABYLON) {
+    var VertexBuffer = (function () {
+        function VertexBuffer(engine, data, kind, updatable, postponeInternalCreation, stride, instanced, offset, size) {
+            if (!stride) {
+                // Deduce stride from kind
+                switch (kind) {
+                    case VertexBuffer.PositionKind:
+                        stride = 3;
+                        break;
+                    case VertexBuffer.NormalKind:
+                        stride = 3;
+                        break;
+                    case VertexBuffer.UVKind:
+                    case VertexBuffer.UV2Kind:
+                    case VertexBuffer.UV3Kind:
+                    case VertexBuffer.UV4Kind:
+                    case VertexBuffer.UV5Kind:
+                    case VertexBuffer.UV6Kind:
+                        stride = 2;
+                        break;
+                    case VertexBuffer.ColorKind:
+                        stride = 4;
+                        break;
+                    case VertexBuffer.MatricesIndicesKind:
+                    case VertexBuffer.MatricesIndicesExtraKind:
+                        stride = 4;
+                        break;
+                    case VertexBuffer.MatricesWeightsKind:
+                    case VertexBuffer.MatricesWeightsExtraKind:
+                        stride = 4;
+                        break;
+                }
+            }
+            if (data instanceof BABYLON.Buffer) {
+                if (!stride) {
+                    stride = data.getStrideSize();
+                }
+                this._buffer = data;
+                this._ownsBuffer = false;
+            }
+            else {
+                this._buffer = new BABYLON.Buffer(engine, data, updatable, stride, postponeInternalCreation, instanced);
+                this._ownsBuffer = true;
+            }
+            this._stride = stride;
+            this._offset = offset ? offset : 0;
+            this._size = size ? size : stride;
+            this._kind = kind;
+        }
+        VertexBuffer.prototype.getKind = function () {
+            return this._kind;
+        };
+        // Properties
+        VertexBuffer.prototype.isUpdatable = function () {
+            return this._buffer.isUpdatable();
+        };
+        VertexBuffer.prototype.getData = function () {
+            return this._buffer.getData();
+        };
+        VertexBuffer.prototype.getBuffer = function () {
+            return this._buffer.getBuffer();
+        };
+        VertexBuffer.prototype.getStrideSize = function () {
+            return this._stride;
+        };
+        VertexBuffer.prototype.getOffset = function () {
+            return this._offset;
+        };
+        VertexBuffer.prototype.getSize = function () {
+            return this._size;
+        };
+        VertexBuffer.prototype.getIsInstanced = function () {
+            return this._buffer.getIsInstanced();
+        };
+        // Methods
+        VertexBuffer.prototype.create = function (data) {
+            return this._buffer.create(data);
+        };
+        VertexBuffer.prototype.update = function (data) {
+            return this._buffer.update(data);
+        };
+        VertexBuffer.prototype.updateDirectly = function (data, offset) {
+            return this._buffer.updateDirectly(data, offset);
+        };
+        VertexBuffer.prototype.dispose = function () {
+            if (this._ownsBuffer) {
+                this._buffer.dispose();
             }
         };
         Object.defineProperty(VertexBuffer, "PositionKind", {
@@ -17377,11 +17476,11 @@ var BABYLON;
         __extends(Mesh, _super);
         /**
          * @constructor
-         * @param {string} name - The value used by scene.getMeshByName() to do a lookup.
-         * @param {Scene} scene - The scene to add this mesh to.
-         * @param {Node} parent - The parent of this mesh, if it has one
-         * @param {Mesh} source - An optional Mesh from which geometry is shared, cloned.
-         * @param {boolean} doNotCloneChildren - When cloning, skip cloning child meshes of source, default False.
+         * @param {string} name The value used by scene.getMeshByName() to do a lookup.
+         * @param {Scene} scene The scene to add this mesh to.
+         * @param {Node} parent The parent of this mesh, if it has one
+         * @param {Mesh} source An optional Mesh from which geometry is shared, cloned.
+         * @param {boolean} doNotCloneChildren When cloning, skip cloning child meshes of source, default False.
          *                  When false, achieved by calling a clone(), also passing False.
          *                  This will make creation of children, recursive.
          */
@@ -17589,9 +17688,9 @@ var BABYLON;
         /**
          * Add a mesh as LOD level triggered at the given distance.
          * tuto : http://doc.babylonjs.com/tutorials/How_to_use_LOD
-         * @param {number} distance - the distance from the center of the object to show this level
-         * @param {Mesh} mesh - the mesh to be added as LOD level
-         * @return {Mesh} this mesh (for chaining)
+         * @param {number} distance The distance from the center of the object to show this level
+         * @param {Mesh} mesh The mesh to be added as LOD level
+         * @return {Mesh} This mesh (for chaining)
          */
         Mesh.prototype.addLODLevel = function (distance, mesh) {
             if (mesh && mesh._masterMesh) {
@@ -17623,8 +17722,8 @@ var BABYLON;
         /**
          * Remove a mesh from the LOD array
          * tuto : http://doc.babylonjs.com/tutorials/How_to_use_LOD
-         * @param {Mesh} mesh - the mesh to be removed.
-         * @return {Mesh} this mesh (for chaining)
+         * @param {Mesh} mesh The mesh to be removed.
+         * @return {Mesh} This mesh (for chaining)
          */
         Mesh.prototype.removeLODLevel = function (mesh) {
             for (var index = 0; index < this._LODLevels.length; index++) {
@@ -17673,7 +17772,7 @@ var BABYLON;
         };
         Object.defineProperty(Mesh.prototype, "geometry", {
             /**
-             * Returns the mesh internal `Geometry` object.
+             * Returns the mesh internal Geometry object.
              */
             get: function () {
                 return this._geometry;
@@ -17715,7 +17814,7 @@ var BABYLON;
             return this._geometry.getVerticesData(kind, copyWhenShared);
         };
         /**
-         * Returns the mesh `VertexBuffer` object from the requested `kind` : positions, indices, normals, etc.
+         * Returns the mesh VertexBuffer object from the requested `kind` : positions, indices, normals, etc.
          * Returns `undefined` if the mesh has no geometry.
          * Possible `kind` values :
          * - BABYLON.VertexBuffer.PositionKind
@@ -17874,6 +17973,16 @@ var BABYLON;
         Mesh.prototype.unfreezeNormals = function () {
             this._areNormalsFrozen = false;
         };
+        Object.defineProperty(Mesh.prototype, "overridenInstanceCount", {
+            /**
+             * Overrides instance count. Only applicable when custom instanced InterleavedVertexBuffer are used rather than InstancedMeshs
+             */
+            set: function (count) {
+                this._overridenInstanceCount = count;
+            },
+            enumerable: true,
+            configurable: true
+        });
         // Methods
         Mesh.prototype._preActivate = function () {
             var sceneRenderId = this.getScene().getRenderId();
@@ -17900,7 +18009,7 @@ var BABYLON;
             this._visibleInstances[renderId].push(instance);
         };
         /**
-         * This method recomputes and sets a new `BoundingInfo` to the mesh unless it is locked.
+         * This method recomputes and sets a new BoundingInfo to the mesh unless it is locked.
          * This means the mesh underlying bounding box and sphere are recomputed.
          */
         Mesh.prototype.refreshBoundingInfo = function () {
@@ -17950,12 +18059,12 @@ var BABYLON;
         };
         /**
          * Sets the vertex data of the mesh geometry for the requested `kind`.
-         * If the mesh has no geometry, a new `Geometry` object is set to the mesh and then passed this vertex data.
+         * If the mesh has no geometry, a new Geometry object is set to the mesh and then passed this vertex data.
          * The `data` are either a numeric array either a Float32Array.
-         * The parameter `updatable` is passed as is to the underlying `Geometry` object constructor (if initianilly none) or updater.
+         * The parameter `updatable` is passed as is to the underlying Geometry object constructor (if initianilly none) or updater.
          * The parameter `stride` is an optional positive integer, it is usually automatically deducted from the `kind` (3 for positions or normals, 2 for UV, etc).
-         * Note that a new underlying `VertexBuffer` object is created each call.
-         * If the `kind` is the `PositionKind`, the mesh `BoundingInfo` is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
+         * Note that a new underlying VertexBuffer object is created each call.
+         * If the `kind` is the `PositionKind`, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
          *
          * Possible `kind` values :
          * - BABYLON.VertexBuffer.PositionKind
@@ -17982,12 +18091,19 @@ var BABYLON;
                 this._geometry.setVerticesData(kind, data, updatable, stride);
             }
         };
+        Mesh.prototype.setVerticesBuffer = function (buffer) {
+            if (!this._geometry) {
+                var scene = this.getScene();
+                new BABYLON.Geometry(BABYLON.Geometry.RandomId(), scene).applyToMesh(this);
+            }
+            this._geometry.setVerticesBuffer(buffer);
+        };
         /**
          * Updates the existing vertex data of the mesh geometry for the requested `kind`.
          * If the mesh has no geometry, it is simply returned as it is.
          * The `data` are either a numeric array either a Float32Array.
-         * No new underlying `VertexBuffer` object is created.
-         * If the `kind` is the `PositionKind` and if `updateExtends` is true, the mesh `BoundingInfo` is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
+         * No new underlying VertexBuffer object is created.
+         * If the `kind` is the `PositionKind` and if `updateExtends` is true, the mesh BoundingInfo is renewed, so the bounding box and sphere, and the mesh World Matrix is recomputed.
          * If the parameter `makeItUnique` is true, a new global geometry is created from this positions and is set to the mesh.
          *
          * Possible `kind` values :
@@ -18105,7 +18221,7 @@ var BABYLON;
                 }
             }
             // VBOs
-            engine.bindMultiBuffers(this._geometry.getVertexBuffers(), indexToBind, effect);
+            engine.bindBuffers(this._geometry.getVertexBuffers(), indexToBind, effect);
         };
         Mesh.prototype._draw = function (subMesh, fillMode, instancesCount) {
             if (!this._geometry || !this._geometry.getVertexBuffers() || !this._geometry.getIndexBuffer()) {
@@ -18195,40 +18311,47 @@ var BABYLON;
             var visibleInstances = batch.visibleInstances[subMesh._id];
             var matricesCount = visibleInstances.length + 1;
             var bufferSize = matricesCount * 16 * 4;
+            var currentInstancesBufferSize = this._instancesBufferSize;
+            var instancesBuffer = this._instancesBuffer;
             while (this._instancesBufferSize < bufferSize) {
                 this._instancesBufferSize *= 2;
             }
-            if (!this._worldMatricesInstancesBuffer || this._worldMatricesInstancesBuffer.capacity < this._instancesBufferSize) {
-                if (this._worldMatricesInstancesBuffer) {
-                    engine.deleteInstancesBuffer(this._worldMatricesInstancesBuffer);
-                }
-                this._worldMatricesInstancesBuffer = engine.createInstancesBuffer(this._instancesBufferSize);
-                this._worldMatricesInstancesArray = new Float32Array(this._instancesBufferSize / 4);
+            if (!this._instancesData || currentInstancesBufferSize != this._instancesBufferSize) {
+                this._instancesData = new Float32Array(this._instancesBufferSize / 4);
             }
             var offset = 0;
             var instancesCount = 0;
             var world = this.getWorldMatrix();
             if (batch.renderSelf[subMesh._id]) {
-                world.copyToArray(this._worldMatricesInstancesArray, offset);
+                world.copyToArray(this._instancesData, offset);
                 offset += 16;
                 instancesCount++;
             }
             if (visibleInstances) {
                 for (var instanceIndex = 0; instanceIndex < visibleInstances.length; instanceIndex++) {
                     var instance = visibleInstances[instanceIndex];
-                    instance.getWorldMatrix().copyToArray(this._worldMatricesInstancesArray, offset);
+                    instance.getWorldMatrix().copyToArray(this._instancesData, offset);
                     offset += 16;
                     instancesCount++;
                 }
             }
-            var offsetLocation0 = effect.getAttributeLocationByName("world0");
-            var offsetLocation1 = effect.getAttributeLocationByName("world1");
-            var offsetLocation2 = effect.getAttributeLocationByName("world2");
-            var offsetLocation3 = effect.getAttributeLocationByName("world3");
-            var offsetLocations = [offsetLocation0, offsetLocation1, offsetLocation2, offsetLocation3];
-            engine.updateAndBindInstancesBuffer(this._worldMatricesInstancesBuffer, this._worldMatricesInstancesArray, offsetLocations);
+            if (!instancesBuffer || currentInstancesBufferSize != this._instancesBufferSize) {
+                if (instancesBuffer) {
+                    instancesBuffer.dispose();
+                }
+                instancesBuffer = new BABYLON.Buffer(engine, this._instancesData, true, 16, false, true);
+                this._instancesBuffer = instancesBuffer;
+                this.setVerticesBuffer(instancesBuffer.createVertexBuffer("world0", 0, 4));
+                this.setVerticesBuffer(instancesBuffer.createVertexBuffer("world1", 4, 4));
+                this.setVerticesBuffer(instancesBuffer.createVertexBuffer("world2", 8, 4));
+                this.setVerticesBuffer(instancesBuffer.createVertexBuffer("world3", 12, 4));
+                engine.bindBuffers(this.geometry.getVertexBuffers(), this.geometry.getIndexBuffer(), effect);
+            }
+            else {
+                instancesBuffer.updateDirectly(this._instancesData, 0, instancesCount);
+            }
             this._draw(subMesh, fillMode, instancesCount);
-            engine.unBindInstancesBuffer(this._worldMatricesInstancesBuffer, offsetLocations);
+            engine.unbindInstanceAttributes();
         };
         Mesh.prototype._processRendering = function (subMesh, effect, fillMode, batch, hardwareInstancedRendering, onBeforeDraw) {
             var scene = this.getScene();
@@ -18242,7 +18365,7 @@ var BABYLON;
                     if (onBeforeDraw) {
                         onBeforeDraw(false, this.getWorldMatrix());
                     }
-                    this._draw(subMesh, fillMode);
+                    this._draw(subMesh, fillMode, this._overridenInstanceCount);
                 }
                 if (batch.visibleInstances[subMesh._id]) {
                     for (var instanceIndex = 0; instanceIndex < batch.visibleInstances[subMesh._id].length; instanceIndex++) {
@@ -18325,7 +18448,7 @@ var BABYLON;
             this.onAfterRenderObservable.notifyObservers(this);
         };
         /**
-         * Returns an array populated with `ParticleSystem` objects whose the mesh is the emitter.
+         * Returns an array populated with ParticleSystem objects whose the mesh is the emitter.
          */
         Mesh.prototype.getEmittedParticleSystems = function () {
             var results = new Array();
@@ -18338,7 +18461,7 @@ var BABYLON;
             return results;
         };
         /**
-         * Returns an array populated with `ParticleSystem` objects whose the mesh or its children are the emitter.
+         * Returns an array populated with ParticleSystem objects whose the mesh or its children are the emitter.
          */
         Mesh.prototype.getHierarchyEmittedParticleSystems = function () {
             var results = new Array();
@@ -18376,7 +18499,7 @@ var BABYLON;
             }
         };
         /**
-         * Boolean, true is the mesh in the frustum defined by the `Plane` objects from the `frustumPlanes` array parameter.
+         * Boolean, true is the mesh in the frustum defined by the Plane objects from the `frustumPlanes` array parameter.
          */
         Mesh.prototype.isInFrustum = function (frustumPlanes) {
             if (this.delayLoadState === BABYLON.Engine.DELAYLOADSTATE_LOADING) {
@@ -18499,7 +18622,7 @@ var BABYLON;
             return true;
         };
         /**
-         * Returns a new `Mesh` object generated from the current mesh properties.
+         * Returns a new Mesh object generated from the current mesh properties.
          * This method must not get confused with createInstance().
          * The parameter `name` is a string, the name given to the new mesh.
          * The optional parameter `newParent` can be any `Node` object (default `null`).
@@ -18519,9 +18642,9 @@ var BABYLON;
                 this._geometry.releaseForMesh(this, true);
             }
             // Instances
-            if (this._worldMatricesInstancesBuffer) {
-                this.getEngine().deleteInstancesBuffer(this._worldMatricesInstancesBuffer);
-                this._worldMatricesInstancesBuffer = null;
+            if (this._instancesBuffer) {
+                this._instancesBuffer.dispose();
+                this._instancesBuffer = null;
             }
             while (this.instances.length) {
                 this.instances[0].dispose();
@@ -18769,7 +18892,7 @@ var BABYLON;
         };
         // Instances
         /**
-         * Creates a new `InstancedMesh` object from the mesh model.
+         * Creates a new InstancedMesh object from the mesh model.
          * An instance shares the same properties and the same material than its model.
          * Only these properties of each instance can then be set individually :
          * - position
@@ -18778,7 +18901,7 @@ var BABYLON;
          * - setPivotMatrix
          * - scaling
          * tuto : http://doc.babylonjs.com/tutorials/How_to_use_Instances
-         * Warning : this method is not supported for `Line` mesh and `LineSystem`
+         * Warning : this method is not supported for Line mesh and LineSystem
          */
         Mesh.prototype.createInstance = function (name) {
             return new BABYLON.InstancedMesh(name, this);
@@ -18853,7 +18976,7 @@ var BABYLON;
         };
         // Statics
         /**
-         * Returns a new `Mesh` object what is a deep copy of the passed mesh.
+         * Returns a new Mesh object what is a deep copy of the passed mesh.
          * The parameter `parsedMesh` is the mesh to be copied.
          * The parameter `rootUrl` is a string, it's the root URL to prefix the `delayLoadingFile` property with
          */
@@ -19021,7 +19144,7 @@ var BABYLON;
         };
         /**
          * Creates a ribbon mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The ribbon is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
          *
          * Please read this full tutorial to understand how to design a ribbon : http://doc.babylonjs.com/tutorials/Ribbon_Tutorial
@@ -19048,7 +19171,7 @@ var BABYLON;
         };
         /**
          * Creates a plane polygonal mesh.  By default, this is a disc.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `radius` sets the radius size (float) of the polygon (default 0.5).
          * The parameter `tessellation` sets the number of polygon sides (positive integer, default 64). So a tessellation valued to 3 will build a triangle, to 4 a square, etc.
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
@@ -19066,7 +19189,7 @@ var BABYLON;
         };
         /**
          * Creates a box mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `size` sets the size (float) of each box side (default 1).
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
@@ -19082,7 +19205,7 @@ var BABYLON;
         };
         /**
          * Creates a sphere mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `diameter` sets the diameter size (float) of the sphere (default 1).
          * The parameter `segments` sets the sphere number of horizontal stripes (positive integer, default 32).
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
@@ -19102,7 +19225,7 @@ var BABYLON;
         };
         /**
          * Creates a cylinder or a cone mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `height` sets the height size (float) of the cylinder/cone (float, default 2).
          * The parameter `diameter` sets the diameter of the top and bottom cap at once (float, default 1).
          * The parameters `diameterTop` and `diameterBottom` overwrite the parameter `diameter` and set respectively the top cap and bottom cap diameter (floats, default 1). The parameter "diameterBottom" can't be zero.
@@ -19135,7 +19258,7 @@ var BABYLON;
         // Torus  (Code from SharpDX.org)
         /**
          * Creates a torus mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `diameter` sets the diameter size (float) of the torus (default 1).
          * The parameter `thickness` sets the diameter size of the tube of the torus (float, default 0.5).
          * The parameter `tessellation` sets the number of torus sides (postive integer, default 16).
@@ -19155,7 +19278,7 @@ var BABYLON;
         };
         /**
          * Creates a torus knot mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `radius` sets the global radius size (float) of the torus knot (default 2).
          * The parameter `radialSegments` sets the number of sides on each tube segments (positive integer, default 32).
          * The parameter `tubularSegments` sets the number of tubes to decompose the knot into (positive integer, default 32).
@@ -19179,7 +19302,7 @@ var BABYLON;
         };
         /**
          * Creates a line mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * A line mesh is considered as a parametric shape since it has no predefined original shape. Its shape is determined by the passed array of points as an input parameter.
          * Like every other parametric shape, it is dynamically updatable by passing an existing instance of LineMesh to this static function.
          * The parameter `points` is an array successive Vector3.
@@ -19197,7 +19320,7 @@ var BABYLON;
         };
         /**
          * Creates a dashed line mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * A dashed line mesh is considered as a parametric shape since it has no predefined original shape. Its shape is determined by the passed array of points as an input parameter.
          * Like every other parametric shape, it is dynamically updatable by passing an existing instance of LineMesh to this static function.
          * The parameter `points` is an array successive Vector3.
@@ -19221,7 +19344,7 @@ var BABYLON;
         /**
          * Creates an extruded shape mesh.
          * The extrusion is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          *
          * Please read this full tutorial to understand how to design an extruded shape : http://doc.babylonjs.com/tutorials/Parametric_Shapes#extrusion
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be extruded in its local space : the shape must be designed in the xOy plane and will be
@@ -19252,7 +19375,7 @@ var BABYLON;
         /**
          * Creates an custom extruded shape mesh.
          * The custom extrusion is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          *
          * Please read this full tutorial to understand how to design a custom extruded shape : http://doc.babylonjs.com/tutorials/Parametric_Shapes#extrusion
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be extruded in its local space : the shape must be designed in the xOy plane and will be
@@ -19260,15 +19383,19 @@ var BABYLON;
          * The parameter `path` is a required array of successive Vector3. This is the axis curve the shape is extruded along.
          * The parameter `rotationFunction` (JS function) is a custom Javascript function called on each path point. This function is passed the position i of the point in the path
          * and the distance of this point from the begining of the path :
-         * ```rotationFunction = function(i, distance) {
-         *  // do things
-         *  return rotationValue; }```
+         * ```javascript
+         * var rotationFunction = function(i, distance) {
+         *     // do things
+         *     return rotationValue; }
+         * ```
          * It must returns a float value that will be the rotation in radians applied to the shape on each path point.
          * The parameter `scaleFunction` (JS function) is a custom Javascript function called on each path point. This function is passed the position i of the point in the path
          * and the distance of this point from the begining of the path :
-         * ````scaleFunction = function(i, distance) {
-         *   // do things
-         *  return scaleValue;}```
+         * ```javascript
+         * var scaleFunction = function(i, distance) {
+         *     // do things
+         *    return scaleValue;}
+         * ```
          * It must returns a float value that will be the scale value applied to the shape on each path point.
          * The parameter `ribbonClosePath` (boolean, default false) forces the extrusion underlying ribbon to close all the paths in its `pathArray`.
          * The parameter `ribbonCloseArray` (boolean, default false) forces the extrusion underlying ribbon to close its `pathArray`.
@@ -19297,7 +19424,7 @@ var BABYLON;
         /**
          * Creates lathe mesh.
          * The lathe is a shape with a symetry axis : a 2D model shape is rotated around this axis to design the lathe.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          *
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be rotated in its local space : the shape must be designed in the xOy plane and will be
          * rotated around the Y axis. It's usually a 2D shape, so the Vector3 z coordinates are often set to zero.
@@ -19319,7 +19446,7 @@ var BABYLON;
         };
         /**
          * Creates a plane mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `size` sets the size (float) of both sides of the plane at once (default 1).
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
@@ -19337,7 +19464,7 @@ var BABYLON;
         };
         /**
          * Creates a ground mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameters `width` and `height` (floats, default 1) set the width and height sizes of the ground.
          * The parameter `subdivisions` (positive integer) sets the number of subdivisions per side.
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
@@ -19353,7 +19480,7 @@ var BABYLON;
         };
         /**
          * Creates a tiled ground mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameters `xmin` and `xmax` (floats, default -1 and 1) set the ground minimum and maximum X coordinates.
          * The parameters `zmin` and `zmax` (floats, default -1 and 1) set the ground minimum and maximum Z coordinates.
          * The parameter `subdivisions` is a javascript object `{w: positive integer, h: positive integer}` (default `{w: 6, h: 6}`). `w` and `h` are the
@@ -19377,15 +19504,18 @@ var BABYLON;
         /**
          * Creates a ground mesh from a height map.
          * tuto : http://doc.babylonjs.com/tutorials/14._Height_Map
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `url` sets the URL of the height map image resource.
          * The parameters `width` and `height` (positive floats, default 10) set the ground width and height sizes.
          * The parameter `subdivisions` (positive integer, default 1) sets the number of subdivision per side.
          * The parameter `minHeight` (float, default 0) is the minimum altitude on the ground.
          * The parameter `maxHeight` (float, default 1) is the maximum altitude on the ground.
          * The parameter `onReady` is a javascript callback function that will be called  once the mesh is just built (the height map download can last some time).
-         * This function is passed the newly built mesh : ```function(mesh) { // do things
-         * return; }```
+         * This function is passed the newly built mesh :
+         * ```javascript
+         * function(mesh) { // do things
+         *     return; }
+         * ```
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         Mesh.CreateGroundFromHeightMap = function (name, url, width, height, subdivisions, minHeight, maxHeight, scene, updatable, onReady) {
@@ -19404,16 +19534,18 @@ var BABYLON;
          * Creates a tube mesh.
          * The tube is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
          *
-         * Please consider using the same method from the `MeshBuilder` class instead.
-         * The parameter `path` is a required array of successive `Vector3`. It is the curve used as the axis of the tube.
+         * Please consider using the same method from the MeshBuilder class instead.
+         * The parameter `path` is a required array of successive Vector3. It is the curve used as the axis of the tube.
          * The parameter `radius` (positive float, default 1) sets the tube radius size.
          * The parameter `tessellation` (positive float, default 64) is the number of sides on the tubular surface.
          * The parameter `radiusFunction` (javascript function, default null) is a vanilla javascript function. If it is not null, it overwrittes the parameter `radius`.
          * This function is called on each point of the tube path and is passed the index `i` of the i-th point and the distance of this point from the first point of the path.
          * It must return a radius value (positive float) :
-         * ```var radiusFunction = function(i, distance) {
-         *   // do things
-         *   return radius; }```
+         * ```javascript
+         * var radiusFunction = function(i, distance) {
+         *     // do things
+         *     return radius; }
+         * ```
          * The parameter `cap` sets the way the extruded shape is capped. Possible values : BABYLON.Mesh.NO_CAP (default), BABYLON.Mesh.CAP_START, BABYLON.Mesh.CAP_END, BABYLON.Mesh.CAP_ALL
          * The optional parameter `instance` is an instance of an existing Tube object to be updated with the passed `pathArray` parameter : http://doc.babylonjs.com/tutorials/How_to_dynamically_morph_a_mesh#tube
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
@@ -19437,14 +19569,14 @@ var BABYLON;
         /**
          * Creates a polyhedron mesh.
          *
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `type` (positive integer, max 14, default 0) sets the polyhedron type to build among the 15 embbeded types. Please refer to the type sheet in the tutorial
          *  to choose the wanted type.
          * The parameter `size` (positive float, default 1) sets the polygon size.
          * You can overwrite the `size` on each dimension bu using the parameters `sizeX`, `sizeY` or `sizeZ` (positive floats, default to `size` value).
          * You can build other polyhedron types than the 15 embbeded ones by setting the parameter `custom` (`polyhedronObject`, default null). If you set the parameter `custom`, this overwrittes the parameter `type`.
          * A `polyhedronObject` is a formatted javascript object. You'll find a full file with pre-set polyhedra here : https://github.com/BabylonJS/Extensions/tree/master/Polyhedron
-         * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (`Color4`, default `(1, 1, 1, 1)`) and faceUV (`Vector4`, default `(0, 0, 1, 1)`).
+         * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (Color4, default `(1, 1, 1, 1)`) and faceUV (Vector4, default `(0, 0, 1, 1)`).
          * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
          * The parameter `flat` (boolean, default true). If set to false, it gives the polyhedron a single global face, so less vertices and shared normals. In this case, `faceColors` and `faceUV` are ignored.
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
@@ -19456,7 +19588,7 @@ var BABYLON;
         };
         /**
          * Creates a sphere based upon an icosahedron with 20 triangular faces which can be subdivided.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `radius` sets the radius size (float) of the icosphere (default 1).
          * You can set some different icosphere dimensions, for instance to build an ellipsoid, by using the parameters `radiusX`, `radiusY` and `radiusZ` (all by default have the same value than `radius`).
          * The parameter `subdivisions` sets the number of subdivisions (postive integer, default 4). The more subdivisions, the more faces on the icosphere whatever its size.
@@ -19470,11 +19602,11 @@ var BABYLON;
         };
         /**
          * Creates a decal mesh.
-         * Please consider using the same method from the `MeshBuilder` class instead.
+         * Please consider using the same method from the MeshBuilder class instead.
          * A decal is a mesh usually applied as a model onto the surface of another mesh. So don't forget the parameter `sourceMesh` depicting the decal.
-         * The parameter `position` (`Vector3`, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
-         * The parameter `normal` (`Vector3`, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
-         * The parameter `size` (`Vector3`, default `(1, 1, 1)`) sets the decal scaling.
+         * The parameter `position` (Vector3, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
+         * The parameter `normal` (Vector3, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
+         * The parameter `size` (Vector3, default `(1, 1, 1)`) sets the decal scaling.
          * The parameter `angle` (float in radian, default 0) sets the angle to rotate the decal.
          */
         Mesh.CreateDecal = function (name, sourceMesh, position, normal, size, angle) {
@@ -19601,7 +19733,7 @@ var BABYLON;
         // Tools
         /**
          * Returns an object `{min: Vector3, max: Vector3}`
-         * This min and max `Vector3` are the minimum and maximum vectors of each mesh bounding box from the passed array, in the World system
+         * This min and max Vector3 are the minimum and maximum vectors of each mesh bounding box from the passed array, in the World system
          */
         Mesh.MinMax = function (meshes) {
             var minVector = null;
@@ -19896,7 +20028,7 @@ var BABYLON;
          * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#box
          * The parameter `size` sets the size (float) of each box side (default 1).
          * You can set some different box dimensions by using the parameters `width`, `height` and `depth` (all by default have the same value than `size`).
-         * You can set different colors and different images to each box side by using the parameters `faceColors` (an array of 6 `Color3` elements) and `faceUV` (an array of 6 `Vector4` elements).
+         * You can set different colors and different images to each box side by using the parameters `faceColors` (an array of 6 Color3 elements) and `faceUV` (an array of 6 Vector4 elements).
          * Please read this tutorial : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
@@ -20066,7 +20198,7 @@ var BABYLON;
          * The parameter `hasRings` (boolean, default false) makes the subdivisions independent from each other, so they become different faces.
          * The parameter `enclose`  (boolean, default false) adds two extra faces per subdivision to a sliced cylinder to close it around its height axis.
          * The parameter `arc` (float, default 1) is the ratio (max 1) to apply to the circumference to slice the cylinder.
-         * You can set different colors and different images to each box side by using the parameters `faceColors` (an array of n `Color3` elements) and `faceUV` (an array of n `Vector4` elements).
+         * You can set different colors and different images to each box side by using the parameters `faceColors` (an array of n Color3 elements) and `faceUV` (an array of n Vector4 elements).
          * The value of n is the number of cylinder faces. If the cylinder has only 1 subdivisions, n equals : top face + cylinder surface + bottom face = 3
          * Now, if the cylinder has 5 independent subdivisions (hasRings = true), n equals : top face + 5 stripe surfaces + bottom face = 2 + 5 = 7
          * Finally, if the cylinder has 5 independent subdivisions and is enclose, n equals : top face + 5 x (stripe surface + 2 closing faces) + bottom face = 2 + 5 * 3 = 17
@@ -20280,15 +20412,19 @@ var BABYLON;
          * The parameter `path` is a required array of successive Vector3. This is the axis curve the shape is extruded along.
          * The parameter `rotationFunction` (JS function) is a custom Javascript function called on each path point. This function is passed the position i of the point in the path
          * and the distance of this point from the begining of the path :
-         * ```rotationFunction = function(i, distance) {
-         *  // do things
-         *  return rotationValue; }```
+         * ```javascript
+         * var rotationFunction = function(i, distance) {
+         *     // do things
+         *     return rotationValue; }
+         * ```
          * It must returns a float value that will be the rotation in radians applied to the shape on each path point.
          * The parameter `scaleFunction` (JS function) is a custom Javascript function called on each path point. This function is passed the position i of the point in the path
          * and the distance of this point from the begining of the path :
-         * ````scaleFunction = function(i, distance) {
-         *   // do things
-         *  return scaleValue;}```
+         * ```javascript
+         * var scaleFunction = function(i, distance) {
+         *     // do things
+         *     return scaleValue;}
+         * ```
          * It must returns a float value that will be the scale value applied to the shape on each path point.
          * The parameter `ribbonClosePath` (boolean, default false) forces the extrusion underlying ribbon to close all the paths in its `pathArray`.
          * The parameter `ribbonCloseArray` (boolean, default false) forces the extrusion underlying ribbon to close its `pathArray`.
@@ -20370,7 +20506,7 @@ var BABYLON;
          * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#plane
          * The parameter `size` sets the size (float) of both sides of the plane at once (default 1).
          * You can set some different plane dimensions by using the parameters `width` and `height` (both by default have the same value than `size`).
-         * The parameter `sourcePlane` is a `Plane` instance. It builds a mesh plane from a Math plane.
+         * The parameter `sourcePlane` is a Plane instance. It builds a mesh plane from a Math plane.
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
          * Detail here : http://doc.babylonjs.com/tutorials/02._Discover_Basic_Elements#side-orientation
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
@@ -20436,8 +20572,11 @@ var BABYLON;
          * The parameter `minHeight` (float, default 0) is the minimum altitude on the ground.
          * The parameter `maxHeight` (float, default 1) is the maximum altitude on the ground.
          * The parameter `onReady` is a javascript callback function that will be called  once the mesh is just built (the height map download can last some time).
-         * This function is passed the newly built mesh : ```function(mesh) { // do things
-         * return; }```
+         * This function is passed the newly built mesh :
+         * ```javascript
+         * function(mesh) { // do things
+         *     return; }
+         * ```
          * The mesh can be set to updatable with the boolean parameter `updatable` (default false) if its internal geometry is supposed to change once created.
          */
         MeshBuilder.CreateGroundFromHeightMap = function (name, url, options, scene) {
@@ -20490,15 +20629,17 @@ var BABYLON;
          * The tube is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
          *
          * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#tube
-         * The parameter `path` is a required array of successive `Vector3`. It is the curve used as the axis of the tube.
+         * The parameter `path` is a required array of successive Vector3. It is the curve used as the axis of the tube.
          * The parameter `radius` (positive float, default 1) sets the tube radius size.
          * The parameter `tessellation` (positive float, default 64) is the number of sides on the tubular surface.
          * The parameter `radiusFunction` (javascript function, default null) is a vanilla javascript function. If it is not null, it overwrittes the parameter `radius`.
          * This function is called on each point of the tube path and is passed the index `i` of the i-th point and the distance of this point from the first point of the path.
          * It must return a radius value (positive float) :
-         * ```var radiusFunction = function(i, distance) {
-         *   // do things
-         *   return radius; }```
+         * ```javascript
+         * var radiusFunction = function(i, distance) {
+         *     // do things
+         *     return radius; }
+         * ```
          * The parameter `arc` (positive float, maximum 1, default 1) is the ratio to apply to the tube circumference : 2 x PI x arc.
          * The parameter `cap` sets the way the extruded shape is capped. Possible values : BABYLON.Mesh.NO_CAP (default), BABYLON.Mesh.CAP_START, BABYLON.Mesh.CAP_END, BABYLON.Mesh.CAP_ALL
          * The optional parameter `instance` is an instance of an existing Tube object to be updated with the passed `pathArray` parameter : http://doc.babylonjs.com/tutorials/How_to_dynamically_morph_a_mesh#tube
@@ -20610,7 +20751,7 @@ var BABYLON;
          * You can overwrite the `size` on each dimension bu using the parameters `sizeX`, `sizeY` or `sizeZ` (positive floats, default to `size` value).
          * You can build other polyhedron types than the 15 embbeded ones by setting the parameter `custom` (`polyhedronObject`, default null). If you set the parameter `custom`, this overwrittes the parameter `type`.
          * A `polyhedronObject` is a formatted javascript object. You'll find a full file with pre-set polyhedra here : https://github.com/BabylonJS/Extensions/tree/master/Polyhedron
-         * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (`Color4`, default `(1, 1, 1, 1)`) and faceUV (`Vector4`, default `(0, 0, 1, 1)`).
+         * You can set the color and the UV of each side of the polyhedron with the parameters `faceColors` (Color4, default `(1, 1, 1, 1)`) and faceUV (Vector4, default `(0, 0, 1, 1)`).
          * To understand how to set `faceUV` or `faceColors`, please read this by considering the right number of faces of your polyhedron, instead of only 6 for the box : http://doc.babylonjs.com/tutorials/CreateBox_Per_Face_Textures_And_Colors
          * The parameter `flat` (boolean, default true). If set to false, it gives the polyhedron a single global face, so less vertices and shared normals. In this case, `faceColors` and `faceUV` are ignored.
          * You can also set the mesh side orientation with the values : BABYLON.Mesh.FRONTSIDE (default), BABYLON.Mesh.BACKSIDE or BABYLON.Mesh.DOUBLESIDE
@@ -20627,9 +20768,9 @@ var BABYLON;
          * Creates a decal mesh.
          * tuto : http://doc.babylonjs.com/tutorials/Mesh_CreateXXX_Methods_With_Options_Parameter#decals
          * A decal is a mesh usually applied as a model onto the surface of another mesh. So don't forget the parameter `sourceMesh` depicting the decal.
-         * The parameter `position` (`Vector3`, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
-         * The parameter `normal` (`Vector3`, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
-         * The parameter `size` (`Vector3`, default `(1, 1, 1)`) sets the decal scaling.
+         * The parameter `position` (Vector3, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
+         * The parameter `normal` (Vector3, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
+         * The parameter `size` (Vector3, default `(1, 1, 1)`) sets the decal scaling.
          * The parameter `angle` (float in radian, default 0) sets the angle to rotate the decal.
          */
         MeshBuilder.CreateDecal = function (name, sourceMesh, options) {
@@ -21438,10 +21579,11 @@ var BABYLON;
 (function (BABYLON) {
     var RenderTargetTexture = (function (_super) {
         __extends(RenderTargetTexture, _super);
-        function RenderTargetTexture(name, size, scene, generateMipMaps, doNotChangeAspectRatio, type, isCube) {
+        function RenderTargetTexture(name, size, scene, generateMipMaps, doNotChangeAspectRatio, type, isCube, samplingMode) {
             if (doNotChangeAspectRatio === void 0) { doNotChangeAspectRatio = true; }
             if (type === void 0) { type = BABYLON.Engine.TEXTURETYPE_UNSIGNED_INT; }
             if (isCube === void 0) { isCube = false; }
+            if (samplingMode === void 0) { samplingMode = BABYLON.Texture.TRILINEAR_SAMPLINGMODE; }
             _super.call(this, null, scene, !generateMipMaps);
             this.isCube = isCube;
             /**
@@ -21479,13 +21621,17 @@ var BABYLON;
             this._size = size;
             this._generateMipMaps = generateMipMaps;
             this._doNotChangeAspectRatio = doNotChangeAspectRatio;
+            if (samplingMode === BABYLON.Texture.NEAREST_SAMPLINGMODE) {
+                this.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+                this.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
+            }
             if (isCube) {
-                this._texture = scene.getEngine().createRenderTargetCubeTexture(size, { generateMipMaps: generateMipMaps });
+                this._texture = scene.getEngine().createRenderTargetCubeTexture(size, { generateMipMaps: generateMipMaps, samplingMode: samplingMode });
                 this.coordinatesMode = BABYLON.Texture.INVCUBIC_MODE;
                 this._textureMatrix = BABYLON.Matrix.Identity();
             }
             else {
-                this._texture = scene.getEngine().createRenderTargetTexture(size, { generateMipMaps: generateMipMaps, type: type });
+                this._texture = scene.getEngine().createRenderTargetTexture(size, { generateMipMaps: generateMipMaps, type: type, samplingMode: samplingMode });
             }
             // Rendering groups
             this._renderingManager = new BABYLON.RenderingManager(scene);
@@ -21615,6 +21761,9 @@ var BABYLON;
         };
         RenderTargetTexture.prototype.render = function (useCameraPostProcess, dumpForDebug) {
             var scene = this.getScene();
+            if (this.useCameraPostProcesses !== undefined) {
+                useCameraPostProcess = this.useCameraPostProcesses;
+            }
             if (this.activeCamera && this.activeCamera !== scene.activeCamera) {
                 scene.setTransformMatrix(this.activeCamera.getViewMatrix(), this.activeCamera.getProjectionMatrix(true));
             }
@@ -21774,8 +21923,7 @@ var BABYLON;
             this.isEnabled = true;
             this._currentRefreshId = -1;
             this._refreshRate = 1;
-            this._vertexDeclaration = [2];
-            this._vertexStrideSize = 2 * 4;
+            this._vertexBuffers = {};
             this._uniforms = new Array();
             this._samplers = new Array();
             this._textures = new Array();
@@ -21794,12 +21942,13 @@ var BABYLON;
             this._generateMipMaps = generateMipMaps;
             this.setFragment(fragment);
             this._fallbackTexture = fallbackTexture;
+            var engine = scene.getEngine();
             if (isCube) {
-                this._texture = scene.getEngine().createRenderTargetCubeTexture(size, { generateMipMaps: generateMipMaps });
+                this._texture = engine.createRenderTargetCubeTexture(size, { generateMipMaps: generateMipMaps });
                 this.setFloat("face", 0);
             }
             else {
-                this._texture = scene.getEngine().createRenderTargetTexture(size, generateMipMaps);
+                this._texture = engine.createRenderTargetTexture(size, generateMipMaps);
             }
             // VBO
             var vertices = [];
@@ -21807,7 +21956,7 @@ var BABYLON;
             vertices.push(-1, 1);
             vertices.push(-1, -1);
             vertices.push(1, -1);
-            this._vertexBuffer = scene.getEngine().createVertexBuffer(vertices);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(engine, vertices, BABYLON.VertexBuffer.PositionKind, false, false, 2);
             // Indices
             var indices = [];
             indices.push(0);
@@ -21816,7 +21965,7 @@ var BABYLON;
             indices.push(0);
             indices.push(2);
             indices.push(3);
-            this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
+            this._indexBuffer = engine.createIndexBuffer(indices);
         }
         ProceduralTexture.prototype.reset = function () {
             if (this._effect === undefined) {
@@ -21841,7 +21990,7 @@ var BABYLON;
             else {
                 shaders = { vertex: "procedural", fragment: this._fragment };
             }
-            this._effect = engine.createEffect(shaders, ["position"], this._uniforms, this._samplers, "", null, null, function () {
+            this._effect = engine.createEffect(shaders, [BABYLON.VertexBuffer.PositionKind], this._uniforms, this._samplers, "", null, null, function () {
                 _this.releaseInternalTexture();
                 if (_this._fallbackTexture) {
                     _this._texture = _this._fallbackTexture._texture;
@@ -21984,7 +22133,7 @@ var BABYLON;
                 this._effect.setMatrix(name, this._matrices[name]);
             }
             // VBOs
-            engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, this._effect);
+            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, this._effect);
             if (this.isCube) {
                 for (var face = 0; face < 6; face++) {
                     engine.bindFramebuffer(this._texture, face);
@@ -22026,6 +22175,14 @@ var BABYLON;
             var index = this.getScene()._proceduralTextures.indexOf(this);
             if (index >= 0) {
                 this.getScene()._proceduralTextures.splice(index, 1);
+            }
+            var vertexBuffer = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind];
+            if (vertexBuffer) {
+                vertexBuffer.dispose();
+                this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = null;
+            }
+            if (this._indexBuffer && this.getScene().getEngine()._releaseBuffer(this._indexBuffer)) {
+                this._indexBuffer = null;
             }
             _super.prototype.dispose.call(this);
         };
@@ -25244,8 +25401,7 @@ var BABYLON;
             * @type {BABYLON.Observable}
             */
             this.onDisposeObservable = new BABYLON.Observable();
-            this._vertexDeclaration = [4, 4, 4, 4];
-            this._vertexStrideSize = 16 * 4; // 15 floats per sprite (x, y, z, angle, sizeX, sizeY, offsetX, offsetY, invertU, invertV, cellIndexX, cellIndexY, color)
+            this._vertexBuffers = {};
             this._capacity = capacity;
             this._spriteTexture = new BABYLON.Texture(imgUrl, scene, true, false, samplingMode);
             this._spriteTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -25253,8 +25409,6 @@ var BABYLON;
             this._epsilon = epsilon === undefined ? 0.01 : epsilon;
             this._scene = scene;
             this._scene.spriteManagers.push(this);
-            // VBO
-            this._vertexBuffer = scene.getEngine().createDynamicVertexBuffer(capacity * this._vertexStrideSize * 4);
             var indices = [];
             var index = 0;
             for (var count = 0; count < capacity; count++) {
@@ -25267,10 +25421,21 @@ var BABYLON;
                 index += 4;
             }
             this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
-            this._vertices = new Float32Array(capacity * this._vertexStrideSize);
+            // VBO
+            // 16 floats per sprite (x, y, z, angle, sizeX, sizeY, offsetX, offsetY, invertU, invertV, cellIndexX, cellIndexY, color r, color g, color b, color a)
+            this._vertexData = new Float32Array(capacity * 16 * 4);
+            this._buffer = new BABYLON.Buffer(scene.getEngine(), this._vertexData, true, 16);
+            var positions = this._buffer.createVertexBuffer(BABYLON.VertexBuffer.PositionKind, 0, 4);
+            var options = this._buffer.createVertexBuffer("options", 4, 4);
+            var cellInfo = this._buffer.createVertexBuffer("cellInfo", 8, 4);
+            var colors = this._buffer.createVertexBuffer(BABYLON.VertexBuffer.ColorKind, 12, 4);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = positions;
+            this._vertexBuffers["options"] = options;
+            this._vertexBuffers["cellInfo"] = cellInfo;
+            this._vertexBuffers[BABYLON.VertexBuffer.ColorKind] = colors;
             // Effects
-            this._effectBase = this._scene.getEngine().createEffect("sprites", ["position", "options", "cellInfo", "color"], ["view", "projection", "textureInfos", "alphaTest"], ["diffuseSampler"], "");
-            this._effectFog = this._scene.getEngine().createEffect("sprites", ["position", "options", "cellInfo", "color"], ["view", "projection", "textureInfos", "alphaTest", "vFogInfos", "vFogColor"], ["diffuseSampler"], "#define FOG");
+            this._effectBase = this._scene.getEngine().createEffect("sprites", [BABYLON.VertexBuffer.PositionKind, "options", "cellInfo", BABYLON.VertexBuffer.ColorKind], ["view", "projection", "textureInfos", "alphaTest"], ["diffuseSampler"], "");
+            this._effectFog = this._scene.getEngine().createEffect("sprites", [BABYLON.VertexBuffer.PositionKind, "options", "cellInfo", BABYLON.VertexBuffer.ColorKind], ["view", "projection", "textureInfos", "alphaTest", "vFogInfos", "vFogColor"], ["diffuseSampler"], "#define FOG");
         }
         Object.defineProperty(SpriteManager.prototype, "onDispose", {
             set: function (callback) {
@@ -25302,24 +25467,24 @@ var BABYLON;
                 offsetY = this._epsilon;
             else if (offsetY === 1)
                 offsetY = 1 - this._epsilon;
-            this._vertices[arrayOffset] = sprite.position.x;
-            this._vertices[arrayOffset + 1] = sprite.position.y;
-            this._vertices[arrayOffset + 2] = sprite.position.z;
-            this._vertices[arrayOffset + 3] = sprite.angle;
-            this._vertices[arrayOffset + 4] = sprite.width;
-            this._vertices[arrayOffset + 5] = sprite.height;
-            this._vertices[arrayOffset + 6] = offsetX;
-            this._vertices[arrayOffset + 7] = offsetY;
-            this._vertices[arrayOffset + 8] = sprite.invertU ? 1 : 0;
-            this._vertices[arrayOffset + 9] = sprite.invertV ? 1 : 0;
+            this._vertexData[arrayOffset] = sprite.position.x;
+            this._vertexData[arrayOffset + 1] = sprite.position.y;
+            this._vertexData[arrayOffset + 2] = sprite.position.z;
+            this._vertexData[arrayOffset + 3] = sprite.angle;
+            this._vertexData[arrayOffset + 4] = sprite.width;
+            this._vertexData[arrayOffset + 5] = sprite.height;
+            this._vertexData[arrayOffset + 6] = offsetX;
+            this._vertexData[arrayOffset + 7] = offsetY;
+            this._vertexData[arrayOffset + 8] = sprite.invertU ? 1 : 0;
+            this._vertexData[arrayOffset + 9] = sprite.invertV ? 1 : 0;
             var offset = (sprite.cellIndex / rowSize) >> 0;
-            this._vertices[arrayOffset + 10] = sprite.cellIndex - offset * rowSize;
-            this._vertices[arrayOffset + 11] = offset;
+            this._vertexData[arrayOffset + 10] = sprite.cellIndex - offset * rowSize;
+            this._vertexData[arrayOffset + 11] = offset;
             // Color
-            this._vertices[arrayOffset + 12] = sprite.color.r;
-            this._vertices[arrayOffset + 13] = sprite.color.g;
-            this._vertices[arrayOffset + 14] = sprite.color.b;
-            this._vertices[arrayOffset + 15] = sprite.color.a;
+            this._vertexData[arrayOffset + 12] = sprite.color.r;
+            this._vertexData[arrayOffset + 13] = sprite.color.g;
+            this._vertexData[arrayOffset + 14] = sprite.color.b;
+            this._vertexData[arrayOffset + 15] = sprite.color.a;
         };
         SpriteManager.prototype.intersects = function (ray, camera, predicate, fastCheck) {
             var count = Math.min(this._capacity, this.sprites.length);
@@ -25387,7 +25552,7 @@ var BABYLON;
                 this._appendSpriteVertex(offset++, sprite, 1, 1, rowSize);
                 this._appendSpriteVertex(offset++, sprite, 0, 1, rowSize);
             }
-            engine.updateDynamicVertexBuffer(this._vertexBuffer, this._vertices);
+            this._buffer.update(this._vertexData);
             // Render
             var effect = this._effectBase;
             if (this._scene.fogEnabled && this._scene.fogMode !== BABYLON.Scene.FOGMODE_NONE && this.fogEnabled) {
@@ -25405,7 +25570,7 @@ var BABYLON;
                 effect.setColor3("vFogColor", this._scene.fogColor);
             }
             // VBOs
-            engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
+            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, effect);
             // Draw order
             engine.setDepthFunctionToLessOrEqual();
             effect.setBool("alphaTest", true);
@@ -25418,9 +25583,9 @@ var BABYLON;
             engine.setAlphaMode(BABYLON.Engine.ALPHA_DISABLE);
         };
         SpriteManager.prototype.dispose = function () {
-            if (this._vertexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._vertexBuffer);
-                this._vertexBuffer = null;
+            if (this._buffer) {
+                this._buffer.dispose();
+                this._buffer = null;
             }
             if (this._indexBuffer) {
                 this._scene.getEngine()._releaseBuffer(this._indexBuffer);
@@ -25532,8 +25697,7 @@ var BABYLON;
             this.scale = new BABYLON.Vector2(1, 1);
             this.offset = new BABYLON.Vector2(0, 0);
             this.alphaBlendingMode = BABYLON.Engine.ALPHA_COMBINE;
-            this._vertexDeclaration = [2];
-            this._vertexStrideSize = 2 * 4;
+            this._vertexBuffers = {};
             // Events
             /**
             * An event triggered when the layer is disposed.
@@ -25555,13 +25719,15 @@ var BABYLON;
             this.color = color === undefined ? new BABYLON.Color4(1, 1, 1, 1) : color;
             this._scene = scene;
             this._scene.layers.push(this);
+            var engine = scene.getEngine();
             // VBO
             var vertices = [];
             vertices.push(1, 1);
             vertices.push(-1, 1);
             vertices.push(-1, -1);
             vertices.push(1, -1);
-            this._vertexBuffer = scene.getEngine().createVertexBuffer(vertices);
+            var vertexBuffer = new BABYLON.VertexBuffer(engine, vertices, BABYLON.VertexBuffer.PositionKind, false, false, 2);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = vertexBuffer;
             // Indices
             var indices = [];
             indices.push(0);
@@ -25570,10 +25736,10 @@ var BABYLON;
             indices.push(0);
             indices.push(2);
             indices.push(3);
-            this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
+            this._indexBuffer = engine.createIndexBuffer(indices);
             // Effects
-            this._effect = this._scene.getEngine().createEffect("layer", ["position"], ["textureMatrix", "color", "scale", "offset"], ["textureSampler"], "");
-            this._alphaTestEffect = this._scene.getEngine().createEffect("layer", ["position"], ["textureMatrix", "color", "scale", "offset"], ["textureSampler"], "#define ALPHATEST");
+            this._effect = engine.createEffect("layer", [BABYLON.VertexBuffer.PositionKind], ["textureMatrix", "color", "scale", "offset"], ["textureSampler"], "");
+            this._alphaTestEffect = engine.createEffect("layer", [BABYLON.VertexBuffer.PositionKind], ["textureMatrix", "color", "scale", "offset"], ["textureSampler"], "#define ALPHATEST");
         }
         Object.defineProperty(Layer.prototype, "onDispose", {
             set: function (callback) {
@@ -25624,7 +25790,7 @@ var BABYLON;
             currentEffect.setVector2("offset", this.offset);
             currentEffect.setVector2("scale", this.scale);
             // VBOs
-            engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, currentEffect);
+            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, currentEffect);
             // Draw order
             if (!this._alphaTestEffect) {
                 engine.setAlphaMode(this.alphaBlendingMode);
@@ -25637,9 +25803,10 @@ var BABYLON;
             this.onAfterRenderObservable.notifyObservers(this);
         };
         Layer.prototype.dispose = function () {
-            if (this._vertexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._vertexBuffer);
-                this._vertexBuffer = null;
+            var vertexBuffer = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind];
+            if (vertexBuffer) {
+                vertexBuffer.dispose();
+                this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = null;
             }
             if (this._indexBuffer) {
                 this._scene.getEngine()._releaseBuffer(this._indexBuffer);
@@ -25741,10 +25908,9 @@ var BABYLON;
             this.colorDead = new BABYLON.Color4(0, 0, 0, 1.0);
             this.textureMask = new BABYLON.Color4(1.0, 1.0, 1.0, 1.0);
             this.particles = new Array();
-            this._vertexDeclaration = [3, 4, 4];
-            this._vertexStrideSize = 11 * 4; // 11 floats per particle (x, y, z, r, g, b, a, angle, size, offsetX, offsetY)
             this._stockParticles = new Array();
             this._newPartsExcess = 0;
+            this._vertexBuffers = {};
             this._scaledColorStep = new BABYLON.Color4(0, 0, 0, 0);
             this._colorDiff = new BABYLON.Color4(0, 0, 0, 0);
             this._scaledDirection = BABYLON.Vector3.Zero();
@@ -25758,8 +25924,6 @@ var BABYLON;
             this._scene = scene;
             this._customEffect = customEffect;
             scene.particleSystems.push(this);
-            // VBO
-            this._vertexBuffer = scene.getEngine().createDynamicVertexBuffer(capacity * this._vertexStrideSize * 4);
             var indices = [];
             var index = 0;
             for (var count = 0; count < capacity; count++) {
@@ -25772,7 +25936,15 @@ var BABYLON;
                 index += 4;
             }
             this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
-            this._vertices = new Float32Array(capacity * this._vertexStrideSize);
+            // 11 floats per particle (x, y, z, r, g, b, a, angle, size, offsetX, offsetY) + 1 filler
+            this._vertexData = new Float32Array(capacity * 11 * 4);
+            this._vertexBuffer = new BABYLON.Buffer(scene.getEngine(), this._vertexData, true, 11);
+            var positions = this._vertexBuffer.createVertexBuffer(BABYLON.VertexBuffer.PositionKind, 0, 3);
+            var colors = this._vertexBuffer.createVertexBuffer(BABYLON.VertexBuffer.ColorKind, 3, 4);
+            var options = this._vertexBuffer.createVertexBuffer("options", 7, 4);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = positions;
+            this._vertexBuffers[BABYLON.VertexBuffer.ColorKind] = colors;
+            this._vertexBuffers["options"] = options;
             // Default behaviors
             this.startDirectionFunction = function (emitPower, worldMatrix, directionToUpdate, particle) {
                 var randX = randomNumber(_this.direction1.x, _this.direction2.x);
@@ -25845,17 +26017,17 @@ var BABYLON;
         };
         ParticleSystem.prototype._appendParticleVertex = function (index, particle, offsetX, offsetY) {
             var offset = index * 11;
-            this._vertices[offset] = particle.position.x;
-            this._vertices[offset + 1] = particle.position.y;
-            this._vertices[offset + 2] = particle.position.z;
-            this._vertices[offset + 3] = particle.color.r;
-            this._vertices[offset + 4] = particle.color.g;
-            this._vertices[offset + 5] = particle.color.b;
-            this._vertices[offset + 6] = particle.color.a;
-            this._vertices[offset + 7] = particle.angle;
-            this._vertices[offset + 8] = particle.size;
-            this._vertices[offset + 9] = offsetX;
-            this._vertices[offset + 10] = offsetY;
+            this._vertexData[offset] = particle.position.x;
+            this._vertexData[offset + 1] = particle.position.y;
+            this._vertexData[offset + 2] = particle.position.z;
+            this._vertexData[offset + 3] = particle.color.r;
+            this._vertexData[offset + 4] = particle.color.g;
+            this._vertexData[offset + 5] = particle.color.b;
+            this._vertexData[offset + 6] = particle.color.a;
+            this._vertexData[offset + 7] = particle.angle;
+            this._vertexData[offset + 8] = particle.size;
+            this._vertexData[offset + 9] = offsetX;
+            this._vertexData[offset + 10] = offsetY;
         };
         ParticleSystem.prototype._update = function (newParticles) {
             // Update current
@@ -25907,7 +26079,7 @@ var BABYLON;
             var join = defines.join("\n");
             if (this._cachedDefines !== join) {
                 this._cachedDefines = join;
-                this._effect = this._scene.getEngine().createEffect("particles", ["position", "color", "options"], ["invView", "view", "projection", "vClipPlane", "textureMask"], ["diffuseSampler"], join);
+                this._effect = this._scene.getEngine().createEffect("particles", [BABYLON.VertexBuffer.PositionKind, BABYLON.VertexBuffer.ColorKind, "options"], ["invView", "view", "projection", "vClipPlane", "textureMask"], ["diffuseSampler"], join);
             }
             return this._effect;
         };
@@ -25966,8 +26138,7 @@ var BABYLON;
                 this._appendParticleVertex(offset++, particle, 1, 1);
                 this._appendParticleVertex(offset++, particle, 0, 1);
             }
-            var engine = this._scene.getEngine();
-            engine.updateDynamicVertexBuffer(this._vertexBuffer, this._vertices);
+            this._vertexBuffer.update(this._vertexData);
         };
         ParticleSystem.prototype.render = function () {
             var effect = this._getEffect();
@@ -25991,7 +26162,7 @@ var BABYLON;
                 effect.setFloat4("vClipPlane", clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.d);
             }
             // VBOs
-            engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
+            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, effect);
             // Draw order
             if (this.blendMode === ParticleSystem.BLENDMODE_ONEONE) {
                 engine.setAlphaMode(BABYLON.Engine.ALPHA_ONEONE);
@@ -26008,7 +26179,7 @@ var BABYLON;
         };
         ParticleSystem.prototype.dispose = function () {
             if (this._vertexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._vertexBuffer);
+                this._vertexBuffer.dispose();
                 this._vertexBuffer = null;
             }
             if (this._indexBuffer) {
@@ -26029,7 +26200,7 @@ var BABYLON;
         // Clone
         ParticleSystem.prototype.clone = function (name, newEmitter) {
             var result = new ParticleSystem(name, this._capacity, this._scene);
-            BABYLON.Tools.DeepCopy(this, result, ["particles"], ["_vertexDeclaration", "_vertexStrideSize"]);
+            BABYLON.Tools.DeepCopy(this, result, ["particles"]);
             if (newEmitter === undefined) {
                 newEmitter = this.emitter;
             }
@@ -27675,6 +27846,7 @@ var BABYLON;
             var serializationObject = {};
             serializationObject.name = this.name;
             serializationObject.id = this.id;
+            serializationObject.dimensionsAtRest = this.dimensionsAtRest;
             serializationObject.bones = [];
             serializationObject.needInitialSkinMatrix = this.needInitialSkinMatrix;
             for (var index = 0; index < this.bones.length; index++) {
@@ -27705,6 +27877,9 @@ var BABYLON;
         };
         Skeleton.Parse = function (parsedSkeleton, scene) {
             var skeleton = new Skeleton(parsedSkeleton.name, parsedSkeleton.id, scene);
+            if (parsedSkeleton.dimensionsAtRest) {
+                skeleton.dimensionsAtRest = BABYLON.Vector3.FromArray(parsedSkeleton.dimensionsAtRest);
+            }
             skeleton.needInitialSkinMatrix = parsedSkeleton.needInitialSkinMatrix;
             var index;
             for (index = 0; index < parsedSkeleton.bones.length; index++) {
@@ -27966,12 +28141,11 @@ var BABYLON;
 (function (BABYLON) {
     var PostProcessManager = (function () {
         function PostProcessManager(scene) {
-            this._vertexDeclaration = [2];
-            this._vertexStrideSize = 2 * 4;
+            this._vertexBuffers = {};
             this._scene = scene;
         }
         PostProcessManager.prototype._prepareBuffers = function () {
-            if (this._vertexBuffer) {
+            if (this._vertexBuffers[BABYLON.VertexBuffer.PositionKind]) {
                 return;
             }
             // VBO
@@ -27980,7 +28154,7 @@ var BABYLON;
             vertices.push(-1, 1);
             vertices.push(-1, -1);
             vertices.push(1, -1);
-            this._vertexBuffer = this._scene.getEngine().createVertexBuffer(vertices);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(this._scene.getEngine(), vertices, BABYLON.VertexBuffer.PositionKind, false, false, 2);
             // Indices
             var indices = [];
             indices.push(0);
@@ -28020,7 +28194,7 @@ var BABYLON;
                     pp.onBeforeRenderObservable.notifyObservers(effect);
                     // VBOs
                     this._prepareBuffers();
-                    engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
+                    engine.bindBuffers(this._vertexBuffers, this._indexBuffer, effect);
                     // Draw order
                     engine.draw(true, 0, 6);
                     pp.onAfterRenderObservable.notifyObservers(effect);
@@ -28057,7 +28231,7 @@ var BABYLON;
                     pp.onBeforeRenderObservable.notifyObservers(effect);
                     // VBOs
                     this._prepareBuffers();
-                    engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, effect);
+                    engine.bindBuffers(this._vertexBuffers, this._indexBuffer, effect);
                     // Draw order
                     engine.draw(true, 0, 6);
                     pp.onAfterRenderObservable.notifyObservers(effect);
@@ -28068,9 +28242,10 @@ var BABYLON;
             engine.setDepthWrite(true);
         };
         PostProcessManager.prototype.dispose = function () {
-            if (this._vertexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._vertexBuffer);
-                this._vertexBuffer = null;
+            var buffer = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind];
+            if (buffer) {
+                buffer.dispose();
+                this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = null;
             }
             if (this._indexBuffer) {
                 this._scene.getEngine()._releaseBuffer(this._indexBuffer);
@@ -31237,6 +31412,7 @@ var BABYLON;
             this.backColor = new BABYLON.Color3(0.1, 0.1, 0.1);
             this.showBackLines = true;
             this.renderList = new BABYLON.SmartArray(32);
+            this._vertexBuffers = {};
             this._scene = scene;
         }
         BoundingBoxRenderer.prototype._prepareRessources = function () {
@@ -31244,13 +31420,13 @@ var BABYLON;
                 return;
             }
             this._colorShader = new BABYLON.ShaderMaterial("colorShader", this._scene, "color", {
-                attributes: ["position"],
+                attributes: [BABYLON.VertexBuffer.PositionKind],
                 uniforms: ["worldViewProjection", "color"]
             });
             var engine = this._scene.getEngine();
             var boxdata = BABYLON.VertexData.CreateBox(1.0);
-            this._vb = new BABYLON.VertexBuffer(engine, boxdata.positions, BABYLON.VertexBuffer.PositionKind, false);
-            this._ib = engine.createIndexBuffer([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 7, 1, 6, 2, 5, 3, 4]);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(engine, boxdata.positions, BABYLON.VertexBuffer.PositionKind, false);
+            this._indexBuffer = engine.createIndexBuffer([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 7, 1, 6, 2, 5, 3, 4]);
         };
         BoundingBoxRenderer.prototype.reset = function () {
             this.renderList.reset();
@@ -31276,7 +31452,7 @@ var BABYLON;
                     .multiply(BABYLON.Matrix.Translation(median.x, median.y, median.z))
                     .multiply(boundingBox.getWorldMatrix());
                 // VBOs
-                engine.bindBuffers(this._vb.getBuffer(), this._ib, [3], 3 * 4, this._colorShader.getEffect());
+                engine.bindBuffers(this._vertexBuffers, this._indexBuffer, this._colorShader.getEffect());
                 if (this.showBackLines) {
                     // Back
                     engine.setDepthFunctionToGreaterOrEqual();
@@ -31303,8 +31479,12 @@ var BABYLON;
                 return;
             }
             this._colorShader.dispose();
-            this._vb.dispose();
-            this._scene.getEngine()._releaseBuffer(this._ib);
+            var buffer = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind];
+            if (buffer) {
+                buffer.dispose();
+                this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = null;
+            }
+            this._scene.getEngine()._releaseBuffer(this._indexBuffer);
         };
         return BoundingBoxRenderer;
     }());
@@ -32591,14 +32771,20 @@ var BABYLON;
             this.notifyUpdate();
         };
         Geometry.prototype.setVerticesData = function (kind, data, updatable, stride) {
+            var buffer = new BABYLON.VertexBuffer(this._engine, data, kind, updatable, this._meshes.length === 0, stride);
+            this.setVerticesBuffer(buffer);
+        };
+        Geometry.prototype.setVerticesBuffer = function (buffer) {
+            var kind = buffer.getKind();
             if (this._vertexBuffers[kind]) {
                 this._vertexBuffers[kind].dispose();
             }
-            this._vertexBuffers[kind] = new BABYLON.VertexBuffer(this._engine, data, kind, updatable, this._meshes.length === 0, stride);
+            this._vertexBuffers[kind] = buffer;
             if (kind === BABYLON.VertexBuffer.PositionKind) {
-                stride = this._vertexBuffers[kind].getStrideSize();
+                var data = buffer.getData();
+                var stride = buffer.getStrideSize();
                 this._totalVertices = data.length / stride;
-                this.updateExtend(data);
+                this.updateExtend(data, stride);
                 var meshes = this._meshes;
                 var numOfMeshes = meshes.length;
                 for (var index = 0; index < numOfMeshes; index++) {
@@ -32795,12 +32981,12 @@ var BABYLON;
                 mesh._boundingInfo = this._boundingInfo;
             }
         };
-        Geometry.prototype.updateExtend = function (data) {
+        Geometry.prototype.updateExtend = function (data, stride) {
             if (data === void 0) { data = null; }
             if (!data) {
                 data = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind].getData();
             }
-            this._extend = BABYLON.Tools.ExtractMinAndMax(data, 0, this._totalVertices, this.boundingBias);
+            this._extend = BABYLON.Tools.ExtractMinAndMax(data, 0, this._totalVertices, this.boundingBias, stride);
         };
         Geometry.prototype._applyToMesh = function (mesh) {
             var numOfMeshes = this._meshes.length;
@@ -32809,7 +32995,7 @@ var BABYLON;
                 if (numOfMeshes === 1) {
                     this._vertexBuffers[kind].create();
                 }
-                this._vertexBuffers[kind]._buffer.references = numOfMeshes;
+                this._vertexBuffers[kind].getBuffer().references = numOfMeshes;
                 if (kind === BABYLON.VertexBuffer.PositionKind) {
                     mesh._resetPointsArrayCache();
                     if (!this._extend) {
@@ -32822,7 +33008,7 @@ var BABYLON;
                 }
             }
             // indexBuffer
-            if (numOfMeshes === 1 && this._indices) {
+            if (numOfMeshes === 1 && this._indices && this._indices.length > 0) {
                 this._indexBuffer = this._engine.createIndexBuffer(this._indices);
             }
             if (this._indexBuffer) {
@@ -32907,7 +33093,7 @@ var BABYLON;
             for (var kind in this._vertexBuffers) {
                 this._vertexBuffers[kind].dispose();
             }
-            this._vertexBuffers = [];
+            this._vertexBuffers = {};
             this._totalVertices = 0;
             if (this._indexBuffer) {
                 this._engine._releaseBuffer(this._indexBuffer);
@@ -33806,16 +33992,18 @@ var BABYLON;
             _super.call(this, name, scene, parent, source, doNotCloneChildren);
             this.color = new BABYLON.Color3(1, 1, 1);
             this.alpha = 1;
+            this._positionBuffer = {};
             if (source) {
                 this.color = source.color.clone();
                 this.alpha = source.alpha;
             }
             this._intersectionThreshold = 0.1;
             this._colorShader = new BABYLON.ShaderMaterial("colorShader", scene, "color", {
-                attributes: ["position"],
+                attributes: [BABYLON.VertexBuffer.PositionKind],
                 uniforms: ["worldViewProjection", "color"],
                 needAlphaBlending: true
             });
+            this._positionBuffer[BABYLON.VertexBuffer.PositionKind] = null;
         }
         Object.defineProperty(LinesMesh.prototype, "intersectionThreshold", {
             /**
@@ -33864,9 +34052,9 @@ var BABYLON;
         };
         LinesMesh.prototype._bind = function (subMesh, effect, fillMode) {
             var engine = this.getScene().getEngine();
-            var indexToBind = this._geometry.getIndexBuffer();
+            this._positionBuffer[BABYLON.VertexBuffer.PositionKind] = this._geometry.getVertexBuffer(BABYLON.VertexBuffer.PositionKind);
             // VBOs
-            engine.bindBuffers(this._geometry.getVertexBuffer(BABYLON.VertexBuffer.PositionKind).getBuffer(), indexToBind, [3], 3 * 4, this._colorShader.getEffect());
+            engine.bindBuffers(this._positionBuffer, this._geometry.getIndexBuffer(), this._colorShader.getEffect());
             // Color
             this._colorShader.setColor4("color", this.color.toColor4(this.alpha));
         };
@@ -35806,24 +35994,8 @@ var BABYLON;
             engine.bindFramebuffer(this._texture);
             this._replacedViewport = engine.setDirectViewport(pos.x, pos.y, size.width, size.height);
             if (clear) {
-                var gl = engine._gl;
                 // We only want to clear the part of the texture we're binding to, only the scissor can help us to achieve that
-                // Save state
-                var curScissor = gl.getParameter(gl.SCISSOR_TEST);
-                var curScissorBox = gl.getParameter(gl.SCISSOR_BOX);
-                // Change state
-                gl.enable(gl.SCISSOR_TEST);
-                gl.scissor(pos.x, pos.y, size.width, size.height);
-                // Clear
-                engine.clear(new BABYLON.Color4(0, 0, 0, 0), true, true);
-                // Restore state
-                gl.scissor(curScissorBox[0], curScissorBox[1], curScissorBox[2], curScissorBox[3]);
-                if (curScissor === true) {
-                    gl.enable(gl.SCISSOR_TEST);
-                }
-                else {
-                    gl.disable(gl.SCISSOR_TEST);
-                }
+                engine.scissorClear(pos.x, pos.y, size.width, size.height, new BABYLON.Color4(0, 0, 0, 0));
             }
         };
         /**
@@ -38950,7 +39122,7 @@ var BABYLON;
             if (this.effectFill) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_FILLPARTID.toString());
                 engine.enableEffect(this.effectFill);
-                engine.bindBuffers(this.fillVB, this.fillIB, [1], 4, this.effectFill);
+                engine.bindBuffersDirectly(this.fillVB, this.fillIB, [1], 4, this.effectFill);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingFillAttributes) {
@@ -38959,7 +39131,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingFillAttributes);
                     engine.draw(true, 0, this.fillIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingFillAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -38971,7 +39143,7 @@ var BABYLON;
             if (this.effectBorder) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_BORDERPARTID.toString());
                 engine.enableEffect(this.effectBorder);
-                engine.bindBuffers(this.borderVB, this.borderIB, [1], 4, this.effectBorder);
+                engine.bindBuffersDirectly(this.borderVB, this.borderIB, [1], 4, this.effectBorder);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingBorderAttributes) {
@@ -38979,7 +39151,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingBorderAttributes);
                     engine.draw(true, 0, this.borderIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingBorderAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -39275,7 +39447,7 @@ var BABYLON;
             if (this.effectFill) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_FILLPARTID.toString());
                 engine.enableEffect(this.effectFill);
-                engine.bindBuffers(this.fillVB, this.fillIB, [1], 4, this.effectFill);
+                engine.bindBuffersDirectly(this.fillVB, this.fillIB, [1], 4, this.effectFill);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingFillAttributes) {
@@ -39284,7 +39456,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingFillAttributes);
                     engine.draw(true, 0, this.fillIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingFillAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -39296,7 +39468,7 @@ var BABYLON;
             if (this.effectBorder) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_BORDERPARTID.toString());
                 engine.enableEffect(this.effectBorder);
-                engine.bindBuffers(this.borderVB, this.borderIB, [1], 4, this.effectBorder);
+                engine.bindBuffersDirectly(this.borderVB, this.borderIB, [1], 4, this.effectBorder);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingBorderAttributes) {
@@ -39304,7 +39476,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingBorderAttributes);
                     engine.draw(true, 0, this.borderIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingBorderAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -39567,7 +39739,7 @@ var BABYLON;
             var engine = instanceInfo._owner.owner.engine;
             engine.enableEffect(this.effect);
             this.effect.setTexture("diffuseSampler", this.texture);
-            engine.bindBuffers(this.vb, this.ib, [1], 4, this.effect);
+            engine.bindBuffersDirectly(this.vb, this.ib, [1], 4, this.effect);
             var cur = engine.getAlphaMode();
             engine.setAlphaMode(BABYLON.Engine.ALPHA_COMBINE);
             var count = instanceInfo._instancesPartsData[0].usedElementCount;
@@ -39577,7 +39749,7 @@ var BABYLON;
                 }
                 engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[0], null, this.instancingAttributes);
                 engine.draw(true, 0, 6, count);
-                engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[0], this.instancingAttributes);
+                engine.unbindInstanceAttributes();
             }
             else {
                 for (var i = 0; i < count; i++) {
@@ -39884,14 +40056,14 @@ var BABYLON;
             this.fontTexture.update();
             engine.enableEffect(this.effect);
             this.effect.setTexture("diffuseSampler", this.fontTexture);
-            engine.bindBuffers(this.vb, this.ib, [1], 4, this.effect);
+            engine.bindBuffersDirectly(this.vb, this.ib, [1], 4, this.effect);
             var cur = engine.getAlphaMode();
             engine.setAlphaMode(BABYLON.Engine.ALPHA_ADD);
             var count = instanceInfo._instancesPartsData[0].usedElementCount;
             if (instanceInfo._owner.owner.supportInstancedArray) {
                 engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[0], null, this.instancingAttributes);
                 engine.draw(true, 0, 6, count);
-                engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[0], this.instancingAttributes);
+                engine.unbindInstanceAttributes();
             }
             else {
                 for (var i = 0; i < count; i++) {
@@ -40285,7 +40457,7 @@ var BABYLON;
             if (this.effectFill) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_FILLPARTID.toString());
                 engine.enableEffect(this.effectFill);
-                engine.bindBuffers(this.fillVB, this.fillIB, [2], 2 * 4, this.effectFill);
+                engine.bindBuffersDirectly(this.fillVB, this.fillIB, [2], 2 * 4, this.effectFill);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingFillAttributes) {
@@ -40294,7 +40466,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingFillAttributes);
                     engine.draw(true, 0, this.fillIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingFillAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -40306,7 +40478,7 @@ var BABYLON;
             if (this.effectBorder) {
                 var partIndex = instanceInfo._partIndexFromId.get(BABYLON.Shape2D.SHAPE2D_BORDERPARTID.toString());
                 engine.enableEffect(this.effectBorder);
-                engine.bindBuffers(this.borderVB, this.borderIB, [2], 2 * 4, this.effectBorder);
+                engine.bindBuffersDirectly(this.borderVB, this.borderIB, [2], 2 * 4, this.effectBorder);
                 var count = instanceInfo._instancesPartsData[partIndex].usedElementCount;
                 if (instanceInfo._owner.owner.supportInstancedArray) {
                     if (!this.instancingBorderAttributes) {
@@ -40314,7 +40486,7 @@ var BABYLON;
                     }
                     engine.updateAndBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], null, this.instancingBorderAttributes);
                     engine.draw(true, 0, this.borderIndicesCount, count);
-                    engine.unBindInstancesBuffer(instanceInfo._instancesPartsBuffer[partIndex], this.instancingBorderAttributes);
+                    engine.unbindInstanceAttributes();
                 }
                 else {
                     for (var i = 0; i < count; i++) {
@@ -41496,8 +41668,15 @@ var BABYLON;
             if (!pii.canvasPointerPos) {
                 pii.canvasPointerPos = BABYLON.Vector2.Zero();
             }
-            pii.canvasPointerPos.x = eventData.localPosition.x - this.position.x;
-            pii.canvasPointerPos.y = (this.engine.getRenderHeight() - eventData.localPosition.y) - this.position.y;
+            var camera = this._scene.activeCamera;
+            var engine = this._scene.getEngine();
+            var cameraViewport = camera.viewport;
+            var viewport = cameraViewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
+            // Moving coordinates to local viewport world
+            var x = eventData.localPosition.x / engine.getHardwareScalingLevel() - viewport.x;
+            var y = eventData.localPosition.y / engine.getHardwareScalingLevel() - viewport.y;
+            pii.canvasPointerPos.x = x - this.position.x;
+            pii.canvasPointerPos.y = engine.getRenderHeight() - y - this.position.y;
             pii.mouseWheelDelta = 0;
             if (eventData.type === BABYLON.PointerEventTypes.POINTERWHEEL) {
                 var event = eventData.event;
@@ -46947,21 +47126,21 @@ var BABYLON;
             this.lensFlares = new Array();
             this.borderLimit = 300;
             this.layerMask = 0x0FFFFFFF;
-            this._vertexDeclaration = [2];
-            this._vertexStrideSize = 2 * 4;
+            this._vertexBuffers = {};
             this._isEnabled = true;
             this._scene = scene;
             this._emitter = emitter;
             this.id = name;
             scene.lensFlareSystems.push(this);
             this.meshesSelectionPredicate = function (m) { return m.material && m.isVisible && m.isEnabled() && m.isBlocker && ((m.layerMask & scene.activeCamera.layerMask) != 0); };
+            var engine = scene.getEngine();
             // VBO
             var vertices = [];
             vertices.push(1, 1);
             vertices.push(-1, 1);
             vertices.push(-1, -1);
             vertices.push(1, -1);
-            this._vertexBuffer = scene.getEngine().createVertexBuffer(vertices);
+            this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(engine, vertices, BABYLON.VertexBuffer.PositionKind, false, false, 2);
             // Indices
             var indices = [];
             indices.push(0);
@@ -46970,9 +47149,9 @@ var BABYLON;
             indices.push(0);
             indices.push(2);
             indices.push(3);
-            this._indexBuffer = scene.getEngine().createIndexBuffer(indices);
+            this._indexBuffer = engine.createIndexBuffer(indices);
             // Effects
-            this._effect = this._scene.getEngine().createEffect("lensFlare", ["position"], ["color", "viewportMatrix"], ["textureSampler"], "");
+            this._effect = engine.createEffect("lensFlare", [BABYLON.VertexBuffer.PositionKind], ["color", "viewportMatrix"], ["textureSampler"], "");
         }
         Object.defineProperty(LensFlareSystem.prototype, "isEnabled", {
             get: function () {
@@ -47079,7 +47258,7 @@ var BABYLON;
             engine.setDepthBuffer(false);
             engine.setAlphaMode(BABYLON.Engine.ALPHA_ONEONE);
             // VBOs
-            engine.bindBuffers(this._vertexBuffer, this._indexBuffer, this._vertexDeclaration, this._vertexStrideSize, this._effect);
+            engine.bindBuffers(this._vertexBuffers, this._indexBuffer, this._effect);
             // Flares
             for (var index = 0; index < this.lensFlares.length; index++) {
                 var flare = this.lensFlares[index];
@@ -47103,9 +47282,10 @@ var BABYLON;
             return true;
         };
         LensFlareSystem.prototype.dispose = function () {
-            if (this._vertexBuffer) {
-                this._scene.getEngine()._releaseBuffer(this._vertexBuffer);
-                this._vertexBuffer = null;
+            var vertexBuffer = this._vertexBuffers[BABYLON.VertexBuffer.PositionKind];
+            if (vertexBuffer) {
+                vertexBuffer.dispose();
+                this._vertexBuffers[BABYLON.VertexBuffer.PositionKind] = null;
             }
             if (this._indexBuffer) {
                 this._scene.getEngine()._releaseBuffer(this._indexBuffer);
@@ -49636,7 +49816,7 @@ var BABYLON;
             this._linesPositions = new Array();
             this._linesNormals = new Array();
             this._linesIndices = new Array();
-            this._buffers = new Array();
+            this._buffers = {};
             this._checkVerticesInsteadOfIndices = false;
             this._source = source;
             this._checkVerticesInsteadOfIndices = checkVerticesInsteadOfIndices;
@@ -49656,8 +49836,16 @@ var BABYLON;
             this._lineShader.backFaceCulling = false;
         };
         EdgesRenderer.prototype.dispose = function () {
-            this._vb0.dispose();
-            this._vb1.dispose();
+            var buffer = this._buffers[BABYLON.VertexBuffer.PositionKind];
+            if (buffer) {
+                buffer.dispose();
+                this._buffers[BABYLON.VertexBuffer.PositionKind] = null;
+            }
+            buffer = this._buffers[BABYLON.VertexBuffer.NormalKind];
+            if (buffer) {
+                buffer.dispose();
+                this._buffers[BABYLON.VertexBuffer.NormalKind] = null;
+            }
             this._source.getScene().getEngine()._releaseBuffer(this._ib);
             this._lineShader.dispose();
         };
@@ -49827,10 +50015,8 @@ var BABYLON;
             }
             // Merge into a single mesh
             var engine = this._source.getScene().getEngine();
-            this._vb0 = new BABYLON.VertexBuffer(engine, this._linesPositions, BABYLON.VertexBuffer.PositionKind, false);
-            this._vb1 = new BABYLON.VertexBuffer(engine, this._linesNormals, BABYLON.VertexBuffer.NormalKind, false, false, 4);
-            this._buffers[BABYLON.VertexBuffer.PositionKind] = this._vb0;
-            this._buffers[BABYLON.VertexBuffer.NormalKind] = this._vb1;
+            this._buffers[BABYLON.VertexBuffer.PositionKind] = new BABYLON.VertexBuffer(engine, this._linesPositions, BABYLON.VertexBuffer.PositionKind, false);
+            this._buffers[BABYLON.VertexBuffer.NormalKind] = new BABYLON.VertexBuffer(engine, this._linesNormals, BABYLON.VertexBuffer.NormalKind, false, false, 4);
             this._ib = engine.createIndexBuffer(this._linesIndices);
             this._indicesCount = this._linesIndices.length;
         };
@@ -49842,7 +50028,7 @@ var BABYLON;
             var engine = scene.getEngine();
             this._lineShader._preBind();
             // VBOs
-            engine.bindMultiBuffers(this._buffers, this._ib, this._lineShader.getEffect());
+            engine.bindBuffers(this._buffers, this._ib, this._lineShader.getEffect());
             scene.resetCachedMaterial();
             this._lineShader.setColor4("color", this._source.edgesColor);
             if (scene.activeCamera.mode === BABYLON.Camera.ORTHOGRAPHIC_CAMERA) {
@@ -50068,7 +50254,7 @@ var BABYLON;
         * Creates a SPS (Solid Particle System) object.
         * `name` (String) is the SPS name, this will be the underlying mesh name.
         * `scene` (Scene) is the scene in which the SPS is added.
-        * `updatableè (default true) : if the SPS must be updatable or immutable.
+        * `updatable` (default true) : if the SPS must be updatable or immutable.
         * `isPickable` (default false) : if the solid particles must be pickable.
         */
         function SolidParticleSystem(name, scene, options) {
@@ -50200,7 +50386,7 @@ var BABYLON;
         * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
         * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
         * Thus the particles generated from `digest()` have their property `position` set yet.
-        * `mesh` (`Mesh`) is the mesh to be digested
+        * `mesh` ( Mesh ) is the mesh to be digested
         * `facetNb` (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
         * `delta` (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
         * `number` (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
@@ -50388,7 +50574,7 @@ var BABYLON;
         /**
         * Adds some particles to the SPS from the model shape. Returns the shape id.
         * Please read the doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#create-an-immutable-sps
-        * `mesh` is any `Mesh` object that will be used as a model for the solid particles.
+        * `mesh` is any Mesh object that will be used as a model for the solid particles.
         * `nb` (positive integer) the number of particles to be created from this model
         * `positionFunction` is an optional javascript function to called for each particle on SPS creation.
         * `vertexFunction` is an optional javascript function to called for each vertex of each particle on SPS creation
@@ -50473,9 +50659,9 @@ var BABYLON;
         *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
         *  This method calls `updateParticle()` for each particle of the SPS.
         *  For an animated SPS, it is usually called within the render loop.
-        * @param start (default 0) the particle index in the particle array where to start to compute the particle property values
-        * @param end (default nbParticle - 1)  the particle index in the particle array where to stop to compute the particle property values
-        * @param update (default true) if the mesh must be finally updated on this call after all the particle computations.
+        * @param start The particle index in the particle array where to start to compute the particle property values _(default 0)_
+        * @param end The particle index in the particle array where to stop to compute the particle property values _(default nbParticle - 1)_
+        * @param update If the mesh must be finally updated on this call after all the particle computations _(default true)_
         */
         SolidParticleSystem.prototype.setParticles = function (start, end, update) {
             if (start === void 0) { start = 0; }

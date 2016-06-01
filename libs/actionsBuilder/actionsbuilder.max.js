@@ -470,6 +470,14 @@ this.getList = function () {
 this.getViewer = function () {
     return viewer;
 };
+this.configureParameters = function () {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i - 0] = arguments[_i];
+    }
+    ActionsBuilder.ParametersElements.AddParametersOnMesh(args[0]);
+    ActionsBuilder.ParametersElements.Apply();
+};
 this.createJSON = function () {
     var structure = viewer.utils.createJSON(viewer.root);
     var asText = JSON.stringify(structure);
@@ -633,30 +641,20 @@ var ActionsBuilder;
                 parameterName.className = "ParametersElementTitleClass";
                 this.parametersContainer.appendChild(parameterName);
                 if (properties[i].text === "parameter" || properties[i].text === "target" || properties[i].text === "parent") {
-                    if (properties[i].targetType === null) {
-                        var parameterInput = document.createElement("input");
-                        parameterInput.value = propertiesResults[i].value;
-                        parameterInput.className = "ParametersElementInputClass";
-                        this.parametersContainer.appendChild(parameterInput);
-                        // Configure event
-                        parameterInput.onkeyup = this._propertyInputChanged(parameterInput, i);
-                    }
-                    else {
-                        // Create target select element
-                        targetParameterSelect = document.createElement("select");
-                        targetParameterSelect.className = "ParametersElementSelectClass";
-                        this.parametersContainer.appendChild(targetParameterSelect);
-                        // Create target name select element
-                        targetParameterNameSelect = document.createElement("select");
-                        targetParameterNameSelect.className = "ParametersElementSelectClass";
-                        this.parametersContainer.appendChild(targetParameterNameSelect);
-                        // Events and configure
-                        (this._parameterTargetChanged(targetParameterSelect, targetParameterNameSelect, propertyPathSelect, propertyPathOptionalSelect, i))(null);
-                        targetParameterSelect.value = propertiesResults[i].targetType;
-                        targetParameterNameSelect.value = propertiesResults[i].value;
-                        targetParameterSelect.onchange = this._parameterTargetChanged(targetParameterSelect, targetParameterNameSelect, propertyPathSelect, propertyPathOptionalSelect, i);
-                        targetParameterNameSelect.onchange = this._parameterTargetNameChanged(targetParameterSelect, targetParameterNameSelect, i);
-                    }
+                    // Create target select element
+                    targetParameterSelect = document.createElement("select");
+                    targetParameterSelect.className = "ParametersElementSelectClass";
+                    this.parametersContainer.appendChild(targetParameterSelect);
+                    // Create target name select element
+                    targetParameterNameSelect = document.createElement("select");
+                    targetParameterNameSelect.className = "ParametersElementSelectClass";
+                    this.parametersContainer.appendChild(targetParameterNameSelect);
+                    // Events and configure
+                    (this._parameterTargetChanged(targetParameterSelect, targetParameterNameSelect, propertyPathSelect, propertyPathOptionalSelect, i))(null);
+                    targetParameterSelect.value = propertiesResults[i].targetType;
+                    targetParameterNameSelect.value = propertiesResults[i].value;
+                    targetParameterSelect.onchange = this._parameterTargetChanged(targetParameterSelect, targetParameterNameSelect, propertyPathSelect, propertyPathOptionalSelect, i);
+                    targetParameterNameSelect.onchange = this._parameterTargetNameChanged(targetParameterSelect, targetParameterNameSelect, i);
                 }
                 else if (properties[i].text === "propertyPath") {
                     propertyPathIndice = i;
@@ -686,7 +684,7 @@ var ActionsBuilder;
                         }
                         this._fillAdditionalPropertyPath(targetParameterSelect, propertyPathSelect, propertyPathOptionalSelect);
                         propertyPathOptionalSelect.value = property[property.length - 1];
-                        if (propertyPathOptionalSelect.options.length === 0 || propertyPathOptionalSelect.options[0].textContent === "") {
+                        if (propertyPathOptionalSelect.options.length === 0 || propertyPathOptionalSelect.options[0].text === "") {
                             this._viewer.utils.setElementVisible(propertyPathOptionalSelect, false);
                         }
                     }
@@ -773,7 +771,7 @@ var ActionsBuilder;
                     for (var i = 0; i < values.length; i++) {
                         var option = document.createElement("option");
                         option.value = option.text = values[i];
-                        booleanSelect.add(option);
+                        booleanSelect.options.add(option);
                     }
                 }
                 else {
@@ -793,7 +791,7 @@ var ActionsBuilder;
                     for (var i = 0; i < ActionsBuilder.SceneElements.SOUNDS.length; i++) {
                         var option = document.createElement("option");
                         option.value = option.text = ActionsBuilder.SceneElements.SOUNDS[i];
-                        soundSelect.add(option);
+                        soundSelect.options.add(option);
                     }
                     _this._sortList(soundSelect);
                 }
@@ -814,8 +812,7 @@ var ActionsBuilder;
                     for (var i = 0; i < ActionsBuilder.SceneElements.OPERATORS.length; i++) {
                         var option = document.createElement("option");
                         option.value = option.text = ActionsBuilder.SceneElements.OPERATORS[i];
-                        //conditionOperatorSelect.options.add(option);
-                        conditionOperatorSelect.add(option);
+                        conditionOperatorSelect.options.add(option);
                     }
                 }
                 else {
@@ -851,7 +848,7 @@ var ActionsBuilder;
                         for (var i = 0; i < properties.length; i++) {
                             var option = document.createElement("option");
                             option.value = option.text = properties[i];
-                            propertyPathSelect.add(option);
+                            propertyPathSelect.options.add(option);
                         }
                     }
                 }
@@ -909,11 +906,11 @@ var ActionsBuilder;
                 if (index !== -1) {
                     var option = document.createElement("option");
                     option.value = option.text = thing;
-                    additionalPropertyPathSelect.add(option);
+                    additionalPropertyPathSelect.options.add(option);
                     emptyOption.text += thing + ", ";
                 }
             }
-            if (additionalPropertyPathSelect.options.length === 0 || additionalPropertyPathSelect.options[0].textContent === "") {
+            if (additionalPropertyPathSelect.options.length === 0 || additionalPropertyPathSelect.options[0].text === "") {
                 this._viewer.utils.setElementVisible(additionalPropertyPathSelect, false);
             }
             else {
@@ -962,7 +959,7 @@ var ActionsBuilder;
                         var option = document.createElement("option");
                         option.text = options[i].text;
                         option.value = options[i].targetType;
-                        targetParameterSelect.add(option);
+                        targetParameterSelect.options.add(option);
                     }
                     targetParameterSelect.value = _this._action.propertiesResults[indice].targetType;
                 }
@@ -986,7 +983,7 @@ var ActionsBuilder;
                     for (var i = 0; i < targetParameterProperties.length; i++) {
                         var option = document.createElement("option");
                         option.text = option.value = targetParameterProperties[i];
-                        targetParameterNameSelect.add(option);
+                        targetParameterNameSelect.options.add(option);
                     }
                 }
                 targetParameterNameSelect.value = _this._action.propertiesResults[indice].value;
@@ -1118,7 +1115,7 @@ var ActionsBuilder;
                 return a.innerHTML.localeCompare(b.innerHTML);
             });
             for (var i = 0; i < options.length; i++) {
-                element.add(options[i]);
+                element.options.add(options[i]);
             }
         };
         return Parameters;
@@ -1201,7 +1198,7 @@ var ActionsBuilder;
             });
         }
         Toolbar.prototype.onResize = function () {
-            this.toolbarElement.style.top = this._viewer.viewerElement.clientHeight + 25 + "px";
+            this.toolbarElement.style.top = this._viewer.viewerElement.clientHeight + 20 + "px";
         };
         Toolbar.prototype.drawSaveActionGraphButton = function (draw) {
             this.saveActionGraphElement.style.display = draw ? "block" : "none";
@@ -1433,7 +1430,6 @@ var ActionsBuilder;
         "StandardMaterial"
     ];
     SceneElements.MESH.material = new BABYLON.StandardMaterial("material", SceneElements.SCENE);
-    SceneElements.MESH.rotation = new BABYLON.Vector3(0, 0, 0);
     var addSpecialType = function (object, properties, thing) {
         for (var specialThing in object[thing]) {
             if (object[thing].hasOwnProperty(specialThing) && SceneElements.TestInstanceOf(object[thing][specialThing], specialThing)) {
@@ -1441,6 +1437,61 @@ var ActionsBuilder;
             }
         }
     };
+    /*
+    *
+    */
+    var ParametersElements = (function () {
+        function ParametersElements() {
+        }
+        /*
+        * Methods
+        */
+        ParametersElements.AddParametersOnMesh = function (parameters) {
+            this._Parameters = this._Parameters.concat(parameters);
+        };
+        ParametersElements.ClearParameters = function () {
+            this._Parameters = [];
+        };
+        ParametersElements.Apply = function () {
+            if (this._Parameters.length === 0) {
+                this._Parameters.push("StandardMaterial");
+            }
+            specialTypes = this._Parameters;
+            // Configure properties
+            for (var thing in SceneElements.MESH) {
+                var instance = SceneElements.GetInstanceOf(SceneElements.MESH[thing]);
+                if (SceneElements.MESH.hasOwnProperty(thing)) {
+                    if (specialTypes.indexOf(instance) !== -1) {
+                        addSpecialType(SceneElements.MESH, SceneElements.MESH_PROPERTIES, thing);
+                    }
+                    else if (SceneElements.TestInstanceOf(SceneElements.MESH[thing], thing)) {
+                        SceneElements.MESH_PROPERTIES.push(thing);
+                    }
+                }
+            }
+            for (var thing in SceneElements.LIGHT) {
+                if (SceneElements.LIGHT.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.LIGHT[thing], thing)) {
+                    SceneElements.LIGHT_PROPERTIES.push(thing);
+                }
+            }
+            for (var thing in SceneElements.CAMERA) {
+                if (SceneElements.CAMERA.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.CAMERA[thing], thing)) {
+                    SceneElements.CAMERA_PROPERTIES.push(thing);
+                }
+            }
+            for (var thing in SceneElements.SCENE) {
+                if (SceneElements.SCENE.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.SCENE[thing], thing)) {
+                    SceneElements.SCENE_PROPERTIES.push(thing);
+                }
+            }
+        };
+        /*
+        * Private properties
+        */
+        ParametersElements._Parameters = [];
+        return ParametersElements;
+    })();
+    ActionsBuilder.ParametersElements = ParametersElements;
     // Configure types
     SceneElements.TYPES.push("Color3");
     SceneElements.TYPES.push("Boolean");
@@ -1453,34 +1504,6 @@ var ActionsBuilder;
     SceneElements.OPERATORS.push("IsDifferent");
     SceneElements.OPERATORS.push("IsGreater");
     SceneElements.OPERATORS.push("IsLesser");
-    // Configure properties
-    for (var thing in SceneElements.MESH) {
-        var instance = SceneElements.GetInstanceOf(SceneElements.MESH[thing]);
-        //if (SceneElements.MESH.hasOwnProperty(thing)) {
-        if (SceneElements.MESH[thing] !== undefined && SceneElements.MESH[thing] !== null) {
-            if (specialTypes.indexOf(instance) !== -1) {
-                addSpecialType(SceneElements.MESH, SceneElements.MESH_PROPERTIES, thing);
-            }
-            else if (SceneElements.TestInstanceOf(SceneElements.MESH[thing], thing)) {
-                SceneElements.MESH_PROPERTIES.push(thing);
-            }
-        }
-    }
-    for (var thing in SceneElements.LIGHT) {
-        if (SceneElements.LIGHT.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.LIGHT[thing], thing)) {
-            SceneElements.LIGHT_PROPERTIES.push(thing);
-        }
-    }
-    for (var thing in SceneElements.CAMERA) {
-        if (SceneElements.CAMERA.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.CAMERA[thing], thing)) {
-            SceneElements.CAMERA_PROPERTIES.push(thing);
-        }
-    }
-    for (var thing in SceneElements.SCENE) {
-        if (SceneElements.SCENE.hasOwnProperty(thing) && SceneElements.TestInstanceOf(SceneElements.SCENE[thing], thing)) {
-            SceneElements.SCENE_PROPERTIES.push(thing);
-        }
-    }
     /**
     * Actions Builder elements (triggers, actions & flow controls) that are
     * arrays of Element
@@ -2133,11 +2156,19 @@ var ActionsBuilder;
                 return Raphael.rgb(96, 122, 14);
             }
             switch (type) {
-                case ActionsBuilder.Type.TRIGGER: return Raphael.rgb(133, 154, 185);
-                case ActionsBuilder.Type.ACTION: return Raphael.rgb(182, 185, 132);
-                case ActionsBuilder.Type.FLOW_CONTROL: return Raphael.rgb(185, 132, 140);
+                case ActionsBuilder.Type.TRIGGER:
+                    return Raphael.rgb(133, 154, 185);
+                    break;
+                case ActionsBuilder.Type.ACTION:
+                    return Raphael.rgb(182, 185, 132);
+                    break;
+                case ActionsBuilder.Type.FLOW_CONTROL:
+                    return Raphael.rgb(185, 132, 140);
+                    break;
                 case ActionsBuilder.Type.OBJECT:
-                case ActionsBuilder.Type.SCENE: return Raphael.rgb(255, 255, 255);
+                case ActionsBuilder.Type.SCENE:
+                    return Raphael.rgb(255, 255, 255);
+                    break;
                 default: break;
             }
             return null;
@@ -2152,11 +2183,19 @@ var ActionsBuilder;
                 return Raphael.rgb(96, 122, 14);
             }
             switch (type) {
-                case ActionsBuilder.Type.TRIGGER: return Raphael.rgb(41, 129, 255);
-                case ActionsBuilder.Type.ACTION: return Raphael.rgb(255, 220, 42);
-                case ActionsBuilder.Type.FLOW_CONTROL: return Raphael.rgb(255, 41, 53);
+                case ActionsBuilder.Type.TRIGGER:
+                    return Raphael.rgb(41, 129, 255);
+                    break;
+                case ActionsBuilder.Type.ACTION:
+                    return Raphael.rgb(255, 220, 42);
+                    break;
+                case ActionsBuilder.Type.FLOW_CONTROL:
+                    return Raphael.rgb(255, 41, 53);
+                    break;
                 case ActionsBuilder.Type.OBJECT:
-                case ActionsBuilder.Type.SCENE: return Raphael.rgb(255, 255, 255);
+                case ActionsBuilder.Type.SCENE:
+                    return Raphael.rgb(255, 255, 255);
+                    break;
                 default: break;
             }
             return null;

@@ -9829,6 +9829,18 @@ var BABYLON;
                     _this._getNames(core.currentScene.lights, iframeWindow.setLightsNames);
                     _this._getNames(core.currentScene.cameras, iframeWindow.setCamerasNames);
                     _this._getNames(core.currentScene.mainSoundTrack.soundCollection, iframeWindow.setSoundsNames);
+                    // Set parameters
+                    var parameters = [];
+                    if (object instanceof BABYLON.AbstractMesh) {
+                        if (object.material) {
+                            parameters.push(EDITOR.Tools.GetConstructorName(object.material));
+                            iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
+                        }
+                    }
+                    else
+                        parameters.push("None"); // No additional parameters
+                    iframeWindow.configureParameters(parameters);
+                    // Configure
                     if (object instanceof BABYLON.Scene)
                         iframeWindow.setIsScene();
                     else
