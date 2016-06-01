@@ -52,7 +52,8 @@
                         iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
                     }
                 }
-                else
+
+                if (parameters.length === 0)
                     parameters.push("None"); // No additional parameters
 
                 iframeWindow.configureParameters(parameters);
