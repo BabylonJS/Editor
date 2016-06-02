@@ -56,7 +56,7 @@
             if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                 var uri = "https://login.live.com/oauth20_authorize.srf"
                     + "?client_id=" + OneDriveStorage._ClientID
-                    + "&redirect_uri=" + Tools.getBaseURL() + "redirect.html"
+                    + "&redirect_uri=" + Tools.GetBaseURL() + "redirect.html"
                     + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
 
                 var popup = Tools.OpenWindowPopup(uri, 512, 512);

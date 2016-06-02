@@ -23,7 +23,8 @@
     "gulp-clean-ts-extends": "~0.1.1",
     "gulp-webserver": "^0.9.1",
     "yargs": "^4.7.1",
+
     "electron-prebuilt": "^1.2.0",
-    "electron-packager":  "^7.0.3"
+    "electron-packager": "^7.0.3"
   }
 }

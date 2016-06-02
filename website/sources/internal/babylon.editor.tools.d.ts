@@ -20,7 +20,12 @@ declare module BABYLON.EDITOR {
         /**
         * Returns the base URL of the window
         */
-        static getBaseURL(): string;
+        static GetBaseURL(): string;
+        /**
+        * Checks if the editor is running in an
+        * Electron window
+        */
+        static CheckIfElectron(): boolean;
         /**
         * Creates an input element
         */

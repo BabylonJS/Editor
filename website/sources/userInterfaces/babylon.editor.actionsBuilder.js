@@ -29,7 +29,7 @@ var BABYLON;
                 this._window.lock();
                 // Configure iframe
                 var iframeElement = $("#" + iframeID);
-                iframeElement.attr("src", "../libs/actionsBuilder/index.html");
+                iframeElement.attr("src", "libs/actionsBuilder/index.html");
                 var iframeWindow = iframeElement[0].contentWindow;
                 iframeElement[0].onload = function () {
                     _this._getNames(core.currentScene.meshes, iframeWindow.setMeshesNames);

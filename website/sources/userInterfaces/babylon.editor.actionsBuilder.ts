@@ -34,7 +34,7 @@
 
             // Configure iframe
             var iframeElement = $("#" + iframeID);
-            iframeElement.attr("src", "../libs/actionsBuilder/index.html");
+            iframeElement.attr("src", "libs/actionsBuilder/index.html");
 
             var iframeWindow: any = (<HTMLIFrameElement>iframeElement[0]).contentWindow;
 

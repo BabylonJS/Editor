@@ -56,11 +56,23 @@
         /**
         * Returns the base URL of the window
         */
-        public static getBaseURL(): string {
+        public static GetBaseURL(): string {
+            if (this.CheckIfElectron())
+                return "http://www.editor.babylonjs.com/";
+
             var url = window.location.href;
             url = url.replace(BABYLON.Tools.GetFilename(url), "");
 
             return url;
+        }
+
+        /**
+        * Checks if the editor is running in an
+        * Electron window
+        */
+        public static CheckIfElectron(): boolean {
+            var process = (<any>window).process;
+            return process !== undefined;
         }
 
         /**

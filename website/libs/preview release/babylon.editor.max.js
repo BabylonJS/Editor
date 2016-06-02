@@ -182,10 +182,20 @@ var BABYLON;
             /**
             * Returns the base URL of the window
             */
-            Tools.getBaseURL = function () {
+            Tools.GetBaseURL = function () {
+                if (this.CheckIfElectron())
+                    return "http://www.editor.babylonjs.com/";
                 var url = window.location.href;
                 url = url.replace(BABYLON.Tools.GetFilename(url), "");
                 return url;
+            };
+            /**
+            * Checks if the editor is running in an
+            * Electron window
+            */
+            Tools.CheckIfElectron = function () {
+                var process = window.process;
+                return process !== undefined;
             };
             /**
             * Creates an input element
@@ -6453,7 +6463,7 @@ var BABYLON;
                 if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                     var uri = "https://login.live.com/oauth20_authorize.srf"
                         + "?client_id=" + OneDriveStorage._ClientID
-                        + "&redirect_uri=" + EDITOR.Tools.getBaseURL() + "redirect.html"
+                        + "&redirect_uri=" + EDITOR.Tools.GetBaseURL() + "redirect.html"
                         + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
                     var popup = EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
                     popup.OneDriveStorageCallback = success;
@@ -9822,7 +9832,7 @@ var BABYLON;
                 this._window.lock();
                 // Configure iframe
                 var iframeElement = $("#" + iframeID);
-                iframeElement.attr("src", "../libs/actionsBuilder/index.html");
+                iframeElement.attr("src", "libs/actionsBuilder/index.html");
                 var iframeWindow = iframeElement[0].contentWindow;
                 iframeElement[0].onload = function () {
                     _this._getNames(core.currentScene.meshes, iframeWindow.setMeshesNames);

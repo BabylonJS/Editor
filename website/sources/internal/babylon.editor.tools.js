@@ -51,10 +51,20 @@ var BABYLON;
             /**
             * Returns the base URL of the window
             */
-            Tools.getBaseURL = function () {
+            Tools.GetBaseURL = function () {
+                if (this.CheckIfElectron())
+                    return "http://www.editor.babylonjs.com/";
                 var url = window.location.href;
                 url = url.replace(BABYLON.Tools.GetFilename(url), "");
                 return url;
+            };
+            /**
+            * Checks if the editor is running in an
+            * Electron window
+            */
+            Tools.CheckIfElectron = function () {
+                var process = window.process;
+                return process !== undefined;
             };
             /**
             * Creates an input element
