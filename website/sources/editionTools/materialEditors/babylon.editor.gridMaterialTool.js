@@ -36,7 +36,7 @@ var BABYLON;
                 return true;
             };
             return GridMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.GridMaterialTool = GridMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

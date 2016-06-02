@@ -51,7 +51,7 @@ var BABYLON;
                     return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
                 };
                 return GUIElement;
-            })();
+            }());
             GUI.GUIElement = GUIElement;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

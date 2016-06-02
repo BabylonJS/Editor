@@ -46,7 +46,7 @@ var BABYLON;
                 return true;
             };
             return TriPlanarMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.TriPlanarMaterialTool = TriPlanarMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

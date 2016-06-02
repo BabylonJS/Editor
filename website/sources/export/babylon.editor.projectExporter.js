@@ -398,7 +398,7 @@ var BABYLON;
                 }
             };
             return ProjectExporter;
-        })();
+        }());
         EDITOR.ProjectExporter = ProjectExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

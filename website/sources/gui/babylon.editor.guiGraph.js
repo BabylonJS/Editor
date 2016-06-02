@@ -134,7 +134,7 @@ var BABYLON;
                     });
                 };
                 return GUIGraph;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIGraph = GUIGraph;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

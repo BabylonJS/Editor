@@ -44,7 +44,7 @@ var BABYLON;
                 };
             }
             return LaunchEditor;
-        })();
+        }());
         EDITOR.LaunchEditor = LaunchEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

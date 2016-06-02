@@ -115,7 +115,7 @@ var BABYLON;
                     return this._panelElement.tabs.show(id) === 1;
                 };
                 return GUIPanel;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIPanel = GUIPanel;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

@@ -94,7 +94,7 @@ var BABYLON;
                 };
             };
             return SoundsMenuPlugin;
-        })();
+        }());
         EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);

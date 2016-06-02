@@ -202,7 +202,7 @@ var BABYLON;
             EditorMain.prototype.dispose = function () {
             };
             return EditorMain;
-        })();
+        }());
         EDITOR.EditorMain = EditorMain;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

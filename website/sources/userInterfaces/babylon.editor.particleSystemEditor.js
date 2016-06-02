@@ -408,7 +408,7 @@ var BABYLON;
             GUIParticleSystemEditor._CurrentParticleSystem = null;
             GUIParticleSystemEditor._CopiedParticleSystem = null;
             return GUIParticleSystemEditor;
-        })();
+        }());
         EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

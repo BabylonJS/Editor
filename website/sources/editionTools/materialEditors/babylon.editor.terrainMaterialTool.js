@@ -46,7 +46,7 @@ var BABYLON;
                 return true;
             };
             return TerrainMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.TerrainMaterialTool = TerrainMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

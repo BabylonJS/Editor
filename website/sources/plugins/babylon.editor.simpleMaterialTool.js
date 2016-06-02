@@ -36,7 +36,7 @@ var BABYLON;
                 return true;
             };
             return SimpleMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.SimpleMaterialTool = SimpleMaterialTool;
         // Finally, register the plugin using the plugin manager
         EDITOR.PluginManager.RegisterEditionTool(SimpleMaterialTool);

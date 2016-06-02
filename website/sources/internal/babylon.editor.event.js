@@ -54,7 +54,7 @@ var BABYLON;
                 this.data = data;
             }
             return BaseEvent;
-        })();
+        }());
         EDITOR.BaseEvent = BaseEvent;
         /**
         * Scene Event
@@ -71,7 +71,7 @@ var BABYLON;
                 this.eventType = eventType;
             }
             return SceneEvent;
-        })(BaseEvent);
+        }(BaseEvent));
         EDITOR.SceneEvent = SceneEvent;
         /**
         * GUI Event
@@ -89,7 +89,7 @@ var BABYLON;
                 this.eventType = eventType;
             }
             return GUIEvent;
-        })(BaseEvent);
+        }(BaseEvent));
         EDITOR.GUIEvent = GUIEvent;
         /**
         * IEvent implementation
@@ -113,7 +113,7 @@ var BABYLON;
                 core.sendEvent(ev);
             };
             return Event;
-        })();
+        }());
         EDITOR.Event = Event;
         /**
         * Statics

@@ -184,7 +184,7 @@ var BABYLON;
                     });
                 };
                 return GUIToolbar;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIToolbar = GUIToolbar;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

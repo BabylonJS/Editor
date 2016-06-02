@@ -29,7 +29,7 @@ var BABYLON;
             // Resize
             AbstractTool.prototype.resize = function () { };
             return AbstractTool;
-        })();
+        }());
         EDITOR.AbstractTool = AbstractTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -311,7 +311,7 @@ var BABYLON;
             StorageExporter._projectFolder = null;
             StorageExporter._projectFolderChildren = null;
             return StorageExporter;
-        })();
+        }());
         EDITOR.StorageExporter = StorageExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

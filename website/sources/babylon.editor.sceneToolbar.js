@@ -169,7 +169,7 @@ var BABYLON;
                     setFPS(this._core.currentScene.skeletons[sIndex].bones);
             };
             return SceneToolbar;
-        })();
+        }());
         EDITOR.SceneToolbar = SceneToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

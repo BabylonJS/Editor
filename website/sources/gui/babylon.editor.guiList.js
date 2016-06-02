@@ -40,7 +40,7 @@ var BABYLON;
                     });
                 };
                 return GUIList;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIList = GUIList;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

@@ -201,7 +201,7 @@ var BABYLON;
                 this.toolbar.buildElement(this.container);
             };
             return MainToolbar;
-        })();
+        }());
         EDITOR.MainToolbar = MainToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

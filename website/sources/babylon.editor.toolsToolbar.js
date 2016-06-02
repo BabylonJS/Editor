@@ -104,7 +104,7 @@ var BABYLON;
                 this.toolbar.buildElement(this.container);
             };
             return ToolsToolbar;
-        })();
+        }());
         EDITOR.ToolsToolbar = ToolsToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

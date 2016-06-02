@@ -46,7 +46,7 @@ var BABYLON;
                     });
                 };
                 return GUIDialog;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIDialog = GUIDialog;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

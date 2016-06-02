@@ -103,7 +103,7 @@ var BABYLON;
                     this._list.setSelected(selected);
             };
             return ObjectPicker;
-        })();
+        }());
         EDITOR.ObjectPicker = ObjectPicker;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

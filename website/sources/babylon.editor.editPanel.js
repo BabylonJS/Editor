@@ -78,7 +78,7 @@ var BABYLON;
                 //this._closeButton.css("height", "25px");
             };
             return EditPanel;
-        })();
+        }());
         EDITOR.EditPanel = EditPanel;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

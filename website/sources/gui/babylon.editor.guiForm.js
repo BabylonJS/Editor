@@ -80,7 +80,7 @@ var BABYLON;
                     });
                 };
                 return GUIForm;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIForm = GUIForm;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

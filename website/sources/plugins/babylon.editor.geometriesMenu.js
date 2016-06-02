@@ -45,7 +45,7 @@ var BABYLON;
                 }
             };
             return GeometriesMenuPlugin;
-        })();
+        }());
         EDITOR.GeometriesMenuPlugin = GeometriesMenuPlugin;
         // Finally, register the plugin using the plugin manager
         EDITOR.PluginManager.RegisterMainToolbarPlugin(GeometriesMenuPlugin);

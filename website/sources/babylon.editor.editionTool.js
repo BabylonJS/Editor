@@ -149,7 +149,7 @@ var BABYLON;
                 this.editionTools.push(tool);
             };
             return EditionTool;
-        })();
+        }());
         EDITOR.EditionTool = EditionTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

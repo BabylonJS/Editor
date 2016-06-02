@@ -47,7 +47,7 @@ var BABYLON;
                 BABYLON.Tags.AddTagsTo(sound, "added");
             };
             return LightsMenuPlugin;
-        })();
+        }());
         EDITOR.LightsMenuPlugin = LightsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);

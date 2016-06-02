@@ -157,7 +157,7 @@ var BABYLON;
                 this.material.useMicroSurfaceFromReflectivityMapAlpha = true;
             };
             return PBRMaterialTool;
-        })(EDITOR.AbstractMaterialTool);
+        }(EDITOR.AbstractMaterialTool));
         EDITOR.PBRMaterialTool = PBRMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

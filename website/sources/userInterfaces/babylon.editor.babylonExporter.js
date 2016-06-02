@@ -134,7 +134,7 @@ var BABYLON;
                 return obj;
             };
             return BabylonExporter;
-        })();
+        }());
         EDITOR.BabylonExporter = BabylonExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

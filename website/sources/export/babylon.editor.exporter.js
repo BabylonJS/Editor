@@ -513,7 +513,7 @@ var BABYLON;
                 }
             };
             return Exporter;
-        })();
+        }());
         EDITOR.Exporter = Exporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -138,7 +138,7 @@ var BABYLON;
                     w2alert(message, title, callback);
                 };
                 return GUIWindow;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIWindow = GUIWindow;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

@@ -69,7 +69,7 @@ var BABYLON;
                     }
                 };
                 return GUILayout;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUILayout = GUILayout;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

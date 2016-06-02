@@ -192,7 +192,7 @@ var BABYLON;
                 }
             };
             return GeneralTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.GeneralTool = GeneralTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

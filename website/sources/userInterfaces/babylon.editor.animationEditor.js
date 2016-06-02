@@ -732,7 +732,7 @@ var BABYLON;
             GUIAnimationEditor.FramesPerSecond = 24;
             GUIAnimationEditor._CopiedAnimations = [];
             return GUIAnimationEditor;
-        })();
+        }());
         EDITOR.GUIAnimationEditor = GUIAnimationEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

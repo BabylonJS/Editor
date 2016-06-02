@@ -129,7 +129,7 @@ var BABYLON;
                 return worker;
             };
             return Tools;
-        })();
+        }());
         EDITOR.Tools = Tools;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

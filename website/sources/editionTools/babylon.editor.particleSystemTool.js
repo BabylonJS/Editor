@@ -51,7 +51,7 @@ var BABYLON;
                 return true;
             };
             return ParticleSystemTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.ParticleSystemTool = ParticleSystemTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

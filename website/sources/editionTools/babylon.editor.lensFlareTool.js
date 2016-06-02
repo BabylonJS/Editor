@@ -110,7 +110,7 @@ var BABYLON;
                 };
             };
             return LensFlareTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.LensFlareTool = LensFlareTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

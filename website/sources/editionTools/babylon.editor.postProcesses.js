@@ -225,7 +225,7 @@ var BABYLON;
                 input.click();
             };
             return PostProcessesTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.PostProcessesTool = PostProcessesTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

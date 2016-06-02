@@ -97,7 +97,7 @@ var BABYLON;
                 var actionsBuilder = new EDITOR.GUIActionsBuilder(this._editionTool.core, this.object, actionManager);
             };
             return AnimationTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.AnimationTool = AnimationTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

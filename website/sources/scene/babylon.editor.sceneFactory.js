@@ -298,7 +298,7 @@ var BABYLON;
             SceneFactory.NodesToStart = [];
             SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;
-        })();
+        }());
         EDITOR.SceneFactory = SceneFactory;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -167,7 +167,7 @@ var BABYLON;
             OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
             OneDriveStorage._POPUP = null;
             return OneDriveStorage;
-        })(EDITOR.Storage);
+        }(EDITOR.Storage));
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

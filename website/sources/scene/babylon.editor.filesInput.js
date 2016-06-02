@@ -69,7 +69,7 @@ var BABYLON;
                 };
             };
             return FilesInput;
-        })(BABYLON.FilesInput);
+        }(BABYLON.FilesInput));
         EDITOR.FilesInput = FilesInput;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

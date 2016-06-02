@@ -186,7 +186,7 @@ var BABYLON;
                 return (frame * width) / this._maxFrame;
             };
             return Timeline;
-        })();
+        }());
         EDITOR.Timeline = Timeline;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

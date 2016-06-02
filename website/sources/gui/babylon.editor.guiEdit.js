@@ -82,7 +82,7 @@ var BABYLON;
                     this.element = parentElement[0].appendChild(this._datElement.domElement);
                 };
                 return GUIEditForm;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIEditForm = GUIEditForm;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

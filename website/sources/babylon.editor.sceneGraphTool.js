@@ -335,7 +335,7 @@ var BABYLON;
                 }
             };
             return SceneGraphTool;
-        })();
+        }());
         EDITOR.SceneGraphTool = SceneGraphTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

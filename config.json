@@ -100,5 +100,15 @@
       "sources/plugins/babylon.editor.soundsMenu.js",
       "sources/plugins/babylon.editor.lightsMenu.js"
     ]
+  },
+  "electron": {
+    "typescriptBuild": [
+      "website/electron/**/*.ts",
+      "!website/electron/**/*.d.ts",
+      "defines/electron/*.d.ts"
+    ],
+    "files": [
+      "electron/main.js"
+    ]
   }
 }

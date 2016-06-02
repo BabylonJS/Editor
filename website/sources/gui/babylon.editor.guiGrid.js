@@ -272,7 +272,7 @@ var BABYLON;
                     });
                 };
                 return GUIGrid;
-            })(GUI.GUIElement);
+            }(GUI.GUIElement));
             GUI.GUIGrid = GUIGrid;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));

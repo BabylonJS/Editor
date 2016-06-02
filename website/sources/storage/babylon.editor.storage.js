@@ -23,7 +23,7 @@ var BABYLON;
             // Select folder
             Storage.prototype.selectFolder = function (success) { };
             return Storage;
-        })();
+        }());
         EDITOR.Storage = Storage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -215,7 +215,7 @@ var BABYLON;
                 this._includedMeshesList.refresh();
             };
             return ReflectionProbeTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.ReflectionProbeTool = ReflectionProbeTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

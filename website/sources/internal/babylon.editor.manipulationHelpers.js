@@ -110,7 +110,7 @@ var BABYLON;
                 return this._actionStack[this._actionStack.length - 1];
             };
             return ManipulationHelper;
-        })();
+        }());
         EDITOR.ManipulationHelper = ManipulationHelper;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

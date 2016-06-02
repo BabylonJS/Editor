@@ -20,7 +20,7 @@ var BABYLON;
             PluginManager.MainToolbarPlugins = [];
             PluginManager.CustomUpdatePlugins = [];
             return PluginManager;
-        })();
+        }());
         EDITOR.PluginManager = PluginManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

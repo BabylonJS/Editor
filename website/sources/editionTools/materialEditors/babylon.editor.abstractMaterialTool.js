@@ -69,7 +69,7 @@ var BABYLON;
                 return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, callback);
             };
             return AbstractMaterialTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.AbstractMaterialTool = AbstractMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

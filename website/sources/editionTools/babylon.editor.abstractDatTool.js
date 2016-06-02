@@ -102,7 +102,7 @@ var BABYLON;
                 return folder;
             };
             return AbstractDatTool;
-        })(EDITOR.AbstractTool);
+        }(EDITOR.AbstractTool));
         EDITOR.AbstractDatTool = AbstractDatTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

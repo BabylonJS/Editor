@@ -288,7 +288,7 @@ var BABYLON;
                 };
             };
             return GUITextureEditor;
-        })();
+        }());
         EDITOR.GUITextureEditor = GUITextureEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

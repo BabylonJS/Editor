@@ -100,7 +100,7 @@ var BABYLON;
                     func(objects[i].name);
             };
             return GUIActionsBuilder;
-        })();
+        }());
         EDITOR.GUIActionsBuilder = GUIActionsBuilder;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

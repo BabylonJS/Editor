@@ -72,7 +72,7 @@ var BABYLON;
             */
             SceneManager._ConfiguredObjectsIDs = {};
             return SceneManager;
-        })();
+        }());
         EDITOR.SceneManager = SceneManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

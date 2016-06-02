@@ -71,7 +71,7 @@ var BABYLON;
             EditorCore.prototype.dispose = function () {
             };
             return EditorCore;
-        })();
+        }());
         EDITOR.EditorCore = EditorCore;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

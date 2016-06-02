@@ -449,7 +449,7 @@ var BABYLON;
                 return mesh;
             };
             return Transformer;
-        })();
+        }());
         EDITOR.Transformer = Transformer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

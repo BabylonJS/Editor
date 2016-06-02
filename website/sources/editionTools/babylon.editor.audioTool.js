@@ -112,7 +112,7 @@ var BABYLON;
                 sound.stop();
             };
             return AudioTool;
-        })(EDITOR.AbstractDatTool);
+        }(EDITOR.AbstractDatTool));
         EDITOR.AudioTool = AudioTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

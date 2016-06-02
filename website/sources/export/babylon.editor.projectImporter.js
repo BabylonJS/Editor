@@ -229,7 +229,7 @@ var BABYLON;
                 }
             };
             return ProjectImporter;
-        })();
+        }());
         EDITOR.ProjectImporter = ProjectImporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

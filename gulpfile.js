@@ -28,6 +28,11 @@ for (var i = 0; i < config.plugins.files.length; i++) {
     files.push("website/" + config.plugins.files[i].replace(".js", ".ts"));
 }
 
+var electronFiles = [].concat(config.core.defines);
+for (var i = 0; i < config.electron.files.length; i++) {
+    files.push("website/" + config.electron.files[i].replace(".js", ".ts"));
+}
+
 /*
 * Compiles all typescript files and creating a declaration file.
 */
@@ -46,7 +51,7 @@ gulp.task("typescript-compile", function () {
             .pipe(gulp.dest(config.build.outputDirectory)),
         result.js
             .pipe(gulp.dest(config.build.srcOutputDirectory))
-    ])
+    ]);
 });
 
 /*
@@ -95,8 +100,17 @@ gulp.task("webserver", function() {
 /**
  * Electron packager
  */
-gulp.task("electron", function () {
+gulp.task("electron", ["build"], function () {
     var args = cmdArgs.argv;
+
+    // TypeScript files
+    var result = gulp.src(config.electron.typescriptBuild)
+        .pipe(typescript({
+            noExternalResolve: true,
+            target: "ES5",
+            declarationFiles: true,
+            experimentalDecorators: false
+        }));
 
     // OS X
     // gulp electron --osx --arch=x64 --platform=darwin
@@ -112,6 +126,10 @@ gulp.task("electron", function () {
     // gulp electron --linux --arch=x64 --platform=linux
     else if (args.linux)
         args.platform = args.platform || "linux";
+
+    // All
+    else if (args.all)
+        args.platform = args.platform || "all";
 
     var options = {
         arch: args.arch ? args.arch : "x64",
