@@ -7,12 +7,14 @@ var concat = require("gulp-concat");
 var cleants = require("gulp-clean-ts-extends");
 var replace = require("gulp-replace");
 var rename = require("gulp-rename");
+var gulpIf = require("gulp-if");
 var config = require("./config.json");
 var packageConfig = require("./package.json");
 var gutil = require("gulp-util");
 var through = require("through2");
 var webserver = require("gulp-webserver");
-var electronPackager = require('electron-packager')
+var electronPackager = require('electron-packager');
+var cmdArgs = require("yargs");
 
 /*
 * Configure files
@@ -94,21 +96,40 @@ gulp.task("webserver", function() {
  * Electron packager
  */
 gulp.task("electron", function () {
+    var args = cmdArgs.argv;
+
+    // OS X
+    // gulp electron --osx --arch=x64 --platform=darwin
+    if (args.osx)
+        args.platform = args.platform || "darwin";
+
+    // Win32
+    // gulp electron --win32 --arch=x64 --platform=win32
+    else if (args.win32)
+        args.platform = args.platform || "win32";
+
+    // Linux
+    // gulp electron --linux --arch=x64 --platform=linux
+    else if (args.linux)
+        args.platform = args.platform || "linux";
+
     var options = {
-        arch: "x64",
+        arch: args.arch ? args.arch : "x64",
         dir: "website/",
-        platform: "darwin",
+        platform: args.platform ? args.platform : "darwin",
         out: "electronPackages/",
         overwrite: true
     };
 
     electronPackager(options, function (err, appPath) {
-        console.log("Copying package.json into the package");
-        console.log(packageConfig.name);
+        console.log("Copying package.json into the package...");
         gulp.src("package.json")
-            .pipe(gulp.dest(appPath[0] + "/" + packageConfig.name + ".app/Contents/Resources/app/"));
+            .pipe(gulpIf(args.osx, gulp.dest(appPath[0] + "/" + packageConfig.name + ".app/Contents/Resources/app/")))
+            .pipe(gulpIf(args.win32, gulp.dest(appPath[0] + "/resources/app/")))
+            .pipe(gulpIf(args.linux, gulp.dest(appPath[0] + "/resources/app/")));
+        console.log("Done.");
 
-        console.log(err === null ? "No Errors" : err);
+        console.log(err === null ? "No Errors" : "" + err);
         console.log("Package now available at : " + appPath);
     });
 });
