@@ -8,9 +8,11 @@ var cleants = require("gulp-clean-ts-extends");
 var replace = require("gulp-replace");
 var rename = require("gulp-rename");
 var config = require("./config.json");
+var packageConfig = require("./package.json");
 var gutil = require("gulp-util");
 var through = require("through2");
 var webserver = require("gulp-webserver");
+var electronPackager = require('electron-packager')
 
 /*
 * Configure files
@@ -18,10 +20,10 @@ var webserver = require("gulp-webserver");
 var files = [].concat(config.core.defines);
 
 for (var i=0; i < config.core.files.length; i++) {
-    files.push(config.core.files[i].replace(".js", ".ts"));
+    files.push("website/" + config.core.files[i].replace(".js", ".ts"));
 }
 for (var i = 0; i < config.plugins.files.length; i++) {
-    files.push(config.plugins.files[i].replace(".js", ".ts"));
+    files.push("website/" + config.plugins.files[i].replace(".js", ".ts"));
 }
 
 /*
@@ -79,11 +81,34 @@ gulp.task("watch", function() {
  * Web server task to serve a local test page
  */
 gulp.task("webserver", function() {
-  gulp.src(".")
+  gulp.src("./website/")
     .pipe(webserver({
       livereload: false,
       open: "http://localhost:1338/index-debug.html",
       port: 1338,
       fallback: "index-debug.html"
     }));
+});
+
+/**
+ * Electron packager
+ */
+gulp.task("electron", function () {
+    var options = {
+        arch: "x64",
+        dir: "website/",
+        platform: "darwin",
+        out: "electronPackages/",
+        overwrite: true
+    };
+
+    electronPackager(options, function (err, appPath) {
+        console.log("Copying package.json into the package");
+        console.log(packageConfig.name);
+        gulp.src("package.json")
+            .pipe(gulp.dest(appPath[0] + "/" + packageConfig.name + ".app/Contents/Resources/app/"));
+
+        console.log(err === null ? "No Errors" : err);
+        console.log("Package now available at : " + appPath);
+    });
 });

@@ -3,8 +3,8 @@
     "filename": "babylon.editor.max.js",
     "minFilename": "babylon.editor.js",
     "declarationFilename": "babylon.editor.d.ts",
-    "outputDirectory": "libs/preview release",
-    "srcOutputDirectory": "sources/"
+    "outputDirectory": "website/libs/preview release",
+    "srcOutputDirectory": "website/sources/"
   },
   "core": {
     "defines": [
@@ -12,8 +12,8 @@
       "defines/**/*.d.ts"
     ],
     "typescriptBuild": [
-      "sources/**/*.ts",
-      "!sources/**/*.d.ts",
+      "website/sources/**/*.ts",
+      "!website/sources/**/*.d.ts",
       "defines/**/*.d.ts"
     ],
     "files": [

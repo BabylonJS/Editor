@@ -122,3 +122,6 @@ Thumbs.db
 
 # For node modules
 node_modules
+
+# For Electron packages
+electronPackages
