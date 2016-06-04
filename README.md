@@ -63,9 +63,23 @@ Test and run webserver
 gulp webserver
 ```
 
-Roadmap for v0.9
+Electron
 ======
-* Introduce Materials Editor
+
+Build the Electron version
+```
+gulp electron --platform --arch=arch
+```
+
+Where "--platform" is the target platform:
+* osx
+* win32
+* linux
+* all (to package all platforms above with a single command line)
+
+And "--arch" the architecture:
+* x64
+* x86
 
 Roadmap for v1.0
 ======
