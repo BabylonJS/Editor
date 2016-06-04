@@ -398,99 +398,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class Exporter {
-        core: EditorCore;
-        private _window;
-        private _editor;
-        private _editorID;
-        private _generatedCode;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore);
-        openSceneExporter(babylonScene?: boolean): void;
-        generateCode(babylonScene?: boolean): string;
-        static ExportCode(core: EditorCore): string;
-        _exportSceneValues(): string;
-        _exportScene(): string;
-        _exportReflectionProbes(): string;
-        _exportNodeTransform(node: any): string;
-        _getTextureByName(name: string, scene: Scene): BaseTexture;
-        _exportPostProcesses(): string;
-        _exportAnimations(node: IAnimatable): string;
-        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
-        _exportSky(node: Node): string;
-        _exportParticleSystem(particleSystem: ParticleSystem): string;
-        _exportLight(light: Light): string;
-        _exportVector2(vector: Vector2): string;
-        _exportVector3(vector: Vector3): string;
-        _exportQuaternion(quaternion: Quaternion): string;
-        _exportColor3(color: Color3): string;
-        _exportColor4(color: Color4): string;
-        private _traverseNodes(node?);
-        private _fillRootNodes(data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectExporter {
-        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
-        private static _SerializeGlobalAnimations();
-        private static _SerializeSounds(core);
-        private static _SerializeRenderTargets(core);
-        private static _SerializeLensFlares(core);
-        private static _SerializePostProcesses();
-        private static _TraverseNodes(core, node, project);
-        private static _SerializeActionManager(object);
-        private static _RequestMaterial(core, project, material);
-        private static _GetSerializedMaterial(project, materialName);
-        private static _ConfigureMaterial(material, projectMaterial);
-        private static _ConfigureBase64Texture(source, objectToConfigure);
-        private static _FillRootNodes(core, data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectImporter {
-        static ImportProject(core: EditorCore, data: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class StorageExporter implements IEventReceiver {
-        core: EditorCore;
-        private _storage;
-        private _window;
-        private _filesList;
-        private _currentChildrenFolder;
-        private _currentFolder;
-        private _previousFolders;
-        private _onFolderSelected;
-        private static _projectFolder;
-        private static _projectFolderChildren;
-        static OneDriveStorage: string;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore, storageType?: string);
-        onEvent(event: Event): boolean;
-        createTemplate(): void;
-        export(): void;
-        getFolder(name: string): IStorageFile;
-        getFile(name: string): IStorageFile;
-        private _createTemplate();
-        private _fileExists(files, name, parent?);
-        private _processIndexHTML(project, content);
-        private _openFolderDialog(success?);
-        private _updateFolderDialog(folder?);
-        private _updateFileList(onSuccess);
-        private _getFileFolder(name, type, files);
-        private _lockPanel(message);
-        private _unlockPanel();
-    }
-}
-
-declare module BABYLON.EDITOR {
     class AbstractDatTool extends AbstractTool {
         protected _element: GUI.GUIEditForm;
         /**
@@ -716,81 +623,95 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class FilesInput extends BABYLON.FilesInput {
-        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
-        private static _callbackStart(core);
-        private static _callback(callback, core, filesInput);
+    class Exporter {
+        core: EditorCore;
+        private _window;
+        private _editor;
+        private _editorID;
+        private _generatedCode;
+        /**
+        * Constructor
+        */
+        constructor(core: EditorCore);
+        openSceneExporter(babylonScene?: boolean): void;
+        generateCode(babylonScene?: boolean): string;
+        static ExportCode(core: EditorCore): string;
+        _exportSceneValues(): string;
+        _exportScene(): string;
+        _exportReflectionProbes(): string;
+        _exportNodeTransform(node: any): string;
+        _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportPostProcesses(): string;
+        _exportAnimations(node: IAnimatable): string;
+        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
+        _exportSky(node: Node): string;
+        _exportParticleSystem(particleSystem: ParticleSystem): string;
+        _exportLight(light: Light): string;
+        _exportVector2(vector: Vector2): string;
+        _exportVector3(vector: Vector3): string;
+        _exportQuaternion(quaternion: Quaternion): string;
+        _exportColor3(color: Color3): string;
+        _exportColor4(color: Color4): string;
+        private _traverseNodes(node?);
+        private _fillRootNodes(data, propertyPath);
     }
 }
 
 declare module BABYLON.EDITOR {
-    interface IEnabledPostProcesses {
-        hdr: boolean;
-        attachHDR: boolean;
-        ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-        vls: boolean;
-    }
-    class SceneFactory {
-        static GenerateUUID(): string;
-        static DummyNodeID: string;
-        static ConfigureObject(object: any, core: EditorCore): void;
-        static HDRPipeline: HDRRenderingPipeline;
-        static SSAOPipeline: SSAORenderingPipeline;
-        static VLSPostProcess: VolumetricLightScatteringPostProcess;
-        static EnabledPostProcesses: IEnabledPostProcesses;
-        static NodesToStart: IAnimatable[];
-        static AnimationSpeed: number;
-        /**
-        * Post-Processes
-        */
-        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
-        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
-        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
-        /**
-        * Nodes
-        */
-        static AddPointLight(core: EditorCore): PointLight;
-        static AddDirectionalLight(core: EditorCore): DirectionalLight;
-        static AddSpotLight(core: EditorCore): SpotLight;
-        static AddHemisphericLight(core: EditorCore): HemisphericLight;
-        static AddBoxMesh(core: EditorCore): Mesh;
-        static AddSphereMesh(core: EditorCore): Mesh;
-        static AddPlaneMesh(core: EditorCore): Mesh;
-        static AddGroundMesh(core: EditorCore): Mesh;
-        static AddHeightMap(core: EditorCore): Mesh;
-        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
-        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
-        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
-        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
-        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
-        static AddSkyMesh(core: EditorCore): Mesh;
-        static AddWaterMesh(core: EditorCore): Mesh;
+    class ProjectExporter {
+        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
+        private static _SerializeGlobalAnimations();
+        private static _SerializeSounds(core);
+        private static _SerializeRenderTargets(core);
+        private static _SerializeLensFlares(core);
+        private static _SerializePostProcesses();
+        private static _TraverseNodes(core, node, project);
+        private static _SerializeActionManager(object);
+        private static _RequestMaterial(core, project, material);
+        private static _GetSerializedMaterial(project, materialName);
+        private static _ConfigureMaterial(material, projectMaterial);
+        private static _ConfigureBase64Texture(source, objectToConfigure);
+        private static _FillRootNodes(core, data, propertyPath);
     }
 }
 
 declare module BABYLON.EDITOR {
-    interface IObjectConfiguration {
-        mesh: AbstractMesh;
-        actionManager: ActionManager;
+    class ProjectImporter {
+        static ImportProject(core: EditorCore, data: string): void;
     }
-    interface ISceneConfiguration {
-        scene: Scene;
-        actionManager: ActionManager;
-    }
-    interface IObjectConfigurationDefinition {
-        [index: string]: IObjectConfiguration;
-    }
-    class SceneManager {
+}
+
+declare module BABYLON.EDITOR {
+    class StorageExporter implements IEventReceiver {
+        core: EditorCore;
+        private _storage;
+        private _window;
+        private _filesList;
+        private _currentChildrenFolder;
+        private _currentFolder;
+        private _previousFolders;
+        private _onFolderSelected;
+        private static _projectFolder;
+        private static _projectFolderChildren;
+        static OneDriveStorage: string;
         /**
-        * Objects configuration
+        * Constructor
         */
-        static _ConfiguredObjectsIDs: IObjectConfigurationDefinition;
-        static _SceneConfiguration: ISceneConfiguration;
-        static ResetConfiguredObjects(): void;
-        static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        constructor(core: EditorCore, storageType?: string);
+        onEvent(event: Event): boolean;
+        createTemplate(): void;
+        export(): void;
+        getFolder(name: string): IStorageFile;
+        getFile(name: string): IStorageFile;
+        private _createTemplate();
+        private _fileExists(files, name, parent?);
+        private _processIndexHTML(project, content);
+        private _openFolderDialog(success?);
+        private _updateFolderDialog(folder?);
+        private _updateFileList(onSuccess);
+        private _getFileFolder(name, type, files);
+        private _lockPanel(message);
+        private _unlockPanel();
     }
 }
 
@@ -1032,6 +953,85 @@ declare module BABYLON.EDITOR {
         private _configureSound(sound);
         private _createInput(callback);
         private _onReadFileCallback(name, callback);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class FilesInput extends BABYLON.FilesInput {
+        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
+        private static _callbackStart(core);
+        private static _callback(callback, core, filesInput);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+        vls: boolean;
+    }
+    class SceneFactory {
+        static GenerateUUID(): string;
+        static DummyNodeID: string;
+        static ConfigureObject(object: any, core: EditorCore): void;
+        static HDRPipeline: HDRRenderingPipeline;
+        static SSAOPipeline: SSAORenderingPipeline;
+        static VLSPostProcess: VolumetricLightScatteringPostProcess;
+        static EnabledPostProcesses: IEnabledPostProcesses;
+        static NodesToStart: IAnimatable[];
+        static AnimationSpeed: number;
+        /**
+        * Post-Processes
+        */
+        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
+        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
+        /**
+        * Nodes
+        */
+        static AddPointLight(core: EditorCore): PointLight;
+        static AddDirectionalLight(core: EditorCore): DirectionalLight;
+        static AddSpotLight(core: EditorCore): SpotLight;
+        static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddBoxMesh(core: EditorCore): Mesh;
+        static AddSphereMesh(core: EditorCore): Mesh;
+        static AddPlaneMesh(core: EditorCore): Mesh;
+        static AddGroundMesh(core: EditorCore): Mesh;
+        static AddHeightMap(core: EditorCore): Mesh;
+        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
+        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
+        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
+        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
+        static AddSkyMesh(core: EditorCore): Mesh;
+        static AddWaterMesh(core: EditorCore): Mesh;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
+    interface ISceneConfiguration {
+        scene: Scene;
+        actionManager: ActionManager;
+    }
+    interface IObjectConfigurationDefinition {
+        [index: string]: IObjectConfiguration;
+    }
+    class SceneManager {
+        /**
+        * Objects configuration
+        */
+        static _ConfiguredObjectsIDs: IObjectConfigurationDefinition;
+        static _SceneConfiguration: ISceneConfiguration;
+        static ResetConfiguredObjects(): void;
+        static SwitchActionManager(): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
     }
 }
 

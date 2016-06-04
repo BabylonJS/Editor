@@ -10210,6 +10210,8 @@ var BABYLON;
             * @param core: the editor core
             */
             function ElectronPhotoshopPlugin(core) {
+                this._server = null;
+                this._client = null;
                 this._texture = null;
                 this._textures = {};
                 // Initialize
@@ -10263,7 +10265,7 @@ var BABYLON;
                 });
                 this._server.maxConnections = 1;
                 this._server.listen(1337, "127.0.0.1", null, function () {
-                    console.log("Received data");
+                    console.log("Server is listening...");
                 });
                 return true;
             };

@@ -11,8 +11,8 @@
         // Private members
         private _core: EditorCore;
 
-        private _server: any;
-        private _client: any;
+        private _server: any = null;
+        private _client: any = null;
         private _texture: DynamicTexture = null;
         private _textures: ITextureInformation = { };
 
@@ -88,7 +88,7 @@
 
             this._server.maxConnections = 1;
             this._server.listen(1337, "127.0.0.1", null, () => {
-                console.log("Received data");
+                console.log("Server is listening...");
             });
 
             return true;
