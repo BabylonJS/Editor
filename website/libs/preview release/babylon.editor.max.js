@@ -4754,6 +4754,8 @@ var BABYLON;
                 else if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_ADDED) {
                         var object = event.sceneEvent.object;
+                        if (object instanceof BABYLON.BaseTexture)
+                            return false;
                         if (object instanceof BABYLON.ReflectionProbe) {
                             var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
                             this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
@@ -9531,6 +9533,7 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._selectedTexture = null;
                 this._currentRenderTarget = null;
                 this._currentPixels = null;
                 this._dynamicTexture = null;
@@ -9560,6 +9563,10 @@ var BABYLON;
                     var eventType = ev.sceneEvent.eventType;
                     if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
                         this._fillTextureList();
+                    }
+                    else if (eventType === EDITOR.SceneEventType.OBJECT_CHANGED && ev.sceneEvent.data === this._selectedTexture) {
+                        if (this._selectedTexture instanceof BABYLON.DynamicTexture)
+                            this._targetTexture.update(true);
                     }
                 }
                 else if (ev.eventType === EDITOR.EventType.GUI_EVENT) {
@@ -9623,15 +9630,25 @@ var BABYLON;
                     }
                     else {
                         var serializationObject = selectedTexture.serialize();
-                        // Guess texture
-                        if (selectedTexture._buffer) {
-                            serializationObject.base64String = selectedTexture._buffer;
+                        if (selectedTexture instanceof BABYLON.DynamicTexture) {
+                            _this._targetTexture = new BABYLON.DynamicTexture(selectedTexture.name, { width: selectedTexture.getBaseSize().width, height: selectedTexture.getBaseSize().height }, _this._scene, selectedTexture.noMipmap);
+                            var canvas = _this._targetTexture._canvas;
+                            canvas.remove();
+                            _this._targetTexture._context = selectedTexture._context;
+                            _this._targetTexture._canvas = selectedTexture._canvas;
+                            _this._targetTexture.update(true);
                         }
-                        else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
-                            serializationObject.name = selectedTexture.url;
+                        else {
+                            // Guess texture
+                            if (selectedTexture._buffer) {
+                                serializationObject.base64String = selectedTexture._buffer;
+                            }
+                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                                serializationObject.name = selectedTexture.url;
+                            }
+                            if (!selectedTexture.isCube)
+                                _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
-                        if (!selectedTexture.isCube)
-                            _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                     }
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
@@ -10180,5 +10197,124 @@ var BABYLON;
         EDITOR.LightsMenuPlugin = LightsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var net = require("net");
+        var ElectronPhotoshopPlugin = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function ElectronPhotoshopPlugin(core) {
+                this._texture = null;
+                this._textures = {};
+                // Initialize
+                this._core = core;
+                this._core.eventReceivers.push(this);
+            }
+            // On event
+            ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
+                return false;
+            };
+            // Connect to photoshop
+            ElectronPhotoshopPlugin.prototype.connect = function () {
+                var _this = this;
+                var buffers = [];
+                this._server = net.createServer(function (socket) {
+                    _this._client = socket;
+                    _this._client.on("data", function (data) {
+                        var buffer = new Buffer(data);
+                        buffers.push(buffer);
+                    });
+                    _this._client.on("end", function () {
+                        _this._client = null;
+                        var finalBuffer = Buffer.concat(buffers);
+                        buffers = [];
+                        var bufferSize = finalBuffer.readUInt32BE(0);
+                        var pixelsSize = finalBuffer.readUInt32BE(4);
+                        var width = finalBuffer.readUInt32BE(8);
+                        var height = finalBuffer.readUInt32BE(12);
+                        var documentNameLength = finalBuffer.readUInt32BE(16);
+                        var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
+                        var texture = _this._textures[documentName];
+                        if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
+                            if (texture)
+                                texture.dispose();
+                            var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
+                            EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
+                            _this._textures[documentName] = texture;
+                        }
+                        var context = texture.getContext();
+                        var data = context.getImageData(0, 0, width, height);
+                        for (var i = 0; i < pixelsSize; i++) {
+                            data.data[i] = finalBuffer.readUInt8(20 + documentNameLength + i);
+                        }
+                        context.putImageData(data, 0, 0);
+                        texture.update(true);
+                        EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_CHANGED, _this._core);
+                    });
+                })
+                    .on("error", function (error) {
+                    throw error;
+                });
+                this._server.maxConnections = 1;
+                this._server.listen(1337, "127.0.0.1", null, function () {
+                    console.log("Received data");
+                });
+                return true;
+            };
+            ElectronPhotoshopPlugin.Connect = function (core) {
+                if (!this._Instance)
+                    this._Instance = new ElectronPhotoshopPlugin(core);
+                this._Instance.connect();
+            };
+            /*
+            * Static methods
+            */
+            ElectronPhotoshopPlugin._Instance = null;
+            return ElectronPhotoshopPlugin;
+        }());
+        EDITOR.ElectronPhotoshopPlugin = ElectronPhotoshopPlugin;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ElectronMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function ElectronMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "ELECTRON-MENU";
+                this._connectPhotoshop = "CONNECT-PHOTOSHOP";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Electron", "icon-electron");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._connectPhotoshop, "Connect to Photoshop...", "icon-photoshop");
+            }
+            // When an item has been selected
+            ElectronMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                switch (selected) {
+                    case this._connectPhotoshop:
+                        EDITOR.ElectronPhotoshopPlugin.Connect(this._core);
+                        break;
+                    default: break;
+                }
+            };
+            return ElectronMenuPlugin;
+        }());
+        EDITOR.ElectronMenuPlugin = ElectronMenuPlugin;
+        // Register plugin
+        if (EDITOR.Tools.CheckIfElectron())
+            EDITOR.PluginManager.RegisterMainToolbarPlugin(ElectronMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

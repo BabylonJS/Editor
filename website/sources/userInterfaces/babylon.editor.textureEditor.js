@@ -22,6 +22,7 @@ var BABYLON;
             */
             function GUITextureEditor(core, objectName, object, propertyPath) {
                 this._targetTexture = null;
+                this._selectedTexture = null;
                 this._currentRenderTarget = null;
                 this._currentPixels = null;
                 this._dynamicTexture = null;
@@ -51,6 +52,10 @@ var BABYLON;
                     var eventType = ev.sceneEvent.eventType;
                     if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
                         this._fillTextureList();
+                    }
+                    else if (eventType === EDITOR.SceneEventType.OBJECT_CHANGED && ev.sceneEvent.data === this._selectedTexture) {
+                        if (this._selectedTexture instanceof BABYLON.DynamicTexture)
+                            this._targetTexture.update(true);
                     }
                 }
                 else if (ev.eventType === EDITOR.EventType.GUI_EVENT) {
@@ -114,15 +119,25 @@ var BABYLON;
                     }
                     else {
                         var serializationObject = selectedTexture.serialize();
-                        // Guess texture
-                        if (selectedTexture._buffer) {
-                            serializationObject.base64String = selectedTexture._buffer;
+                        if (selectedTexture instanceof BABYLON.DynamicTexture) {
+                            _this._targetTexture = new BABYLON.DynamicTexture(selectedTexture.name, { width: selectedTexture.getBaseSize().width, height: selectedTexture.getBaseSize().height }, _this._scene, selectedTexture.noMipmap);
+                            var canvas = _this._targetTexture._canvas;
+                            canvas.remove();
+                            _this._targetTexture._context = selectedTexture._context;
+                            _this._targetTexture._canvas = selectedTexture._canvas;
+                            _this._targetTexture.update(true);
                         }
-                        else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
-                            serializationObject.name = selectedTexture.url;
+                        else {
+                            // Guess texture
+                            if (selectedTexture._buffer) {
+                                serializationObject.base64String = selectedTexture._buffer;
+                            }
+                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                                serializationObject.name = selectedTexture.url;
+                            }
+                            if (!selectedTexture.isCube)
+                                _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
-                        if (!selectedTexture.isCube)
-                            _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                     }
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;

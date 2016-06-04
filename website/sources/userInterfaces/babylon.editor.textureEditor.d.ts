@@ -5,6 +5,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _targetObject;
         private _targetTexture;
+        private _selectedTexture;
         private _objectName;
         private _currentRenderTarget;
         private _currentPixels;

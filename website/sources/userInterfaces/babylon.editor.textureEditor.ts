@@ -33,6 +33,7 @@
 
         private _targetObject: Object;
         private _targetTexture: BaseTexture = null;
+        private _selectedTexture: BaseTexture = null;
         private _objectName: string;
         
         private _currentRenderTarget: RenderTargetTexture = null;
@@ -81,6 +82,10 @@
                 
                 if (eventType === SceneEventType.OBJECT_ADDED || eventType === SceneEventType.OBJECT_REMOVED) {
                     this._fillTextureList();
+                }
+                else if (eventType === SceneEventType.OBJECT_CHANGED && ev.sceneEvent.data === this._selectedTexture) {
+                    if (this._selectedTexture instanceof DynamicTexture)
+                        (<DynamicTexture>this._targetTexture).update(true);
                 }
             }
             
@@ -160,17 +165,29 @@
                 }
                 else {
                     var serializationObject = selectedTexture.serialize();
-                    
-                    // Guess texture
-                    if ((<any>selectedTexture)._buffer) {
-                        serializationObject.base64String = (<any>selectedTexture)._buffer;
+
+                    if (selectedTexture instanceof DynamicTexture) {
+                        this._targetTexture = new DynamicTexture(selectedTexture.name, { width: selectedTexture.getBaseSize().width, height: selectedTexture.getBaseSize().height }, this._scene, selectedTexture.noMipmap);
+
+                        var canvas: HTMLCanvasElement = (<any>this._targetTexture)._canvas;
+                        canvas.remove();
+
+                        (<any>this._targetTexture)._context = (<any>selectedTexture)._context;
+                        (<any>this._targetTexture)._canvas = (<any>selectedTexture)._canvas;
+                        (<DynamicTexture>this._targetTexture).update(true);
                     }
-                    else if (FilesInput.FilesTextures[selectedTexture.name]) {
-                        serializationObject.name = (<Texture>selectedTexture).url;
+                    else {
+                        // Guess texture
+                        if ((<any>selectedTexture)._buffer) {
+                            serializationObject.base64String = (<any>selectedTexture)._buffer;
+                        }
+                        else if (FilesInput.FilesTextures[selectedTexture.name]) {
+                            serializationObject.name = (<Texture>selectedTexture).url;
+                        }
+
+                        if (!selectedTexture.isCube)
+                            this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                     }
-                    
-                    if (!selectedTexture.isCube)
-                        this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                 }
                 
                 if (this.object) {

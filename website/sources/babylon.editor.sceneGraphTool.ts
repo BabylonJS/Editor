@@ -118,6 +118,9 @@
                 if (event.sceneEvent.eventType === SceneEventType.OBJECT_ADDED) {
                     var object = event.sceneEvent.object;
 
+                    if (object instanceof BaseTexture)
+                        return false;
+
                     if (object instanceof ReflectionProbe) {
                         var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
                         this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");

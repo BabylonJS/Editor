@@ -109,6 +109,11 @@
     ],
     "files": [
       "electron/main.js"
+    ],
+    "editorFiles": [
+      "sources/electron/plugins/babylon.editor.electronPhotoshopPlugin.js",
+
+      "sources/electron/babylon.editor.electronPlugin.js"
     ]
   }
 }

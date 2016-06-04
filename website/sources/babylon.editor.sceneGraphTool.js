@@ -93,6 +93,8 @@ var BABYLON;
                 else if (event.eventType === EDITOR.EventType.SCENE_EVENT) {
                     if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_ADDED) {
                         var object = event.sceneEvent.object;
+                        if (object instanceof BABYLON.BaseTexture)
+                            return false;
                         if (object instanceof BABYLON.ReflectionProbe) {
                             var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.reflectionProbes.length, object.name, "icon-effects", object);
                             this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");

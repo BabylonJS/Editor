@@ -189,3 +189,11 @@ html, body {
 .w2ui-icon.icon-play-sound {
     background: url("images/play_sound.png");
 }
+
+.w2ui-icon.icon-electron {
+    background: url("images/electron_icon.png");
+}
+
+.w2ui-icon.icon-photoshop {
+    background: url("images/photoshop_icon.png");
+}

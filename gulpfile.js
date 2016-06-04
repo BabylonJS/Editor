@@ -16,6 +16,8 @@ var webserver = require("gulp-webserver");
 var electronPackager = require('electron-packager');
 var cmdArgs = require("yargs");
 
+var args = cmdArgs.argv;
+
 /*
 * Configure files
 */
@@ -26,6 +28,13 @@ for (var i=0; i < config.core.files.length; i++) {
 }
 for (var i = 0; i < config.plugins.files.length; i++) {
     files.push("website/" + config.plugins.files[i].replace(".js", ".ts"));
+}
+
+// If electron, add electron files
+if (args._[0] === "electron") {
+    for (var i = 0; i < config.electron.editorFiles.length; i++) {
+        files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
+    }
 }
 
 var electronFiles = [].concat(config.core.defines);
@@ -101,8 +110,6 @@ gulp.task("webserver", function() {
  * Electron packager
  */
 gulp.task("electron", ["build"], function () {
-    var args = cmdArgs.argv;
-
     // TypeScript files
     var result = gulp.src(config.electron.typescriptBuild)
         .pipe(typescript({
