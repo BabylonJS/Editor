@@ -19,6 +19,7 @@
     <UseGlobalApplicationHostFile />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Tools\Photoshop\main.js" />
     <Content Include="website\css\babylon.editor.css" />
     <Content Include="website\css\dat.gui.css" />
     <Content Include="website\css\images\abstract_mesh.png" />
@@ -122,6 +123,9 @@
     <Content Include="website\libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.ttf" />
     <Content Include="website\libs\actionsBuilder\fonts\SinkinSans\SinkinSans-600SemiBold.woff" />
     <Content Include="package.json" />
+    <Content Include="README.md" />
+    <Content Include="Tools\Photoshop\package.json" />
+    <Content Include="Tools\Photoshop\README.md" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -155,6 +159,7 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronPlugin.ts" />
     <TypeScriptCompile Include="website\electron\main.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.core.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.editionTool.ts" />
@@ -191,6 +196,7 @@
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.terrainMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.triPlanarMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.waterMaterialTool.ts" />
+    <TypeScriptCompile Include="website\sources\electron\plugins\babylon.editor.electronPhotoshopPlugin.ts" />
     <TypeScriptCompile Include="website\sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="website\sources\export\babylon.editor.projectExporter.ts" />
     <TypeScriptCompile Include="website\sources\export\babylon.editor.projectImporter.ts" />
@@ -261,8 +267,7 @@
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
     <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
-    <TypeScriptModuleKind>
-    </TypeScriptModuleKind>
+    <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <TypeScriptOutFile />
     <TypeScriptOutDir />
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>

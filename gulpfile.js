@@ -134,6 +134,11 @@ gulp.task("electron", ["build"], function () {
     else if (args.linux)
         args.platform = args.platform || "linux";
 
+    // Max
+    // gulp electron --mas --arch=x64 --platform=mas
+    else if (args.max)
+        args.platform = args.platform || "mas";
+    
     // All
     else if (args.all)
         args.platform = args.platform || "all";
@@ -145,13 +150,25 @@ gulp.task("electron", ["build"], function () {
         out: "electronPackages/",
         overwrite: true
     };
+    
+    if (args.osx || args.mas) {
+        options.icon = "Tools/Icons/babylonjs_icon.icns";
+    }
+    else if (args.win32) {
+        options.icon = "Tools/Icons/babylonjs_icon.ico";
+    }
+    else if (args.all) {
+        options.icon = "Tools/Icons/babylonjs_icon";
+    }
 
     electronPackager(options, function (err, appPath) {
+        console.log(appPath);
         console.log("Copying package.json into the package...");
         gulp.src("package.json")
-            .pipe(gulpIf(args.osx, gulp.dest(appPath[0] + "/" + packageConfig.name + ".app/Contents/Resources/app/")))
-            .pipe(gulpIf(args.win32, gulp.dest(appPath[0] + "/resources/app/")))
-            .pipe(gulpIf(args.linux, gulp.dest(appPath[0] + "/resources/app/")));
+            .pipe(gulpIf(args.osx || args.all, gulp.dest(appPath[0] + "/" + packageConfig.name + ".app/Contents/Resources/app/")))
+            .pipe(gulpIf(args.linux || args.all, gulp.dest(appPath[args.all ? 1 : 0] + "/resources/app/")))
+            .pipe(gulpIf(args.mas || args.all, gulp.dest(appPath[args.all ? 2 : 0] + "/" + packageConfig.name + ".app/Contents/Resources/app/")))
+            .pipe(gulpIf(args.win32 || args.all, gulp.dest(appPath[args.all ? 3 : 0] + "/resources/app/")))
         console.log("Done.");
 
         console.log(err === null ? "No Errors" : "" + err);
