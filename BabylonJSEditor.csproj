@@ -159,6 +159,7 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronHelper.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronPlugin.ts" />
     <TypeScriptCompile Include="website\electron\main.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.core.ts" />

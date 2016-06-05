@@ -246,8 +246,6 @@
                 camera.setTarget(cameraTarget);
                 camera.radius = cameraRadius;
             }
-
-            this._saveCameraState = false;
         }
 
         /**

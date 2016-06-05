@@ -131,6 +131,8 @@
         public static Disconnect(): void {
             if (this._Instance)
                 this._Instance.disconnect();
+
+            this._Instance = null;
         }
     }
 }

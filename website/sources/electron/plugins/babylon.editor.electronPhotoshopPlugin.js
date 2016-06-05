@@ -94,6 +94,7 @@ var BABYLON;
             ElectronPhotoshopPlugin.Disconnect = function () {
                 if (this._Instance)
                     this._Instance.disconnect();
+                this._Instance = null;
             };
             /*
             * Static methods
