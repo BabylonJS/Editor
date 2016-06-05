@@ -31,13 +31,12 @@ for (var i = 0; i < config.plugins.files.length; i++) {
 }
 
 // If electron, add electron files
-if (args._[0] === "electron") {
+if (args._[0] === "electron" || args._[0] === "electron-watch") {
     for (var i = 0; i < config.electron.editorFiles.length; i++) {
         files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
     }
 }
 
-var electronFiles = [].concat(config.core.defines);
 for (var i = 0; i < config.electron.files.length; i++) {
     files.push("website/" + config.electron.files[i].replace(".js", ".ts"));
 }

@@ -11,6 +11,7 @@ declare module BABYLON.EDITOR.GUI {
         createInput(id: string, inputId: string, text: string, size?: number): IToolbarMenuElement;
         addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;
         addSpacer(): IToolbarMenuElement;
+        setItemText(item: string, text: string, menu?: string): void;
         setItemChecked(item: string, checked: boolean, menu?: string): void;
         setItemAutoChecked(item: string, menu?: string): void;
         isItemChecked(item: string, menu?: string): boolean;

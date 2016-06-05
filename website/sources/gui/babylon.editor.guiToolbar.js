@@ -94,10 +94,33 @@ var BABYLON;
                     this.menus.push(item);
                     return item;
                 };
+                // Sets the item's text
+                GUIToolbar.prototype.setItemText = function (item, text, menu) {
+                    var result = this.element.get(menu ? menu : item);
+                    if (result && !menu)
+                        result.text = text;
+                    if (result && menu && result.items) {
+                        for (var i = 0; i < result.items.length; i++) {
+                            if (result.items[i].id === item)
+                                result.items[i].text = text;
+                        }
+                    }
+                };
                 // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
-                    var id = menu ? menu + ":" + item : item;
-                    checked ? this.element.check(id) : this.element.uncheck(id);
+                    //var id = menu ? menu + ":" + item : item;
+                    //checked ? this.element.check(id) : this.element.uncheck(id);
+                    if (!menu)
+                        checked ? this.element.check(item) : this.element.uncheck(item);
+                    else {
+                        var result = this.element.get(menu);
+                        if (result && result.items) {
+                            for (var i = 0; i < result.items.length; i++) {
+                                if (result.items[i].id === item)
+                                    result.items[i].checked = checked;
+                            }
+                        }
+                    }
                 };
                 // Sets the item auto checked (true to false, false to true)
                 GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
@@ -110,9 +133,16 @@ var BABYLON;
                 };
                 // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
-                    var result = this.element.get(menu ? menu + ":" + item : item);
-                    if (result)
+                    //var result = this.element.get(menu ? menu + ":" + item : item);
+                    var result = this.element.get(menu ? menu : item);
+                    if (result && !menu)
                         return result.checked;
+                    if (result && menu && result.items) {
+                        for (var i = 0; i < result.items.length; i++) {
+                            if (result.items[i].id === item)
+                                return result.items[i].checked;
+                        }
+                    }
                     return false;
                 };
                 // Sets an item enabled or not

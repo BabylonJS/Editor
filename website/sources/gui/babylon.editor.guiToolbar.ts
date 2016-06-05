@@ -97,12 +97,37 @@
 
             return item;
         }
+
+        // Sets the item's text
+        public setItemText(item: string, text: string, menu?: string): void {
+            var result = this.element.get(menu ? menu : item);
+
+            if (result && !menu)
+                result.text = text;
+
+            if (result && menu && result.items) {
+                for (var i = 0; i < result.items.length; i++) {
+                    if (result.items[i].id === item)
+                        result.items[i].text = text;
+                }
+            }
+        }
         
         // Sets the item checked
         public setItemChecked(item: string, checked: boolean, menu?: string): void {
-            var id = menu ? menu + ":" + item : item;
-
-            checked ? this.element.check(id) : this.element.uncheck(id);
+            //var id = menu ? menu + ":" + item : item;
+            //checked ? this.element.check(id) : this.element.uncheck(id);
+            if (!menu)
+                checked ? this.element.check(item) : this.element.uncheck(item);
+            else {
+                var result = this.element.get(menu);
+                if (result && result.items) {
+                    for (var i = 0; i < result.items.length; i++) {
+                        if (result.items[i].id === item)
+                            result.items[i].checked = checked;
+                    }
+                }
+            }
         }
         
         // Sets the item auto checked (true to false, false to true)
@@ -119,10 +144,18 @@
 
         // Returns if the item is checked
         public isItemChecked(item: string, menu?: string): boolean {
-            var result = this.element.get(menu ? menu + ":" + item : item);
+            //var result = this.element.get(menu ? menu + ":" + item : item);
+            var result = this.element.get(menu ? menu : item);
 
-            if (result)
+            if (result && !menu)
                 return result.checked;
+
+            if (result && menu && result.items) {
+                for (var i = 0; i < result.items.length; i++) {
+                    if (result.items[i].id === item)
+                        return result.items[i].checked;
+                }
+            }
 
             return false;
         }

@@ -272,6 +272,10 @@
         * If item is disabled
         */
         disabled: boolean;
+        /**
+        * If menu, the menu contains items
+        */
+        items?: IToolbarItem[];
     }
 
     interface IToolbarMenu {

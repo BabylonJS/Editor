@@ -69,7 +69,7 @@ var BABYLON;
                             EDITOR.Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", function (data) {
                                 //this._editor.filesInput.loadFiles(data);
                                 _this.core.editor.reloadScene(true, data);
-                            });
+                            }, true);
                         }
                         else if (selected.selected === this._mainProjectReload) {
                             //this.core.editor.filesInput.reload();

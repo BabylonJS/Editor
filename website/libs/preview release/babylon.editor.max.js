@@ -183,46 +183,14 @@ var BABYLON;
             * Opens a file browser. Checks if electron then open the dialog
             * else open the classic file browser of the browser
             */
-            Tools.OpenFileBrowser = function (core, elementName, onChange) {
-                var _this = this;
+            Tools.OpenFileBrowser = function (core, elementName, onChange, isOpenScene) {
+                if (isOpenScene === void 0) { isOpenScene = false; }
                 if (this.CheckIfElectron()) {
                     var dialog = require("electron").remote.dialog;
-                    var fs = require("fs");
-                    // Transform readed files as File
-                    var counter = 0;
-                    var files = [];
-                    var filesLength = 0;
-                    var createFile = function (filename, indice) {
-                        return function (err, data) {
-                            if (data) {
-                                var blob = new Blob([data]);
-                                var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
-                                    type: _this.GetFileType(_this.GetFileExtension(filename))
-                                });
-                                files.push(file);
-                                if (_this.GetFileExtension(file.name) === "babylon") {
-                                    fs.watch(filename, null, function (event, modifiedFilename) {
-                                        fs.readFile(filename, function (err, data) {
-                                            var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
-                                                type: _this.GetFileType(_this.GetFileExtension(filename))
-                                            });
-                                            files[indice] = file;
-                                            onChange({ target: { files: files } });
-                                        });
-                                    });
-                                }
-                            }
-                            counter++;
-                            if (counter === filesLength) {
-                                onChange({ target: { files: files } });
-                            }
-                        };
-                    };
                     dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
-                        filesLength = filenames.length;
-                        for (var i = 0; i < filenames.length; i++) {
-                            fs.readFile(filenames[i], createFile(filenames[i], i));
-                        }
+                        EDITOR.ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, function (files) {
+                            onChange({ target: { files: files } });
+                        });
                     });
                 }
                 else {
@@ -1469,10 +1437,33 @@ var BABYLON;
                     this.menus.push(item);
                     return item;
                 };
+                // Sets the item's text
+                GUIToolbar.prototype.setItemText = function (item, text, menu) {
+                    var result = this.element.get(menu ? menu : item);
+                    if (result && !menu)
+                        result.text = text;
+                    if (result && menu && result.items) {
+                        for (var i = 0; i < result.items.length; i++) {
+                            if (result.items[i].id === item)
+                                result.items[i].text = text;
+                        }
+                    }
+                };
                 // Sets the item checked
                 GUIToolbar.prototype.setItemChecked = function (item, checked, menu) {
-                    var id = menu ? menu + ":" + item : item;
-                    checked ? this.element.check(id) : this.element.uncheck(id);
+                    //var id = menu ? menu + ":" + item : item;
+                    //checked ? this.element.check(id) : this.element.uncheck(id);
+                    if (!menu)
+                        checked ? this.element.check(item) : this.element.uncheck(item);
+                    else {
+                        var result = this.element.get(menu);
+                        if (result && result.items) {
+                            for (var i = 0; i < result.items.length; i++) {
+                                if (result.items[i].id === item)
+                                    result.items[i].checked = checked;
+                            }
+                        }
+                    }
                 };
                 // Sets the item auto checked (true to false, false to true)
                 GUIToolbar.prototype.setItemAutoChecked = function (item, menu) {
@@ -1485,9 +1476,16 @@ var BABYLON;
                 };
                 // Returns if the item is checked
                 GUIToolbar.prototype.isItemChecked = function (item, menu) {
-                    var result = this.element.get(menu ? menu + ":" + item : item);
-                    if (result)
+                    //var result = this.element.get(menu ? menu + ":" + item : item);
+                    var result = this.element.get(menu ? menu : item);
+                    if (result && !menu)
                         return result.checked;
+                    if (result && menu && result.items) {
+                        for (var i = 0; i < result.items.length; i++) {
+                            if (result.items[i].id === item)
+                                return result.items[i].checked;
+                        }
+                    }
                     return false;
                 };
                 // Sets an item enabled or not
@@ -4624,7 +4622,7 @@ var BABYLON;
                             EDITOR.Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", function (data) {
                                 //this._editor.filesInput.loadFiles(data);
                                 _this.core.editor.reloadScene(true, data);
-                            });
+                            }, true);
                         }
                         else if (selected.selected === this._mainProjectReload) {
                             //this.core.editor.filesInput.reload();
@@ -10299,5 +10297,240 @@ var BABYLON;
         EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ElectronHelper = (function () {
+            function ElectronHelper() {
+            }
+            /**
+            * Creates "File" objects from filenames
+            */
+            ElectronHelper.CreateFilesFromFileNames = function (filenames, isOpenScene, callback) {
+                var _this = this;
+                var fs = require("fs");
+                // Transform readed files as File
+                var counter = 0;
+                var files = [];
+                var filesLength = filenames.length;
+                var createFile = function (filename, indice) {
+                    return function (err, data) {
+                        // Create file
+                        if (data) {
+                            var blob = new Blob([data]);
+                            var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
+                                type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
+                            });
+                            files.push(file);
+                        }
+                        // If scene file, watch file
+                        var extension = EDITOR.Tools.GetFileExtension(filename);
+                        if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                            fs.watch(filename, null, function (event, modifiedFilename) {
+                                if (!_this.ReloadSceneOnFileChanged)
+                                    return;
+                                fs.readFile(filename, function (err, data) {
+                                    var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                                        type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
+                                    });
+                                    files[indice] = file;
+                                    callback(files);
+                                });
+                            });
+                        }
+                        // If finished, call the callback
+                        counter++;
+                        if (counter === filesLength) {
+                            callback(files);
+                        }
+                    };
+                };
+                // Read files
+                for (var i = 0; i < filenames.length; i++) {
+                    fs.readFile(filenames[i], createFile(filenames[i], i));
+                }
+            };
+            /**
+            * Watchs the specified file
+            */
+            ElectronHelper.WatchFile = function (filename, callback) {
+                var fs = require("fs");
+                fs.watch(filename, null, function (event, modifiedFilename) {
+                    fs.readFile(filename, function (err, data) {
+                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                            type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
+                        });
+                        callback(file);
+                    });
+                });
+            };
+            /**
+            * Scene file
+            */
+            ElectronHelper.ReloadSceneOnFileChanged = false;
+            return ElectronHelper;
+        }());
+        EDITOR.ElectronHelper = ElectronHelper;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var net = require("net");
+        var ElectronPhotoshopPlugin = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function ElectronPhotoshopPlugin(core) {
+                this._server = null;
+                this._client = null;
+                this._texture = null;
+                this._textures = {};
+                // Initialize
+                this._core = core;
+                this._core.eventReceivers.push(this);
+            }
+            // On event
+            ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
+                return false;
+            };
+            // Disconnect photoshop
+            ElectronPhotoshopPlugin.prototype.disconnect = function () {
+                if (this._server) {
+                    this._server.close(function (err) {
+                        console.log("Closed server...");
+                        if (err)
+                            console.log(err.message);
+                    });
+                }
+                else
+                    return false;
+                if (this._client) {
+                    this._client.destroy();
+                }
+                this._server = null;
+                this._client = null;
+                return true;
+            };
+            // Connect to photoshop
+            ElectronPhotoshopPlugin.prototype.connect = function () {
+                var _this = this;
+                var buffers = [];
+                this._server = net.createServer(function (socket) {
+                    _this._client = socket;
+                    _this._client.on("data", function (data) {
+                        var buffer = new Buffer(data);
+                        buffers.push(buffer);
+                    });
+                    _this._client.on("end", function () {
+                        _this._client = null;
+                        var finalBuffer = Buffer.concat(buffers);
+                        buffers = [];
+                        var bufferSize = finalBuffer.readUInt32BE(0);
+                        var pixelsSize = finalBuffer.readUInt32BE(4);
+                        var width = finalBuffer.readUInt32BE(8);
+                        var height = finalBuffer.readUInt32BE(12);
+                        var documentNameLength = finalBuffer.readUInt32BE(16);
+                        var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
+                        var texture = _this._textures[documentName];
+                        if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
+                            if (texture)
+                                texture.dispose();
+                            var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
+                            EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
+                            _this._textures[documentName] = texture;
+                        }
+                        var context = texture.getContext();
+                        var data = context.getImageData(0, 0, width, height);
+                        for (var i = 0; i < pixelsSize; i++) {
+                            data.data[i] = finalBuffer.readUInt8(20 + documentNameLength + i);
+                        }
+                        context.putImageData(data, 0, 0);
+                        texture.update(true);
+                        EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_CHANGED, _this._core);
+                    });
+                })
+                    .on("error", function (error) {
+                    throw error;
+                });
+                this._server.maxConnections = 1;
+                this._server.listen(1337, "127.0.0.1", null, function () {
+                    console.log("Server is listening...");
+                });
+                return true;
+            };
+            ElectronPhotoshopPlugin.Connect = function (core) {
+                if (!this._Instance)
+                    this._Instance = new ElectronPhotoshopPlugin(core);
+                this._Instance.connect();
+            };
+            ElectronPhotoshopPlugin.Disconnect = function () {
+                if (this._Instance)
+                    this._Instance.disconnect();
+            };
+            /*
+            * Static methods
+            */
+            ElectronPhotoshopPlugin._Instance = null;
+            return ElectronPhotoshopPlugin;
+        }());
+        EDITOR.ElectronPhotoshopPlugin = ElectronPhotoshopPlugin;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ElectronMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function ElectronMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "ELECTRON-MENU";
+                this._connectPhotoshop = "CONNECT-PHOTOSHOP";
+                this._disconnectPhotoshop = "DISCONNECT-PHOTOSHOP";
+                this._watchSceneFile = "WATCH-SCENE-FILE";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                this._toolbar = toolbar;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Electron", "icon-electron");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._connectPhotoshop, "Connect to Photoshop...", "icon-photoshop-connect");
+                toolbar.createMenuItem(menu, "button", this._disconnectPhotoshop, "Disconnect Photoshop...", "icon-photoshop-disconnect");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._watchSceneFile, "Automatically reload scene", "icon-helpers", false);
+            }
+            // When an item has been selected
+            ElectronMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                switch (selected) {
+                    case this._connectPhotoshop:
+                        EDITOR.ElectronPhotoshopPlugin.Connect(this._core);
+                        break;
+                    case this._disconnectPhotoshop:
+                        EDITOR.ElectronPhotoshopPlugin.Disconnect();
+                        break;
+                    case this._watchSceneFile:
+                        var checked = !this._toolbar.isItemChecked(this._watchSceneFile, this.menuID);
+                        EDITOR.ElectronHelper.ReloadSceneOnFileChanged = checked;
+                        this._toolbar.setItemChecked(this._watchSceneFile, checked, this.menuID);
+                        this._toolbar.setItemText(this._watchSceneFile, checked ? "Disable automatic scene reload" : "Automatically reload scene", this.menuID);
+                        break;
+                    default: break;
+                }
+            };
+            return ElectronMenuPlugin;
+        }());
+        EDITOR.ElectronMenuPlugin = ElectronMenuPlugin;
+        // Register plugin
+        if (EDITOR.Tools.CheckIfElectron())
+            EDITOR.PluginManager.RegisterMainToolbarPlugin(ElectronMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

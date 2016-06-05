@@ -85,7 +85,7 @@
                         Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", (data: any) => {
                             //this._editor.filesInput.loadFiles(data);
                             this.core.editor.reloadScene(true, data);
-                        });
+                        }, true);
                     }
                     else if (selected.selected === this._mainProjectReload) {
                         //this.core.editor.filesInput.reload();

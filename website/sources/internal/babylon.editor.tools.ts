@@ -57,55 +57,14 @@
         * Opens a file browser. Checks if electron then open the dialog
         * else open the classic file browser of the browser
         */
-        public static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void): void {
+        public static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene: boolean = false): void {
             if (this.CheckIfElectron()) {
                 var dialog = require("electron").remote.dialog;
-                var fs = require("fs");
-
-                // Transform readed files as File
-                var counter = 0;
-                var files = [];
-                var filesLength = 0;
-
-                var createFile = (filename: string, indice: number) => {
-                    return (err: any, data: Uint8Array) => {
-                        if (data) {
-                            var blob = new Blob([data]);
-                            var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
-                                type: this.GetFileType(this.GetFileExtension(filename))
-                            });
-
-                            files.push(file);
-
-                            if (this.GetFileExtension(file.name) === "babylon") {
-                                fs.watch(filename, null, (event: any, modifiedFilename: string) => {
-                                    fs.readFile(filename, (err: any, data: Uint8Array) => {
-                                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
-                                            type: this.GetFileType(this.GetFileExtension(filename))
-                                        });
-                                        files[indice] = file;
-
-                                        onChange({ target: { files: files } });
-                                    });
-                                    
-                                });
-                            }
-                        }
-                        
-                        counter++;
-
-                        if (counter === filesLength) {
-                            onChange({target: { files: files } });
-                        }
-                    };
-                };
 
                 dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, (filenames: string[]) => {
-                    filesLength = filenames.length;
-
-                    for (var i = 0; i < filenames.length; i++) {
-                        fs.readFile(filenames[i], createFile(filenames[i], i));
-                    }
+                    ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, (files: File[]) => {
+                        onChange({ target: { files: files } });
+                    });
                 });
             }
             else {

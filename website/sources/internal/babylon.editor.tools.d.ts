@@ -21,7 +21,7 @@ declare module BABYLON.EDITOR {
         * Opens a file browser. Checks if electron then open the dialog
         * else open the classic file browser of the browser
         */
-        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void): void;
+        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
         /**
         * Returns the file extension
         */
