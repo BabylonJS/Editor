@@ -49,6 +49,91 @@ var BABYLON;
                 return popup;
             };
             /**
+            * Opens a file browser. Checks if electron then open the dialog
+            * else open the classic file browser of the browser
+            */
+            Tools.OpenFileBrowser = function (core, elementName, onChange) {
+                var _this = this;
+                if (this.CheckIfElectron()) {
+                    var dialog = require("electron").remote.dialog;
+                    var fs = require("fs");
+                    // Transform readed files as File
+                    var counter = 0;
+                    var files = [];
+                    var filesLength = 0;
+                    var createFile = function (filename, indice) {
+                        return function (err, data) {
+                            if (data) {
+                                var blob = new Blob([data]);
+                                var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
+                                    type: _this.GetFileType(_this.GetFileExtension(filename))
+                                });
+                                files.push(file);
+                                if (_this.GetFileExtension(file.name) === "babylon") {
+                                    fs.watch(filename, null, function (event, modifiedFilename) {
+                                        fs.readFile(filename, function (err, data) {
+                                            var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                                                type: _this.GetFileType(_this.GetFileExtension(filename))
+                                            });
+                                            files[indice] = file;
+                                            onChange({ target: { files: files } });
+                                        });
+                                    });
+                                }
+                            }
+                            counter++;
+                            if (counter === filesLength) {
+                                onChange({ target: { files: files } });
+                            }
+                        };
+                    };
+                    dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
+                        filesLength = filenames.length;
+                        for (var i = 0; i < filenames.length; i++) {
+                            fs.readFile(filenames[i], createFile(filenames[i], i));
+                        }
+                    });
+                }
+                else {
+                    var inputFiles = $(elementName);
+                    inputFiles.change(function (data) {
+                        onChange(data);
+                    }).click();
+                }
+            };
+            /**
+            * Returns the file extension
+            */
+            Tools.GetFileExtension = function (filename) {
+                var index = filename.lastIndexOf(".");
+                if (index < 0)
+                    return filename;
+                return filename.substring(index + 1);
+            };
+            /**
+            * Returns the file type for the given extension
+            */
+            Tools.GetFileType = function (extension) {
+                switch (extension) {
+                    case "png": return "image/png";
+                    case "jpg":
+                    case "jpeg": return "image/jpeg";
+                    case "bmp": return "image/bmp";
+                    case "tga": return "image/targa";
+                    case "dds": return "image/vnd.ms-dds";
+                    case "wav":
+                    case "wave": return "audio/wav";
+                    //case "audio/x-wav";
+                    case "mp3": return "audio/mp3";
+                    case "mpg":
+                    case "mpeg": return "audio/mpeg";
+                    //case "audio/mpeg3";
+                    //case "audio/x-mpeg-3";
+                    case "ogg": return "audio/ogg";
+                    default: return "";
+                }
+            };
+            /**
             * Returns the base URL of the window
             */
             Tools.GetBaseURL = function () {
@@ -128,15 +213,6 @@ var BABYLON;
                         return scene.particleSystems[i];
                 }
                 return null;
-            };
-            /**
-            * Creates a new worker on the fly
-            */
-            Tools.CreateWorker = function () {
-                //var blob = new Blob(["self.onmessage = " + onMessage], { type: 'application/javascript' });
-                var blob = new Blob(["self.onmessage = function(event) { postMessage(event.data); }"], { type: 'application/javascript' });
-                var worker = new Worker(URL.createObjectURL(blob));
-                return worker;
             };
             return Tools;
         }());

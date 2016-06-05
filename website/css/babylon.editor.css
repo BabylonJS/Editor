@@ -194,6 +194,10 @@ html, body {
     background: url("images/electron_icon.png");
 }
 
-.w2ui-icon.icon-photoshop {
-    background: url("images/photoshop_icon.png");
+.w2ui-icon.icon-photoshop-connect {
+    background: url("images/photoshop_icon_connect.png");
+}
+
+.w2ui-icon.icon-photoshop-disconnect {
+    background: url("images/photoshop_icon_disconnect.png");
 }

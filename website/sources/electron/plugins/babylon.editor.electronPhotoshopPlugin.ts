@@ -32,6 +32,28 @@
             return false;
         }
 
+        // Disconnect photoshop
+        public disconnect(): boolean {
+            if (this._server) {
+                this._server.close((err: any) => {
+                    console.log("Closed server...");
+                    if (err)
+                        console.log(err.message);
+                });
+            }
+            else
+                return false;
+
+            if (this._client) {
+                this._client.destroy();
+            }
+
+            this._server = null;
+            this._client = null;
+
+            return true;
+        }
+
         // Connect to photoshop
         public connect(): boolean {
             var buffers: Buffer[] = [];
@@ -104,6 +126,11 @@
                 this._Instance = new ElectronPhotoshopPlugin(core);
 
             this._Instance.connect();
+        }
+
+        public static Disconnect(): void {
+            if (this._Instance)
+                this._Instance.disconnect();
         }
     }
 }

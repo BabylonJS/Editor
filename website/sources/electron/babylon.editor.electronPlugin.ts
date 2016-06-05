@@ -7,6 +7,7 @@
         private _core: EditorCore;
 
         private _connectPhotoshop: string = "CONNECT-PHOTOSHOP";
+        private _disconnectPhotoshop: string = "DISCONNECT-PHOTOSHOP";
 
         /**
         * Constructor
@@ -20,7 +21,8 @@
             var menu = toolbar.createMenu("menu", this.menuID, "Electron", "icon-electron");
 
             // Create items
-            toolbar.createMenuItem(menu, "button", this._connectPhotoshop, "Connect to Photoshop...", "icon-photoshop");
+            toolbar.createMenuItem(menu, "button", this._connectPhotoshop, "Connect to Photoshop...", "icon-photoshop-connect");
+            toolbar.createMenuItem(menu, "button", this._disconnectPhotoshop, "Disconnect Photoshop...", "icon-photoshop-disconnect");
         }
 
         // When an item has been selected
@@ -28,6 +30,9 @@
             switch (selected) {
                 case this._connectPhotoshop:
                     ElectronPhotoshopPlugin.Connect(this._core);
+                    break;
+                case this._disconnectPhotoshop:
+                    ElectronPhotoshopPlugin.Disconnect();
                     break;
                 default: break;
             }

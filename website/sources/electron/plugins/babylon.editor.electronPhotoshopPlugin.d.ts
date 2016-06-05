@@ -11,8 +11,10 @@ declare module BABYLON.EDITOR {
         */
         constructor(core: EditorCore);
         onEvent(event: Event): boolean;
+        disconnect(): boolean;
         connect(): boolean;
         private static _Instance;
         static Connect(core: EditorCore): void;
+        static Disconnect(): void;
     }
 }

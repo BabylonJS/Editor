@@ -97,8 +97,8 @@
     "files": [
       "sources/plugins/babylon.editor.simpleMaterialTool.js",
       "sources/plugins/babylon.editor.geometriesMenu.js",
-      "sources/plugins/babylon.editor.soundsMenu.js",
-      "sources/plugins/babylon.editor.lightsMenu.js"
+      "sources/plugins/babylon.editor.lightsMenu.js",
+      "sources/plugins/babylon.editor.soundsMenu.js"
     ]
   },
   "electron": {

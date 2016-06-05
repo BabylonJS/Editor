@@ -19,6 +19,7 @@ declare module BABYLON.EDITOR {
         exporter: Exporter;
         renderMainScene: boolean;
         renderHelpers: boolean;
+        private _saveCameraState;
         /**
         * Constructor
         */
@@ -43,6 +44,10 @@ declare module BABYLON.EDITOR {
         * Creates the editor camera
         */
         private _createBabylonCamera();
+        /**
+        * Reloads the scene
+        */
+        reloadScene(saveCameraState: boolean, data?: any): void;
         /**
         * Creates the render loop
         */

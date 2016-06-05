@@ -3,7 +3,6 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // Private members
             // Statics
             /**
             * Constructor
@@ -16,6 +15,8 @@ var BABYLON;
                 this.filesInput = null;
                 this.renderMainScene = true;
                 this.renderHelpers = true;
+                // Private members
+                this._saveCameraState = false;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -165,10 +166,34 @@ var BABYLON;
             * Creates the editor camera
             */
             EditorMain.prototype._createBabylonCamera = function () {
+                var cameraPosition = new BABYLON.Vector3(0, 0, 10);
+                var cameraTarget = BABYLON.Vector3.Zero();
+                var cameraRadius = 10;
+                if (this.core.camera) {
+                    cameraPosition = this.core.camera.position;
+                    cameraTarget = this.core.camera.target;
+                    cameraRadius = this.core.camera.radius;
+                }
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.panningSensibility = 50;
                 camera.attachControl(this.core.canvas, false, false);
                 this.core.camera = camera;
+                if (this._saveCameraState) {
+                    camera.setPosition(cameraPosition);
+                    camera.setTarget(cameraTarget);
+                    camera.radius = cameraRadius;
+                }
+                this._saveCameraState = false;
+            };
+            /**
+            * Reloads the scene
+            */
+            EditorMain.prototype.reloadScene = function (saveCameraState, data) {
+                this._saveCameraState = saveCameraState;
+                if (data)
+                    this.filesInput.loadFiles(data);
+                else
+                    this.filesInput.reload();
             };
             /**
             * Creates the render loop

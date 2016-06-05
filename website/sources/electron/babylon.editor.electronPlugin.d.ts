@@ -3,6 +3,7 @@ declare module BABYLON.EDITOR {
         menuID: string;
         private _core;
         private _connectPhotoshop;
+        private _disconnectPhotoshop;
         /**
         * Constructor
         * @param mainToolbar: the main toolbar instance

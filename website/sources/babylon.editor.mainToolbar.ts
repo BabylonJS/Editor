@@ -82,14 +82,14 @@
                 // Project
                 if (selected.parent === this._mainProject) {
                     if (selected.selected === this._mainProjectOpenFiles) {
-                        var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
-
-                        inputFiles.change((data: any) => {
-                            this._editor.filesInput.loadFiles(data);
-                        }).click();
+                        Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", (data: any) => {
+                            //this._editor.filesInput.loadFiles(data);
+                            this.core.editor.reloadScene(true, data);
+                        });
                     }
                     else if (selected.selected === this._mainProjectReload) {
-                        this.core.editor.filesInput.reload();
+                        //this.core.editor.filesInput.reload();
+                        this.core.editor.reloadScene(true);
                     }
 
                     else if (selected.selected === this._projectExportCode) {

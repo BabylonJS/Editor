@@ -180,6 +180,91 @@ var BABYLON;
                 return popup;
             };
             /**
+            * Opens a file browser. Checks if electron then open the dialog
+            * else open the classic file browser of the browser
+            */
+            Tools.OpenFileBrowser = function (core, elementName, onChange) {
+                var _this = this;
+                if (this.CheckIfElectron()) {
+                    var dialog = require("electron").remote.dialog;
+                    var fs = require("fs");
+                    // Transform readed files as File
+                    var counter = 0;
+                    var files = [];
+                    var filesLength = 0;
+                    var createFile = function (filename, indice) {
+                        return function (err, data) {
+                            if (data) {
+                                var blob = new Blob([data]);
+                                var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
+                                    type: _this.GetFileType(_this.GetFileExtension(filename))
+                                });
+                                files.push(file);
+                                if (_this.GetFileExtension(file.name) === "babylon") {
+                                    fs.watch(filename, null, function (event, modifiedFilename) {
+                                        fs.readFile(filename, function (err, data) {
+                                            var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                                                type: _this.GetFileType(_this.GetFileExtension(filename))
+                                            });
+                                            files[indice] = file;
+                                            onChange({ target: { files: files } });
+                                        });
+                                    });
+                                }
+                            }
+                            counter++;
+                            if (counter === filesLength) {
+                                onChange({ target: { files: files } });
+                            }
+                        };
+                    };
+                    dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
+                        filesLength = filenames.length;
+                        for (var i = 0; i < filenames.length; i++) {
+                            fs.readFile(filenames[i], createFile(filenames[i], i));
+                        }
+                    });
+                }
+                else {
+                    var inputFiles = $(elementName);
+                    inputFiles.change(function (data) {
+                        onChange(data);
+                    }).click();
+                }
+            };
+            /**
+            * Returns the file extension
+            */
+            Tools.GetFileExtension = function (filename) {
+                var index = filename.lastIndexOf(".");
+                if (index < 0)
+                    return filename;
+                return filename.substring(index + 1);
+            };
+            /**
+            * Returns the file type for the given extension
+            */
+            Tools.GetFileType = function (extension) {
+                switch (extension) {
+                    case "png": return "image/png";
+                    case "jpg":
+                    case "jpeg": return "image/jpeg";
+                    case "bmp": return "image/bmp";
+                    case "tga": return "image/targa";
+                    case "dds": return "image/vnd.ms-dds";
+                    case "wav":
+                    case "wave": return "audio/wav";
+                    //case "audio/x-wav";
+                    case "mp3": return "audio/mp3";
+                    case "mpg":
+                    case "mpeg": return "audio/mpeg";
+                    //case "audio/mpeg3";
+                    //case "audio/x-mpeg-3";
+                    case "ogg": return "audio/ogg";
+                    default: return "";
+                }
+            };
+            /**
             * Returns the base URL of the window
             */
             Tools.GetBaseURL = function () {
@@ -259,15 +344,6 @@ var BABYLON;
                         return scene.particleSystems[i];
                 }
                 return null;
-            };
-            /**
-            * Creates a new worker on the fly
-            */
-            Tools.CreateWorker = function () {
-                //var blob = new Blob(["self.onmessage = " + onMessage], { type: 'application/javascript' });
-                var blob = new Blob(["self.onmessage = function(event) { postMessage(event.data); }"], { type: 'application/javascript' });
-                var worker = new Worker(URL.createObjectURL(blob));
-                return worker;
             };
             return Tools;
         }());
@@ -4249,7 +4325,6 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // Private members
             // Statics
             /**
             * Constructor
@@ -4262,6 +4337,8 @@ var BABYLON;
                 this.filesInput = null;
                 this.renderMainScene = true;
                 this.renderHelpers = true;
+                // Private members
+                this._saveCameraState = false;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -4411,10 +4488,34 @@ var BABYLON;
             * Creates the editor camera
             */
             EditorMain.prototype._createBabylonCamera = function () {
+                var cameraPosition = new BABYLON.Vector3(0, 0, 10);
+                var cameraTarget = BABYLON.Vector3.Zero();
+                var cameraRadius = 10;
+                if (this.core.camera) {
+                    cameraPosition = this.core.camera.position;
+                    cameraTarget = this.core.camera.target;
+                    cameraRadius = this.core.camera.radius;
+                }
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.panningSensibility = 50;
                 camera.attachControl(this.core.canvas, false, false);
                 this.core.camera = camera;
+                if (this._saveCameraState) {
+                    camera.setPosition(cameraPosition);
+                    camera.setTarget(cameraTarget);
+                    camera.radius = cameraRadius;
+                }
+                this._saveCameraState = false;
+            };
+            /**
+            * Reloads the scene
+            */
+            EditorMain.prototype.reloadScene = function (saveCameraState, data) {
+                this._saveCameraState = saveCameraState;
+                if (data)
+                    this.filesInput.loadFiles(data);
+                else
+                    this.filesInput.reload();
             };
             /**
             * Creates the render loop
@@ -4520,13 +4621,14 @@ var BABYLON;
                     // Project
                     if (selected.parent === this._mainProject) {
                         if (selected.selected === this._mainProjectOpenFiles) {
-                            var inputFiles = $("#BABYLON-EDITOR-LOAD-SCENE-FILE");
-                            inputFiles.change(function (data) {
-                                _this._editor.filesInput.loadFiles(data);
-                            }).click();
+                            EDITOR.Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", function (data) {
+                                //this._editor.filesInput.loadFiles(data);
+                                _this.core.editor.reloadScene(true, data);
+                            });
                         }
                         else if (selected.selected === this._mainProjectReload) {
-                            this.core.editor.filesInput.reload();
+                            //this.core.editor.filesInput.reload();
+                            this.core.editor.reloadScene(true);
                         }
                         else if (selected.selected === this._projectExportCode) {
                             var exporter = new EDITOR.Exporter(this.core);
@@ -10046,6 +10148,61 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var LightsMenuPlugin = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function LightsMenuPlugin(mainToolbar) {
+                // Public members
+                this.menuID = "LIGHTS-MENU";
+                this._addPointLight = "ADD-POINT-LIGHT";
+                this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
+                this._addSpotLight = "ADD-SPOT-LIGHT";
+                this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Lights", "icon-light");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
+                toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
+                toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
+                toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
+            }
+            // When an item has been selected
+            LightsMenuPlugin.prototype.onMenuItemSelected = function (selected) {
+                switch (selected) {
+                    case this._addPointLight:
+                        EDITOR.SceneFactory.AddPointLight(this._core);
+                        break;
+                    case this._addDirectionalLight:
+                        EDITOR.SceneFactory.AddDirectionalLight(this._core);
+                        break;
+                    case this._addSpotLight:
+                        EDITOR.SceneFactory.AddSpotLight(this._core);
+                        break;
+                    case this._addHemisphericLight:
+                        EDITOR.SceneFactory.AddHemisphericLight(this._core);
+                        break;
+                }
+            };
+            // Configure the sound
+            LightsMenuPlugin.prototype._configureSound = function (sound) {
+                BABYLON.Tags.EnableFor(sound);
+                BABYLON.Tags.AddTagsTo(sound, "added");
+            };
+            return LightsMenuPlugin;
+        }());
+        EDITOR.LightsMenuPlugin = LightsMenuPlugin;
+        // Register plugin
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var SoundsMenuPlugin = (function () {
             /**
             * Constructor
@@ -10142,181 +10299,5 @@ var BABYLON;
         EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var LightsMenuPlugin = (function () {
-            /**
-            * Constructor
-            * @param mainToolbar: the main toolbar instance
-            */
-            function LightsMenuPlugin(mainToolbar) {
-                // Public members
-                this.menuID = "LIGHTS-MENU";
-                this._addPointLight = "ADD-POINT-LIGHT";
-                this._addDirectionalLight = "ADD-DIRECTIONAL-LIGHT";
-                this._addSpotLight = "ADD-SPOT-LIGHT";
-                this._addHemisphericLight = "ADD-HEMISPHERIC-LIGHT";
-                var toolbar = mainToolbar.toolbar;
-                this._core = mainToolbar.core;
-                // Create menu
-                var menu = toolbar.createMenu("menu", this.menuID, "Lights", "icon-light");
-                // Create items
-                toolbar.createMenuItem(menu, "button", this._addPointLight, "Add Point Light", "icon-light");
-                toolbar.createMenuItem(menu, "button", this._addDirectionalLight, "Add Directional Light", "icon-directional-light");
-                toolbar.createMenuItem(menu, "button", this._addSpotLight, "Add Spot Light", "icon-directional-light");
-                toolbar.createMenuItem(menu, "button", this._addHemisphericLight, "Add Hemispheric Light", "icon-light");
-            }
-            // When an item has been selected
-            LightsMenuPlugin.prototype.onMenuItemSelected = function (selected) {
-                switch (selected) {
-                    case this._addPointLight:
-                        EDITOR.SceneFactory.AddPointLight(this._core);
-                        break;
-                    case this._addDirectionalLight:
-                        EDITOR.SceneFactory.AddDirectionalLight(this._core);
-                        break;
-                    case this._addSpotLight:
-                        EDITOR.SceneFactory.AddSpotLight(this._core);
-                        break;
-                    case this._addHemisphericLight:
-                        EDITOR.SceneFactory.AddHemisphericLight(this._core);
-                        break;
-                }
-            };
-            // Configure the sound
-            LightsMenuPlugin.prototype._configureSound = function (sound) {
-                BABYLON.Tags.EnableFor(sound);
-                BABYLON.Tags.AddTagsTo(sound, "added");
-            };
-            return LightsMenuPlugin;
-        }());
-        EDITOR.LightsMenuPlugin = LightsMenuPlugin;
-        // Register plugin
-        EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var net = require("net");
-        var ElectronPhotoshopPlugin = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            */
-            function ElectronPhotoshopPlugin(core) {
-                this._server = null;
-                this._client = null;
-                this._texture = null;
-                this._textures = {};
-                // Initialize
-                this._core = core;
-                this._core.eventReceivers.push(this);
-            }
-            // On event
-            ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
-                return false;
-            };
-            // Connect to photoshop
-            ElectronPhotoshopPlugin.prototype.connect = function () {
-                var _this = this;
-                var buffers = [];
-                this._server = net.createServer(function (socket) {
-                    _this._client = socket;
-                    _this._client.on("data", function (data) {
-                        var buffer = new Buffer(data);
-                        buffers.push(buffer);
-                    });
-                    _this._client.on("end", function () {
-                        _this._client = null;
-                        var finalBuffer = Buffer.concat(buffers);
-                        buffers = [];
-                        var bufferSize = finalBuffer.readUInt32BE(0);
-                        var pixelsSize = finalBuffer.readUInt32BE(4);
-                        var width = finalBuffer.readUInt32BE(8);
-                        var height = finalBuffer.readUInt32BE(12);
-                        var documentNameLength = finalBuffer.readUInt32BE(16);
-                        var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
-                        var texture = _this._textures[documentName];
-                        if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
-                            if (texture)
-                                texture.dispose();
-                            var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
-                            EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
-                            _this._textures[documentName] = texture;
-                        }
-                        var context = texture.getContext();
-                        var data = context.getImageData(0, 0, width, height);
-                        for (var i = 0; i < pixelsSize; i++) {
-                            data.data[i] = finalBuffer.readUInt8(20 + documentNameLength + i);
-                        }
-                        context.putImageData(data, 0, 0);
-                        texture.update(true);
-                        EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_CHANGED, _this._core);
-                    });
-                })
-                    .on("error", function (error) {
-                    throw error;
-                });
-                this._server.maxConnections = 1;
-                this._server.listen(1337, "127.0.0.1", null, function () {
-                    console.log("Server is listening...");
-                });
-                return true;
-            };
-            ElectronPhotoshopPlugin.Connect = function (core) {
-                if (!this._Instance)
-                    this._Instance = new ElectronPhotoshopPlugin(core);
-                this._Instance.connect();
-            };
-            /*
-            * Static methods
-            */
-            ElectronPhotoshopPlugin._Instance = null;
-            return ElectronPhotoshopPlugin;
-        }());
-        EDITOR.ElectronPhotoshopPlugin = ElectronPhotoshopPlugin;
-    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
-})(BABYLON || (BABYLON = {}));
-var BABYLON;
-(function (BABYLON) {
-    var EDITOR;
-    (function (EDITOR) {
-        var ElectronMenuPlugin = (function () {
-            /**
-            * Constructor
-            * @param mainToolbar: the main toolbar instance
-            */
-            function ElectronMenuPlugin(mainToolbar) {
-                // Public members
-                this.menuID = "ELECTRON-MENU";
-                this._connectPhotoshop = "CONNECT-PHOTOSHOP";
-                var toolbar = mainToolbar.toolbar;
-                this._core = mainToolbar.core;
-                // Create menu
-                var menu = toolbar.createMenu("menu", this.menuID, "Electron", "icon-electron");
-                // Create items
-                toolbar.createMenuItem(menu, "button", this._connectPhotoshop, "Connect to Photoshop...", "icon-photoshop");
-            }
-            // When an item has been selected
-            ElectronMenuPlugin.prototype.onMenuItemSelected = function (selected) {
-                switch (selected) {
-                    case this._connectPhotoshop:
-                        EDITOR.ElectronPhotoshopPlugin.Connect(this._core);
-                        break;
-                    default: break;
-                }
-            };
-            return ElectronMenuPlugin;
-        }());
-        EDITOR.ElectronMenuPlugin = ElectronMenuPlugin;
-        // Register plugin
-        if (EDITOR.Tools.CheckIfElectron())
-            EDITOR.PluginManager.RegisterMainToolbarPlugin(ElectronMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

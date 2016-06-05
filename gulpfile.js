@@ -106,6 +106,13 @@ gulp.task("webserver", function() {
     }));
 });
 
+/*
+* Automatically call the "electron" task when a TS file changes
+*/
+gulp.task("electron-watch", function () {
+    gulp.watch(files, ["electron"]);
+});
+
 /**
  * Electron packager
  */

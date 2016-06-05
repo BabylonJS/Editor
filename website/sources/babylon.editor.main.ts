@@ -28,6 +28,7 @@
         public renderHelpers: boolean = true;
 
         // Private members
+        private _saveCameraState: boolean = false;
 
         // Statics
 
@@ -224,11 +225,41 @@
         * Creates the editor camera
         */
         private _createBabylonCamera(): void {
+            var cameraPosition = new Vector3(0, 0, 10)
+            var cameraTarget = Vector3.Zero();
+            var cameraRadius = 10;
+            
+            if (this.core.camera) {
+                cameraPosition = this.core.camera.position;
+                cameraTarget = this.core.camera.target;
+                cameraRadius = this.core.camera.radius;
+            }
+
             var camera = new ArcRotateCamera("EditorCamera", 0, 0, 10, Vector3.Zero(), this.core.currentScene);
             camera.panningSensibility = 50;
             camera.attachControl(this.core.canvas, false, false);
 
             this.core.camera = camera;
+
+            if (this._saveCameraState) {
+                camera.setPosition(cameraPosition);
+                camera.setTarget(cameraTarget);
+                camera.radius = cameraRadius;
+            }
+
+            this._saveCameraState = false;
+        }
+
+        /**
+        * Reloads the scene
+        */
+        public reloadScene(saveCameraState: boolean, data?: any): void {
+            this._saveCameraState = saveCameraState;
+
+            if (data)
+                this.filesInput.loadFiles(data);
+            else
+                this.filesInput.reload();
         }
 
         /**

@@ -18,6 +18,19 @@ declare module BABYLON.EDITOR {
         */
         static OpenWindowPopup(url: string, width: number, height: number): any;
         /**
+        * Opens a file browser. Checks if electron then open the dialog
+        * else open the classic file browser of the browser
+        */
+        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void): void;
+        /**
+        * Returns the file extension
+        */
+        static GetFileExtension(filename: string): string;
+        /**
+        * Returns the file type for the given extension
+        */
+        static GetFileType(extension: string): string;
+        /**
         * Returns the base URL of the window
         */
         static GetBaseURL(): string;
@@ -54,9 +67,5 @@ declare module BABYLON.EDITOR {
         * Returns a particle system by its name
         */
         static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
-        /**
-        * Creates a new worker on the fly
-        */
-        static CreateWorker(): Worker;
     }
 }

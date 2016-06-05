@@ -21,6 +21,24 @@ var BABYLON;
             ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
                 return false;
             };
+            // Disconnect photoshop
+            ElectronPhotoshopPlugin.prototype.disconnect = function () {
+                if (this._server) {
+                    this._server.close(function (err) {
+                        console.log("Closed server...");
+                        if (err)
+                            console.log(err.message);
+                    });
+                }
+                else
+                    return false;
+                if (this._client) {
+                    this._client.destroy();
+                }
+                this._server = null;
+                this._client = null;
+                return true;
+            };
             // Connect to photoshop
             ElectronPhotoshopPlugin.prototype.connect = function () {
                 var _this = this;
@@ -72,6 +90,10 @@ var BABYLON;
                 if (!this._Instance)
                     this._Instance = new ElectronPhotoshopPlugin(core);
                 this._Instance.connect();
+            };
+            ElectronPhotoshopPlugin.Disconnect = function () {
+                if (this._Instance)
+                    this._Instance.disconnect();
             };
             /*
             * Static methods
