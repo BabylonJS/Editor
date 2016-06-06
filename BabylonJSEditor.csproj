@@ -159,6 +159,7 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronHelper.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronPlugin.ts" />
     <TypeScriptCompile Include="website\electron\main.ts" />
@@ -172,7 +173,6 @@
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneToolbar.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.timeline.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.toolsToolbar.ts" />
-    <TypeScriptCompile Include="website\sources\babylon.editor.transformer.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\babylon.editor.abstractDatTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\babylon.editor.abstractTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\babylon.editor.animationTool.ts" />

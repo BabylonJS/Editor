@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         mainToolbar: MainToolbar;
         toolsToolbar: ToolsToolbar;
         sceneToolbar: SceneToolbar;
+        SceneHelpers: SceneHelpers;
         transformer: ManipulationHelper;
         editPanel: EditPanel;
         timeline: Timeline;
@@ -32,6 +33,10 @@ declare module BABYLON.EDITOR {
         * Creates the UI
         */
         private _createUI();
+        /**
+        * Creates a new project
+        */
+        createNewProject(): void;
         /**
         * Handles just opened scenes
         */

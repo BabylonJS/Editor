@@ -12,6 +12,7 @@ declare module BABYLON.EDITOR {
         private _mainProject;
         private _mainProjectOpenFiles;
         private _mainProjectReload;
+        private _mainProjectNew;
         private _projectExportCode;
         private _projectExportBabylonScene;
         private _projectConnectStorage;
