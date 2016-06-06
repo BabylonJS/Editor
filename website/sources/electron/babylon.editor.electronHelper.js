@@ -17,14 +17,13 @@ var BABYLON;
                 var filesLength = filenames.length;
                 var createFile = function (filename, indice) {
                     return function (err, data) {
+                        if (!data)
+                            return;
                         // Create file
-                        if (data) {
-                            var blob = new Blob([data]);
-                            var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
-                                type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
-                            });
-                            files.push(file);
-                        }
+                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                            type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
+                        });
+                        files.push(file);
                         // If scene file, watch file
                         var extension = EDITOR.Tools.GetFileExtension(filename);
                         if (extension === "babylon" || extension === "obj" || extension === "stl") {

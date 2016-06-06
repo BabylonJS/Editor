@@ -50,10 +50,10 @@ var BABYLON;
             GUITextureEditor.prototype.onEvent = function (ev) {
                 if (ev.eventType === EDITOR.EventType.SCENE_EVENT) {
                     var eventType = ev.sceneEvent.eventType;
-                    if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED) {
+                    if (eventType === EDITOR.SceneEventType.OBJECT_ADDED || eventType === EDITOR.SceneEventType.OBJECT_REMOVED || eventType === EDITOR.SceneEventType.NEW_SCENE_CREATED) {
                         this._fillTextureList();
                     }
-                    else if (eventType === EDITOR.SceneEventType.OBJECT_CHANGED && ev.sceneEvent.data === this._selectedTexture) {
+                    else if (eventType === EDITOR.SceneEventType.OBJECT_CHANGED && ev.sceneEvent.object === this._selectedTexture) {
                         if (this._selectedTexture instanceof BABYLON.DynamicTexture)
                             this._targetTexture.update(true);
                     }
@@ -142,6 +142,8 @@ var BABYLON;
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
+                    if (selectedTexture)
+                        _this._selectedTexture = selectedTexture;
                 };
                 if (this.object && this.object[this.propertyPath]) {
                     var index = this._core.currentScene.textures.indexOf(this.object[this.propertyPath]);

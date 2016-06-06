@@ -19,6 +19,7 @@ var BABYLON;
                 this._mainProject = "MAIN-PROJECT";
                 this._mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
                 this._mainProjectReload = "MAIN-PROJECT-RELOAD";
+                this._mainProjectNew = "MAIN-PROJECT-NEW";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
@@ -68,12 +69,17 @@ var BABYLON;
                         if (selected.selected === this._mainProjectOpenFiles) {
                             EDITOR.Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", function (data) {
                                 //this._editor.filesInput.loadFiles(data);
+                                if (data.target.files.length === 0)
+                                    return;
                                 _this.core.editor.reloadScene(true, data);
                             }, true);
                         }
                         else if (selected.selected === this._mainProjectReload) {
                             //this.core.editor.filesInput.reload();
                             this.core.editor.reloadScene(true);
+                        }
+                        else if (selected.selected === this._mainProjectNew) {
+                            this._editor.createNewProject();
                         }
                         else if (selected.selected === this._projectExportCode) {
                             var exporter = new EDITOR.Exporter(this.core);
@@ -167,11 +173,18 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
                 this.toolbar.createMenuItem(menu, "button", this._mainProjectReload, "Reload...", "icon-copy");
                 this.toolbar.addBreak(menu);
+                this.toolbar.createMenuItem(menu, "button", this._mainProjectNew, "New...", "icon-copy");
+                this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export...", "icon-export");
                 this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");
                 this.toolbar.addBreak(menu);
-                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
-                this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
+                if (!EDITOR.Tools.CheckIfElectron()) {
+                    this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                    this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
+                }
+                else {
+                    this.toolbar.createMenuItem(menu, "button", "", "Save...", "icon-save");
+                }
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
                 this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");

@@ -43,6 +43,7 @@ var BABYLON;
             SceneEventType[SceneEventType["OBJECT_ADDED"] = 1] = "OBJECT_ADDED";
             SceneEventType[SceneEventType["OBJECT_REMOVED"] = 2] = "OBJECT_REMOVED";
             SceneEventType[SceneEventType["OBJECT_CHANGED"] = 3] = "OBJECT_CHANGED";
+            SceneEventType[SceneEventType["NEW_SCENE_CREATED"] = 4] = "NEW_SCENE_CREATED";
             SceneEventType[SceneEventType["UNKNOWN"] = 4] = "UNKNOWN";
         })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
         var SceneEventType = EDITOR.SceneEventType;

@@ -80,10 +80,10 @@
             if (ev.eventType === EventType.SCENE_EVENT) {
                 var eventType = ev.sceneEvent.eventType;
                 
-                if (eventType === SceneEventType.OBJECT_ADDED || eventType === SceneEventType.OBJECT_REMOVED) {
+                if (eventType === SceneEventType.OBJECT_ADDED || eventType === SceneEventType.OBJECT_REMOVED || eventType === SceneEventType.NEW_SCENE_CREATED) {
                     this._fillTextureList();
                 }
-                else if (eventType === SceneEventType.OBJECT_CHANGED && ev.sceneEvent.data === this._selectedTexture) {
+                else if (eventType === SceneEventType.OBJECT_CHANGED && ev.sceneEvent.object === this._selectedTexture) {
                     if (this._selectedTexture instanceof DynamicTexture)
                         (<DynamicTexture>this._targetTexture).update(true);
                 }
@@ -193,6 +193,9 @@
                 if (this.object) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
+                
+                if (selectedTexture)
+                    this._selectedTexture = selectedTexture;
             };
             
             if (this.object && this.object[this.propertyPath]) {

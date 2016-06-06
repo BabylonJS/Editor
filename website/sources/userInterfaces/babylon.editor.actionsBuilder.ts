@@ -28,7 +28,7 @@
             this._window.setOnCloseCallback(() => {
                 // Empty for the moment
             });
-
+            
             this._window.buildElement(null);
             this._window.lock();
 

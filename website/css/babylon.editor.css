@@ -201,3 +201,7 @@ html, body {
 .w2ui-icon.icon-photoshop-disconnect {
     background: url("images/photoshop_icon_disconnect.png");
 }
+
+.w2ui-icon.icon-save {
+    background: url("images/save.png");
+}

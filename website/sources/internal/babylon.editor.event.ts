@@ -40,6 +40,8 @@
         OBJECT_ADDED = 1,
         OBJECT_REMOVED = 2,
         OBJECT_CHANGED = 3,
+        
+        NEW_SCENE_CREATED = 4,
 
         UNKNOWN = 4
     }

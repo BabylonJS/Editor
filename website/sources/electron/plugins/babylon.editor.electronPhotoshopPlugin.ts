@@ -90,7 +90,7 @@
 
                         this._textures[documentName] = texture;
                     }
-
+                    
                     var context = texture.getContext();
                     var data = context.getImageData(0, 0, width, height);
 

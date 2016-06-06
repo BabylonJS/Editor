@@ -43,8 +43,9 @@ var BABYLON;
                 this.sceneToolbar = new EDITOR.SceneToolbar(this.core);
                 this.sceneToolbar.createUI();
                 // Transformer
-                //this.transformer = new Transformer(this.core);
                 this.transformer = new EDITOR.ManipulationHelper(this.core);
+                // Scene helpers
+                this.SceneHelpers = new EDITOR.SceneHelpers(this.core);
                 // Edit panel
                 this.editPanel = new EDITOR.EditPanel(this.core);
                 // Timeline
@@ -103,6 +104,13 @@ var BABYLON;
                 });
             };
             /**
+            * Creates a new project
+            */
+            EditorMain.prototype.createNewProject = function () {
+                this.core.currentScene.dispose();
+                this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
+            };
+            /**
             * Handles just opened scenes
             */
             EditorMain.prototype._handleSceneLoaded = function () {
@@ -142,6 +150,7 @@ var BABYLON;
                     _this.sceneGraphTool.fillGraph();
                     EDITOR.SceneFactory.NodesToStart = [];
                     _this.timeline.reset();
+                    EDITOR.Event.sendSceneEvent(_this.core.currentScene, EDITOR.SceneEventType.NEW_SCENE_CREATED, _this.core);
                 };
             };
             /**
@@ -219,6 +228,7 @@ var BABYLON;
                 }
                 // Render transformer
                 this.transformer.getScene().render();
+                this.SceneHelpers.getScene().render();
                 // Post update
                 this.core.onPostUpdate();
             };

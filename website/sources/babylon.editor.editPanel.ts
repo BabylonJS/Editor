@@ -94,7 +94,7 @@
                 this.setPanelSize(0);
             });
         }
-
+        
         // Configures close button
         private _configureCloseButton(): void {
             this._closeButton.css("position", "absolute");

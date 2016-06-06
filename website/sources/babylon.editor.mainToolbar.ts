@@ -17,6 +17,7 @@
         private _mainProject = "MAIN-PROJECT";
         private _mainProjectOpenFiles = "MAIN-PROJECT-OPEN-FILES";
         private _mainProjectReload = "MAIN-PROJECT-RELOAD";
+        private _mainProjectNew = "MAIN-PROJECT-NEW";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
@@ -25,7 +26,7 @@
         private _mainEdit = "MAIN-EDIT";
         private _mainEditLaunch = "EDIT-LAUNCH";
         private _mainEditTextures = "EDIT-TEXTURES";
-
+        
         private _mainAdd: string = "MAIN-ADD";
         private _addSkyMesh: string = "ADD-SKY-MESH";
         private _addWaterMesh: string = "ADD-WATER-MESH";
@@ -58,12 +59,12 @@
 
         // Pre update
         public onPreUpdate(): void {
-
+            
         }
         
         // Post update
         public onPostUpdate(): void {
-
+            
         }
 
         // Event
@@ -72,24 +73,30 @@
                 if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                     return false;
                 }
-
+                
                 var id: string = event.guiEvent.data;
 
                 var selected = this.toolbar.decomposeSelectedMenu(id);
                 if (!selected || !selected.hasParent)
                     return false;
-
+                
                 // Project
                 if (selected.parent === this._mainProject) {
                     if (selected.selected === this._mainProjectOpenFiles) {
                         Tools.OpenFileBrowser(this.core, "#BABYLON-EDITOR-LOAD-SCENE-FILE", (data: any) => {
                             //this._editor.filesInput.loadFiles(data);
+                            if (data.target.files.length === 0)
+                                return;
                             this.core.editor.reloadScene(true, data);
                         }, true);
                     }
                     else if (selected.selected === this._mainProjectReload) {
                         //this.core.editor.filesInput.reload();
                         this.core.editor.reloadScene(true);
+                    }
+                    
+                    else if (selected.selected === this._mainProjectNew) {
+                        this._editor.createNewProject();
                     }
 
                     else if (selected.selected === this._projectExportCode) {
@@ -206,11 +213,19 @@
             this.toolbar.createMenuItem(menu, "button", this._mainProjectOpenFiles, "Open Files", "icon-copy");
             this.toolbar.createMenuItem(menu, "button", this._mainProjectReload, "Reload...", "icon-copy");
             this.toolbar.addBreak(menu);
+            this.toolbar.createMenuItem(menu, "button", this._mainProjectNew, "New...", "icon-copy");
+            this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._projectExportCode, "Export...", "icon-export");
             this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");
+            
             this.toolbar.addBreak(menu);
-            this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
-            this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
+            if (!Tools.CheckIfElectron()) {
+                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
+            }
+            else {
+                this.toolbar.createMenuItem(menu, "button", "", "Save...", "icon-save");
+            }
             //...
 
             menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

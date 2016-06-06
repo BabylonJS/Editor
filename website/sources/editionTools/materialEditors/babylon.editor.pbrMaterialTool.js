@@ -66,6 +66,7 @@ var BABYLON;
                 this.addColorFolder(this.material.reflectivityColor, "Reflectivity Color", true, reflectivityFolder);
                 reflectivityFolder.add(this.material, "specularIntensity").min(0).step(0.01).name("Specular Intensity");
                 reflectivityFolder.add(this.material, "useSpecularOverAlpha").name("Use Specular Over Alpha");
+                reflectivityFolder.add(this.material, "useMicroSurfaceFromReflectivityMapAlpha").name("Use Micro Surface From Reflectivity Map Alpha");
                 this.addTextureButton("Reflectivity Texture", "reflectivityTexture", reflectivityFolder);
                 // Reflection
                 var reflectionFolder = this._element.addFolder("Reflection");

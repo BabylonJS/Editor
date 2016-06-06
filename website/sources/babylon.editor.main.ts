@@ -8,7 +8,7 @@
         public mainToolbar: MainToolbar;
         public toolsToolbar: ToolsToolbar;
         public sceneToolbar: SceneToolbar;
-        //public transformer: Transformer;
+        public SceneHelpers: SceneHelpers;
         public transformer: ManipulationHelper;
         public editPanel: EditPanel;
         public timeline: Timeline;
@@ -71,8 +71,10 @@
             this.sceneToolbar.createUI();
 
             // Transformer
-            //this.transformer = new Transformer(this.core);
             this.transformer = new ManipulationHelper(this.core);
+            
+            // Scene helpers
+            this.SceneHelpers = new SceneHelpers(this.core);
 
             // Edit panel
             this.editPanel = new EditPanel(this.core);
@@ -147,6 +149,14 @@
                 this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
             });
         }
+        
+        /**
+        * Creates a new project
+        */
+        public createNewProject(): void {
+            this.core.currentScene.dispose();
+            this._handleSceneLoaded()(null, new Scene(this.core.engine));
+        }
 
         /**
         * Handles just opened scenes
@@ -167,7 +177,7 @@
                         (<any>this.core.camera).speed = camera.speed;
                     }
                 }
-
+                
                 this.core.currentScene.activeCamera = this.core.camera;
                 this.core.playCamera = camera;
 
@@ -177,7 +187,7 @@
 
                 // Create parent node
                 var parent = null;
-
+                
                 // Configure meshes
                 for (var i = 0; i < scene.meshes.length; i++) {
                     SceneManager.ConfigureObject(scene.meshes[i], this.core, parent);
@@ -196,6 +206,8 @@
                 
                 SceneFactory.NodesToStart = [];
                 this.timeline.reset();
+                
+                Event.sendSceneEvent(this.core.currentScene, SceneEventType.NEW_SCENE_CREATED, this.core);
             };
         }
 
@@ -287,6 +299,7 @@
 
             // Render transformer
             this.transformer.getScene().render();
+            this.SceneHelpers.getScene().render();
 
             // Post update
             this.core.onPostUpdate();

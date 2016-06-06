@@ -13,6 +13,7 @@
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
+      "!website/sources/electron/**/*.ts",
       "!website/sources/**/*.d.ts",
       "defines/**/*.d.ts"
     ],
@@ -68,7 +69,7 @@
       "sources/babylon.editor.sceneToolbar.js",
       "sources/babylon.editor.timeline.js",
       "sources/babylon.editor.toolsToolbar.js",
-      "sources/babylon.editor.transformer.js",
+      "sources/babylon.editor.sceneHelpers.js",
 
       "sources/scene/babylon.editor.filesInput.js",
       "sources/scene/babylon.editor.sceneFactory.js",

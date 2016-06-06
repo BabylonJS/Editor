@@ -15,18 +15,18 @@
             var counter = 0;
             var files = [];
             var filesLength = filenames.length;
-
+            
             var createFile = (filename: string, indice: number) => {
                 return (err: any, data: Uint8Array) => {
+                    if (!data)
+                        return;
+                        
                     // Create file
-                    if (data) {
-                        var blob = new Blob([data]);
-                        var file = new File([blob], BABYLON.Tools.GetFilename(filename), {
-                            type: Tools.GetFileType(Tools.GetFileExtension(filename))
-                        });
+                    var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                        type: Tools.GetFileType(Tools.GetFileExtension(filename))
+                    });
 
-                        files.push(file);
-                    }
+                    files.push(file);
 
                     // If scene file, watch file
                     var extension = Tools.GetFileExtension(filename);
