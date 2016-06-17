@@ -218,6 +218,8 @@
             this.core.canvas = <HTMLCanvasElement>document.getElementById("BABYLON-EDITOR-MAIN-CANVAS");
 
             this.core.engine = new Engine(this.core.canvas, this.antialias, this.options);
+            this.core.engine.setHardwareScalingLevel(1.0 / devicePixelRatio);
+
             this.core.currentScene = new Scene(this.core.engine);
             (<any>this.core.currentScene).animations = [];
             this.core.scenes.push({ render: true, scene: this.core.currentScene });

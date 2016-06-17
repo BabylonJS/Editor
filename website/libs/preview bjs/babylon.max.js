@@ -34759,9 +34759,6 @@ var BABYLON;
                 this._soundPanner.panningModel = this._panningModel;
             }
         };
-        Sound.prototype.getPanningModel = function () {
-            return this._panningModel;
-        };
         Sound.prototype.connectToSoundTrackAudioNode = function (soundTrackAudioNode) {
             if (BABYLON.Engine.audioEngine.canUseWebAudio) {
                 if (this._isOutputConnected) {
@@ -34770,18 +34767,6 @@ var BABYLON;
                 this._ouputAudioNode.connect(soundTrackAudioNode);
                 this._isOutputConnected = true;
             }
-        };
-        Sound.prototype.isDirectional = function () {
-            return this._isDirectional;
-        };
-        Sound.prototype.getConeInnerAngle = function () {
-            return this._coneInnerAngle;
-        };
-        Sound.prototype.getConeOuterAngle = function () {
-            return this._coneOuterAngle;
-        };
-        Sound.prototype.getConeOuterGain = function () {
-            return this._coneOuterGain;
         };
         /**
         * Transform this sound into a directional source
@@ -34809,17 +34794,11 @@ var BABYLON;
                 this._soundPanner.setPosition(this._position.x, this._position.y, this._position.z);
             }
         };
-        Sound.prototype.getPosition = function () {
-            return this._position;
-        };
         Sound.prototype.setLocalDirectionToMesh = function (newLocalDirection) {
             this._localDirection = newLocalDirection;
             if (BABYLON.Engine.audioEngine.canUseWebAudio && this._connectedMesh && this.isPlaying) {
                 this._updateDirection();
             }
-        };
-        Sound.prototype.getLocalDirectionToMesh = function () {
-            return this._localDirection;
         };
         Sound.prototype._updateDirection = function () {
             var mat = this._connectedMesh.getWorldMatrix();
@@ -34962,9 +34941,6 @@ var BABYLON;
         Sound.prototype.getVolume = function () {
             return this._volume;
         };
-        Sound.prototype.getConnectedMesh = function () {
-            return this._connectedMesh;
-        };
         Sound.prototype.attachToMesh = function (meshToConnectTo) {
             var _this = this;
             if (this._connectedMesh) {
@@ -35033,6 +35009,36 @@ var BABYLON;
         };
         Sound.prototype.getAudioBuffer = function () {
             return this._audioBuffer;
+        };
+        Sound.prototype.serialize = function () {
+            var serializationObject = {
+                name: this.name,
+                url: this.name,
+                autoplay: this.autoplay,
+                loop: this.loop,
+                volume: this._volume,
+                spatialSound: this.spatialSound,
+                maxDistance: this.maxDistance,
+                rolloffFactor: this.rolloffFactor,
+                refDistance: this.refDistance,
+                distanceModel: this.distanceModel,
+                playbackRate: this._playbackRate,
+                panningModel: this._panningModel,
+                soundTrackId: this.soundTrackId
+            };
+            if (this.spatialSound) {
+                if (this._connectedMesh)
+                    serializationObject.connectedMeshId = this._connectedMesh.id;
+                serializationObject.position = this._position.asArray();
+                serializationObject.refDistance = this.refDistance;
+                serializationObject.distanceModel = this.distanceModel;
+                serializationObject.isDirectional = this._isDirectional;
+                serializationObject.localDirectionToMesh = this._localDirection.asArray();
+                serializationObject.coneInnerAngle = this._coneInnerAngle;
+                serializationObject.coneOuterAngle = this._coneOuterAngle;
+                serializationObject.coneOuterGain = this._coneOuterGain;
+            }
+            return serializationObject;
         };
         Sound.Parse = function (parsedSound, scene, rootUrl, sourceSound) {
             var soundName = parsedSound.name;

@@ -4482,6 +4482,7 @@ var BABYLON;
                 var _this = this;
                 this.core.canvas = document.getElementById("BABYLON-EDITOR-MAIN-CANVAS");
                 this.core.engine = new BABYLON.Engine(this.core.canvas, this.antialias, this.options);
+                this.core.engine.setHardwareScalingLevel(1.0 / devicePixelRatio);
                 this.core.currentScene = new BABYLON.Scene(this.core.engine);
                 this.core.currentScene.animations = [];
                 this.core.scenes.push({ render: true, scene: this.core.currentScene });
@@ -6967,6 +6968,10 @@ var BABYLON;
                     var sound = core.currentScene.soundTracks[0].soundCollection[index];
                     if (!BABYLON.Tags.HasTags(sound) || !BABYLON.Tags.MatchesQuery(sound, "added"))
                         continue;
+                    config.push({
+                        name: sound.name,
+                        serializationObject: sound.serialize()
+                    });
                 }
                 return config;
             };
@@ -8710,6 +8715,10 @@ var BABYLON;
                 setAutoPlay(obj.lights);
                 setAutoPlay(obj.meshes);
                 setAutoPlay(obj.particleSystems);
+                // Sounds
+                obj.sounds = [];
+                for (var i = 0; i < core.currentScene.mainSoundTrack.soundCollection.length; i++)
+                    obj.sounds.push(core.currentScene.mainSoundTrack.soundCollection[i].serialize());
                 return obj;
             };
             return BabylonExporter;

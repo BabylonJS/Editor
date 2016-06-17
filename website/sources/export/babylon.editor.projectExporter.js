@@ -68,6 +68,10 @@ var BABYLON;
                     var sound = core.currentScene.soundTracks[0].soundCollection[index];
                     if (!BABYLON.Tags.HasTags(sound) || !BABYLON.Tags.MatchesQuery(sound, "added"))
                         continue;
+                    config.push({
+                        name: sound.name,
+                        serializationObject: sound.serialize()
+                    });
                 }
                 return config;
             };

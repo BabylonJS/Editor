@@ -163,6 +163,11 @@
             setAutoPlay(obj.meshes);
             setAutoPlay(obj.particleSystems);
 
+            // Sounds
+            obj.sounds = [];
+            for (var i = 0; i < core.currentScene.mainSoundTrack.soundCollection.length; i++)
+                obj.sounds.push(core.currentScene.mainSoundTrack.soundCollection[i].serialize());
+
             return obj;
         }
     }
