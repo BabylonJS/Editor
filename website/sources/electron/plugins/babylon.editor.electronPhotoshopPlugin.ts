@@ -1,6 +1,5 @@
 ﻿module BABYLON.EDITOR {
     var net = require("net");
-    var buf = require("buffer");
 
     interface ITextureInformation {
         [index: string]: DynamicTexture;
@@ -57,19 +56,19 @@
 
         // Connect to photoshop
         public connect(): boolean {
-            var buffers: any[] = [];
+            var buffers: NodeJSBuffer[] = [];
 
             this._server = net.createServer((socket) => {
                 this._client = socket;
                 this._client.on("data", (data: Uint8Array) => {
-                    var buffer = new buf.Buffer(data);
+                    var buffer = new global.Buffer(data);
                     buffers.push(buffer);
                 });
 
                 this._client.on("end", () => {
                     this._client = null;
 
-                    var finalBuffer = buf.Buffer.concat(buffers);
+                    var finalBuffer = global.Buffer.concat(buffers);
                     buffers = [];
 
                     var bufferSize = finalBuffer.readUInt32BE(0);
