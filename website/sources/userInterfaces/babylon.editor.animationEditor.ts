@@ -563,7 +563,7 @@
                     var animKeys = anim.getKeys();
 
                     var animation = new Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
-                    var keys = [];
+                    var keys: { frame: number, value: any; }[] = [];
 
                     for (var j = 0; j < animKeys.length; j++) {
                         keys.push({
@@ -598,7 +598,7 @@
                         });
 
                         this._keysList.addRow({
-                            key: keys[i].frame,
+                            key: String(keys[i].frame),
                             value: this._getFrameTime(keys[i].frame),
                             recid: length
                         });
@@ -655,7 +655,7 @@
             });
 
             this._keysList.addRow({
-                key: frame,
+                key: String(frame),
                 value: this._getFrameTime(frame),
                 recid: keys.length - 1
             });

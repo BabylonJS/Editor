@@ -490,7 +490,7 @@ var BABYLON;
                                 value: keys[i].value
                             });
                             this._keysList.addRow({
-                                key: keys[i].frame,
+                                key: String(keys[i].frame),
                                 value: this._getFrameTime(keys[i].frame),
                                 recid: length
                             });
@@ -534,7 +534,7 @@ var BABYLON;
                     value: value
                 });
                 this._keysList.addRow({
-                    key: frame,
+                    key: String(frame),
                     value: this._getFrameTime(frame),
                     recid: keys.length - 1
                 });

@@ -3,6 +3,7 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var net = require("net");
+        var buf = require("buffer");
         var ElectronPhotoshopPlugin = (function () {
             /**
             * Constructor
@@ -46,12 +47,12 @@ var BABYLON;
                 this._server = net.createServer(function (socket) {
                     _this._client = socket;
                     _this._client.on("data", function (data) {
-                        var buffer = new Buffer(data);
+                        var buffer = new buf.Buffer(data);
                         buffers.push(buffer);
                     });
                     _this._client.on("end", function () {
                         _this._client = null;
-                        var finalBuffer = Buffer.concat(buffers);
+                        var finalBuffer = buf.Buffer.concat(buffers);
                         buffers = [];
                         var bufferSize = finalBuffer.readUInt32BE(0);
                         var pixelsSize = finalBuffer.readUInt32BE(4);

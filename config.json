@@ -13,7 +13,6 @@
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
-      "!website/sources/electron/**/*.ts",
       "!website/sources/**/*.d.ts",
       "defines/**/*.d.ts"
     ],

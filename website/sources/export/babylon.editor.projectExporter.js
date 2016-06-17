@@ -68,24 +68,6 @@ var BABYLON;
                     var sound = core.currentScene.soundTracks[0].soundCollection[index];
                     if (!BABYLON.Tags.HasTags(sound) || !BABYLON.Tags.MatchesQuery(sound, "added"))
                         continue;
-                    var serializationObject = {
-                        url: sound.name,
-                        autoplay: sound.autoplay,
-                        loop: sound.loop,
-                        volume: sound.getVolume(),
-                        spatialSound: sound.spatialSound,
-                        maxDistance: sound.maxDistance,
-                        rolloffFactor: sound.rolloffFactor,
-                        refDistance: sound.refDistance,
-                        distanceModel: sound.distanceModel,
-                        playbackRate: 1.0
-                    };
-                    if (sound.spatialSound) {
-                    }
-                    config.push({
-                        name: sound.name,
-                        serializationObject: serializationObject
-                    });
                 }
                 return config;
             };
@@ -313,16 +295,20 @@ var BABYLON;
                                     targetType: node instanceof BABYLON.Scene ? "Scene" : node instanceof BABYLON.Sound ? "Sound" : "Node",
                                 };
                                 // Setup events
+                                /*
                                 var keys = animation.getKeys();
                                 for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-                                    var events = keys[keyIndex].events;
+                                    var events: INTERNAL.IAnimationEvent[] = keys[keyIndex].events;
+    
                                     if (!events)
                                         continue;
+    
                                     animObj.events.push({
                                         events: events,
                                         frame: keys[keyIndex].frame
                                     });
                                 }
+                                */
                                 // Add
                                 nodeObj.animations.push(animObj);
                             }

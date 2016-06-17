@@ -57,7 +57,7 @@ var BABYLON;
                 if (this.CheckIfElectron()) {
                     var dialog = require("electron").remote.dialog;
                     dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
-                        ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, function (files) {
+                        EDITOR.ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, function (files) {
                             onChange({ target: { files: files } });
                         });
                     });

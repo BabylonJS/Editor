@@ -5641,13 +5641,13 @@ var BABYLON;
                 this._planeMaterial.useAlphaFromDiffuseTexture = true;
                 this._planeMaterial.disableDepthWrite = false;
                 this._scene.materials.pop();
-                this._cameraTexture = new BABYLON.Texture("../css/images/camera.png", this._scene);
+                this._cameraTexture = new BABYLON.Texture("css/images/camera.png", this._scene);
                 this._cameraTexture.hasAlpha = true;
                 this._scene.textures.pop();
-                this._soundTexture = new BABYLON.Texture("../css/images/sound.png", this._scene);
+                this._soundTexture = new BABYLON.Texture("css/images/sound.png", this._scene);
                 this._soundTexture.hasAlpha = true;
                 this._scene.textures.pop();
-                this._lightTexture = new BABYLON.Texture("../css/images/light.png", this._scene);
+                this._lightTexture = new BABYLON.Texture("css/images/light.png", this._scene);
                 this._lightTexture.hasAlpha = true;
                 this._scene.textures.pop();
                 this._helperPlane = BABYLON.Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
@@ -6967,24 +6967,6 @@ var BABYLON;
                     var sound = core.currentScene.soundTracks[0].soundCollection[index];
                     if (!BABYLON.Tags.HasTags(sound) || !BABYLON.Tags.MatchesQuery(sound, "added"))
                         continue;
-                    var serializationObject = {
-                        url: sound.name,
-                        autoplay: sound.autoplay,
-                        loop: sound.loop,
-                        volume: sound.getVolume(),
-                        spatialSound: sound.spatialSound,
-                        maxDistance: sound.maxDistance,
-                        rolloffFactor: sound.rolloffFactor,
-                        refDistance: sound.refDistance,
-                        distanceModel: sound.distanceModel,
-                        playbackRate: 1.0
-                    };
-                    if (sound.spatialSound) {
-                    }
-                    config.push({
-                        name: sound.name,
-                        serializationObject: serializationObject
-                    });
                 }
                 return config;
             };
@@ -7212,16 +7194,20 @@ var BABYLON;
                                     targetType: node instanceof BABYLON.Scene ? "Scene" : node instanceof BABYLON.Sound ? "Sound" : "Node",
                                 };
                                 // Setup events
+                                /*
                                 var keys = animation.getKeys();
                                 for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-                                    var events = keys[keyIndex].events;
+                                    var events: INTERNAL.IAnimationEvent[] = keys[keyIndex].events;
+    
                                     if (!events)
                                         continue;
+    
                                     animObj.events.push({
                                         events: events,
                                         frame: keys[keyIndex].frame
                                     });
                                 }
+                                */
                                 // Add
                                 nodeObj.animations.push(animObj);
                             }
@@ -8345,7 +8331,7 @@ var BABYLON;
                                 value: keys[i].value
                             });
                             this._keysList.addRow({
-                                key: keys[i].frame,
+                                key: String(keys[i].frame),
                                 value: this._getFrameTime(keys[i].frame),
                                 recid: length
                             });
@@ -8389,7 +8375,7 @@ var BABYLON;
                     value: value
                 });
                 this._keysList.addRow({
-                    key: frame,
+                    key: String(frame),
                     value: this._getFrameTime(frame),
                     recid: keys.length - 1
                 });
@@ -10077,6 +10063,7 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var net = require("net");
+        var buf = require("buffer");
         var ElectronPhotoshopPlugin = (function () {
             /**
             * Constructor
@@ -10120,12 +10107,12 @@ var BABYLON;
                 this._server = net.createServer(function (socket) {
                     _this._client = socket;
                     _this._client.on("data", function (data) {
-                        var buffer = new Buffer(data);
+                        var buffer = new buf.Buffer(data);
                         buffers.push(buffer);
                     });
                     _this._client.on("end", function () {
                         _this._client = null;
-                        var finalBuffer = Buffer.concat(buffers);
+                        var finalBuffer = buf.Buffer.concat(buffers);
                         buffers = [];
                         var bufferSize = finalBuffer.readUInt32BE(0);
                         var pixelsSize = finalBuffer.readUInt32BE(4);

@@ -78,8 +78,10 @@
                 
                 if (!Tags.HasTags(sound) || !Tags.MatchesQuery(sound, "added"))
                     continue;
-                    
-                var serializationObject = {
+
+                /*
+                var serializationObject: any = {
+                    name: sound.name,
                     url: sound.name,
                     autoplay: sound.autoplay,
                     loop: sound.loop,
@@ -89,17 +91,33 @@
                     rolloffFactor: sound.rolloffFactor,
                     refDistance: sound.refDistance,
                     distanceModel: sound.distanceModel,
-                    playbackRate: 1.0
+                    playbackRate: 1.0,
+                    panningModel: sound.getPanningModel(),
+                    soundTrackId: 0 // TODO
                 };
                 
                 if (sound.spatialSound) {
                     // Nothing now
+                    var connectedMesh = sound.getConnectedMesh();
+                    if (connectedMesh)
+                        serializationObject.connectedMeshId = connectedMesh.id;
+
+                    serializationObject.position = sound.getPosition().asArray();
+                    serializationObject.refDistance = sound.refDistance;
+                    serializationObject.distanceModel = sound.distanceModel;
+
+                    serializationObject.isDirectional = sound.isDirectional;
+                    serializationObject.localDirectionToMesh = sound.getLocalDirectionToMesh().asArray();
+                    serializationObject.coneInnerAngle = sound.getConeInnerAngle();
+                    serializationObject.coneOuterAngle = sound.getConeOuterAngle();
+                    serializationObject.coneOuterGain = sound.getConeOuterGain();
                 }
                     
                 config.push({
                     name: sound.name,
                     serializationObject: serializationObject
                 });
+                */
             }
             
             return config;
@@ -384,6 +402,7 @@
                             };
 
                             // Setup events
+                            /*
                             var keys = animation.getKeys();
                             for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
                                 var events: INTERNAL.IAnimationEvent[] = keys[keyIndex].events;
@@ -396,6 +415,7 @@
                                     frame: keys[keyIndex].frame
                                 });
                             }
+                            */
 
                             // Add
                             nodeObj.animations.push(animObj);
