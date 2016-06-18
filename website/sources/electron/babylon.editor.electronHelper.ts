@@ -4,6 +4,7 @@
         * Scene file
         */
         public static ReloadSceneOnFileChanged: boolean = false;
+        public static SceneFilename: string = "";
 
         /**
         * Creates "File" objects from filenames
@@ -31,6 +32,8 @@
                     // If scene file, watch file
                     var extension = Tools.GetFileExtension(filename);
                     if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                        this.SceneFilename = filename;
+
                         fs.watch(filename, null, (event: any, modifiedFilename: string) => {
                             if (!this.ReloadSceneOnFileChanged)
                                 return;
@@ -77,6 +80,26 @@
 
                     callback(file);
                 });
+            });
+        }
+
+        /**
+        * Creates a save dialog
+        */
+        public static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void {
+            var dialog = require("electron").remote.dialog;
+            var options: Electron.SaveDialogOptions = {
+                title: title,
+                defaultPath: path,
+                filters: [{
+                    name: "Babylon.js Editor Project",
+                    extensions: []
+                }],
+                buttonLabel: ""
+            };
+
+            dialog.showSaveDialog(null, options, (filename: string) => {
+                callback(filename);
             });
         }
     }

@@ -22,6 +22,7 @@ var BABYLON;
                 this._mainProjectNew = "MAIN-PROJECT-NEW";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
+                this._projectSaveLocal = "PROJECT-SAVE-LOCAL";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
@@ -88,6 +89,9 @@ var BABYLON;
                         else if (selected.selected === this._projectExportBabylonScene) {
                             var babylonExporter = new EDITOR.BabylonExporter(this.core);
                             babylonExporter.createUI();
+                        }
+                        else if (selected.selected === this._projectSaveLocal) {
+                            var electronExporter = new EDITOR.ElectronLocalExporter(this.core);
                         }
                         else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
@@ -183,7 +187,7 @@ var BABYLON;
                     this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 }
                 else {
-                    this.toolbar.createMenuItem(menu, "button", "", "Save...", "icon-save");
+                    this.toolbar.createMenuItem(menu, "button", this._projectSaveLocal, "Save...", "icon-save");
                 }
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

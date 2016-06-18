@@ -79,6 +79,14 @@ var BABYLON;
                 return filename.substring(index + 1);
             };
             /**
+            * Returns the filename without extension
+            */
+            Tools.GetFilenameWithoutExtension = function (filename, withPath) {
+                var lastDot = filename.lastIndexOf(".");
+                var lastSlash = filename.lastIndexOf("/");
+                return filename.substring(withPath ? 0 : lastSlash + 1, lastDot);
+            };
+            /**
             * Returns the file type for the given extension
             */
             Tools.GetFileType = function (extension) {

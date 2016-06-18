@@ -20,6 +20,7 @@
         private _mainProjectNew = "MAIN-PROJECT-NEW";
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
+        private _projectSaveLocal = "PROJECT-SAVE-LOCAL";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
         private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
@@ -108,6 +109,9 @@
                         babylonExporter.createUI();
                     }
 
+                    else if (selected.selected === this._projectSaveLocal) {
+                        var electronExporter = new ElectronLocalExporter(this.core);
+                    }
                     else if (selected.selected === this._projectConnectStorage) {
                         var storageExporter = new StorageExporter(this.core);
                         storageExporter.export();
@@ -224,7 +228,7 @@
                 this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
             }
             else {
-                this.toolbar.createMenuItem(menu, "button", "", "Save...", "icon-save");
+                this.toolbar.createMenuItem(menu, "button", this._projectSaveLocal, "Save...", "icon-save");
             }
             //...
 

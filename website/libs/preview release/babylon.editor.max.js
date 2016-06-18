@@ -211,6 +211,14 @@ var BABYLON;
                 return filename.substring(index + 1);
             };
             /**
+            * Returns the filename without extension
+            */
+            Tools.GetFilenameWithoutExtension = function (filename, withPath) {
+                var lastDot = filename.lastIndexOf(".");
+                var lastSlash = filename.lastIndexOf("/");
+                return filename.substring(withPath ? 0 : lastSlash + 1, lastDot);
+            };
+            /**
             * Returns the file type for the given extension
             */
             Tools.GetFileType = function (extension) {
@@ -4604,6 +4612,7 @@ var BABYLON;
                 this._mainProjectNew = "MAIN-PROJECT-NEW";
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
+                this._projectSaveLocal = "PROJECT-SAVE-LOCAL";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
@@ -4670,6 +4679,9 @@ var BABYLON;
                         else if (selected.selected === this._projectExportBabylonScene) {
                             var babylonExporter = new EDITOR.BabylonExporter(this.core);
                             babylonExporter.createUI();
+                        }
+                        else if (selected.selected === this._projectSaveLocal) {
+                            var electronExporter = new EDITOR.ElectronLocalExporter(this.core);
                         }
                         else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
@@ -4765,7 +4777,7 @@ var BABYLON;
                     this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 }
                 else {
-                    this.toolbar.createMenuItem(menu, "button", "", "Save...", "icon-save");
+                    this.toolbar.createMenuItem(menu, "button", this._projectSaveLocal, "Save...", "icon-save");
                 }
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");
@@ -9245,6 +9257,7 @@ var BABYLON;
                         texture.name = texture.name.replace("data:", "");
                         _this._particleSystem.particleTexture = texture;
                         input.remove();
+                        EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this.core);
                     }, null);
                 });
                 input.click();
@@ -9669,8 +9682,7 @@ var BABYLON;
                     var parameters = [];
                     if (object instanceof BABYLON.AbstractMesh) {
                         if (object.material) {
-                            parameters.push(EDITOR.Tools.GetConstructorName(object.material));
-                            iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
+                            parameters.push("");
                         }
                     }
                     if (parameters.length === 0)
@@ -10044,6 +10056,7 @@ var BABYLON;
                         // If scene file, watch file
                         var extension = EDITOR.Tools.GetFileExtension(filename);
                         if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                            _this.SceneFilename = filename;
                             fs.watch(filename, null, function (event, modifiedFilename) {
                                 if (!_this.ReloadSceneOnFileChanged)
                                     return;
@@ -10083,9 +10096,28 @@ var BABYLON;
                 });
             };
             /**
+            * Creates a save dialog
+            */
+            ElectronHelper.CreateSaveDialog = function (title, path, extension, callback) {
+                var dialog = require("electron").remote.dialog;
+                var options = {
+                    title: title,
+                    defaultPath: path,
+                    filters: [{
+                            name: "Babylon.js Editor Project",
+                            extensions: []
+                        }],
+                    buttonLabel: ""
+                };
+                dialog.showSaveDialog(null, options, function (filename) {
+                    callback(filename);
+                });
+            };
+            /**
             * Scene file
             */
             ElectronHelper.ReloadSceneOnFileChanged = false;
+            ElectronHelper.SceneFilename = "";
             return ElectronHelper;
         }());
         EDITOR.ElectronHelper = ElectronHelper;
@@ -10248,5 +10280,48 @@ var BABYLON;
         // Register plugin
         if (EDITOR.Tools.CheckIfElectron())
             EDITOR.PluginManager.RegisterMainToolbarPlugin(ElectronMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ElectronLocalExporter = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function ElectronLocalExporter(core) {
+                var _this = this;
+                // Initialize
+                this._core = core;
+                // Save...
+                var filename = EDITOR.ElectronHelper.SceneFilename === "" ? "scene" : EDITOR.Tools.GetFilenameWithoutExtension(EDITOR.ElectronHelper.SceneFilename, true) + ".editorproject";
+                if (ElectronLocalExporter._LocalFilename === "") {
+                    EDITOR.ElectronHelper.CreateSaveDialog("Save Project", filename, ".editorproject", function (filename) {
+                        if (filename === undefined)
+                            return;
+                        ElectronLocalExporter._LocalFilename = filename;
+                        _this.writeProject(filename);
+                    });
+                }
+                else
+                    this.writeProject(filename);
+            }
+            ElectronLocalExporter.prototype.writeProject = function (filename) {
+                var _this = this;
+                this._core.editor.layouts.lockPanel("bottom", "Saving...", true);
+                var fs = require('fs');
+                var project = EDITOR.ProjectExporter.ExportProject(this._core, true);
+                fs.writeFile(filename, project, function (error) {
+                    console.log(error);
+                    _this._core.editor.layouts.unlockPanel("bottom");
+                });
+            };
+            // Static members
+            ElectronLocalExporter._LocalFilename = "";
+            return ElectronLocalExporter;
+        }());
+        EDITOR.ElectronLocalExporter = ElectronLocalExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

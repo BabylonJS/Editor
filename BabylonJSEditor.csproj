@@ -198,6 +198,7 @@
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.terrainMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.triPlanarMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\materialEditors\babylon.editor.waterMaterialTool.ts" />
+    <TypeScriptCompile Include="website\sources\electron\babylon.editor.localExporter.ts" />
     <TypeScriptCompile Include="website\sources\electron\plugins\babylon.editor.electronPhotoshopPlugin.ts" />
     <TypeScriptCompile Include="website\sources\export\babylon.editor.exporter.ts" />
     <TypeScriptCompile Include="website\sources\export\babylon.editor.projectExporter.ts" />

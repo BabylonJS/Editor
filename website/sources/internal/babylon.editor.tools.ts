@@ -87,6 +87,16 @@
         }
 
         /**
+        * Returns the filename without extension
+        */
+        public static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string {
+            var lastDot = filename.lastIndexOf(".");
+            var lastSlash = filename.lastIndexOf("/");
+
+            return filename.substring(withPath ? 0 : lastSlash + 1, lastDot);
+        }
+
+        /**
         * Returns the file type for the given extension
         */
         public static GetFileType(extension: string): string {

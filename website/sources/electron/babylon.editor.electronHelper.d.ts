@@ -4,6 +4,7 @@ declare module BABYLON.EDITOR {
         * Scene file
         */
         static ReloadSceneOnFileChanged: boolean;
+        static SceneFilename: string;
         /**
         * Creates "File" objects from filenames
         */
@@ -12,5 +13,9 @@ declare module BABYLON.EDITOR {
         * Watchs the specified file
         */
         static WatchFile(filename: string, callback: (file: File) => void): void;
+        /**
+        * Creates a save dialog
+        */
+        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
     }
 }

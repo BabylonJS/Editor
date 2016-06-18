@@ -40,8 +40,7 @@ var BABYLON;
                     var parameters = [];
                     if (object instanceof BABYLON.AbstractMesh) {
                         if (object.material) {
-                            parameters.push(EDITOR.Tools.GetConstructorName(object.material));
-                            iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
+                            parameters.push("");
                         }
                     }
                     if (parameters.length === 0)

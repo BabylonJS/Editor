@@ -27,6 +27,10 @@ declare module BABYLON.EDITOR {
         */
         static GetFileExtension(filename: string): string;
         /**
+        * Returns the filename without extension
+        */
+        static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string;
+        /**
         * Returns the file type for the given extension
         */
         static GetFileType(extension: string): string;

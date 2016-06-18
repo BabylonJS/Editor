@@ -247,6 +247,7 @@
 
             // Texture
             commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
+
             commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
                 switch (result) {
                     case "ONEONE": ps.blendMode = ParticleSystem.BLENDMODE_ONEONE; break;
@@ -419,6 +420,8 @@
 
                     this._particleSystem.particleTexture = texture;
                     input.remove();
+
+                    Event.sendSceneEvent(texture, SceneEventType.OBJECT_ADDED, this.core);
                 }, null);
             });
             input.click();

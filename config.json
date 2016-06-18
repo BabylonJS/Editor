@@ -114,7 +114,8 @@
       "sources/electron/babylon.editor.electronHelper.js",
 
       "sources/electron/plugins/babylon.editor.electronPhotoshopPlugin.js",
-      "sources/electron/babylon.editor.electronPlugin.js"
+      "sources/electron/babylon.editor.electronPlugin.js",
+      "sources/electron/babylon.editor.localExporter.js"
     ]
   }
 }

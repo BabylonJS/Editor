@@ -48,8 +48,9 @@
                 var parameters: string[] = [];
                 if (object instanceof AbstractMesh) {
                     if (object.material) {
-                        parameters.push(Tools.GetConstructorName(object.material));
-                        iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
+                        parameters.push("");
+                        //parameters.push(Tools.GetConstructorName(object.material));
+                        //iframeWindow.ActionsBuilder.SceneElements.MESH.material = object.material;
                     }
                 }
 

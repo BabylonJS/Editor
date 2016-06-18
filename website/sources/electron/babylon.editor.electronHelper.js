@@ -27,6 +27,7 @@ var BABYLON;
                         // If scene file, watch file
                         var extension = EDITOR.Tools.GetFileExtension(filename);
                         if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                            _this.SceneFilename = filename;
                             fs.watch(filename, null, function (event, modifiedFilename) {
                                 if (!_this.ReloadSceneOnFileChanged)
                                     return;
@@ -66,9 +67,28 @@ var BABYLON;
                 });
             };
             /**
+            * Creates a save dialog
+            */
+            ElectronHelper.CreateSaveDialog = function (title, path, extension, callback) {
+                var dialog = require("electron").remote.dialog;
+                var options = {
+                    title: title,
+                    defaultPath: path,
+                    filters: [{
+                            name: "Babylon.js Editor Project",
+                            extensions: []
+                        }],
+                    buttonLabel: ""
+                };
+                dialog.showSaveDialog(null, options, function (filename) {
+                    callback(filename);
+                });
+            };
+            /**
             * Scene file
             */
             ElectronHelper.ReloadSceneOnFileChanged = false;
+            ElectronHelper.SceneFilename = "";
             return ElectronHelper;
         }());
         EDITOR.ElectronHelper = ElectronHelper;

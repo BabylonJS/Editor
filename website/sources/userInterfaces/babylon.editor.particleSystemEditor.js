@@ -341,6 +341,7 @@ var BABYLON;
                         texture.name = texture.name.replace("data:", "");
                         _this._particleSystem.particleTexture = texture;
                         input.remove();
+                        EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this.core);
                     }, null);
                 });
                 input.click();
