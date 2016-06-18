@@ -74,28 +74,29 @@
                     loop: result
                 });
             });
-            soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange((result: any) => {
-                sound.updateOptions({
-                    distanceModel: result
-                });
-            });
 
             if (sound.spatialSound) {
+                soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange((result: any) => {
+                    sound.updateOptions({
+                        distanceModel: result
+                    });
+                });
+
                 soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange((result: any) => {
                     sound.updateOptions({
                         maxDistance: result
                     });
                 });
+
+                this._position = (<any>sound)._position;
+                var positionFolder = soundFolder.addFolder("Position");
+                positionFolder.open();
+                positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
+                positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
+                positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
+
+                soundFolder.add(this, "_attachSoundToMesh").name("Attach to mesh...");
             }
-
-            sound.distanceModel
-
-            this._position = (<any>sound)._position;
-            var positionFolder = soundFolder.addFolder("Position");
-            positionFolder.open();
-            positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
-            positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
-            positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
 
             // Soundtrack
             var soundTrackFolder = this._element.addFolder("Sound Track");
@@ -108,6 +109,25 @@
             return (result: any) => {
                 sound.setPosition(this._position);
             }
+        }
+
+        // Attach sound to mesh...
+        private _attachSoundToMesh(): void {
+            var picker = new ObjectPicker(this._editionTool.core);
+            picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+            picker.minSelectCount = 0;
+
+            picker.onObjectPicked = (names: string[]) => {
+                var node: any = null;
+                if (names.length > 0) {
+                    node = this._editionTool.core.currentScene.getNodeByName(names[0]);
+                    if (node) {
+                        (<Sound>this.object).attachToMesh(node);
+                    }
+                }
+            };
+
+            picker.open();
         }
 
         // Pause sound

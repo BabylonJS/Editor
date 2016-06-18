@@ -10,17 +10,13 @@
         actionManager: ActionManager;
     }
 
-    export interface IObjectConfigurationDefinition {
-        [index: string]: IObjectConfiguration;
-    }
-
     export class SceneManager {
         // Public members
 
         /**
         * Objects configuration
         */
-        public static _ConfiguredObjectsIDs: IObjectConfigurationDefinition = { };
+        public static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration> = { };
         public static _SceneConfiguration: ISceneConfiguration;
 
         // Reset configured objects

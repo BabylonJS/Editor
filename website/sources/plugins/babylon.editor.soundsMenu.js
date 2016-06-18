@@ -10,7 +10,8 @@ var BABYLON;
             function SoundsMenuPlugin(mainToolbar) {
                 // Public members
                 this.menuID = "SOUNDS-MENU";
-                this._addSoundtrackID = "ADD-SOUNDTRACK";
+                this._addSoundtrack = "ADD-SOUNDTRACK";
+                this._add3DSound = "ADD-3D-SOUND";
                 this._stopAllSounds = "STOP-ALL-SOUNDS";
                 this._playAllSounds = "PLAY-ALL-SOUNDS";
                 var toolbar = mainToolbar.toolbar;
@@ -18,7 +19,8 @@ var BABYLON;
                 // Create menu
                 var menu = toolbar.createMenu("menu", this.menuID, "Sound", "icon-sound");
                 // Create items
-                toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
+                toolbar.createMenuItem(menu, "button", this._addSoundtrack, "Add Soundtracks", "icon-sound");
+                toolbar.createMenuItem(menu, "button", this._add3DSound, "Add 3D Sound", "icon-sound");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-stop-sound");
                 toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-sound");
@@ -29,9 +31,14 @@ var BABYLON;
                 var _this = this;
                 // Switch selected menu id
                 switch (selected) {
-                    case this._addSoundtrackID:
+                    case this._addSoundtrack:
+                    case this._add3DSound:
                         this._createInput(function (name, data) {
-                            var sound = new BABYLON.Sound(name, data, _this._core.currentScene);
+                            var options = {
+                                autoplay: false,
+                                spatialSound: selected === _this._add3DSound
+                            };
+                            var sound = new BABYLON.Sound(name, data, _this._core.currentScene, null, options);
                             EDITOR.Event.sendSceneEvent(sound, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
                             _this._configureSound(sound);
                         });

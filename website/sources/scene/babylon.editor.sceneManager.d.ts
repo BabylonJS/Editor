@@ -7,14 +7,11 @@ declare module BABYLON.EDITOR {
         scene: Scene;
         actionManager: ActionManager;
     }
-    interface IObjectConfigurationDefinition {
-        [index: string]: IObjectConfiguration;
-    }
     class SceneManager {
         /**
         * Objects configuration
         */
-        static _ConfiguredObjectsIDs: IObjectConfigurationDefinition;
+        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
         static _SceneConfiguration: ISceneConfiguration;
         static ResetConfiguredObjects(): void;
         static SwitchActionManager(): void;

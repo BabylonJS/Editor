@@ -2,7 +2,8 @@ declare module BABYLON.EDITOR {
     class SoundsMenuPlugin implements ICustomToolbarMenu {
         menuID: string;
         private _core;
-        private _addSoundtrackID;
+        private _addSoundtrack;
+        private _add3DSound;
         private _stopAllSounds;
         private _playAllSounds;
         /**

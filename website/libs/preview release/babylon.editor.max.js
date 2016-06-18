@@ -2195,25 +2195,25 @@ var BABYLON;
                         loop: result
                     });
                 });
-                soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange(function (result) {
-                    sound.updateOptions({
-                        distanceModel: result
-                    });
-                });
                 if (sound.spatialSound) {
+                    soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange(function (result) {
+                        sound.updateOptions({
+                            distanceModel: result
+                        });
+                    });
                     soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange(function (result) {
                         sound.updateOptions({
                             maxDistance: result
                         });
                     });
+                    this._position = sound._position;
+                    var positionFolder = soundFolder.addFolder("Position");
+                    positionFolder.open();
+                    positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    soundFolder.add(this, "_attachSoundToMesh").name("Attach to mesh...");
                 }
-                sound.distanceModel;
-                this._position = sound._position;
-                var positionFolder = soundFolder.addFolder("Position");
-                positionFolder.open();
-                positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
-                positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
-                positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
                 // Soundtrack
                 var soundTrackFolder = this._element.addFolder("Sound Track");
                 return true;
@@ -2224,6 +2224,23 @@ var BABYLON;
                 return function (result) {
                     sound.setPosition(_this._position);
                 };
+            };
+            // Attach sound to mesh...
+            AudioTool.prototype._attachSoundToMesh = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+                picker.minSelectCount = 0;
+                picker.onObjectPicked = function (names) {
+                    var node = null;
+                    if (names.length > 0) {
+                        node = _this._editionTool.core.currentScene.getNodeByName(names[0]);
+                        if (node) {
+                            _this.object.attachToMesh(node);
+                        }
+                    }
+                };
+                picker.open();
             };
             // Pause sound
             AudioTool.prototype._pauseSound = function () {
@@ -9901,7 +9918,8 @@ var BABYLON;
             function SoundsMenuPlugin(mainToolbar) {
                 // Public members
                 this.menuID = "SOUNDS-MENU";
-                this._addSoundtrackID = "ADD-SOUNDTRACK";
+                this._addSoundtrack = "ADD-SOUNDTRACK";
+                this._add3DSound = "ADD-3D-SOUND";
                 this._stopAllSounds = "STOP-ALL-SOUNDS";
                 this._playAllSounds = "PLAY-ALL-SOUNDS";
                 var toolbar = mainToolbar.toolbar;
@@ -9909,7 +9927,8 @@ var BABYLON;
                 // Create menu
                 var menu = toolbar.createMenu("menu", this.menuID, "Sound", "icon-sound");
                 // Create items
-                toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
+                toolbar.createMenuItem(menu, "button", this._addSoundtrack, "Add Soundtracks", "icon-sound");
+                toolbar.createMenuItem(menu, "button", this._add3DSound, "Add 3D Sound", "icon-sound");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-stop-sound");
                 toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-sound");
@@ -9920,9 +9939,14 @@ var BABYLON;
                 var _this = this;
                 // Switch selected menu id
                 switch (selected) {
-                    case this._addSoundtrackID:
+                    case this._addSoundtrack:
+                    case this._add3DSound:
                         this._createInput(function (name, data) {
-                            var sound = new BABYLON.Sound(name, data, _this._core.currentScene);
+                            var options = {
+                                autoplay: false,
+                                spatialSound: selected === _this._add3DSound
+                            };
+                            var sound = new BABYLON.Sound(name, data, _this._core.currentScene, null, options);
                             EDITOR.Event.sendSceneEvent(sound, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
                             _this._configureSound(sound);
                         });

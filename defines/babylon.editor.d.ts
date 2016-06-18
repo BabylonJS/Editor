@@ -1,4 +1,19 @@
-﻿declare module BABYLON.EDITOR {
+﻿/**
+* Definitions
+*/
+
+declare interface IStringDictionary<T> {
+    [index: string]: T;
+}
+
+declare interface INumberDictionary<T> {
+    [index: number]: T;
+}
+
+/**
+* Babylon.js Editor
+*/
+declare module BABYLON.EDITOR {
     /**
     * Custom Update Interface
     */

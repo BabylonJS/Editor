@@ -6,7 +6,9 @@ module BABYLON.EDITOR {
         // Private members
         private _core: EditorCore;
 
-        private _addSoundtrackID = "ADD-SOUNDTRACK";
+        private _addSoundtrack = "ADD-SOUNDTRACK";
+        private _add3DSound = "ADD-3D-SOUND";
+
         private _stopAllSounds = "STOP-ALL-SOUNDS";
         private _playAllSounds = "PLAY-ALL-SOUNDS";
 
@@ -22,7 +24,8 @@ module BABYLON.EDITOR {
             var menu = toolbar.createMenu("menu", this.menuID, "Sound", "icon-sound");
             
             // Create items
-            toolbar.createMenuItem(menu, "button", this._addSoundtrackID, "Add Soundtracks", "icon-sound");
+            toolbar.createMenuItem(menu, "button", this._addSoundtrack, "Add Soundtracks", "icon-sound");
+            toolbar.createMenuItem(menu, "button", this._add3DSound, "Add 3D Sound", "icon-sound");
             toolbar.addBreak(menu);
             toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-stop-sound");
             toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-sound");
@@ -33,9 +36,15 @@ module BABYLON.EDITOR {
         public onMenuItemSelected(selected: string): void {
             // Switch selected menu id
             switch (selected) {
-                case this._addSoundtrackID:
+                case this._addSoundtrack:
+                case this._add3DSound:
                     this._createInput((name: string, data: ArrayBuffer) => {
-                        var sound = new Sound(name, data, this._core.currentScene);
+                        var options: any = {
+                            autoplay: false,
+                            spatialSound: selected === this._add3DSound
+                        };
+
+                        var sound = new Sound(name, data, this._core.currentScene, null, options);
                         Event.sendSceneEvent(sound, SceneEventType.OBJECT_ADDED, this._core);
                         this._configureSound(sound);
                     });

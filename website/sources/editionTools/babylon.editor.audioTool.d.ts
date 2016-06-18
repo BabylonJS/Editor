@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         createUI(): void;
         update(): boolean;
         private _positionCallback(sound);
+        private _attachSoundToMesh();
         private _pauseSound();
         private _playSound();
         private _stopSound();

@@ -66,25 +66,25 @@ var BABYLON;
                         loop: result
                     });
                 });
-                soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange(function (result) {
-                    sound.updateOptions({
-                        distanceModel: result
-                    });
-                });
                 if (sound.spatialSound) {
+                    soundFolder.add(sound, "distanceModel", ["linear", "exponential", "inverse"]).name("Distance Model").onFinishChange(function (result) {
+                        sound.updateOptions({
+                            distanceModel: result
+                        });
+                    });
                     soundFolder.add(sound, "maxDistance").min(0.0).name("Max Distance").onChange(function (result) {
                         sound.updateOptions({
                             maxDistance: result
                         });
                     });
+                    this._position = sound._position;
+                    var positionFolder = soundFolder.addFolder("Position");
+                    positionFolder.open();
+                    positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
+                    soundFolder.add(this, "_attachSoundToMesh").name("Attach to mesh...");
                 }
-                sound.distanceModel;
-                this._position = sound._position;
-                var positionFolder = soundFolder.addFolder("Position");
-                positionFolder.open();
-                positionFolder.add(this._position, "x").step(0.1).onChange(this._positionCallback(sound)).listen();
-                positionFolder.add(this._position, "y").step(0.1).onChange(this._positionCallback(sound)).listen();
-                positionFolder.add(this._position, "z").step(0.1).onChange(this._positionCallback(sound)).listen();
                 // Soundtrack
                 var soundTrackFolder = this._element.addFolder("Sound Track");
                 return true;
@@ -95,6 +95,23 @@ var BABYLON;
                 return function (result) {
                     sound.setPosition(_this._position);
                 };
+            };
+            // Attach sound to mesh...
+            AudioTool.prototype._attachSoundToMesh = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(this._editionTool.core.currentScene.meshes);
+                picker.minSelectCount = 0;
+                picker.onObjectPicked = function (names) {
+                    var node = null;
+                    if (names.length > 0) {
+                        node = _this._editionTool.core.currentScene.getNodeByName(names[0]);
+                        if (node) {
+                            _this.object.attachToMesh(node);
+                        }
+                    }
+                };
+                picker.open();
             };
             // Pause sound
             AudioTool.prototype._pauseSound = function () {
