@@ -51,6 +51,9 @@ var BABYLON;
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
+                            // Save states
+                            EDITOR.SceneManager.SaveObjectStates(this._core.currentScene);
+                            // Transformers
                             this._editor.transformer.setNode(null);
                             this._editor.transformer.enabled = false;
                             this.toolbar.setItemChecked(this._transformerPositionID, false);
@@ -71,6 +74,8 @@ var BABYLON;
                                 this._editor.timeline.play();
                         }
                         else {
+                            // Restore states
+                            EDITOR.SceneManager.RestoreObjectsStates(this._core.currentScene);
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {

@@ -40,7 +40,7 @@ var BABYLON;
                 var cameras = core.currentScene.cameras;
                 var ratio = {
                     finalRatio: 1.0,
-                    blurRatio: 0.25
+                    blurRatio: 0.25 / devicePixelRatio
                 };
                 var lensTexture;
                 if (serializationObject.lensTexture && serializationObject.lensTexture.name) {
@@ -75,7 +75,7 @@ var BABYLON;
                     this.SSAOPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
-                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
+                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5 / devicePixelRatio, combineRatio: 1.0 }, cameras);
                 ssao.fallOff = serializationObject.fallOff || ssao.fallOff;
                 ssao.area = serializationObject.area || ssao.area;
                 ssao.radius = serializationObject.radius || ssao.radius;

@@ -5576,6 +5576,9 @@ var BABYLON;
                         //if (this._core.playCamera) {
                         //this._core.currentScene.activeCamera = checked ? this._core.playCamera : this._core.camera;
                         if (checked) {
+                            // Save states
+                            EDITOR.SceneManager.SaveObjectStates(this._core.currentScene);
+                            // Transformers
                             this._editor.transformer.setNode(null);
                             this._editor.transformer.enabled = false;
                             this.toolbar.setItemChecked(this._transformerPositionID, false);
@@ -5596,6 +5599,8 @@ var BABYLON;
                                 this._editor.timeline.play();
                         }
                         else {
+                            // Restore states
+                            EDITOR.SceneManager.RestoreObjectsStates(this._core.currentScene);
                             this._core.engine.resize();
                             // Animate at launch
                             for (var i = 0; i < EDITOR.SceneFactory.NodesToStart.length; i++) {
@@ -5871,7 +5876,7 @@ var BABYLON;
                 var cameras = core.currentScene.cameras;
                 var ratio = {
                     finalRatio: 1.0,
-                    blurRatio: 0.25
+                    blurRatio: 0.25 / devicePixelRatio
                 };
                 var lensTexture;
                 if (serializationObject.lensTexture && serializationObject.lensTexture.name) {
@@ -5906,7 +5911,7 @@ var BABYLON;
                     this.SSAOPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
-                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5, combineRatio: 1.0 }, cameras);
+                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.5 / devicePixelRatio, combineRatio: 1.0 }, cameras);
                 ssao.fallOff = serializationObject.fallOff || ssao.fallOff;
                 ssao.area = serializationObject.area || ssao.area;
                 ssao.radius = serializationObject.radius || ssao.radius;
@@ -6200,6 +6205,73 @@ var BABYLON;
                 ev.eventType = EDITOR.EventType.SCENE_EVENT;
                 ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
                 core.sendEvent(ev);
+            };
+            // Save objects states
+            SceneManager.SaveObjectStates = function (scene) {
+                var _this = this;
+                this._ObjectsStatesConfiguration = {};
+                var recursivelySaveStates = function (object, statesObject) {
+                    for (var thing in object) {
+                        if (thing[0] == "_")
+                            continue;
+                        var value = object[thing];
+                        if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Vector2 || value instanceof BABYLON.Vector3 || value instanceof BABYLON.Vector4) {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Color3 || value instanceof BABYLON.Color4) {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Material) {
+                            statesObject[thing] = {};
+                            recursivelySaveStates(value, statesObject[thing]);
+                        }
+                    }
+                };
+                var saveObjects = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var id = "Scene";
+                        if (!(objects[i] instanceof BABYLON.Scene))
+                            id = objects[i].id;
+                        _this._ObjectsStatesConfiguration[id] = {};
+                        recursivelySaveStates(objects[i], _this._ObjectsStatesConfiguration[id]);
+                    }
+                };
+                saveObjects(scene.meshes);
+                saveObjects(scene.cameras);
+                saveObjects(scene.lights);
+                saveObjects([scene]);
+            };
+            // Restore object states
+            SceneManager.RestoreObjectsStates = function (scene) {
+                var _this = this;
+                var recursivelyRestoreStates = function (object, statesObject) {
+                    for (var thing in statesObject) {
+                        var value = statesObject[thing];
+                        if (thing === "material") {
+                            recursivelyRestoreStates(object[thing], statesObject[thing]);
+                        }
+                        else {
+                            object[thing] = statesObject[thing];
+                        }
+                    }
+                };
+                var restoreObjects = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var id = "Scene";
+                        if (!(objects[i] instanceof BABYLON.Scene))
+                            id = objects[i].id;
+                        var statesObject = _this._ObjectsStatesConfiguration[id];
+                        if (statesObject)
+                            recursivelyRestoreStates(objects[i], statesObject);
+                    }
+                };
+                restoreObjects(scene.meshes);
+                restoreObjects(scene.cameras);
+                restoreObjects(scene.lights);
+                restoreObjects([scene]);
             };
             // Public members
             /**
@@ -8744,10 +8816,6 @@ var BABYLON;
                 setAutoPlay(obj.lights);
                 setAutoPlay(obj.meshes);
                 setAutoPlay(obj.particleSystems);
-                // Sounds
-                obj.sounds = [];
-                for (var i = 0; i < core.currentScene.mainSoundTrack.soundCollection.length; i++)
-                    obj.sounds.push(core.currentScene.mainSoundTrack.soundCollection[i].serialize());
                 return obj;
             };
             return BabylonExporter;
@@ -10308,6 +10376,7 @@ var BABYLON;
                 else
                     this.writeProject(filename);
             }
+            // Write project into local file
             ElectronLocalExporter.prototype.writeProject = function (filename) {
                 var _this = this;
                 this._core.editor.layouts.lockPanel("bottom", "Saving...", true);

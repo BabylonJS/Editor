@@ -34818,6 +34818,7 @@ var BABYLON;
         /**
         * Play the sound
         * @param time (optional) Start the sound after X seconds. Start immediately (0) by default.
+        * @param offset (optional) Start the sound setting it at a specific time
         */
         Sound.prototype.play = function (time, offset) {
             var _this = this;
@@ -48251,6 +48252,14 @@ var BABYLON;
             if (scene.actionManager) {
                 serializationObject.actions = scene.actionManager.serialize("scene");
             }
+            // Audio
+            serializationObject.sounds = [];
+            for (index = 0; index < scene.soundTracks.length; index++) {
+                var soundtrack = scene.soundTracks[index];
+                for (var soundId = 0; soundId < soundtrack.soundCollection.length; soundId++) {
+                    serializationObject.sounds.push(soundtrack.soundCollection[soundId].serialize());
+                }
+            }
             return serializationObject;
         };
         SceneSerializer.SerializeMesh = function (toSerialize /* Mesh || Mesh[] */, withParents, withChildren) {
@@ -53730,6 +53739,7 @@ var BABYLON;
                 this._guassianBlurHPostProcess.dispose(camera);
                 this._guassianBlurVPostProcess.dispose(camera);
                 this._textureAdderPostProcess.dispose(camera);
+                this._toneMappingPostProcess.dispose(camera);
                 for (var j = HDRRenderingPipeline.LUM_STEPS - 1; j >= 0; j--) {
                     this._downSamplePostProcesses[j].dispose(camera);
                 }

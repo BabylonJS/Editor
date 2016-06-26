@@ -66,6 +66,73 @@ var BABYLON;
                 ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
                 core.sendEvent(ev);
             };
+            // Save objects states
+            SceneManager.SaveObjectStates = function (scene) {
+                var _this = this;
+                this._ObjectsStatesConfiguration = {};
+                var recursivelySaveStates = function (object, statesObject) {
+                    for (var thing in object) {
+                        if (thing[0] == "_")
+                            continue;
+                        var value = object[thing];
+                        if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Vector2 || value instanceof BABYLON.Vector3 || value instanceof BABYLON.Vector4) {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Color3 || value instanceof BABYLON.Color4) {
+                            statesObject[thing] = value;
+                        }
+                        else if (value instanceof BABYLON.Material) {
+                            statesObject[thing] = {};
+                            recursivelySaveStates(value, statesObject[thing]);
+                        }
+                    }
+                };
+                var saveObjects = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var id = "Scene";
+                        if (!(objects[i] instanceof BABYLON.Scene))
+                            id = objects[i].id;
+                        _this._ObjectsStatesConfiguration[id] = {};
+                        recursivelySaveStates(objects[i], _this._ObjectsStatesConfiguration[id]);
+                    }
+                };
+                saveObjects(scene.meshes);
+                saveObjects(scene.cameras);
+                saveObjects(scene.lights);
+                saveObjects([scene]);
+            };
+            // Restore object states
+            SceneManager.RestoreObjectsStates = function (scene) {
+                var _this = this;
+                var recursivelyRestoreStates = function (object, statesObject) {
+                    for (var thing in statesObject) {
+                        var value = statesObject[thing];
+                        if (thing === "material") {
+                            recursivelyRestoreStates(object[thing], statesObject[thing]);
+                        }
+                        else {
+                            object[thing] = statesObject[thing];
+                        }
+                    }
+                };
+                var restoreObjects = function (objects) {
+                    for (var i = 0; i < objects.length; i++) {
+                        var id = "Scene";
+                        if (!(objects[i] instanceof BABYLON.Scene))
+                            id = objects[i].id;
+                        var statesObject = _this._ObjectsStatesConfiguration[id];
+                        if (statesObject)
+                            recursivelyRestoreStates(objects[i], statesObject);
+                    }
+                };
+                restoreObjects(scene.meshes);
+                restoreObjects(scene.cameras);
+                restoreObjects(scene.lights);
+                restoreObjects([scene]);
+            };
             // Public members
             /**
             * Objects configuration

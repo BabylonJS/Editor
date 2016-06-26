@@ -20,12 +20,12 @@
         public static _SceneConfiguration: ISceneConfiguration;
 
         // Reset configured objects
-        static ResetConfiguredObjects(): void {
+        public static ResetConfiguredObjects(): void {
             this._ConfiguredObjectsIDs = { };
         }
 
         // Switch action manager (editor and scene itself)
-        static SwitchActionManager(): void {
+        public static SwitchActionManager(): void {
             var actionManager = this._SceneConfiguration.actionManager;
             this._SceneConfiguration.actionManager = this._SceneConfiguration.scene.actionManager;
             this._SceneConfiguration.scene.actionManager = actionManager;
@@ -40,7 +40,7 @@
         }
 
         // Configures and object
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
+        public static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
             if (object instanceof AbstractMesh) {
                 var mesh: AbstractMesh = object;
                 var scene = mesh.getScene();
@@ -94,6 +94,91 @@
             ev.eventType = EventType.SCENE_EVENT;
             ev.sceneEvent = new SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
             core.sendEvent(ev);
+        }
+
+        /**
+        * States saver
+        */
+        private static _ObjectsStatesConfiguration: IStringDictionary<any>;
+
+        // Save objects states
+        public static SaveObjectStates(scene: Scene): void {
+            this._ObjectsStatesConfiguration = {};
+
+            var recursivelySaveStates = (object: any, statesObject: any): void => {
+                for (var thing in object) {
+                    if (thing[0] == "_")
+                        continue;
+
+                    var value = object[thing];
+
+                    if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") {
+                        statesObject[thing] = value;
+                    }
+                    else if (value instanceof Vector2 || value instanceof Vector3 || value instanceof Vector4) {
+                        statesObject[thing] = value;
+                    }
+                    else if (value instanceof Color3 || value instanceof Color4) {
+                        statesObject[thing] = value;
+                    }
+                    else if (value instanceof Material) {
+                        statesObject[thing] = { };
+                        recursivelySaveStates(value, statesObject[thing]);
+                    }
+                }
+            };
+
+            var saveObjects = (objects: Node[] | Scene[]): void => {
+                for (var i = 0; i < objects.length; i++) {
+                    var id = "Scene";
+
+                    if (!(objects[i] instanceof Scene))
+                        id = (<Node>objects[i]).id;
+
+                    this._ObjectsStatesConfiguration[id] = { };
+                    recursivelySaveStates(objects[i], this._ObjectsStatesConfiguration[id]);
+                }
+            }
+
+            saveObjects(scene.meshes);
+            saveObjects(scene.cameras);
+            saveObjects(scene.lights);
+            saveObjects([scene]);
+        }
+
+        // Restore object states
+        public static RestoreObjectsStates(scene: Scene): void {
+            var recursivelyRestoreStates = (object: any, statesObject: any): void => {
+                for (var thing in statesObject) {
+                    var value = statesObject[thing];
+
+                    if (thing === "material") {
+                        recursivelyRestoreStates(object[thing], statesObject[thing]);
+                    }
+                    else {
+                        object[thing] = statesObject[thing];
+                    }
+                }
+            };
+
+            var restoreObjects = (objects: Node[] | Scene[]): void => {
+                for (var i = 0; i < objects.length; i++) {
+                    var id = "Scene";
+
+                    if (!(objects[i] instanceof Scene))
+                        id = (<Node>objects[i]).id;
+
+                    var statesObject = this._ObjectsStatesConfiguration[id];
+
+                    if (statesObject)
+                        recursivelyRestoreStates(objects[i], statesObject);
+                }
+            };
+
+            restoreObjects(scene.meshes);
+            restoreObjects(scene.cameras);
+            restoreObjects(scene.lights);
+            restoreObjects([scene]);
         }
     }
 }

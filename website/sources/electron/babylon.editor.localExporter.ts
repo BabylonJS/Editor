@@ -15,7 +15,7 @@
         constructor(core: EditorCore) {
             // Initialize
             this._core = core;
-
+            
             // Save...
             var filename = ElectronHelper.SceneFilename === "" ? "scene" : Tools.GetFilenameWithoutExtension(ElectronHelper.SceneFilename, true) + ".editorproject";
 
@@ -33,6 +33,7 @@
                 this.writeProject(filename);
         }
 
+        // Write project into local file
         public writeProject(filename: string): void {
             this._core.editor.layouts.lockPanel("bottom", "Saving...", true);
 

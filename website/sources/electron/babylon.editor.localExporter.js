@@ -24,6 +24,7 @@ var BABYLON;
                 else
                     this.writeProject(filename);
             }
+            // Write project into local file
             ElectronLocalExporter.prototype.writeProject = function (filename) {
                 var _this = this;
                 this._core.editor.layouts.lockPanel("bottom", "Saving...", true);

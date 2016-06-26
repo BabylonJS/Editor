@@ -414,338 +414,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    /**
-    * Event Type
-    */
-    enum EventType {
-        SCENE_EVENT = 0,
-        GUI_EVENT = 1,
-        UNKNOWN = 2,
-    }
-    enum GUIEventType {
-        FORM_CHANGED = 0,
-        FORM_TOOLBAR_CLICKED = 1,
-        LAYOUT_CHANGED = 2,
-        PANEL_CHANGED = 3,
-        GRAPH_SELECTED = 4,
-        GRAPH_DOUBLE_SELECTED = 5,
-        TAB_CHANGED = 6,
-        TOOLBAR_MENU_SELECTED = 7,
-        GRAPH_MENU_SELECTED = 8,
-        GRID_SELECTED = 9,
-        GRID_ROW_REMOVED = 10,
-        GRID_ROW_ADDED = 11,
-        GRID_ROW_EDITED = 12,
-        GRID_ROW_CHANGED = 13,
-        GRID_MENU_SELECTED = 14,
-        GRID_RELOADED = 15,
-        WINDOW_BUTTON_CLICKED = 16,
-        OBJECT_PICKED = 17,
-        UNKNOWN = 18,
-    }
-    enum SceneEventType {
-        OBJECT_PICKED = 0,
-        OBJECT_ADDED = 1,
-        OBJECT_REMOVED = 2,
-        OBJECT_CHANGED = 3,
-        NEW_SCENE_CREATED = 4,
-        UNKNOWN = 4,
-    }
-    /**
-    * Base Event
-    */
-    class BaseEvent {
-        data: any;
-        constructor(data?: Object);
-    }
-    /**
-    * Scene Event
-    */
-    class SceneEvent extends BaseEvent {
-        object: any;
-        eventType: SceneEventType;
-        /**
-        * Constructor
-        * @param object: the object generating the event
-        */
-        constructor(object: any, eventType: number, data?: Object);
-    }
-    /**
-    * GUI Event
-    */
-    class GUIEvent extends BaseEvent {
-        caller: GUI.IGUIElement;
-        eventType: GUIEventType;
-        /**
-        * Constructor
-        * @param caller: gui element calling the event
-        * @param eventType: the gui event type
-        */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
-    }
-    /**
-    * IEvent implementation
-    */
-    class Event implements IEvent {
-        eventType: EventType;
-        sceneEvent: SceneEvent;
-        guiEvent: GUIEvent;
-        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
-        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ManipulationHelper implements IEventReceiver, ICustomUpdate {
-        private _core;
-        private _scene;
-        private _currentNode;
-        private _cameraAttached;
-        private _pointerObserver;
-        private _actionStack;
-        private _manipulator;
-        private _enabled;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        onPreUpdate(): void;
-        onPostUpdate(): void;
-        getScene(): Scene;
-        enabled: boolean;
-        setNode(node: Node): void;
-        private _pointerCallback(pointer, event);
-        private _detectActionChanged(p, s);
-        private _getCurrentAction();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class Tools {
-        /**
-        * Returns a vector3 string from a vector3
-        */
-        static GetStringFromVector3(vector: Vector3): string;
-        /**
-        * Returns a vector3 from a vector3 string
-        */
-        static GetVector3FromString(vector: string): Vector3;
-        /**
-        * Converts a base64 string to array buffer
-        * Largely used to convert images, converted into base64 string
-        */
-        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
-        /**
-        * Opens a window popup
-        */
-        static OpenWindowPopup(url: string, width: number, height: number): any;
-        /**
-        * Opens a file browser. Checks if electron then open the dialog
-        * else open the classic file browser of the browser
-        */
-        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
-        /**
-        * Returns the file extension
-        */
-        static GetFileExtension(filename: string): string;
-        /**
-        * Returns the filename without extension
-        */
-        static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string;
-        /**
-        * Returns the file type for the given extension
-        */
-        static GetFileType(extension: string): string;
-        /**
-        * Returns the base URL of the window
-        */
-        static GetBaseURL(): string;
-        /**
-        * Checks if the editor is running in an
-        * Electron window
-        */
-        static CheckIfElectron(): boolean;
-        /**
-        * Creates an input element
-        */
-        static CreateFileInpuElement(id: string): JQuery;
-        /**
-        * Beautify a variable name (escapeds + upper case)
-        */
-        static BeautifyName(name: string): string;
-        /**
-        * Cleans an editor project
-        */
-        static CleanProject(project: INTERNAL.IProjectRoot): void;
-        /**
-        * Returns the constructor name of an object
-        */
-        static GetConstructorName(obj: any): string;
-        /**
-        * Converts a boolean to integer
-        */
-        static BooleanToInt(value: boolean): number;
-        /**
-        * Converts a number to boolean
-        */
-        static IntToBoolean(value: number): boolean;
-        /**
-        * Returns a particle system by its name
-        */
-        static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createHeightMap;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * "selected" is the id of the selected item
-        */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LightsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _configureSound(sound);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SoundsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addSoundtrack;
-        private _add3DSound;
-        private _stopAllSounds;
-        private _playAllSounds;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _stopPlayAllSounds(play);
-        private _configureSound(sound);
-        private _createInput(callback);
-        private _onReadFileCallback(name, callback);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class FilesInput extends BABYLON.FilesInput {
-        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
-        private static _callbackStart(core);
-        private static _callback(callback, core, filesInput);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IEnabledPostProcesses {
-        hdr: boolean;
-        attachHDR: boolean;
-        ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-        vls: boolean;
-    }
-    class SceneFactory {
-        static GenerateUUID(): string;
-        static DummyNodeID: string;
-        static ConfigureObject(object: any, core: EditorCore): void;
-        static HDRPipeline: HDRRenderingPipeline;
-        static SSAOPipeline: SSAORenderingPipeline;
-        static VLSPostProcess: VolumetricLightScatteringPostProcess;
-        static EnabledPostProcesses: IEnabledPostProcesses;
-        static NodesToStart: IAnimatable[];
-        static AnimationSpeed: number;
-        /**
-        * Post-Processes
-        */
-        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
-        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
-        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
-        /**
-        * Nodes
-        */
-        static AddPointLight(core: EditorCore): PointLight;
-        static AddDirectionalLight(core: EditorCore): DirectionalLight;
-        static AddSpotLight(core: EditorCore): SpotLight;
-        static AddHemisphericLight(core: EditorCore): HemisphericLight;
-        static AddBoxMesh(core: EditorCore): Mesh;
-        static AddSphereMesh(core: EditorCore): Mesh;
-        static AddPlaneMesh(core: EditorCore): Mesh;
-        static AddGroundMesh(core: EditorCore): Mesh;
-        static AddHeightMap(core: EditorCore): Mesh;
-        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
-        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
-        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
-        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
-        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
-        static AddSkyMesh(core: EditorCore): Mesh;
-        static AddWaterMesh(core: EditorCore): Mesh;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IObjectConfiguration {
-        mesh: AbstractMesh;
-        actionManager: ActionManager;
-    }
-    interface ISceneConfiguration {
-        scene: Scene;
-        actionManager: ActionManager;
-    }
-    class SceneManager {
-        /**
-        * Objects configuration
-        */
-        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
-        static _SceneConfiguration: ISceneConfiguration;
-        static ResetConfiguredObjects(): void;
-        static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class Exporter {
         core: EditorCore;
         private _window;
@@ -1064,6 +732,191 @@ declare module BABYLON.EDITOR {
     }
 }
 
+declare module BABYLON.EDITOR {
+    /**
+    * Event Type
+    */
+    enum EventType {
+        SCENE_EVENT = 0,
+        GUI_EVENT = 1,
+        UNKNOWN = 2,
+    }
+    enum GUIEventType {
+        FORM_CHANGED = 0,
+        FORM_TOOLBAR_CLICKED = 1,
+        LAYOUT_CHANGED = 2,
+        PANEL_CHANGED = 3,
+        GRAPH_SELECTED = 4,
+        GRAPH_DOUBLE_SELECTED = 5,
+        TAB_CHANGED = 6,
+        TOOLBAR_MENU_SELECTED = 7,
+        GRAPH_MENU_SELECTED = 8,
+        GRID_SELECTED = 9,
+        GRID_ROW_REMOVED = 10,
+        GRID_ROW_ADDED = 11,
+        GRID_ROW_EDITED = 12,
+        GRID_ROW_CHANGED = 13,
+        GRID_MENU_SELECTED = 14,
+        GRID_RELOADED = 15,
+        WINDOW_BUTTON_CLICKED = 16,
+        OBJECT_PICKED = 17,
+        UNKNOWN = 18,
+    }
+    enum SceneEventType {
+        OBJECT_PICKED = 0,
+        OBJECT_ADDED = 1,
+        OBJECT_REMOVED = 2,
+        OBJECT_CHANGED = 3,
+        NEW_SCENE_CREATED = 4,
+        UNKNOWN = 4,
+    }
+    /**
+    * Base Event
+    */
+    class BaseEvent {
+        data: any;
+        constructor(data?: Object);
+    }
+    /**
+    * Scene Event
+    */
+    class SceneEvent extends BaseEvent {
+        object: any;
+        eventType: SceneEventType;
+        /**
+        * Constructor
+        * @param object: the object generating the event
+        */
+        constructor(object: any, eventType: number, data?: Object);
+    }
+    /**
+    * GUI Event
+    */
+    class GUIEvent extends BaseEvent {
+        caller: GUI.IGUIElement;
+        eventType: GUIEventType;
+        /**
+        * Constructor
+        * @param caller: gui element calling the event
+        * @param eventType: the gui event type
+        */
+        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
+    }
+    /**
+    * IEvent implementation
+    */
+    class Event implements IEvent {
+        eventType: EventType;
+        sceneEvent: SceneEvent;
+        guiEvent: GUIEvent;
+        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
+        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ManipulationHelper implements IEventReceiver, ICustomUpdate {
+        private _core;
+        private _scene;
+        private _currentNode;
+        private _cameraAttached;
+        private _pointerObserver;
+        private _actionStack;
+        private _manipulator;
+        private _enabled;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        onPreUpdate(): void;
+        onPostUpdate(): void;
+        getScene(): Scene;
+        enabled: boolean;
+        setNode(node: Node): void;
+        private _pointerCallback(pointer, event);
+        private _detectActionChanged(p, s);
+        private _getCurrentAction();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class Tools {
+        /**
+        * Returns a vector3 string from a vector3
+        */
+        static GetStringFromVector3(vector: Vector3): string;
+        /**
+        * Returns a vector3 from a vector3 string
+        */
+        static GetVector3FromString(vector: string): Vector3;
+        /**
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
+        */
+        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
+        /**
+        * Opens a window popup
+        */
+        static OpenWindowPopup(url: string, width: number, height: number): any;
+        /**
+        * Opens a file browser. Checks if electron then open the dialog
+        * else open the classic file browser of the browser
+        */
+        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
+        /**
+        * Returns the file extension
+        */
+        static GetFileExtension(filename: string): string;
+        /**
+        * Returns the filename without extension
+        */
+        static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string;
+        /**
+        * Returns the file type for the given extension
+        */
+        static GetFileType(extension: string): string;
+        /**
+        * Returns the base URL of the window
+        */
+        static GetBaseURL(): string;
+        /**
+        * Checks if the editor is running in an
+        * Electron window
+        */
+        static CheckIfElectron(): boolean;
+        /**
+        * Creates an input element
+        */
+        static CreateFileInpuElement(id: string): JQuery;
+        /**
+        * Beautify a variable name (escapeds + upper case)
+        */
+        static BeautifyName(name: string): string;
+        /**
+        * Cleans an editor project
+        */
+        static CleanProject(project: INTERNAL.IProjectRoot): void;
+        /**
+        * Returns the constructor name of an object
+        */
+        static GetConstructorName(obj: any): string;
+        /**
+        * Converts a boolean to integer
+        */
+        static BooleanToInt(value: boolean): number;
+        /**
+        * Converts a number to boolean
+        */
+        static IntToBoolean(value: number): boolean;
+        /**
+        * Returns a particle system by its name
+        */
+        static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
+    }
+}
+
 declare module BABYLON.EDITOR.GUI {
     class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
@@ -1348,6 +1201,159 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createHeightMap;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * "selected" is the id of the selected item
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SoundsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addSoundtrack;
+        private _add3DSound;
+        private _stopAllSounds;
+        private _playAllSounds;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _stopPlayAllSounds(play);
+        private _configureSound(sound);
+        private _createInput(callback);
+        private _onReadFileCallback(name, callback);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class FilesInput extends BABYLON.FilesInput {
+        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
+        private static _callbackStart(core);
+        private static _callback(callback, core, filesInput);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+        vls: boolean;
+    }
+    class SceneFactory {
+        static GenerateUUID(): string;
+        static DummyNodeID: string;
+        static ConfigureObject(object: any, core: EditorCore): void;
+        static HDRPipeline: HDRRenderingPipeline;
+        static SSAOPipeline: SSAORenderingPipeline;
+        static VLSPostProcess: VolumetricLightScatteringPostProcess;
+        static EnabledPostProcesses: IEnabledPostProcesses;
+        static NodesToStart: IAnimatable[];
+        static AnimationSpeed: number;
+        /**
+        * Post-Processes
+        */
+        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
+        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
+        /**
+        * Nodes
+        */
+        static AddPointLight(core: EditorCore): PointLight;
+        static AddDirectionalLight(core: EditorCore): DirectionalLight;
+        static AddSpotLight(core: EditorCore): SpotLight;
+        static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddBoxMesh(core: EditorCore): Mesh;
+        static AddSphereMesh(core: EditorCore): Mesh;
+        static AddPlaneMesh(core: EditorCore): Mesh;
+        static AddGroundMesh(core: EditorCore): Mesh;
+        static AddHeightMap(core: EditorCore): Mesh;
+        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
+        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
+        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
+        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
+        static AddSkyMesh(core: EditorCore): Mesh;
+        static AddWaterMesh(core: EditorCore): Mesh;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
+    interface ISceneConfiguration {
+        scene: Scene;
+        actionManager: ActionManager;
+    }
+    class SceneManager {
+        /**
+        * Objects configuration
+        */
+        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
+        static _SceneConfiguration: ISceneConfiguration;
+        static ResetConfiguredObjects(): void;
+        static SwitchActionManager(): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        /**
+        * States saver
+        */
+        private static _ObjectsStatesConfiguration;
+        static SaveObjectStates(scene: Scene): void;
+        static RestoreObjectsStates(scene: Scene): void;
     }
 }
 
