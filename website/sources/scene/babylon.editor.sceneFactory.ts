@@ -1,6 +1,7 @@
 ﻿module BABYLON.EDITOR {
     export interface IEnabledPostProcesses {
         hdr: boolean;
+        hdr2: boolean;
         attachHDR: boolean;
 
         ssao: boolean;
@@ -37,10 +38,12 @@
 
         // Public members
         public static HDRPipeline: HDRRenderingPipeline = null;
+        public static HDRPipeline2: HDRRenderingPipeline2 = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
         public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
             hdr: false,
+            hdr2: false,
             attachHDR: true,
 
             ssao: false,
@@ -56,6 +59,21 @@
         /**
         * Post-Processes
         */
+        // Creates HDR pipeline 2
+        static CreateHDRPipeline2(core: EditorCore): HDRRenderingPipeline2 {
+            if (this.HDRPipeline2) {
+                this.HDRPipeline2.dispose();
+                this.HDRPipeline2 = null;
+            }
+
+            var cameras: Camera[] = core.currentScene.cameras;
+
+            var hdr = new BABYLON.HDRRenderingPipeline2("hdr2", core.currentScene, 1.0, null, cameras);
+            this.HDRPipeline2 = hdr;
+
+            return hdr;
+        }
+
         // Creates HDR pipeline
         static CreateHDRPipeline(core: EditorCore, serializationObject: any = { }): HDRRenderingPipeline {
             if (this.HDRPipeline) {

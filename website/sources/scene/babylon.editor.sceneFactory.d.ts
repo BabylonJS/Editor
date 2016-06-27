@@ -1,6 +1,7 @@
 declare module BABYLON.EDITOR {
     interface IEnabledPostProcesses {
         hdr: boolean;
+        hdr2: boolean;
         attachHDR: boolean;
         ssao: boolean;
         ssaoOnly: boolean;
@@ -12,6 +13,7 @@ declare module BABYLON.EDITOR {
         static DummyNodeID: string;
         static ConfigureObject(object: any, core: EditorCore): void;
         static HDRPipeline: HDRRenderingPipeline;
+        static HDRPipeline2: HDRRenderingPipeline2;
         static SSAOPipeline: SSAORenderingPipeline;
         static VLSPostProcess: VolumetricLightScatteringPostProcess;
         static EnabledPostProcesses: IEnabledPostProcesses;
@@ -20,6 +22,7 @@ declare module BABYLON.EDITOR {
         /**
         * Post-Processes
         */
+        static CreateHDRPipeline2(core: EditorCore): HDRRenderingPipeline2;
         static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
         static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
         static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;

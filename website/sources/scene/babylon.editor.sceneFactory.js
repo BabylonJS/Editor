@@ -30,6 +30,17 @@ var BABYLON;
             /**
             * Post-Processes
             */
+            // Creates HDR pipeline 2
+            SceneFactory.CreateHDRPipeline2 = function (core) {
+                if (this.HDRPipeline2) {
+                    this.HDRPipeline2.dispose();
+                    this.HDRPipeline2 = null;
+                }
+                var cameras = core.currentScene.cameras;
+                var hdr = new BABYLON.HDRRenderingPipeline2("hdr2", core.currentScene, 1.0, null, cameras);
+                this.HDRPipeline2 = hdr;
+                return hdr;
+            };
             // Creates HDR pipeline
             SceneFactory.CreateHDRPipeline = function (core, serializationObject) {
                 if (serializationObject === void 0) { serializationObject = {}; }
@@ -285,10 +296,12 @@ var BABYLON;
             };
             // Public members
             SceneFactory.HDRPipeline = null;
+            SceneFactory.HDRPipeline2 = null;
             SceneFactory.SSAOPipeline = null;
             SceneFactory.VLSPostProcess = null;
             SceneFactory.EnabledPostProcesses = {
                 hdr: false,
+                hdr2: false,
                 attachHDR: true,
                 ssao: false,
                 ssaoOnly: false,

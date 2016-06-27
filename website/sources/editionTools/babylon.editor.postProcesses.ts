@@ -49,7 +49,33 @@
 
             // Ckeck checkboxes
             SceneFactory.EnabledPostProcesses.hdr = SceneFactory.HDRPipeline !== null;
+            SceneFactory.EnabledPostProcesses.hdr2 = SceneFactory.HDRPipeline2 !== null;
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
+
+            // HDR2
+            var hdr2Folder = this._element.addFolder("HDR2");
+            hdr2Folder.add(SceneFactory.EnabledPostProcesses, "hdr2").name("Enabled HDR 2").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.CreateHDRPipeline2(this._editionTool.core);
+                else {
+                    SceneFactory.HDRPipeline2.dispose();
+                    SceneFactory.HDRPipeline2 = null;
+                }
+
+                this.update();
+            });
+
+            if (SceneFactory.HDRPipeline2) {
+                hdr2Folder.add(SceneFactory.HDRPipeline2, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                hdr2Folder.add(SceneFactory.HDRPipeline2, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+
+                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
+                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
+                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+
+                var debugFolder = hdr2Folder.addFolder("Debug");
+                this._setupDebugPipeline(debugFolder, SceneFactory.HDRPipeline2);
+            }
 
             // HDR
             var hdrFolder = this._element.addFolder("HDR");
