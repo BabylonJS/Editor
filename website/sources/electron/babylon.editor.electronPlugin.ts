@@ -31,7 +31,7 @@
             toolbar.addBreak(menu);
             toolbar.createMenuItem(menu, "button", this._watchSceneFile, "Automatically reload scene", "icon-helpers", false);
         }
-
+        
         // When an item has been selected
         public onMenuItemSelected(selected: string): void {
             switch (selected) {

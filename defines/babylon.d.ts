@@ -108,7 +108,7 @@ declare module BABYLON {
         private _pointerLockRequested;
         private _alphaTest;
         private _loadingScreen;
-        private _drawCalls;
+        _drawCalls: PerfCounter;
         private _glVersion;
         private _glRenderer;
         private _glVendor;
@@ -142,6 +142,7 @@ declare module BABYLON {
         private _currentBufferPointers;
         private _currentInstanceLocations;
         private _currentInstanceBuffers;
+        private _textureUnits;
         private _workingCanvas;
         private _workingContext;
         private _externalData;
@@ -175,7 +176,7 @@ declare module BABYLON {
         getLoadedTexturesCache(): WebGLTexture[];
         getCaps(): EngineCapabilities;
         drawCalls: number;
-        resetDrawCalls(): void;
+        drawCallsPerfCounter: PerfCounter;
         getDepthFunction(): number;
         setDepthFunction(depthFunc: number): void;
         setDepthFunctionToGreater(): void;
@@ -318,7 +319,9 @@ declare module BABYLON {
         _bindTexture(channel: number, texture: WebGLTexture): void;
         setTextureFromPostProcess(channel: number, postProcess: PostProcess): void;
         unbindAllTextures(): void;
-        setTexture(channel: number, texture: BaseTexture): void;
+        setTexture(channel: number, uniform: WebGLUniformLocation, texture: BaseTexture): void;
+        private _setTexture(channel, texture);
+        setTextureArray(channel: number, uniform: WebGLUniformLocation, textures: BaseTexture[]): void;
         _setAnisotropicLevel(key: number, texture: BaseTexture): void;
         readPixels(x: number, y: number, width: number, height: number): Uint8Array;
         /**
@@ -626,6 +629,7 @@ declare module BABYLON {
         clipPlane: Plane;
         animationsEnabled: boolean;
         constantlyUpdateMeshUnderPointer: boolean;
+        hoverCursor: string;
         /**
         * An event triggered when the scene is disposed.
         * @type {BABYLON.Observable}
@@ -834,15 +838,20 @@ declare module BABYLON {
         private _headphone;
         simplificationQueue: SimplificationQueue;
         private _engine;
+        private _totalMeshesCounter;
+        private _totalLightsCounter;
+        private _totalMaterialsCounter;
+        private _totalTexturesCounter;
         private _totalVertices;
-        _activeIndices: number;
-        _activeParticles: number;
+        _activeIndices: PerfCounter;
+        _activeParticles: PerfCounter;
         private _lastFrameDuration;
         private _evaluateActiveMeshesDuration;
         private _renderTargetsDuration;
-        _particlesDuration: number;
+        _particlesDuration: PerfCounter;
         private _renderDuration;
-        _spritesDuration: number;
+        _spritesDuration: PerfCounter;
+        _activeBones: PerfCounter;
         private _animationRatio;
         private _animationStartDate;
         _cachedMaterial: Material;
@@ -857,7 +866,6 @@ declare module BABYLON {
         _activeParticleSystems: SmartArray<ParticleSystem>;
         private _activeSkeletons;
         private _softwareSkinnedMeshes;
-        _activeBones: number;
         private _renderingManager;
         private _physicsEngine;
         _activeAnimatables: Animatable[];
@@ -905,16 +913,25 @@ declare module BABYLON {
         getOutlineRenderer(): OutlineRenderer;
         getEngine(): Engine;
         getTotalVertices(): number;
+        totalVerticesPerfCounter: PerfCounter;
         getActiveIndices(): number;
+        totalActiveIndicesPerfCounter: PerfCounter;
         getActiveParticles(): number;
+        activeParticlesPerfCounter: PerfCounter;
         getActiveBones(): number;
+        activeBonesPerfCounter: PerfCounter;
         getLastFrameDuration(): number;
+        lastFramePerfCounter: PerfCounter;
         getEvaluateActiveMeshesDuration(): number;
+        evaluateActiveMeshesDurationPerfCounter: PerfCounter;
         getActiveMeshes(): SmartArray<Mesh>;
         getRenderTargetsDuration(): number;
         getRenderDuration(): number;
+        renderDurationPerfCounter: PerfCounter;
         getParticlesDuration(): number;
+        particlesDurationPerfCounter: PerfCounter;
         getSpritesDuration(): number;
+        spriteDuractionPerfCounter: PerfCounter;
         getAnimationRatio(): number;
         getRenderId(): number;
         incrementRenderId(): void;
@@ -2018,6 +2035,7 @@ declare module BABYLON {
         allowUpsideDown: boolean;
         _viewMatrix: Matrix;
         _useCtrlForPanning: boolean;
+        _panningMouseButton: number;
         inputs: ArcRotateCameraInputsManager;
         _reset: () => void;
         panningAxis: Vector3;
@@ -2039,7 +2057,7 @@ declare module BABYLON {
         _updateCache(ignoreParentClass?: boolean): void;
         private _getTargetPosition();
         _isSynchronizedViewMatrix(): boolean;
-        attachControl(element: HTMLElement, noPreventDefault?: boolean, useCtrlForPanning?: boolean): void;
+        attachControl(element: HTMLElement, noPreventDefault?: boolean, useCtrlForPanning?: boolean, panningMouseButton?: number): void;
         detachControl(element: HTMLElement): void;
         _checkInputs(): void;
         private _checkLimits();
@@ -2125,8 +2143,11 @@ declare module BABYLON {
         _projectionMatrix: Matrix;
         private _worldMatrix;
         _postProcesses: PostProcess[];
+        private _transformMatrix;
         _activeMeshes: SmartArray<Mesh>;
         private _globalPosition;
+        private _frustumPlanes;
+        private _refreshFrustumPlanes;
         constructor(name: string, position: Vector3, scene: Scene);
         /**
          * @param {boolean} fullDetails - support for multiple levels of logging within scene loading
@@ -2153,6 +2174,10 @@ declare module BABYLON {
         getViewMatrix(force?: boolean): Matrix;
         _computeViewMatrix(force?: boolean): Matrix;
         getProjectionMatrix(force?: boolean): Matrix;
+        getTranformationMatrix(): Matrix;
+        private updateFrustumPlanes();
+        isInFrustum(target: ICullable): boolean;
+        isCompletelyInFrustum(target: ICullable): boolean;
         dispose(): void;
         setCameraRigMode(mode: number, rigParams: any): void;
         private _getVRProjectionMatrix();
@@ -2477,6 +2502,8 @@ declare module BABYLON {
          * @return the duplicated instance
          */
         clone(): BoundingInfo2D;
+        clear(): void;
+        copyFrom(src: BoundingInfo2D): void;
         /**
          * return the max extend of the bounding info
          */
@@ -2668,7 +2695,6 @@ declare module BABYLON {
             id?: string;
             children?: Array<Prim2DBase>;
             size?: Size;
-            renderScaleFactor?: number;
             isScreenSpace?: boolean;
             cachingStrategy?: number;
             enableInteraction?: boolean;
@@ -2679,14 +2705,30 @@ declare module BABYLON {
             backgroundBorder?: IBrush2D | string;
             backgroundBorderThickNess?: number;
         });
+        drawCallsOpaqueCounter: PerfCounter;
+        drawCallsAlphaTestCounter: PerfCounter;
+        drawCallsTransparentCounter: PerfCounter;
+        groupRenderCounter: PerfCounter;
+        updateTransparentDataCounter: PerfCounter;
+        cachedGroupRenderCounter: PerfCounter;
+        updateCachedStateCounter: PerfCounter;
+        updateLayoutCounter: PerfCounter;
+        updatePositioningCounter: PerfCounter;
+        updateLocalTransformCounter: PerfCounter;
+        updateGlobalTransformCounter: PerfCounter;
+        boundingInfoRecomputeCounter: PerfCounter;
         protected _canvasPreInit(settings: any): void;
-        static hierarchyLevelMaxSiblingCount: number;
+        static _zMinDelta: number;
         private _setupInteraction(enable);
         /**
          * If you set your own WorldSpaceNode to display the Canvas2D you have to provide your own implementation of this method which computes the local position in the Canvas based on the given 3D World one.
-         * Beware that you have to take under consideration the origin and the renderScaleFactor in your calculations! Good luck!
+         * Beware that you have to take under consideration the origin in your calculations! Good luck!
          */
         worldSpaceToNodeLocal: (worldPos: Vector3) => Vector2;
+        /**
+         * If you use a custom WorldSpaceCanvasNode you have to override this property to update the UV of your object to reflect the changes due to a resizing of the cached bitmap
+         */
+        worldSpaceCacheChanged: () => void;
         /**
          * Internal method, you should use the Prim2DBase version instead
          */
@@ -2735,6 +2777,11 @@ declare module BABYLON {
          */
         cachingStrategy: number;
         /**
+         * Return true if the Canvas is a Screen Space one, false if it's a World Space one.
+         * @returns {}
+         */
+        isScreenSpace: boolean;
+        /**
          * Only valid for World Space Canvas, returns the scene node that displays the canvas
          */
         worldSpaceCanvasNode: Node;
@@ -2773,7 +2820,20 @@ declare module BABYLON {
          * @returns {}
          */
         _engineData: Canvas2DEngineBoundData;
+        createCanvasProfileInfoCanvas(): Canvas2D;
         private checkBackgroundAvailability();
+        private _initPerfMetrics();
+        private _fetchPerfMetrics();
+        private _updateProfileCanvas();
+        _addDrawCallCount(count: number, renderMode: number): void;
+        _addGroupRenderCount(count: number): void;
+        _addUpdateTransparentDataCount(count: number): void;
+        addCachedGroupRenderCounter(count: number): void;
+        addUpdateCachedStateCounter(count: number): void;
+        addUpdateLayoutCounter(count: number): void;
+        addUpdatePositioningCounter(count: number): void;
+        addupdateLocalTransformCounter(count: number): void;
+        addUpdateGlobalTransformCounter(count: number): void;
         private __engineData;
         private _interactionEnabled;
         private _primPointerInfo;
@@ -2781,7 +2841,6 @@ declare module BABYLON {
         private _intersectionRenderId;
         private _hoverStatusRenderId;
         private _pickStartingPosition;
-        private _renderScaleFactor;
         private _pickedDownPrim;
         private _pickStartingTime;
         private _previousIntersectionList;
@@ -2806,12 +2865,33 @@ declare module BABYLON {
         private _afterRenderObserver;
         private _supprtInstancedArray;
         private _trackedGroups;
+        protected _maxAdaptiveWorldSpaceCanvasSize: number;
         _renderingSize: Size;
+        private _drawCallsOpaqueCounter;
+        private _drawCallsAlphaTestCounter;
+        private _drawCallsTransparentCounter;
+        private _groupRenderCounter;
+        private _updateTransparentDataCounter;
+        private _cachedGroupRenderCounter;
+        private _updateCachedStateCounter;
+        private _updateLayoutCounter;
+        private _updatePositioningCounter;
+        private _updateGlobalTransformCounter;
+        private _updateLocalTransformCounter;
+        private _boundingInfoRecomputeCounter;
+        private _profilingCanvas;
+        private _profileInfoText;
         protected onPrimBecomesDirty(): void;
         private static _v;
         private static _m;
+        private static _mI;
         private _updateTrackedNodes();
-        private _updateCanvasState();
+        /**
+         * Call this method change you want to have layout related data computed and up to date (layout area, primitive area, local/global transformation matrices)
+         */
+        updateCanvasLayout(forceRecompute: boolean): void;
+        private _updateAdaptiveSizeWorldCanvas();
+        private _updateCanvasState(forceRecompute);
         /**
          * Method that renders the Canvas, you should not invoke
          */
@@ -2822,7 +2902,7 @@ declare module BABYLON {
          * @param group The group to allocate the cache of.
          * @return custom type with the PackedRect instance giving information about the cache location into the texture and also the MapTexture instance that stores the cache.
          */
-        _allocateGroupCache(group: Group2D, parent: Group2D, minSize?: Size): {
+        _allocateGroupCache(group: Group2D, parent: Group2D, minSize?: Size, useMipMap?: boolean, anisotropicLevel?: number): {
             node: PackedRect;
             texture: MapTexture;
             sprite: Sprite2D;
@@ -2886,9 +2966,6 @@ declare module BABYLON {
          *  - id: a text identifier, for information purpose only, default is null.
          *  - worldPosition the position of the Canvas in World Space, default is [0,0,0]
          *  - worldRotation the rotation of the Canvas in World Space, default is Quaternion.Identity()
-         *  - renderScaleFactor A scale factor applied to create the rendering texture that will be mapped in the Scene Rectangle. If you set 2 for instance the texture will be twice large in width and height. A greater value will allow to achieve a better rendering quality. Default value is 1.
-         * BE AWARE that the Canvas true dimension will be size*renderScaleFactor, then all coordinates and size will have to be express regarding this size.
-         * TIPS: if you want a renderScaleFactor independent reference of frame, create a child Group2D in the Canvas with position 0,0 and size set to null, then set its scale property to the same amount than the renderScaleFactor, put all your primitive inside using coordinates regarding the size property you pick for the Canvas and you'll be fine.
          * - sideOrientation: Unexpected behavior occur if the value is different from Mesh.DEFAULTSIDE right now, so please use this one, which is the default.
          * - cachingStrategy Must be CACHESTRATEGY_CANVAS for now, which is the default.
          * - enableInteraction: if true the pointer events will be listened and rerouted to the appropriate primitives of the Canvas2D through the Prim2DBase.onPointerEventObservable observable property. Default is false (the opposite of ScreenSpace).
@@ -2898,6 +2975,7 @@ declare module BABYLON {
          * - backgroundBorder: the brush to use to create a background border for the canvas. can be a string value (see Canvas2D.GetBrushFromString) or a IBrush2D instance.
          * - backgroundBorderThickness: if a backgroundBorder is specified, its thickness can be set using this property
          * - customWorldSpaceNode: if specified the Canvas will be rendered in this given Node. But it's the responsibility of the caller to set the "worldSpaceToNodeLocal" property to compute the hit of the mouse ray into the node (in world coordinate system) as well as rendering the cached bitmap in the node itself. The properties cachedRect and cachedTexture of Group2D will give you what you need to do that.
+         * - maxAdaptiveCanvasSize: set the max size (width and height) of the bitmap that will contain the cached version of the WorldSpace Canvas. Default is 1024 or less if it's not supported. In any case the value you give will be clipped by the maximum that WebGL supports on the running device. You can set any size, more than 1024 if you want, but testing proved it's a good max value for non "retina" like screens.
          * - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
@@ -2909,7 +2987,6 @@ declare module BABYLON {
             id?: string;
             worldPosition?: Vector3;
             worldRotation?: Quaternion;
-            renderScaleFactor?: number;
             sideOrientation?: number;
             cachingStrategy?: number;
             enableInteraction?: boolean;
@@ -2919,6 +2996,7 @@ declare module BABYLON {
             backgroundBorder?: IBrush2D | string;
             backgroundBorderThickNess?: number;
             customWorldSpaceNode?: Node;
+            maxAdaptiveCanvasSize?: number;
             paddingTop?: number | string;
             paddingLeft?: number | string;
             paddingRight?: number | string;
@@ -3044,17 +3122,21 @@ declare module BABYLON {
         /**
          * Create an Ellipse 2D Shape primitive
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id: a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - size: the size of the group. Alternatively the width and height properties can be set. Default will be [10;10].
-         *  - subdivision: the number of subdivision to create the ellipse perimeter, default is 64.
-         *  - fill: the brush used to draw the fill content of the ellipse, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can also be a string value (see Canvas2D.GetBrushFromString)
-         *  - border: the brush used to draw the border of the ellipse, you can set null to draw nothing (but you will have to set a fill brush), default is null. can be a string value (see Canvas2D.GetBrushFromString)
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id: a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - size: the size of the group. Alternatively the width and height properties can be set. Default will be [10;10].
+         * - subdivision: the number of subdivision to create the ellipse perimeter, default is 64.
+         * - fill: the brush used to draw the fill content of the ellipse, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can also be a string value (see Canvas2D.GetBrushFromString)
+         * - border: the brush used to draw the border of the ellipse, you can set null to draw nothing (but you will have to set a fill brush), default is null. can be a string value (see Canvas2D.GetBrushFromString)
+         * - borderThickness: the thickness of the drawn border, default is 1.
+         * - isVisible: true if the group must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
          * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
@@ -3078,6 +3160,7 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             size?: Size;
             width?: number;
@@ -3087,6 +3170,7 @@ declare module BABYLON {
             border?: IBrush2D | string;
             borderThickness?: number;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -3130,17 +3214,19 @@ declare module BABYLON {
         /**
          * Create an Logical or Renderable Group.
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - size: the size of the group. Alternatively the width and height properties can be set. If null the size will be computed from its content, default is null.
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - size: the size of the group. Alternatively the width and height properties can be set. If null the size will be computed from its content, default is null.
          *  - cacheBehavior: Define how the group should behave regarding the Canvas's cache strategy, default is Group2D.GROUPCACHEBEHAVIOR_FOLLOWCACHESTRATEGY
-         *  - layoutEngine: either an instance of a layout engine based class (StackPanel.Vertical, StackPanel.Horizontal) or a string ('canvas' for Canvas layout, 'StackPanel' or 'HorizontalStackPanel' for horizontal Stack Panel layout, 'VerticalStackPanel' for vertical Stack Panel layout).
-         *  - isVisible: true if the group must be visible, false for hidden. Default is true.
+         * - layoutEngine: either an instance of a layout engine based class (StackPanel.Vertical, StackPanel.Horizontal) or a string ('canvas' for Canvas layout, 'StackPanel' or 'HorizontalStackPanel' for horizontal Stack Panel layout, 'VerticalStackPanel' for vertical Stack Panel layout).
+         * - isVisible: true if the group must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
          * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
          * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
@@ -3163,6 +3249,7 @@ declare module BABYLON {
             x?: number;
             y?: number;
             trackNode?: Node;
+            opacity?: number;
             origin?: Vector2;
             size?: Size;
             width?: number;
@@ -3170,6 +3257,7 @@ declare module BABYLON {
             cacheBehavior?: number;
             layoutEngine?: LayoutEngineBase | string;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -3188,9 +3276,14 @@ declare module BABYLON {
         protected applyCachedTexture(vertexData: VertexData, material: StandardMaterial): void;
         /**
          * Allow you to access the information regarding the cached rectangle of the Group2D into the MapTexture.
-         * If the `noWorldSpaceNode` options was used at the creation of a WorldSpaceCanvas, the rendering of the canvas must be made by the caller, so typically you want to bind the cacheTexture property to some material/mesh and you must use the cachedRect.UVs property to get the UV coordinates to use for your quad that will display the Canvas.
+         * If the `noWorldSpaceNode` options was used at the creation of a WorldSpaceCanvas, the rendering of the canvas must be made by the caller, so typically you want to bind the cacheTexture property to some material/mesh and you MUST use the Group2D.cachedUVs property to get the UV coordinates to use for your quad that will display the Canvas and NOT the PackedRect.UVs property which are incorrect because the allocated surface may be bigger (due to over-provisioning or shrinking without deallocating) than what the Group is actually using.
          */
         cachedRect: PackedRect;
+        /**
+         * The UVs into the MapTexture that map the cached group
+         */
+        cachedUVs: Vector2[];
+        cachedUVsChanged: Observable<Vector2[]>;
         /**
          * Access the texture that maintains a cached version of the Group2D.
          * This is useful only if you're not using a WorldSpaceNode for your WorldSpace Canvas and therefore need to perform the rendering yourself.
@@ -3233,6 +3326,8 @@ declare module BABYLON {
         private _updateTransparentData();
         private _renderTransparentData();
         private _prepareContext(engine, context, gii);
+        protected _setRenderingScale(scale: number): void;
+        private static _s;
         private _bindCacheTarget();
         private _unbindCacheTarget();
         protected handleGroupChanged(prop: Prim2DPropInfo): void;
@@ -3248,21 +3343,25 @@ declare module BABYLON {
     }
     class RenderableGroupData {
         constructor();
-        dispose(): void;
+        dispose(engine: Engine): void;
         addNewTransparentPrimitiveInfo(prim: RenderablePrim2D, gii: GroupInstanceInfo): TransparentPrimitiveInfo;
         removeTransparentPrimitiveInfo(tpi: TransparentPrimitiveInfo): void;
         transparentPrimitiveZChanged(tpi: TransparentPrimitiveInfo): void;
-        updateSmallestZChangedPrim(tpi: TransparentPrimitiveInfo): void;
         _primDirtyList: Array<Prim2DBase>;
         _childrenRenderableGroups: Array<Group2D>;
         _renderGroupInstancesInfo: StringDictionary<GroupInstanceInfo>;
         _cacheNode: PackedRect;
         _cacheTexture: MapTexture;
         _cacheRenderSprite: Sprite2D;
+        _cacheNodeUVs: Vector2[];
+        _cacheNodeUVsChangedObservable: Observable<Vector2[]>;
+        _cacheSize: Size;
+        _useMipMap: boolean;
+        _anisotropicLevel: number;
         _transparentListChanged: boolean;
         _transparentPrimitives: Array<TransparentPrimitiveInfo>;
         _transparentSegments: Array<TransparentSegment>;
-        _firstChangedPrim: TransparentPrimitiveInfo;
+        _renderingScale: number;
     }
     class TransparentPrimitiveInfo {
         _primitive: RenderablePrim2D;
@@ -3347,34 +3446,36 @@ declare module BABYLON {
          * Create an 2D Lines Shape primitive. The defined lines may be opened or closed (see below)
          * @param points an array that describe the points to use to draw the line, must contain at least two entries.
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - fillThickness: the thickness of the fill part of the line, can be null to draw nothing (but a border brush must be given), default is 1.
-         *  - closed: if false the lines are said to be opened, the first point and the latest DON'T connect. if true the lines are said to be closed, the first and last point will be connected by a line. For instance you can define the 4 points of a rectangle, if you set closed to true a 4 edges rectangle will be drawn. If you set false, only three edges will be drawn, the edge formed by the first and last point won't exist. Default is false.
-         *  - startCap: Draw a cap of the given type at the start of the first line, you can't define a Cap if the Lines2D is closed. Default is Lines2D.NoCap.
-         *  - endCap: Draw a cap of the given type at the end of the last line, you can't define a Cap if the Lines2D is closed. Default is Lines2D.NoCap.
-         *  - fill: the brush used to draw the fill content of the lines, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can be a string value (see Canvas2D.GetBrushFromString)
-         *  - border: the brush used to draw the border of the lines, you can set null to draw nothing (but you will have to set a fill brush), default is null. can be a string value (see Canvas2D.GetBrushFromString)
-         *  - borderThickness: the thickness of the drawn border, default is 1.
-         *  - isVisible: true if the primitive must be visible, false for hidden. Default is true.
-         *  - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
-         *  - marginHAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginVAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
-         *  - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - fillThickness: the thickness of the fill part of the line, can be null to draw nothing (but a border brush must be given), default is 1.
+         * - closed: if false the lines are said to be opened, the first point and the latest DON'T connect. if true the lines are said to be closed, the first and last point will be connected by a line. For instance you can define the 4 points of a rectangle, if you set closed to true a 4 edges rectangle will be drawn. If you set false, only three edges will be drawn, the edge formed by the first and last point won't exist. Default is false.
+         * - startCap: Draw a cap of the given type at the start of the first line, you can't define a Cap if the Lines2D is closed. Default is Lines2D.NoCap.
+         * - endCap: Draw a cap of the given type at the end of the last line, you can't define a Cap if the Lines2D is closed. Default is Lines2D.NoCap.
+         * - fill: the brush used to draw the fill content of the lines, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can be a string value (see Canvas2D.GetBrushFromString)
+         * - border: the brush used to draw the border of the lines, you can set null to draw nothing (but you will have to set a fill brush), default is null. can be a string value (see Canvas2D.GetBrushFromString)
+         * - borderThickness: the thickness of the drawn border, default is 1.
+         * - isVisible: true if the primitive must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
+         * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
+         * - marginHAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginVAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
+         * - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
          */
         constructor(points: Vector2[], settings?: {
             parent?: Prim2DBase;
@@ -3385,6 +3486,7 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             fillThickness?: number;
             closed?: boolean;
@@ -3394,6 +3496,7 @@ declare module BABYLON {
             border?: IBrush2D | string;
             borderThickness?: number;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -3495,11 +3598,14 @@ declare module BABYLON {
         private _transparentData;
     }
     class TransparentSegment {
+        constructor();
+        dispose(engine: Engine): void;
         groupInsanceInfo: GroupInstanceInfo;
         startZ: number;
         endZ: number;
         startDataIndex: number;
         endDataIndex: number;
+        partBuffers: WebGLBuffer[];
     }
     class GroupInfoPartData {
         _partData: DynamicFloatArray;
@@ -3573,6 +3679,14 @@ declare module BABYLON {
          *  - partDataCount: the number of primitive to render
          */
         useInstancing: boolean;
+        /**
+         * If specified, must take precedence from the groupInfoPartData. partIndex is the same as groupInfoPardData
+         */
+        instancedBuffers: WebGLBuffer[];
+        /**
+         * To use when instancedBuffers is specified, gives the count of instances to draw
+         */
+        instancesCount: number;
         /**
          * Contains the data related to the primitives instances to render
          */
@@ -3818,7 +3932,7 @@ declare module BABYLON {
         constructor(parentAccess: () => PrimitiveThickness, changedCallback: () => void);
         /**
          * Set the thickness from a string value
-         * @param thickness format is "top: <value>, left:<value>, right:<value>, bottom:<value>" each are optional, auto will be set if it's omitted.
+         * @param thickness format is "top: <value>, left:<value>, right:<value>, bottom:<value>" or "<value>" (same for all edges) each are optional, auto will be set if it's omitted.
          * Values are: 'auto', 'inherit', 'XX%' for percentage, 'XXpx' or 'XX' for pixels.
          */
         fromString(thickness: string): void;
@@ -3965,6 +4079,7 @@ declare module BABYLON {
          * @param result the resulting area
          */
         computeArea(sourceArea: Size, result: Size): void;
+        enlarge(sourceArea: Size, dstOffset: Vector2, enlargedArea: Size): void;
     }
     /**
      * Main class used for the Primitive Intersection API
@@ -4002,6 +4117,7 @@ declare module BABYLON {
     }
     class Prim2DBase extends SmartPropertyPrim {
         static PRIM2DBASE_PROPCOUNT: number;
+        static _bigInt: number;
         constructor(settings: {
             parent?: Prim2DBase;
             id?: string;
@@ -4011,9 +4127,11 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             layoutEngine?: LayoutEngineBase | string;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -4100,6 +4218,10 @@ declare module BABYLON {
          */
         static marginAlignmentProperty: Prim2DPropInfo;
         /**
+         * Metadata of the opacity property
+         */
+        static opacityProperty: Prim2DPropInfo;
+        /**
          * DO NOT INVOKE for internal purpose only
          */
         actualPosition: Vector2;
@@ -4182,11 +4304,14 @@ declare module BABYLON {
         levelVisible: boolean;
         isVisible: boolean;
         zOrder: number;
+        isManualZOrder: boolean;
         margin: PrimitiveThickness;
         private _hasMargin;
         padding: PrimitiveThickness;
         private _hasPadding;
         marginAlignment: PrimitiveAlignment;
+        opacity: number;
+        actualOpacity: number;
         /**
          * Get/set the layout engine to use for this primitive.
          * The default layout engine is the CanvasLayoutEngine.
@@ -4236,6 +4361,7 @@ declare module BABYLON {
          * Get the local transformation of the primitive
          */
         localTransform: Matrix;
+        private static _bMax;
         /**
          * Get the boundingInfo associated to the primitive and its children.
          * The value is supposed to be always up to date
@@ -4248,6 +4374,10 @@ declare module BABYLON {
          */
         isSizeAuto: boolean;
         /**
+         * Return true if this prim has an auto size which is set by the children's global bounding box
+         */
+        isSizedByContent: boolean;
+        /**
          * Determine if the position is automatically computed or fixed because manually specified.
          * Use the actualPosition property to get the final/real position of the primitive
          * @returns true if the position is automatically computed, false if it were manually specified.
@@ -4257,6 +4387,7 @@ declare module BABYLON {
          * Interaction with the primitive can be create using this Observable. See the PrimitivePointerInfo class for more information
          */
         pointerEventObservable: Observable<PrimitivePointerInfo>;
+        zActualOrderChangedObservable: Observable<number>;
         findById(id: string): Prim2DBase;
         protected onZOrderChanged(): void;
         protected levelIntersect(intersectInfo: IntersectInfo2D): boolean;
@@ -4295,12 +4426,14 @@ declare module BABYLON {
         protected _setLayoutDirty(): void;
         private _checkPositionChange();
         protected _positioningDirty(): void;
+        protected _spreadActualOpacityChanged(): void;
         private _changeLayoutEngine(engine);
         private static _t0;
         private static _t1;
         private static _t2;
         private static _v0;
         private _updateLocalTransform();
+        private static _transMtx;
         protected updateCachedStates(recurse: boolean): void;
         private static _icPos;
         private static _icArea;
@@ -4312,7 +4445,15 @@ declare module BABYLON {
          */
         contentArea: Size;
         _patchHierarchy(owner: Canvas2D): void;
-        private _patchHierarchyDepth(child);
+        private static _zOrderChangedNotifList;
+        private static _zRebuildReentrency;
+        private _updateZOrder();
+        private static _totalCount;
+        private _updatePrimitiveLinearPosition(prevLinPos);
+        private _updatePrimitiveZOrder(startPos, startZ, deltaZ);
+        private _updatePrimitiveFlatZOrder(newZ);
+        private _setZOrder(newZ, directEmit);
+        protected _updateRenderMode(): void;
         /**
          * This method is used to alter the contentArea of the Primitive before margin is applied.
          * In most of the case you won't need to override this method, but it can prove some usefulness, check the Rectangle2D class for a concrete application.
@@ -4321,19 +4462,29 @@ declare module BABYLON {
          * @param initialContentArea the size of the initial content area to compute, a valid object is passed, you have to set its properties. PLEASE ROUND the values, we're talking about pixels and fraction of them is not a good thing!
          */
         protected _getInitialContentAreaToRef(primSize: Size, initialContentPosition: Vector2, initialContentArea: Size): void;
+        /**
+         * This method is used to calculate the new size of the primitive based on the content which must stay the same
+         * Check the Rectangle2D implementation for a concrete application.
+         * @param primSize the current size of the primitive
+         * @param newPrimSize the new size of the primitive. PLEASE ROUND THE values, we're talking about pixels and fraction of them are not our friends!
+         */
+        protected _getActualSizeFromContentToRef(primSize: Size, newPrimSize: Size): void;
         private _owner;
         private _parent;
         private _actionManager;
         protected _children: Array<Prim2DBase>;
         private _renderGroup;
-        private _hierarchyDepth;
-        protected _hierarchyDepthOffset: number;
-        protected _siblingDepthOffset: number;
-        private _zOrder;
+        protected _hierarchyDepth: number;
+        protected _zOrder: number;
+        private _manualZOrder;
+        protected _zMax: number;
+        private _firstZDirtyIndex;
+        private _primLinearPosition;
         private _margin;
         private _padding;
         private _marginAlignment;
         _pointerEventObservable: Observable<PrimitivePointerInfo>;
+        private _actualZOrderChangedObservable;
         private _id;
         private _position;
         private _actualPosition;
@@ -4345,14 +4496,18 @@ declare module BABYLON {
         protected _desiredSize: Size;
         private _layoutEngine;
         private _marginOffset;
-        private _parentMargingOffset;
+        private _paddingOffset;
+        private _parentPaddingOffset;
         private _parentContentArea;
+        private _lastAutoSizeArea;
         private _layoutAreaPos;
         private _layoutArea;
         private _contentArea;
         private _rotation;
         private _scale;
         private _origin;
+        protected _opacity: number;
+        private _actualOpacity;
         protected _parentTransformStep: number;
         protected _globalTransformStep: number;
         protected _globalTransformProcessStep: number;
@@ -4400,32 +4555,34 @@ declare module BABYLON {
         /**
          * Create an Rectangle 2D Shape primitive. May be a sharp rectangle (with sharp corners), or a rounded one.
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y settings can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - size: the size of the group. Alternatively the width and height settings can be set. Default will be [10;10].
-         *  - roundRadius: if the rectangle has rounded corner, set their radius, default is 0 (to get a sharp edges rectangle).
-         *  - fill: the brush used to draw the fill content of the rectangle, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can also be a string value (see Canvas2D.GetBrushFromString)
-         *  - border: the brush used to draw the border of the rectangle, you can set null to draw nothing (but you will have to set a fill brush), default is null. can also be a string value (see Canvas2D.GetBrushFromString)
-         *  - borderThickness: the thickness of the drawn border, default is 1.
-         *  - isVisible: true if the primitive must be visible, false for hidden. Default is true.
-         *  - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
-         *  - marginHAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginVAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
-         *  - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y settings can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - size: the size of the group. Alternatively the width and height settings can be set. Default will be [10;10].
+         * - roundRadius: if the rectangle has rounded corner, set their radius, default is 0 (to get a sharp edges rectangle).
+         * - fill: the brush used to draw the fill content of the rectangle, you can set null to draw nothing (but you will have to set a border brush), default is a SolidColorBrush of plain white. can also be a string value (see Canvas2D.GetBrushFromString)
+         * - border: the brush used to draw the border of the rectangle, you can set null to draw nothing (but you will have to set a fill brush), default is null. can also be a string value (see Canvas2D.GetBrushFromString)
+         * - borderThickness: the thickness of the drawn border, default is 1.
+         * - isVisible: true if the primitive must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
+         * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
+         * - marginHAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginVAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
+         * - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
          */
         constructor(settings?: {
             parent?: Prim2DBase;
@@ -4436,6 +4593,7 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             size?: Size;
             width?: number;
@@ -4445,6 +4603,7 @@ declare module BABYLON {
             border?: IBrush2D | string;
             borderThickness?: number;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -4463,6 +4622,7 @@ declare module BABYLON {
         protected createModelRenderCache(modelKey: string): ModelRenderCache;
         protected setupModelRenderCache(modelRenderCache: ModelRenderCache): Rectangle2DRenderCache;
         protected _getInitialContentAreaToRef(primSize: Size, initialContentPosition: Vector2, initialContentArea: Size): void;
+        protected _getActualSizeFromContentToRef(primSize: Size, newPrimSize: Size): void;
         protected createInstanceDataParts(): InstanceDataBase[];
         protected refreshInstanceDataPart(part: InstanceDataBase): boolean;
         private _notRounded;
@@ -4502,11 +4662,14 @@ declare module BABYLON {
         zBias: Vector2;
         transformX: Vector4;
         transformY: Vector4;
+        opacity: number;
         getClassTreeInfo(): ClassTreeInfo<InstanceClassInfo, InstancePropInfo>;
         allocElements(): void;
         freeElements(): void;
         dataElementCount: number;
+        arrayLengthChanged: boolean;
         curElement: number;
+        renderMode: number;
         dataElements: DynamicFloatArrayElementInfo[];
         dataBuffer: DynamicFloatArray;
         typeInfo: ClassTreeInfo<InstanceClassInfo, InstancePropInfo>;
@@ -4518,6 +4681,7 @@ declare module BABYLON {
         static isTransparentProperty: Prim2DPropInfo;
         isAlphaTest: boolean;
         isTransparent: boolean;
+        renderMode: number;
         constructor(settings?: {
             parent?: Prim2DBase;
             id?: string;
@@ -4534,8 +4698,8 @@ declare module BABYLON {
         private _setupModelRenderCache(parts);
         protected onZOrderChanged(): void;
         private _updateInstanceDataParts(gii);
-        _getFirstIndexInDataBuffer(): number;
-        _getLastIndexInDataBuffer(): number;
+        _updateTransparentSegmentIndices(ts: TransparentSegment): void;
+        _getPrimitiveLastIndex(): number;
         _getNextPrimZOrder(): number;
         _getPrevPrimZOrder(): number;
         /**
@@ -4572,12 +4736,14 @@ declare module BABYLON {
          * @param positionOffset to use in multi part per primitive (e.g. the Text2D has N parts for N letter to display), this give the offset to apply (e.g. the position of the letter from the bottom/left corner of the text).
          */
         protected updateInstanceDataPart(part: InstanceDataBase, positionOffset?: Vector2): void;
+        protected _updateRenderMode(): void;
         private _modelRenderCache;
         private _modelRenderInstanceID;
         private _transparentPrimitiveInfo;
         protected _instanceDataParts: InstanceDataBase[];
         protected _isAlphaTest: boolean;
         protected _isTransparent: boolean;
+        private _renderMode;
     }
 }
 
@@ -4637,6 +4803,7 @@ declare module BABYLON {
         kind: number;
         name: string;
         dirtyBoundingInfo: boolean;
+        dirtyParentBoundingInfo: boolean;
         typeLevelCompare: boolean;
     }
     /**
@@ -4725,7 +4892,7 @@ declare module BABYLON {
          * @returns the dictionary, the key is the property name as declared in Javascript, the value is the metadata object
          */
         private propDic;
-        private static _createPropInfo(target, propName, propId, dirtyBoundingInfo, typeLevelCompare, kind);
+        private static _createPropInfo(target, propName, propId, dirtyBoundingInfo, dirtyParentBoundingBox, typeLevelCompare, kind);
         private static _checkUnchanged(curValue, newValue);
         private static propChangedInfo;
         markAsDirty(propertyName: string): void;
@@ -4758,7 +4925,7 @@ declare module BABYLON {
          * Property method called when the Primitive becomes dirty
          */
         protected onPrimBecomesDirty(): void;
-        static _hookProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare: boolean, dirtyBoundingInfo: boolean, kind: number): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
+        static _hookProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare: boolean, dirtyBoundingInfo: boolean, dirtyParentBoundingBox: boolean, kind: number): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
         /**
          * Add an externally attached data from its key.
          * This method call will fail and return false, if such key already exists.
@@ -4833,6 +5000,10 @@ declare module BABYLON {
         static flagVisibilityChanged: number;
         static flagPositioningDirty: number;
         static flagTrackedGroup: number;
+        static flagWorldCacheChanged: number;
+        static flagChildrenFlatZOrder: number;
+        static flagZOrderDirty: number;
+        static flagActualOpacityDirty: number;
         private _flags;
         private _externalData;
         private _modelKey;
@@ -4841,9 +5012,9 @@ declare module BABYLON {
         protected _boundingInfo: BoundingInfo2D;
         protected _instanceDirtyFlags: number;
     }
-    function modelLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
-    function instanceLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
-    function dynamicLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
+    function modelLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean, dirtyParentBoundingBox?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
+    function instanceLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean, dirtyParentBoundingBox?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
+    function dynamicLevelProperty<T>(propId: number, piStore: (pi: Prim2DPropInfo) => void, typeLevelCompare?: boolean, dirtyBoundingInfo?: boolean, dirtyParentBoundingBox?: boolean): (target: Object, propName: string | symbol, descriptor: TypedPropertyDescriptor<T>) => void;
 }
 
 declare module BABYLON {
@@ -4892,31 +5063,33 @@ declare module BABYLON {
          * Create an 2D Sprite primitive
          * @param texture the texture that stores the sprite to render
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - spriteSize: the size of the sprite (in pixels), if null the size of the given texture will be used, default is null.
-         *  - spriteLocation: the location (in pixels) in the texture of the top/left corner of the Sprite to display, default is null (0,0)
-         *  - invertY: if true the texture Y will be inverted, default is false.
-         *  - alignToPixel: if true the sprite's texels will be aligned to the rendering viewport pixels, ensuring the best rendering quality but slow animations won't be done as smooth as if you set false. If false a texel could lies between two pixels, being blended by the texture sampling mode you choose, the rendering result won't be as good, but very slow animation will be overall better looking. Default is true: content will be aligned.
-         *  - isVisible: true if the sprite must be visible, false for hidden. Default is true.
-         *  - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
-         *  - marginHAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginVAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
-         *  - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - spriteSize: the size of the sprite (in pixels), if null the size of the given texture will be used, default is null.
+         * - spriteLocation: the location (in pixels) in the texture of the top/left corner of the Sprite to display, default is null (0,0)
+         * - invertY: if true the texture Y will be inverted, default is false.
+         * - alignToPixel: if true the sprite's texels will be aligned to the rendering viewport pixels, ensuring the best rendering quality but slow animations won't be done as smooth as if you set false. If false a texel could lies between two pixels, being blended by the texture sampling mode you choose, the rendering result won't be as good, but very slow animation will be overall better looking. Default is true: content will be aligned.
+         * - isVisible: true if the sprite must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
+         * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
+         * - marginHAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginVAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
+         * - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
          */
         constructor(texture: Texture, settings?: {
             parent?: Prim2DBase;
@@ -4927,12 +5100,14 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             spriteSize?: Size;
             spriteLocation?: Vector2;
             invertY?: boolean;
             alignToPixel?: boolean;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -5009,32 +5184,34 @@ declare module BABYLON {
          * Create a Text primitive
          * @param text the text to display
          * @param settings a combination of settings, possible ones are
-         *  - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
-         *  - children: an array of direct children
-         *  - id a text identifier, for information purpose
-         *  - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
-         *  - rotation: the initial rotation (in radian) of the primitive. default is 0
-         *  - scale: the initial scale of the primitive. default is 1
-         *  - origin: define the normalized origin point location, default [0.5;0.5]
-         *  - fontName: the name/size/style of the font to use, following the CSS notation. Default is "12pt Arial".
-         *  - fontSuperSample: if true the text will be rendered with a superSampled font (the font is twice the given size). Use this settings if the text lies in world space or if it's scaled in.
-         *  - defaultColor: the color by default to apply on each letter of the text to display, default is plain white.
-         *  - areaSize: the size of the area in which to display the text, default is auto-fit from text content.
-         *  - tabulationSize: number of space character to insert when a tabulation is encountered, default is 4
-         *  - isVisible: true if the text must be visible, false for hidden. Default is true.
-         *  - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
-         *  - marginHAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginVAlignment: one value of the PrimitiveAlignment type's static properties
-         *  - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
-         *  - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
-         *  - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
+         * - parent: the parent primitive/canvas, must be specified if the primitive is not constructed as a child of another one (i.e. as part of the children array setting)
+         * - children: an array of direct children
+         * - id a text identifier, for information purpose
+         * - position: the X & Y positions relative to its parent. Alternatively the x and y properties can be set. Default is [0;0]
+         * - rotation: the initial rotation (in radian) of the primitive. default is 0
+         * - scale: the initial scale of the primitive. default is 1
+         * - opacity: set the overall opacity of the primitive, 1 to be opaque (default), less than 1 to be transparent.
+         * - origin: define the normalized origin point location, default [0.5;0.5]
+         * - fontName: the name/size/style of the font to use, following the CSS notation. Default is "12pt Arial".
+         * - fontSuperSample: if true the text will be rendered with a superSampled font (the font is twice the given size). Use this settings if the text lies in world space or if it's scaled in.
+         * - defaultColor: the color by default to apply on each letter of the text to display, default is plain white.
+         * - areaSize: the size of the area in which to display the text, default is auto-fit from text content.
+         * - tabulationSize: number of space character to insert when a tabulation is encountered, default is 4
+         * - isVisible: true if the text must be visible, false for hidden. Default is true.
+         * - childrenFlatZOrder: if true all the children (direct and indirect) will share the same Z-Order. Use this when there's a lot of children which don't overlap. The drawing order IS NOT GUARANTED!
+         * - marginTop: top margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginLeft: left margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginRight: right margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - marginBottom: bottom margin, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - margin: top, left, right and bottom margin formatted as a single string (see PrimitiveThickness.fromString)
+         * - marginHAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginVAlignment: one value of the PrimitiveAlignment type's static properties
+         * - marginAlignment: a string defining the alignment, see PrimitiveAlignment.fromString
+         * - paddingTop: top padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingLeft: left padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingRight: right padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - paddingBottom: bottom padding, can be a number (will be pixels) or a string (see PrimitiveThickness.fromString)
+         * - padding: top, left, right and bottom padding formatted as a single string (see PrimitiveThickness.fromString)
          */
         constructor(text: string, settings?: {
             parent?: Prim2DBase;
@@ -5045,6 +5222,7 @@ declare module BABYLON {
             y?: number;
             rotation?: number;
             scale?: number;
+            opacity?: number;
             origin?: Vector2;
             fontName?: string;
             fontSuperSample?: boolean;
@@ -5052,6 +5230,7 @@ declare module BABYLON {
             size?: Size;
             tabulationSize?: number;
             isVisible?: boolean;
+            childrenFlatZOrder?: boolean;
             marginTop?: number | string;
             marginLeft?: number | string;
             marginRight?: number | string;
@@ -5338,7 +5517,7 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    class BoundingBox {
+    class BoundingBox implements ICullable {
         minimum: Vector3;
         maximum: Vector3;
         vectors: Vector3[];
@@ -5366,7 +5545,11 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    class BoundingInfo {
+    interface ICullable {
+        isInFrustum(frustumPlanes: Plane[]): boolean;
+        isCompletelyInFrustum(frustumPlanes: Plane[]): boolean;
+    }
+    class BoundingInfo implements ICullable {
         minimum: Vector3;
         maximum: Vector3;
         boundingBox: BoundingBox;
@@ -6073,6 +6256,7 @@ declare module BABYLON {
         isSupported: boolean;
         _bindTexture(channel: string, texture: WebGLTexture): void;
         setTexture(channel: string, texture: BaseTexture): void;
+        setTextureArray(channel: string, textures: BaseTexture[]): void;
         setTextureFromPostProcess(channel: string, postProcess: PostProcess): void;
         _cacheMatrix(uniformName: string, matrix: Matrix): boolean;
         _cacheFloat2(uniformName: string, x: number, y: number): boolean;
@@ -6525,6 +6709,7 @@ declare module BABYLON {
         private _shaderPath;
         private _options;
         private _textures;
+        private _textureArrays;
         private _floats;
         private _floatsArrays;
         private _colors3;
@@ -6542,6 +6727,7 @@ declare module BABYLON {
         needAlphaTesting(): boolean;
         private _checkUniform(uniformName);
         setTexture(name: string, texture: Texture): ShaderMaterial;
+        setTextureArray(name: string, textures: Texture[]): ShaderMaterial;
         setFloat(name: string, value: number): ShaderMaterial;
         setFloats(name: string, value: number[]): ShaderMaterial;
         setColor3(name: string, value: Color3): ShaderMaterial;
@@ -6955,6 +7141,8 @@ declare module BABYLON {
         getClassName(): string;
         getHashCode(): number;
         copyFrom(src: Size): void;
+        copyFromFloats(width: number, height: number): void;
+        multiplyByFloats(w: number, h: number): Size;
         clone(): Size;
         equals(other: Size): boolean;
         surface: number;
@@ -7000,7 +7188,7 @@ declare module BABYLON {
         static RotationAxisToRef(axis: Vector3, angle: number, result: Quaternion): Quaternion;
         static FromArray(array: number[], offset?: number): Quaternion;
         static RotationYawPitchRoll(yaw: number, pitch: number, roll: number): Quaternion;
-        static RotationYawPitchRollToRef(yaw: number, pitch: number, roll: number, result: Quaternion): Quaternion;
+        static RotationYawPitchRollToRef(yaw: number, pitch: number, roll: number, result: Quaternion): void;
         static RotationAlphaBetaGamma(alpha: number, beta: number, gamma: number): Quaternion;
         static RotationAlphaBetaGammaToRef(alpha: number, beta: number, gamma: number, result: Quaternion): void;
         static Slerp(left: Quaternion, right: Quaternion, amount: number): Quaternion;
@@ -7305,7 +7493,407 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    class AbstractMesh extends Node implements IDisposable {
+    class Particle {
+        position: Vector3;
+        direction: Vector3;
+        color: Color4;
+        colorStep: Color4;
+        lifeTime: number;
+        age: number;
+        size: number;
+        angle: number;
+        angularSpeed: number;
+        copyTo(other: Particle): void;
+    }
+}
+
+declare module BABYLON {
+    class ParticleSystem implements IDisposable, IAnimatable {
+        name: string;
+        static BLENDMODE_ONEONE: number;
+        static BLENDMODE_STANDARD: number;
+        animations: Animation[];
+        id: string;
+        renderingGroupId: number;
+        emitter: any;
+        emitRate: number;
+        manualEmitCount: number;
+        updateSpeed: number;
+        targetStopDuration: number;
+        disposeOnStop: boolean;
+        minEmitPower: number;
+        maxEmitPower: number;
+        minLifeTime: number;
+        maxLifeTime: number;
+        minSize: number;
+        maxSize: number;
+        minAngularSpeed: number;
+        maxAngularSpeed: number;
+        particleTexture: Texture;
+        layerMask: number;
+        /**
+        * An event triggered when the system is disposed.
+        * @type {BABYLON.Observable}
+        */
+        onDisposeObservable: Observable<ParticleSystem>;
+        private _onDisposeObserver;
+        onDispose: () => void;
+        updateFunction: (particles: Particle[]) => void;
+        blendMode: number;
+        forceDepthWrite: boolean;
+        gravity: Vector3;
+        direction1: Vector3;
+        direction2: Vector3;
+        minEmitBox: Vector3;
+        maxEmitBox: Vector3;
+        color1: Color4;
+        color2: Color4;
+        colorDead: Color4;
+        textureMask: Color4;
+        startDirectionFunction: (emitPower: number, worldMatrix: Matrix, directionToUpdate: Vector3, particle: Particle) => void;
+        startPositionFunction: (worldMatrix: Matrix, positionToUpdate: Vector3, particle: Particle) => void;
+        private particles;
+        private _capacity;
+        private _scene;
+        private _stockParticles;
+        private _newPartsExcess;
+        private _vertexData;
+        private _vertexBuffer;
+        private _vertexBuffers;
+        private _indexBuffer;
+        private _effect;
+        private _customEffect;
+        private _cachedDefines;
+        private _scaledColorStep;
+        private _colorDiff;
+        private _scaledDirection;
+        private _scaledGravity;
+        private _currentRenderId;
+        private _alive;
+        private _started;
+        private _stopped;
+        private _actualFrame;
+        private _scaledUpdateSpeed;
+        constructor(name: string, capacity: number, scene: Scene, customEffect?: Effect);
+        recycleParticle(particle: Particle): void;
+        getCapacity(): number;
+        isAlive(): boolean;
+        isStarted(): boolean;
+        start(): void;
+        stop(): void;
+        _appendParticleVertex(index: number, particle: Particle, offsetX: number, offsetY: number): void;
+        private _update(newParticles);
+        private _getEffect();
+        animate(): void;
+        render(): number;
+        dispose(): void;
+        clone(name: string, newEmitter: any): ParticleSystem;
+        serialize(): any;
+        static Parse(parsedParticleSystem: any, scene: Scene, rootUrl: string): ParticleSystem;
+    }
+}
+
+declare module BABYLON {
+    class SolidParticle {
+        idx: number;
+        color: Color4;
+        position: Vector3;
+        rotation: Vector3;
+        rotationQuaternion: Quaternion;
+        scaling: Vector3;
+        uvs: Vector4;
+        velocity: Vector3;
+        alive: boolean;
+        isVisible: boolean;
+        _pos: number;
+        _model: ModelShape;
+        shapeId: number;
+        idxInShape: number;
+        constructor(particleIndex: number, positionIndex: number, model: ModelShape, shapeId: number, idxInShape: number);
+        scale: Vector3;
+        quaternion: Quaternion;
+    }
+    class ModelShape {
+        shapeID: number;
+        _shape: Vector3[];
+        _shapeUV: number[];
+        _positionFunction: (particle: SolidParticle, i: number, s: number) => void;
+        _vertexFunction: (particle: SolidParticle, vertex: Vector3, i: number) => void;
+        constructor(id: number, shape: Vector3[], shapeUV: number[], posFunction: (particle: SolidParticle, i: number, s: number) => void, vtxFunction: (particle: SolidParticle, vertex: Vector3, i: number) => void);
+    }
+}
+
+declare module BABYLON {
+    /**
+    * Full documentation here : http://doc.babylonjs.com/overviews/Solid_Particle_System
+    */
+    class SolidParticleSystem implements IDisposable {
+        /**
+        *  The SPS array of Solid Particle objects. Just access each particle as with any classic array.
+        *  Example : var p = SPS.particles[i];
+        */
+        particles: SolidParticle[];
+        /**
+        * The SPS total number of particles. Read only. Use SPS.counter instead if you need to set your own value.
+        */
+        nbParticles: number;
+        /**
+        * If the particles must ever face the camera (default false). Useful for planar particles.
+        */
+        billboard: boolean;
+        /**
+        * This a counter ofr your own usage. It's not set by any SPS functions.
+        */
+        counter: number;
+        /**
+        * The SPS name. This name is also given to the underlying mesh.
+        */
+        name: string;
+        /**
+        * The SPS mesh. It's a standard BJS Mesh, so all the methods from the Mesh class are avalaible.
+        */
+        mesh: Mesh;
+        /**
+        * This empty object is intended to store some SPS specific or temporary values in order to lower the Garbage Collector activity.
+        * Please read : http://doc.babylonjs.com/overviews/Solid_Particle_System#garbage-collector-concerns
+        */
+        vars: any;
+        /**
+        * This array is populated when the SPS is set as 'pickable'.
+        * Each key of this array is a `faceId` value that you can get from a pickResult object.
+        * Each element of this array is an object `{idx: int, faceId: int}`.
+        * `idx` is the picked particle index in the `SPS.particles` array
+        * `faceId` is the picked face index counted within this particle.
+        * Please read : http://doc.babylonjs.com/overviews/Solid_Particle_System#pickable-particles
+        */
+        pickedParticles: {
+            idx: number;
+            faceId: number;
+        }[];
+        private _scene;
+        private _positions;
+        private _indices;
+        private _normals;
+        private _colors;
+        private _uvs;
+        private _positions32;
+        private _normals32;
+        private _fixedNormal32;
+        private _colors32;
+        private _uvs32;
+        private _index;
+        private _updatable;
+        private _pickable;
+        private _isVisibilityBoxLocked;
+        private _alwaysVisible;
+        private _shapeCounter;
+        private _copy;
+        private _shape;
+        private _shapeUV;
+        private _color;
+        private _computeParticleColor;
+        private _computeParticleTexture;
+        private _computeParticleRotation;
+        private _computeParticleVertex;
+        private _computeBoundingBox;
+        private _cam_axisZ;
+        private _cam_axisY;
+        private _cam_axisX;
+        private _axisX;
+        private _axisY;
+        private _axisZ;
+        private _camera;
+        private _particle;
+        private _fakeCamPos;
+        private _rotMatrix;
+        private _invertMatrix;
+        private _rotated;
+        private _quaternion;
+        private _vertex;
+        private _normal;
+        private _yaw;
+        private _pitch;
+        private _roll;
+        private _halfroll;
+        private _halfpitch;
+        private _halfyaw;
+        private _sinRoll;
+        private _cosRoll;
+        private _sinPitch;
+        private _cosPitch;
+        private _sinYaw;
+        private _cosYaw;
+        private _w;
+        private _minimum;
+        private _maximum;
+        /**
+        * Creates a SPS (Solid Particle System) object.
+        * `name` (String) is the SPS name, this will be the underlying mesh name.
+        * `scene` (Scene) is the scene in which the SPS is added.
+        * `updatable` (default true) : if the SPS must be updatable or immutable.
+        * `isPickable` (default false) : if the solid particles must be pickable.
+        */
+        constructor(name: string, scene: Scene, options?: {
+            updatable?: boolean;
+            isPickable?: boolean;
+        });
+        /**
+        * Builds the SPS underlying mesh. Returns a standard Mesh.
+        * If no model shape was added to the SPS, the returned mesh is just a single triangular plane.
+        */
+        buildMesh(): Mesh;
+        /**
+        * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
+        * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
+        * Thus the particles generated from `digest()` have their property `position` set yet.
+        * `mesh` ( Mesh ) is the mesh to be digested
+        * `facetNb` (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
+        * `delta` (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
+        * `number` (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
+        */
+        digest(mesh: Mesh, options?: {
+            facetNb?: number;
+            number?: number;
+            delta?: number;
+        }): SolidParticleSystem;
+        private _resetCopy();
+        private _meshBuilder(p, shape, positions, meshInd, indices, meshUV, uvs, meshCol, colors, idx, idxInShape, options);
+        private _posToShape(positions);
+        private _uvsToShapeUV(uvs);
+        private _addParticle(idx, idxpos, model, shapeId, idxInShape);
+        /**
+        * Adds some particles to the SPS from the model shape. Returns the shape id.
+        * Please read the doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#create-an-immutable-sps
+        * `mesh` is any Mesh object that will be used as a model for the solid particles.
+        * `nb` (positive integer) the number of particles to be created from this model
+        * `positionFunction` is an optional javascript function to called for each particle on SPS creation.
+        * `vertexFunction` is an optional javascript function to called for each vertex of each particle on SPS creation
+        */
+        addShape(mesh: Mesh, nb: number, options?: {
+            positionFunction?: any;
+            vertexFunction?: any;
+        }): number;
+        private _rebuildParticle(particle);
+        /**
+        * Rebuilds the whole mesh and updates the VBO : custom positions and vertices are recomputed if needed.
+        */
+        rebuildMesh(): void;
+        /**
+        *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
+        *  This method calls `updateParticle()` for each particle of the SPS.
+        *  For an animated SPS, it is usually called within the render loop.
+        * @param start The particle index in the particle array where to start to compute the particle property values _(default 0)_
+        * @param end The particle index in the particle array where to stop to compute the particle property values _(default nbParticle - 1)_
+        * @param update If the mesh must be finally updated on this call after all the particle computations _(default true)_
+        */
+        setParticles(start?: number, end?: number, update?: boolean): void;
+        private _quaternionRotationYPR();
+        private _quaternionToRotationMatrix();
+        /**
+        * Disposes the SPS
+        */
+        dispose(): void;
+        /**
+        * Visibilty helper : Recomputes the visible size according to the mesh bounding box
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
+        */
+        refreshVisibleSize(): void;
+        /**
+        * Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
+        * @param size the size (float) of the visibility box
+        * note : this doesn't lock the SPS mesh bounding box.
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
+        */
+        setVisibilityBox(size: number): void;
+        /**
+        * Sets the SPS as always visible or not
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
+        */
+        isAlwaysVisible: boolean;
+        /**
+        * Sets the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
+        */
+        isVisibilityBoxLocked: boolean;
+        /**
+        * Tells to `setParticles()` to compute the particle rotations or not.
+        * Default value : true. The SPS is faster when it's set to false.
+        * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
+        */
+        computeParticleRotation: boolean;
+        /**
+        * Tells to `setParticles()` to compute the particle colors or not.
+        * Default value : true. The SPS is faster when it's set to false.
+        * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
+        */
+        computeParticleColor: boolean;
+        /**
+        * Tells to `setParticles()` to compute the particle textures or not.
+        * Default value : true. The SPS is faster when it's set to false.
+        * Note : the particle textures are stored values, so setting `computeParticleTexture` to false will keep yet the last colors set.
+        */
+        computeParticleTexture: boolean;
+        /**
+        * Tells to `setParticles()` to call the vertex function for each vertex of each particle, or not.
+        * Default value : false. The SPS is faster when it's set to false.
+        * Note : the particle custom vertex positions aren't stored values.
+        */
+        computeParticleVertex: boolean;
+        /**
+        * Tells to `setParticles()` to compute or not the mesh bounding box when computing the particle positions.
+        */
+        computeBoundingBox: boolean;
+        /**
+        * This function does nothing. It may be overwritten to set all the particle first values.
+        * The SPS doesn't call this function, you may have to call it by your own.
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
+        */
+        initParticles(): void;
+        /**
+        * This function does nothing. It may be overwritten to recycle a particle.
+        * The SPS doesn't call this function, you may have to call it by your own.
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
+        */
+        recycleParticle(particle: SolidParticle): SolidParticle;
+        /**
+        * Updates a particle : this function should  be overwritten by the user.
+        * It is called on each particle by `setParticles()`. This is the place to code each particle behavior.
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
+        * ex : just set a particle position or velocity and recycle conditions
+        */
+        updateParticle(particle: SolidParticle): SolidParticle;
+        /**
+        * Updates a vertex of a particle : it can be overwritten by the user.
+        * This will be called on each vertex particle by `setParticles()` if `computeParticleVertex` is set to true only.
+        * @param particle the current particle
+        * @param vertex the current index of the current particle
+        * @param pt the index of the current vertex in the particle shape
+        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#update-each-particle-shape
+        * ex : just set a vertex particle position
+        */
+        updateParticleVertex(particle: SolidParticle, vertex: Vector3, pt: number): Vector3;
+        /**
+        * This will be called before any other treatment by `setParticles()` and will be passed three parameters.
+        * This does nothing and may be overwritten by the user.
+        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+        * @param update the boolean update value actually passed to setParticles()
+        */
+        beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void;
+        /**
+        * This will be called  by `setParticles()` after all the other treatments and just before the actual mesh update.
+        * This will be passed three parameters.
+        * This does nothing and may be overwritten by the user.
+        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
+        * @param update the boolean update value actually passed to setParticles()
+        */
+        afterUpdateParticles(start?: number, stop?: number, update?: boolean): void;
+    }
+}
+
+declare module BABYLON {
+    class AbstractMesh extends Node implements IDisposable, ICullable {
         private static _BILLBOARDMODE_NONE;
         private static _BILLBOARDMODE_X;
         private static _BILLBOARDMODE_Y;
@@ -7509,11 +8097,11 @@ declare module BABYLON {
         getPositionExpressedInLocalSpace(): Vector3;
         locallyTranslate(vector3: Vector3): void;
         private static _lookAtVectorCache;
-        lookAt(targetPoint: Vector3, yawCor: number, pitchCor: number, rollCor: number): void;
+        lookAt(targetPoint: Vector3, yawCor?: number, pitchCor?: number, rollCor?: number, space?: Space): void;
         attachToBone(bone: Bone, affectedMesh: AbstractMesh): void;
         detachFromBone(): void;
         isInFrustum(frustumPlanes: Plane[]): boolean;
-        isCompletelyInFrustum(camera?: Camera): boolean;
+        isCompletelyInFrustum(frustumPlanes: Plane[]): boolean;
         intersectsMesh(mesh: AbstractMesh, precise?: boolean): boolean;
         intersectsPoint(point: Vector3): boolean;
         /**
@@ -8255,7 +8843,7 @@ declare module BABYLON {
         /**
          * Sets the mesh indices.
          * Expects an array populated with integers or a Int32Array.
-         * If the mesh has no geometry, a new `Geometry` object is created and set to the mesh.
+         * If the mesh has no geometry, a new Geometry object is created and set to the mesh.
          * This method creates a new index buffer each call.
          */
         setIndices(indices: number[] | Int32Array, totalVertices?: number): void;
@@ -8340,7 +8928,7 @@ declare module BABYLON {
          * Returns a new Mesh object generated from the current mesh properties.
          * This method must not get confused with createInstance().
          * The parameter `name` is a string, the name given to the new mesh.
-         * The optional parameter `newParent` can be any `Node` object (default `null`).
+         * The optional parameter `newParent` can be any Node object (default `null`).
          * The optional parameter `doNotCloneChildren` (default `false`) allows/denies the recursive cloning of the original mesh children if any.
          * The parameter `clonePhysicsImpostor` (default `true`)  allows/denies the cloning in the same time of the original mesh `body` used by the physics engine, if any.
          */
@@ -8597,7 +9185,6 @@ declare module BABYLON {
          * Creates lathe mesh.
          * The lathe is a shape with a symetry axis : a 2D model shape is rotated around this axis to design the lathe.
          * Please consider using the same method from the MeshBuilder class instead.
-         *
          * The parameter `shape` is a required array of successive Vector3. This array depicts the shape to be rotated in its local space : the shape must be designed in the xOy plane and will be
          * rotated around the Y axis. It's usually a 2D shape, so the Vector3 z coordinates are often set to zero.
          * The parameter `radius` (positive float, default 1) is the radius value of the lathe.
@@ -8663,7 +9250,6 @@ declare module BABYLON {
         /**
          * Creates a tube mesh.
          * The tube is a parametric shape :  http://doc.babylonjs.com/tutorials/Parametric_Shapes.  It has no predefined shape. Its final shape will depend on the input parameters.
-         *
          * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `path` is a required array of successive Vector3. It is the curve used as the axis of the tube.
          * The parameter `radius` (positive float, default 1) sets the tube radius size.
@@ -8687,7 +9273,6 @@ declare module BABYLON {
         }, cap: number, scene: Scene, updatable?: boolean, sideOrientation?: number, instance?: Mesh): Mesh;
         /**
          * Creates a polyhedron mesh.
-         *
          * Please consider using the same method from the MeshBuilder class instead.
          * The parameter `type` (positive integer, max 14, default 0) sets the polyhedron type to build among the 15 embbeded types. Please refer to the type sheet in the tutorial
          *  to choose the wanted type.
@@ -8737,7 +9322,7 @@ declare module BABYLON {
          * Please consider using the same method from the MeshBuilder class instead.
          * A decal is a mesh usually applied as a model onto the surface of another mesh. So don't forget the parameter `sourceMesh` depicting the decal.
          * The parameter `position` (Vector3, default `(0, 0, 0)`) sets the position of the decal in World coordinates.
-         * The parameter `normal` (Vector3, default `Vector3.Up`) sets the normal of the mesh where the decal is applied onto in World coordinates.
+         * The parameter `normal` (Vector3, default Vector3.Up) sets the normal of the mesh where the decal is applied onto in World coordinates.
          * The parameter `size` (Vector3, default `(1, 1, 1)`) sets the decal scaling.
          * The parameter `angle` (float in radian, default 0) sets the angle to rotate the decal.
          */
@@ -8756,7 +9341,7 @@ declare module BABYLON {
          */
         applySkeleton(skeleton: Skeleton): Mesh;
         /**
-         * Returns an object `{min: Vector3, max: Vector3}`
+         * Returns an object `{min:` Vector3`, max:` Vector3`}`
          * This min and max Vector3 are the minimum and maximum vectors of each mesh bounding box from the passed array, in the World system
          */
         static MinMax(meshes: AbstractMesh[]): {
@@ -8764,7 +9349,7 @@ declare module BABYLON {
             max: Vector3;
         };
         /**
-         * Returns a `Vector3`, the center of the `{min: Vector3, max: Vector3}` or the center of MinMax vector3 computed from a mesh array.
+         * Returns a Vector3, the center of the `{min:` Vector3`, max:` Vector3`}` or the center of MinMax vector3 computed from a mesh array.
          */
         static Center(meshesOrMinMaxVector: any): Vector3;
         /**
@@ -9625,7 +10210,7 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
-    class SubMesh {
+    class SubMesh implements ICullable {
         materialIndex: number;
         verticesStart: number;
         verticesCount: number;
@@ -9653,6 +10238,7 @@ declare module BABYLON {
         _checkCollision(collider: Collider): boolean;
         updateBoundingInfo(world: Matrix): void;
         isInFrustum(frustumPlanes: Plane[]): boolean;
+        isCompletelyInFrustum(frustumPlanes: Plane[]): boolean;
         render(enableAlphaMode: boolean): void;
         getLinesIndexBuffer(indices: number[] | Int32Array, engine: Engine): WebGLBuffer;
         canIntersects(ray: Ray): boolean;
@@ -9710,406 +10296,6 @@ declare module BABYLON {
         static MatricesWeightsKind: string;
         static MatricesIndicesExtraKind: string;
         static MatricesWeightsExtraKind: string;
-    }
-}
-
-declare module BABYLON {
-    class Particle {
-        position: Vector3;
-        direction: Vector3;
-        color: Color4;
-        colorStep: Color4;
-        lifeTime: number;
-        age: number;
-        size: number;
-        angle: number;
-        angularSpeed: number;
-        copyTo(other: Particle): void;
-    }
-}
-
-declare module BABYLON {
-    class ParticleSystem implements IDisposable, IAnimatable {
-        name: string;
-        static BLENDMODE_ONEONE: number;
-        static BLENDMODE_STANDARD: number;
-        animations: Animation[];
-        id: string;
-        renderingGroupId: number;
-        emitter: any;
-        emitRate: number;
-        manualEmitCount: number;
-        updateSpeed: number;
-        targetStopDuration: number;
-        disposeOnStop: boolean;
-        minEmitPower: number;
-        maxEmitPower: number;
-        minLifeTime: number;
-        maxLifeTime: number;
-        minSize: number;
-        maxSize: number;
-        minAngularSpeed: number;
-        maxAngularSpeed: number;
-        particleTexture: Texture;
-        layerMask: number;
-        /**
-        * An event triggered when the system is disposed.
-        * @type {BABYLON.Observable}
-        */
-        onDisposeObservable: Observable<ParticleSystem>;
-        private _onDisposeObserver;
-        onDispose: () => void;
-        updateFunction: (particles: Particle[]) => void;
-        blendMode: number;
-        forceDepthWrite: boolean;
-        gravity: Vector3;
-        direction1: Vector3;
-        direction2: Vector3;
-        minEmitBox: Vector3;
-        maxEmitBox: Vector3;
-        color1: Color4;
-        color2: Color4;
-        colorDead: Color4;
-        textureMask: Color4;
-        startDirectionFunction: (emitPower: number, worldMatrix: Matrix, directionToUpdate: Vector3, particle: Particle) => void;
-        startPositionFunction: (worldMatrix: Matrix, positionToUpdate: Vector3, particle: Particle) => void;
-        private particles;
-        private _capacity;
-        private _scene;
-        private _stockParticles;
-        private _newPartsExcess;
-        private _vertexData;
-        private _vertexBuffer;
-        private _vertexBuffers;
-        private _indexBuffer;
-        private _effect;
-        private _customEffect;
-        private _cachedDefines;
-        private _scaledColorStep;
-        private _colorDiff;
-        private _scaledDirection;
-        private _scaledGravity;
-        private _currentRenderId;
-        private _alive;
-        private _started;
-        private _stopped;
-        private _actualFrame;
-        private _scaledUpdateSpeed;
-        constructor(name: string, capacity: number, scene: Scene, customEffect?: Effect);
-        recycleParticle(particle: Particle): void;
-        getCapacity(): number;
-        isAlive(): boolean;
-        isStarted(): boolean;
-        start(): void;
-        stop(): void;
-        _appendParticleVertex(index: number, particle: Particle, offsetX: number, offsetY: number): void;
-        private _update(newParticles);
-        private _getEffect();
-        animate(): void;
-        render(): number;
-        dispose(): void;
-        clone(name: string, newEmitter: any): ParticleSystem;
-        serialize(): any;
-        static Parse(parsedParticleSystem: any, scene: Scene, rootUrl: string): ParticleSystem;
-    }
-}
-
-declare module BABYLON {
-    class SolidParticle {
-        idx: number;
-        color: Color4;
-        position: Vector3;
-        rotation: Vector3;
-        rotationQuaternion: Quaternion;
-        scaling: Vector3;
-        uvs: Vector4;
-        velocity: Vector3;
-        alive: boolean;
-        isVisible: boolean;
-        _pos: number;
-        _model: ModelShape;
-        shapeId: number;
-        idxInShape: number;
-        constructor(particleIndex: number, positionIndex: number, model: ModelShape, shapeId: number, idxInShape: number);
-        scale: Vector3;
-        quaternion: Quaternion;
-    }
-    class ModelShape {
-        shapeID: number;
-        _shape: Vector3[];
-        _shapeUV: number[];
-        _positionFunction: (particle: SolidParticle, i: number, s: number) => void;
-        _vertexFunction: (particle: SolidParticle, vertex: Vector3, i: number) => void;
-        constructor(id: number, shape: Vector3[], shapeUV: number[], posFunction: (particle: SolidParticle, i: number, s: number) => void, vtxFunction: (particle: SolidParticle, vertex: Vector3, i: number) => void);
-    }
-}
-
-declare module BABYLON {
-    /**
-    * Full documentation here : http://doc.babylonjs.com/overviews/Solid_Particle_System
-    */
-    class SolidParticleSystem implements IDisposable {
-        /**
-        *  The SPS array of Solid Particle objects. Just access each particle as with any classic array.
-        *  Example : var p = SPS.particles[i];
-        */
-        particles: SolidParticle[];
-        /**
-        * The SPS total number of particles. Read only. Use SPS.counter instead if you need to set your own value.
-        */
-        nbParticles: number;
-        /**
-        * If the particles must ever face the camera (default false). Useful for planar particles.
-        */
-        billboard: boolean;
-        /**
-        * This a counter ofr your own usage. It's not set by any SPS functions.
-        */
-        counter: number;
-        /**
-        * The SPS name. This name is also given to the underlying mesh.
-        */
-        name: string;
-        /**
-        * The SPS mesh. It's a standard BJS Mesh, so all the methods from the Mesh class are avalaible.
-        */
-        mesh: Mesh;
-        /**
-        * This empty object is intended to store some SPS specific or temporary values in order to lower the Garbage Collector activity.
-        * Please read : http://doc.babylonjs.com/overviews/Solid_Particle_System#garbage-collector-concerns
-        */
-        vars: any;
-        /**
-        * This array is populated when the SPS is set as 'pickable'.
-        * Each key of this array is a `faceId` value that you can get from a pickResult object.
-        * Each element of this array is an object `{idx: int, faceId: int}`.
-        * `idx` is the picked particle index in the `SPS.particles` array
-        * `faceId` is the picked face index counted within this particle.
-        * Please read : http://doc.babylonjs.com/overviews/Solid_Particle_System#pickable-particles
-        */
-        pickedParticles: {
-            idx: number;
-            faceId: number;
-        }[];
-        private _scene;
-        private _positions;
-        private _indices;
-        private _normals;
-        private _colors;
-        private _uvs;
-        private _positions32;
-        private _normals32;
-        private _fixedNormal32;
-        private _colors32;
-        private _uvs32;
-        private _index;
-        private _updatable;
-        private _pickable;
-        private _isVisibilityBoxLocked;
-        private _alwaysVisible;
-        private _shapeCounter;
-        private _copy;
-        private _shape;
-        private _shapeUV;
-        private _color;
-        private _computeParticleColor;
-        private _computeParticleTexture;
-        private _computeParticleRotation;
-        private _computeParticleVertex;
-        private _computeBoundingBox;
-        private _cam_axisZ;
-        private _cam_axisY;
-        private _cam_axisX;
-        private _axisX;
-        private _axisY;
-        private _axisZ;
-        private _camera;
-        private _particle;
-        private _fakeCamPos;
-        private _rotMatrix;
-        private _invertMatrix;
-        private _rotated;
-        private _quaternion;
-        private _vertex;
-        private _normal;
-        private _yaw;
-        private _pitch;
-        private _roll;
-        private _halfroll;
-        private _halfpitch;
-        private _halfyaw;
-        private _sinRoll;
-        private _cosRoll;
-        private _sinPitch;
-        private _cosPitch;
-        private _sinYaw;
-        private _cosYaw;
-        private _w;
-        private _minimum;
-        private _maximum;
-        /**
-        * Creates a SPS (Solid Particle System) object.
-        * `name` (String) is the SPS name, this will be the underlying mesh name.
-        * `scene` (Scene) is the scene in which the SPS is added.
-        * `updatable` (default true) : if the SPS must be updatable or immutable.
-        * `isPickable` (default false) : if the solid particles must be pickable.
-        */
-        constructor(name: string, scene: Scene, options?: {
-            updatable?: boolean;
-            isPickable?: boolean;
-        });
-        /**
-        * Builds the SPS underlying mesh. Returns a standard Mesh.
-        * If no model shape was added to the SPS, the returned mesh is just a single triangular plane.
-        */
-        buildMesh(): Mesh;
-        /**
-        * Digests the mesh and generates as many solid particles in the system as wanted. Returns the SPS.
-        * These particles will have the same geometry than the mesh parts and will be positioned at the same localisation than the mesh original places.
-        * Thus the particles generated from `digest()` have their property `position` set yet.
-        * `mesh` ( Mesh ) is the mesh to be digested
-        * `facetNb` (optional integer, default 1) is the number of mesh facets per particle, this parameter is overriden by the parameter `number` if any
-        * `delta` (optional integer, default 0) is the random extra number of facets per particle , each particle will have between `facetNb` and `facetNb + delta` facets
-        * `number` (optional positive integer) is the wanted number of particles : each particle is built with `mesh_total_facets / number` facets
-        */
-        digest(mesh: Mesh, options?: {
-            facetNb?: number;
-            number?: number;
-            delta?: number;
-        }): SolidParticleSystem;
-        private _resetCopy();
-        private _meshBuilder(p, shape, positions, meshInd, indices, meshUV, uvs, meshCol, colors, idx, idxInShape, options);
-        private _posToShape(positions);
-        private _uvsToShapeUV(uvs);
-        private _addParticle(idx, idxpos, model, shapeId, idxInShape);
-        /**
-        * Adds some particles to the SPS from the model shape. Returns the shape id.
-        * Please read the doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#create-an-immutable-sps
-        * `mesh` is any Mesh object that will be used as a model for the solid particles.
-        * `nb` (positive integer) the number of particles to be created from this model
-        * `positionFunction` is an optional javascript function to called for each particle on SPS creation.
-        * `vertexFunction` is an optional javascript function to called for each vertex of each particle on SPS creation
-        */
-        addShape(mesh: Mesh, nb: number, options?: {
-            positionFunction?: any;
-            vertexFunction?: any;
-        }): number;
-        private _rebuildParticle(particle);
-        /**
-        * Rebuilds the whole mesh and updates the VBO : custom positions and vertices are recomputed if needed.
-        */
-        rebuildMesh(): void;
-        /**
-        *  Sets all the particles : this method actually really updates the mesh according to the particle positions, rotations, colors, textures, etc.
-        *  This method calls `updateParticle()` for each particle of the SPS.
-        *  For an animated SPS, it is usually called within the render loop.
-        * @param start The particle index in the particle array where to start to compute the particle property values _(default 0)_
-        * @param end The particle index in the particle array where to stop to compute the particle property values _(default nbParticle - 1)_
-        * @param update If the mesh must be finally updated on this call after all the particle computations _(default true)_
-        */
-        setParticles(start?: number, end?: number, update?: boolean): void;
-        private _quaternionRotationYPR();
-        private _quaternionToRotationMatrix();
-        /**
-        * Disposes the SPS
-        */
-        dispose(): void;
-        /**
-        * Visibilty helper : Recomputes the visible size according to the mesh bounding box
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
-        */
-        refreshVisibleSize(): void;
-        /**
-        * Visibility helper : Sets the size of a visibility box, this sets the underlying mesh bounding box.
-        * @param size the size (float) of the visibility box
-        * note : this doesn't lock the SPS mesh bounding box.
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
-        */
-        setVisibilityBox(size: number): void;
-        /**
-        * Sets the SPS as always visible or not
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
-        */
-        isAlwaysVisible: boolean;
-        /**
-        * Sets the SPS visibility box as locked or not. This enables/disables the underlying mesh bounding box updates.
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#sps-visibility
-        */
-        isVisibilityBoxLocked: boolean;
-        /**
-        * Tells to `setParticles()` to compute the particle rotations or not.
-        * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle rotations aren't stored values, so setting `computeParticleRotation` to false will prevents the particle to rotate.
-        */
-        computeParticleRotation: boolean;
-        /**
-        * Tells to `setParticles()` to compute the particle colors or not.
-        * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle colors are stored values, so setting `computeParticleColor` to false will keep yet the last colors set.
-        */
-        computeParticleColor: boolean;
-        /**
-        * Tells to `setParticles()` to compute the particle textures or not.
-        * Default value : true. The SPS is faster when it's set to false.
-        * Note : the particle textures are stored values, so setting `computeParticleTexture` to false will keep yet the last colors set.
-        */
-        computeParticleTexture: boolean;
-        /**
-        * Tells to `setParticles()` to call the vertex function for each vertex of each particle, or not.
-        * Default value : false. The SPS is faster when it's set to false.
-        * Note : the particle custom vertex positions aren't stored values.
-        */
-        computeParticleVertex: boolean;
-        /**
-        * Tells to `setParticles()` to compute or not the mesh bounding box when computing the particle positions.
-        */
-        computeBoundingBox: boolean;
-        /**
-        * This function does nothing. It may be overwritten to set all the particle first values.
-        * The SPS doesn't call this function, you may have to call it by your own.
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
-        */
-        initParticles(): void;
-        /**
-        * This function does nothing. It may be overwritten to recycle a particle.
-        * The SPS doesn't call this function, you may have to call it by your own.
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
-        */
-        recycleParticle(particle: SolidParticle): SolidParticle;
-        /**
-        * Updates a particle : this function should  be overwritten by the user.
-        * It is called on each particle by `setParticles()`. This is the place to code each particle behavior.
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#particle-management
-        * ex : just set a particle position or velocity and recycle conditions
-        */
-        updateParticle(particle: SolidParticle): SolidParticle;
-        /**
-        * Updates a vertex of a particle : it can be overwritten by the user.
-        * This will be called on each vertex particle by `setParticles()` if `computeParticleVertex` is set to true only.
-        * @param particle the current particle
-        * @param vertex the current index of the current particle
-        * @param pt the index of the current vertex in the particle shape
-        * doc : http://doc.babylonjs.com/overviews/Solid_Particle_System#update-each-particle-shape
-        * ex : just set a vertex particle position
-        */
-        updateParticleVertex(particle: SolidParticle, vertex: Vector3, pt: number): Vector3;
-        /**
-        * This will be called before any other treatment by `setParticles()` and will be passed three parameters.
-        * This does nothing and may be overwritten by the user.
-        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param update the boolean update value actually passed to setParticles()
-        */
-        beforeUpdateParticles(start?: number, stop?: number, update?: boolean): void;
-        /**
-        * This will be called  by `setParticles()` after all the other treatments and just before the actual mesh update.
-        * This will be passed three parameters.
-        * This does nothing and may be overwritten by the user.
-        * @param start the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param stop the particle index in the particle array where to stop to iterate, same than the value passed to setParticle()
-        * @param update the boolean update value actually passed to setParticles()
-        */
-        afterUpdateParticles(start?: number, stop?: number, update?: boolean): void;
     }
 }
 
@@ -10490,6 +10676,28 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
+    class ReflectionProbe {
+        name: string;
+        private _scene;
+        private _renderTargetTexture;
+        private _projectionMatrix;
+        private _viewMatrix;
+        private _target;
+        private _add;
+        private _attachedMesh;
+        invertYAxis: boolean;
+        position: Vector3;
+        constructor(name: string, size: number, scene: Scene, generateMipMaps?: boolean);
+        refreshRate: number;
+        getScene(): Scene;
+        cubeTexture: RenderTargetTexture;
+        renderList: AbstractMesh[];
+        attachToMesh(mesh: AbstractMesh): void;
+        dispose(): void;
+    }
+}
+
+declare module BABYLON {
     class AnaglyphPostProcess extends PostProcess {
         private _passedProcess;
         constructor(name: string, options: number | PostProcessOptions, rigCameras: Camera[], samplingMode?: number, engine?: Engine, reusable?: boolean);
@@ -10718,36 +10926,6 @@ declare module BABYLON {
         * Gaussian blur post-processes. Horizontal and Vertical
         */
         private _createGaussianBlurPostProcess(scene, ratio);
-    }
-}
-
-declare module BABYLON {
-    class HDRRenderingPipeline2 extends PostProcessRenderPipeline implements IDisposable {
-        originalPostProcess: PostProcess;
-        downSampleX4PostProcess: PostProcess;
-        brightPassPostProcess: PostProcess;
-        gaussianBlurHPostProcesses: PostProcess[];
-        gaussianBlurVPostProcesses: PostProcess[];
-        textureAdder: PostProcess;
-        brightThreshold: number;
-        gaussianCoefficient: number;
-        gaussianMean: number;
-        gaussianStandardDeviation: number;
-        exposure: number;
-        private _scene;
-        /**
-         * @constructor
-         * @param {string} name - The rendering pipeline name
-         * @param {BABYLON.Scene} scene - The scene linked to this pipeline
-         * @param {any} ratio - The size of the postprocesses (0.5 means that your postprocess will have a width = canvas.width 0.5 and a height = canvas.height 0.5)
-         * @param {BABYLON.PostProcess} originalPostProcess - the custom original color post-process. Must be "reusable". Can be null.
-         * @param {BABYLON.Camera[]} cameras - The array of cameras that the rendering pipeline will be attached to
-         */
-        constructor(name: string, scene: Scene, ratio: number, originalPostProcess?: PostProcess, cameras?: Camera[]);
-        private _createDownSampleX4PostProcess(scene, ratio);
-        private _createBrightPassPostProcess(scene, ratio);
-        private _createGaussianBlurPostProcesses(scene, ratio);
-        private _createTextureAdderPostProcess(scene, ratio);
     }
 }
 
@@ -11044,6 +11222,45 @@ declare module BABYLON {
 }
 
 declare module BABYLON {
+    class StandardRenderingPipeline extends PostProcessRenderPipeline implements IDisposable {
+        originalPostProcess: PostProcess;
+        downSampleX4PostProcess: PostProcess;
+        brightPassPostProcess: PostProcess;
+        gaussianBlurHPostProcesses: PostProcess[];
+        gaussianBlurVPostProcesses: PostProcess[];
+        textureAdderPostProcess: PostProcess;
+        depthOfFieldPostProcess: PostProcess;
+        brightThreshold: number;
+        gaussianCoefficient: number;
+        gaussianMean: number;
+        gaussianStandardDeviation: number;
+        exposure: number;
+        lensTexture: Texture;
+        depthOfFieldDistance: number;
+        private _scene;
+        private _depthRenderer;
+        private _blurEnabled;
+        private _depthOfFieldEnabled;
+        BlurEnabled: boolean;
+        DepthOfFieldEnabled: boolean;
+        /**
+         * @constructor
+         * @param {string} name - The rendering pipeline name
+         * @param {BABYLON.Scene} scene - The scene linked to this pipeline
+         * @param {any} ratio - The size of the postprocesses (0.5 means that your postprocess will have a width = canvas.width 0.5 and a height = canvas.height 0.5)
+         * @param {BABYLON.PostProcess} originalPostProcess - the custom original color post-process. Must be "reusable". Can be null.
+         * @param {BABYLON.Camera[]} cameras - The array of cameras that the rendering pipeline will be attached to
+         */
+        constructor(name: string, scene: Scene, ratio: number, originalPostProcess?: PostProcess, cameras?: Camera[]);
+        private _createDownSampleX4PostProcess(scene, ratio);
+        private _createBrightPassPostProcess(scene, ratio);
+        private _createGaussianBlurPostProcesses(scene, ratio, indice);
+        private _createTextureAdderPostProcess(scene, ratio);
+        private _createDepthOfFieldPostProcess(scene, ratio);
+    }
+}
+
+declare module BABYLON {
     class StereoscopicInterlacePostProcess extends PostProcess {
         private _stepSize;
         private _passedProcess;
@@ -11181,28 +11398,6 @@ declare module BABYLON {
         private _scaleFactor;
         private _lensCenter;
         constructor(name: string, camera: Camera, isRightEye: boolean, vrMetrics: VRCameraMetrics);
-    }
-}
-
-declare module BABYLON {
-    class ReflectionProbe {
-        name: string;
-        private _scene;
-        private _renderTargetTexture;
-        private _projectionMatrix;
-        private _viewMatrix;
-        private _target;
-        private _add;
-        private _attachedMesh;
-        invertYAxis: boolean;
-        position: Vector3;
-        constructor(name: string, size: number, scene: Scene, generateMipMaps?: boolean);
-        refreshRate: number;
-        getScene(): Scene;
-        cubeTexture: RenderTargetTexture;
-        renderList: AbstractMesh[];
-        attachToMesh(mesh: AbstractMesh): void;
-        dispose(): void;
     }
 }
 
@@ -11933,6 +12128,12 @@ declare module BABYLON {
          */
         UVs: Vector2[];
         /**
+         * You may have allocated the PackedRect using over-provisioning (you allocated more than you need in order to prevent frequent deallocations/reallocations) and then using only a part of the PackRect.
+         * This method will return the UVs for this part by given the custom size of what you really use
+         * @param customSize must be less/equal to the allocated size, UV will be compute from this
+         */
+        getUVsForCustomSize(customSize: Size): Vector2[];
+        /**
          * Free this rectangle from the map.
          * Call this method when you no longer need the rectangle to be in the map.
          */
@@ -12313,6 +12514,70 @@ declare module BABYLON {
         static hashCodeFromStream(feeder: (index: number) => number): number;
     }
     /**
+     * This class is used to track a performance counter which is number based.
+     * The user has access to many properties which give statistics of different nature
+     *
+     * The implementer can track two kinds of Performance Counter: time and count
+     * For time you can optionally call fetchNewFrame() to notify the start of a new frame to monitor, then call beginMonitoring() to start and endMonitoring() to record the lapsed time. endMonitoring takes a newFrame parameter for you to specify if the monitored time should be set for a new frame or accumulated to the current frame being monitored.
+     * For count you first have to call fetchNewFrame() to notify the start of a new frame to monitor, then call addCount() how many time required to increment the count value you monitor.
+     */
+    class PerfCounter {
+        /**
+         * Returns the smallest value ever
+         */
+        min: number;
+        /**
+         * Returns the biggest value ever
+         */
+        max: number;
+        /**
+         * Returns the average value since the performance counter is running
+         */
+        average: number;
+        /**
+         * Returns the average value of the last second the counter was monitored
+         */
+        lastSecAverage: number;
+        /**
+         * Returns the current value
+         */
+        current: number;
+        total: number;
+        constructor();
+        /**
+         * Call this method to start monitoring a new frame.
+         * This scenario is typically used when you accumulate monitoring time many times for a single frame, you call this method at the start of the frame, then beginMonitoring to start recording and endMonitoring(false) to accumulated the recorded time to the PerfCounter or addCount() to accumulate a monitored count.
+         */
+        fetchNewFrame(): void;
+        /**
+         * Call this method to monitor a count of something (e.g. mesh drawn in viewport count)
+         * @param newCount the count value to add to the monitored count
+         * @param fetchResult true when it's the last time in the frame you add to the counter and you wish to update the statistics properties (min/max/average), false if you only want to update statistics.
+         */
+        addCount(newCount: number, fetchResult: boolean): void;
+        /**
+         * Start monitoring this performance counter
+         */
+        beginMonitoring(): void;
+        /**
+         * Compute the time lapsed since the previous beginMonitoring() call.
+         * @param newFrame true by default to fetch the result and monitor a new frame, if false the time monitored will be added to the current frame counter
+         */
+        endMonitoring(newFrame?: boolean): void;
+        private _fetchResult();
+        private _startMonitoringTime;
+        private _min;
+        private _max;
+        private _average;
+        private _current;
+        private _totalValueCount;
+        private _totalAccumulated;
+        private _lastSecAverage;
+        private _lastSecAccumulated;
+        private _lastSecTime;
+        private _lastSecValueCount;
+    }
+    /**
      * Use this className as a decorator on a given class definition to add it a name.
      * You can then use the Tools.getClassName(obj) on an instance to retrieve its class name.
      * This method is the only way to get it done in all cases, even if the .js file declaring the class is minified
@@ -12530,7 +12795,7 @@ declare module BABYLON {
         angularSensibilityY: number;
         pinchPrecision: number;
         panningSensibility: number;
-        private _isRightClick;
+        private _isPanClick;
         private _isCtrlPushed;
         pinchInwards: boolean;
         private _pointerInput;
@@ -13112,7 +13377,7 @@ declare module BABYLON {
         private _rectPackingMap;
         private _size;
         private _replacedViewport;
-        constructor(name: string, scene: Scene, size: ISize, samplingMode?: number);
+        constructor(name: string, scene: Scene, size: ISize, samplingMode?: number, useMipMap?: boolean);
         /**
          * Allocate a rectangle of a given size in the texture map
          * @param size the size of the rectangle to allocation

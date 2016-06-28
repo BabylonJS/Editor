@@ -1215,11 +1215,12 @@ declare module BABYLON.EDITOR {
 declare module BABYLON.EDITOR {
     interface IEnabledPostProcesses {
         hdr: boolean;
-        hdr2: boolean;
         attachHDR: boolean;
         ssao: boolean;
         ssaoOnly: boolean;
         attachSSAO: boolean;
+        standard: boolean;
+        attachStandard: boolean;
         vls: boolean;
     }
     class SceneFactory {
@@ -1227,7 +1228,7 @@ declare module BABYLON.EDITOR {
         static DummyNodeID: string;
         static ConfigureObject(object: any, core: EditorCore): void;
         static HDRPipeline: HDRRenderingPipeline;
-        static HDRPipeline2: HDRRenderingPipeline2;
+        static StandardPipeline: StandardRenderingPipeline;
         static SSAOPipeline: SSAORenderingPipeline;
         static VLSPostProcess: VolumetricLightScatteringPostProcess;
         static EnabledPostProcesses: IEnabledPostProcesses;
@@ -1236,7 +1237,7 @@ declare module BABYLON.EDITOR {
         /**
         * Post-Processes
         */
-        static CreateHDRPipeline2(core: EditorCore): HDRRenderingPipeline2;
+        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline;
         static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
         static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
         static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
@@ -1286,59 +1287,6 @@ declare module BABYLON.EDITOR {
         private static _ObjectsStatesConfiguration;
         static SaveObjectStates(scene: Scene): void;
         static RestoreObjectsStates(scene: Scene): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class OneDriveStorage extends Storage {
-        private _editor;
-        private static _ClientID;
-        private static _TOKEN;
-        private static _TOKEN_EXPIRES_IN;
-        private static _TOKEN_EXPIRES_NOW;
-        private static _POPUP;
-        private static _OnAuthentificated();
-        private static _ClosePopup(token, expires, window);
-        private static _Login(core, success);
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IStorageFile {
-        file: OneDrive.IChildResult;
-        name: string;
-    }
-    interface IStorageUploadFile {
-        content: string | Uint8Array;
-        name: string;
-        parentFolder?: OneDrive.IChildResult;
-        type?: string;
-        url?: string;
-    }
-    interface IStorage {
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-    }
-    class Storage implements IStorage {
-        core: EditorCore;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        selectFolder(success: (folder: IStorageFile) => void): void;
     }
 }
 
@@ -1604,6 +1552,59 @@ declare module BABYLON.EDITOR {
         private _fillTextureList();
         private _addTextureToList(texture);
         private _onReadFileCallback(name);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class OneDriveStorage extends Storage {
+        private _editor;
+        private static _ClientID;
+        private static _TOKEN;
+        private static _TOKEN_EXPIRES_IN;
+        private static _TOKEN_EXPIRES_NOW;
+        private static _POPUP;
+        private static _OnAuthentificated();
+        private static _ClosePopup(token, expires, window);
+        private static _Login(core, success);
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IStorageFile {
+        file: OneDrive.IChildResult;
+        name: string;
+    }
+    interface IStorageUploadFile {
+        content: string | Uint8Array;
+        name: string;
+        parentFolder?: OneDrive.IChildResult;
+        type?: string;
+        url?: string;
+    }
+    interface IStorage {
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+    }
+    class Storage implements IStorage {
+        core: EditorCore;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        selectFolder(success: (folder: IStorageFile) => void): void;
     }
 }
 

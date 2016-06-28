@@ -47,27 +47,30 @@ var BABYLON;
                 this._element.remember(object);
                 // Ckeck checkboxes
                 EDITOR.SceneFactory.EnabledPostProcesses.hdr = EDITOR.SceneFactory.HDRPipeline !== null;
-                EDITOR.SceneFactory.EnabledPostProcesses.hdr2 = EDITOR.SceneFactory.HDRPipeline2 !== null;
+                EDITOR.SceneFactory.EnabledPostProcesses.standard = EDITOR.SceneFactory.StandardPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
-                // HDR2
-                var hdr2Folder = this._element.addFolder("HDR2");
-                hdr2Folder.add(EDITOR.SceneFactory.EnabledPostProcesses, "hdr2").name("Enabled HDR 2").onChange(function (result) {
+                // Standard
+                var standardFolder = this._element.addFolder("HDR2");
+                standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange(function (result) {
                     if (result === true)
-                        EDITOR.SceneFactory.CreateHDRPipeline2(_this._editionTool.core);
+                        EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core);
                     else {
-                        EDITOR.SceneFactory.HDRPipeline2.dispose();
-                        EDITOR.SceneFactory.HDRPipeline2 = null;
+                        EDITOR.SceneFactory.StandardPipeline.dispose();
+                        EDITOR.SceneFactory.StandardPipeline = null;
                     }
                     _this.update();
                 });
-                if (EDITOR.SceneFactory.HDRPipeline2) {
-                    hdr2Folder.add(EDITOR.SceneFactory.HDRPipeline2, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                    hdr2Folder.add(EDITOR.SceneFactory.HDRPipeline2, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    hdr2Folder.add(EDITOR.SceneFactory.HDRPipeline2, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                    hdr2Folder.add(EDITOR.SceneFactory.HDRPipeline2, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                    hdr2Folder.add(EDITOR.SceneFactory.HDRPipeline2, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    var debugFolder = hdr2Folder.addFolder("Debug");
-                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline2);
+                if (EDITOR.SceneFactory.StandardPipeline) {
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "BlurEnabled").name("Enable Blur");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
+                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    var debugFolder = standardFolder.addFolder("Debug");
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);
                 }
                 // HDR
                 var hdrFolder = this._element.addFolder("HDR");

@@ -39,7 +39,7 @@
             var object: Scene = this.object = this._editionTool.object;
 
             super.update();
-
+            
             if (!object)
                 return false;
 
@@ -49,32 +49,36 @@
 
             // Ckeck checkboxes
             SceneFactory.EnabledPostProcesses.hdr = SceneFactory.HDRPipeline !== null;
-            SceneFactory.EnabledPostProcesses.hdr2 = SceneFactory.HDRPipeline2 !== null;
+            SceneFactory.EnabledPostProcesses.standard = SceneFactory.StandardPipeline !== null;
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
-            // HDR2
-            var hdr2Folder = this._element.addFolder("HDR2");
-            hdr2Folder.add(SceneFactory.EnabledPostProcesses, "hdr2").name("Enabled HDR 2").onChange((result: any) => {
+            // Standard
+            var standardFolder = this._element.addFolder("HDR2");
+            standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
                 if (result === true)
-                    SceneFactory.CreateHDRPipeline2(this._editionTool.core);
+                    SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core);
                 else {
-                    SceneFactory.HDRPipeline2.dispose();
-                    SceneFactory.HDRPipeline2 = null;
+                    SceneFactory.StandardPipeline.dispose();
+                    SceneFactory.StandardPipeline = null;
                 }
 
                 this.update();
             });
 
-            if (SceneFactory.HDRPipeline2) {
-                hdr2Folder.add(SceneFactory.HDRPipeline2, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                hdr2Folder.add(SceneFactory.HDRPipeline2, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+            if (SceneFactory.StandardPipeline) {
+                standardFolder.add(SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                standardFolder.add(SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
 
-                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                hdr2Folder.add(SceneFactory.HDRPipeline2, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+                standardFolder.add(SceneFactory.StandardPipeline, "BlurEnabled").name("Enable Blur");
+                standardFolder.add(SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
+                standardFolder.add(SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
+                standardFolder.add(SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
 
-                var debugFolder = hdr2Folder.addFolder("Debug");
-                this._setupDebugPipeline(debugFolder, SceneFactory.HDRPipeline2);
+                standardFolder.add(SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
+                standardFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+
+                var debugFolder = standardFolder.addFolder("Debug");
+                this._setupDebugPipeline(debugFolder, SceneFactory.StandardPipeline);
             }
 
             // HDR
