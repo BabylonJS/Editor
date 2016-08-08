@@ -139,17 +139,19 @@
                 for (var i = 0; i < objects.length; i++) {
                     var name = objects[i].name;
                     for (var j = 0; j < SceneFactory.NodesToStart.length; j++) {
-                        if ((<any>SceneFactory.NodesToStart[j]).name === name) {
-                            objects[i].autoAnimate = true;
-                            objects[i].autoAnimateFrom = 0;
-                            objects[i].autoAnimateTo = maxFrame;
-                            objects[i].autoAnimateLoop = false;
-                            objects[i].autoAnimateSpeed = SceneFactory.AnimationSpeed;
-                        }
+                        if (!(<any>SceneFactory.NodesToStart[j]).name === name)
+                            continue;
+                        
+                        objects[i].autoAnimate = true;
+                        objects[i].autoAnimateFrom = 0;
+                        objects[i].autoAnimateTo = maxFrame;
+                        objects[i].autoAnimateLoop = false;
+                        objects[i].autoAnimateSpeed = SceneFactory.AnimationSpeed;
                     }
                 }
             };
 
+            // Scene autoplay
             if (SceneFactory.NodesToStart.some((value: IAnimatable, index: number, array: IAnimatable[]) => { return value instanceof Scene })) {
                 obj.autoAnimate = true;
                 obj.autoAnimateFrom = 0;
@@ -158,6 +160,16 @@
                 obj.autoAnimateSpeed = SceneFactory.AnimationSpeed;
             }
 
+            // Sounds autoplay
+            for (var i = 0; i < obj.sounds.length; i++) {
+                var sound = obj.sounds[i];
+
+                if (SceneFactory.NodesToStart.some((value: any, index: number, array: any[]) => { return value instanceof Sound && value.name == sound.name })) {
+                    sound.autoplay = true;
+                }
+            }
+            
+            // Nodes autoplay
             setAutoPlay(obj.cameras);
             setAutoPlay(obj.lights);
             setAutoPlay(obj.meshes);

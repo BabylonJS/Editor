@@ -8837,16 +8837,17 @@ var BABYLON;
                     for (var i = 0; i < objects.length; i++) {
                         var name = objects[i].name;
                         for (var j = 0; j < EDITOR.SceneFactory.NodesToStart.length; j++) {
-                            if (EDITOR.SceneFactory.NodesToStart[j].name === name) {
-                                objects[i].autoAnimate = true;
-                                objects[i].autoAnimateFrom = 0;
-                                objects[i].autoAnimateTo = maxFrame;
-                                objects[i].autoAnimateLoop = false;
-                                objects[i].autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
-                            }
+                            if (!EDITOR.SceneFactory.NodesToStart[j].name === name)
+                                continue;
+                            objects[i].autoAnimate = true;
+                            objects[i].autoAnimateFrom = 0;
+                            objects[i].autoAnimateTo = maxFrame;
+                            objects[i].autoAnimateLoop = false;
+                            objects[i].autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
                         }
                     }
                 };
+                // Scene autoplay
                 if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Scene; })) {
                     obj.autoAnimate = true;
                     obj.autoAnimateFrom = 0;
@@ -8854,6 +8855,14 @@ var BABYLON;
                     obj.autoAnimateLoop = false;
                     obj.autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
                 }
+                // Sounds autoplay
+                for (var i = 0; i < obj.sounds.length; i++) {
+                    var sound = obj.sounds[i];
+                    if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Sound && value.name == sound.name; })) {
+                        sound.autoplay = true;
+                    }
+                }
+                // Nodes autoplay
                 setAutoPlay(obj.cameras);
                 setAutoPlay(obj.lights);
                 setAutoPlay(obj.meshes);
