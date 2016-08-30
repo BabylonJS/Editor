@@ -61,14 +61,26 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.StandardPipeline) {
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "BlurEnabled").name("Enable Blur");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    var highLightFolder = standardFolder.addFolder("Highlighting");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+                    this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
+                    highLightFolder.open();
+                    var lensFolder = standardFolder.addFolder("Lens Flare");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(20).step(0.01).name("Strength");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(100).step(0.1).name("Distortion Strength");
+                    this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
+                    lensFolder.open();
+                    var dofFolder = standardFolder.addFolder("Depth Of Field");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    dofFolder.open();
                     var debugFolder = standardFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);
                 }
@@ -128,17 +140,6 @@ var BABYLON;
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.000001).name("Fall Off");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
-                    /*
-                    var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
-    
-                    var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
-                    */
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }

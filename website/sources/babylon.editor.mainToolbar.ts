@@ -111,10 +111,12 @@
 
                     else if (selected.selected === this._projectSaveLocal) {
                         var electronExporter = new ElectronLocalExporter(this.core);
+                        FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                     }
                     else if (selected.selected === this._projectConnectStorage) {
                         var storageExporter = new StorageExporter(this.core);
                         storageExporter.export();
+                        FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                     }
                     else if (selected.selected === this._projectTemplateStorage) {
                         var storageExporter = new StorageExporter(this.core);

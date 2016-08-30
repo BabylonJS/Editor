@@ -92,10 +92,12 @@ var BABYLON;
                         }
                         else if (selected.selected === this._projectSaveLocal) {
                             var electronExporter = new EDITOR.ElectronLocalExporter(this.core);
+                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                         }
                         else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
                             storageExporter.export();
+                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                         }
                         else if (selected.selected === this._projectTemplateStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);

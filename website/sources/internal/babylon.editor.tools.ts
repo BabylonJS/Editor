@@ -16,21 +16,6 @@
         }
 
         /**
-        * Converts a base64 string to array buffer
-        * Largely used to convert images, converted into base64 string
-        */
-        public static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array {
-            var binString = window.atob(base64String.split(",")[1]);
-            var len = binString.length;
-            var array = new Uint8Array(len);
-
-            for (var i = 0; i < len; i++)
-                array[i] = binString.charCodeAt(i);
-
-            return array;
-        }
-
-        /**
         * Opens a window popup
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
@@ -216,6 +201,43 @@
             }
 
             return null;
+        }
+
+        /**
+        * Converts a string to an array buffer
+        */
+        public static ConvertStringToArray(str: string): Uint8Array {
+            var len = str.length;
+            var array = new Uint8Array(len);
+
+            for (var i = 0; i < len; i++)
+                array[i] = str.charCodeAt(i);
+
+            return array;
+        }
+
+        /**
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
+        */
+        public static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array {
+            var binString = window.atob(base64String.split(",")[1]);
+
+            return Tools.ConvertStringToArray(binString);
+        }
+
+        /**
+        * Creates a new file object
+        */
+        public static CreateFile(array: Uint8Array, filename: string): File {
+            if (array === null)
+                return null;
+
+            var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
+                type: Tools.GetFileType(Tools.GetFileExtension(filename))
+            });
+
+            return file;
         }
     }
 }

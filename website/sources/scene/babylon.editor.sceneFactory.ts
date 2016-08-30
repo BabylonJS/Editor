@@ -73,7 +73,9 @@
             var cameras: Camera[] = core.currentScene.cameras;
 
             var standard = new StandardRenderingPipeline("standard", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-            standard.lensTexture = new Texture("website/textures/lensdirt.jpg", core.currentScene);
+            standard.lensTexture = standard.lensFlareDirtTexture = new Texture("website/textures/lensdirt.jpg", core.currentScene);
+            standard.lensStarTexture = new Texture("website/textures/lensstar.png", core.currentScene);
+            standard.lensColorTexture = new Texture("website/textures/lenscolor.png", core.currentScene);
 
             this.StandardPipeline = standard;
 

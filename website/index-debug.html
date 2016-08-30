@@ -156,7 +156,7 @@
             new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
 
             // Environment Texture
-            var hdrTexture = new BABYLON.HDRCubeTexture("website/Tests/textures/room.hdr", scene, 512);
+            var hdrTexture = new BABYLON.HDRCubeTexture("website/Tests/textures/environment.babylon.hdr", scene);
 
             // Skybox
             var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
@@ -272,6 +272,5 @@
         core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);
     </script>
-
 </body>
 </html>

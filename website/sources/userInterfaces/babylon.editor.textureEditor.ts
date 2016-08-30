@@ -150,7 +150,7 @@
                 if (this._currentRenderTarget)
                     this._restorRenderTarget();
                 
-                var selectedTexture = this._core.currentScene.textures[selected[0]];
+                var selectedTexture: BaseTexture = this._core.currentScene.textures[selected[0]];
 
                 if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                     return;
@@ -181,7 +181,7 @@
                         if ((<any>selectedTexture)._buffer) {
                             serializationObject.base64String = (<any>selectedTexture)._buffer;
                         }
-                        else if (FilesInput.FilesTextures[selectedTexture.name]) {
+                        else if (FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                             serializationObject.name = (<Texture>selectedTexture).url;
                         }
 

@@ -88,8 +88,7 @@
         * @param caller: gui element calling the event
         * @param eventType: the gui event type
         */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object)
-        {
+        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object) {
             super(data);
 
             this.caller = caller;
@@ -106,7 +105,7 @@
         public sceneEvent: SceneEvent = null;
         public guiEvent: GUIEvent = null;
 
-        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void {
+        public static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void {
             var ev = new Event();
 
             ev.eventType = EventType.SCENE_EVENT;
@@ -115,7 +114,7 @@
             core.sendEvent(ev);
         }
 
-        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void {
+        public static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void {
             var ev = new Event();
 
             ev.eventType = EventType.GUI_EVENT;

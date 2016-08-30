@@ -151,18 +151,6 @@ var BABYLON;
                 return BABYLON.Vector3.FromArray([parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])]);
             };
             /**
-            * Converts a base64 string to array buffer
-            * Largely used to convert images, converted into base64 string
-            */
-            Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
-                var binString = window.atob(base64String.split(",")[1]);
-                var len = binString.length;
-                var array = new Uint8Array(len);
-                for (var i = 0; i < len; i++)
-                    array[i] = binString.charCodeAt(i);
-                return array;
-            };
-            /**
             * Opens a window popup
             */
             Tools.OpenWindowPopup = function (url, width, height) {
@@ -321,6 +309,35 @@ var BABYLON;
                         return scene.particleSystems[i];
                 }
                 return null;
+            };
+            /**
+            * Converts a string to an array buffer
+            */
+            Tools.ConvertStringToArray = function (str) {
+                var len = str.length;
+                var array = new Uint8Array(len);
+                for (var i = 0; i < len; i++)
+                    array[i] = str.charCodeAt(i);
+                return array;
+            };
+            /**
+            * Converts a base64 string to array buffer
+            * Largely used to convert images, converted into base64 string
+            */
+            Tools.ConvertBase64StringToArrayBuffer = function (base64String) {
+                var binString = window.atob(base64String.split(",")[1]);
+                return Tools.ConvertStringToArray(binString);
+            };
+            /**
+            * Creates a new file object
+            */
+            Tools.CreateFile = function (array, filename) {
+                if (array === null)
+                    return null;
+                var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
+                    type: Tools.GetFileType(Tools.GetFileExtension(filename))
+                });
+                return file;
             };
             return Tools;
         }());
@@ -2790,14 +2807,26 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.StandardPipeline) {
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "BlurEnabled").name("Enable Blur");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
-                    standardFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    var highLightFolder = standardFolder.addFolder("Highlighting");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+                    this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
+                    highLightFolder.open();
+                    var lensFolder = standardFolder.addFolder("Lens Flare");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(20).step(0.01).name("Strength");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(100).step(0.1).name("Distortion Strength");
+                    this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
+                    lensFolder.open();
+                    var dofFolder = standardFolder.addFolder("Depth Of Field");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    dofFolder.open();
                     var debugFolder = standardFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);
                 }
@@ -2857,17 +2886,6 @@ var BABYLON;
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "fallOff").min(0).step(0.000001).name("Fall Off");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
-                    /*
-                    var hBlurFolder = ssaoFolder.addFolder("Horizontal Blur");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    hBlurFolder.add(SceneFactory.SSAOPipeline.getBlurHPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
-    
-                    var vBlurFolder = ssaoFolder.addFolder("Vertical Blur");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess(), "blurWidth").min(0).max(8).step(0.01).name("Width");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "x").min(0).max(8).step(0.01).name("x");
-                    vBlurFolder.add(SceneFactory.SSAOPipeline.getBlurVPostProcess().direction, "y").min(0).max(8).step(0.01).name("y");
-                    */
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
@@ -4706,10 +4724,12 @@ var BABYLON;
                         }
                         else if (selected.selected === this._projectSaveLocal) {
                             var electronExporter = new EDITOR.ElectronLocalExporter(this.core);
+                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                         }
                         else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
                             storageExporter.export();
+                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
                         }
                         else if (selected.selected === this._projectTemplateStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
@@ -5898,7 +5918,9 @@ var BABYLON;
                 }
                 var cameras = core.currentScene.cameras;
                 var standard = new BABYLON.StandardRenderingPipeline("standard", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-                standard.lensTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
+                standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
+                standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
+                standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
                 this.StandardPipeline = standard;
                 return standard;
             };
@@ -9582,7 +9604,7 @@ var BABYLON;
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
-                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                                 serializationObject.name = selectedTexture.url;
                             }
                             if (!selectedTexture.isCube)

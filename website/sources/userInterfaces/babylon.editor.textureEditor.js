@@ -132,7 +132,7 @@ var BABYLON;
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
-                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name]) {
+                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                                 serializationObject.name = selectedTexture.url;
                             }
                             if (!selectedTexture.isCube)
