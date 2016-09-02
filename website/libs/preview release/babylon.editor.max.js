@@ -176,7 +176,7 @@ var BABYLON;
                 if (isOpenScene === void 0) { isOpenScene = false; }
                 if (this.CheckIfElectron()) {
                     var dialog = require("electron").remote.dialog;
-                    dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
+                    dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] }, function (filenames) {
                         EDITOR.ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, function (files) {
                             onChange({ target: { files: files } });
                         });
@@ -188,6 +188,14 @@ var BABYLON;
                         onChange(data);
                     }).click();
                 }
+            };
+            /**
+            * Normlalized the given URI
+            */
+            Tools.NormalizeUri = function (uri) {
+                while (uri.indexOf("\\") !== -1)
+                    uri = uri.replace("\\", "/");
+                return uri;
             };
             /**
             * Returns the file extension
@@ -554,10 +562,12 @@ var BABYLON;
                 GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
                     w2confirm(body, title, null)
                         .yes(function () {
-                        yesCallback();
+                        if (yesCallback)
+                            yesCallback();
                     })
                         .no(function () {
-                        noCallback();
+                        if (noCallback)
+                            noCallback();
                     });
                 };
                 return GUIDialog;
@@ -4708,11 +4718,14 @@ var BABYLON;
                             }, true);
                         }
                         else if (selected.selected === this._mainProjectReload) {
-                            //this.core.editor.filesInput.reload();
-                            this.core.editor.reloadScene(true);
+                            EDITOR.GUI.GUIDialog.CreateDialog("Are you sure to reload the project ?", "Reload the project", function () {
+                                _this.core.editor.reloadScene(true);
+                            });
                         }
                         else if (selected.selected === this._mainProjectNew) {
-                            this._editor.createNewProject();
+                            EDITOR.GUI.GUIDialog.CreateDialog("Are you sure to create a new project ?", "Create a new project", function () {
+                                _this._editor.createNewProject();
+                            });
                         }
                         else if (selected.selected === this._projectExportCode) {
                             var exporter = new EDITOR.Exporter(this.core);
@@ -9966,7 +9979,7 @@ var BABYLON;
                 this._createCubeID = "CREATE-CUBE";
                 this._createSphereID = "CREATE-SPHERE";
                 this._createGroundID = "CREATE-GROUND";
-                this._createHeightMap = "CREATE-HEIGHTMAP";
+                this._createPlane = "CREATE-PLANE";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
@@ -9976,6 +9989,7 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
                 toolbar.addBreak(menu); // Or not
                 toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-mesh");
+                toolbar.createMenuItem(menu, "button", this._createPlane, "Add Plane", "icon-mesh");
                 // Etc.
             }
             /**
@@ -9993,6 +10007,9 @@ var BABYLON;
                         break;
                     case this._createGroundID:
                         EDITOR.SceneFactory.AddGroundMesh(this._core);
+                        break;
+                    case this._createPlane:
+                        EDITOR.SceneFactory.AddPlaneMesh(this._core);
                         break;
                     default: break;
                 }
@@ -10137,8 +10154,6 @@ var BABYLON;
                     for (var i = 0; i < data.target.files.length; i++) {
                         var file = data.target.files[i];
                         switch (file.type) {
-                            case "image/targa":
-                            case "image/vnd.ms-dds":
                             case "audio/wav":
                             case "audio/x-wav":
                             case "audio/mp3":
@@ -10190,7 +10205,7 @@ var BABYLON;
                         if (!data)
                             return;
                         // Create file
-                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(EDITOR.Tools.NormalizeUri(filename)), {
                             type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
                         });
                         files.push(file);

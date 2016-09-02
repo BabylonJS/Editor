@@ -44,7 +44,7 @@ var BABYLON;
                 if (isOpenScene === void 0) { isOpenScene = false; }
                 if (this.CheckIfElectron()) {
                     var dialog = require("electron").remote.dialog;
-                    dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, function (filenames) {
+                    dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] }, function (filenames) {
                         EDITOR.ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, function (files) {
                             onChange({ target: { files: files } });
                         });
@@ -56,6 +56,14 @@ var BABYLON;
                         onChange(data);
                     }).click();
                 }
+            };
+            /**
+            * Normlalized the given URI
+            */
+            Tools.NormalizeUri = function (uri) {
+                while (uri.indexOf("\\") !== -1)
+                    uri = uri.replace("\\", "/");
+                return uri;
             };
             /**
             * Returns the file extension

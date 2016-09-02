@@ -76,8 +76,6 @@ var BABYLON;
                     for (var i = 0; i < data.target.files.length; i++) {
                         var file = data.target.files[i];
                         switch (file.type) {
-                            case "image/targa":
-                            case "image/vnd.ms-dds":
                             case "audio/wav":
                             case "audio/x-wav":
                             case "audio/mp3":

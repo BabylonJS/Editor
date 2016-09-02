@@ -20,7 +20,7 @@ var BABYLON;
                         if (!data)
                             return;
                         // Create file
-                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                        var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(EDITOR.Tools.NormalizeUri(filename)), {
                             type: EDITOR.Tools.GetFileType(EDITOR.Tools.GetFileExtension(filename))
                         });
                         files.push(file);

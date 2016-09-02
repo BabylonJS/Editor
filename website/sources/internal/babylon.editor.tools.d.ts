@@ -18,6 +18,10 @@ declare module BABYLON.EDITOR {
         */
         static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
         /**
+        * Normlalized the given URI
+        */
+        static NormalizeUri(uri: string): string;
+        /**
         * Returns the file extension
         */
         static GetFileExtension(filename: string): string;

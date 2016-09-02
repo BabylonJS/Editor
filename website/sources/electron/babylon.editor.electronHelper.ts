@@ -23,7 +23,7 @@
                         return;
                         
                     // Create file
-                    var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(filename), {
+                    var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(Tools.NormalizeUri(filename)), {
                         type: Tools.GetFileType(Tools.GetFileExtension(filename))
                     });
 

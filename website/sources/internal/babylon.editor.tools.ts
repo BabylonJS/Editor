@@ -46,7 +46,7 @@
             if (this.CheckIfElectron()) {
                 var dialog = require("electron").remote.dialog;
 
-                dialog.showOpenDialog({ properties: ["openFile", "openDirectory", "multiSelections"] }, (filenames: string[]) => {
+                dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] }, (filenames: string[]) => {
                     ElectronHelper.CreateFilesFromFileNames(filenames, isOpenScene, (files: File[]) => {
                         onChange({ target: { files: files } });
                     });
@@ -59,6 +59,16 @@
                     onChange(data);
                 }).click();
             }
+        }
+
+        /**
+        * Normlalized the given URI
+        */
+        public static NormalizeUri(uri: string): string {
+            while (uri.indexOf("\\") !== -1)
+                uri = uri.replace("\\", "/");
+
+            return uri;
         }
 
         /**

@@ -13,7 +13,7 @@ var BABYLON;
                 this._createCubeID = "CREATE-CUBE";
                 this._createSphereID = "CREATE-SPHERE";
                 this._createGroundID = "CREATE-GROUND";
-                this._createHeightMap = "CREATE-HEIGHTMAP";
+                this._createPlane = "CREATE-PLANE";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
@@ -23,6 +23,7 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
                 toolbar.addBreak(menu); // Or not
                 toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-mesh");
+                toolbar.createMenuItem(menu, "button", this._createPlane, "Add Plane", "icon-mesh");
                 // Etc.
             }
             /**
@@ -40,6 +41,9 @@ var BABYLON;
                         break;
                     case this._createGroundID:
                         EDITOR.SceneFactory.AddGroundMesh(this._core);
+                        break;
+                    case this._createPlane:
+                        EDITOR.SceneFactory.AddPlaneMesh(this._core);
                         break;
                     default: break;
                 }
