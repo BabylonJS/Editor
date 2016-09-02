@@ -76,11 +76,14 @@ var BABYLON;
                             }, true);
                         }
                         else if (selected.selected === this._mainProjectReload) {
-                            //this.core.editor.filesInput.reload();
-                            this.core.editor.reloadScene(true);
+                            EDITOR.GUI.GUIDialog.CreateDialog("Are you sure to reload the project ?", "Reload the project", function () {
+                                _this.core.editor.reloadScene(true);
+                            });
                         }
                         else if (selected.selected === this._mainProjectNew) {
-                            this._editor.createNewProject();
+                            EDITOR.GUI.GUIDialog.CreateDialog("Are you sure to create a new project ?", "Create a new project", function () {
+                                _this._editor.createNewProject();
+                            });
                         }
                         else if (selected.selected === this._projectExportCode) {
                             var exporter = new EDITOR.Exporter(this.core);

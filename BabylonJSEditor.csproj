@@ -37,6 +37,7 @@
     <Content Include="website\css\images\directional_light.png" />
     <Content Include="website\css\images\edit.png" />
     <Content Include="website\css\images\effects.png" />
+    <Content Include="website\css\images\electron_icon.png" />
     <Content Include="website\css\images\error.png" />
     <Content Include="website\css\images\export.png" />
     <Content Include="website\css\images\focus.png" />
@@ -47,7 +48,10 @@
     <Content Include="website\css\images\onedrive.png" />
     <Content Include="website\css\images\open.png" />
     <Content Include="website\css\images\particles.png" />
+    <Content Include="website\css\images\photoshop_icon_connect.png" />
+    <Content Include="website\css\images\photoshop_icon_disconnect.png" />
     <Content Include="website\css\images\play_game.png" />
+    <Content Include="website\css\images\play_sound.png" />
     <Content Include="website\css\images\pointcloud.png" />
     <Content Include="website\css\images\position.png" />
     <Content Include="website\css\images\primitives.png" />
@@ -59,6 +63,7 @@
     <Content Include="website\css\images\shaders.png" />
     <Content Include="website\css\images\sound.png" />
     <Content Include="website\css\images\sphere.png" />
+    <Content Include="website\css\images\stop_sound.png" />
     <Content Include="website\css\images\water.png" />
     <Content Include="website\css\images\wireframe.png" />
     <Content Include="website\css\w2ui-1.4.1.css" />
@@ -102,6 +107,23 @@
     <Content Include="website\index-debug.html" />
     <Content Include="website\index.html" />
     <Content Include="web.config" />
+    <Content Include="website\website\babylon.editor.defaultScene.js" />
+    <Content Include="website\website\Tests\CommonTests.js" />
+    <Content Include="website\website\Tests\textures\albedo.png" />
+    <Content Include="website\website\Tests\textures\reflectivity.png" />
+    <Content Include="website\website\Tests\textures\wood.jpg" />
+    <Content Include="website\website\textures\ground.jpg" />
+    <Content Include="website\website\textures\lens2.png" />
+    <Content Include="website\website\textures\lens3.png" />
+    <Content Include="website\website\textures\lens4.png" />
+    <Content Include="website\website\textures\lens5.png" />
+    <Content Include="website\website\textures\lens6.png" />
+    <Content Include="website\website\textures\lenscolor.png" />
+    <Content Include="website\website\textures\lensdirt.jpg" />
+    <Content Include="website\website\textures\lensflaredirt.png" />
+    <Content Include="website\website\textures\lensstar.png" />
+    <Content Include="website\website\textures\normal.png" />
+    <Content Include="website\website\textures\waterbump.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="website\templates\Template.xml" />
@@ -132,6 +154,8 @@
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
+    <Content Include="website\website\Tests\textures\environment.babylon.hdr" />
+    <Content Include="website\website\Tests\textures\room.hdr" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -222,6 +246,8 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerPlugin.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.tokenizer.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneManager.ts" />

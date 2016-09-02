@@ -362,6 +362,58 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class ElectronHelper {
+        /**
+        * Scene file
+        */
+        static ReloadSceneOnFileChanged: boolean;
+        static SceneFilename: string;
+        /**
+        * Creates "File" objects from filenames
+        */
+        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
+        /**
+        * Watchs the specified file
+        */
+        static WatchFile(filename: string, callback: (file: File) => void): void;
+        /**
+        * Creates a save dialog
+        */
+        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _toolbar;
+        private _connectPhotoshop;
+        private _disconnectPhotoshop;
+        private _watchSceneFile;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronLocalExporter {
+        private _core;
+        private static _LocalFilename;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        writeProject(filename: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
     class AbstractDatTool extends AbstractTool {
         protected _element: GUI.GUIEditForm;
         /**
@@ -584,58 +636,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronHelper {
-        /**
-        * Scene file
-        */
-        static ReloadSceneOnFileChanged: boolean;
-        static SceneFilename: string;
-        /**
-        * Creates "File" objects from filenames
-        */
-        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
-        /**
-        * Watchs the specified file
-        */
-        static WatchFile(filename: string, callback: (file: File) => void): void;
-        /**
-        * Creates a save dialog
-        */
-        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _toolbar;
-        private _connectPhotoshop;
-        private _disconnectPhotoshop;
-        private _watchSceneFile;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronLocalExporter {
-        private _core;
-        private static _LocalFilename;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore);
-        writeProject(filename: string): void;
     }
 }
 
@@ -1621,6 +1621,27 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class ElectronPhotoshopPlugin implements IEventReceiver {
+        private _core;
+        private _server;
+        private _client;
+        private _texture;
+        private _textures;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        disconnect(): boolean;
+        connect(): boolean;
+        private static _Instance;
+        static Connect(core: EditorCore): void;
+        static Disconnect(): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
     class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
@@ -1766,22 +1787,98 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class ElectronPhotoshopPlugin implements IEventReceiver {
+    class ScenarioMakerMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
         private _core;
-        private _server;
-        private _client;
-        private _texture;
-        private _textures;
+        private _openScenarioMaker;
         /**
         * Constructor
-        * @param core: the editor core
+        * @param mainToolbar: the main toolbar instance
         */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        disconnect(): boolean;
-        connect(): boolean;
-        private static _Instance;
-        static Connect(core: EditorCore): void;
-        static Disconnect(): void;
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        /**
+        * Parses the babylon file
+        */
+        private _parseFile(data);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    /**
+    * Tokenizer. Used to parse babylon.js definition file
+    */
+    enum ETokenType {
+        IDENTIFIER = 1,
+        NUMBER = 2,
+        BRACKET_OPEN = 3,
+        BRACKET_CLOSE = 4,
+        UNKNOWN = 98,
+        END_OF_INPUT = 99,
+    }
+    enum EAccessorType {
+        PUBLIC = 1,
+        PRIVATE = 2,
+    }
+    /**
+    * Tokenizer interfaces
+    */
+    interface IModule {
+        name: string;
+        classes: IClass[];
+    }
+    interface IClass {
+        functions: IFunction[];
+        properties: IProperty[];
+    }
+    interface IProperty {
+        isStatic: boolean;
+        type: EAccessorType;
+        name: string;
+    }
+    interface IFunction extends IProperty {
+        returnType: string;
+        parameters: IParameter[];
+    }
+    interface IParameter {
+        name: string;
+        type: string;
+        defaultValue?: string;
+    }
+    /**
+    * Tokenizer class
+    */
+    class Tokenizer {
+        /******************************************************************************************
+        * Tokenizer
+        ******************************************************************************************/
+        private _toParse;
+        private _pos;
+        private _maxPos;
+        currentToken: ETokenType;
+        currentString: string;
+        isLetterOrDigitPattern: RegExp;
+        isNumberPattern: RegExp;
+        currentIdentifier: string;
+        currentNumber: string;
+        currentValue: number;
+        constructor(toParse: string);
+        getNextToken(): ETokenType;
+        getNextIdentifier(): string;
+        peek(): string;
+        read(): string;
+        forward(): void;
+        isEnd(): boolean;
+        /******************************************************************************************
+        * Tokenize
+        ******************************************************************************************/
+        modules: IModule[];
+        parseString(): void;
+        private _parseModule();
+        private _parseClass(module);
+        /******************************************************************************************
+        * Utils
+        ******************************************************************************************/
+        private _getModule(name);
     }
 }

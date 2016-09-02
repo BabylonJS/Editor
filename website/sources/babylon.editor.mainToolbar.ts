@@ -92,12 +92,15 @@
                         }, true);
                     }
                     else if (selected.selected === this._mainProjectReload) {
-                        //this.core.editor.filesInput.reload();
-                        this.core.editor.reloadScene(true);
+                        GUI.GUIDialog.CreateDialog("Are you sure to reload the project ?", "Reload the project", () => {
+                            this.core.editor.reloadScene(true);
+                        });
                     }
                     
                     else if (selected.selected === this._mainProjectNew) {
-                        this._editor.createNewProject();
+                        GUI.GUIDialog.CreateDialog("Are you sure to create a new project ?", "Create a new project", () => {
+                            this._editor.createNewProject();
+                        });
                     }
 
                     else if (selected.selected === this._projectExportCode) {

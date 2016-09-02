@@ -39,10 +39,12 @@ var BABYLON;
                 GUIDialog.CreateDialog = function (body, title, yesCallback, noCallback) {
                     w2confirm(body, title, null)
                         .yes(function () {
-                        yesCallback();
+                        if (yesCallback)
+                            yesCallback();
                     })
                         .no(function () {
-                        noCallback();
+                        if (noCallback)
+                            noCallback();
                     });
                 };
                 return GUIDialog;

@@ -37,10 +37,12 @@
         public static CreateDialog(body: string, title?: string, yesCallback?: () => void, noCallback?: () => void): void {
             w2confirm(body, title, null)
                 .yes(() => {
-                    yesCallback();
+                    if (yesCallback)
+                        yesCallback();
                 })
                 .no(() => {
-                    noCallback();
+                    if (noCallback)
+                        noCallback();
                 });
         }
     }
