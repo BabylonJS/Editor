@@ -41,3 +41,4 @@ var BABYLON;
         EDITOR.PluginManager.RegisterMainToolbarPlugin(ScenarioMakerMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.scenarioMakerPlugin.js.map

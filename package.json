@@ -3,7 +3,9 @@
   "version": "0.8.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "electron/main.js",
-  "repository": { "url": "https://github.com/BabylonJS/Editor/" },
+  "repository": {
+    "url": "https://github.com/BabylonJS/Editor/"
+  },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",
   "devDependencies": {
@@ -23,8 +25,10 @@
     "gulp-clean-ts-extends": "~0.1.1",
     "gulp-webserver": "^0.9.1",
     "yargs": "^4.7.1",
-
     "electron-prebuilt": "^1.2.0",
     "electron-packager": "^7.0.3"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.5.3"
   }
 }

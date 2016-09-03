@@ -61,8 +61,9 @@
 
         public currentToken: ETokenType;
         public currentString: string;
+        public isLetterPattern: RegExp = /^[a-zA-Z]+$/;
         public isLetterOrDigitPattern: RegExp = /^[a-zA-Z0-9]+$/;
-        public isNumberPattern: RegExp = /^[0-9]+$/;
+        public isNumberPattern: RegExp = /^[0-9.0-9]+$/;
         
         public currentIdentifier: string;
         public currentNumber: string;
@@ -86,7 +87,7 @@
             }
 
             // Token type
-            if (this.currentString === "_" || this.isLetterOrDigitPattern.test(this.currentString)) {
+            if (this.currentString === "_" || this.isLetterPattern.test(this.currentString)) {
                 this.currentToken = ETokenType.IDENTIFIER;
                 this.currentIdentifier = this.currentString;
                 while (!this.isEnd() && (this.isLetterOrDigitPattern.test(this.currentString = this.peek()) || this.currentString === "_")) {
@@ -100,7 +101,7 @@
             else if (this.isNumberPattern.test(this.currentString)) {
                 this.currentToken = ETokenType.NUMBER;
                 this.currentNumber = this.currentString;
-                while (!this.isEnd() && this.isNumberPattern.test(this.currentString = this.peek())) {
+                while (!this.isEnd() && (this.isNumberPattern.test(this.currentString = this.peek()) || this.currentString === ".")) {
                     this.currentNumber += this.currentString;
                     this.forward();
                 }
@@ -173,9 +174,17 @@
         private _parseClass(module: IModule): void {
             var bracketCount = 1;
 
+            var exportClass = false;
+            var className = "";
+
             while (!this.isEnd() && this.getNextToken()) {
                 if (this.currentToken === ETokenType.IDENTIFIER) {
-                    console.log(this.currentIdentifier);
+                    if (this.currentIdentifier === "export") {
+                        exportClass = true;
+                    }
+                    else if (this.currentIdentifier === "class") {
+                        
+                    }
                 }
                 else if (this.currentToken === ETokenType.NUMBER) {
                     console.log(this.currentNumber);

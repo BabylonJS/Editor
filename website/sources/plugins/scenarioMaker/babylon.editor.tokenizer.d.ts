@@ -51,6 +51,7 @@ declare module BABYLON.EDITOR {
         private _maxPos;
         currentToken: ETokenType;
         currentString: string;
+        isLetterPattern: RegExp;
         isLetterOrDigitPattern: RegExp;
         isNumberPattern: RegExp;
         currentIdentifier: string;

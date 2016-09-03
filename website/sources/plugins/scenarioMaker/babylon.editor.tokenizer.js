@@ -25,8 +25,9 @@ var BABYLON;
         var Tokenizer = (function () {
             function Tokenizer(toParse) {
                 this._pos = 0;
+                this.isLetterPattern = /^[a-zA-Z]+$/;
                 this.isLetterOrDigitPattern = /^[a-zA-Z0-9]+$/;
-                this.isNumberPattern = /^[0-9]+$/;
+                this.isNumberPattern = /^[0-9.0-9]+$/;
                 this.currentValue = null;
                 /******************************************************************************************
                 * Tokenize
@@ -45,7 +46,7 @@ var BABYLON;
                     continue;
                 }
                 // Token type
-                if (this.currentString === "_" || this.isLetterOrDigitPattern.test(this.currentString)) {
+                if (this.currentString === "_" || this.isLetterPattern.test(this.currentString)) {
                     this.currentToken = ETokenType.IDENTIFIER;
                     this.currentIdentifier = this.currentString;
                     while (!this.isEnd() && (this.isLetterOrDigitPattern.test(this.currentString = this.peek()) || this.currentString === "_")) {
@@ -59,7 +60,7 @@ var BABYLON;
                 else if (this.isNumberPattern.test(this.currentString)) {
                     this.currentToken = ETokenType.NUMBER;
                     this.currentNumber = this.currentString;
-                    while (!this.isEnd() && this.isNumberPattern.test(this.currentString = this.peek())) {
+                    while (!this.isEnd() && (this.isNumberPattern.test(this.currentString = this.peek()) || this.currentString === ".")) {
                         this.currentNumber += this.currentString;
                         this.forward();
                     }
@@ -111,9 +112,15 @@ var BABYLON;
             };
             Tokenizer.prototype._parseClass = function (module) {
                 var bracketCount = 1;
+                var exportClass = false;
+                var className = "";
                 while (!this.isEnd() && this.getNextToken()) {
                     if (this.currentToken === ETokenType.IDENTIFIER) {
-                        console.log(this.currentIdentifier);
+                        if (this.currentIdentifier === "export") {
+                            exportClass = true;
+                        }
+                        else if (this.currentIdentifier === "class") {
+                        }
                     }
                     else if (this.currentToken === ETokenType.NUMBER) {
                         console.log(this.currentNumber);
@@ -145,3 +152,4 @@ var BABYLON;
         EDITOR.Tokenizer = Tokenizer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.tokenizer.js.map
