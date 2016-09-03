@@ -19,6 +19,11 @@ var BABYLON;
             ETokenType[ETokenType["COMMA"] = 11] = "COMMA";
             ETokenType[ETokenType["STRING"] = 12] = "STRING";
             ETokenType[ETokenType["INTERROGATION"] = 13] = "INTERROGATION";
+            ETokenType[ETokenType["POINT"] = 14] = "POINT";
+            ETokenType[ETokenType["BRACE_OPEN"] = 15] = "BRACE_OPEN";
+            ETokenType[ETokenType["BRACE_CLOSE"] = 16] = "BRACE_CLOSE";
+            ETokenType[ETokenType["ONE_LINE_COMMENT"] = 96] = "ONE_LINE_COMMENT";
+            ETokenType[ETokenType["MULTI_LINE_COMMENT"] = 97] = "MULTI_LINE_COMMENT";
             ETokenType[ETokenType["UNKNOWN"] = 98] = "UNKNOWN";
             ETokenType[ETokenType["END_OF_INPUT"] = 99] = "END_OF_INPUT";
         })(EDITOR.ETokenType || (EDITOR.ETokenType = {}));
@@ -70,6 +75,9 @@ var BABYLON;
                     }
                     this.currentString = this.currentIdentifier;
                 }
+                else if (this.currentString === ".") {
+                    this.currentToken = ETokenType.POINT;
+                }
                 else if (this.currentString === "{" || this.currentString === "}") {
                     this.currentToken = this.currentString === "{" ? ETokenType.BRACKET_OPEN : ETokenType.BRACKET_CLOSE;
                 }
@@ -97,6 +105,9 @@ var BABYLON;
                 else if (this.currentString === "(" || this.currentString === ")") {
                     this.currentToken = this.currentString === "(" ? ETokenType.PARENTHESIS_OPEN : ETokenType.PARENTHESIS_CLOSE;
                 }
+                else if (this.currentString === "[" || this.currentString === "]") {
+                    this.currentToken = this.currentString === "[" ? ETokenType.BRACE_OPEN : ETokenType.BRACE_CLOSE;
+                }
                 else if (this.currentString === "?") {
                     this.currentToken = ETokenType.INTERROGATION;
                 }
@@ -111,6 +122,23 @@ var BABYLON;
                         this.forward();
                     }
                     this.currentString += this.read();
+                }
+                else if (this.currentString === "/") {
+                    if ((this.currentString = this.read()) === "*" || this.currentString === "/") {
+                        this.currentComment = "/" + this.currentString;
+                        this.currentToken = this.currentString === "*" ? ETokenType.MULTI_LINE_COMMENT : ETokenType.ONE_LINE_COMMENT;
+                        while (!this.isEnd()) {
+                            if (this.currentToken === ETokenType.MULTI_LINE_COMMENT && this.peek() === "/" && this.currentComment[this.currentComment.length - 1] === "*") {
+                                this.currentComment += this.peek();
+                                break;
+                            }
+                            else if (this.currentToken === ETokenType.ONE_LINE_COMMENT && this.peek() === "\n") {
+                                break;
+                            }
+                            this.currentComment += this.peek();
+                            this.forward();
+                        }
+                    }
                 }
                 return this.currentToken;
             };
@@ -136,18 +164,32 @@ var BABYLON;
                 return this._pos >= this._maxPos;
             };
             Tokenizer.prototype.parseString = function () {
-                while (!this.isEnd()) {
-                    var tokenType = this.currentToken;
+                while (!this.isEnd() && this.getNextToken()) {
+                    /*
                     // New module
                     if (this.getNextIdentifier() === "declare" && this.getNextIdentifier() === "module") {
                         this._parseModule();
+                    }
+                    */
+                    if (this.currentToken === ETokenType.IDENTIFIER) {
+                        if (this.currentIdentifier === "declare") {
+                            if (this.getNextToken() === ETokenType.IDENTIFIER && (this.currentIdentifier === "module" || this.currentIdentifier === "namespace"))
+                                this._parseModule();
+                        }
                     }
                 }
             };
             Tokenizer.prototype._parseModule = function () {
                 if (this.getNextToken() !== ETokenType.IDENTIFIER)
                     return;
-                var newModule = this._getModule(this.currentIdentifier);
+                var moduleName = this.currentIdentifier;
+                if (this.getNextToken() === ETokenType.POINT) {
+                    moduleName += this.currentString;
+                    if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                        return;
+                    moduleName += this.currentIdentifier;
+                }
+                var newModule = this._getModule(moduleName);
                 if (!newModule) {
                     newModule = { name: this.currentIdentifier, classes: [] };
                     this.modules.push(newModule);
@@ -166,7 +208,7 @@ var BABYLON;
                                 return;
                             exportIdentifier = true;
                         }
-                        if (this.currentIdentifier === "class") {
+                        if (this.currentIdentifier === "class" || this.currentIdentifier === "interface") {
                             if (this.getNextToken() !== ETokenType.IDENTIFIER)
                                 return;
                             // If class, take it 
@@ -188,28 +230,34 @@ var BABYLON;
                 while (!this.isEnd() && this.getNextToken()) {
                     if (bracketCount === 1 && this.currentToken !== ETokenType.BRACKET_CLOSE) {
                         if (this.currentToken === ETokenType.IDENTIFIER) {
-                            if (this.currentIdentifier === "static") {
-                                isStatic = true;
-                                this.getNextToken();
-                            }
                             if (AccessorTypesString.indexOf(this.currentIdentifier) !== -1) {
                                 // Property or function
                                 if (this.getNextToken() !== ETokenType.IDENTIFIER)
                                     return;
                                 accessorType = this.currentIdentifier === "public" ? EAccessorType.PUBLIC : this.currentIdentifier === "protected" ? EAccessorType.PROTECTED : EAccessorType.PRIVATE;
                             }
+                            if (this.currentIdentifier === "static") {
+                                isStatic = true;
+                                this.getNextToken();
+                            }
                             var memberName = this.currentIdentifier;
                             var memberType = "any";
                             var memberValue = null;
+                            var optional = false;
                             accessorType = accessorType || EAccessorType.PUBLIC;
+                            // Optional ?
+                            if (this.getNextToken() === ETokenType.INTERROGATION) {
+                                optional = true;
+                                this.getNextToken();
+                            }
                             // Property or function ?
-                            if (this.getNextToken() === ETokenType.DEFINER) {
+                            if (this.currentToken === ETokenType.DEFINER) {
                                 if (this.getNextToken() === ETokenType.PARENTHESIS_OPEN) {
                                     var newFunction = this._parseFunction(newClass, memberName);
                                     if (this.getNextToken() === ETokenType.LAMBDA_FUNCTION) {
                                         if (this.getNextToken() === ETokenType.IDENTIFIER) {
                                             newFunction.returnType = this.currentIdentifier;
-                                            newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: "function", lambda: newFunction });
+                                            newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: "function", lambda: newFunction, optional: optional });
                                         }
                                         else {
                                         }
@@ -224,13 +272,19 @@ var BABYLON;
                                             memberValue = this.currentNumber;
                                         }
                                     }
+                                    if (this.currentToken === ETokenType.BRACE_OPEN) {
+                                        if (this.getNextToken() !== ETokenType.BRACE_CLOSE)
+                                            return;
+                                        memberType += "[]";
+                                        this.getNextToken();
+                                    }
                                     if (this.currentToken === ETokenType.INSTRUCTION_END || this.getNextToken() === ETokenType.INSTRUCTION_END) {
-                                        newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue });
+                                        newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue, optional: optional });
                                     }
                                 }
                             }
                             else if (this.currentToken === ETokenType.INSTRUCTION_END) {
-                                newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue });
+                                newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue, optional: optional });
                                 accessorType = undefined;
                             }
                             else if (this.currentToken === ETokenType.PARENTHESIS_OPEN) {
@@ -280,12 +334,23 @@ var BABYLON;
                         if (this.getNextToken() === ETokenType.INTERROGATION) {
                             parameterOptional = true;
                         }
-                        if (this.currentToken === ETokenType.DEFINER || this.getNextToken() === ETokenType.DEFINER) {
-                            if (this.getNextToken() !== ETokenType.IDENTIFIER)
-                                return;
-                            parameterType = this.currentIdentifier;
+                        if (this.currentToken === ETokenType.DEFINER) {
+                            if (this.getNextToken() === ETokenType.IDENTIFIER) {
+                                parameterType = this.currentIdentifier;
+                                this.getNextToken();
+                            }
+                            else if (this.currentToken === ETokenType.BRACKET_OPEN) {
+                                console.log("yes");
+                            }
                         }
-                        if (this.currentToken === ETokenType.EQUALITY || this.getNextToken() === ETokenType.EQUALITY) {
+                        if (this.currentToken === ETokenType.BRACE_OPEN) {
+                            parameterType += this.currentString;
+                            if (this.getNextToken() !== ETokenType.BRACE_CLOSE)
+                                return;
+                            parameterType += this.currentString;
+                            this.getNextToken();
+                        }
+                        if (this.currentToken === ETokenType.EQUALITY) {
                             if (this.getNextToken() === ETokenType.NUMBER) {
                                 defaultValue = this.currentNumber;
                             }
@@ -302,6 +367,11 @@ var BABYLON;
                         }
                     }
                     else if (this.currentToken === ETokenType.PARENTHESIS_CLOSE) {
+                        if (this.getNextToken() === ETokenType.DEFINER) {
+                            var onTheFlyClass = newClass = { name: name + "_returnType", exported: true, functions: [], properties: [], extends: [] };
+                            this._parseClass(null, onTheFlyClass);
+                            newFunction.returnClass = onTheFlyClass;
+                        }
                         parenthesisCount--;
                     }
                     if (parenthesisCount === 0)

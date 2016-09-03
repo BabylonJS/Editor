@@ -16,6 +16,11 @@ declare module BABYLON.EDITOR {
         COMMA = 11,
         STRING = 12,
         INTERROGATION = 13,
+        POINT = 14,
+        BRACE_OPEN = 15,
+        BRACE_CLOSE = 16,
+        ONE_LINE_COMMENT = 96,
+        MULTI_LINE_COMMENT = 97,
         UNKNOWN = 98,
         END_OF_INPUT = 99,
     }
@@ -31,6 +36,8 @@ declare module BABYLON.EDITOR {
         name: string;
         classes: IClass[];
     }
+    interface IInterface extends IClass {
+    }
     interface IClass {
         name: string;
         exported: boolean;
@@ -43,6 +50,7 @@ declare module BABYLON.EDITOR {
         isStatic: boolean;
         accessorType: EAccessorType;
         type: string;
+        optional: boolean;
         value?: string;
         lambda?: IFunction;
     }
@@ -50,6 +58,7 @@ declare module BABYLON.EDITOR {
         name: string;
         returnType: string;
         parameters: IParameter[];
+        returnClass?: IClass;
     }
     interface IParameter {
         name: string;
@@ -75,6 +84,7 @@ declare module BABYLON.EDITOR {
         isNumberPattern: RegExp;
         currentIdentifier: string;
         currentNumber: string;
+        currentComment: string;
         currentValue: number;
         constructor(toParse: string);
         getNextToken(): ETokenType;

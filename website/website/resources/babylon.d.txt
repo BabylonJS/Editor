@@ -1,54 +1,112 @@
-﻿
-declare module BABYLON {
-	class Texture {
-	
-	}
+﻿declare namespace BABYLON.Internals {
+    /**
+     * Helper class to PreProcess a cubemap in order to generate mipmap according to the level of blur
+     * required by the glossinees of a material.
+     *
+     * This only supports the cosine drop power as well as Warp fixup generation method.
+     *
+     * This is using the process from CubeMapGen described here:
+     * https://seblagarde.wordpress.com/2012/06/10/amd-cubemapgen-for-physically-based-rendering/
+     */
+    class PMREMGenerator {
+		getGlInfo(): {
+            vendor: string;
+            renderer: string;
+            version: string;
+        };
 
-    class ProceduralTexture extends Texture {
-		value: number = 10.0;
-        isCube: boolean;
-        private _size;
-        _generateMipMaps: boolean;
-        isEnabled: boolean;
-        private _doNotChangeAspectRatio;
-        private _currentRefreshId;
-        private _refreshRate;
-        onGenerated: () => void;
-        private _vertexBuffers;
-        private _indexBuffer;
-        private _effect;
-        private _uniforms;
-        private _samplers;
-        private _fragment;
-        _textures: Texture[];
-        private _floats;
-        private _floatsArrays;
-        private _colors3;
-        private _colors4;
-        private _vectors2;
-        private _vectors3;
-        private _matrices;
-        private _fallbackTexture;
-        private _fallbackTextureUsed;
-        reset(): void;
-        isReady(): boolean;
-        resetRefreshCounter(): void;
-        setFragment(fragment: any): void;
-        refreshRate: number;
-        _shouldRender(): boolean;
-        getRenderSize(): number;
-        resize(size: any, generateMipMaps: any): void;
-        private _checkUniform(uniformName);
-        setTexture(name: string, texture: Texture): ProceduralTexture;
-        setFloat(name: string, value: number): ProceduralTexture;
-        setFloats(name: string, value: number[]): ProceduralTexture;
-        setColor3(name: string, value: Color3): ProceduralTexture;
-        setColor4(name: string, value: Color4): ProceduralTexture;
-        setVector2(name: string, value: Vector2): ProceduralTexture;
-        setVector3(name: string, value: Vector3): ProceduralTexture;
-        setMatrix(name: string, value: Matrix): ProceduralTexture;
-        render(useCameraPostProcess?: boolean): void;
-        clone(): ProceduralTexture;
-        dispose(): void;
+		bindBuffers(vertexBuffers: {
+            [key: string]: VertexBuffer;
+        }, indexBuffer: WebGLBuffer, effect: Effect): void;
+
+		getGlInfo(): {
+            vendor: string;
+            renderer: string;
+            version: string;
+        };
+
+	    constructor(input: ArrayBufferView[], inputSize: number, outputSize: number, maxNumMipLevels: number, numChannels: number, isFloat: boolean, specularPower: number, cosinePowerDropPerMip: number, excludeBase: boolean, fixup: boolean);
+
+		private clearFilterExtents(filterExtents);
+        private determineFilterExtents(centerTapDir, srcSize, bboxSize, filterExtents);
+        private processFilterExtents(centerTapDir, dotProdThresh, filterExtents, srcCubeMap, srcSize, specularPower);
+        private fixupCubeEdges(cubeMap, cubeMapSize);
+
+        input: ArrayBufferView[];
+        inputSize: number;
+        outputSize: number;
+        maxNumMipLevels: number;
+        numChannels: number;
+        isFloat: boolean;
+        specularPower: number;
+        cosinePowerDropPerMip: number;
+        excludeBase: boolean;
+        fixup: boolean;
+        private static CP_MAX_MIPLEVELS;
+        private static CP_UDIR;
+        private static CP_VDIR;
+        private static CP_FACEAXIS;
+        private static CP_FACE_X_POS;
+        private static CP_FACE_X_NEG;
+        private static CP_FACE_Y_POS;
+        private static CP_FACE_Y_NEG;
+        private static CP_FACE_Z_POS;
+        private static CP_FACE_Z_NEG;
+        private static CP_EDGE_LEFT;
+        private static CP_EDGE_RIGHT;
+        private static CP_EDGE_TOP;
+        private static CP_EDGE_BOTTOM;
+        private static CP_CORNER_NNN;
+        private static CP_CORNER_NNP;
+        private static CP_CORNER_NPN;
+        private static CP_CORNER_NPP;
+        private static CP_CORNER_PNN;
+        private static CP_CORNER_PNP;
+        private static CP_CORNER_PPN;
+        private static CP_CORNER_PPP;
+        private static _vectorTemp;
+        private static _sgFace2DMapping;
+        private static _sgCubeNgh;
+        private static _sgCubeEdgeList;
+        private static _sgCubeCornerList;
+        private _outputSurface;
+        private _normCubeMap;
+        private _filterLUT;
+        private _numMipLevels;
+        /**
+         * Constructor of the generator.
+         *
+         * @param input The different faces data from the original cubemap in the order X+ X- Y+ Y- Z+ Z-
+         * @param inputSize The size of the cubemap faces
+         * @param outputSize The size of the output cubemap faces
+         * @param maxNumMipLevels The max number of mip map to generate (0 means all)
+         * @param numChannels The number of channels stored in the cubemap (3 for RBGE for instance)
+         * @param isFloat Specifies if the input texture is in float or int (hdr is usually in float)
+         * @param specularPower The max specular level of the desired cubemap
+         * @param cosinePowerDropPerMip The amount of drop the specular power will follow on each mip
+         * @param excludeBase Specifies wether to process the level 0 (original level) or not
+         * @param fixup Specifies wether to apply the edge fixup algorythm or not
+         */
+        constructor(input: ArrayBufferView[], inputSize: number, outputSize: number, maxNumMipLevels: number, numChannels: number, isFloat: boolean, specularPower: number, cosinePowerDropPerMip: number, excludeBase: boolean, fixup: boolean);
+        /**
+         * Launches the filter process and return the result.
+         *
+         * @return the filter cubemap in the form mip0 [faces1..6] .. mipN [faces1..6]
+         */
+        filterCubeMap(): ArrayBufferView[][];
+        private init();
+        private filterCubeMapMipChain();
+        private getBaseFilterAngle(cosinePower);
+        private precomputeFilterLookupTables(srcCubeMapWidth);
+        private buildNormalizerSolidAngleCubemap(size);
+        private texelCoordToVect(faceIdx, u, v, size, fixup);
+        private vectToTexelCoord(x, y, z, size);
+        private areaElement(x, y);
+        private texelCoordSolidAngle(faceIdx, u, v, size);
+        private filterCubeSurfaces(srcCubeMap, srcSize, dstCubeMap, dstSize, filterConeAngle, specularPower);
+        private clearFilterExtents(filterExtents);
+        private determineFilterExtents(centerTapDir, srcSize, bboxSize, filterExtents);
+        private processFilterExtents(centerTapDir, dotProdThresh, filterExtents, srcCubeMap, srcSize, specularPower);
+        private fixupCubeEdges(cubeMap, cubeMapSize);
     }
 }
