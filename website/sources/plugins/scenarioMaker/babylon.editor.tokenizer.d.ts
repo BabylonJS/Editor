@@ -7,12 +7,22 @@ declare module BABYLON.EDITOR {
         NUMBER = 2,
         BRACKET_OPEN = 3,
         BRACKET_CLOSE = 4,
+        DEFINER = 5,
+        EQUALITY = 6,
+        INSTRUCTION_END = 7,
+        PARENTHESIS_OPEN = 8,
+        PARENTHESIS_CLOSE = 9,
+        LAMBDA_FUNCTION = 10,
+        COMMA = 11,
+        STRING = 12,
+        INTERROGATION = 13,
         UNKNOWN = 98,
         END_OF_INPUT = 99,
     }
     enum EAccessorType {
         PUBLIC = 1,
         PRIVATE = 2,
+        PROTECTED = 3,
     }
     /**
     * Tokenizer interfaces
@@ -22,15 +32,22 @@ declare module BABYLON.EDITOR {
         classes: IClass[];
     }
     interface IClass {
+        name: string;
+        exported: boolean;
         functions: IFunction[];
         properties: IProperty[];
+        extends: IClass[];
     }
     interface IProperty {
-        isStatic: boolean;
-        type: EAccessorType;
         name: string;
+        isStatic: boolean;
+        accessorType: EAccessorType;
+        type: string;
+        value?: string;
+        lambda?: IFunction;
     }
-    interface IFunction extends IProperty {
+    interface IFunction {
+        name: string;
         returnType: string;
         parameters: IParameter[];
     }
@@ -38,6 +55,8 @@ declare module BABYLON.EDITOR {
         name: string;
         type: string;
         defaultValue?: string;
+        optional?: boolean;
+        lambda?: IFunction;
     }
     /**
     * Tokenizer class
@@ -70,10 +89,13 @@ declare module BABYLON.EDITOR {
         modules: IModule[];
         parseString(): void;
         private _parseModule();
-        private _parseClass(module);
+        private _parseModuleBody(newModule);
+        private _parseClass(newModule, newClass);
+        private _parseFunction(newClass, name);
         /******************************************************************************************
         * Utils
         ******************************************************************************************/
         private _getModule(name);
+        private _getClass(name, module);
     }
 }

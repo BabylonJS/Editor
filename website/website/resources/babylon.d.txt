@@ -1,7 +1,11 @@
 ﻿
 declare module BABYLON {
+	class Texture {
+	
+	}
+
     class ProceduralTexture extends Texture {
-	value: number = 10.0;
+		value: number = 10.0;
         isCube: boolean;
         private _size;
         _generateMipMaps: boolean;
@@ -26,7 +30,6 @@ declare module BABYLON {
         private _matrices;
         private _fallbackTexture;
         private _fallbackTextureUsed;
-        constructor(name: string, size: any, fragment: any, scene: Scene, fallbackTexture?: Texture, generateMipMaps?: boolean, isCube?: boolean);
         reset(): void;
         isReady(): boolean;
         resetRefreshCounter(): void;

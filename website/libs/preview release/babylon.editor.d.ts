@@ -42,30 +42,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class EditionTool implements ICustomUpdate, IEventReceiver {
-        object: any;
-        container: string;
-        editionTools: Array<ICustomEditionTool>;
-        panel: GUI.IGUIPanel;
-        core: EditorCore;
-        private _editor;
-        private _currentTab;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        onPreUpdate(): void;
-        onPostUpdate(): void;
-        onEvent(event: Event): boolean;
-        updateEditionTool(): void;
-        isObjectSupported(object: any): boolean;
-        createUI(): void;
-        addTool(tool: ICustomEditionTool): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class EditPanel implements IEventReceiver {
         core: EditorCore;
         editor: EditorMain;
@@ -86,6 +62,30 @@ declare module BABYLON.EDITOR {
         setPanelSize(percents: number): void;
         private _addCloseButton();
         private _configureCloseButton();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class EditionTool implements ICustomUpdate, IEventReceiver {
+        object: any;
+        container: string;
+        editionTools: Array<ICustomEditionTool>;
+        panel: GUI.IGUIPanel;
+        core: EditorCore;
+        private _editor;
+        private _currentTab;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        onPreUpdate(): void;
+        onPostUpdate(): void;
+        onEvent(event: Event): boolean;
+        updateEditionTool(): void;
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        addTool(tool: ICustomEditionTool): void;
     }
 }
 
@@ -732,6 +732,203 @@ declare module BABYLON.EDITOR {
     }
 }
 
+declare module BABYLON.EDITOR {
+    /**
+    * Event Type
+    */
+    enum EventType {
+        SCENE_EVENT = 0,
+        GUI_EVENT = 1,
+        UNKNOWN = 2,
+    }
+    enum GUIEventType {
+        FORM_CHANGED = 0,
+        FORM_TOOLBAR_CLICKED = 1,
+        LAYOUT_CHANGED = 2,
+        PANEL_CHANGED = 3,
+        GRAPH_SELECTED = 4,
+        GRAPH_DOUBLE_SELECTED = 5,
+        TAB_CHANGED = 6,
+        TOOLBAR_MENU_SELECTED = 7,
+        GRAPH_MENU_SELECTED = 8,
+        GRID_SELECTED = 9,
+        GRID_ROW_REMOVED = 10,
+        GRID_ROW_ADDED = 11,
+        GRID_ROW_EDITED = 12,
+        GRID_ROW_CHANGED = 13,
+        GRID_MENU_SELECTED = 14,
+        GRID_RELOADED = 15,
+        WINDOW_BUTTON_CLICKED = 16,
+        OBJECT_PICKED = 17,
+        UNKNOWN = 18,
+    }
+    enum SceneEventType {
+        OBJECT_PICKED = 0,
+        OBJECT_ADDED = 1,
+        OBJECT_REMOVED = 2,
+        OBJECT_CHANGED = 3,
+        NEW_SCENE_CREATED = 4,
+        UNKNOWN = 4,
+    }
+    /**
+    * Base Event
+    */
+    class BaseEvent {
+        data: any;
+        constructor(data?: Object);
+    }
+    /**
+    * Scene Event
+    */
+    class SceneEvent extends BaseEvent {
+        object: any;
+        eventType: SceneEventType;
+        /**
+        * Constructor
+        * @param object: the object generating the event
+        */
+        constructor(object: any, eventType: number, data?: Object);
+    }
+    /**
+    * GUI Event
+    */
+    class GUIEvent extends BaseEvent {
+        caller: GUI.IGUIElement;
+        eventType: GUIEventType;
+        /**
+        * Constructor
+        * @param caller: gui element calling the event
+        * @param eventType: the gui event type
+        */
+        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
+    }
+    /**
+    * IEvent implementation
+    */
+    class Event implements IEvent {
+        eventType: EventType;
+        sceneEvent: SceneEvent;
+        guiEvent: GUIEvent;
+        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
+        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ManipulationHelper implements IEventReceiver, ICustomUpdate {
+        private _core;
+        private _scene;
+        private _currentNode;
+        private _cameraAttached;
+        private _pointerObserver;
+        private _actionStack;
+        private _manipulator;
+        private _enabled;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        onPreUpdate(): void;
+        onPostUpdate(): void;
+        getScene(): Scene;
+        enabled: boolean;
+        setNode(node: Node): void;
+        private _pointerCallback(pointer, event);
+        private _detectActionChanged(p, s);
+        private _getCurrentAction();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class Tools {
+        /**
+        * Returns a vector3 string from a vector3
+        */
+        static GetStringFromVector3(vector: Vector3): string;
+        /**
+        * Returns a vector3 from a vector3 string
+        */
+        static GetVector3FromString(vector: string): Vector3;
+        /**
+        * Opens a window popup
+        */
+        static OpenWindowPopup(url: string, width: number, height: number): any;
+        /**
+        * Opens a file browser. Checks if electron then open the dialog
+        * else open the classic file browser of the browser
+        */
+        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
+        /**
+        * Normlalized the given URI
+        */
+        static NormalizeUri(uri: string): string;
+        /**
+        * Returns the file extension
+        */
+        static GetFileExtension(filename: string): string;
+        /**
+        * Returns the filename without extension
+        */
+        static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string;
+        /**
+        * Returns the file type for the given extension
+        */
+        static GetFileType(extension: string): string;
+        /**
+        * Returns the base URL of the window
+        */
+        static GetBaseURL(): string;
+        /**
+        * Checks if the editor is running in an
+        * Electron window
+        */
+        static CheckIfElectron(): boolean;
+        /**
+        * Creates an input element
+        */
+        static CreateFileInpuElement(id: string): JQuery;
+        /**
+        * Beautify a variable name (escapeds + upper case)
+        */
+        static BeautifyName(name: string): string;
+        /**
+        * Cleans an editor project
+        */
+        static CleanProject(project: INTERNAL.IProjectRoot): void;
+        /**
+        * Returns the constructor name of an object
+        */
+        static GetConstructorName(obj: any): string;
+        /**
+        * Converts a boolean to integer
+        */
+        static BooleanToInt(value: boolean): number;
+        /**
+        * Converts a number to boolean
+        */
+        static IntToBoolean(value: number): boolean;
+        /**
+        * Returns a particle system by its name
+        */
+        static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
+        /**
+        * Converts a string to an array buffer
+        */
+        static ConvertStringToArray(str: string): Uint8Array;
+        /**
+        * Converts a base64 string to array buffer
+        * Largely used to convert images, converted into base64 string
+        */
+        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
+        /**
+        * Creates a new file object
+        */
+        static CreateFile(array: Uint8Array, filename: string): File;
+    }
+}
+
 declare module BABYLON.EDITOR.GUI {
     class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
@@ -1016,203 +1213,6 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    /**
-    * Event Type
-    */
-    enum EventType {
-        SCENE_EVENT = 0,
-        GUI_EVENT = 1,
-        UNKNOWN = 2,
-    }
-    enum GUIEventType {
-        FORM_CHANGED = 0,
-        FORM_TOOLBAR_CLICKED = 1,
-        LAYOUT_CHANGED = 2,
-        PANEL_CHANGED = 3,
-        GRAPH_SELECTED = 4,
-        GRAPH_DOUBLE_SELECTED = 5,
-        TAB_CHANGED = 6,
-        TOOLBAR_MENU_SELECTED = 7,
-        GRAPH_MENU_SELECTED = 8,
-        GRID_SELECTED = 9,
-        GRID_ROW_REMOVED = 10,
-        GRID_ROW_ADDED = 11,
-        GRID_ROW_EDITED = 12,
-        GRID_ROW_CHANGED = 13,
-        GRID_MENU_SELECTED = 14,
-        GRID_RELOADED = 15,
-        WINDOW_BUTTON_CLICKED = 16,
-        OBJECT_PICKED = 17,
-        UNKNOWN = 18,
-    }
-    enum SceneEventType {
-        OBJECT_PICKED = 0,
-        OBJECT_ADDED = 1,
-        OBJECT_REMOVED = 2,
-        OBJECT_CHANGED = 3,
-        NEW_SCENE_CREATED = 4,
-        UNKNOWN = 4,
-    }
-    /**
-    * Base Event
-    */
-    class BaseEvent {
-        data: any;
-        constructor(data?: Object);
-    }
-    /**
-    * Scene Event
-    */
-    class SceneEvent extends BaseEvent {
-        object: any;
-        eventType: SceneEventType;
-        /**
-        * Constructor
-        * @param object: the object generating the event
-        */
-        constructor(object: any, eventType: number, data?: Object);
-    }
-    /**
-    * GUI Event
-    */
-    class GUIEvent extends BaseEvent {
-        caller: GUI.IGUIElement;
-        eventType: GUIEventType;
-        /**
-        * Constructor
-        * @param caller: gui element calling the event
-        * @param eventType: the gui event type
-        */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
-    }
-    /**
-    * IEvent implementation
-    */
-    class Event implements IEvent {
-        eventType: EventType;
-        sceneEvent: SceneEvent;
-        guiEvent: GUIEvent;
-        static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
-        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ManipulationHelper implements IEventReceiver, ICustomUpdate {
-        private _core;
-        private _scene;
-        private _currentNode;
-        private _cameraAttached;
-        private _pointerObserver;
-        private _actionStack;
-        private _manipulator;
-        private _enabled;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        onPreUpdate(): void;
-        onPostUpdate(): void;
-        getScene(): Scene;
-        enabled: boolean;
-        setNode(node: Node): void;
-        private _pointerCallback(pointer, event);
-        private _detectActionChanged(p, s);
-        private _getCurrentAction();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class Tools {
-        /**
-        * Returns a vector3 string from a vector3
-        */
-        static GetStringFromVector3(vector: Vector3): string;
-        /**
-        * Returns a vector3 from a vector3 string
-        */
-        static GetVector3FromString(vector: string): Vector3;
-        /**
-        * Opens a window popup
-        */
-        static OpenWindowPopup(url: string, width: number, height: number): any;
-        /**
-        * Opens a file browser. Checks if electron then open the dialog
-        * else open the classic file browser of the browser
-        */
-        static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
-        /**
-        * Normlalized the given URI
-        */
-        static NormalizeUri(uri: string): string;
-        /**
-        * Returns the file extension
-        */
-        static GetFileExtension(filename: string): string;
-        /**
-        * Returns the filename without extension
-        */
-        static GetFilenameWithoutExtension(filename: string, withPath?: boolean): string;
-        /**
-        * Returns the file type for the given extension
-        */
-        static GetFileType(extension: string): string;
-        /**
-        * Returns the base URL of the window
-        */
-        static GetBaseURL(): string;
-        /**
-        * Checks if the editor is running in an
-        * Electron window
-        */
-        static CheckIfElectron(): boolean;
-        /**
-        * Creates an input element
-        */
-        static CreateFileInpuElement(id: string): JQuery;
-        /**
-        * Beautify a variable name (escapeds + upper case)
-        */
-        static BeautifyName(name: string): string;
-        /**
-        * Cleans an editor project
-        */
-        static CleanProject(project: INTERNAL.IProjectRoot): void;
-        /**
-        * Returns the constructor name of an object
-        */
-        static GetConstructorName(obj: any): string;
-        /**
-        * Converts a boolean to integer
-        */
-        static BooleanToInt(value: boolean): number;
-        /**
-        * Converts a number to boolean
-        */
-        static IntToBoolean(value: number): boolean;
-        /**
-        * Returns a particle system by its name
-        */
-        static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem;
-        /**
-        * Converts a string to an array buffer
-        */
-        static ConvertStringToArray(str: string): Uint8Array;
-        /**
-        * Converts a base64 string to array buffer
-        * Largely used to convert images, converted into base64 string
-        */
-        static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
-        /**
-        * Creates a new file object
-        */
-        static CreateFile(array: Uint8Array, filename: string): File;
     }
 }
 
@@ -1813,12 +1813,22 @@ declare module BABYLON.EDITOR {
         NUMBER = 2,
         BRACKET_OPEN = 3,
         BRACKET_CLOSE = 4,
+        DEFINER = 5,
+        EQUALITY = 6,
+        INSTRUCTION_END = 7,
+        PARENTHESIS_OPEN = 8,
+        PARENTHESIS_CLOSE = 9,
+        LAMBDA_FUNCTION = 10,
+        COMMA = 11,
+        STRING = 12,
+        INTERROGATION = 13,
         UNKNOWN = 98,
         END_OF_INPUT = 99,
     }
     enum EAccessorType {
         PUBLIC = 1,
         PRIVATE = 2,
+        PROTECTED = 3,
     }
     /**
     * Tokenizer interfaces
@@ -1828,15 +1838,22 @@ declare module BABYLON.EDITOR {
         classes: IClass[];
     }
     interface IClass {
+        name: string;
+        exported: boolean;
         functions: IFunction[];
         properties: IProperty[];
+        extends: IClass[];
     }
     interface IProperty {
-        isStatic: boolean;
-        type: EAccessorType;
         name: string;
+        isStatic: boolean;
+        accessorType: EAccessorType;
+        type: string;
+        value?: string;
+        lambda?: IFunction;
     }
-    interface IFunction extends IProperty {
+    interface IFunction {
+        name: string;
         returnType: string;
         parameters: IParameter[];
     }
@@ -1844,6 +1861,8 @@ declare module BABYLON.EDITOR {
         name: string;
         type: string;
         defaultValue?: string;
+        optional?: boolean;
+        lambda?: IFunction;
     }
     /**
     * Tokenizer class
@@ -1857,6 +1876,7 @@ declare module BABYLON.EDITOR {
         private _maxPos;
         currentToken: ETokenType;
         currentString: string;
+        isLetterPattern: RegExp;
         isLetterOrDigitPattern: RegExp;
         isNumberPattern: RegExp;
         currentIdentifier: string;
@@ -1875,10 +1895,13 @@ declare module BABYLON.EDITOR {
         modules: IModule[];
         parseString(): void;
         private _parseModule();
-        private _parseClass(module);
+        private _parseModuleBody(newModule);
+        private _parseClass(newModule, newClass);
+        private _parseFunction(newClass, name);
         /******************************************************************************************
         * Utils
         ******************************************************************************************/
         private _getModule(name);
+        private _getClass(name, module);
     }
 }

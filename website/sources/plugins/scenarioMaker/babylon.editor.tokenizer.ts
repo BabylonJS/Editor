@@ -9,13 +9,29 @@
         BRACKET_OPEN = 3,
         BRACKET_CLOSE = 4,
 
+        DEFINER = 5,
+        EQUALITY = 6,
+
+        INSTRUCTION_END = 7,
+
+        PARENTHESIS_OPEN = 8,
+        PARENTHESIS_CLOSE = 9,
+
+        LAMBDA_FUNCTION = 10,
+        COMMA = 11,
+
+        STRING = 12,
+
+        INTERROGATION = 13,
+
         UNKNOWN = 98,
         END_OF_INPUT = 99
     }
 
     export enum EAccessorType {
         PUBLIC = 1,
-        PRIVATE = 2
+        PRIVATE = 2,
+        PROTECTED = 3
     }
 
     /**
@@ -27,17 +43,24 @@
     }
 
     export interface IClass {
+        name: string;
+        exported: boolean;
         functions: IFunction[];
         properties: IProperty[];
+        extends: IClass[];
     }
 
     export interface IProperty {
-        isStatic: boolean;
-        type: EAccessorType;
         name: string;
+        isStatic: boolean;
+        accessorType: EAccessorType;
+        type: string;
+        value?: string;
+        lambda?: IFunction;
     }
 
-    export interface IFunction extends IProperty {
+    export interface IFunction {
+        name: string;
         returnType: string;
         parameters: IParameter[];
     }
@@ -46,7 +69,15 @@
         name: string;
         type: string;
         defaultValue?: string;
+        optional?: boolean;
+        lambda?: IFunction;
     }
+
+    /**
+    * Variables
+    */
+    var AccessorTypesString = ["public", "private", "protected"];
+    var KnownTypes = ["void", "number", "string", "boolean"];
 
     /**
     * Tokenizer class
@@ -82,7 +113,7 @@
             this.currentToken = ETokenType.UNKNOWN;
 
             // Ignore spaces
-            while (this.currentString === " " && (this.currentString = this.read()) === " ") {
+            while ((this.currentString === " " || this.currentString === "\n" || this.currentString === "\t") && (this.currentString = this.read()) === " ") {
                 continue;
             }
 
@@ -94,6 +125,7 @@
                     this.currentIdentifier += this.currentString;
                     this.forward();
                 }
+                this.currentString = this.currentIdentifier;
             }
             else if (this.currentString === "{" || this.currentString === "}") {
                 this.currentToken = this.currentString === "{" ? ETokenType.BRACKET_OPEN : ETokenType.BRACKET_CLOSE;
@@ -107,6 +139,36 @@
                 }
 
                 this.currentValue = parseFloat(this.currentNumber);
+            }
+            else if (this.currentString === ":") {
+                this.currentToken = ETokenType.DEFINER;
+            }
+            else if (this.currentString === "=") {
+                this.currentToken = ETokenType.EQUALITY;
+                if ((this.currentString = this.read()) === ">") {
+                    this.currentToken = ETokenType.LAMBDA_FUNCTION;
+                }
+            }
+            else if (this.currentString === ";") {
+                this.currentToken = ETokenType.INSTRUCTION_END;
+            }
+            else if (this.currentString === "(" || this.currentString === ")") {
+                this.currentToken = this.currentString === "(" ? ETokenType.PARENTHESIS_OPEN : ETokenType.PARENTHESIS_CLOSE;
+            }
+            else if (this.currentString === "?") {
+                this.currentToken = ETokenType.INTERROGATION;
+            }
+            else if (this.currentString === ",") {
+                this.currentToken = ETokenType.COMMA;
+            }
+            else if (this.currentString === "\"") {
+                this.currentToken = ETokenType.STRING;
+                var currentCharacter = "";
+                while (!this.isEnd() && (currentCharacter = this.peek()) !== "\"") {
+                    this.currentString += currentCharacter;
+                    this.forward();
+                }
+                this.currentString += this.read();
             }
 
             return this.currentToken;
@@ -160,46 +222,200 @@
             if (this.getNextToken() !== ETokenType.IDENTIFIER)
                 return;
 
-            var module: IModule = this._getModule(this.currentIdentifier);
-            if (!module) {
-                module = { name: this.currentIdentifier, classes: [] };
-                this.modules.push(module);
+            var newModule: IModule = this._getModule(this.currentIdentifier);
+            if (!newModule) {
+                newModule = { name: this.currentIdentifier, classes: [] };
+                this.modules.push(newModule);
             }
 
             if (this.getNextToken() === ETokenType.BRACKET_OPEN) {
-                this._parseClass(module);
+                this._parseModuleBody(newModule);
             }
         }
 
-        private _parseClass(module: IModule): void {
-            var bracketCount = 1;
-
-            var exportClass = false;
-            var className = "";
+        private _parseModuleBody(newModule: IModule): void {
+            var exportIdentifier = false;
 
             while (!this.isEnd() && this.getNextToken()) {
                 if (this.currentToken === ETokenType.IDENTIFIER) {
                     if (this.currentIdentifier === "export") {
-                        exportClass = true;
+                        // "export" always followed by an identifier
+                        if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                            return;
+
+                        exportIdentifier = true;
                     }
-                    else if (this.currentIdentifier === "class") {
+
+                    if (this.currentIdentifier === "class") {
+                        if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                            return;
                         
+                        // If class, take it 
+                        var newClass: IClass = this._getClass(this.currentIdentifier, newModule);
+                        if (!newClass) {
+                            newClass = { name: this.currentIdentifier, exported: exportIdentifier, functions: [], properties: [], extends: [] };
+                            newModule.classes.push(newClass);
+                        }
+
+                        this._parseClass(newModule, newClass);
+
+                        exportIdentifier = false;
                     }
                 }
-                else if (this.currentToken === ETokenType.NUMBER) {
-                    console.log(this.currentNumber);
+            }
+        }
+
+        private _parseClass(newModule: IModule, newClass: IClass): void {
+            var bracketCount = 0;
+            var accessorType: EAccessorType;
+            var isStatic = false;
+
+            while (!this.isEnd() && this.getNextToken()) {
+                if (bracketCount === 1 && this.currentToken !== ETokenType.BRACKET_CLOSE) {
+                    if (this.currentToken === ETokenType.IDENTIFIER) {
+                        if (this.currentIdentifier === "static") {
+                            isStatic = true;
+                            this.getNextToken();
+                        }
+
+                        if (AccessorTypesString.indexOf(this.currentIdentifier) !== -1) {
+                            // Property or function
+                            if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                                return;
+
+                            accessorType = this.currentIdentifier === "public" ? EAccessorType.PUBLIC : this.currentIdentifier === "protected" ? EAccessorType.PROTECTED : EAccessorType.PRIVATE;
+                        }
+
+                        var memberName = this.currentIdentifier;
+                        var memberType = "any";
+                        var memberValue: string = null;
+                        accessorType = accessorType || EAccessorType.PUBLIC;
+
+                        // Property or function ?
+                        if (this.getNextToken() === ETokenType.DEFINER) { // Property
+                            if (this.getNextToken() === ETokenType.PARENTHESIS_OPEN) {
+                                var newFunction = this._parseFunction(newClass, memberName);
+
+                                if (this.getNextToken() === ETokenType.LAMBDA_FUNCTION) {
+                                    if (this.getNextToken() === ETokenType.IDENTIFIER) {
+                                        newFunction.returnType = this.currentIdentifier;
+                                        newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: "function", lambda: newFunction });
+                                    }
+                                    else {
+                                        // On the fly definition
+                                    }
+                                }
+                            }
+                            else {
+                                if (this.currentToken === ETokenType.IDENTIFIER) {
+                                    memberType = this.currentIdentifier;
+                                }
+
+                                if (this.getNextToken() === ETokenType.EQUALITY) {
+                                    if (this.getNextToken() === ETokenType.NUMBER) {
+                                        memberValue = this.currentNumber;
+                                    }
+                                }
+
+                                if (this.currentToken === ETokenType.INSTRUCTION_END || this.getNextToken() === ETokenType.INSTRUCTION_END) {
+                                    newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue });
+                                }
+                            }
+                        }
+                        else if (this.currentToken === ETokenType.INSTRUCTION_END) { // Just property of type "any"
+                            newClass.properties.push({ isStatic: isStatic, name: memberName, accessorType: EAccessorType.PUBLIC, type: memberType, value: memberValue });
+                            accessorType = undefined;
+                        }
+                        else if (this.currentToken === ETokenType.PARENTHESIS_OPEN) { // Function
+                            var newFunction = this._parseFunction(newClass, memberName);
+
+                            if (this.getNextToken() === ETokenType.DEFINER) {
+                                if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                                    return;
+
+                                newFunction.returnType = this.currentIdentifier;
+                            }
+                            else {
+                                // On the fly definition
+                            }
+
+                            newClass.functions.push(newFunction);
+                        }
+
+                        isStatic = false;
+                        accessorType = undefined;
+                    }
+                }
+                else if (this.currentToken === ETokenType.IDENTIFIER) {
+                    // Extends
+                    if (this.currentIdentifier === "extends") {
+                        if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                            return;
+
+                        var extendsClass = this._getClass(this.currentIdentifier, newModule);
+                        if (extendsClass)
+                            newClass.extends.push(extendsClass);
+                    }
                 }
                 else if (this.currentToken === ETokenType.BRACKET_OPEN) {
                     bracketCount++;
                 }
                 else if (this.currentToken === ETokenType.BRACKET_CLOSE) {
                     bracketCount--;
+                    if (bracketCount === 0)
+                        return;
+                }
+            }
+        }
+
+        private _parseFunction(newClass: IClass, name: string): IFunction {
+            var parenthesisCount = 1;
+            var newFunction: IFunction = { name: name, returnType: "void", parameters: [] };
+
+            while (!this.isEnd() && this.getNextToken()) {
+                if (this.currentToken === ETokenType.IDENTIFIER) {
+                    var parameterName = this.currentIdentifier;
+                    var parameterOptional = false;
+                    var parameterType = "any";
+                    var defaultValue = "";
+
+                    if (this.getNextToken() === ETokenType.INTERROGATION) {
+                        parameterOptional = true;
+                    }
+
+                    if (this.currentToken === ETokenType.DEFINER || this.getNextToken() === ETokenType.DEFINER) {
+                        if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                            return;
+
+                        parameterType = this.currentIdentifier;
+                    }
+
+                    if (this.currentToken === ETokenType.EQUALITY || this.getNextToken() === ETokenType.EQUALITY) {
+                        if (this.getNextToken() === ETokenType.NUMBER) {
+                            defaultValue = this.currentNumber;
+                        }
+                        else if (this.currentToken === ETokenType.STRING) {
+                            defaultValue = this.currentString;
+                        }
+                    }
+
+                    if (this.currentToken === ETokenType.COMMA) {
+                        newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue });
+                    }
+                    else if (this.currentToken === ETokenType.PARENTHESIS_CLOSE) {
+                        newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue });
+                        parenthesisCount--;
+                    }
+                }
+                else if (this.currentToken === ETokenType.PARENTHESIS_CLOSE) {
+                    parenthesisCount--;
                 }
 
-                // Check if closed module
-                if (bracketCount === 0)
-                    break;
+                if (parenthesisCount === 0)
+                    return newFunction;
             }
+
+            return null;
         }
 
         /******************************************************************************************
@@ -207,9 +423,17 @@
         ******************************************************************************************/
         private _getModule(name: string): IModule {
             for (var i = 0; i < this.modules.length; i++) {
-                if (this.modules[i].name === this.currentIdentifier) {
+                if (this.modules[i].name === this.currentIdentifier)
                     return this.modules[i];
-                }
+            }
+
+            return null;
+        }
+
+        private _getClass(name: string, module: IModule): IClass {
+            for (var i = 0; i < module.classes.length; i++) {
+                if (module.classes[i].name === name)
+                    return module.classes[i];
             }
 
             return null;
