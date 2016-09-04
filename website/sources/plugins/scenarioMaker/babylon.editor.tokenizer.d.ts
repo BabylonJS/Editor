@@ -19,6 +19,9 @@ declare module BABYLON.EDITOR {
         POINT = 14,
         BRACE_OPEN = 15,
         BRACE_CLOSE = 16,
+        INFERIOR = 17,
+        SUPERIOR = 18,
+        PIPE = 19,
         ONE_LINE_COMMENT = 96,
         MULTI_LINE_COMMENT = 97,
         UNKNOWN = 98,
@@ -44,6 +47,7 @@ declare module BABYLON.EDITOR {
         functions: IFunction[];
         properties: IProperty[];
         extends: IClass[];
+        isInterface: boolean;
     }
     interface IProperty {
         name: string;
@@ -66,6 +70,7 @@ declare module BABYLON.EDITOR {
         defaultValue?: string;
         optional?: boolean;
         lambda?: IFunction;
+        parameterClass?: IClass;
     }
     /**
     * Tokenizer class
@@ -100,12 +105,14 @@ declare module BABYLON.EDITOR {
         parseString(): void;
         private _parseModule();
         private _parseModuleBody(newModule);
-        private _parseClass(newModule, newClass);
+        private _parseClass(newModule, newClass, bracketCount?);
         private _parseFunction(newClass, name);
         /******************************************************************************************
         * Utils
         ******************************************************************************************/
         private _getModule(name);
         private _getClass(name, module);
+        private _getBraces(braceCount);
+        private _getGeneric();
     }
 }

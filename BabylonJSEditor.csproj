@@ -108,6 +108,7 @@
     <Content Include="website\index.html" />
     <Content Include="web.config" />
     <Content Include="website\website\babylon.editor.defaultScene.js" />
+    <Content Include="website\website\resources\babylon.d.txt" />
     <Content Include="website\website\Tests\CommonTests.js" />
     <Content Include="website\website\Tests\textures\albedo.png" />
     <Content Include="website\website\Tests\textures\reflectivity.png" />

@@ -22,6 +22,9 @@ var BABYLON;
             ETokenType[ETokenType["POINT"] = 14] = "POINT";
             ETokenType[ETokenType["BRACE_OPEN"] = 15] = "BRACE_OPEN";
             ETokenType[ETokenType["BRACE_CLOSE"] = 16] = "BRACE_CLOSE";
+            ETokenType[ETokenType["INFERIOR"] = 17] = "INFERIOR";
+            ETokenType[ETokenType["SUPERIOR"] = 18] = "SUPERIOR";
+            ETokenType[ETokenType["PIPE"] = 19] = "PIPE";
             ETokenType[ETokenType["ONE_LINE_COMMENT"] = 96] = "ONE_LINE_COMMENT";
             ETokenType[ETokenType["MULTI_LINE_COMMENT"] = 97] = "MULTI_LINE_COMMENT";
             ETokenType[ETokenType["UNKNOWN"] = 98] = "UNKNOWN";
@@ -38,7 +41,6 @@ var BABYLON;
         * Variables
         */
         var AccessorTypesString = ["public", "private", "protected"];
-        var KnownTypes = ["void", "number", "string", "boolean"];
         /**
         * Tokenizer class
         */
@@ -78,8 +80,14 @@ var BABYLON;
                 else if (this.currentString === ".") {
                     this.currentToken = ETokenType.POINT;
                 }
+                else if (this.currentString === "|") {
+                    this.currentToken = ETokenType.PIPE;
+                }
                 else if (this.currentString === "{" || this.currentString === "}") {
                     this.currentToken = this.currentString === "{" ? ETokenType.BRACKET_OPEN : ETokenType.BRACKET_CLOSE;
+                }
+                else if (this.currentString === "<" || this.currentString === ">") {
+                    this.currentToken = this.currentString === "<" ? ETokenType.INFERIOR : ETokenType.SUPERIOR;
                 }
                 else if (this.isNumberPattern.test(this.currentString)) {
                     this.currentToken = ETokenType.NUMBER;
@@ -194,7 +202,7 @@ var BABYLON;
                     newModule = { name: this.currentIdentifier, classes: [] };
                     this.modules.push(newModule);
                 }
-                if (this.getNextToken() === ETokenType.BRACKET_OPEN) {
+                if (this.currentToken === ETokenType.BRACKET_OPEN) {
                     this._parseModuleBody(newModule);
                 }
             };
@@ -209,12 +217,13 @@ var BABYLON;
                             exportIdentifier = true;
                         }
                         if (this.currentIdentifier === "class" || this.currentIdentifier === "interface") {
+                            var isInterface = this.currentIdentifier === "interface";
                             if (this.getNextToken() !== ETokenType.IDENTIFIER)
                                 return;
                             // If class, take it 
                             var newClass = this._getClass(this.currentIdentifier, newModule);
                             if (!newClass) {
-                                newClass = { name: this.currentIdentifier, exported: exportIdentifier, functions: [], properties: [], extends: [] };
+                                newClass = { name: this.currentIdentifier, exported: exportIdentifier, functions: [], properties: [], extends: [], isInterface: isInterface };
                                 newModule.classes.push(newClass);
                             }
                             this._parseClass(newModule, newClass);
@@ -223,12 +232,19 @@ var BABYLON;
                     }
                 }
             };
-            Tokenizer.prototype._parseClass = function (newModule, newClass) {
-                var bracketCount = 0;
+            Tokenizer.prototype._parseClass = function (newModule, newClass, bracketCount) {
+                bracketCount = bracketCount || 0;
                 var accessorType;
                 var isStatic = false;
+                var isGeneric = false;
+                var hasBraces = false;
                 while (!this.isEnd() && this.getNextToken()) {
                     if (bracketCount === 1 && this.currentToken !== ETokenType.BRACKET_CLOSE) {
+                        if (this.currentToken === ETokenType.BRACE_OPEN) {
+                            if (this.getNextToken() !== ETokenType.IDENTIFIER)
+                                return;
+                            hasBraces = true;
+                        }
                         if (this.currentToken === ETokenType.IDENTIFIER) {
                             if (AccessorTypesString.indexOf(this.currentIdentifier) !== -1) {
                                 // Property or function
@@ -250,8 +266,21 @@ var BABYLON;
                                 optional = true;
                                 this.getNextToken();
                             }
+                            else if (this.currentToken === ETokenType.INFERIOR) {
+                                memberName += this.currentString + this._getGeneric();
+                                this.getNextToken();
+                            }
+                            // Is key ?
+                            if (hasBraces) {
+                                if (this.currentToken === ETokenType.DEFINER) {
+                                    if (this.getNextToken() === ETokenType.IDENTIFIER) {
+                                        memberName = "[" + memberName + ": " + this.currentIdentifier + "]";
+                                        this.getNextToken();
+                                    }
+                                }
+                            }
                             // Property or function ?
-                            if (this.currentToken === ETokenType.DEFINER) {
+                            if (this.currentToken === ETokenType.DEFINER || this.currentToken === ETokenType.BRACE_CLOSE) {
                                 if (this.getNextToken() === ETokenType.PARENTHESIS_OPEN) {
                                     var newFunction = this._parseFunction(newClass, memberName);
                                     if (this.getNextToken() === ETokenType.LAMBDA_FUNCTION) {
@@ -264,6 +293,9 @@ var BABYLON;
                                     }
                                 }
                                 else {
+                                    if (hasBraces && this.currentToken === ETokenType.DEFINER) {
+                                        this.getNextToken();
+                                    }
                                     if (this.currentToken === ETokenType.IDENTIFIER) {
                                         memberType = this.currentIdentifier;
                                     }
@@ -273,9 +305,7 @@ var BABYLON;
                                         }
                                     }
                                     if (this.currentToken === ETokenType.BRACE_OPEN) {
-                                        if (this.getNextToken() !== ETokenType.BRACE_CLOSE)
-                                            return;
-                                        memberType += "[]";
+                                        memberType += this.currentString + this._getBraces(1);
                                         this.getNextToken();
                                     }
                                     if (this.currentToken === ETokenType.INSTRUCTION_END || this.getNextToken() === ETokenType.INSTRUCTION_END) {
@@ -290,16 +320,24 @@ var BABYLON;
                             else if (this.currentToken === ETokenType.PARENTHESIS_OPEN) {
                                 var newFunction = this._parseFunction(newClass, memberName);
                                 if (this.getNextToken() === ETokenType.DEFINER) {
-                                    if (this.getNextToken() !== ETokenType.IDENTIFIER)
-                                        return;
-                                    newFunction.returnType = this.currentIdentifier;
-                                }
-                                else {
+                                    if (this.getNextToken() === ETokenType.IDENTIFIER) {
+                                        newFunction.returnType = this.currentIdentifier;
+                                        if (this.getNextToken() === ETokenType.BRACE_OPEN) {
+                                            newFunction.returnType += this.currentString + this._getBraces(1);
+                                        }
+                                    }
+                                    else if (this.currentToken === ETokenType.BRACKET_OPEN) {
+                                        var onTheFlyClass = { name: memberName + "_type", exported: true, functions: [], properties: [], extends: [], isInterface: true };
+                                        this._parseClass(null, onTheFlyClass, 1);
+                                        newFunction.returnClass = onTheFlyClass;
+                                    }
                                 }
                                 newClass.functions.push(newFunction);
                             }
                             isStatic = false;
                             accessorType = undefined;
+                            hasBraces = false;
+                            isGeneric = false;
                         }
                     }
                     else if (this.currentToken === ETokenType.IDENTIFIER) {
@@ -324,7 +362,9 @@ var BABYLON;
             };
             Tokenizer.prototype._parseFunction = function (newClass, name) {
                 var parenthesisCount = 1;
+                var parameterClass = null;
                 var newFunction = { name: name, returnType: "void", parameters: [] };
+                var parameterLambda = null;
                 while (!this.isEnd() && this.getNextToken()) {
                     if (this.currentToken === ETokenType.IDENTIFIER) {
                         var parameterName = this.currentIdentifier;
@@ -333,6 +373,7 @@ var BABYLON;
                         var defaultValue = "";
                         if (this.getNextToken() === ETokenType.INTERROGATION) {
                             parameterOptional = true;
+                            this.getNextToken();
                         }
                         if (this.currentToken === ETokenType.DEFINER) {
                             if (this.getNextToken() === ETokenType.IDENTIFIER) {
@@ -340,14 +381,23 @@ var BABYLON;
                                 this.getNextToken();
                             }
                             else if (this.currentToken === ETokenType.BRACKET_OPEN) {
-                                console.log("yes");
+                                var onTheFlyClass = newClass = { name: parameterName + "_type", exported: true, functions: [], properties: [], extends: [], isInterface: true };
+                                this._parseClass(null, onTheFlyClass, 1);
+                                parameterClass = onTheFlyClass;
+                            }
+                            else if (this.currentToken === ETokenType.PARENTHESIS_OPEN) {
+                                parameterLambda = this._parseFunction(newClass, parameterName);
+                                if (this.currentToken === ETokenType.IDENTIFIER) {
+                                    parameterLambda.returnType = this.currentIdentifier;
+                                }
+                                this.getNextToken();
                             }
                         }
+                        if (parameterClass && this.currentToken === ETokenType.BRACKET_CLOSE) {
+                            this.getNextToken();
+                        }
                         if (this.currentToken === ETokenType.BRACE_OPEN) {
-                            parameterType += this.currentString;
-                            if (this.getNextToken() !== ETokenType.BRACE_CLOSE)
-                                return;
-                            parameterType += this.currentString;
+                            parameterType += this.currentString + this._getBraces(1);
                             this.getNextToken();
                         }
                         if (this.currentToken === ETokenType.EQUALITY) {
@@ -359,23 +409,30 @@ var BABYLON;
                             }
                         }
                         if (this.currentToken === ETokenType.COMMA) {
-                            newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue });
+                            newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue, parameterClass: parameterClass, lambda: parameterLambda });
                         }
                         else if (this.currentToken === ETokenType.PARENTHESIS_CLOSE) {
-                            newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue });
+                            newFunction.parameters.push({ name: parameterName, optional: parameterOptional, type: parameterType, defaultValue: defaultValue, parameterClass: parameterClass, lambda: parameterLambda });
                             parenthesisCount--;
                         }
                     }
                     else if (this.currentToken === ETokenType.PARENTHESIS_CLOSE) {
-                        if (this.getNextToken() === ETokenType.DEFINER) {
-                            var onTheFlyClass = newClass = { name: name + "_returnType", exported: true, functions: [], properties: [], extends: [] };
-                            this._parseClass(null, onTheFlyClass);
-                            newFunction.returnClass = onTheFlyClass;
+                        if (this.getNextToken() === ETokenType.DEFINER || this.currentToken === ETokenType.LAMBDA_FUNCTION) {
+                            if (this.getNextToken() === ETokenType.IDENTIFIER) {
+                                return newFunction;
+                            }
+                            else if (this.currentToken === ETokenType.BRACKET_OPEN) {
+                                var onTheFlyClass = newClass = { name: name + "_returnType", exported: true, functions: [], properties: [], extends: [], isInterface: true };
+                                this._parseClass(null, onTheFlyClass, 1);
+                                newFunction.returnClass = onTheFlyClass;
+                            }
                         }
                         parenthesisCount--;
                     }
                     if (parenthesisCount === 0)
                         return newFunction;
+                    parameterClass = null;
+                    parameterLambda = null;
                 }
                 return null;
             };
@@ -395,6 +452,26 @@ var BABYLON;
                         return module.classes[i];
                 }
                 return null;
+            };
+            Tokenizer.prototype._getBraces = function (braceCount) {
+                var str = "";
+                while (!this.isEnd() && this.getNextToken()) {
+                    if (this.currentToken === ETokenType.BRACE_OPEN)
+                        braceCount++;
+                    else if (this.currentToken === ETokenType.BRACE_CLOSE)
+                        braceCount--;
+                    str += this.currentString;
+                    if (braceCount === 0)
+                        return str;
+                }
+            };
+            Tokenizer.prototype._getGeneric = function () {
+                var str = "";
+                while (!this.isEnd() && this.getNextToken()) {
+                    str += this.currentString;
+                    if (this.currentToken === ETokenType.SUPERIOR)
+                        return str;
+                }
             };
             return Tokenizer;
         }());
