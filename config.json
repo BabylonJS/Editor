@@ -69,6 +69,7 @@
       "sources/babylon.editor.timeline.js",
       "sources/babylon.editor.toolsToolbar.js",
       "sources/babylon.editor.sceneHelpers.js",
+      "sources/babylon.editor.statusBar.js",
 
       "sources/scene/babylon.editor.filesInput.js",
       "sources/scene/babylon.editor.sceneFactory.js",

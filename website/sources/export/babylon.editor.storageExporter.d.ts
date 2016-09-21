@@ -8,6 +8,7 @@ declare module BABYLON.EDITOR {
         private _currentFolder;
         private _previousFolders;
         private _onFolderSelected;
+        private _statusBarId;
         private static _projectFolder;
         private static _projectFolderChildren;
         static OneDriveStorage: string;

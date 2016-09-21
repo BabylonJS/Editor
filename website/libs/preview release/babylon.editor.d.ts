@@ -101,6 +101,7 @@ declare module BABYLON.EDITOR {
         transformer: ManipulationHelper;
         editPanel: EditPanel;
         timeline: Timeline;
+        statusBar: StatusBar;
         container: string;
         mainContainer: string;
         antialias: boolean;
@@ -295,6 +296,24 @@ declare module BABYLON.EDITOR {
         setFramesPerSecond(fps: number): void;
         private _configureDebugLayer();
         private _configureFramesPerSecond();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class StatusBar {
+        panel: GUI.IGUIPanel;
+        private _core;
+        private _element;
+        private _elements;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        addElement(id: string, text: string, img?: string, right?: boolean): void;
+        removeElement(id: string): boolean;
+        showSpinner(id: string): void;
+        hideSpinner(id: string): void;
     }
 }
 
@@ -708,6 +727,7 @@ declare module BABYLON.EDITOR {
         private _currentFolder;
         private _previousFolders;
         private _onFolderSelected;
+        private _statusBarId;
         private static _projectFolder;
         private static _projectFolderChildren;
         static OneDriveStorage: string;
@@ -926,6 +946,59 @@ declare module BABYLON.EDITOR {
         * Creates a new file object
         */
         static CreateFile(array: Uint8Array, filename: string): File;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class OneDriveStorage extends Storage {
+        private _editor;
+        private static _ClientID;
+        private static _TOKEN;
+        private static _TOKEN_EXPIRES_IN;
+        private static _TOKEN_EXPIRES_NOW;
+        private static _POPUP;
+        private static _OnAuthentificated();
+        private static _ClosePopup(token, expires, window);
+        private static _Login(core, success);
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IStorageFile {
+        file: OneDrive.IChildResult;
+        name: string;
+    }
+    interface IStorageUploadFile {
+        content: string | Uint8Array;
+        name: string;
+        parentFolder?: OneDrive.IChildResult;
+        type?: string;
+        url?: string;
+    }
+    interface IStorage {
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+    }
+    class Storage implements IStorage {
+        core: EditorCore;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        selectFolder(success: (folder: IStorageFile) => void): void;
     }
 }
 
@@ -1217,77 +1290,6 @@ declare module BABYLON.EDITOR.GUI {
 }
 
 declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createPlane;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * "selected" is the id of the selected item
-        */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LightsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _configureSound(sound);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SoundsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addSoundtrack;
-        private _add3DSound;
-        private _stopAllSounds;
-        private _playAllSounds;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _stopPlayAllSounds(play);
-        private _configureSound(sound);
-        private _createInput(callback);
-        private _onReadFileCallback(name, callback);
-    }
-}
-
-declare module BABYLON.EDITOR {
     class FilesInput extends BABYLON.FilesInput {
         constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
         private static _callbackStart(core);
@@ -1374,55 +1376,73 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class OneDriveStorage extends Storage {
-        private _editor;
-        private static _ClientID;
-        private static _TOKEN;
-        private static _TOKEN_EXPIRES_IN;
-        private static _TOKEN_EXPIRES_NOW;
-        private static _POPUP;
-        private static _OnAuthentificated();
-        private static _ClosePopup(token, expires, window);
-        private static _Login(core, success);
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createPlane;
         /**
         * Constructor
-        * @param core: the editor core instance
+        * @param mainToolbar: the main toolbar instance
         */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * "selected" is the id of the selected item
+        */
+        onMenuItemSelected(selected: string): void;
     }
 }
 
 declare module BABYLON.EDITOR {
-    interface IStorageFile {
-        file: OneDrive.IChildResult;
-        name: string;
-    }
-    interface IStorageUploadFile {
-        content: string | Uint8Array;
-        name: string;
-        parentFolder?: OneDrive.IChildResult;
-        type?: string;
-        url?: string;
-    }
-    interface IStorage {
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-    }
-    class Storage implements IStorage {
-        core: EditorCore;
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
         /**
         * Constructor
-        * @param core: the editor core instance
+        * @param mainToolbar: the main toolbar instance
         */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        selectFolder(success: (folder: IStorageFile) => void): void;
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SoundsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addSoundtrack;
+        private _add3DSound;
+        private _stopAllSounds;
+        private _playAllSounds;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _stopPlayAllSounds(play);
+        private _configureSound(sound);
+        private _createInput(callback);
+        private _onReadFileCallback(name, callback);
     }
 }
 
@@ -1822,6 +1842,14 @@ declare module BABYLON.EDITOR {
         COMMA = 11,
         STRING = 12,
         INTERROGATION = 13,
+        POINT = 14,
+        BRACE_OPEN = 15,
+        BRACE_CLOSE = 16,
+        INFERIOR = 17,
+        SUPERIOR = 18,
+        PIPE = 19,
+        ONE_LINE_COMMENT = 96,
+        MULTI_LINE_COMMENT = 97,
         UNKNOWN = 98,
         END_OF_INPUT = 99,
     }
@@ -1837,18 +1865,22 @@ declare module BABYLON.EDITOR {
         name: string;
         classes: IClass[];
     }
+    interface IInterface extends IClass {
+    }
     interface IClass {
         name: string;
         exported: boolean;
         functions: IFunction[];
         properties: IProperty[];
         extends: IClass[];
+        isInterface: boolean;
     }
     interface IProperty {
         name: string;
         isStatic: boolean;
         accessorType: EAccessorType;
         type: string;
+        optional: boolean;
         value?: string;
         lambda?: IFunction;
     }
@@ -1856,6 +1888,7 @@ declare module BABYLON.EDITOR {
         name: string;
         returnType: string;
         parameters: IParameter[];
+        returnClass?: IClass;
     }
     interface IParameter {
         name: string;
@@ -1863,6 +1896,7 @@ declare module BABYLON.EDITOR {
         defaultValue?: string;
         optional?: boolean;
         lambda?: IFunction;
+        parameterClass?: IClass;
     }
     /**
     * Tokenizer class
@@ -1881,6 +1915,7 @@ declare module BABYLON.EDITOR {
         isNumberPattern: RegExp;
         currentIdentifier: string;
         currentNumber: string;
+        currentComment: string;
         currentValue: number;
         constructor(toParse: string);
         getNextToken(): ETokenType;
@@ -1896,12 +1931,14 @@ declare module BABYLON.EDITOR {
         parseString(): void;
         private _parseModule();
         private _parseModuleBody(newModule);
-        private _parseClass(newModule, newClass);
+        private _parseClass(newModule, newClass, bracketCount?);
         private _parseFunction(newClass, name);
         /******************************************************************************************
         * Utils
         ******************************************************************************************/
         private _getModule(name);
         private _getClass(name, module);
+        private _getBraces(braceCount);
+        private _getGeneric();
     }
 }

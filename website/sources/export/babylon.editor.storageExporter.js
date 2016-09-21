@@ -14,6 +14,7 @@ var BABYLON;
                 this._currentFolder = null;
                 this._previousFolders = null;
                 this._onFolderSelected = null;
+                this._statusBarId = "ONE-DRIVE-STATUS-BAR";
                 // Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -61,13 +62,15 @@ var BABYLON;
             StorageExporter.prototype.createTemplate = function () {
                 var _this = this;
                 this._openFolderDialog(function (folder, folderChildren) {
-                    _this._lockPanel("Creating Template...");
+                    // Status bar
+                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Exporting Template...", "icon-one-drive");
+                    _this.core.editor.statusBar.showSpinner(_this._statusBarId);
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
                     _this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, function () {
                         _this._createTemplate();
                     }, function () {
-                        _this._unlockPanel();
+                        _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
@@ -82,13 +85,14 @@ var BABYLON;
                     });
                     return;
                 }
-                this._lockPanel("Saving on OneDrive...");
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
                         { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
                     _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
-                        _this._unlockPanel();
+                        _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
@@ -104,6 +108,7 @@ var BABYLON;
             StorageExporter.prototype._createTemplate = function () {
                 var _this = this;
                 this._updateFileList(function () {
+                    // Files
                     var files = [];
                     var url = window.location.href;
                     url = url.replace(BABYLON.Tools.GetFilename(url), "");
@@ -171,9 +176,9 @@ var BABYLON;
                             }
                             if (count >= files.length) {
                                 _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
-                                    _this._unlockPanel();
+                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function () {
-                                    _this._unlockPanel();
+                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 });
                             }
                         };

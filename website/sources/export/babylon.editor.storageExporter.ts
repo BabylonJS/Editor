@@ -18,6 +18,8 @@
         private _previousFolders: IStorageFile[] = null;
         private _onFolderSelected: (folder: IStorageFile, folderChildren: IStorageFile[]) => void = null;
 
+        private _statusBarId: string = "ONE-DRIVE-STATUS-BAR";
+
         // Static members
         private static _projectFolder: IStorageFile = null;
         private static _projectFolderChildren: IStorageFile[] = null;
@@ -78,7 +80,9 @@
         // Creates a template
         public createTemplate(): void {
             this._openFolderDialog((folder: IStorageFile, folderChildren: IStorageFile[]) => {
-                this._lockPanel("Creating Template...");
+                // Status bar
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting Template...", "icon-one-drive");
+                this.core.editor.statusBar.showSpinner(this._statusBarId);
 
                 StorageExporter._projectFolder = folder;
                 StorageExporter._projectFolderChildren = folderChildren;
@@ -86,7 +90,7 @@
                 this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, () => {
                     this._createTemplate();
                 }, () => {
-                    this._unlockPanel();
+                    this.core.editor.statusBar.removeElement(this._statusBarId);
                 });
             });
         }
@@ -103,8 +107,9 @@
 
                 return;
             }
-
-            this._lockPanel("Saving on OneDrive...");
+            
+            this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+            this.core.editor.statusBar.showSpinner(this._statusBarId);
 
             this._updateFileList(() => {
                 var files: IStorageUploadFile[] = [
@@ -112,7 +117,7 @@
                 ];
 
                 this._storage.createFiles(files, StorageExporter._projectFolder, () => {
-                    this._unlockPanel();
+                    this.core.editor.statusBar.removeElement(this._statusBarId);
                 });
             });
         }
@@ -130,6 +135,7 @@
         // Creates the template with all files
         private _createTemplate(): void {
             this._updateFileList(() => {
+                // Files
                 var files: IStorageUploadFile[] = [];
 
                 var url = window.location.href;
@@ -213,9 +219,9 @@
 
                         if (count >= files.length) {
                             this._storage.createFiles(files, StorageExporter._projectFolder, () => {
-                                this._unlockPanel();
+                                this.core.editor.statusBar.removeElement(this._statusBarId);
                             }, () => {
-                                this._unlockPanel();
+                                this.core.editor.statusBar.removeElement(this._statusBarId);
                             });
                         }
                     }

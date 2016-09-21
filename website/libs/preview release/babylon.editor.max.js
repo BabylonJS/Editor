@@ -4450,6 +4450,8 @@ var BABYLON;
                 // Timeline
                 this.timeline = new EDITOR.Timeline(this.core);
                 this.timeline.createUI();
+                // Status bar
+                this.statusBar = new EDITOR.StatusBar(this.core);
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
@@ -4484,7 +4486,7 @@ var BABYLON;
                 this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div style=\"width: 100%; height: 100%; overflow: hidden;\">" +
                     "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
                     "</div>");
-                this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%;\"></div>");
+                this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%; width: 100%\"></div>");
                 this.layouts.buildElement(this.container);
                 // Play Layouts
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
@@ -5819,6 +5821,71 @@ var BABYLON;
             return SceneHelpers;
         }());
         EDITOR.SceneHelpers = SceneHelpers;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var StatusBar = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
+            function StatusBar(core) {
+                this._elements = [];
+                // Initialize
+                this._core = core;
+                this._element = $("#BABYLON-EDITOR-BOTTOM-PANEL");
+                this.panel = core.editor.layouts.getPanelFromType("bottom");
+                core.editor.layouts.setPanelSize("bottom", 0);
+                var statusBarId = "ONE-DRIVE-STATUS-BAR";
+                this.addElement(statusBarId, "Exporting...", "icon-one-drive");
+                this.showSpinner(statusBarId);
+            }
+            // Add a new element in the status bar
+            StatusBar.prototype.addElement = function (id, text, img, right) {
+                right = right || false;
+                this._core.editor.layouts.setPanelSize("bottom", 35);
+                this._element.append("<div id=\"" + id + "\" style=\"float: " + (right ? "right" : "left") + "; height: 100%;\">" +
+                    (img ? "<img id=\"" + id + "_img\" class=\"w2ui-icon " + img + "\ style=\"display: inline;\"></img>" : "") +
+                    "<div id=\"" + id + "_spinner\" class=\"w2ui-spinner\" style=\"width: 20px; height: 20px; display: none;\"></div>" +
+                    "<p id=\"" + id + "_text\" style=\"height: 100%; display: inline; vertical-align: super;\">\t" + text + "\t</p>" +
+                    "<div id=\"" + id + "_separator\" style=\"border-left:1px solid grey; height: 100%; display: inline-block;\"></div>" +
+                    "</div>");
+                this._elements.push({
+                    id: id
+                });
+            };
+            // Remove an existing element from the status bar
+            StatusBar.prototype.removeElement = function (id) {
+                for (var i = 0; i < this._elements.length; i++) {
+                    var element = this._elements[i];
+                    if (element.id === id) {
+                        var htmlElement = $("#" + id, this._element);
+                        htmlElement.empty();
+                        htmlElement.remove();
+                        this._elements.splice(i, 1);
+                        if (this._elements.length === 0)
+                            this._core.editor.layouts.setPanelSize("bottom", 0);
+                        return true;
+                    }
+                }
+                return false;
+            };
+            // Shows the spinner of an element
+            StatusBar.prototype.showSpinner = function (id) {
+                var spinner = $("#" + id + "_spinner", this._element);
+                spinner.css("display", "inline-block");
+            };
+            // Hides the spinner of an element
+            StatusBar.prototype.hideSpinner = function (id) {
+                var spinner = $("#" + id + "_spinner", this._element);
+                spinner.css("display", "none");
+            };
+            return StatusBar;
+        }());
+        EDITOR.StatusBar = StatusBar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;
@@ -7721,6 +7788,7 @@ var BABYLON;
                 this._currentFolder = null;
                 this._previousFolders = null;
                 this._onFolderSelected = null;
+                this._statusBarId = "ONE-DRIVE-STATUS-BAR";
                 // Initialize
                 this.core = core;
                 core.eventReceivers.push(this);
@@ -7768,13 +7836,15 @@ var BABYLON;
             StorageExporter.prototype.createTemplate = function () {
                 var _this = this;
                 this._openFolderDialog(function (folder, folderChildren) {
-                    _this._lockPanel("Creating Template...");
+                    // Status bar
+                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Exporting Template...", "icon-one-drive");
+                    _this.core.editor.statusBar.showSpinner(_this._statusBarId);
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
                     _this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, function () {
                         _this._createTemplate();
                     }, function () {
-                        _this._unlockPanel();
+                        _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
@@ -7789,13 +7859,14 @@ var BABYLON;
                     });
                     return;
                 }
-                this._lockPanel("Saving on OneDrive...");
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
                         { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
                     _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
-                        _this._unlockPanel();
+                        _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
@@ -7811,6 +7882,7 @@ var BABYLON;
             StorageExporter.prototype._createTemplate = function () {
                 var _this = this;
                 this._updateFileList(function () {
+                    // Files
                     var files = [];
                     var url = window.location.href;
                     url = url.replace(BABYLON.Tools.GetFilename(url), "");
@@ -7878,9 +7950,9 @@ var BABYLON;
                             }
                             if (count >= files.length) {
                                 _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
-                                    _this._unlockPanel();
+                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function () {
-                                    _this._unlockPanel();
+                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 });
                             }
                         };

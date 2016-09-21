@@ -12,6 +12,7 @@
         public transformer: ManipulationHelper;
         public editPanel: EditPanel;
         public timeline: Timeline;
+        public statusBar: StatusBar;
 
         public container: string;
         public mainContainer: string;
@@ -83,6 +84,9 @@
             this.timeline = new Timeline(this.core);
             this.timeline.createUI();
 
+            // Status bar
+            this.statusBar = new StatusBar(this.core);
+
             // Files input
             this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
@@ -126,7 +130,7 @@
                 "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
                 "</div>"
             );
-            this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%;\"></div>");
+            this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%; width: 100%\"></div>");
 
             this.layouts.buildElement(this.container);
 

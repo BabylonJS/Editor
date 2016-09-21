@@ -51,6 +51,8 @@ var BABYLON;
                 // Timeline
                 this.timeline = new EDITOR.Timeline(this.core);
                 this.timeline.createUI();
+                // Status bar
+                this.statusBar = new EDITOR.StatusBar(this.core);
                 // Files input
                 this.filesInput = new EDITOR.FilesInput(this.core, this._handleSceneLoaded(), null, null, null, null);
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
@@ -85,7 +87,7 @@ var BABYLON;
                 this.layouts.createPanel("BABYLON-EDITOR-PREVIEW-PANEL", "preview", 70, true).setContent("<div style=\"width: 100%; height: 100%; overflow: hidden;\">" +
                     "<div id=\"BABYLON-EDITOR-PREVIEW-PANEL\" style=\"height: 100%;\"></div>" +
                     "</div>");
-                this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%;\"></div>");
+                this.layouts.createPanel("BABYLON-EDITOR-BOTTOM-PANEL", "bottom", 0, false).setContent("<div id=\"BABYLON-EDITOR-BOTTOM-PANEL\" style=\"height: 100%; width: 100%\"></div>");
                 this.layouts.buildElement(this.container);
                 // Play Layouts
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
