@@ -115,6 +115,8 @@
                     else if (selected.selected === this._projectSaveLocal) {
                         var electronExporter = new ElectronLocalExporter(this.core);
                         FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                        //var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
+                        //storageExporter.export();
                     }
                     else if (selected.selected === this._projectConnectStorage) {
                         var storageExporter = new StorageExporter(this.core);

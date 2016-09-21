@@ -14,10 +14,10 @@ declare module OneDrive {
     }
 
     interface IChildResult {
-        size: number;
-        id: string;
         name: string;
-        parentReference: IParentReference;
+        size?: number;
+        id?: string;
+        parentReference?: IParentReference;
         folder?: IFolder;
         file?: IFile;
     }

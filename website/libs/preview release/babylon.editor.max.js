@@ -10552,5 +10552,52 @@ var BABYLON;
             return ElectronLocalExporter;
         }());
         EDITOR.ElectronLocalExporter = ElectronLocalExporter;
+        var ElectronLocalStorage = (function (_super) {
+            __extends(ElectronLocalStorage, _super);
+            /**
+            * Constructor
+            * @param core: the editor core instance
+            */
+            function ElectronLocalStorage(core) {
+                _super.call(this, core);
+                this._editor = core.editor;
+            }
+            // Creates folders
+            ElectronLocalStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
+                var fs = require('fs');
+                fs.readdir(parentFolder.name, function (err, files) {
+                    console.log(files);
+                });
+            };
+            // Creates files
+            ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed) {
+            };
+            // Gets the children files of a folder
+            ElectronLocalStorage.prototype.getFiles = function (folder, success, failed) {
+                var fs = require('fs');
+                var path = (folder && folder.file ? folder.file.id : process.env.HOME || process.env.USERPROFILE) + "/";
+                fs.readdir(path, null, function (err, files) {
+                    if (err) {
+                        failed(err.message);
+                        return;
+                    }
+                    var children = [];
+                    for (var i = 0; i < files.length; i++) {
+                        var filePath = path + files[i];
+                        var file = { id: filePath, name: files[i], folder: null };
+                        if (fs.lstatSync(path).isDirectory()) {
+                            file.folder = { name: filePath };
+                        }
+                        children.push({
+                            file: file,
+                            name: files[i]
+                        });
+                    }
+                    success(children);
+                });
+            };
+            return ElectronLocalStorage;
+        }(EDITOR.Storage));
+        EDITOR.ElectronLocalStorage = ElectronLocalStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

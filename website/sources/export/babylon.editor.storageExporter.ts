@@ -9,7 +9,7 @@
         public core: EditorCore;
 
         // Private members
-        private _storage: OneDriveStorage;
+        private _storage: Storage;
 
         private _window: GUI.GUIWindow = null;
         private _filesList: GUI.GUIGrid<IStorageExporterGrid> = null;
