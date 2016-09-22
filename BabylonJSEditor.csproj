@@ -94,7 +94,6 @@
     <Content Include="website\libs\materials\babylon.gridMaterial.js" />
     <Content Include="website\libs\materials\babylon.lavaMaterial.js" />
     <Content Include="website\libs\materials\babylon.normalMaterial.js" />
-    <Content Include="website\libs\materials\babylon.pbrMaterial.js" />
     <Content Include="website\libs\materials\babylon.simpleMaterial.js" />
     <Content Include="website\libs\materials\babylon.skyMaterial.js" />
     <Content Include="website\libs\materials\babylon.terrainMaterial.js" />
