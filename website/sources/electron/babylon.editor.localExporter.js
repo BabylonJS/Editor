@@ -7,44 +7,6 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var ElectronLocalExporter = (function () {
-            /**
-            * Constructor
-            * @param core: the editor core
-            */
-            function ElectronLocalExporter(core) {
-                var _this = this;
-                // Initialize
-                this._core = core;
-                // Save...
-                var filename = EDITOR.ElectronHelper.SceneFilename === "" ? "scene" : EDITOR.Tools.GetFilenameWithoutExtension(EDITOR.ElectronHelper.SceneFilename, true) + ".editorproject";
-                if (ElectronLocalExporter._LocalFilename === "") {
-                    EDITOR.ElectronHelper.CreateSaveDialog("Save Project", filename, ".editorproject", function (filename) {
-                        if (filename === undefined)
-                            return;
-                        ElectronLocalExporter._LocalFilename = filename;
-                        _this.writeProject(filename);
-                    });
-                }
-                else
-                    this.writeProject(filename);
-            }
-            // Write project into local file
-            ElectronLocalExporter.prototype.writeProject = function (filename) {
-                var _this = this;
-                this._core.editor.layouts.lockPanel("bottom", "Saving...", true);
-                var fs = require('fs');
-                var project = EDITOR.ProjectExporter.ExportProject(this._core, true);
-                fs.writeFile(filename, project, function (error) {
-                    console.log(error);
-                    _this._core.editor.layouts.unlockPanel("bottom");
-                });
-            };
-            // Static members
-            ElectronLocalExporter._LocalFilename = "";
-            return ElectronLocalExporter;
-        }());
-        EDITOR.ElectronLocalExporter = ElectronLocalExporter;
         var ElectronLocalStorage = (function (_super) {
             __extends(ElectronLocalStorage, _super);
             /**
@@ -57,17 +19,39 @@ var BABYLON;
             }
             // Creates folders
             ElectronLocalStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
-                var fs = require('fs');
-                fs.readdir(parentFolder.name, function (err, files) {
-                    console.log(files);
-                });
+                var fs = require("fs");
+                var path = parentFolder.file.id + "/";
+                for (var i = 0; i < folders.length; i++) {
+                    try {
+                        var stat = fs.lstatSync(path + folders[i]);
+                        if (stat.isDirectory())
+                            continue;
+                    }
+                    catch (e) {
+                    }
+                    fs.mkdirSync(path + folders[i]);
+                }
+                success();
             };
             // Creates files
             ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed) {
+                var fs = require("fs");
+                var path = folder.file.id + "/";
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
+                    var data = null;
+                    if (file.content instanceof ArrayBuffer)
+                        data = new global.Buffer(file.content);
+                    else
+                        data = file.content;
+                    fs.writeFileSync(filePath, data);
+                }
+                success();
             };
             // Gets the children files of a folder
             ElectronLocalStorage.prototype.getFiles = function (folder, success, failed) {
-                var fs = require('fs');
+                var fs = require("fs");
                 var path = (folder && folder.file ? folder.file.id : process.env.HOME || process.env.USERPROFILE) + "/";
                 fs.readdir(path, null, function (err, files) {
                     if (err) {

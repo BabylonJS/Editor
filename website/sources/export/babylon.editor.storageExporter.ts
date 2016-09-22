@@ -138,8 +138,9 @@
                 // Files
                 var files: IStorageUploadFile[] = [];
 
-                var url = window.location.href;
-                url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                //var url = window.location.href;
+                //url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                var url = Tools.GetBaseURL();
 
                 var projectContent = ProjectExporter.ExportProject(this.core, true);
                 var project: INTERNAL.IProjectRoot = JSON.parse(projectContent);

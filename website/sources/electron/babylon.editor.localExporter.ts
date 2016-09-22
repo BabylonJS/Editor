@@ -1,53 +1,4 @@
 ﻿module BABYLON.EDITOR {
-    export class ElectronLocalExporter {
-        // Public members
-
-        // Private members
-        private _core: EditorCore;
-
-        // Static members
-        private static _LocalFilename: string = "";
-
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore) {
-            // Initialize
-            this._core = core;
-            
-            // Save...
-            var filename = ElectronHelper.SceneFilename === "" ? "scene" : Tools.GetFilenameWithoutExtension(ElectronHelper.SceneFilename, true) + ".editorproject";
-
-            if (ElectronLocalExporter._LocalFilename === "") {
-                ElectronHelper.CreateSaveDialog("Save Project", filename, ".editorproject", (filename: string) => {
-                    if (filename === undefined)
-                        return;
-
-                    ElectronLocalExporter._LocalFilename = filename;
-
-                    this.writeProject(filename);
-                });
-            }
-            else
-                this.writeProject(filename);
-        }
-
-        // Write project into local file
-        public writeProject(filename: string): void {
-            this._core.editor.layouts.lockPanel("bottom", "Saving...", true);
-
-            var fs = require('fs');
-            var project = ProjectExporter.ExportProject(this._core, true);
-
-            fs.writeFile(filename, project, (error: string) => {
-                console.log(error);
-
-                this._core.editor.layouts.unlockPanel("bottom");
-            });
-        }
-    }
-
     export class ElectronLocalStorage extends Storage {
         // Public members
 
@@ -66,21 +17,49 @@
 
         // Creates folders
         public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void) {
-            var fs = require('fs');
+            var fs = require("fs");
+            var path = parentFolder.file.id + "/";
 
-            fs.readdir(parentFolder.name, (err, files) => {
-                console.log(files);
-            });
+            for (var i = 0; i < folders.length; i++) {
+                try {
+                    var stat = fs.lstatSync(path + folders[i]);
+                    if (stat.isDirectory())
+                        continue;
+                }
+                catch (e) {
+                    // Catch silently...
+                }
+
+                fs.mkdirSync(path + folders[i]);
+            }
+
+            success();
         }
 
         // Creates files
         public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void {
+            var fs = require("fs");
+            var path = folder.file.id + "/";
 
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
+                var data: string | ArrayBuffer = null;
+
+                if (file.content instanceof ArrayBuffer)
+                    data = new global.Buffer(<Uint8Array>file.content);
+                else
+                    data = file.content;
+
+                fs.writeFileSync(filePath, data);
+            }
+
+            success();
         }
 
         // Gets the children files of a folder
         public getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void {
-            var fs = require('fs');
+            var fs = require("fs");
             var path = (folder && folder.file ? folder.file.id : process.env.HOME || process.env.USERPROFILE) + "/";
 
             fs.readdir(path, null, (err, files: string[]) => {

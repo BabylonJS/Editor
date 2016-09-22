@@ -23,6 +23,7 @@ var BABYLON;
                 this._projectExportCode = "PROJECT-EXPORT-CODE";
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
                 this._projectSaveLocal = "PROJECT-SAVE-LOCAL";
+                this._projectTemplateLocal = "PROJECT-TEMPLATE-LOCAL";
                 this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
@@ -94,8 +95,13 @@ var BABYLON;
                             babylonExporter.createUI();
                         }
                         else if (selected.selected === this._projectSaveLocal) {
-                            var electronExporter = new EDITOR.ElectronLocalExporter(this.core);
+                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                            storageExporter.export();
                             EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                        }
+                        else if (selected.selected === this._projectTemplateLocal) {
+                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                            storageExporter.createTemplate();
                         }
                         else if (selected.selected === this._projectConnectStorage) {
                             var storageExporter = new EDITOR.StorageExporter(this.core);
@@ -193,6 +199,7 @@ var BABYLON;
                 }
                 else {
                     this.toolbar.createMenuItem(menu, "button", this._projectSaveLocal, "Save...", "icon-save");
+                    this.toolbar.createMenuItem(menu, "button", this._projectTemplateLocal, "Create template...", "icon-save");
                 }
                 //...
                 menu = this.toolbar.createMenu("menu", "MAIN-EDIT", "Edit", "icon-edit");

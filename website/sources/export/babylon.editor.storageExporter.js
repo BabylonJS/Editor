@@ -110,8 +110,9 @@ var BABYLON;
                 this._updateFileList(function () {
                     // Files
                     var files = [];
-                    var url = window.location.href;
-                    url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                    //var url = window.location.href;
+                    //url = url.replace(BABYLON.Tools.GetFilename(url), "");
+                    var url = EDITOR.Tools.GetBaseURL();
                     var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
                     var project = JSON.parse(projectContent);
                     var sceneFolder = _this.getFolder("Scene");

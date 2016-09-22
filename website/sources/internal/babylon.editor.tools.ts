@@ -117,7 +117,7 @@
         */
         public static GetBaseURL(): string {
             if (this.CheckIfElectron())
-                return "http://www.editor.babylonjs.com/";
+                return __dirname + "/";
 
             var url = window.location.href;
             url = url.replace(BABYLON.Tools.GetFilename(url), "");

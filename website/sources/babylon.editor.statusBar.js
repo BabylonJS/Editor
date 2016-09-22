@@ -14,9 +14,6 @@ var BABYLON;
                 this._element = $("#BABYLON-EDITOR-BOTTOM-PANEL");
                 this.panel = core.editor.layouts.getPanelFromType("bottom");
                 core.editor.layouts.setPanelSize("bottom", 0);
-                var statusBarId = "ONE-DRIVE-STATUS-BAR";
-                this.addElement(statusBarId, "Exporting...", "icon-one-drive");
-                this.showSpinner(statusBarId);
             }
             // Add a new element in the status bar
             StatusBar.prototype.addElement = function (id, text, img, right) {

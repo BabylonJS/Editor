@@ -21,6 +21,7 @@
         private _projectExportCode = "PROJECT-EXPORT-CODE";
         private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
         private _projectSaveLocal = "PROJECT-SAVE-LOCAL";
+        private _projectTemplateLocal = "PROJECT-TEMPLATE-LOCAL";
         private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
         private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
@@ -113,10 +114,13 @@
                     }
 
                     else if (selected.selected === this._projectSaveLocal) {
-                        var electronExporter = new ElectronLocalExporter(this.core);
+                        var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
+                        storageExporter.export();
                         FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                        //var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
-                        //storageExporter.export();
+                    }
+                    else if (selected.selected === this._projectTemplateLocal) {
+                        var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
+                        storageExporter.createTemplate();
                     }
                     else if (selected.selected === this._projectConnectStorage) {
                         var storageExporter = new StorageExporter(this.core);
@@ -236,6 +240,7 @@
             }
             else {
                 this.toolbar.createMenuItem(menu, "button", this._projectSaveLocal, "Save...", "icon-save");
+                this.toolbar.createMenuItem(menu, "button", this._projectTemplateLocal, "Create template...", "icon-save");
             }
             //...
 
