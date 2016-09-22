@@ -1,6 +1,7 @@
 ﻿module BABYLON.EDITOR {
     interface IStatusBarItem {
         id: string;
+        class?: string;
     }
 
     export class StatusBar {
@@ -40,7 +41,8 @@
             );
 
             this._elements.push({
-                id: id
+                id: id,
+                class: img
             });
         }
 
@@ -76,6 +78,29 @@
         public hideSpinner(id: string): void {
             var spinner = $("#" + id + "_spinner", this._element);
             spinner.css("display", "none");
+        }
+
+        // Sets the new text
+        public setText(id: string, text: string): void {
+            $("#" + id + "_text").html("\t" + text + "\t");
+        }
+
+        // Sets the new icon
+        public setImage(id: string, image: string): void {
+            var item = this._getItem(id);
+            var element = $("#" + id + "_img");
+            element.removeClass(item.class);
+            element.addClass(image);
+        }
+
+        // Returns the element from its id
+        private _getItem(id: string): IStatusBarItem {
+            for (var i = 0; i < this._elements.length; i++) {
+                if (this._elements[i].id === id)
+                    return this._elements[i];
+            }
+
+            return null;
         }
     }
 }

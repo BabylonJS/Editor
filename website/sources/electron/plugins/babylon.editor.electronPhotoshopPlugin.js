@@ -9,13 +9,15 @@ var BABYLON;
             * @param core: the editor core
             */
             function ElectronPhotoshopPlugin(core) {
+                this._statusBarId = "STATUS-BAR-PHOTOSHOP";
                 this._server = null;
                 this._client = null;
                 this._texture = null;
-                this._textures = {};
                 // Initialize
                 this._core = core;
                 this._core.eventReceivers.push(this);
+                // Status bar
+                this._core.editor.statusBar.addElement(this._statusBarId, "Ready", "icon-photoshop-connect");
             }
             // On event
             ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
@@ -37,15 +39,19 @@ var BABYLON;
                 }
                 this._server = null;
                 this._client = null;
+                this._core.editor.statusBar.removeElement(this._statusBarId);
                 return true;
             };
             // Connect to photoshop
             ElectronPhotoshopPlugin.prototype.connect = function () {
                 var _this = this;
+                this._core.editor.statusBar.showSpinner(this._statusBarId);
+                this._core.editor.statusBar.setText(this._statusBarId, "Connecting...");
                 var buffers = [];
                 this._server = net.createServer(function (socket) {
                     _this._client = socket;
                     _this._client.on("data", function (data) {
+                        _this._core.editor.statusBar.showSpinner(_this._statusBarId);
                         var buffer = new global.Buffer(data);
                         buffers.push(buffer);
                     });
@@ -59,13 +65,13 @@ var BABYLON;
                         var height = finalBuffer.readUInt32BE(12);
                         var documentNameLength = finalBuffer.readUInt32BE(16);
                         var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
-                        var texture = _this._textures[documentName];
+                        var texture = ElectronPhotoshopPlugin._Textures[documentName];
                         if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
                             if (texture)
                                 texture.dispose();
                             var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
                             EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
-                            _this._textures[documentName] = texture;
+                            ElectronPhotoshopPlugin._Textures[documentName] = texture;
                         }
                         var context = texture.getContext();
                         var data = context.getImageData(0, 0, width, height);
@@ -75,14 +81,18 @@ var BABYLON;
                         context.putImageData(data, 0, 0);
                         texture.update(true);
                         EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_CHANGED, _this._core);
+                        _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                     });
                 })
                     .on("error", function (error) {
+                    _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                     throw error;
                 });
                 this._server.maxConnections = 1;
                 this._server.listen(1337, "127.0.0.1", null, function () {
-                    console.log("Server is listening...");
+                    // Status bar
+                    _this._core.editor.statusBar.setText(_this._statusBarId, "Listening...");
+                    _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                 });
                 return true;
             };
@@ -96,6 +106,7 @@ var BABYLON;
                     this._Instance.disconnect();
                 this._Instance = null;
             };
+            ElectronPhotoshopPlugin._Textures = {};
             /*
             * Static methods
             */

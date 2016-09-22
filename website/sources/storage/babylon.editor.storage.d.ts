@@ -4,7 +4,7 @@ declare module BABYLON.EDITOR {
         name: string;
     }
     interface IStorageUploadFile {
-        content: string | Uint8Array;
+        content: string | Uint8Array | ArrayBuffer;
         name: string;
         parentFolder?: OneDrive.IChildResult;
         type?: string;

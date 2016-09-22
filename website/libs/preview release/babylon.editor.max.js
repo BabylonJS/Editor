@@ -5858,7 +5858,8 @@ var BABYLON;
                     "<div id=\"" + id + "_separator\" style=\"border-left:1px solid grey; height: 100%; display: inline-block;\"></div>" +
                     "</div>");
                 this._elements.push({
-                    id: id
+                    id: id,
+                    class: img
                 });
             };
             // Remove an existing element from the status bar
@@ -5886,6 +5887,25 @@ var BABYLON;
             StatusBar.prototype.hideSpinner = function (id) {
                 var spinner = $("#" + id + "_spinner", this._element);
                 spinner.css("display", "none");
+            };
+            // Sets the new text
+            StatusBar.prototype.setText = function (id, text) {
+                $("#" + id + "_text").html("\t" + text + "\t");
+            };
+            // Sets the new icon
+            StatusBar.prototype.setImage = function (id, image) {
+                var item = this._getItem(id);
+                var element = $("#" + id + "_img");
+                element.removeClass(item.class);
+                element.addClass(image);
+            };
+            // Returns the element from its id
+            StatusBar.prototype._getItem = function (id) {
+                for (var i = 0; i < this._elements.length; i++) {
+                    if (this._elements[i].id === id)
+                        return this._elements[i];
+                }
+                return null;
             };
             return StatusBar;
         }());
@@ -7491,7 +7511,7 @@ var BABYLON;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {
-                if (!material || material instanceof BABYLON.StandardMaterial || material instanceof BABYLON.MultiMaterial || !project.requestedMaterials)
+                if (!material || material instanceof BABYLON.StandardMaterial || material instanceof BABYLON.MultiMaterial || material instanceof BABYLON.PBRMaterial || !project.requestedMaterials)
                     return;
                 var constructorName = material.constructor ? material.constructor.name : null;
                 if (!constructorName)
@@ -7898,7 +7918,7 @@ var BABYLON;
                     //files.push({ name: "scene.js", content: projectContent });
                     //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
-                    files.push({ name: sceneToLoad.name, content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
+                    files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
                         var lf = project.lensFlares[i].serializationObject;
@@ -10367,13 +10387,15 @@ var BABYLON;
             * @param core: the editor core
             */
             function ElectronPhotoshopPlugin(core) {
+                this._statusBarId = "STATUS-BAR-PHOTOSHOP";
                 this._server = null;
                 this._client = null;
                 this._texture = null;
-                this._textures = {};
                 // Initialize
                 this._core = core;
                 this._core.eventReceivers.push(this);
+                // Status bar
+                this._core.editor.statusBar.addElement(this._statusBarId, "Ready", "icon-photoshop-connect");
             }
             // On event
             ElectronPhotoshopPlugin.prototype.onEvent = function (event) {
@@ -10395,15 +10417,19 @@ var BABYLON;
                 }
                 this._server = null;
                 this._client = null;
+                this._core.editor.statusBar.removeElement(this._statusBarId);
                 return true;
             };
             // Connect to photoshop
             ElectronPhotoshopPlugin.prototype.connect = function () {
                 var _this = this;
+                this._core.editor.statusBar.showSpinner(this._statusBarId);
+                this._core.editor.statusBar.setText(this._statusBarId, "Connecting...");
                 var buffers = [];
                 this._server = net.createServer(function (socket) {
                     _this._client = socket;
                     _this._client.on("data", function (data) {
+                        _this._core.editor.statusBar.showSpinner(_this._statusBarId);
                         var buffer = new global.Buffer(data);
                         buffers.push(buffer);
                     });
@@ -10417,13 +10443,13 @@ var BABYLON;
                         var height = finalBuffer.readUInt32BE(12);
                         var documentNameLength = finalBuffer.readUInt32BE(16);
                         var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
-                        var texture = _this._textures[documentName];
+                        var texture = ElectronPhotoshopPlugin._Textures[documentName];
                         if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
                             if (texture)
                                 texture.dispose();
                             var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
                             EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
-                            _this._textures[documentName] = texture;
+                            ElectronPhotoshopPlugin._Textures[documentName] = texture;
                         }
                         var context = texture.getContext();
                         var data = context.getImageData(0, 0, width, height);
@@ -10433,14 +10459,18 @@ var BABYLON;
                         context.putImageData(data, 0, 0);
                         texture.update(true);
                         EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_CHANGED, _this._core);
+                        _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                     });
                 })
                     .on("error", function (error) {
+                    _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                     throw error;
                 });
                 this._server.maxConnections = 1;
                 this._server.listen(1337, "127.0.0.1", null, function () {
-                    console.log("Server is listening...");
+                    // Status bar
+                    _this._core.editor.statusBar.setText(_this._statusBarId, "Listening...");
+                    _this._core.editor.statusBar.hideSpinner(_this._statusBarId);
                 });
                 return true;
             };
@@ -10454,6 +10484,7 @@ var BABYLON;
                     this._Instance.disconnect();
                 this._Instance = null;
             };
+            ElectronPhotoshopPlugin._Textures = {};
             /*
             * Static methods
             */
@@ -10553,7 +10584,7 @@ var BABYLON;
                     var file = files[i];
                     var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
                     var data = null;
-                    if (file.content instanceof ArrayBuffer)
+                    if (file.content instanceof ArrayBuffer || file.content instanceof Uint8Array)
                         data = new global.Buffer(file.content);
                     else
                         data = file.content;

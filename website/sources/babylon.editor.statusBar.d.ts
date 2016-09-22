@@ -13,5 +13,8 @@ declare module BABYLON.EDITOR {
         removeElement(id: string): boolean;
         showSpinner(id: string): void;
         hideSpinner(id: string): void;
+        setText(id: string, text: string): void;
+        setImage(id: string, image: string): void;
+        private _getItem(id);
     }
 }

@@ -9,7 +9,7 @@
 
     export interface IStorageUploadFile {
         // File content (string or directly array buffer)
-        content: string | Uint8Array;
+        content: string | Uint8Array | ArrayBuffer;
 
         // File name
         name: string;

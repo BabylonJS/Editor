@@ -417,7 +417,7 @@
 
         // Setups the requested materials (to be uploaded in template or release)
         private static _RequestMaterial(core: EditorCore, project: INTERNAL.IProjectRoot, material: Material): void {
-            if (!material || material instanceof StandardMaterial || material instanceof MultiMaterial || !project.requestedMaterials)
+            if (!material || material instanceof StandardMaterial || material instanceof MultiMaterial || material instanceof PBRMaterial || !project.requestedMaterials)
                 return;
 
             var constructorName = (<any>material).constructor ? (<any>material).constructor.name : null;

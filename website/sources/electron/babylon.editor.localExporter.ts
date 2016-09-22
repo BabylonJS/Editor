@@ -46,7 +46,7 @@
                 var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
                 var data: string | ArrayBuffer = null;
 
-                if (file.content instanceof ArrayBuffer)
+                if (file.content instanceof ArrayBuffer || file.content instanceof Uint8Array)
                     data = new global.Buffer(<Uint8Array>file.content);
                 else
                     data = file.content;

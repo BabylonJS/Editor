@@ -41,7 +41,7 @@ var BABYLON;
                     var file = files[i];
                     var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
                     var data = null;
-                    if (file.content instanceof ArrayBuffer)
+                    if (file.content instanceof ArrayBuffer || file.content instanceof Uint8Array)
                         data = new global.Buffer(file.content);
                     else
                         data = file.content;

@@ -315,6 +315,9 @@ declare module BABYLON.EDITOR {
         removeElement(id: string): boolean;
         showSpinner(id: string): void;
         hideSpinner(id: string): void;
+        setText(id: string, text: string): void;
+        setImage(id: string, image: string): void;
+        private _getItem(id);
     }
 }
 
@@ -378,59 +381,6 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronHelper {
-        /**
-        * Scene file
-        */
-        static ReloadSceneOnFileChanged: boolean;
-        static SceneFilename: string;
-        /**
-        * Creates "File" objects from filenames
-        */
-        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
-        /**
-        * Watchs the specified file
-        */
-        static WatchFile(filename: string, callback: (file: File) => void): void;
-        /**
-        * Creates a save dialog
-        */
-        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _toolbar;
-        private _connectPhotoshop;
-        private _disconnectPhotoshop;
-        private _watchSceneFile;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronLocalStorage extends Storage {
-        private _editor;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
     }
 }
 
@@ -657,6 +607,59 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronHelper {
+        /**
+        * Scene file
+        */
+        static ReloadSceneOnFileChanged: boolean;
+        static SceneFilename: string;
+        /**
+        * Creates "File" objects from filenames
+        */
+        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
+        /**
+        * Watchs the specified file
+        */
+        static WatchFile(filename: string, callback: (file: File) => void): void;
+        /**
+        * Creates a save dialog
+        */
+        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _toolbar;
+        private _connectPhotoshop;
+        private _disconnectPhotoshop;
+        private _watchSceneFile;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronLocalStorage extends Storage {
+        private _editor;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
     }
 }
 
@@ -1023,6 +1026,92 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class FilesInput extends BABYLON.FilesInput {
+        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
+        private static _callbackStart(core);
+        private static _callback(callback, core, filesInput);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+        standard: boolean;
+        attachStandard: boolean;
+        vls: boolean;
+    }
+    class SceneFactory {
+        static GenerateUUID(): string;
+        static DummyNodeID: string;
+        static ConfigureObject(object: any, core: EditorCore): void;
+        static HDRPipeline: HDRRenderingPipeline;
+        static StandardPipeline: StandardRenderingPipeline;
+        static SSAOPipeline: SSAORenderingPipeline;
+        static VLSPostProcess: VolumetricLightScatteringPostProcess;
+        static EnabledPostProcesses: IEnabledPostProcesses;
+        static NodesToStart: IAnimatable[];
+        static AnimationSpeed: number;
+        /**
+        * Post-Processes
+        */
+        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline;
+        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
+        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
+        /**
+        * Nodes
+        */
+        static AddPointLight(core: EditorCore): PointLight;
+        static AddDirectionalLight(core: EditorCore): DirectionalLight;
+        static AddSpotLight(core: EditorCore): SpotLight;
+        static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddBoxMesh(core: EditorCore): Mesh;
+        static AddSphereMesh(core: EditorCore): Mesh;
+        static AddPlaneMesh(core: EditorCore): Mesh;
+        static AddGroundMesh(core: EditorCore): Mesh;
+        static AddHeightMap(core: EditorCore): Mesh;
+        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
+        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
+        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
+        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
+        static AddSkyMesh(core: EditorCore): Mesh;
+        static AddWaterMesh(core: EditorCore): Mesh;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
+    interface ISceneConfiguration {
+        scene: Scene;
+        actionManager: ActionManager;
+    }
+    class SceneManager {
+        /**
+        * Objects configuration
+        */
+        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
+        static _SceneConfiguration: ISceneConfiguration;
+        static ResetConfiguredObjects(): void;
+        static SwitchActionManager(): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        /**
+        * States saver
+        */
+        private static _ObjectsStatesConfiguration;
+        static SaveObjectStates(scene: Scene): void;
+        static RestoreObjectsStates(scene: Scene): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
     class OneDriveStorage extends Storage {
         private _editor;
         private static _ClientID;
@@ -1050,7 +1139,7 @@ declare module BABYLON.EDITOR {
         name: string;
     }
     interface IStorageUploadFile {
-        content: string | Uint8Array;
+        content: string | Uint8Array | ArrayBuffer;
         name: string;
         parentFolder?: OneDrive.IChildResult;
         type?: string;
@@ -1557,113 +1646,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class FilesInput extends BABYLON.FilesInput {
-        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
-        private static _callbackStart(core);
-        private static _callback(callback, core, filesInput);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IEnabledPostProcesses {
-        hdr: boolean;
-        attachHDR: boolean;
-        ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-        standard: boolean;
-        attachStandard: boolean;
-        vls: boolean;
-    }
-    class SceneFactory {
-        static GenerateUUID(): string;
-        static DummyNodeID: string;
-        static ConfigureObject(object: any, core: EditorCore): void;
-        static HDRPipeline: HDRRenderingPipeline;
-        static StandardPipeline: StandardRenderingPipeline;
-        static SSAOPipeline: SSAORenderingPipeline;
-        static VLSPostProcess: VolumetricLightScatteringPostProcess;
-        static EnabledPostProcesses: IEnabledPostProcesses;
-        static NodesToStart: IAnimatable[];
-        static AnimationSpeed: number;
-        /**
-        * Post-Processes
-        */
-        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline;
-        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
-        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
-        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
-        /**
-        * Nodes
-        */
-        static AddPointLight(core: EditorCore): PointLight;
-        static AddDirectionalLight(core: EditorCore): DirectionalLight;
-        static AddSpotLight(core: EditorCore): SpotLight;
-        static AddHemisphericLight(core: EditorCore): HemisphericLight;
-        static AddBoxMesh(core: EditorCore): Mesh;
-        static AddSphereMesh(core: EditorCore): Mesh;
-        static AddPlaneMesh(core: EditorCore): Mesh;
-        static AddGroundMesh(core: EditorCore): Mesh;
-        static AddHeightMap(core: EditorCore): Mesh;
-        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
-        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
-        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
-        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
-        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
-        static AddSkyMesh(core: EditorCore): Mesh;
-        static AddWaterMesh(core: EditorCore): Mesh;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IObjectConfiguration {
-        mesh: AbstractMesh;
-        actionManager: ActionManager;
-    }
-    interface ISceneConfiguration {
-        scene: Scene;
-        actionManager: ActionManager;
-    }
-    class SceneManager {
-        /**
-        * Objects configuration
-        */
-        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
-        static _SceneConfiguration: ISceneConfiguration;
-        static ResetConfiguredObjects(): void;
-        static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
-        /**
-        * States saver
-        */
-        private static _ObjectsStatesConfiguration;
-        static SaveObjectStates(scene: Scene): void;
-        static RestoreObjectsStates(scene: Scene): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronPhotoshopPlugin implements IEventReceiver {
-        private _core;
-        private _server;
-        private _client;
-        private _texture;
-        private _textures;
-        /**
-        * Constructor
-        * @param core: the editor core
-        */
-        constructor(core: EditorCore);
-        onEvent(event: Event): boolean;
-        disconnect(): boolean;
-        connect(): boolean;
-        private static _Instance;
-        static Connect(core: EditorCore): void;
-        static Disconnect(): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
@@ -1805,6 +1787,28 @@ declare module BABYLON.EDITOR {
         constructor(editionTool: EditionTool);
         update(): boolean;
         private _configureReflection();
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronPhotoshopPlugin implements IEventReceiver {
+        private _core;
+        private _statusBarId;
+        private _server;
+        private _client;
+        private _texture;
+        private static _Textures;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        onEvent(event: Event): boolean;
+        disconnect(): boolean;
+        connect(): boolean;
+        private static _Instance;
+        static Connect(core: EditorCore): void;
+        static Disconnect(): void;
     }
 }
 

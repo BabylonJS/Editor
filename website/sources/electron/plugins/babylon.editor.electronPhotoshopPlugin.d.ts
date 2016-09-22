@@ -1,10 +1,11 @@
 declare module BABYLON.EDITOR {
     class ElectronPhotoshopPlugin implements IEventReceiver {
         private _core;
+        private _statusBarId;
         private _server;
         private _client;
         private _texture;
-        private _textures;
+        private static _Textures;
         /**
         * Constructor
         * @param core: the editor core

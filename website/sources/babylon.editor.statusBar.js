@@ -26,7 +26,8 @@ var BABYLON;
                     "<div id=\"" + id + "_separator\" style=\"border-left:1px solid grey; height: 100%; display: inline-block;\"></div>" +
                     "</div>");
                 this._elements.push({
-                    id: id
+                    id: id,
+                    class: img
                 });
             };
             // Remove an existing element from the status bar
@@ -54,6 +55,25 @@ var BABYLON;
             StatusBar.prototype.hideSpinner = function (id) {
                 var spinner = $("#" + id + "_spinner", this._element);
                 spinner.css("display", "none");
+            };
+            // Sets the new text
+            StatusBar.prototype.setText = function (id, text) {
+                $("#" + id + "_text").html("\t" + text + "\t");
+            };
+            // Sets the new icon
+            StatusBar.prototype.setImage = function (id, image) {
+                var item = this._getItem(id);
+                var element = $("#" + id + "_img");
+                element.removeClass(item.class);
+                element.addClass(image);
+            };
+            // Returns the element from its id
+            StatusBar.prototype._getItem = function (id) {
+                for (var i = 0; i < this._elements.length; i++) {
+                    if (this._elements[i].id === id)
+                        return this._elements[i];
+                }
+                return null;
             };
             return StatusBar;
         }());

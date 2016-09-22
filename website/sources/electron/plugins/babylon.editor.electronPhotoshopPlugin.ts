@@ -10,11 +10,13 @@
 
         // Private members
         private _core: EditorCore;
+        private _statusBarId = "STATUS-BAR-PHOTOSHOP";
 
         private _server: any = null;
         private _client: any = null;
         private _texture: DynamicTexture = null;
-        private _textures: ITextureInformation = { };
+
+        private static _Textures: ITextureInformation = { };
 
         /**
         * Constructor
@@ -24,6 +26,9 @@
             // Initialize
             this._core = core;
             this._core.eventReceivers.push(this);
+
+            // Status bar
+            this._core.editor.statusBar.addElement(this._statusBarId, "Ready", "icon-photoshop-connect");
         }
 
         // On event
@@ -51,16 +56,23 @@
             this._server = null;
             this._client = null;
 
+            this._core.editor.statusBar.removeElement(this._statusBarId);
+
             return true;
         }
 
         // Connect to photoshop
         public connect(): boolean {
+            this._core.editor.statusBar.showSpinner(this._statusBarId);
+            this._core.editor.statusBar.setText(this._statusBarId, "Connecting...");
+
             var buffers: NodeJSBuffer[] = [];
 
             this._server = net.createServer((socket) => {
                 this._client = socket;
                 this._client.on("data", (data: Uint8Array) => {
+                    this._core.editor.statusBar.showSpinner(this._statusBarId);
+
                     var buffer = new global.Buffer(data);
                     buffers.push(buffer);
                 });
@@ -79,7 +91,7 @@
                     var documentNameLength = finalBuffer.readUInt32BE(16);
                     var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
 
-                    var texture = this._textures[documentName];
+                    var texture = ElectronPhotoshopPlugin._Textures[documentName];
 
                     if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
                         if (texture)
@@ -88,7 +100,7 @@
                         var texture = new DynamicTexture(documentName, { width: width, height: height }, this._core.currentScene, false);
                         Event.sendSceneEvent(texture, SceneEventType.OBJECT_ADDED, this._core);
 
-                        this._textures[documentName] = texture;
+                        ElectronPhotoshopPlugin._Textures[documentName] = texture;
                     }
                     
                     var context = texture.getContext();
@@ -102,15 +114,20 @@
                     texture.update(true);
 
                     Event.sendSceneEvent(texture, SceneEventType.OBJECT_CHANGED, this._core);
+
+                    this._core.editor.statusBar.hideSpinner(this._statusBarId);
                 });
             })
             .on("error", (error) => {
+                this._core.editor.statusBar.hideSpinner(this._statusBarId);
                 throw error;
             });
 
             this._server.maxConnections = 1;
             this._server.listen(1337, "127.0.0.1", null, () => {
-                console.log("Server is listening...");
+                // Status bar
+                this._core.editor.statusBar.setText(this._statusBarId, "Listening...");
+                this._core.editor.statusBar.hideSpinner(this._statusBarId);
             });
 
             return true;
