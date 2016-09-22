@@ -27,6 +27,7 @@ var BABYLON;
                 // Colors
                 this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true);
                 this.addColorFolder(this.material.specularColor, "Specular Color", true);
+                this._element.add(this.material, "specularPower").min(0).step(0.1).name("Specular Power");
                 // Bump
                 var bumpFolder = this._element.addFolder("Bump");
                 bumpFolder.add(this.material, "bumpHeight").min(0.0).step(0.01).name("Bump Height");
@@ -44,6 +45,13 @@ var BABYLON;
                 var colorFolder = this._element.addFolder("Color");
                 colorFolder.add(this.material, "colorBlendFactor").min(0.0).max(1.0).step(0.01).name("Blend Factor");
                 this.addColorFolder(this.material.waterColor, "Water Color", true, colorFolder);
+                // Advances
+                var advancedFolder = this._element.addFolder("Advanced");
+                advancedFolder.add(this.material, "bumpSuperimpose").name("Bump Super Impose");
+                advancedFolder.add(this.material, "bumpAffectsReflection").name("Bump Affects Reflection");
+                advancedFolder.add(this.material, "fresnelSeparate").name("Fresnel Separate");
+                advancedFolder.add(this.material, "colorBlendFactor2").min(0.0).max(1.0).step(0.01).name("Blend Factor 2");
+                this.addColorFolder(this.material.waterColor2, "Water Color 2", true, advancedFolder);
                 // Render
                 this._rtsEnabled = this.material.renderTargetsEnabled;
                 var renderFolder = this._element.addFolder("Reflection & Refraction");

@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class SkyMaterial extends Material {
         luminance: number;

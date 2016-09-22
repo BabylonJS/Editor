@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class FireMaterial extends Material {
         diffuseTexture: BaseTexture;

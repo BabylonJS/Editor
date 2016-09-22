@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class FurMaterial extends Material {
         diffuseTexture: BaseTexture;
@@ -15,9 +14,9 @@ declare module BABYLON {
         furTexture: DynamicTexture;
         disableLighting: boolean;
         highLevelFur: boolean;
+        maxSimultaneousLights: number;
         _meshes: AbstractMesh[];
         private _worldViewProjectionMatrix;
-        private _scaledDiffuse;
         private _renderId;
         private _furTime;
         private _defines;

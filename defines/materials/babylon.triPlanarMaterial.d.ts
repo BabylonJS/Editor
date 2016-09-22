@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class TriPlanarMaterial extends Material {
         mixTexture: BaseTexture;
@@ -13,9 +12,8 @@ declare module BABYLON {
         specularColor: Color3;
         specularPower: number;
         disableLighting: boolean;
+        maxSimultaneousLights: number;
         private _worldViewProjectionMatrix;
-        private _scaledDiffuse;
-        private _scaledSpecular;
         private _renderId;
         private _defines;
         private _cachedDefines;

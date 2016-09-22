@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class NormalMaterial extends Material {
         diffuseTexture: BaseTexture;

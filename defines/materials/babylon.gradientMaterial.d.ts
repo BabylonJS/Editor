@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     class GradientMaterial extends Material {
         topColor: Color3;

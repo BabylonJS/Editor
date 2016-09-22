@@ -1,4 +1,3 @@
-
 declare module BABYLON {
     /**
      * The grid materials allows you to wrap any shape with a grid.
