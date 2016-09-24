@@ -19,7 +19,7 @@ var BABYLON;
                 // Create items
                 toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
                 // Load file
-                BABYLON.Tools.LoadFile("website/resources/babylon.d.txt", function (data) { return _this._parseFile(data); }, null, null, false);
+                BABYLON.Tools.LoadFile("website/resources/classes.min.json", function (data) { return _this._parseFile(data); }, null, null, false);
             }
             // Called when a menu item is selected by the user
             ScenarioMakerMenuPlugin.prototype.onMenuItemSelected = function (selected) {
@@ -31,8 +31,7 @@ var BABYLON;
             * Parses the babylon file
             */
             ScenarioMakerMenuPlugin.prototype._parseFile = function (data) {
-                var tokenizer = new EDITOR.Tokenizer(data);
-                tokenizer.parseString();
+                console.log(data);
             };
             return ScenarioMakerMenuPlugin;
         }());

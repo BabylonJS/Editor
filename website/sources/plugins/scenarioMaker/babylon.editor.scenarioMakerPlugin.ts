@@ -23,7 +23,7 @@
             toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
 
             // Load file
-            BABYLON.Tools.LoadFile("website/resources/babylon.d.txt", (data: any) => this._parseFile(data), null, null, false);
+            BABYLON.Tools.LoadFile("website/resources/classes.min.json", (data: any) => this._parseFile(data), null, null, false);
         }
         
         // Called when a menu item is selected by the user
@@ -37,8 +37,7 @@
         * Parses the babylon file
         */
         private _parseFile(data: string): void {
-            var tokenizer = new Tokenizer(data);
-            tokenizer.parseString();
+            console.log(data);
         }
     }
 

@@ -611,6 +611,59 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class ElectronHelper {
+        /**
+        * Scene file
+        */
+        static ReloadSceneOnFileChanged: boolean;
+        static SceneFilename: string;
+        /**
+        * Creates "File" objects from filenames
+        */
+        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
+        /**
+        * Watchs the specified file
+        */
+        static WatchFile(filename: string, callback: (file: File) => void): void;
+        /**
+        * Creates a save dialog
+        */
+        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _toolbar;
+        private _connectPhotoshop;
+        private _disconnectPhotoshop;
+        private _watchSceneFile;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ElectronLocalStorage extends Storage {
+        private _editor;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
     class Exporter {
         core: EditorCore;
         private _window;
@@ -701,59 +754,6 @@ declare module BABYLON.EDITOR {
         private _getFileFolder(name, type, files);
         private _lockPanel(message);
         private _unlockPanel();
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronHelper {
-        /**
-        * Scene file
-        */
-        static ReloadSceneOnFileChanged: boolean;
-        static SceneFilename: string;
-        /**
-        * Creates "File" objects from filenames
-        */
-        static CreateFilesFromFileNames(filenames: string[], isOpenScene: boolean, callback: (files: File[]) => void): void;
-        /**
-        * Watchs the specified file
-        */
-        static WatchFile(filename: string, callback: (file: File) => void): void;
-        /**
-        * Creates a save dialog
-        */
-        static CreateSaveDialog(title: string, path: string, extension: string, callback: (filename: string) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _toolbar;
-        private _connectPhotoshop;
-        private _disconnectPhotoshop;
-        private _watchSceneFile;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ElectronLocalStorage extends Storage {
-        private _editor;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
     }
 }
 
@@ -951,163 +951,6 @@ declare module BABYLON.EDITOR {
         * Creates a new file object
         */
         static CreateFile(array: Uint8Array, filename: string): File;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class FilesInput extends BABYLON.FilesInput {
-        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
-        private static _callbackStart(core);
-        private static _callback(callback, core, filesInput);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IEnabledPostProcesses {
-        hdr: boolean;
-        attachHDR: boolean;
-        ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-        standard: boolean;
-        attachStandard: boolean;
-        vls: boolean;
-    }
-    class SceneFactory {
-        static GenerateUUID(): string;
-        static DummyNodeID: string;
-        static ConfigureObject(object: any, core: EditorCore): void;
-        static HDRPipeline: HDRRenderingPipeline;
-        static StandardPipeline: StandardRenderingPipeline;
-        static SSAOPipeline: SSAORenderingPipeline;
-        static VLSPostProcess: VolumetricLightScatteringPostProcess;
-        static EnabledPostProcesses: IEnabledPostProcesses;
-        static NodesToStart: IAnimatable[];
-        static AnimationSpeed: number;
-        /**
-        * Post-Processes
-        */
-        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline;
-        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
-        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
-        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
-        /**
-        * Nodes
-        */
-        static AddPointLight(core: EditorCore): PointLight;
-        static AddDirectionalLight(core: EditorCore): DirectionalLight;
-        static AddSpotLight(core: EditorCore): SpotLight;
-        static AddHemisphericLight(core: EditorCore): HemisphericLight;
-        static AddBoxMesh(core: EditorCore): Mesh;
-        static AddSphereMesh(core: EditorCore): Mesh;
-        static AddPlaneMesh(core: EditorCore): Mesh;
-        static AddGroundMesh(core: EditorCore): Mesh;
-        static AddHeightMap(core: EditorCore): Mesh;
-        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
-        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
-        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
-        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
-        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
-        static AddSkyMesh(core: EditorCore): Mesh;
-        static AddWaterMesh(core: EditorCore): Mesh;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IObjectConfiguration {
-        mesh: AbstractMesh;
-        actionManager: ActionManager;
-    }
-    interface ISceneConfiguration {
-        scene: Scene;
-        actionManager: ActionManager;
-    }
-    class SceneManager {
-        /**
-        * Objects configuration
-        */
-        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
-        static _SceneConfiguration: ISceneConfiguration;
-        static ResetConfiguredObjects(): void;
-        static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
-        /**
-        * States saver
-        */
-        private static _ObjectsStatesConfiguration;
-        static SaveObjectStates(scene: Scene): void;
-        static RestoreObjectsStates(scene: Scene): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createPlane;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * "selected" is the id of the selected item
-        */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LightsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _configureSound(sound);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SoundsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addSoundtrack;
-        private _add3DSound;
-        private _stopAllSounds;
-        private _playAllSounds;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _stopPlayAllSounds(play);
-        private _configureSound(sound);
-        private _createInput(callback);
-        private _onReadFileCallback(name, callback);
     }
 }
 
@@ -1395,6 +1238,163 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createPlane;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * "selected" is the id of the selected item
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SoundsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addSoundtrack;
+        private _add3DSound;
+        private _stopAllSounds;
+        private _playAllSounds;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _stopPlayAllSounds(play);
+        private _configureSound(sound);
+        private _createInput(callback);
+        private _onReadFileCallback(name, callback);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class FilesInput extends BABYLON.FilesInput {
+        constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
+        private static _callbackStart(core);
+        private static _callback(callback, core, filesInput);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IEnabledPostProcesses {
+        hdr: boolean;
+        attachHDR: boolean;
+        ssao: boolean;
+        ssaoOnly: boolean;
+        attachSSAO: boolean;
+        standard: boolean;
+        attachStandard: boolean;
+        vls: boolean;
+    }
+    class SceneFactory {
+        static GenerateUUID(): string;
+        static DummyNodeID: string;
+        static ConfigureObject(object: any, core: EditorCore): void;
+        static HDRPipeline: HDRRenderingPipeline;
+        static StandardPipeline: StandardRenderingPipeline;
+        static SSAOPipeline: SSAORenderingPipeline;
+        static VLSPostProcess: VolumetricLightScatteringPostProcess;
+        static EnabledPostProcesses: IEnabledPostProcesses;
+        static NodesToStart: IAnimatable[];
+        static AnimationSpeed: number;
+        /**
+        * Post-Processes
+        */
+        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline;
+        static CreateHDRPipeline(core: EditorCore, serializationObject?: any): HDRRenderingPipeline;
+        static CreateSSAOPipeline(core: EditorCore, serializationObject?: any): SSAORenderingPipeline;
+        static CreateVLSPostProcess(core: EditorCore, mesh?: Mesh, serializationObject?: any): VolumetricLightScatteringPostProcess;
+        /**
+        * Nodes
+        */
+        static AddPointLight(core: EditorCore): PointLight;
+        static AddDirectionalLight(core: EditorCore): DirectionalLight;
+        static AddSpotLight(core: EditorCore): SpotLight;
+        static AddHemisphericLight(core: EditorCore): HemisphericLight;
+        static AddBoxMesh(core: EditorCore): Mesh;
+        static AddSphereMesh(core: EditorCore): Mesh;
+        static AddPlaneMesh(core: EditorCore): Mesh;
+        static AddGroundMesh(core: EditorCore): Mesh;
+        static AddHeightMap(core: EditorCore): Mesh;
+        static AddParticleSystem(core: EditorCore, chooseEmitter?: boolean): void;
+        static AddLensFlareSystem(core: EditorCore, chooseEmitter?: boolean, emitter?: any): void;
+        static AddLensFlare(core: EditorCore, system: LensFlareSystem, size: number, position: number, color: any): LensFlare;
+        static AddReflectionProbe(core: EditorCore): ReflectionProbe;
+        static AddRenderTargetTexture(core: EditorCore): RenderTargetTexture;
+        static AddSkyMesh(core: EditorCore): Mesh;
+        static AddWaterMesh(core: EditorCore): Mesh;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IObjectConfiguration {
+        mesh: AbstractMesh;
+        actionManager: ActionManager;
+    }
+    interface ISceneConfiguration {
+        scene: Scene;
+        actionManager: ActionManager;
+    }
+    class SceneManager {
+        /**
+        * Objects configuration
+        */
+        static _ConfiguredObjectsIDs: IStringDictionary<IObjectConfiguration>;
+        static _SceneConfiguration: ISceneConfiguration;
+        static ResetConfiguredObjects(): void;
+        static SwitchActionManager(): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        /**
+        * States saver
+        */
+        private static _ObjectsStatesConfiguration;
+        static SaveObjectStates(scene: Scene): void;
+        static RestoreObjectsStates(scene: Scene): void;
     }
 }
 
@@ -1827,124 +1827,5 @@ declare module BABYLON.EDITOR {
         * Parses the babylon file
         */
         private _parseFile(data);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    /**
-    * Tokenizer. Used to parse babylon.js definition file
-    */
-    enum ETokenType {
-        IDENTIFIER = 1,
-        NUMBER = 2,
-        BRACKET_OPEN = 3,
-        BRACKET_CLOSE = 4,
-        DEFINER = 5,
-        EQUALITY = 6,
-        INSTRUCTION_END = 7,
-        PARENTHESIS_OPEN = 8,
-        PARENTHESIS_CLOSE = 9,
-        LAMBDA_FUNCTION = 10,
-        COMMA = 11,
-        STRING = 12,
-        INTERROGATION = 13,
-        POINT = 14,
-        BRACE_OPEN = 15,
-        BRACE_CLOSE = 16,
-        INFERIOR = 17,
-        SUPERIOR = 18,
-        PIPE = 19,
-        ONE_LINE_COMMENT = 96,
-        MULTI_LINE_COMMENT = 97,
-        UNKNOWN = 98,
-        END_OF_INPUT = 99,
-    }
-    enum EAccessorType {
-        PUBLIC = 1,
-        PRIVATE = 2,
-        PROTECTED = 3,
-    }
-    /**
-    * Tokenizer interfaces
-    */
-    interface IModule {
-        name: string;
-        classes: IClass[];
-    }
-    interface IInterface extends IClass {
-    }
-    interface IClass {
-        name: string;
-        exported: boolean;
-        functions: IFunction[];
-        properties: IProperty[];
-        extends: IClass[];
-        isInterface: boolean;
-    }
-    interface IProperty {
-        name: string;
-        isStatic: boolean;
-        accessorType: EAccessorType;
-        type: string;
-        optional: boolean;
-        value?: string;
-        lambda?: IFunction;
-    }
-    interface IFunction {
-        name: string;
-        returnType: string;
-        parameters: IParameter[];
-        returnClass?: IClass;
-    }
-    interface IParameter {
-        name: string;
-        type: string;
-        defaultValue?: string;
-        optional?: boolean;
-        lambda?: IFunction;
-        parameterClass?: IClass;
-    }
-    /**
-    * Tokenizer class
-    */
-    class Tokenizer {
-        /******************************************************************************************
-        * Tokenizer
-        ******************************************************************************************/
-        private _toParse;
-        private _pos;
-        private _maxPos;
-        currentToken: ETokenType;
-        currentString: string;
-        isLetterPattern: RegExp;
-        isLetterOrDigitPattern: RegExp;
-        isNumberPattern: RegExp;
-        currentIdentifier: string;
-        currentNumber: string;
-        currentComment: string;
-        currentValue: number;
-        constructor(toParse: string);
-        getNextToken(): ETokenType;
-        getNextIdentifier(): string;
-        peek(): string;
-        read(): string;
-        forward(): void;
-        isEnd(): boolean;
-        /******************************************************************************************
-        * Tokenize
-        ******************************************************************************************/
-        modules: IModule[];
-        parseString(): void;
-        private _parseModule();
-        private _parseModuleBody(newModule);
-        private _parseClass(newModule, newClass, bracketCount?);
-        private _parseFunction(newClass, name);
-        /******************************************************************************************
-        * Utils
-        ******************************************************************************************/
-        private _getModule(name);
-        private _getClass(name, module);
-        private _getBraces(braceCount);
-        private _getGeneric();
     }
 }

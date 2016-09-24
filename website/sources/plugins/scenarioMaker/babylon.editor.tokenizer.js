@@ -478,3 +478,4 @@ var BABYLON;
         EDITOR.Tokenizer = Tokenizer;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+//# sourceMappingURL=babylon.editor.tokenizer.js.map
