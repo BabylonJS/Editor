@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class ScenarioMakerMenuPlugin implements ICustomToolbarMenu {
+    export class ScenarioMakerMenu implements ICustomToolbarMenu {
         // Public members
         public menuID = "SCENARIO-MAKER-MENU";
 
@@ -22,8 +22,8 @@
             // Create items
             toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
 
-            // Load file
-            BABYLON.Tools.LoadFile("website/resources/classes.min.json", (data: any) => this._parseFile(data), null, null, false);
+            // Test
+            var t = new ScenarioMaker(this._core);
         }
         
         // Called when a menu item is selected by the user
@@ -32,15 +32,8 @@
                 default: break;
             }
         }
-
-        /**
-        * Parses the babylon file
-        */
-        private _parseFile(data: string): void {
-            console.log(data);
-        }
     }
 
     // Finally, register the plugin using the plugin manager
-    PluginManager.RegisterMainToolbarPlugin(ScenarioMakerMenuPlugin);
+    PluginManager.RegisterMainToolbarPlugin(ScenarioMakerMenu);
 }

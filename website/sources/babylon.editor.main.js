@@ -3,7 +3,6 @@ var BABYLON;
     var EDITOR;
     (function (EDITOR) {
         var EditorMain = (function () {
-            // Statics
             /**
             * Constructor
             */
@@ -17,6 +16,8 @@ var BABYLON;
                 this.renderHelpers = true;
                 // Private members
                 this._saveCameraState = false;
+                this._mainPanelTabs = {};
+                this._currentTab = null;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -59,6 +60,13 @@ var BABYLON;
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
             }
+            Object.defineProperty(EditorMain, "PlayLayoutContainerID", {
+                get: function () {
+                    return this._PlayLayoutContainerID;
+                },
+                enumerable: true,
+                configurable: true
+            });
             /**
             * Event receiver
             */
@@ -68,8 +76,106 @@ var BABYLON;
                         this.core.engine.resize();
                         return true;
                     }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
+                        var tabID = event.guiEvent.data;
+                        if (this._currentTab) {
+                            $("#" + this._currentTab.container).hide();
+                        }
+                        this._currentTab = this._mainPanelTabs[tabID];
+                        $("#" + this._currentTab.container).show();
+                        return false;
+                    }
                 }
                 return false;
+            };
+            /**
+            * Creates a new project
+            */
+            EditorMain.prototype.createNewProject = function () {
+                this.core.currentScene.dispose();
+                this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
+            };
+            /**
+            * Creates the render loop
+            */
+            EditorMain.prototype.createRenderLoop = function () {
+                var _this = this;
+                this.core.engine.runRenderLoop(function () {
+                    _this.update();
+                });
+            };
+            /**
+            * Simply update the scenes and updates
+            */
+            EditorMain.prototype.update = function () {
+                // Pre update
+                this.core.onPreUpdate();
+                // Scenes
+                if (this.renderMainScene) {
+                    for (var i = 0; i < this.core.scenes.length; i++) {
+                        if (this.core.scenes[i].render) {
+                            this.core.scenes[i].scene.render();
+                        }
+                    }
+                }
+                // Render transformer
+                this.transformer.getScene().render();
+                this.SceneHelpers.getScene().render();
+                // Post update
+                this.core.onPostUpdate();
+            };
+            /**
+            * Disposes the editor
+            */
+            EditorMain.prototype.dispose = function () {
+            };
+            /**
+            * Reloads the scene
+            */
+            EditorMain.prototype.reloadScene = function (saveCameraState, data) {
+                this._saveCameraState = saveCameraState;
+                if (data)
+                    this.filesInput.loadFiles(data);
+                else
+                    this.filesInput.reload();
+            };
+            /**
+            * Creates a new tab
+            */
+            EditorMain.prototype.createTab = function (caption, container, closable) {
+                if (closable === void 0) { closable = true; }
+                var tab = {
+                    caption: caption,
+                    id: EDITOR.SceneFactory.GenerateUUID(),
+                    closable: closable
+                };
+                this._mainPanel.createTab(tab);
+                this._mainPanelTabs[tab.id] = {
+                    tab: tab,
+                    container: container
+                };
+                return tab;
+            };
+            /**
+            * Removes the given tab
+            */
+            EditorMain.prototype.removeTab = function (tab) {
+                return this._mainPanel.removeTab(tab.id);
+            };
+            /**
+            * Adds a new container and returns its id
+            */
+            EditorMain.prototype.createContainer = function () {
+                var id = EDITOR.SceneFactory.GenerateUUID();
+                $("#" + EditorMain._PlayLayoutContainerID).append(EDITOR.GUI.GUIElement.CreateDivElement(id, "width: 100%; height: 100%;"));
+                return id;
+            };
+            /**
+            * Removes the given continer
+            */
+            EditorMain.prototype.removeContainer = function (id) {
+                var container = $("#" + id);
+                container.remove();
             };
             /**
             * Creates the UI
@@ -91,26 +197,23 @@ var BABYLON;
                 this.layouts.buildElement(this.container);
                 // Play Layouts
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
-                var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
-                //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
+                    "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
+                    "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
-                    "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>");
+                    "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                    "</div>" +
+                    "</div>");
                 mainPanel.style = "overflow: hidden;";
                 this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
                 this.playLayouts.buildElement(this.mainContainer);
                 this.playLayouts.on({ execute: "after", type: "resize" }, function () {
                     var panelHeight = _this.layouts.getPanelFromType("main").height;
                     var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
-                    _this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
+                    _this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
-            };
-            /**
-            * Creates a new project
-            */
-            EditorMain.prototype.createNewProject = function () {
-                this.core.currentScene.dispose();
-                this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
+                this._mainPanel = this.playLayouts.getPanelFromType("main");
+                this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
             };
             /**
             * Handles just opened scenes
@@ -196,48 +299,8 @@ var BABYLON;
                     camera.radius = cameraRadius;
                 }
             };
-            /**
-            * Reloads the scene
-            */
-            EditorMain.prototype.reloadScene = function (saveCameraState, data) {
-                this._saveCameraState = saveCameraState;
-                if (data)
-                    this.filesInput.loadFiles(data);
-                else
-                    this.filesInput.reload();
-            };
-            /**
-            * Creates the render loop
-            */
-            EditorMain.prototype.createRenderLoop = function () {
-                var _this = this;
-                this.core.engine.runRenderLoop(function () {
-                    _this.update();
-                });
-            };
-            /**
-            * Simply update the scenes and updates
-            */
-            EditorMain.prototype.update = function () {
-                // Pre update
-                this.core.onPreUpdate();
-                // Scenes
-                if (this.renderMainScene) {
-                    for (var i = 0; i < this.core.scenes.length; i++) {
-                        if (this.core.scenes[i].render) {
-                            this.core.scenes[i].scene.render();
-                        }
-                    }
-                }
-                // Render transformer
-                this.transformer.getScene().render();
-                this.SceneHelpers.getScene().render();
-                // Post update
-                this.core.onPostUpdate();
-            };
-            // Disposes the editor
-            EditorMain.prototype.dispose = function () {
-            };
+            // Statics
+            EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
             return EditorMain;
         }());
         EDITOR.EditorMain = EditorMain;

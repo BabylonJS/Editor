@@ -17,22 +17,23 @@
         GRAPH_SELECTED = 4,
         GRAPH_DOUBLE_SELECTED = 5,
         TAB_CHANGED = 6,
-        TOOLBAR_MENU_SELECTED = 7,
-        GRAPH_MENU_SELECTED = 8,
+        TAB_CLOSED = 7,
+        TOOLBAR_MENU_SELECTED = 8,
+        GRAPH_MENU_SELECTED = 9,
 
-        GRID_SELECTED = 9,
-        GRID_ROW_REMOVED = 10,
-        GRID_ROW_ADDED = 11,
-        GRID_ROW_EDITED = 12,
-        GRID_ROW_CHANGED = 13,
-        GRID_MENU_SELECTED = 14,
-        GRID_RELOADED = 15,
+        GRID_SELECTED = 10,
+        GRID_ROW_REMOVED = 11,
+        GRID_ROW_ADDED = 12,
+        GRID_ROW_EDITED = 13,
+        GRID_ROW_CHANGED = 14,
+        GRID_MENU_SELECTED = 15,
+        GRID_RELOADED = 16,
 
-        WINDOW_BUTTON_CLICKED = 16,
+        WINDOW_BUTTON_CLICKED = 17,
 
-        OBJECT_PICKED = 17,
+        OBJECT_PICKED = 18,
 
-        UNKNOWN = 18
+        UNKNOWN = 19
     }
 
     export enum SceneEventType {

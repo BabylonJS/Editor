@@ -41,6 +41,10 @@
         * Tab caption
         */
         caption: string;
+        /**
+        * If the tab is closable
+        */
+        closable?: boolean;
     }
 
     interface IGUITabController extends IGUIElement {

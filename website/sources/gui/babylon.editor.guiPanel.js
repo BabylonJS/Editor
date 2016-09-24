@@ -42,6 +42,12 @@ var BABYLON;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CHANGED, event.target);
                         _this.core.sendEvent(ev);
                     };
+                    tab.onClose = function (event) {
+                        var ev = new EDITOR.Event();
+                        ev.eventType = EDITOR.EventType.GUI_EVENT;
+                        ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CLOSED, event.target);
+                        _this.core.sendEvent(ev);
+                    };
                     // Add tab
                     this.tabs.push(tab);
                     if (this._panelElement !== null) {

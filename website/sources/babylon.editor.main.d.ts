@@ -1,4 +1,8 @@
 declare module BABYLON.EDITOR {
+    interface IMainPanelTab {
+        tab: GUI.IGUITab;
+        container: string;
+    }
     class EditorMain implements IDisposable, IEventReceiver {
         core: EditorCore;
         editionTool: EditionTool;
@@ -22,6 +26,11 @@ declare module BABYLON.EDITOR {
         renderMainScene: boolean;
         renderHelpers: boolean;
         private _saveCameraState;
+        private _mainPanel;
+        private _mainPanelTabs;
+        private _currentTab;
+        private static _PlayLayoutContainerID;
+        static PlayLayoutContainerID: string;
         /**
         * Constructor
         */
@@ -31,13 +40,45 @@ declare module BABYLON.EDITOR {
         */
         onEvent(event: Event): boolean;
         /**
-        * Creates the UI
-        */
-        private _createUI();
-        /**
         * Creates a new project
         */
         createNewProject(): void;
+        /**
+        * Creates the render loop
+        */
+        createRenderLoop(): void;
+        /**
+        * Simply update the scenes and updates
+        */
+        update(): void;
+        /**
+        * Disposes the editor
+        */
+        dispose(): void;
+        /**
+        * Reloads the scene
+        */
+        reloadScene(saveCameraState: boolean, data?: any): void;
+        /**
+        * Creates a new tab
+        */
+        createTab(caption: string, container: string, closable?: boolean): GUI.IGUITab;
+        /**
+        * Removes the given tab
+        */
+        removeTab(tab: GUI.IGUITab): boolean;
+        /**
+        * Adds a new container and returns its id
+        */
+        createContainer(): string;
+        /**
+        * Removes the given continer
+        */
+        removeContainer(id: string): void;
+        /**
+        * Creates the UI
+        */
+        private _createUI();
         /**
         * Handles just opened scenes
         */
@@ -50,18 +91,5 @@ declare module BABYLON.EDITOR {
         * Creates the editor camera
         */
         private _createBabylonCamera();
-        /**
-        * Reloads the scene
-        */
-        reloadScene(saveCameraState: boolean, data?: any): void;
-        /**
-        * Creates the render loop
-        */
-        createRenderLoop(): void;
-        /**
-        * Simply update the scenes and updates
-        */
-        update(): void;
-        dispose(): void;
     }
 }

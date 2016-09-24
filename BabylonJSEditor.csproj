@@ -107,7 +107,6 @@
     <Content Include="website\index.html" />
     <Content Include="web.config" />
     <Content Include="website\website\babylon.editor.defaultScene.js" />
-    <Content Include="website\website\resources\babylon.d.txt" />
     <Content Include="website\website\Tests\CommonTests.js" />
     <Content Include="website\website\Tests\textures\albedo.png" />
     <Content Include="website\website\Tests\textures\reflectivity.png" />
@@ -148,6 +147,7 @@
     <Content Include="README.md" />
     <Content Include="Tools\Photoshop\package.json" />
     <Content Include="Tools\Photoshop\README.md" />
+    <Content Include="Tools\TypeScriptParser\classes.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -157,7 +157,9 @@
     <Content Include="website\website\Tests\textures\environment.babylon.hdr" />
     <Content Include="website\website\Tests\textures\room.hdr" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="website\website\resources\" />
+  </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="defines\babylon.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.d.ts" />
@@ -184,6 +186,8 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="Tools\TypeScriptParser\main.ts" />
+    <TypeScriptCompile Include="Tools\TypeScriptParser\test.file.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.statusBar.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronHelper.ts" />
@@ -247,8 +251,8 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerPlugin.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.tokenizer.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMaker.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneManager.ts" />

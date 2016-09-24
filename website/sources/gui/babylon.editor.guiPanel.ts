@@ -39,6 +39,13 @@
                 this.core.sendEvent(ev);
             };
 
+            (<any>tab).onClose = (event) => {
+                var ev = new Event();
+                ev.eventType = EventType.GUI_EVENT
+                ev.guiEvent = new GUIEvent(this, GUIEventType.TAB_CLOSED, event.target);
+                this.core.sendEvent(ev);
+            };
+
             // Add tab
             this.tabs.push(tab);
 

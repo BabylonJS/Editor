@@ -1,4 +1,9 @@
 ﻿module BABYLON.EDITOR {
+    export interface IMainPanelTab {
+        tab: GUI.IGUITab;
+        container: string;
+    }
+
     export class EditorMain implements IDisposable, IEventReceiver {
         // public members
         public core: EditorCore;
@@ -31,7 +36,15 @@
         // Private members
         private _saveCameraState: boolean = false;
 
+        private _mainPanel: GUI.GUIPanel;
+        private _mainPanelTabs: { [id: string]: IMainPanelTab } = { };
+        private _currentTab: IMainPanelTab = null;
+
         // Statics
+        private static _PlayLayoutContainerID: string = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
+        public static get PlayLayoutContainerID(): string {
+            return this._PlayLayoutContainerID;
+        }
 
         /**
         * Constructor
@@ -103,9 +116,127 @@
                     this.core.engine.resize();
                     return true;
                 }
+
+                else if (event.guiEvent.eventType === GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
+                    var tabID = event.guiEvent.data;
+                    if (this._currentTab) {
+                        $("#" + this._currentTab.container).hide();
+                    }
+
+                    this._currentTab = this._mainPanelTabs[tabID];
+                    $("#" + this._currentTab.container).show();
+
+                    return false;
+                }
             }
 
             return false;
+        }
+
+        /**
+        * Creates a new project
+        */
+        public createNewProject(): void {
+            this.core.currentScene.dispose();
+            this._handleSceneLoaded()(null, new Scene(this.core.engine));
+        }
+
+        /**
+        * Creates the render loop
+        */
+        public createRenderLoop(): void {
+            this.core.engine.runRenderLoop(() => {
+                this.update();
+            });
+        }
+
+        /**
+        * Simply update the scenes and updates
+        */
+        public update(): void {
+            // Pre update
+            this.core.onPreUpdate();
+
+            // Scenes
+            if (this.renderMainScene) {
+                for (var i = 0; i < this.core.scenes.length; i++) {
+                    if (this.core.scenes[i].render) {
+                        this.core.scenes[i].scene.render();
+                    }
+                }
+            }
+
+            // Render transformer
+            this.transformer.getScene().render();
+            this.SceneHelpers.getScene().render();
+
+            // Post update
+            this.core.onPostUpdate();
+        }
+
+        /**
+        * Disposes the editor
+        */
+        public dispose(): void {
+
+        }
+
+        /**
+        * Reloads the scene
+        */
+        public reloadScene(saveCameraState: boolean, data?: any): void {
+            this._saveCameraState = saveCameraState;
+
+            if (data)
+                this.filesInput.loadFiles(data);
+            else
+                this.filesInput.reload();
+        }
+
+        /**
+        * Creates a new tab
+        */
+        public createTab(caption: string, container: string, closable: boolean = true): GUI.IGUITab {
+            var tab: GUI.IGUITab = {
+                caption: caption,
+                id: SceneFactory.GenerateUUID(),
+                closable: closable
+            };
+
+            this._mainPanel.createTab(tab);
+
+            this._mainPanelTabs[tab.id] = {
+                tab: tab,
+                container: container
+            };
+
+            return tab;
+        }
+
+        /**
+        * Removes the given tab
+        */
+        public removeTab(tab: GUI.IGUITab): boolean {
+            return this._mainPanel.removeTab(tab.id);
+        }
+
+        /**
+        * Adds a new container and returns its id
+        */
+        public createContainer(): string {
+            var id = SceneFactory.GenerateUUID();
+
+            $("#" + EditorMain._PlayLayoutContainerID).append(GUI.GUIElement.CreateDivElement(id, "width: 100%; height: 100%;"));
+
+            return id;
+        }
+
+        /**
+        * Removes the given continer
+        */
+        public removeContainer(id: string): void {
+            var container = $("#" + id);
+            container.remove();
         }
 
         /**
@@ -137,10 +268,13 @@
             // Play Layouts
             this.playLayouts = new GUI.GUILayout(this.mainContainer, this.core);
             var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
-                //"<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
-                "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
-                "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
-                "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>"
+                "<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
+                    "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
+                        "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                        "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
+                        "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
+                    "</div>" +
+                "</div>"
             );
             mainPanel.style = "overflow: hidden;";
 
@@ -150,16 +284,11 @@
             this.playLayouts.on({ execute: "after", type: "resize" }, () => {
                 var panelHeight = this.layouts.getPanelFromType("main").height;
                 var toolbarHeight = this.sceneToolbar.toolbar.element.box.clientHeight;
-                this.core.canvas.height = (panelHeight - toolbarHeight * 1.5 - this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
+                this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
             });
-        }
-        
-        /**
-        * Creates a new project
-        */
-        public createNewProject(): void {
-            this.core.currentScene.dispose();
-            this._handleSceneLoaded()(null, new Scene(this.core.engine));
+
+            this._mainPanel = this.playLayouts.getPanelFromType("main");
+            this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
         }
 
         /**
@@ -264,56 +393,6 @@
                 camera.setTarget(cameraTarget);
                 camera.radius = cameraRadius;
             }
-        }
-
-        /**
-        * Reloads the scene
-        */
-        public reloadScene(saveCameraState: boolean, data?: any): void {
-            this._saveCameraState = saveCameraState;
-
-            if (data)
-                this.filesInput.loadFiles(data);
-            else
-                this.filesInput.reload();
-        }
-
-        /**
-        * Creates the render loop
-        */
-        public createRenderLoop(): void {
-            this.core.engine.runRenderLoop(() => {
-                this.update();
-            });
-        }
-
-        /**
-        * Simply update the scenes and updates
-        */
-        public update(): void {
-            // Pre update
-            this.core.onPreUpdate();
-
-            // Scenes
-            if (this.renderMainScene) {
-                for (var i = 0; i < this.core.scenes.length; i++) {
-                    if (this.core.scenes[i].render) {
-                        this.core.scenes[i].scene.render();
-                    }
-                }
-            }
-
-            // Render transformer
-            this.transformer.getScene().render();
-            this.SceneHelpers.getScene().render();
-
-            // Post update
-            this.core.onPostUpdate();
-        }
-
-        // Disposes the editor
-        public dispose(): void {
-
         }
     }
 }

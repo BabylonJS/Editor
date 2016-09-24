@@ -6,5 +6,6 @@ declare module BABYLON.EDITOR {
         */
         constructor(editionTool: EditionTool);
         update(): boolean;
+        private _convertToPBR();
     }
 }
