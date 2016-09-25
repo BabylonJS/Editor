@@ -104,6 +104,16 @@
             return this;
         }
 
+        // Sets the active tab
+        public setActiveTab(id: string): void {
+            this._panelElement.tabs.select(id);
+
+            var ev = new Event();
+            ev.eventType = EventType.GUI_EVENT
+            ev.guiEvent = new GUIEvent(this, GUIEventType.TAB_CHANGED, id);
+            this.core.sendEvent(ev);
+        }
+
         // Return tab id from index
         public getTabIDFromIndex(index: number): string {
             if (index >= 0 && index < this.tabs.length) {
@@ -111,6 +121,12 @@
             }
             
             return "";
+        }
+
+        // Returns the wanted tab
+        public getTab(id: string): IGUITab {
+            var tab = this._panelElement.tabs.get(id);
+            return tab;
         }
 
         // Sets panel content (HTML)

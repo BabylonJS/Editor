@@ -83,6 +83,14 @@
         * Show tab
         */
         show(id: string): number;
+        /**
+        * Select the given tab
+        */
+        select(id: string): void;
+        /**
+        * Get tab
+        */
+        get(id: string): ITabElement;
     }
 
     /**

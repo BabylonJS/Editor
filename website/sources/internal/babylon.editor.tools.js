@@ -205,6 +205,33 @@ var BABYLON;
                 return Tools.ConvertStringToArray(binString);
             };
             /**
+            * Adds a new file into the FilesInput class
+            */
+            Tools.CreateFileFromURL = function (url, callback, isTexture) {
+                if (isTexture === void 0) { isTexture = false; }
+                var filename = BABYLON.Tools.GetFilename(url);
+                var filenameLower = filename.toLowerCase();
+                if (isTexture && EDITOR.FilesInput.FilesTextures[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesTextures[filenameLower]);
+                    return;
+                }
+                else if (!isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesToLoad[filenameLower]);
+                    return;
+                }
+                BABYLON.Tools.LoadFile(url, function (data) {
+                    var file = Tools.CreateFile(new Uint8Array(data), filename);
+                    if (isTexture)
+                        BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                    else
+                        BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
+                    if (callback)
+                        callback(file);
+                }, null, null, true, function () {
+                    BABYLON.Tools.Error("Cannot create file from file url : " + url);
+                });
+            };
+            /**
             * Creates a new file object
             */
             Tools.CreateFile = function (array, filename) {

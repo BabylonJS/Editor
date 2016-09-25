@@ -80,6 +80,10 @@ declare module BABYLON.EDITOR {
         */
         static ConvertBase64StringToArrayBuffer(base64String: string): Uint8Array;
         /**
+        * Adds a new file into the FilesInput class
+        */
+        static CreateFileFromURL(url: string, callback: (file: File) => void, isTexture?: boolean): void;
+        /**
         * Creates a new file object
         */
         static CreateFile(array: Uint8Array, filename: string): File;

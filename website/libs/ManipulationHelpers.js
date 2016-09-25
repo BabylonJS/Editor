@@ -824,7 +824,7 @@ var ManipulationHelpers;
                 var worldMtx = node.getWorldMatrix();
                 var l = Vector3.Distance(this._scene.activeCamera.position, worldMtx.getTranslation());
                 var vpWidth = this._scene.getEngine().getRenderWidth();
-                var s = this.fromScreenToWorld(vpWidth / 100, l) * 20;
+                var s = this.fromScreenToWorld(vpWidth / 100, l) * 15;
                 var scale = Vector3.Zero();
                 var position = Vector3.Zero();
                 var rotation = Quaternion.Identity();

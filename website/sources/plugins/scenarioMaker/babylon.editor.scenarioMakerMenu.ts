@@ -24,6 +24,7 @@
 
             // Test
             var t = new ScenarioMaker(this._core);
+
         }
         
         // Called when a menu item is selected by the user

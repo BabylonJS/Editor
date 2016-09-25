@@ -85,7 +85,10 @@ var BABYLON;
                     });
                     return;
                 }
-                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                if (EDITOR.Tools.CheckIfElectron())
+                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
+                else
+                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
                 this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
@@ -159,7 +162,7 @@ var BABYLON;
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                     files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                    files.push({ name: "babylon.js", url: url + "libs/babylon.js", content: null, parentFolder: _this.getFolder("js").file });
+                    files.push({ name: "babylon.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -178,8 +181,10 @@ var BABYLON;
                             if (count >= files.length) {
                                 _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
-                                }, function () {
+                                }, function (message) {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                                }, function (count) {
+                                    _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });
                             }
                         };
@@ -195,13 +200,13 @@ var BABYLON;
                                 BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
                         }
                         // Files from FilesInput
-                        for (var textureName in EDITOR.FilesInput.FilesTextures) {
+                        for (var textureName in BABYLON.FilesInput.FilesTextures) {
                             files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
-                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                            BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
                         }
-                        for (var fileName in EDITOR.FilesInput.FilesToLoad) {
+                        for (var fileName in BABYLON.FilesInput.FilesToLoad) {
                             files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
-                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                            BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
                         }
                     }
                 });
@@ -223,9 +228,7 @@ var BABYLON;
                     scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
                 }
                 var sceneToLoad = this.core.editor.filesInput._sceneFileToLoad;
-                if (sceneToLoad) {
-                    finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
-                }
+                finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad ? sceneToLoad.name : "scene.babylon");
                 finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
                 return finalString;
             };

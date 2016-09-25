@@ -34,7 +34,7 @@ var BABYLON;
                 success();
             };
             // Creates files
-            ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed) {
+            ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
                 var fs = require("fs");
                 var path = folder.file.id + "/";
                 for (var i = 0; i < files.length; i++) {
@@ -46,6 +46,8 @@ var BABYLON;
                     else
                         data = file.content;
                     fs.writeFileSync(filePath, data);
+                    if (progress)
+                        progress(i);
                 }
                 success();
             };

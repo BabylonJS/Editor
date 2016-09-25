@@ -237,6 +237,37 @@
         }
 
         /**
+        * Adds a new file into the FilesInput class
+        */
+        public static CreateFileFromURL(url: string, callback: (file: File) => void, isTexture: boolean = false): void {
+            var filename = BABYLON.Tools.GetFilename(url);
+            var filenameLower = filename.toLowerCase();
+
+            if (isTexture && FilesInput.FilesTextures[filenameLower]) {
+                callback(FilesInput.FilesTextures[filenameLower]);
+                return;
+            }
+            else if (!isTexture && FilesInput.FilesToLoad[filenameLower]) {
+                callback(FilesInput.FilesToLoad[filenameLower]);
+                return;
+            }
+
+            BABYLON.Tools.LoadFile(url, (data: ArrayBuffer) => {
+                var file = Tools.CreateFile(new Uint8Array(data), filename);
+                if (isTexture)
+                    BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                else
+                    BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
+
+                if (callback)
+                    callback(file);
+
+            }, null, null, true, () => {
+                BABYLON.Tools.Error("Cannot create file from file url : " + url);
+            });
+        }
+
+        /**
         * Creates a new file object
         */
         public static CreateFile(array: Uint8Array, filename: string): File {

@@ -124,13 +124,17 @@
         }
 
         // Creates files
-        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void {
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void {
             OneDriveStorage._Login(this.core, () => {
                 var count = 0;
                 var error = "";
 
                 var callback = () => {
                     count++;
+
+                    if (progress)
+                        progress(count);
+
                     if (count === files.length) {
                         if (error !== "" && failed) {
                             failed(error);

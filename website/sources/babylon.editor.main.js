@@ -92,6 +92,8 @@ var BABYLON;
             * Creates a new project
             */
             EditorMain.prototype.createNewProject = function () {
+                BABYLON.FilesInput.FilesToLoad = [];
+                BABYLON.FilesInput.FilesTextures = [];
                 this.core.currentScene.dispose();
                 this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
             };
@@ -154,6 +156,9 @@ var BABYLON;
                     tab: tab,
                     container: container
                 };
+                if (!this._currentTab)
+                    this._currentTab = this._mainPanelTabs[tab.id];
+                this._mainPanel.setActiveTab(tab.id);
                 return tab;
             };
             /**

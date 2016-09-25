@@ -338,6 +338,33 @@ var BABYLON;
                 return Tools.ConvertStringToArray(binString);
             };
             /**
+            * Adds a new file into the FilesInput class
+            */
+            Tools.CreateFileFromURL = function (url, callback, isTexture) {
+                if (isTexture === void 0) { isTexture = false; }
+                var filename = BABYLON.Tools.GetFilename(url);
+                var filenameLower = filename.toLowerCase();
+                if (isTexture && EDITOR.FilesInput.FilesTextures[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesTextures[filenameLower]);
+                    return;
+                }
+                else if (!isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesToLoad[filenameLower]);
+                    return;
+                }
+                BABYLON.Tools.LoadFile(url, function (data) {
+                    var file = Tools.CreateFile(new Uint8Array(data), filename);
+                    if (isTexture)
+                        BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                    else
+                        BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
+                    if (callback)
+                        callback(file);
+                }, null, null, true, function () {
+                    BABYLON.Tools.Error("Cannot create file from file url : " + url);
+                });
+            };
+            /**
             * Creates a new file object
             */
             Tools.CreateFile = function (array, filename) {
@@ -1363,12 +1390,25 @@ var BABYLON;
                     enable ? this._panelElement.tabs.enable(id) : this._panelElement.tabs.disable(id);
                     return this;
                 };
+                // Sets the active tab
+                GUIPanel.prototype.setActiveTab = function (id) {
+                    this._panelElement.tabs.select(id);
+                    var ev = new EDITOR.Event();
+                    ev.eventType = EDITOR.EventType.GUI_EVENT;
+                    ev.guiEvent = new EDITOR.GUIEvent(this, EDITOR.GUIEventType.TAB_CHANGED, id);
+                    this.core.sendEvent(ev);
+                };
                 // Return tab id from index
                 GUIPanel.prototype.getTabIDFromIndex = function (index) {
                     if (index >= 0 && index < this.tabs.length) {
                         return this.tabs[index].id;
                     }
                     return "";
+                };
+                // Returns the wanted tab
+                GUIPanel.prototype.getTab = function (id) {
+                    var tab = this._panelElement.tabs.get(id);
+                    return tab;
                 };
                 // Sets panel content (HTML)
                 GUIPanel.prototype.setContent = function (content) {
@@ -1970,6 +2010,8 @@ var BABYLON;
                     });
                     cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
+                    if (object.speed)
+                        cameraFolder.add(this.object, "speed").min(0).step(0.1).name("Speed");
                 }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
@@ -3900,9 +3942,9 @@ var BABYLON;
                 // Fur
                 var furFolder = this._element.addFolder("Fur");
                 this.addColorFolder(this.material.furColor, "Fur Color", true, furFolder, callback);
-                furFolder.add(this.material, "furLength").min(0).step(0.1).name("Fur Length").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furLength").min(0).step(0.01).name("Fur Length").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "furAngle").min(0).step(0.1).name("Fur Angle").onChange(function (result) { callback(); });
-                furFolder.add(this.material, "furSpacing").min(0).step(0.1).name("Fur Spacing").onChange(function (result) { callback(); });
+                furFolder.add(this.material, "furSpacing").min(0).step(0.01).name("Fur Spacing").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "furSpeed").min(1).max(1000).step(0.01).name("Fur Speed").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "furDensity").min(0).step(0.1).name("Fur Density").onChange(function (result) { callback(); });
                 furFolder.add(this.material, "highLevelFur").name("High Level Fur").onChange(function (result) { callback(); });
@@ -4537,6 +4579,8 @@ var BABYLON;
             * Creates a new project
             */
             EditorMain.prototype.createNewProject = function () {
+                BABYLON.FilesInput.FilesToLoad = [];
+                BABYLON.FilesInput.FilesTextures = [];
                 this.core.currentScene.dispose();
                 this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
             };
@@ -4599,6 +4643,9 @@ var BABYLON;
                     tab: tab,
                     container: container
                 };
+                if (!this._currentTab)
+                    this._currentTab = this._mainPanelTabs[tab.id];
+                this._mainPanel.setActiveTab(tab.id);
                 return tab;
             };
             /**
@@ -6382,7 +6429,17 @@ var BABYLON;
             // Adds a water mesh (with water material)
             SceneFactory.AddWaterMesh = function (core) {
                 var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
-                waterMaterial.bumpTexture = new BABYLON.Texture("website/textures/normal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                /*
+                Tools.CreateFileFromURL("website/textures/normal.png", (file: File) => {
+                    waterMaterial.bumpTexture = new Texture("file:normal.png", core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+                    waterMaterial.bumpTexture.name = (<any>waterMaterial.bumpTexture).url = file.name;
+                }, true);
+                */
+                BABYLON.Tools.LoadFile("website/textures/normal.png", function (data) {
+                    var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
+                    var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "normal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    texture.name = texture.name.replace("data:", "");
+                }, null, null, true);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
@@ -6581,7 +6638,7 @@ var BABYLON;
             // Gets children files
             Storage.prototype.getFiles = function (folder, success, failed) { };
             // Create files
-            Storage.prototype.createFiles = function (files, folder, success, failed) { };
+            Storage.prototype.createFiles = function (files, folder, success, failed, progress) { };
             // Select folder
             Storage.prototype.selectFolder = function (success) { };
             return Storage;
@@ -6688,12 +6745,14 @@ var BABYLON;
                 });
             };
             // Creates files
-            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
+            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
                 OneDriveStorage._Login(this.core, function () {
                     var count = 0;
                     var error = "";
                     var callback = function () {
                         count++;
+                        if (progress)
+                            progress(count);
                         if (count === files.length) {
                             if (error !== "" && failed) {
                                 failed(error);
@@ -7992,7 +8051,10 @@ var BABYLON;
                     });
                     return;
                 }
-                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                if (EDITOR.Tools.CheckIfElectron())
+                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
+                else
+                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
                 this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
@@ -8066,7 +8128,7 @@ var BABYLON;
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                     files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                    files.push({ name: "babylon.js", url: url + "libs/babylon.js", content: null, parentFolder: _this.getFolder("js").file });
+                    files.push({ name: "babylon.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -8085,8 +8147,10 @@ var BABYLON;
                             if (count >= files.length) {
                                 _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
-                                }, function () {
+                                }, function (message) {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                                }, function (count) {
+                                    _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });
                             }
                         };
@@ -8102,13 +8166,13 @@ var BABYLON;
                                 BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
                         }
                         // Files from FilesInput
-                        for (var textureName in EDITOR.FilesInput.FilesTextures) {
+                        for (var textureName in BABYLON.FilesInput.FilesTextures) {
                             files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
-                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                            BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
                         }
-                        for (var fileName in EDITOR.FilesInput.FilesToLoad) {
+                        for (var fileName in BABYLON.FilesInput.FilesToLoad) {
                             files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
-                            BABYLON.Tools.ReadFile(EDITOR.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                            BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
                         }
                     }
                 });
@@ -8130,9 +8194,7 @@ var BABYLON;
                     scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
                 }
                 var sceneToLoad = this.core.editor.filesInput._sceneFileToLoad;
-                if (sceneToLoad) {
-                    finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
-                }
+                finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad ? sceneToLoad.name : "scene.babylon");
                 finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
                 return finalString;
             };
@@ -10686,7 +10748,7 @@ var BABYLON;
                 success();
             };
             // Creates files
-            ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed) {
+            ElectronLocalStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
                 var fs = require("fs");
                 var path = folder.file.id + "/";
                 for (var i = 0; i < files.length; i++) {
@@ -10698,6 +10760,8 @@ var BABYLON;
                     else
                         data = file.content;
                     fs.writeFileSync(filePath, data);
+                    if (progress)
+                        progress(i);
                 }
                 success();
             };

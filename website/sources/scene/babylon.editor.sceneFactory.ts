@@ -396,7 +396,19 @@
         // Adds a water mesh (with water material)
         static AddWaterMesh(core: EditorCore): Mesh {
             var waterMaterial = new WaterMaterial("waterMaterail", core.currentScene);
-            waterMaterial.bumpTexture = new Texture("website/textures/normal.png", core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+
+            /*
+            Tools.CreateFileFromURL("website/textures/normal.png", (file: File) => {
+                waterMaterial.bumpTexture = new Texture("file:normal.png", core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+                waterMaterial.bumpTexture.name = (<any>waterMaterial.bumpTexture).url = file.name;
+            }, true);
+            */
+
+            BABYLON.Tools.LoadFile("website/textures/normal.png", (data: ArrayBuffer) => {
+                var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
+                var texture = waterMaterial.bumpTexture = Texture.CreateFromBase64String(base64, "normal.png", core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+                texture.name = texture.name.replace("data:", "");
+            }, null, null, true);
 
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
             water.id = this.GenerateUUID();

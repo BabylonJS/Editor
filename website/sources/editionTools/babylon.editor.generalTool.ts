@@ -99,6 +99,9 @@
 
                 cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                 cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
+
+                if (object.speed)
+                    cameraFolder.add(this.object, "speed").min(0).step(0.1).name("Speed");
             }
 
             // Transforms

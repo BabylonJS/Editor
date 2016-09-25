@@ -1,3 +1,6 @@
+/// <reference path="../../../dist/preview release/babylon.d.ts"/>
+/// <reference path="../simple/babylon.simpleMaterial.ts"/>
+
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
     switch (arguments.length) {
@@ -499,13 +502,18 @@ var BABYLON;
         WaterMaterial.prototype.serialize = function () {
             var serializationObject = BABYLON.SerializationHelper.Serialize(this);
             serializationObject.customType = "BABYLON.WaterMaterial";
-            serializationObject.reflectionTexture.isRenderTarget = true;
-            serializationObject.refractionTexture.isRenderTarget = true;
             return serializationObject;
         };
         // Statics
         WaterMaterial.Parse = function (source, scene, rootUrl) {
-            return BABYLON.SerializationHelper.Parse(function () { return new WaterMaterial(source.name, scene); }, source, scene, rootUrl);
+            var reflectionTextureRenderList = source.reflectionTexture.renderList;
+            var refractionTextureRenderList = source.refractionTexture.renderList;
+            delete source.reflectionTexture;
+            delete source.refractionTexture;
+            var water = BABYLON.SerializationHelper.Parse(function () { return new WaterMaterial(source.name, scene); }, source, scene, rootUrl);
+            water._reflectionRTT._waitingRenderList = reflectionTextureRenderList;
+            water._refractionRTT._waitingRenderList = refractionTextureRenderList;
+            return water;
         };
         WaterMaterial.CreateDefaultMesh = function (name, scene) {
             var mesh = BABYLON.Mesh.CreateGround(name, 512, 512, 32, scene, false);

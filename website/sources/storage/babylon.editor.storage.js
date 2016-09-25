@@ -19,7 +19,7 @@ var BABYLON;
             // Gets children files
             Storage.prototype.getFiles = function (folder, success, failed) { };
             // Create files
-            Storage.prototype.createFiles = function (files, folder, success, failed) { };
+            Storage.prototype.createFiles = function (files, folder, success, failed, progress) { };
             // Select folder
             Storage.prototype.selectFolder = function (success) { };
             return Storage;

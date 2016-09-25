@@ -100,12 +100,25 @@ var BABYLON;
                     enable ? this._panelElement.tabs.enable(id) : this._panelElement.tabs.disable(id);
                     return this;
                 };
+                // Sets the active tab
+                GUIPanel.prototype.setActiveTab = function (id) {
+                    this._panelElement.tabs.select(id);
+                    var ev = new EDITOR.Event();
+                    ev.eventType = EDITOR.EventType.GUI_EVENT;
+                    ev.guiEvent = new EDITOR.GUIEvent(this, EDITOR.GUIEventType.TAB_CHANGED, id);
+                    this.core.sendEvent(ev);
+                };
                 // Return tab id from index
                 GUIPanel.prototype.getTabIDFromIndex = function (index) {
                     if (index >= 0 && index < this.tabs.length) {
                         return this.tabs[index].id;
                     }
                     return "";
+                };
+                // Returns the wanted tab
+                GUIPanel.prototype.getTab = function (id) {
+                    var tab = this._panelElement.tabs.get(id);
+                    return tab;
                 };
                 // Sets panel content (HTML)
                 GUIPanel.prototype.setContent = function (content) {

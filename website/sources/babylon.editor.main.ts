@@ -137,6 +137,9 @@
         * Creates a new project
         */
         public createNewProject(): void {
+            BABYLON.FilesInput.FilesToLoad = [];
+            BABYLON.FilesInput.FilesTextures = [];
+
             this.core.currentScene.dispose();
             this._handleSceneLoaded()(null, new Scene(this.core.engine));
         }
@@ -209,6 +212,11 @@
                 tab: tab,
                 container: container
             };
+
+            if (!this._currentTab)
+                this._currentTab = this._mainPanelTabs[tab.id];
+
+            this._mainPanel.setActiveTab(tab.id);
 
             return tab;
         }

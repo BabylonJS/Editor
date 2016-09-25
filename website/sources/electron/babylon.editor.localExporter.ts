@@ -37,7 +37,7 @@
         }
 
         // Creates files
-        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void {
+        public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void {
             var fs = require("fs");
             var path = folder.file.id + "/";
 
@@ -52,6 +52,9 @@
                     data = file.content;
 
                 fs.writeFileSync(filePath, data);
+
+                if (progress)
+                    progress(i);
             }
 
             success();

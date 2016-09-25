@@ -1,4 +1,6 @@
-﻿// Creates the default scene of the editor
+﻿/// <reference path="../../defines/babylon.d.ts" />
+
+// Creates the default scene of the editor
 // Basically a skybox with planes and spheres and lights
 
 function createDefaultScene(core) {
@@ -8,14 +10,14 @@ function createDefaultScene(core) {
     new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
 
     // Environment Texture
-    var hdrTexture = new BABYLON.HDRCubeTexture("website/Tests/textures/environment.babylon.hdr", scene);
+    //var hdrTexture = new BABYLON.HDRCubeTexture("website/Tests/textures/environment.babylon.hdr", scene);
 
     // Skybox
     var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
     var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
     hdrSkyboxMaterial.backFaceCulling = false;
-    hdrSkyboxMaterial.reflectionTexture = hdrTexture.clone();
-    hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    //hdrSkyboxMaterial.reflectionTexture = hdrTexture.clone();
+    //hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     hdrSkyboxMaterial.microSurface = 1.0;
     hdrSkyboxMaterial.cameraExposure = 0.6;
     hdrSkyboxMaterial.cameraContrast = 1.6;
@@ -49,8 +51,8 @@ function createDefaultScene(core) {
 
     // Create materials
     var glass = new BABYLON.PBRMaterial("glass", scene);
-    glass.reflectionTexture = hdrTexture;
-    glass.refractionTexture = hdrTexture;
+    //glass.reflectionTexture = hdrTexture;
+    //glass.refractionTexture = hdrTexture;
     glass.linkRefractionWithTransparency = true;
     glass.indexOfRefraction = 0.52;
     glass.alpha = 0;
@@ -64,7 +66,7 @@ function createDefaultScene(core) {
     sphereGlass.material = glass;
 
     var metal = new BABYLON.PBRMaterial("metal", scene);
-    metal.reflectionTexture = hdrTexture;
+    //metal.reflectionTexture = hdrTexture;
     metal.directIntensity = 0.3;
     metal.environmentIntensity = 0.7;
     metal.cameraExposure = 0.55;
@@ -75,7 +77,7 @@ function createDefaultScene(core) {
     sphereMetal.material = metal;
 
     var plastic = new BABYLON.PBRMaterial("plastic", scene);
-    plastic.reflectionTexture = hdrTexture;
+    //plastic.reflectionTexture = hdrTexture;
     plastic.directIntensity = 0.6;
     plastic.environmentIntensity = 0.7;
     plastic.cameraExposure = 0.6;
@@ -86,17 +88,39 @@ function createDefaultScene(core) {
     spherePlastic.material = plastic;
 
     var wood = new BABYLON.PBRMaterial("wood", scene);
-    wood.reflectionTexture = hdrTexture;
+    //wood.reflectionTexture = hdrTexture;
     wood.directIntensity = 1.5;
     wood.environmentIntensity = 0.5;
     wood.specularIntensity = 0.3;
     wood.cameraExposure = 0.9;
     wood.cameraContrast = 1.6;
-    wood.reflectivityTexture = new BABYLON.Texture("website/Tests/textures/reflectivity.png", scene);
+    //wood.reflectivityTexture = new BABYLON.Texture("website/Tests/textures/reflectivity.png", scene);
     wood.useMicroSurfaceFromReflectivityMapAlpha = true;
     wood.albedoColor = BABYLON.Color3.White();
-    wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
+    //wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
     woodPlank.material = wood;
+
+    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/environment.babylon.hdr", function (file) {
+        var texture = new BABYLON.HDRCubeTexture("file:environment.babylon.hdr", scene);
+        texture.name = "environment.babylon.hdr";
+
+        hdrSkyboxMaterial.reflectionTexture = texture.clone();
+        hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+
+        glass.reflectionTexture = texture;
+        glass.refractionTexture = texture;
+        metal.reflectionTexture = texture;
+        plastic.reflectionTexture = texture;
+        wood.reflectionTexture = texture;
+    }, false);
+    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/albedo.png", function (file) {
+        wood.albedoTexture = new BABYLON.Texture("file:albedo.png", scene);
+        wood.albedoTexture.name = wood.albedoTexture.url = "albedo.png";
+    }, true);
+    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/reflectivity.png", function (file) {
+        wood.reflectivityTexture = new BABYLON.Texture("file:reflectivity.png", scene);
+        wood.reflectivityTexture.name = wood.reflectivityTexture.url = "reflectivity.png";
+    }, true);
 
     //editorMain._handleSceneLoaded()(null, scene);
 };

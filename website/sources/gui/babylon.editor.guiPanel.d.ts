@@ -25,7 +25,9 @@ declare module BABYLON.EDITOR.GUI {
         height: number;
         getTabCount(): number;
         setTabEnabled(id: string, enable: boolean): GUIPanel;
+        setActiveTab(id: string): void;
         getTabIDFromIndex(index: number): string;
+        getTab(id: string): IGUITab;
         setContent(content: string): GUIPanel;
         hideTab(id: string): boolean;
         showTab(id: string): boolean;

@@ -102,12 +102,14 @@ var BABYLON;
                 });
             };
             // Creates files
-            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed) {
+            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
                 OneDriveStorage._Login(this.core, function () {
                     var count = 0;
                     var error = "";
                     var callback = function () {
                         count++;
+                        if (progress)
+                            progress(count);
                         if (count === files.length) {
                             if (error !== "" && failed) {
                                 failed(error);

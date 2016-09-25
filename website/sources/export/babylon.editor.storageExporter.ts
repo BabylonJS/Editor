@@ -107,8 +107,11 @@
 
                 return;
             }
-            
-            this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+
+            if (Tools.CheckIfElectron())
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
+            else
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
             this.core.editor.statusBar.showSpinner(this._statusBarId);
 
             this._updateFileList(() => {
@@ -197,7 +200,7 @@
 
                 files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                 files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                files.push({ name: "babylon.js", url: url + "libs/babylon.js", content: null, parentFolder: this.getFolder("js").file });
+                files.push({ name: "babylon.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
 
                 // Materials
                 for (var i = 0; i < project.requestedMaterials.length; i++) {
@@ -221,8 +224,10 @@
                         if (count >= files.length) {
                             this._storage.createFiles(files, StorageExporter._projectFolder, () => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
-                            }, () => {
+                            }, (message: string) => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
+                            }, (count: number) => {
+                                this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                             });
                         }
                     }
@@ -240,14 +245,14 @@
                     }
 
                     // Files from FilesInput
-                    for (var textureName in FilesInput.FilesTextures) {
+                    for (var textureName in BABYLON.FilesInput.FilesTextures) {
                         files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
-                        BABYLON.Tools.ReadFile(FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
+                        BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
                     }
                     
-                    for (var fileName in FilesInput.FilesToLoad) {
+                    for (var fileName in BABYLON.FilesInput.FilesToLoad) {
                         files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
-                        BABYLON.Tools.ReadFile(FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
+                        BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
                     }
                 }
             });
@@ -274,9 +279,7 @@
             }
 
             var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
-            if (sceneToLoad) {
-                finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad.name);
-            }
+            finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad ? sceneToLoad.name : "scene.babylon");
 
             finalString = finalString.replace("EXPORTER-JS-FILES-TO-ADD", scripts);
 
