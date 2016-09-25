@@ -72,7 +72,8 @@ var BABYLON;
             */
             EditorMain.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
-                    if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED) {
+                    if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && event.guiEvent.caller === this.layouts) {
+                        this.playLayouts.resize();
                         this.core.engine.resize();
                         return true;
                     }
@@ -83,6 +84,8 @@ var BABYLON;
                         }
                         this._currentTab = this._mainPanelTabs[tabID];
                         $("#" + this._currentTab.container).show();
+                        this.layouts.resize();
+                        this.playLayouts.resize();
                         return false;
                     }
                 }

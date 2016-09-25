@@ -112,7 +112,8 @@
         */
         public onEvent(event: Event): boolean {
             if (event.eventType === EventType.GUI_EVENT) {
-                if (event.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED) {
+                if (event.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED && event.guiEvent.caller === this.layouts) {
+                    this.playLayouts.resize();
                     this.core.engine.resize();
                     return true;
                 }
@@ -125,6 +126,9 @@
 
                     this._currentTab = this._mainPanelTabs[tabID];
                     $("#" + this._currentTab.container).show();
+
+                    this.layouts.resize();
+                    this.playLayouts.resize();
 
                     return false;
                 }
