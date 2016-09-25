@@ -1,3 +1,5 @@
+/// <reference path="../../../dist/preview release/babylon.d.ts"/>
+
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") return Reflect.decorate(decorators, target, key, desc);
     switch (arguments.length) {
@@ -396,6 +398,9 @@ var BABYLON;
                 offsetMesh.material = offsetFur;
                 offsetMesh.skeleton = sourceMesh.skeleton;
                 offsetMesh.position = BABYLON.Vector3.Zero();
+                offsetMesh.rotation = BABYLON.Vector3.Zero();
+                offsetMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
+                offsetMesh.scaling = new BABYLON.Vector3(1.0, 1.0, 1.0);
                 meshes.push(offsetMesh);
             }
             for (i = 1; i < meshes.length; i++) {
