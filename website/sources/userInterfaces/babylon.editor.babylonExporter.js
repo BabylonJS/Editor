@@ -131,6 +131,8 @@ var BABYLON;
                 // Sounds autoplay
                 for (var i = 0; i < obj.sounds.length; i++) {
                     var sound = obj.sounds[i];
+                    if (sound.url)
+                        sound.url = sound.url.replace("file:", "");
                     if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Sound && value.name == sound.name; })) {
                         sound.autoplay = true;
                     }

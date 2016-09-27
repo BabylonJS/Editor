@@ -1,6 +1,6 @@
 /**
- * Documentation for A
- */
+* Documentation for A
+*/
 declare module TEST {
     class A {
         /**
