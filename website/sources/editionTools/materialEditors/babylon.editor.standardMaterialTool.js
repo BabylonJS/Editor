@@ -103,7 +103,14 @@ var BABYLON;
                 pbr.opacityTexture = this.material.opacityTexture;
                 pbr.ambientColor = this.material.ambientColor;
                 pbr.ambientTexture = this.material.ambientTexture;
-                this.object.material = pbr;
+                if (this.object instanceof BABYLON.SubMesh) {
+                    var index = this.object.materialIndex;
+                    var multiMaterial = this.object.getMesh().material;
+                    if (multiMaterial instanceof BABYLON.MultiMaterial)
+                        this.object.getMesh().material.subMaterials[index] = pbr;
+                }
+                else
+                    this.object.material = pbr;
                 this._editionTool.updateEditionTool();
             };
             return StandardMaterialTool;

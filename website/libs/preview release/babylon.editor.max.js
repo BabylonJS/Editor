@@ -2509,6 +2509,7 @@ var BABYLON;
                     directionFolder.add(object.direction, "x").step(0.1);
                     directionFolder.add(object.direction, "y").step(0.1);
                     directionFolder.add(object.direction, "z").step(0.1);
+                    object.autoUpdateExtends = true;
                 }
                 // Spot light
                 if (object instanceof BABYLON.SpotLight) {
@@ -2659,14 +2660,21 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.name : materials[0];
+                this._dummyProperty = material && material.name ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
                         var newmaterial = scene.getMaterialByName(result);
-                        _this._editionTool.object.material = newmaterial;
+                        if (_this._editionTool.object instanceof BABYLON.SubMesh) {
+                            var index = _this._editionTool.object.materialIndex;
+                            var multiMaterial = _this._editionTool.object.getMesh().material;
+                            if (multiMaterial instanceof BABYLON.MultiMaterial)
+                                _this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                        }
+                        else
+                            _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
                 });
@@ -3742,7 +3750,14 @@ var BABYLON;
                 pbr.opacityTexture = this.material.opacityTexture;
                 pbr.ambientColor = this.material.ambientColor;
                 pbr.ambientTexture = this.material.ambientTexture;
-                this.object.material = pbr;
+                if (this.object instanceof BABYLON.SubMesh) {
+                    var index = this.object.materialIndex;
+                    var multiMaterial = this.object.getMesh().material;
+                    if (multiMaterial instanceof BABYLON.MultiMaterial)
+                        this.object.getMesh().material.subMaterials[index] = pbr;
+                }
+                else
+                    this.object.material = pbr;
                 this._editionTool.updateEditionTool();
             };
             return StandardMaterialTool;
@@ -6153,7 +6168,6 @@ var BABYLON;
                 standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
                 standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
                 standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
-                standard.LensFlareEnabled;
                 this.StandardPipeline = standard;
                 return standard;
             };

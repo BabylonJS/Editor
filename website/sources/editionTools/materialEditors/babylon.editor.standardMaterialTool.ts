@@ -123,7 +123,15 @@
             pbr.ambientColor = this.material.ambientColor;
             pbr.ambientTexture = this.material.ambientTexture;
 
-            this.object.material = pbr;
+            if (this.object instanceof SubMesh) {
+                var index = this.object.materialIndex;
+                var multiMaterial = this.object.getMesh().material;
+                if (multiMaterial instanceof MultiMaterial)
+                    this.object.getMesh().material.subMaterials[index] = pbr;
+            }
+            else
+                this.object.material = pbr;
+            
             this._editionTool.updateEditionTool();
         }
     }

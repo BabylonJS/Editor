@@ -80,14 +80,21 @@
             for (var i = 0; i < scene.materials.length; i++)
                 materials.push(scene.materials[i].name);
 
-            this._dummyProperty = material ? material.name : materials[0];
+            this._dummyProperty = material && material.name ? material.name : materials[0];
             materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange((result: any) => {
                 if (result === "None") {
                     this._removeMaterial();
                 }
                 else {
                     var newmaterial = scene.getMaterialByName(result);
-                    this._editionTool.object.material = newmaterial;
+                    if (this._editionTool.object instanceof SubMesh) {
+                        var index = this._editionTool.object.materialIndex;
+                        var multiMaterial = this._editionTool.object.getMesh().material;
+                        if (multiMaterial instanceof MultiMaterial)
+                            this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                    }
+                    else
+                        this._editionTool.object.material = newmaterial;
                 }
                 this._editionTool.updateEditionTool();
             });

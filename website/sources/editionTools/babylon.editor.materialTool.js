@@ -75,14 +75,21 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.name : materials[0];
+                this._dummyProperty = material && material.name ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
                         var newmaterial = scene.getMaterialByName(result);
-                        _this._editionTool.object.material = newmaterial;
+                        if (_this._editionTool.object instanceof BABYLON.SubMesh) {
+                            var index = _this._editionTool.object.materialIndex;
+                            var multiMaterial = _this._editionTool.object.getMesh().material;
+                            if (multiMaterial instanceof BABYLON.MultiMaterial)
+                                _this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                        }
+                        else
+                            _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
                 });

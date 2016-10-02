@@ -41,7 +41,6 @@ var BABYLON;
                 standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
                 standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
                 standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
-                standard.LensFlareEnabled;
                 this.StandardPipeline = standard;
                 return standard;
             };
