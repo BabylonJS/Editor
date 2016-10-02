@@ -95,11 +95,15 @@
 
             // Shadows
             var shadowsFolder = this._element.addFolder("Shadows");
-            var shadows = object.getShadowGenerator();
+            var shadows = <ShadowGenerator>object.getShadowGenerator();
+
             if (shadows) {
                 shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
                 shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
                 shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
+
+                if (shadows.forceBackFacesOnly !== undefined)
+                    shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");
 
                 shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                 shadowsFolder.add(shadows, "bias").name("Bias");

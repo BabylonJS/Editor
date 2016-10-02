@@ -91,6 +91,8 @@ var BABYLON;
                     shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
                     shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
                     shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
+                    if (shadows.forceBackFacesOnly !== undefined)
+                        shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");
                     shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                     shadowsFolder.add(shadows, "bias").name("Bias");
                     shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");

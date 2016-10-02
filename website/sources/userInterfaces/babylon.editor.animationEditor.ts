@@ -52,7 +52,7 @@
         * Constructor
         * @param core: the editor core
         */
-        constructor(core: EditorCore, object: Node) {
+        constructor(core: EditorCore, object: IAnimatable) {
             // Initialize
             this.core = core;
             this.core.eventReceivers.push(this);

@@ -28,6 +28,8 @@
             picker.selectedObjects = SceneFactory.NodesToStart;
             picker.minSelectCount = 0;
 
+            picker.includePostProcesses = true;
+
             picker.open();
 
             picker.onObjectPicked = (names: string[]) => {
@@ -48,10 +50,13 @@
                     if (!node) {
                         // Sound ?
                         node = <any>core.currentScene.getSoundByName(names[i]);
-
-                        if (!node)
-                            continue;
                     }
+
+                    if (!node && SceneFactory.StandardPipeline && names[i] === SceneFactory.StandardPipeline._name)
+                        node = SceneFactory.StandardPipeline;
+
+                    if (!node)
+                        continue;
 
                     SceneFactory.NodesToStart.push(node);
                 }

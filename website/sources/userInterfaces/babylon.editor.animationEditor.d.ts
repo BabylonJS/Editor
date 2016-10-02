@@ -27,7 +27,7 @@ declare module BABYLON.EDITOR {
         * Constructor
         * @param core: the editor core
         */
-        constructor(core: EditorCore, object: Node);
+        constructor(core: EditorCore, object: IAnimatable);
         onEvent(event: Event): boolean;
         private _createAnimation();
         _getEffectiveTarget(value?: any): any;

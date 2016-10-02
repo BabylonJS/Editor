@@ -75,13 +75,13 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.id : materials[0];
+                this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
-                        var newmaterial = scene.getMaterialByID(result);
+                        var newmaterial = scene.getMaterialByName(result);
                         _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();

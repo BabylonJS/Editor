@@ -18,6 +18,8 @@
         public selectButtonName: string = "Select";
         public closeButtonName: string = "Close";
 
+        public includePostProcesses: boolean = false;
+
         // Private members
         private _window: GUI.GUIWindow = null;
         private _list: GUI.GUIGrid<IObjectPickerRow> = null;
@@ -124,6 +126,12 @@
                     recid++;
                 }
             }
+
+            if (this.includePostProcesses && SceneFactory.StandardPipeline)
+                this._list.addRecord({
+                    name: SceneFactory.StandardPipeline._name,
+                    recid: recid++
+                });
 
             this._list.refresh();
 

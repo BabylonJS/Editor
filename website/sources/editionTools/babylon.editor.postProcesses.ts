@@ -48,7 +48,6 @@
             this._element.remember(object);
 
             // Ckeck checkboxes
-            SceneFactory.EnabledPostProcesses.hdr = SceneFactory.HDRPipeline !== null;
             SceneFactory.EnabledPostProcesses.standard = SceneFactory.StandardPipeline !== null;
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
@@ -66,6 +65,9 @@
             });
 
             if (SceneFactory.StandardPipeline) {
+                var animationsFolder = standardFolder.addFolder("Animations");
+                animationsFolder.add(this, "_editAnimations").name("Edit Animations");
+
                 var highLightFolder = standardFolder.addFolder("Highlighting");
                 highLightFolder.add(SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
                 highLightFolder.add(SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
@@ -77,10 +79,10 @@
 
                 var lensFolder = standardFolder.addFolder("Lens Flare");
                 lensFolder.add(SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
-                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(20).step(0.01).name("Strength");
+                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
-                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(100).step(0.1).name("Distortion Strength");
+                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(500).step(0.1).name("Distortion Strength");
                 this.addTextureFolder(SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
                 lensFolder.open();
 
@@ -91,46 +93,6 @@
 
                 var debugFolder = standardFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.StandardPipeline);
-            }
-
-            // HDR
-            var hdrFolder = this._element.addFolder("HDR");
-            hdrFolder.add(SceneFactory.EnabledPostProcesses, "hdr").name("Enabled HDR").onChange((result: any) => {
-                if (result === true)
-                    SceneFactory.CreateHDRPipeline(this._editionTool.core);
-                else {
-                    SceneFactory.HDRPipeline.dispose();
-                    SceneFactory.HDRPipeline = null;
-                }
-                this.update();
-            });
-
-            if (SceneFactory.HDRPipeline) {
-                hdrFolder.add(SceneFactory.EnabledPostProcesses, "attachHDR").name("Attach HDR").onChange((result: any) => {
-                    this._attachDetachPipeline(result, "hdr");
-                });
-
-                hdrFolder.add(SceneFactory.HDRPipeline, "exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
-                hdrFolder.add(SceneFactory.HDRPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                hdrFolder.add(SceneFactory.HDRPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                hdrFolder.add(SceneFactory.HDRPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
-                hdrFolder.add(SceneFactory.HDRPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                hdrFolder.add(SceneFactory.HDRPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
-                hdrFolder.add(SceneFactory.HDRPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange((result: any) => {
-                    SceneFactory.HDRPipeline.update();
-                });
-                hdrFolder.add(SceneFactory.HDRPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange((result: any) => {
-                    SceneFactory.HDRPipeline.update();
-                });
-                hdrFolder.add(SceneFactory.HDRPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange((result: any) => {
-                    SceneFactory.HDRPipeline.update();
-                });
-                hdrFolder.add(SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
-                hdrFolder.add(SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
-                this.addTextureFolder(SceneFactory.HDRPipeline, "Lens Texture", "lensTexture", hdrFolder).open();
-
-                var debugFolder = hdrFolder.addFolder("Debug");
-                this._setupDebugPipeline(debugFolder, SceneFactory.HDRPipeline);
             }
 
             // SSAO
@@ -159,10 +121,8 @@
                 var debugFolder = ssaoFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
             }
-
-            /**
-            * VLS
-            */
+            
+            // VLS
             var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
             vlsFolder.add(SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange((result: any) => {
                 if (result === true) {
@@ -285,6 +245,11 @@
             });
 
             input.click();
+        }
+
+        // Loads the animations tool
+        private _editAnimations(): void {
+            var animCreator = new GUIAnimationEditor(this._editionTool.core, SceneFactory.StandardPipeline);
         }
     }
 }

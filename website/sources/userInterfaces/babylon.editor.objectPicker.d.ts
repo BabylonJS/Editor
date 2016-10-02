@@ -9,6 +9,7 @@ declare module BABYLON.EDITOR {
         windowName: string;
         selectButtonName: string;
         closeButtonName: string;
+        includePostProcesses: boolean;
         private _window;
         private _list;
         /**

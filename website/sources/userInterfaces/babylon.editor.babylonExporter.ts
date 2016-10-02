@@ -160,7 +160,7 @@
                 obj.autoAnimateSpeed = SceneFactory.AnimationSpeed;
             }
 
-            // Sounds autoplay
+            // Configure sounds url and autoplay
             for (var i = 0; i < obj.sounds.length; i++) {
                 var sound = obj.sounds[i];
 

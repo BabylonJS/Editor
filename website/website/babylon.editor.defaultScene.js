@@ -100,9 +100,9 @@ function createDefaultScene(core) {
     //wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
     woodPlank.material = wood;
 
-    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/environment.babylon.hdr", function (file) {
-        var texture = new BABYLON.HDRCubeTexture("file:environment.babylon.hdr", scene);
-        texture.name = "environment.babylon.hdr";
+    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/room.hdr", function (file) {
+        var texture = new BABYLON.HDRCubeTexture("file:room.hdr", scene, 512);
+        texture.name = "room.hdr";
 
         hdrSkyboxMaterial.reflectionTexture = texture.clone();
         hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;

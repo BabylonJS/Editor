@@ -15,5 +15,6 @@ declare module BABYLON.EDITOR {
         private _attachDetachPipeline(attach, pipeline);
         private _getPipelineCameras();
         private _loadHDRLensDirtTexture();
+        private _editAnimations();
     }
 }

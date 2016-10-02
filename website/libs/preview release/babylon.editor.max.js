@@ -2545,6 +2545,8 @@ var BABYLON;
                     shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
                     shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
                     shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
+                    if (shadows.forceBackFacesOnly !== undefined)
+                        shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");
                     shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                     shadowsFolder.add(shadows, "bias").name("Bias");
                     shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");
@@ -2657,13 +2659,13 @@ var BABYLON;
                 var materials = ["None"];
                 for (var i = 0; i < scene.materials.length; i++)
                     materials.push(scene.materials[i].name);
-                this._dummyProperty = material ? material.id : materials[0];
+                this._dummyProperty = material ? material.name : materials[0];
                 materialFolder.add(this, "_dummyProperty", materials).name("Material :").onFinishChange(function (result) {
                     if (result === "None") {
                         _this._removeMaterial();
                     }
                     else {
-                        var newmaterial = scene.getMaterialByID(result);
+                        var newmaterial = scene.getMaterialByName(result);
                         _this._editionTool.object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
@@ -2851,7 +2853,6 @@ var BABYLON;
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
                 // Ckeck checkboxes
-                EDITOR.SceneFactory.EnabledPostProcesses.hdr = EDITOR.SceneFactory.HDRPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.standard = EDITOR.SceneFactory.StandardPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
                 // Standard
@@ -2866,6 +2867,8 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.StandardPipeline) {
+                    var animationsFolder = standardFolder.addFolder("Animations");
+                    animationsFolder.add(this, "_editAnimations").name("Edit Animations");
                     var highLightFolder = standardFolder.addFolder("Highlighting");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
@@ -2876,10 +2879,10 @@ var BABYLON;
                     highLightFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
-                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(20).step(0.01).name("Strength");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
-                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(100).step(0.1).name("Distortion Strength");
+                    lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(500).step(0.1).name("Distortion Strength");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
                     lensFolder.open();
                     var dofFolder = standardFolder.addFolder("Depth Of Field");
@@ -2888,42 +2891,6 @@ var BABYLON;
                     dofFolder.open();
                     var debugFolder = standardFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);
-                }
-                // HDR
-                var hdrFolder = this._element.addFolder("HDR");
-                hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "hdr").name("Enabled HDR").onChange(function (result) {
-                    if (result === true)
-                        EDITOR.SceneFactory.CreateHDRPipeline(_this._editionTool.core);
-                    else {
-                        EDITOR.SceneFactory.HDRPipeline.dispose();
-                        EDITOR.SceneFactory.HDRPipeline = null;
-                    }
-                    _this.update();
-                });
-                if (EDITOR.SceneFactory.HDRPipeline) {
-                    hdrFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachHDR").name("Attach HDR").onChange(function (result) {
-                        _this._attachDetachPipeline(result, "hdr");
-                    });
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposureAdjustment").min(0).max(10).name("Exposure Adjustment");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "minimumLuminance").min(0).max(10).step(0.01).name("Minimum Luminance");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceDecreaseRate").min(0).max(5).step(0.01).name("Luminance Decrease Rate");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "luminanceIncreaserate").min(0).max(5).step(0.01).name("Luminance Increase Rate");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussCoeff").min(0).max(10).step(0.01).name("Gaussian Coefficient").onChange(function (result) {
-                        EDITOR.SceneFactory.HDRPipeline.update();
-                    });
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMean").min(0).max(30).step(0.01).name("Gaussian Mean").onChange(function (result) {
-                        EDITOR.SceneFactory.HDRPipeline.update();
-                    });
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussStandDev").min(0).max(30).step(0.01).name("Gaussian Standard Deviation").onChange(function (result) {
-                        EDITOR.SceneFactory.HDRPipeline.update();
-                    });
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "gaussMultiplier").min(0).max(30).step(0.01).name("Gaussian Multiplier");
-                    hdrFolder.add(EDITOR.SceneFactory.HDRPipeline, "lensDirtPower").min(0).max(30).step(0.01).name("Lens Dirt Power");
-                    this.addTextureFolder(EDITOR.SceneFactory.HDRPipeline, "Lens Texture", "lensTexture", hdrFolder).open();
-                    var debugFolder = hdrFolder.addFolder("Debug");
-                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.HDRPipeline);
                 }
                 // SSAO
                 var ssaoFolder = this._element.addFolder("SSAO");
@@ -2948,9 +2915,7 @@ var BABYLON;
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
                 }
-                /**
-                * VLS
-                */
+                // VLS
                 var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
                 vlsFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "vls").name("Enable VLS").onChange(function (result) {
                     if (result === true) {
@@ -3053,6 +3018,10 @@ var BABYLON;
                     }, null);
                 });
                 input.click();
+            };
+            // Loads the animations tool
+            PostProcessesTool.prototype._editAnimations = function () {
+                var animCreator = new EDITOR.GUIAnimationEditor(this._editionTool.core, EDITOR.SceneFactory.StandardPipeline);
             };
             return PostProcessesTool;
         }(EDITOR.AbstractDatTool));
@@ -6180,10 +6149,11 @@ var BABYLON;
                     this.StandardPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
-                var standard = new BABYLON.StandardRenderingPipeline("standard", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
+                var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
                 standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
                 standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
                 standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
+                standard.LensFlareEnabled;
                 this.StandardPipeline = standard;
                 return standard;
             };
@@ -7774,11 +7744,11 @@ var BABYLON;
                     if (!material.newInstance || !material.serializedValues.customType)
                         continue;
                     var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
-                    material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "./");
+                    material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "file:");
                 }
                 // Sounds
                 for (var i = 0; i < project.sounds.length; i++) {
-                    var sound = BABYLON.Sound.Parse(project.sounds[i].serializationObject, core.currentScene, "file:");
+                    var sound = BABYLON.Sound.Parse(project.sounds[i].serializationObject, core.currentScene, "");
                     sound.name = project.sounds[i].name;
                     BABYLON.Tags.EnableFor(sound);
                     BABYLON.Tags.AddTagsTo(sound, "added");
@@ -9161,7 +9131,7 @@ var BABYLON;
                     obj.autoAnimateLoop = false;
                     obj.autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
                 }
-                // Sounds autoplay
+                // Configure sounds url and autoplay
                 for (var i = 0; i < obj.sounds.length; i++) {
                     var sound = obj.sounds[i];
                     if (sound.url)
@@ -9204,6 +9174,7 @@ var BABYLON;
                 picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
                 picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
                 picker.minSelectCount = 0;
+                picker.includePostProcesses = true;
                 picker.open();
                 picker.onObjectPicked = function (names) {
                     EDITOR.SceneFactory.NodesToStart = [];
@@ -9219,9 +9190,11 @@ var BABYLON;
                         if (!node) {
                             // Sound ?
                             node = core.currentScene.getSoundByName(names[i]);
-                            if (!node)
-                                continue;
                         }
+                        if (!node && EDITOR.SceneFactory.StandardPipeline && names[i] === EDITOR.SceneFactory.StandardPipeline._name)
+                            node = EDITOR.SceneFactory.StandardPipeline;
+                        if (!node)
+                            continue;
                         EDITOR.SceneFactory.NodesToStart.push(node);
                     }
                     core.editor.timeline.reset();
@@ -9250,6 +9223,7 @@ var BABYLON;
                 this.windowName = "Select Object...";
                 this.selectButtonName = "Select";
                 this.closeButtonName = "Close";
+                this.includePostProcesses = false;
                 // Private members
                 this._window = null;
                 this._list = null;
@@ -9331,6 +9305,11 @@ var BABYLON;
                         recid++;
                     }
                 }
+                if (this.includePostProcesses && EDITOR.SceneFactory.StandardPipeline)
+                    this._list.addRecord({
+                        name: EDITOR.SceneFactory.StandardPipeline._name,
+                        recid: recid++
+                    });
                 this._list.refresh();
                 // Set selected
                 if (selected.length > 0)

@@ -20,6 +20,7 @@ var BABYLON;
                 picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
                 picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
                 picker.minSelectCount = 0;
+                picker.includePostProcesses = true;
                 picker.open();
                 picker.onObjectPicked = function (names) {
                     EDITOR.SceneFactory.NodesToStart = [];
@@ -35,9 +36,11 @@ var BABYLON;
                         if (!node) {
                             // Sound ?
                             node = core.currentScene.getSoundByName(names[i]);
-                            if (!node)
-                                continue;
                         }
+                        if (!node && EDITOR.SceneFactory.StandardPipeline && names[i] === EDITOR.SceneFactory.StandardPipeline._name)
+                            node = EDITOR.SceneFactory.StandardPipeline;
+                        if (!node)
+                            continue;
                         EDITOR.SceneFactory.NodesToStart.push(node);
                     }
                     core.editor.timeline.reset();

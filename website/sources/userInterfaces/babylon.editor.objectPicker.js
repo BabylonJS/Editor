@@ -16,6 +16,7 @@ var BABYLON;
                 this.windowName = "Select Object...";
                 this.selectButtonName = "Select";
                 this.closeButtonName = "Close";
+                this.includePostProcesses = false;
                 // Private members
                 this._window = null;
                 this._list = null;
@@ -97,6 +98,11 @@ var BABYLON;
                         recid++;
                     }
                 }
+                if (this.includePostProcesses && EDITOR.SceneFactory.StandardPipeline)
+                    this._list.addRecord({
+                        name: EDITOR.SceneFactory.StandardPipeline._name,
+                        recid: recid++
+                    });
                 this._list.refresh();
                 // Set selected
                 if (selected.length > 0)
