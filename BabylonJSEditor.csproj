@@ -251,7 +251,7 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMaker.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />
