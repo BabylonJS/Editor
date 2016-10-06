@@ -10,10 +10,12 @@ declare module BABYLON.EDITOR.GUI {
         showAdd: boolean;
         showEdit: boolean;
         showOptions: boolean;
+        showRefresh: boolean;
         showSearch: boolean;
         showColumnHeaders: boolean;
         menus: W2UI.IGridMenu[];
         autoMergeChanges: boolean;
+        multiSelect: boolean;
         onClick: (selected: number[]) => void;
         onMenuClick: (id: number) => void;
         onDelete: (selected: number[]) => void;

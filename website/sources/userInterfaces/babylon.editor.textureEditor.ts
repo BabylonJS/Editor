@@ -181,8 +181,11 @@
                         if ((<any>selectedTexture)._buffer) {
                             serializationObject.base64String = (<any>selectedTexture)._buffer;
                         }
-                        else if (FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
+                        else if (BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                             serializationObject.name = (<Texture>selectedTexture).url;
+                            if (serializationObject.url.substring(0, 5) !== "file:") {
+                                serializationObject.name = "file:" + serializationObject.name;
+                            }
                         }
 
                         if (!selectedTexture.isCube)

@@ -33,10 +33,12 @@ var BABYLON;
                     this.showAdd = false;
                     this.showEdit = false;
                     this.showOptions = true;
+                    this.showRefresh = true;
                     this.showSearch = true;
                     this.showColumnHeaders = true;
                     this.menus = [];
                     this.autoMergeChanges = true;
+                    this.multiSelect = true;
                     this.hasSubGrid = false;
                 }
                 // Adds a menu
@@ -162,6 +164,7 @@ var BABYLON;
                             toolbarEdit: this.showEdit,
                             toolbarSearch: this.showSearch,
                             toolbarColumns: this.showOptions,
+                            toolbarReload: this.showRefresh,
                             header: !(this.header === ""),
                             columnHeaders: this.showColumnHeaders
                         },
@@ -170,6 +173,7 @@ var BABYLON;
                         fixedBody: this.fixedBody,
                         columns: this.columns,
                         records: this.records,
+                        multiSelect: this.multiSelect,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();

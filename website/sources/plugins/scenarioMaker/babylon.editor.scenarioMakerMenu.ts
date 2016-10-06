@@ -23,7 +23,7 @@
             toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
 
             // Test
-            var t = new ScenarioMaker(this._core);
+            var t = new ActionsBuilder(this._core);
 
         }
         

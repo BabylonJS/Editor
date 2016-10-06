@@ -27,6 +27,7 @@ declare module BABYLON.EDITOR {
         renderHelpers: boolean;
         private _saveCameraState;
         private _mainPanel;
+        private _mainPanelSceneTab;
         private _mainPanelTabs;
         private _currentTab;
         private static _PlayLayoutContainerID;

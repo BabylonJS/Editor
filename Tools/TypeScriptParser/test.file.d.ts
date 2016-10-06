@@ -18,6 +18,9 @@ declare module TEST {
         propertyTest: any;
         private propertyTestPrivate;
     }
+    class B extends A {
+        constructor();
+    }
 }
 declare module TEST.TOOLS {
     class B {

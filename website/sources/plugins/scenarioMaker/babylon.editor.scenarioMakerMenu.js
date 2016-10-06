@@ -18,7 +18,7 @@ var BABYLON;
                 // Create items
                 toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
                 // Test
-                var t = new EDITOR.ScenarioMaker(this._core);
+                var t = new EDITOR.ActionsBuilder(this._core);
             }
             // Called when a menu item is selected by the user
             ScenarioMakerMenu.prototype.onMenuItemSelected = function (selected) {

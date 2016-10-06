@@ -9,6 +9,26 @@ var program = ts.createProgram(filename, {});
 var checker = program.getTypeChecker();
 var currentModule = null;
 var currentClass = null;
+var addOrKeepEntry = function (entry) {
+    for (var _i = 0, output_1 = output; _i < output_1.length; _i++) {
+        var doc = output_1[_i];
+        if (doc.entryType === entry.entryType && doc.name === entry.name)
+            return doc;
+    }
+    output.push(entry);
+    return entry;
+};
+var getFullNamespaceOrModule = function (symbol) {
+    var module = symbol;
+    var name = "";
+    var parent = module.parent;
+    while (parent && (parent.flags & ts.SymbolFlags.Module || parent.flags & ts.SymbolFlags.Namespace)) {
+        var parentModule = parent;
+        name = parentModule.name + "." + name;
+        parent = parentModule.parent;
+    }
+    return name;
+};
 var serializeSymbol = function (symbol) {
     return {
         name: symbol.getName(),
@@ -26,8 +46,10 @@ var serializeClass = function (symbol) {
     return details;
 };
 var serializeModule = function (symbol) {
+    var fullNamespaceOrModuleName = getFullNamespaceOrModule(symbol);
     var details = serializeSymbol(symbol);
     details.entryType = "module";
+    details.name = fullNamespaceOrModuleName + details.name;
     details.classes = [];
     return details;
 };
@@ -55,8 +77,8 @@ var visit = function (node) {
     // Modules
     if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
         var symbol = checker.getSymbolAtLocation(node.name);
-        var serializedModule = currentModule = serializeModule(symbol);
-        output.push(serializedModule);
+        var serializedModule = serializeModule(symbol);
+        currentModule = addOrKeepEntry(serializedModule);
         ts.forEachChild(node, visit);
     }
     else if (node.kind === ts.SyntaxKind.ModuleBlock) {
@@ -67,6 +89,19 @@ var visit = function (node) {
         var symbol = checker.getSymbolAtLocation(node.name);
         var serializedClass = currentClass = serializeClass(symbol);
         currentModule.classes.push(serializedClass);
+        // Heritage
+        var classLikeDeclaration = node;
+        if (classLikeDeclaration.heritageClauses && classLikeDeclaration.heritageClauses.length > 0) {
+            currentClass.heritageClauses = [];
+            for (var i = 0; i < classLikeDeclaration.heritageClauses.length; i++) {
+                var clause = classLikeDeclaration.heritageClauses[i];
+                for (var j = 0; j < classLikeDeclaration.heritageClauses[i].types.length; j++) {
+                    var expression = clause.types[j].expression;
+                    var typeSymbol = checker.getSymbolAtLocation(expression);
+                    currentClass.heritageClauses.push(getFullNamespaceOrModule(typeSymbol) + expression.getText());
+                }
+            }
+        }
         ts.forEachChild(node, visit);
     }
     else if (node.kind === ts.SyntaxKind.MethodDeclaration && currentClass !== null) {

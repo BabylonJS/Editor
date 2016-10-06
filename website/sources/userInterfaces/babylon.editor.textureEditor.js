@@ -132,8 +132,11 @@ var BABYLON;
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
-                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
+                            else if (BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                                 serializationObject.name = selectedTexture.url;
+                                if (serializationObject.url.substring(0, 5) !== "file:") {
+                                    serializationObject.name = "file:" + serializationObject.name;
+                                }
                             }
                             if (!selectedTexture.isCube)
                                 _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");

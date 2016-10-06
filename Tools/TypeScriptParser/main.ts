@@ -23,6 +23,8 @@ interface DocEntry {
 
     entryType?: string;
     moduleName?: string;
+
+    heritageClauses?: string[];
 };
 
 var output: DocEntry[] = [];
@@ -31,6 +33,30 @@ var checker = program.getTypeChecker();
 
 var currentModule: DocEntry = null;
 var currentClass: DocEntry = null;
+
+var addOrKeepEntry = (entry: DocEntry) => {
+    for (const doc of output) {
+        if (doc.entryType === entry.entryType && doc.name === entry.name)
+            return doc;
+    }
+
+    output.push(entry);
+    return entry;
+};
+
+var getFullNamespaceOrModule = (symbol: ts.Symbol): string => {
+    var module: ts.ModuleDeclaration = <any>symbol;
+    var name = "";
+    var parent = module.parent;
+
+    while (parent && (parent.flags & ts.SymbolFlags.Module || parent.flags & ts.SymbolFlags.Namespace)) {
+        var parentModule: ts.ModuleDeclaration = <any>parent;
+        name = parentModule.name + "." + name;
+        parent = parentModule.parent;
+    }
+
+    return name;
+};
 
 var serializeSymbol = (symbol: ts.Symbol): DocEntry => {
     return {
@@ -53,8 +79,11 @@ var serializeClass = (symbol: ts.Symbol): DocEntry => {
 };
 
 var serializeModule = (symbol: ts.Symbol): DocEntry => {
+    var fullNamespaceOrModuleName = getFullNamespaceOrModule(symbol);
+
     var details = serializeSymbol(symbol);
     details.entryType = "module";
+    details.name = fullNamespaceOrModuleName + details.name;
     details.classes = [];
 
     return details;
@@ -91,9 +120,9 @@ var visit = (node: ts.Node): void => {
     // Modules
     if (node.kind === ts.SyntaxKind.ModuleDeclaration) {
         var symbol = checker.getSymbolAtLocation((<ts.ModuleDeclaration>node).name);
-        var serializedModule = currentModule = serializeModule(symbol);
-
-        output.push(serializedModule);
+        var serializedModule = serializeModule(symbol);
+        
+        currentModule = addOrKeepEntry(serializedModule);
 
         ts.forEachChild(node, visit);
     }
@@ -101,13 +130,30 @@ var visit = (node: ts.Node): void => {
         // Visit module's body
         ts.forEachChild(node, visit);
     }
-
+    
     // Classes
     else if (node.kind === ts.SyntaxKind.ClassDeclaration && currentModule !== null) {
         var symbol = checker.getSymbolAtLocation((<ts.ClassDeclaration>node).name);
         var serializedClass = currentClass = serializeClass(symbol);
 
         currentModule.classes.push(serializedClass);
+
+        // Heritage
+        var classLikeDeclaration: ts.ClassLikeDeclaration = <any>node;
+        if (classLikeDeclaration.heritageClauses && classLikeDeclaration.heritageClauses.length > 0) {
+            currentClass.heritageClauses = [];
+
+            for (var i = 0; i < classLikeDeclaration.heritageClauses.length; i++) {
+                var clause = classLikeDeclaration.heritageClauses[i];
+
+                for (var j = 0; j < classLikeDeclaration.heritageClauses[i].types.length; j++) {
+                    var expression = clause.types[j].expression;
+                    var typeSymbol = checker.getSymbolAtLocation(expression);
+
+                    currentClass.heritageClauses.push(getFullNamespaceOrModule(typeSymbol) + expression.getText());
+                }
+            }
+        }
 
         ts.forEachChild(node, visit);
     }

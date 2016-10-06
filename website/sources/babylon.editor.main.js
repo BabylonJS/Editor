@@ -16,6 +16,7 @@ var BABYLON;
                 this.renderHelpers = true;
                 // Private members
                 this._saveCameraState = false;
+                this._mainPanelSceneTab = null;
                 this._mainPanelTabs = {};
                 this._currentTab = null;
                 // Initialize
@@ -86,6 +87,7 @@ var BABYLON;
                         $("#" + this._currentTab.container).show();
                         this.layouts.resize();
                         this.playLayouts.resize();
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
                         return false;
                     }
                 }
@@ -216,12 +218,14 @@ var BABYLON;
                 this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
                 this.playLayouts.buildElement(this.mainContainer);
                 this.playLayouts.on({ execute: "after", type: "resize" }, function () {
+                    if (!_this.sceneToolbar)
+                        return;
                     var panelHeight = _this.layouts.getPanelFromType("main").height;
                     var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
                     _this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
                 this._mainPanel = this.playLayouts.getPanelFromType("main");
-                this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+                this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
             };
             /**
             * Handles just opened scenes

@@ -37,6 +37,7 @@
         private _saveCameraState: boolean = false;
 
         private _mainPanel: GUI.GUIPanel;
+        private _mainPanelSceneTab: GUI.IGUITab = null;
         private _mainPanelTabs: { [id: string]: IMainPanelTab } = { };
         private _currentTab: IMainPanelTab = null;
 
@@ -129,6 +130,8 @@
 
                     this.layouts.resize();
                     this.playLayouts.resize();
+
+                    this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
 
                     return false;
                 }
@@ -294,13 +297,16 @@
             this.playLayouts.buildElement(this.mainContainer);
 
             this.playLayouts.on({ execute: "after", type: "resize" }, () => {
+                if (!this.sceneToolbar)
+                    return;
+
                 var panelHeight = this.layouts.getPanelFromType("main").height;
                 var toolbarHeight = this.sceneToolbar.toolbar.element.box.clientHeight;
                 this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
             });
 
             this._mainPanel = this.playLayouts.getPanelFromType("main");
-            this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+            this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
         }
 
         /**

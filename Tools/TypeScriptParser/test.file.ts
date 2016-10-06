@@ -22,6 +22,10 @@ declare module TEST {
 
         private propertyTestPrivate: string;
     }
+
+    class B extends A {
+        constructor();
+    }
 }
 
 declare module TEST.TOOLS {

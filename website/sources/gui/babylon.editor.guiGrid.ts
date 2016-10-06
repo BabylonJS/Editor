@@ -16,10 +16,12 @@
         public showAdd: boolean = false;
         public showEdit: boolean = false;
         public showOptions: boolean = true;
+        public showRefresh: boolean = true;
         public showSearch: boolean = true;
         public showColumnHeaders: boolean = true;
         public menus: W2UI.IGridMenu[] = [];
         public autoMergeChanges: boolean = true;
+        public multiSelect: boolean = true;
 
         public onClick: (selected: number[]) => void;
         public onMenuClick: (id: number) => void;
@@ -193,6 +195,7 @@
                     toolbarEdit: this.showEdit,
                     toolbarSearch: this.showSearch,
                     toolbarColumns: this.showOptions,
+                    toolbarReload: this.showRefresh,
                     header: !(this.header === ""),
                     columnHeaders: this.showColumnHeaders
                 },
@@ -204,6 +207,8 @@
                 
                 columns: this.columns,
                 records: this.records,
+
+                multiSelect: this.multiSelect,
 
                 onClick: (event: any) => {
                     event.onComplete = () => {

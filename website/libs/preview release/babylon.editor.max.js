@@ -936,10 +936,12 @@ var BABYLON;
                     this.showAdd = false;
                     this.showEdit = false;
                     this.showOptions = true;
+                    this.showRefresh = true;
                     this.showSearch = true;
                     this.showColumnHeaders = true;
                     this.menus = [];
                     this.autoMergeChanges = true;
+                    this.multiSelect = true;
                     this.hasSubGrid = false;
                 }
                 // Adds a menu
@@ -1065,6 +1067,7 @@ var BABYLON;
                             toolbarEdit: this.showEdit,
                             toolbarSearch: this.showSearch,
                             toolbarColumns: this.showOptions,
+                            toolbarReload: this.showRefresh,
                             header: !(this.header === ""),
                             columnHeaders: this.showColumnHeaders
                         },
@@ -1073,6 +1076,7 @@ var BABYLON;
                         fixedBody: this.fixedBody,
                         columns: this.columns,
                         records: this.records,
+                        multiSelect: this.multiSelect,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();
@@ -4487,6 +4491,7 @@ var BABYLON;
                 this.renderHelpers = true;
                 // Private members
                 this._saveCameraState = false;
+                this._mainPanelSceneTab = null;
                 this._mainPanelTabs = {};
                 this._currentTab = null;
                 // Initialize
@@ -4557,6 +4562,7 @@ var BABYLON;
                         $("#" + this._currentTab.container).show();
                         this.layouts.resize();
                         this.playLayouts.resize();
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
                         return false;
                     }
                 }
@@ -4687,12 +4693,14 @@ var BABYLON;
                 this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-PREVIEW-PANEL", "preview", 0, false).setContent("<div id=\"BABYLON-EDITOR-PREVIEW-TIMELINE\" style=\"height: 100%; width: 100%; overflow: hidden;\"></div>");
                 this.playLayouts.buildElement(this.mainContainer);
                 this.playLayouts.on({ execute: "after", type: "resize" }, function () {
+                    if (!_this.sceneToolbar)
+                        return;
                     var panelHeight = _this.layouts.getPanelFromType("main").height;
                     var toolbarHeight = _this.sceneToolbar.toolbar.element.box.clientHeight;
                     _this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
                 this._mainPanel = this.playLayouts.getPanelFromType("main");
-                this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+                this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
             };
             /**
             * Handles just opened scenes
@@ -9883,8 +9891,11 @@ var BABYLON;
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
-                            else if (EDITOR.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
+                            else if (BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
                                 serializationObject.name = selectedTexture.url;
+                                if (serializationObject.url.substring(0, 5) !== "file:") {
+                                    serializationObject.name = "file:" + serializationObject.name;
+                                }
                             }
                             if (!selectedTexture.isCube)
                                 _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
