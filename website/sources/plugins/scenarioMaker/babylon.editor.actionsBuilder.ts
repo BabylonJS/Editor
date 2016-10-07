@@ -3,28 +3,7 @@
         name: string;
     }
 
-    interface IDocEntry {
-        name?: string;
-        fileName?: string;
-        documentation?: string;
-        type?: string;
-
-        classes?: IDocEntry[];
-        constructors?: IDocEntry[];
-
-        functions?: IDocEntry[];
-        functionBody?: IDocEntry[];
-
-        parameters?: IDocEntry[];
-        properties?: IDocEntry[];
-
-        entryType?: string;
-        moduleName?: string;
-
-        heritageClauses?: string[];
-    };
-
-    export class ActionsBuilder {
+    export class ActionsBuilder implements IEventReceiver {
         // Public members
 
         // Private members
@@ -40,6 +19,10 @@
         private _actionsList: GUI.GUIGrid<IElementItem> = null;
         private _controlsList: GUI.GUIGrid<IElementItem> = null;
 
+        private _graph: ActionsBuilderGraph = null;
+
+        private _currentSelected: {id?: string, list?: GUI.GUIGrid<IElementItem> } = null;
+
         // Static members
         private static _Classes: IDocEntry[] = null;
 
@@ -48,13 +31,38 @@
         * @param mainToolbar: the main toolbar instance
         */
         constructor(core: EditorCore) {
+            // Configure this
             this._core = core;
+            core.eventReceivers.push(this);
 
             // Create UI
+            this._createUI();
+
             if (!ActionsBuilder._Classes)
                 this._loadDefinitionsFile();
             else
-                this._createUI();
+                this._configureUI();
+        }
+
+        // On event
+        public onEvent(event: IEvent): boolean {
+            if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.DOCUMENT_UNCLICK) {
+                var mouseEvent: MouseEvent = <any>event.guiEvent.data;
+                var caller = $(mouseEvent.target);
+
+                // Until I find how to get the working canvas of cytoscape
+                if (caller.parent() && caller.parent().parent()) {
+                    if (caller.parent().parent()[0] !== this._graph.canvasElement[0])
+                        this._currentSelected = null;
+                    else {
+                        this._graph.setMousePosition(mouseEvent.offsetX, mouseEvent.offsetY);
+                    }
+                }
+
+                return false;
+            }
+
+            return false;
         }
 
         /**
@@ -84,15 +92,9 @@
             this._triggersList.showAdd = this._triggersList.showEdit = this._triggersList.showOptions = this._triggersList.showRefresh = false;
             this._triggersList.header = "Triggers";
             this._triggersList.fixedBody = true;
-            this._triggersList.multiSelect = false;
             this._triggersList.createColumn("name", "name", "100%");
+            this._triggersList.onMouseDown = () => this._onListElementClicked(this._triggersList);
             this._triggersList.buildElement("ACTIONS-BUILDER-TRIGGERS");
-
-            for (var i = ActionManager.NothingTrigger; i < ActionManager.OnKeyUpTrigger; i++) {
-                this._triggersList.addRecord({ recid: i, name: ActionManager.GetTriggerName(i) });
-            }
-
-            this._triggersList.refresh();
 
             // Create actions list
             this._actionsList = new GUI.GUIGrid<IElementItem>("ACTIONS-BUILDER-ACTIONS", this._core);
@@ -101,14 +103,8 @@
             this._actionsList.fixedBody = true;
             this._actionsList.multiSelect = false;
             this._actionsList.createColumn("name", "name", "100%");
+            this._actionsList.onMouseDown = () => this._onListElementClicked(this._actionsList);
             this._actionsList.buildElement("ACTIONS-BUILDER-ACTIONS");
-
-            var actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
-            for (var i = 0; i < actionsClasses.length; i++) {
-                this._actionsList.addRecord({ recid: i, name: actionsClasses[i].name });
-            }
-
-            this._actionsList.refresh();
 
             // Create controls list
             this._controlsList = new GUI.GUIGrid<IElementItem>("ACTIONS-BUILDER-CONTROLS", this._core);
@@ -117,23 +113,78 @@
             this._controlsList.fixedBody = true;
             this._controlsList.multiSelect = false;
             this._controlsList.createColumn("name", "name", "100%");
+            this._controlsList.onMouseDown = () => this._onListElementClicked(this._controlsList);
             this._controlsList.buildElement("ACTIONS-BUILDER-CONTROLS");
-            
+
+            // Create graph
+            this._graph = new ActionsBuilderGraph(this._core);
+            this._graph.onMouseUp = () => this._onMouseUpOnGraph();
+        }
+
+        // Fills the lists on the left (triggers, actions and controls)
+        private _configureUI(): void {
+            // Triggers
+            for (var i = ActionManager.NothingTrigger; i < ActionManager.OnKeyUpTrigger; i++) {
+                this._triggersList.addRecord(<IElementItem>{ recid: i, name: ActionManager.GetTriggerName(i), style: "background-color: rgb(133, 154, 185)" });
+            }
+
+            this._triggersList.refresh();
+
+            // Actions
+            var actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
+            for (var i = 0; i < actionsClasses.length; i++) {
+                this._actionsList.addRecord(<IElementItem>{ recid: i, name: actionsClasses[i].name, style: "background-color: rgb(182, 185, 132)" });
+            }
+
+            this._actionsList.refresh();
+
+            // Controls
             var controlClasses = this._getClasses(this._babylonModule, "BABYLON.Condition");
             for (var i = 0; i < controlClasses.length; i++) {
-                this._controlsList.addRecord({ recid: i, name: controlClasses[i].name });
+                this._controlsList.addRecord({ recid: i, name: controlClasses[i].name, style: "background-color: rgb(185, 132, 140)" });
             }
 
             this._controlsList.refresh();
+
+            // Graph
+            this._graph.createGraph("ACTIONS-BUILDER-CANVAS");
+        }
+
+        // When a list element is clicked
+        private _onListElementClicked(list: GUI.GUIGrid<IElementItem>): void {
+            var selected = list.getSelectedRows();
+
+            if (selected.length) {
+                this._currentSelected = { id: list.getRow(selected[0]).name, list: list };
+            }
+        }
+
+        // When the user unclicks on the graph
+        private _onMouseUpOnGraph(): void {
+            if (this._currentSelected) {
+                var color = "rgb(133, 154, 185)"; // Trigger as default
+
+                if (this._currentSelected.list === this._actionsList)
+                    color = "rgb(182, 185, 132)";
+                else if (this._currentSelected.list === this._controlsList)
+                    color = "rgb(185, 132, 140)";
+
+                this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color);
+                this._currentSelected = null;
+            }
         }
 
         // Loads the definitions file which contains definitions of the Babylon.js framework
         // defined in a more simple JSON format
         private _loadDefinitionsFile(): void {
+            this._layouts.lockPanel("main", "Loading...", true);
+
             BABYLON.Tools.LoadFile("website/resources/classes.min.json", (data: string) => {
                 ActionsBuilder._Classes = JSON.parse(data);
                 this._babylonModule = this._getModule("BABYLON");
-                this._createUI();
+                this._configureUI();
+
+                this._layouts.unlockPanel("main");
             });
         }
 
@@ -149,6 +200,8 @@
             return null;
         }
 
+        // Returns the classes of the the given module
+        // Only classes that heritages "heritates"'s value ?
         private _getClasses(module: IDocEntry, heritates?: string): IDocEntry[] {
             var classes: IDocEntry[] = [];
 

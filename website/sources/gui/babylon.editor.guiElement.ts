@@ -56,5 +56,24 @@
         public static CreateElement(type: string, id: string, style: string = "width: 100%; height: 100%;"): string {
             return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
         }
+
+        // Creates a transition
+        // Available types are:
+        // - slide-left
+        // - slide-right
+        // - slide-top
+        // - slide-bottom
+        // - flip-left
+        // - flip-right
+        // - flip-top
+        // - flip-bottom
+        // - pop-in
+        // - pop-out
+        public static CreateTransition(div1: string, div2: string, type: string, callback?: () => void): void {
+            w2utils.transition($("#" + div1)[0], $("#" + div2)[0], type, () => {
+                if (callback)
+                    callback();
+            });
+        }
     }
 }

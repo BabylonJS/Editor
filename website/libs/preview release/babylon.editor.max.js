@@ -36,7 +36,9 @@ var BABYLON;
             GUIEventType[GUIEventType["GRID_RELOADED"] = 16] = "GRID_RELOADED";
             GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 17] = "WINDOW_BUTTON_CLICKED";
             GUIEventType[GUIEventType["OBJECT_PICKED"] = 18] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 19] = "UNKNOWN";
+            GUIEventType[GUIEventType["DOCUMENT_CLICK"] = 19] = "DOCUMENT_CLICK";
+            GUIEventType[GUIEventType["DOCUMENT_UNCLICK"] = 20] = "DOCUMENT_UNCLICK";
+            GUIEventType[GUIEventType["UNKNOWN"] = 21] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -108,10 +110,10 @@ var BABYLON;
                 ev.sceneEvent = new SceneEvent(object, type);
                 core.sendEvent(ev);
             };
-            Event.sendGUIEvent = function (object, type, core) {
+            Event.sendGUIEvent = function (object, type, core, data) {
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
-                ev.guiEvent = new GUIEvent(object, type);
+                ev.guiEvent = new GUIEvent(object, type, data);
                 core.sendEvent(ev);
             };
             return Event;
@@ -547,6 +549,24 @@ var BABYLON;
                 GUIElement.CreateElement = function (type, id, style) {
                     if (style === void 0) { style = "width: 100%; height: 100%;"; }
                     return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
+                };
+                // Creates a transition
+                // Available types are:
+                // - slide-left
+                // - slide-right
+                // - slide-top
+                // - slide-bottom
+                // - flip-left
+                // - flip-right
+                // - flip-top
+                // - flip-bottom
+                // - pop-in
+                // - pop-out
+                GUIElement.CreateTransition = function (div1, div2, type, callback) {
+                    w2utils.transition($("#" + div1)[0], $("#" + div2)[0], type, function () {
+                        if (callback)
+                            callback();
+                    });
                 };
                 return GUIElement;
             }());
@@ -1057,7 +1077,16 @@ var BABYLON;
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
                     var _this = this;
-                    this.element = $("#" + parent).w2grid({
+                    var parentElement = $("#" + parent);
+                    parentElement.on("mousedown", function (event) {
+                        if (_this.onMouseDown)
+                            _this.onMouseDown();
+                    });
+                    parentElement.on("mouseup", function (event) {
+                        if (_this.onMouseUp)
+                            _this.onMouseUp();
+                    });
+                    this.element = parentElement.w2grid({
                         name: this.name,
                         show: {
                             toolbar: this.showToolbar,
@@ -4535,6 +4564,8 @@ var BABYLON;
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
+                // Events
+                this._createMainEvents();
             }
             Object.defineProperty(EditorMain, "PlayLayoutContainerID", {
                 get: function () {
@@ -4547,6 +4578,7 @@ var BABYLON;
             * Event receiver
             */
             EditorMain.prototype.onEvent = function (event) {
+                var _this = this;
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
                     if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && event.guiEvent.caller === this.layouts) {
                         this.playLayouts.resize();
@@ -4555,13 +4587,11 @@ var BABYLON;
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
-                        if (this._currentTab) {
-                            $("#" + this._currentTab.container).hide();
-                        }
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", function () {
+                            _this.layouts.resize();
+                            _this.playLayouts.resize();
+                        });
                         this._currentTab = this._mainPanelTabs[tabID];
-                        $("#" + this._currentTab.container).show();
-                        this.layouts.resize();
-                        this.playLayouts.resize();
                         this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
                         return false;
                     }
@@ -4785,6 +4815,18 @@ var BABYLON;
                     camera.setTarget(cameraTarget);
                     camera.radius = cameraRadius;
                 }
+            };
+            /**
+            * Creates the main events (on "document")
+            */
+            EditorMain.prototype._createMainEvents = function () {
+                var _this = this;
+                document.addEventListener("mousedown", function (event) {
+                    EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_CLICK, _this.core, event);
+                });
+                document.addEventListener("mouseup", function (event) {
+                    EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_UNCLICK, _this.core, event);
+                });
             };
             // Statics
             EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";

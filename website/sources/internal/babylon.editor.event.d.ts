@@ -27,7 +27,9 @@ declare module BABYLON.EDITOR {
         GRID_RELOADED = 16,
         WINDOW_BUTTON_CLICKED = 17,
         OBJECT_PICKED = 18,
-        UNKNOWN = 19,
+        DOCUMENT_CLICK = 19,
+        DOCUMENT_UNCLICK = 20,
+        UNKNOWN = 21,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,
@@ -67,7 +69,7 @@ declare module BABYLON.EDITOR {
         * @param caller: gui element calling the event
         * @param eventType: the gui event type
         */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object);
+        constructor(caller: GUI.IGUIElement, eventType: number, data?: Object);
     }
     /**
     * IEvent implementation
@@ -77,6 +79,6 @@ declare module BABYLON.EDITOR {
         sceneEvent: SceneEvent;
         guiEvent: GUIEvent;
         static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
-        static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void;
+        static sendGUIEvent(object: GUI.IGUIElement, type: GUIEventType, core: EditorCore, data?: any): void;
     }
 }

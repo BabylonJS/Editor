@@ -106,6 +106,9 @@
             this.filesInput.monitorElementForDragNDrop(this.core.canvas);
             // Override renderFunction to get full control on the render function
             (<any>this.filesInput).renderFunction = () => { };
+
+            // Events
+            this._createMainEvents();
         }
 
         /**
@@ -121,16 +124,13 @@
 
                 else if (event.guiEvent.eventType === GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                     var tabID = event.guiEvent.data;
-                    if (this._currentTab) {
-                        $("#" + this._currentTab.container).hide();
-                    }
+                    
+                    GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", () => {
+                        this.layouts.resize();
+                        this.playLayouts.resize();
+                    });
 
                     this._currentTab = this._mainPanelTabs[tabID];
-                    $("#" + this._currentTab.container).show();
-
-                    this.layouts.resize();
-                    this.playLayouts.resize();
-
                     this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
 
                     return false;
@@ -411,6 +411,19 @@
                 camera.setTarget(cameraTarget);
                 camera.radius = cameraRadius;
             }
+        }
+
+        /**
+        * Creates the main events (on "document")
+        */
+        private _createMainEvents(): void {
+            document.addEventListener("mousedown", (event: MouseEvent) => {
+                Event.sendGUIEvent(null, GUIEventType.DOCUMENT_CLICK, this.core, event);
+            });
+
+            document.addEventListener("mouseup", (event: MouseEvent) => {
+                Event.sendGUIEvent(null, GUIEventType.DOCUMENT_UNCLICK, this.core, event);
+            });
         }
     }
 }

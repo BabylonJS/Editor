@@ -33,7 +33,10 @@
 
         OBJECT_PICKED = 18,
 
-        UNKNOWN = 19
+        DOCUMENT_CLICK = 19,
+        DOCUMENT_UNCLICK = 20,
+
+        UNKNOWN = 21
     }
 
     export enum SceneEventType {
@@ -89,7 +92,7 @@
         * @param caller: gui element calling the event
         * @param eventType: the gui event type
         */
-        constructor(caller: GUI.GUIElement<W2UI.IElement>, eventType: number, data?: Object) {
+        constructor(caller: GUI.IGUIElement, eventType: number, data?: Object) {
             super(data);
 
             this.caller = caller;
@@ -115,11 +118,11 @@
             core.sendEvent(ev);
         }
 
-        public static sendGUIEvent(object: any, type: GUIEventType, core: EditorCore): void {
+        public static sendGUIEvent(object: GUI.IGUIElement, type: GUIEventType, core: EditorCore, data?: any): void {
             var ev = new Event();
 
             ev.eventType = EventType.GUI_EVENT;
-            ev.guiEvent = new GUIEvent(object, type);
+            ev.guiEvent = new GUIEvent(object, type, data);
 
             core.sendEvent(ev);
         }

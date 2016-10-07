@@ -60,6 +60,8 @@ var BABYLON;
                 this.filesInput.monitorElementForDragNDrop(this.core.canvas);
                 // Override renderFunction to get full control on the render function
                 this.filesInput.renderFunction = function () { };
+                // Events
+                this._createMainEvents();
             }
             Object.defineProperty(EditorMain, "PlayLayoutContainerID", {
                 get: function () {
@@ -72,6 +74,7 @@ var BABYLON;
             * Event receiver
             */
             EditorMain.prototype.onEvent = function (event) {
+                var _this = this;
                 if (event.eventType === EDITOR.EventType.GUI_EVENT) {
                     if (event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && event.guiEvent.caller === this.layouts) {
                         this.playLayouts.resize();
@@ -80,13 +83,11 @@ var BABYLON;
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
-                        if (this._currentTab) {
-                            $("#" + this._currentTab.container).hide();
-                        }
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", function () {
+                            _this.layouts.resize();
+                            _this.playLayouts.resize();
+                        });
                         this._currentTab = this._mainPanelTabs[tabID];
-                        $("#" + this._currentTab.container).show();
-                        this.layouts.resize();
-                        this.playLayouts.resize();
                         this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
                         return false;
                     }
@@ -310,6 +311,18 @@ var BABYLON;
                     camera.setTarget(cameraTarget);
                     camera.radius = cameraRadius;
                 }
+            };
+            /**
+            * Creates the main events (on "document")
+            */
+            EditorMain.prototype._createMainEvents = function () {
+                var _this = this;
+                document.addEventListener("mousedown", function (event) {
+                    EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_CLICK, _this.core, event);
+                });
+                document.addEventListener("mouseup", function (event) {
+                    EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_UNCLICK, _this.core, event);
+                });
             };
             // Statics
             EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";

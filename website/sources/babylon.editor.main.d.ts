@@ -92,5 +92,9 @@ declare module BABYLON.EDITOR {
         * Creates the editor camera
         */
         private _createBabylonCamera();
+        /**
+        * Creates the main events (on "document")
+        */
+        private _createMainEvents();
     }
 }

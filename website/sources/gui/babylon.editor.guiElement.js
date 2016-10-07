@@ -50,6 +50,24 @@ var BABYLON;
                     if (style === void 0) { style = "width: 100%; height: 100%;"; }
                     return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
                 };
+                // Creates a transition
+                // Available types are:
+                // - slide-left
+                // - slide-right
+                // - slide-top
+                // - slide-bottom
+                // - flip-left
+                // - flip-right
+                // - flip-top
+                // - flip-bottom
+                // - pop-in
+                // - pop-out
+                GUIElement.CreateTransition = function (div1, div2, type, callback) {
+                    w2utils.transition($("#" + div1)[0], $("#" + div2)[0], type, function () {
+                        if (callback)
+                            callback();
+                    });
+                };
                 return GUIElement;
             }());
             GUI.GUIElement = GUIElement;

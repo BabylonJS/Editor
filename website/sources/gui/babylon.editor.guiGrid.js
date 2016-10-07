@@ -154,7 +154,16 @@ var BABYLON;
                 // Build element
                 GUIGrid.prototype.buildElement = function (parent) {
                     var _this = this;
-                    this.element = $("#" + parent).w2grid({
+                    var parentElement = $("#" + parent);
+                    parentElement.on("mousedown", function (event) {
+                        if (_this.onMouseDown)
+                            _this.onMouseDown();
+                    });
+                    parentElement.on("mouseup", function (event) {
+                        if (_this.onMouseUp)
+                            _this.onMouseUp();
+                    });
+                    this.element = parentElement.w2grid({
                         name: this.name,
                         show: {
                             toolbar: this.showToolbar,

@@ -118,3 +118,32 @@ declare module BABYLON.EDITOR {
         onMenuItemSelected(selected: string): void;
     }
 }
+
+/**
+* Definitions file parsing
+*/
+declare module BABYLON.EDITOR {
+    /**
+    * IDocEntry which comes from the TypeScriptParser project
+    */
+    interface IDocEntry {
+        name?: string;
+        fileName?: string;
+        documentation?: string;
+        type?: string;
+
+        classes?: IDocEntry[];
+        constructors?: IDocEntry[];
+
+        functions?: IDocEntry[];
+        functionBody?: IDocEntry[];
+
+        parameters?: IDocEntry[];
+        properties?: IDocEntry[];
+
+        entryType?: string;
+        moduleName?: string;
+
+        heritageClauses?: string[];
+    }
+}

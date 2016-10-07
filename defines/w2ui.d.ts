@@ -29,7 +29,7 @@
         /**
         * Add an event
         */
-        on(event: IEvent, callback: (target: any, eventData: any) => void);
+        on(event: IEvent | string, callback: (target: any, eventData: any) => void);
         /**
         * The element's style
         */
@@ -571,6 +571,8 @@ declare var w2utils: {
     lock(box: HTMLElement | JQuery, options: { msg: string; spinner: boolean; opacity: number; });
 
     unlock(box: HTMLElement | JQuery): void;
+
+    transition(div1: HTMLElement, div2: HTMLElement, type: string, callback?: () => void);
 }
 
 declare var w2ui: {

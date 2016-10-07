@@ -82,6 +82,8 @@
     <Content Include="website\libs\actionsBuilder\index.html" />
     <Content Include="website\libs\babylon.js" />
     <Content Include="website\libs\babylon.max.js" />
+    <Content Include="website\libs\cytoscape\cytoscape.js" />
+    <Content Include="website\libs\cytoscape\cytoscape.min.js" />
     <Content Include="website\libs\dat.gui.min.js" />
     <Content Include="website\libs\jquery.min.js" />
     <Content Include="website\libs\loaders\babylon.objFileLoader.js" />
@@ -165,6 +167,7 @@
     <TypeScriptCompile Include="defines\babylon.editor.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.gui.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.projectDefinition.ts" />
+    <TypeScriptCompile Include="defines\cytoscape\cytoscape.d.ts" />
     <TypeScriptCompile Include="defines\dat.gui.d.ts" />
     <TypeScriptCompile Include="defines\electron\github-electron.d.ts" />
     <TypeScriptCompile Include="defines\electron\node.d.ts" />
@@ -251,6 +254,7 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilderGraph.ts" />
     <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />

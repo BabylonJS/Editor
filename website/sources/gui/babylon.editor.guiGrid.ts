@@ -30,6 +30,9 @@
         public onEdit: (selected: number[]) => void;
         public onReload: () => void;
         public onEditField: (recid: number, value: any) => void;
+
+        public onMouseDown: () => void;
+        public onMouseUp: () => void;
         
         public hasSubGrid: boolean = false;
         public subGridHeight: number;
@@ -184,7 +187,18 @@
 
         // Build element
         public buildElement(parent: string): void {
-            this.element = (<any>$("#" + parent)).w2grid({
+            var parentElement = $("#" + parent);
+            parentElement.on("mousedown", (event) => {
+                if (this.onMouseDown)
+                    this.onMouseDown();
+            });
+
+            parentElement.on("mouseup", (event) => {
+                if (this.onMouseUp)
+                    this.onMouseUp();
+            });
+
+            this.element = (<any>parentElement).w2grid({
                 name: this.name,
 
                 show: {

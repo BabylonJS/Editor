@@ -23,6 +23,8 @@ declare module BABYLON.EDITOR.GUI {
         onEdit: (selected: number[]) => void;
         onReload: () => void;
         onEditField: (recid: number, value: any) => void;
+        onMouseDown: () => void;
+        onMouseUp: () => void;
         hasSubGrid: boolean;
         subGridHeight: number;
         onExpand: (id: string, recid: number) => GUIGrid<IGridRowData>;

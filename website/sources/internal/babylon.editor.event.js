@@ -36,7 +36,9 @@ var BABYLON;
             GUIEventType[GUIEventType["GRID_RELOADED"] = 16] = "GRID_RELOADED";
             GUIEventType[GUIEventType["WINDOW_BUTTON_CLICKED"] = 17] = "WINDOW_BUTTON_CLICKED";
             GUIEventType[GUIEventType["OBJECT_PICKED"] = 18] = "OBJECT_PICKED";
-            GUIEventType[GUIEventType["UNKNOWN"] = 19] = "UNKNOWN";
+            GUIEventType[GUIEventType["DOCUMENT_CLICK"] = 19] = "DOCUMENT_CLICK";
+            GUIEventType[GUIEventType["DOCUMENT_UNCLICK"] = 20] = "DOCUMENT_UNCLICK";
+            GUIEventType[GUIEventType["UNKNOWN"] = 21] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -108,10 +110,10 @@ var BABYLON;
                 ev.sceneEvent = new SceneEvent(object, type);
                 core.sendEvent(ev);
             };
-            Event.sendGUIEvent = function (object, type, core) {
+            Event.sendGUIEvent = function (object, type, core, data) {
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
-                ev.guiEvent = new GUIEvent(object, type);
+                ev.guiEvent = new GUIEvent(object, type, data);
                 core.sendEvent(ev);
             };
             return Event;
