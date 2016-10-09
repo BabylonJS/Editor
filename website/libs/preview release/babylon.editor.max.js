@@ -2542,7 +2542,6 @@ var BABYLON;
                     directionFolder.add(object.direction, "x").step(0.1);
                     directionFolder.add(object.direction, "y").step(0.1);
                     directionFolder.add(object.direction, "z").step(0.1);
-                    object.autoUpdateExtends = true;
                 }
                 // Spot light
                 if (object instanceof BABYLON.SpotLight) {
@@ -4523,6 +4522,7 @@ var BABYLON;
                 this._mainPanelSceneTab = null;
                 this._mainPanelTabs = {};
                 this._currentTab = null;
+                this._lastTabUsed = null;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -4587,12 +4587,30 @@ var BABYLON;
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
-                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", function () {
+                        var newMainPanelTab = this._mainPanelTabs[tabID];
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
                         });
-                        this._currentTab = this._mainPanelTabs[tabID];
-                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
+                        this._lastTabUsed = this._currentTab;
+                        this._currentTab = newMainPanelTab;
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
+                        return false;
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CLOSED && event.guiEvent.caller === this._mainPanel) {
+                        var tabID = event.guiEvent.data;
+                        var mainPanelTab = this._mainPanelTabs[tabID];
+                        this._currentTab = this._lastTabUsed === mainPanelTab ? this._mainPanelSceneTab : this._lastTabUsed;
+                        EDITOR.GUI.GUIElement.CreateTransition(mainPanelTab.container, this._currentTab.container, "pop-in", function () {
+                            if (mainPanelTab.application) {
+                                mainPanelTab.application.dispose();
+                            }
+                            $("#" + mainPanelTab.container).remove();
+                            _this.layouts.resize();
+                            _this.playLayouts.resize();
+                        });
+                        delete this._mainPanelTabs[tabID];
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
                         return false;
                     }
                 }
@@ -4654,7 +4672,7 @@ var BABYLON;
             /**
             * Creates a new tab
             */
-            EditorMain.prototype.createTab = function (caption, container, closable) {
+            EditorMain.prototype.createTab = function (caption, container, application, closable) {
                 if (closable === void 0) { closable = true; }
                 var tab = {
                     caption: caption,
@@ -4664,7 +4682,8 @@ var BABYLON;
                 this._mainPanel.createTab(tab);
                 this._mainPanelTabs[tab.id] = {
                     tab: tab,
-                    container: container
+                    container: container,
+                    application: application
                 };
                 if (!this._currentTab)
                     this._currentTab = this._mainPanelTabs[tab.id];
@@ -4730,7 +4749,7 @@ var BABYLON;
                     _this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
                 this._mainPanel = this.playLayouts.getPanelFromType("main");
-                this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+                this._mainPanelSceneTab = this._mainPanelTabs[this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", null, false).id];
             };
             /**
             * Handles just opened scenes
@@ -9881,7 +9900,15 @@ var BABYLON;
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
                 this._scene = new BABYLON.Scene(this._engine);
                 this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
-                var camera = new BABYLON.Camera("TextureEditorCamera", BABYLON.Vector3.Zero(), this._scene);
+                var camera = new BABYLON.ArcRotateCamera("TextureEditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this._scene);
+                camera.attachControl(this._engine.getRenderingCanvas());
+                var material = new BABYLON.StandardMaterial("TextureEditorSphereMaterial", this._scene);
+                material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+                material.disableLighting = true;
+                var light = new BABYLON.HemisphericLight("TextureEditorHemisphericLight", BABYLON.Vector3.Zero(), this._scene);
+                var sphere = BABYLON.Mesh.CreateSphere("TextureEditorSphere", 32, 5, this._scene);
+                sphere.setEnabled(false);
+                sphere.material = material;
                 var postProcess = new BABYLON.PassPostProcess("PostProcessTextureEditor", 1.0, camera);
                 postProcess.onApply = function (effect) {
                     if (_this._targetTexture)
@@ -9909,10 +9936,14 @@ var BABYLON;
                     if (_this._currentRenderTarget)
                         _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
+                    /*
                     if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                         return;
-                    if (_this._targetTexture)
+                    */
+                    if (_this._targetTexture) {
                         _this._targetTexture.dispose();
+                        _this._targetTexture = null;
+                    }
                     // If render target, configure canvas. Else, set target texture 
                     if (selectedTexture.isRenderTarget && !selectedTexture.isCube) {
                         _this._currentRenderTarget = selectedTexture;
@@ -9933,21 +9964,39 @@ var BABYLON;
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
-                            else if (BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
-                                serializationObject.name = selectedTexture.url;
+                            else {
+                                var file = BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()];
+                                if (file) {
+                                    serializationObject.name = selectedTexture.url;
+                                }
+                                serializationObject.url = serializationObject.url || serializationObject.name;
                                 if (serializationObject.url.substring(0, 5) !== "file:") {
                                     serializationObject.name = "file:" + serializationObject.name;
                                 }
+                                if (!file && serializationObject.name.indexOf(".hdr") !== -1) {
+                                    _this._targetTexture = new BABYLON.HDRCubeTexture(serializationObject.name, _this._scene, serializationObject.isBABYLONPreprocessed ? null : serializationObject.size);
+                                    _this._targetTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+                                }
                             }
-                            if (!selectedTexture.isCube)
+                            if (!_this._targetTexture)
                                 _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
                     }
                     if (_this.object) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
-                    if (selectedTexture)
+                    if (selectedTexture) {
                         _this._selectedTexture = selectedTexture;
+                        camera.detachPostProcess(postProcess);
+                        if (selectedTexture.isCube) {
+                            sphere.setEnabled(true);
+                            material.reflectionTexture = _this._targetTexture;
+                        }
+                        else {
+                            sphere.setEnabled(false);
+                            camera.attachPostProcess(postProcess);
+                        }
+                    }
                 };
                 if (this.object && this.object[this.propertyPath]) {
                     var index = this._core.currentScene.textures.indexOf(this.object[this.propertyPath]);
@@ -10083,7 +10132,6 @@ var BABYLON;
                     recid: this._texturesList.getRowCount() - 1
                 });
                 this._core.editor.editionTool.updateEditionTool();
-                //this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
             };
             // On readed texture file callback
             GUITextureEditor.prototype._onReadFileCallback = function (name) {
@@ -10096,6 +10144,7 @@ var BABYLON;
                         try {
                             texture = new BABYLON.HDRCubeTexture(hdrUrl, _this._core.currentScene);
                             texture.name = name;
+                            BABYLON.FilesInput.FilesToLoad[name] = EDITOR.Tools.CreateFile(new Uint8Array(data), name);
                         }
                         catch (e) {
                             EDITOR.GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");

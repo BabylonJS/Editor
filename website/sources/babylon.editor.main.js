@@ -19,6 +19,7 @@ var BABYLON;
                 this._mainPanelSceneTab = null;
                 this._mainPanelTabs = {};
                 this._currentTab = null;
+                this._lastTabUsed = null;
                 // Initialize
                 this.core = new EDITOR.EditorCore();
                 this.core.editor = this;
@@ -83,12 +84,30 @@ var BABYLON;
                     }
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
-                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", function () {
+                        var newMainPanelTab = this._mainPanelTabs[tabID];
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
                         });
-                        this._currentTab = this._mainPanelTabs[tabID];
-                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
+                        this._lastTabUsed = this._currentTab;
+                        this._currentTab = newMainPanelTab;
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
+                        return false;
+                    }
+                    else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CLOSED && event.guiEvent.caller === this._mainPanel) {
+                        var tabID = event.guiEvent.data;
+                        var mainPanelTab = this._mainPanelTabs[tabID];
+                        this._currentTab = this._lastTabUsed === mainPanelTab ? this._mainPanelSceneTab : this._lastTabUsed;
+                        EDITOR.GUI.GUIElement.CreateTransition(mainPanelTab.container, this._currentTab.container, "pop-in", function () {
+                            if (mainPanelTab.application) {
+                                mainPanelTab.application.dispose();
+                            }
+                            $("#" + mainPanelTab.container).remove();
+                            _this.layouts.resize();
+                            _this.playLayouts.resize();
+                        });
+                        delete this._mainPanelTabs[tabID];
+                        this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
                         return false;
                     }
                 }
@@ -150,7 +169,7 @@ var BABYLON;
             /**
             * Creates a new tab
             */
-            EditorMain.prototype.createTab = function (caption, container, closable) {
+            EditorMain.prototype.createTab = function (caption, container, application, closable) {
                 if (closable === void 0) { closable = true; }
                 var tab = {
                     caption: caption,
@@ -160,7 +179,8 @@ var BABYLON;
                 this._mainPanel.createTab(tab);
                 this._mainPanelTabs[tab.id] = {
                     tab: tab,
-                    container: container
+                    container: container,
+                    application: application
                 };
                 if (!this._currentTab)
                     this._currentTab = this._mainPanelTabs[tab.id];
@@ -226,7 +246,7 @@ var BABYLON;
                     _this.core.canvas.height = (panelHeight - toolbarHeight * 2.0 - 10 - _this.playLayouts.getPanelFromType("preview").height) * devicePixelRatio;
                 });
                 this._mainPanel = this.playLayouts.getPanelFromType("main");
-                this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+                this._mainPanelSceneTab = this._mainPanelTabs[this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", null, false).id];
             };
             /**
             * Handles just opened scenes

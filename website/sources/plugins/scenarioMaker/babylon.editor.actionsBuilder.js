@@ -45,13 +45,22 @@ var BABYLON;
                 return false;
             };
             /**
+            * Disposes the application
+            */
+            ActionsBuilder.prototype.dispose = function () {
+                this._triggersList.destroy();
+                this._actionsList.destroy();
+                this._controlsList.destroy();
+                this._layouts.destroy();
+            };
+            /**
             * Creates the UI
             */
             ActionsBuilder.prototype._createUI = function () {
                 var _this = this;
                 // Create tab and container
                 this._containerID = this._core.editor.createContainer();
-                this._tab = this._core.editor.createTab("Actions Builder", this._containerID, true);
+                this._tab = this._core.editor.createTab("Actions Builder", this._containerID, this, true);
                 // Create layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
                 this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 300, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +

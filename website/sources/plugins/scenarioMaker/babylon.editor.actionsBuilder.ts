@@ -3,7 +3,7 @@
         name: string;
     }
 
-    export class ActionsBuilder implements IEventReceiver {
+    export class ActionsBuilder implements IEventReceiver, ITabApplication {
         // Public members
 
         // Private members
@@ -66,12 +66,22 @@
         }
 
         /**
+        * Disposes the application
+        */
+        public dispose(): void {
+            this._triggersList.destroy();
+            this._actionsList.destroy();
+            this._controlsList.destroy();
+            this._layouts.destroy();
+        }
+
+        /**
         * Creates the UI
         */
         private _createUI(): void {
             // Create tab and container
             this._containerID = this._core.editor.createContainer();
-            this._tab = this._core.editor.createTab("Actions Builder", this._containerID, true);
+            this._tab = this._core.editor.createTab("Actions Builder", this._containerID, this, true);
 
             // Create layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);

@@ -117,6 +117,16 @@ declare module BABYLON.EDITOR {
         */
         onMenuItemSelected(selected: string): void;
     }
+
+    /**
+    * Interface which must be implemented by applications
+    * using a custom tab (cf. Actions Builder V2)
+    */
+    interface ITabApplication extends IDisposable {
+        /**
+        * Empty for instance...
+        */
+    }
 }
 
 /**

@@ -2,6 +2,7 @@ declare module BABYLON.EDITOR {
     interface IMainPanelTab {
         tab: GUI.IGUITab;
         container: string;
+        application?: ITabApplication;
     }
     class EditorMain implements IDisposable, IEventReceiver {
         core: EditorCore;
@@ -30,6 +31,7 @@ declare module BABYLON.EDITOR {
         private _mainPanelSceneTab;
         private _mainPanelTabs;
         private _currentTab;
+        private _lastTabUsed;
         private static _PlayLayoutContainerID;
         static PlayLayoutContainerID: string;
         /**
@@ -63,7 +65,7 @@ declare module BABYLON.EDITOR {
         /**
         * Creates a new tab
         */
-        createTab(caption: string, container: string, closable?: boolean): GUI.IGUITab;
+        createTab(caption: string, container: string, application: ITabApplication, closable?: boolean): GUI.IGUITab;
         /**
         * Removes the given tab
         */

@@ -2,6 +2,7 @@
     export interface IMainPanelTab {
         tab: GUI.IGUITab;
         container: string;
+        application?: ITabApplication;
     }
 
     export class EditorMain implements IDisposable, IEventReceiver {
@@ -37,9 +38,10 @@
         private _saveCameraState: boolean = false;
 
         private _mainPanel: GUI.GUIPanel;
-        private _mainPanelSceneTab: GUI.IGUITab = null;
-        private _mainPanelTabs: { [id: string]: IMainPanelTab } = { };
+        private _mainPanelSceneTab: IMainPanelTab = null;
+        private _mainPanelTabs: IStringDictionary<IMainPanelTab> = { };
         private _currentTab: IMainPanelTab = null;
+        private _lastTabUsed: IMainPanelTab = null;
 
         // Statics
         private static _PlayLayoutContainerID: string = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
@@ -124,14 +126,39 @@
 
                 else if (event.guiEvent.eventType === GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                     var tabID = event.guiEvent.data;
+                    var newMainPanelTab = this._mainPanelTabs[tabID];
                     
-                    GUI.GUIElement.CreateTransition(this._currentTab.container, this._mainPanelTabs[tabID].container, "pop-in", () => {
+                    GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", () => {
                         this.layouts.resize();
                         this.playLayouts.resize();
                     });
 
-                    this._currentTab = this._mainPanelTabs[tabID];
-                    this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab;
+                    this._lastTabUsed = this._currentTab;
+                    this._currentTab = newMainPanelTab;
+                    this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
+
+                    return false;
+                }
+                else if (event.guiEvent.eventType === GUIEventType.TAB_CLOSED && event.guiEvent.caller === this._mainPanel) {
+                    var tabID = event.guiEvent.data;
+                    var mainPanelTab = this._mainPanelTabs[tabID];
+
+                    this._currentTab = this._lastTabUsed === mainPanelTab ? this._mainPanelSceneTab : this._lastTabUsed;
+
+                    GUI.GUIElement.CreateTransition(mainPanelTab.container, this._currentTab.container, "pop-in", () => {
+                        if (mainPanelTab.application) {
+                            mainPanelTab.application.dispose();
+                        }
+
+                        $("#" + mainPanelTab.container).remove();
+
+                        this.layouts.resize();
+                        this.playLayouts.resize();
+                    });
+
+                    delete this._mainPanelTabs[tabID];
+                    
+                    this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
 
                     return false;
                 }
@@ -206,7 +233,7 @@
         /**
         * Creates a new tab
         */
-        public createTab(caption: string, container: string, closable: boolean = true): GUI.IGUITab {
+        public createTab(caption: string, container: string, application: ITabApplication, closable: boolean = true): GUI.IGUITab {
             var tab: GUI.IGUITab = {
                 caption: caption,
                 id: SceneFactory.GenerateUUID(),
@@ -217,7 +244,8 @@
 
             this._mainPanelTabs[tab.id] = {
                 tab: tab,
-                container: container
+                container: container,
+                application: application
             };
 
             if (!this._currentTab)
@@ -306,7 +334,7 @@
             });
 
             this._mainPanel = this.playLayouts.getPanelFromType("main");
-            this._mainPanelSceneTab = this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", false);
+            this._mainPanelSceneTab = this._mainPanelTabs[this.createTab("Preview", "BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW", null, false).id];
         }
 
         /**

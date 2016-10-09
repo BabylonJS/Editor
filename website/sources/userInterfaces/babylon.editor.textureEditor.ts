@@ -116,7 +116,19 @@
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0], true);
             this._scene = new Scene(this._engine);
             this._scene.clearColor = new Color3(0, 0, 0);
-            var camera = new Camera("TextureEditorCamera", Vector3.Zero(), this._scene);
+
+            var camera = new ArcRotateCamera("TextureEditorCamera", 0, 0, 10, Vector3.Zero(), this._scene);
+            camera.attachControl(this._engine.getRenderingCanvas());
+
+            var material = new StandardMaterial("TextureEditorSphereMaterial", this._scene);
+            material.diffuseColor = new Color3(1, 1, 1);
+            material.disableLighting = true;
+
+            var light = new HemisphericLight("TextureEditorHemisphericLight", Vector3.Zero(), this._scene);
+            
+            var sphere = Mesh.CreateSphere("TextureEditorSphere", 32, 5, this._scene);
+            sphere.setEnabled(false);
+            sphere.material = material;
 
             var postProcess = new PassPostProcess("PostProcessTextureEditor", 1.0, camera);
             postProcess.onApply = (effect: Effect) => {
@@ -152,11 +164,15 @@
                 
                 var selectedTexture: BaseTexture = this._core.currentScene.textures[selected[0]];
 
+                /*
                 if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
                     return;
+                */
 
-                if (this._targetTexture)
+                if (this._targetTexture) {
                     this._targetTexture.dispose();
+                    this._targetTexture = null;
+                }
                 
                 // If render target, configure canvas. Else, set target texture 
                 if (selectedTexture.isRenderTarget && !selectedTexture.isCube) {
@@ -181,14 +197,24 @@
                         if ((<any>selectedTexture)._buffer) {
                             serializationObject.base64String = (<any>selectedTexture)._buffer;
                         }
-                        else if (BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()]) {
-                            serializationObject.name = (<Texture>selectedTexture).url;
+                        else {
+                            var file: File = BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()];
+                            if (file) {
+                                serializationObject.name = (<Texture>selectedTexture).url;
+                            }
+
+                            serializationObject.url = serializationObject.url || serializationObject.name;
                             if (serializationObject.url.substring(0, 5) !== "file:") {
                                 serializationObject.name = "file:" + serializationObject.name;
                             }
+
+                            if (!file && serializationObject.name.indexOf(".hdr") !== -1) {
+                                this._targetTexture = new HDRCubeTexture(serializationObject.name, this._scene, serializationObject.isBABYLONPreprocessed ? null : serializationObject.size);
+                                this._targetTexture.coordinatesMode = Texture.SKYBOX_MODE;
+                            }
                         }
 
-                        if (!selectedTexture.isCube)
+                        if (!this._targetTexture)
                             this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                     }
                 }
@@ -197,8 +223,19 @@
                     this.object[this.propertyPath] = selectedTexture;
                 }
                 
-                if (selectedTexture)
+                if (selectedTexture) {
                     this._selectedTexture = selectedTexture;
+                    camera.detachPostProcess(postProcess);
+
+                    if (selectedTexture.isCube) {
+                        sphere.setEnabled(true);
+                        material.reflectionTexture = this._targetTexture;
+                    }
+                    else {
+                        sphere.setEnabled(false);
+                        camera.attachPostProcess(postProcess);
+                    }
+                }
             };
             
             if (this.object && this.object[this.propertyPath]) {
@@ -369,7 +406,6 @@
             });
 
             this._core.editor.editionTool.updateEditionTool();
-            //this._core.editor.editionTool.isObjectSupported(this._core.editor.editionTool.object);
         }
 
         // On readed texture file callback
@@ -384,6 +420,7 @@
                     try {
                         texture = new BABYLON.HDRCubeTexture(hdrUrl, this._core.currentScene);
                         texture.name = name;
+                        BABYLON.FilesInput.FilesToLoad[name] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), name);
                     }
                     catch (e) {
                         GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");

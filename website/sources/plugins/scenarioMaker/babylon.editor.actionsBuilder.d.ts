@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR {
-    class ActionsBuilder implements IEventReceiver {
+    class ActionsBuilder implements IEventReceiver, ITabApplication {
         private _core;
         private _babylonModule;
         private _containerID;
@@ -17,6 +17,10 @@ declare module BABYLON.EDITOR {
         */
         constructor(core: EditorCore);
         onEvent(event: IEvent): boolean;
+        /**
+        * Disposes the application
+        */
+        dispose(): void;
         /**
         * Creates the UI
         */
