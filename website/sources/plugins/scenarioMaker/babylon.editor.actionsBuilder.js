@@ -68,6 +68,7 @@ var BABYLON;
                     "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>");
                 var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
                 mainPanel.style = "overflow: hidden;";
+                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
                 this._layouts.buildElement(this._containerID);
                 // Create triggers list
                 this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
@@ -131,12 +132,25 @@ var BABYLON;
             // When the user unclicks on the graph
             ActionsBuilder.prototype._onMouseUpOnGraph = function () {
                 if (this._currentSelected) {
+                    // Get target type and choose if add node or not
                     var color = "rgb(133, 154, 185)"; // Trigger as default
-                    if (this._currentSelected.list === this._actionsList)
+                    var type = "trigger"; // Trigger as default
+                    if (this._currentSelected.list === this._actionsList) {
                         color = "rgb(182, 185, 132)";
-                    else if (this._currentSelected.list === this._controlsList)
+                        type = "action";
+                    }
+                    else if (this._currentSelected.list === this._controlsList) {
                         color = "rgb(185, 132, 140)";
-                    this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color);
+                        type = "control";
+                    }
+                    // Check target type
+                    var targetType = this._graph.getTargetNodeType();
+                    if (type === "trigger" && targetType !== null || type !== "trigger" && targetType === null) {
+                        this._currentSelected = null;
+                        return;
+                    }
+                    // Finally, add node and configure it
+                    this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type);
                     this._currentSelected = null;
                 }
             };

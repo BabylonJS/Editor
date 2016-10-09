@@ -13,6 +13,8 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         createGraph(containerID: string): void;
         setMousePosition(x: number, y: number): void;
-        addNode(id: string, name: string, color: string): void;
+        addNode(id: string, name: string, color: string, type: string): void;
+        getTargetNodeType(): void;
+        private _getNodeAtPosition(x, y);
     }
 }
