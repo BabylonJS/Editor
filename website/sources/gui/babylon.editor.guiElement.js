@@ -46,9 +46,12 @@ var BABYLON;
                     return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
                 };
                 // Creates a custom element (string)
-                GUIElement.CreateElement = function (type, id, style) {
+                GUIElement.CreateElement = function (type, id, style, innerText, br) {
                     if (style === void 0) { style = "width: 100%; height: 100%;"; }
-                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
+                    if (innerText === void 0) { innerText = ""; }
+                    if (br === void 0) { br = false; }
+                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + type + ">" +
+                        (br ? "<br />" : "");
                 };
                 // Creates a transition
                 // Available types are:

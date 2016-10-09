@@ -1,6 +1,7 @@
 declare module BABYLON.EDITOR.GUI {
     class GUIList extends GUIElement<W2UI.IListElement> {
-        items: Array<string>;
+        items: string[];
+        renderDrop: boolean;
         /**
         * Constructor
         * @param name: the form name

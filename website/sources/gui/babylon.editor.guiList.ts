@@ -1,7 +1,8 @@
 ﻿module BABYLON.EDITOR.GUI {
     export class GUIList extends GUIElement<W2UI.IListElement> {
         // Public members
-        public items: Array<string> = [];
+        public items: string[] = [];
+        public renderDrop: boolean = false;
 
         // Private members
 
@@ -30,9 +31,21 @@
 
         // Build element
         public buildElement(parent: string): void {
-            this.element = (<any>$("input[type = list]" + "#" + parent)).w2field("list", {
+            this.element = (<any>$("#" + parent)).w2field("list", {
                 items: this.items,
-                selected: this.items.length > 0 ? this.items[0] : ""
+                selected: this.items.length > 0 ? this.items[0] : "",
+
+                renderItem: (item): string => {
+                    return item.text;
+                },
+
+                renderDrop: !this.renderDrop ? undefined : (item) => {
+                    return item.text;
+                },
+
+                compare: (item, search) => {
+                    return item.indexOf(search) !== -1;
+                }
             });
         }
     }

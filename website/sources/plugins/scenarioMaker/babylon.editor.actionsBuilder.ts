@@ -3,6 +3,33 @@
         name: string;
     }
 
+    export interface IActionsBuilderProperty {
+        name: string;
+        value: string;
+        targetType?: string;
+    }
+
+    export interface IActionsBuilderElement {
+        type: number;
+        name: string;
+        properties: IActionsBuilderProperty[];
+    }
+
+    export interface IActionsBuilderSerializationObject extends IActionsBuilderElement {
+        children: IActionsBuilderSerializationObject[];
+    }
+
+    export interface IActionsBuilderData {
+        class: IDocEntry;
+        data: IActionsBuilderElement;
+    }
+
+    export enum EACTION_TYPE {
+        TRIGGER = 0,
+        ACTION = 1,
+        CONTROL = 2
+    }
+
     export class ActionsBuilder implements IEventReceiver, ITabApplication {
         // Public members
 
@@ -10,7 +37,10 @@
         private _core: EditorCore;
 
         private _babylonModule: IDocEntry = null;
+        private _actionsClasses: IDocEntry[] = null;
+        private _controlsClasses: IDocEntry[] = null;
 
+        private _containerElement: JQuery = null;
         private _containerID: string = null;
         private _tab: GUI.IGUITab = null;
 
@@ -21,7 +51,9 @@
 
         private _graph: ActionsBuilderGraph = null;
 
-        private _currentSelected: {id?: string, list?: GUI.GUIGrid<IElementItem> } = null;
+        private _currentSelected: { id?: string, list?: GUI.GUIGrid<IElementItem> } = null;
+
+        private _parametersEditor: ActionsBuilderParametersEditor = null;
 
         // Static members
         private static _Classes: IDocEntry[] = null;
@@ -59,6 +91,8 @@
                     }
                 }
 
+                this._containerElement.css("cursor", "default");
+
                 return false;
             }
 
@@ -82,6 +116,7 @@
             // Create tab and container
             this._containerID = this._core.editor.createContainer();
             this._tab = this._core.editor.createTab("Actions Builder", this._containerID, this, true);
+            this._containerElement = $("#" + this._containerID);
 
             // Create layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
@@ -95,7 +130,7 @@
             var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
             mainPanel.style = "overflow: hidden;";
 
-            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 0, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
 
             this._layouts.buildElement(this._containerID);
 
@@ -120,7 +155,7 @@
 
             // Create controls list
             this._controlsList = new GUI.GUIGrid<IElementItem>("ACTIONS-BUILDER-CONTROLS", this._core);
-            this._controlsList.showAdd = this._actionsList.showEdit = this._actionsList.showOptions = this._actionsList.showRefresh = false;
+            this._controlsList.showAdd = this._controlsList.showEdit = this._controlsList.showOptions = this._controlsList.showRefresh = false;
             this._controlsList.header = "Controls";
             this._controlsList.fixedBody = true;
             this._controlsList.multiSelect = false;
@@ -131,6 +166,9 @@
             // Create graph
             this._graph = new ActionsBuilderGraph(this._core);
             this._graph.onMouseUp = () => this._onMouseUpOnGraph();
+
+            // Create parameters
+            this._parametersEditor = new ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
         }
 
         // Fills the lists on the left (triggers, actions and controls)
@@ -143,17 +181,17 @@
             this._triggersList.refresh();
 
             // Actions
-            var actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
-            for (var i = 0; i < actionsClasses.length; i++) {
-                this._actionsList.addRecord(<IElementItem>{ recid: i, name: actionsClasses[i].name, style: "background-color: rgb(182, 185, 132)" });
+            this._actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
+            for (var i = 0; i < this._actionsClasses.length; i++) {
+                this._actionsList.addRecord(<IElementItem>{ recid: i, name: this._actionsClasses[i].name, style: "background-color: rgb(182, 185, 132)" });
             }
 
             this._actionsList.refresh();
 
             // Controls
-            var controlClasses = this._getClasses(this._babylonModule, "BABYLON.Condition");
-            for (var i = 0; i < controlClasses.length; i++) {
-                this._controlsList.addRecord({ recid: i, name: controlClasses[i].name, style: "background-color: rgb(185, 132, 140)" });
+            this._controlsClasses = this._getClasses(this._babylonModule, "BABYLON.Condition");
+            for (var i = 0; i < this._controlsClasses.length; i++) {
+                this._controlsList.addRecord({ recid: i, name: this._controlsClasses[i].name, style: "background-color: rgb(185, 132, 140)" });
             }
 
             this._controlsList.refresh();
@@ -165,6 +203,7 @@
         // When a list element is clicked
         private _onListElementClicked(list: GUI.GUIGrid<IElementItem>): void {
             var selected = list.getSelectedRows();
+            this._containerElement.css("cursor", "copy");
 
             if (selected.length) {
                 this._currentSelected = { id: list.getRow(selected[0]).name, list: list };
@@ -173,18 +212,28 @@
 
         // When the user unclicks on the graph
         private _onMouseUpOnGraph(): void {
+            this._containerElement.css("cursor", "default");
+
             if (this._currentSelected) {
                 // Get target type and choose if add node or not
                 var color = "rgb(133, 154, 185)"; // Trigger as default
                 var type = "trigger"; // Trigger as default
+                var data: IActionsBuilderData = {
+                    class: null,
+                    data: { name: this._currentSelected.id, properties: [], type: 0 /*Trigger as default*/ }
+                };
 
                 if (this._currentSelected.list === this._actionsList) {
                     color = "rgb(182, 185, 132)";
                     type = "action";
+                    data.class = this._getClass(this._actionsClasses, this._currentSelected.id);
+                    this._configureActionsBuilderData(data, EACTION_TYPE.ACTION);
                 }
                 else if (this._currentSelected.list === this._controlsList) {
                     color = "rgb(185, 132, 140)";
                     type = "control";
+                    data.class = this._getClass(this._controlsClasses, this._currentSelected.id);
+                    this._configureActionsBuilderData(data, EACTION_TYPE.CONTROL);
                 }
 
                 // Check target type
@@ -195,8 +244,95 @@
                 }
 
                 // Finally, add node and configure it
-                this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type);
+                this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, data);
                 this._currentSelected = null;
+            }
+            else {
+                var target = this._graph.getTargetNodeId();
+                if (!target) {
+                    this._layouts.setPanelSize("right", 0);
+                    return;
+                }
+
+                var data = <IActionsBuilderData>this._graph.getNodeData(target);
+                if (!data || !data.class)
+                    return;
+
+                this._layouts.setPanelSize("right", 300);
+                this._parametersEditor.drawProperties(data);
+            }
+        }
+
+        // Configures the actions builder data property
+        // used by actions serializer / deserializer
+        private _configureActionsBuilderData(data: IActionsBuilderData, type: EACTION_TYPE): any {
+            /*
+            Example of serialized value:
+
+            "actions": {
+		        "children": [
+			        {
+				        "type": 0,
+				        "children": [
+					        {
+						        "type": 1,
+						        "children": [],
+						        "name": "InterpolateValueAction",
+						        "properties": [
+							        {
+								        "name": "target",
+								        "targetType": "MeshProperties",
+								        "value": "sphereGlass"
+							        },
+							        {
+								        "name": "propertyPath",
+								        "value": "position"
+							        },
+							        {
+								        "name": "value",
+								        "value": "0, 0, 0"
+							        },
+							        {
+								        "name": "duration",
+								        "value": "1000"
+							        },
+							        {
+								        "name": "stopOtherAnimations",
+								        "value": "false"
+							        }
+						        ]
+					        }
+				        ],
+				        "name": "OnEveryFrameTrigger",
+				        "properties": []
+			        }
+		        ],
+		        "name": "Scene",
+		        "type": 3,
+		        "properties": []
+	        }
+            */
+            data.data.type = type;
+
+            var constructor = data.class.constructors[0];
+            var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+
+            for (var i = 0; i < constructor.parameters.length; i++) {
+                var param = constructor.parameters[i];
+                var property: IActionsBuilderProperty = {
+                    name: param.name,
+                    value: ""
+                };
+
+                if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
+                    continue;
+
+                if (param.name === "target") {
+                    property.targetType = "MeshProperties";
+                    property.value = this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                }
+
+                data.data.properties.push(property);
             }
         }
 
@@ -243,6 +379,16 @@
             }
 
             return classes;
+        }
+
+        // Returns the class which has the given name
+        private _getClass(classes: IDocEntry[], name: string): IDocEntry {
+            for (var i = 0; i < classes.length; i++) {
+                if (classes[i].name === name)
+                    return classes[i];
+            }
+
+            return null;
         }
     }
 }

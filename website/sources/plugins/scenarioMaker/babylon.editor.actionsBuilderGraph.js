@@ -45,10 +45,10 @@ var BABYLON;
                 this._mousey = y;
             };
             // Adds a trigger node
-            ActionsBuilderGraph.prototype.addNode = function (id, name, color, type) {
+            ActionsBuilderGraph.prototype.addNode = function (id, name, color, type, data) {
                 // Create node
                 var node = this._graph.add({
-                    data: { id: id + "_" + EDITOR.SceneFactory.GenerateUUID(), name: name, type: type },
+                    data: { id: id + "_" + EDITOR.SceneFactory.GenerateUUID(), name: name, type: type, actionsBuilderData: data },
                 });
                 // If parent
                 var parent = this._getNodeAtPosition(this._mousex, this._mousey);
@@ -76,6 +76,16 @@ var BABYLON;
             ActionsBuilderGraph.prototype.getTargetNodeType = function () {
                 var target = this._getNodeAtPosition(this._mousex, this._mousey);
                 return target ? target.data().type : null;
+            };
+            // Returns the target node id
+            ActionsBuilderGraph.prototype.getTargetNodeId = function () {
+                var target = this._getNodeAtPosition(this._mousex, this._mousey);
+                return target ? target.id() : null;
+            };
+            // Returns the given node data
+            ActionsBuilderGraph.prototype.getNodeData = function (id) {
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                return node.length > 0 ? node[0].data().actionsBuilderData : null;
             };
             // Returns the node which is a position (x, y)
             ActionsBuilderGraph.prototype._getNodeAtPosition = function (x, y) {

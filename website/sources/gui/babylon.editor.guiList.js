@@ -21,6 +21,7 @@ var BABYLON;
                     _super.call(this, name, core);
                     // Public members
                     this.items = [];
+                    this.renderDrop = false;
                 }
                 // Creates a new item
                 GUIList.prototype.addItem = function (name) {
@@ -34,9 +35,18 @@ var BABYLON;
                 };
                 // Build element
                 GUIList.prototype.buildElement = function (parent) {
-                    this.element = $("input[type = list]" + "#" + parent).w2field("list", {
+                    this.element = $("#" + parent).w2field("list", {
                         items: this.items,
-                        selected: this.items.length > 0 ? this.items[0] : ""
+                        selected: this.items.length > 0 ? this.items[0] : "",
+                        renderItem: function (item) {
+                            return item.text;
+                        },
+                        renderDrop: !this.renderDrop ? undefined : function (item) {
+                            return item.text;
+                        },
+                        compare: function (item, search) {
+                            return item.indexOf(search) !== -1;
+                        }
                     });
                 };
                 return GUIList;

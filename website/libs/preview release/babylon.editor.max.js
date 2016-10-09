@@ -546,9 +546,12 @@ var BABYLON;
                     return "<div id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></div>";
                 };
                 // Creates a custom element (string)
-                GUIElement.CreateElement = function (type, id, style) {
+                GUIElement.CreateElement = function (type, id, style, innerText, br) {
                     if (style === void 0) { style = "width: 100%; height: 100%;"; }
-                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + "></" + type + ">";
+                    if (innerText === void 0) { innerText = ""; }
+                    if (br === void 0) { br = false; }
+                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + type + ">" +
+                        (br ? "<br />" : "");
                 };
                 // Creates a transition
                 // Available types are:
@@ -1302,6 +1305,7 @@ var BABYLON;
                     _super.call(this, name, core);
                     // Public members
                     this.items = [];
+                    this.renderDrop = false;
                 }
                 // Creates a new item
                 GUIList.prototype.addItem = function (name) {
@@ -1315,9 +1319,18 @@ var BABYLON;
                 };
                 // Build element
                 GUIList.prototype.buildElement = function (parent) {
-                    this.element = $("input[type = list]" + "#" + parent).w2field("list", {
+                    this.element = $("#" + parent).w2field("list", {
                         items: this.items,
-                        selected: this.items.length > 0 ? this.items[0] : ""
+                        selected: this.items.length > 0 ? this.items[0] : "",
+                        renderItem: function (item) {
+                            return item.text;
+                        },
+                        renderDrop: !this.renderDrop ? undefined : function (item) {
+                            return item.text;
+                        },
+                        compare: function (item, search) {
+                            return item.indexOf(search) !== -1;
+                        }
                     });
                 };
                 return GUIList;

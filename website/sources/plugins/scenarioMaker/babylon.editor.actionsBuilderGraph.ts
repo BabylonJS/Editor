@@ -2,6 +2,7 @@
     interface INodeData extends Cy.NodeDataDefinition {
         name: string;
         type: string;
+        actionsBuilderData: Object;
     }
 
     interface IEdgeData extends Cy.EdgeDataDefinition {
@@ -65,10 +66,10 @@
         }
 
         // Adds a trigger node
-        public addNode(id: string, name: string, color: string, type: string): void {
+        public addNode<T>(id: string, name: string, color: string, type: string, data?: T): void {
             // Create node
             var node = this._graph.add({
-                data: <INodeData>{ id: id + "_" + SceneFactory.GenerateUUID(), name: name, type: type },
+                data: <INodeData>{ id: id + "_" + SceneFactory.GenerateUUID(), name: name, type: type, actionsBuilderData: data },
             });
 
             // If parent
@@ -98,10 +99,21 @@
 
         // Returns the target node type
         // For example, a trigger MUSTN'T have any parent
-        public getTargetNodeType(): void {
+        public getTargetNodeType(): string {
             var target = this._getNodeAtPosition(this._mousex, this._mousey);
-
             return target ? target.data().type : null;
+        }
+
+        // Returns the target node id
+        public getTargetNodeId(): string {
+            var target = this._getNodeAtPosition(this._mousex, this._mousey);
+            return target ? target.id() : null;
+        }
+
+        // Returns the given node data
+        public getNodeData(id: string): any {
+            var node = this._graph.nodes("[id=\"" + id + "\"]");
+            return node.length > 0 ? node[0].data().actionsBuilderData : null;
         }
 
         // Returns the node which is a position (x, y)
