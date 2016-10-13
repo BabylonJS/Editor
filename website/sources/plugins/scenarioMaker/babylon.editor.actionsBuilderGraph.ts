@@ -59,6 +59,11 @@
             this._graph.layout({ name: "grid" });
         }
 
+        // Clears the graph
+        public clear(): void {
+            this._graph.remove(this._graph.nodes());
+        }
+
         // Sets the mouse position
         public setMousePosition(x: number, y: number): void {
             this._mousex = x;

@@ -53,9 +53,17 @@
         }
 
         // Creates a custom element (string)
-        public static CreateElement(type: string, id: string, style: string = "width: 100%; height: 100%;", innerText: string = "", br: boolean = false): string {
-            return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + type + ">" +
+        public static CreateElement(type: string | string[], id: string, style: string = "width: 100%; height: 100%;", innerText: string = "", br: boolean = false): string {
+            return "<" + (type instanceof Array ? type.join(" ") : type) + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + (type instanceof Array ? type[0] : type) + ">" +
                    (br ? "<br />" : "");
+        }
+
+        // Creates a new button
+        public static CreateButton(parent: JQuery | string, id: string, caption: string): JQuery {
+            var effectiveParent = (typeof parent === "string") ? $("#" + parent) : parent;
+            effectiveParent.append("<button value=\"Red\" id=\"" + id + "\">" + caption + "</button>");
+
+            return $("#" + id);
         }
 
         // Creates a transition

@@ -50,8 +50,14 @@ var BABYLON;
                     if (style === void 0) { style = "width: 100%; height: 100%;"; }
                     if (innerText === void 0) { innerText = ""; }
                     if (br === void 0) { br = false; }
-                    return "<" + type + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + type + ">" +
+                    return "<" + (type instanceof Array ? type.join(" ") : type) + " id=\"" + id + "\"" + (style ? " style=\"" + style + "\"" : "") + ">" + innerText + "</" + (type instanceof Array ? type[0] : type) + ">" +
                         (br ? "<br />" : "");
+                };
+                // Creates a new button
+                GUIElement.CreateButton = function (parent, id, caption) {
+                    var effectiveParent = (typeof parent === "string") ? $("#" + parent) : parent;
+                    effectiveParent.append("<button value=\"Red\" id=\"" + id + "\">" + caption + "</button>");
+                    return $("#" + id);
                 };
                 // Creates a transition
                 // Available types are:

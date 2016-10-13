@@ -21,42 +21,103 @@
 
         // Creates the fields to configure the currently selected
         // element (action, trigger, etc.)
-        public drawProperties(data: IActionsBuilderData): void {
-            this._destroyGUIElements();
-
+        public drawProperties(data: IActionsBuilderData, node: AbstractMesh | Scene): void {
             var actionsBuilderData = data.data;
-            var constructor = data.class.constructors[0];
 
+            this._destroyGUIElements();
             this._createHeader(actionsBuilderData.name, data.data.type);
+
+            if (!data.class)
+                return;
+            
+            var constructor = data.class.constructors[0];
 
             for (var i = 0; i < actionsBuilderData.properties.length; i++) {
                 var property = actionsBuilderData.properties[i];
                 var propertyType = this._getParameterType(constructor, property.name);
 
                 if (property.name === "target") {
-                    this._createListOfElements(property.name);
+                    this._createListOfElements(property);
+                }
+                else if (property.name === "propertyPath") {
+                    this._createListOfElements(property, this._createPropertyPath(node));
                 }
                 else if (propertyType === "boolean") {
-                    continue;
+                    this._createCheckbox(property);
                 }
+                else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
+                    this._createField(property);
+                    (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                }
+
+                this._container.append("<hr>");
             }
+
+            // Add "remove" button
+            var removeButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove");
+            removeButton.css("width", "100%");
+            removeButton.addClass("btn-orange");
+
+            this._container.append("<br />");
+            this._container.append("<hr>");
+
+            var removeAllButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove All");
+            removeAllButton.css("width", "100%");
+            removeAllButton.addClass("btn-red");
+        }
+
+        // Creates a generic field
+        private _createField(property: IActionsBuilderProperty): JQuery {
+            var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+            this._container.append(text);
+
+            var id = name + SceneFactory.GenerateUUID();
+            var input = GUI.GUIElement.CreateElement(["input", "type=\"text\""], id, "width: 100%;", "", true);
+
+            this._container.append(input);
+
+            var inputElement = $("#" + id);
+            inputElement.val(property.value);
+
+            inputElement.change((event: any) => {
+                property.value = inputElement.val();
+            });
+
+            return $("#" + id);
+        }
+
+        // Creates a checkbox element
+        private _createCheckbox(property: IActionsBuilderProperty): JQuery {
+            var id = name + SceneFactory.GenerateUUID();
+            var input = GUI.GUIElement.CreateElement(["input", "type=\"checkbox\""], id, "", property.name + " ", true);
+
+            this._container.append(input);
+
+            var inputElement = $("#" + id);
+            (<HTMLInputElement>inputElement[0]).checked = property.value === "true";
+
+            inputElement.change((event: any) => {
+                property.value = event.target.checked ? "true" : "false";
+            });
+
+            return $("#" + id);
         }
 
         // Creates a list of elements (GUI.GUIList)
-        private _createListOfElements(name: string, items?: string[]): GUI.GUIList {
-            var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", name + ":", true);
+        private _createListOfElements(property: IActionsBuilderProperty, items?: string[]): GUI.GUIList {
+            var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
             this._container.append(text);
 
-            name = name + SceneFactory.GenerateUUID();
+            var id = property.name + SceneFactory.GenerateUUID();
 
-            var input = GUI.GUIElement.CreateElement("input", name, "width: 100%;", "", true);
+            var input = GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
             this._container.append(input);
 
-            var list = new GUI.GUIList(name, this._core);
+            var list = new GUI.GUIList(id, this._core);
             list.renderDrop = true;
 
             if (items)
-                list.items = items
+                list.items = items;
             else {
                 list.items = [];
                 this._populateStringArray(list.items, ["Scene"]);
@@ -66,7 +127,13 @@
                 this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
             }
 
-            list.buildElement(name);
+            debugger;
+            list.selected = property.value;
+            list.buildElement(id);
+
+            list.onChange = (selected: string) => {
+                property.value = selected;
+            };
 
             return list;
         }
@@ -129,6 +196,32 @@
                 object = object[properties[i]];
 
             return object;
+        }
+
+        // Creates an array of elements
+        private _createPropertyPath(node: AbstractMesh | Scene, properties?: string[]): string[] {
+            if (!properties)
+                properties = [];
+
+            var allowedTypes = ["number", "string", "boolean"];
+            var allowedClasses = ["Vector3", "Vector2", "Color3", "Material"];
+
+            var fillProperties = (object: Object, path: string) => {
+                for (var thing in object) {
+                    var value = object[thing];
+
+                    if (allowedTypes.indexOf(typeof value) !== -1) {
+                        properties.push(path + thing);
+                    }
+                    else if (allowedClasses.indexOf(Tools.GetConstructorName(value)) !== -1) {
+                        fillProperties(value, path + thing + ".");
+                    }
+                }
+            }
+            
+            fillProperties(node, "");
+
+            return properties;
         }
     }
 }

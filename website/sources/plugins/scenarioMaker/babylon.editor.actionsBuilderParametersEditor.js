@@ -16,30 +16,75 @@ var BABYLON;
             }
             // Creates the fields to configure the currently selected
             // element (action, trigger, etc.)
-            ActionsBuilderParametersEditor.prototype.drawProperties = function (data) {
-                this._destroyGUIElements();
+            ActionsBuilderParametersEditor.prototype.drawProperties = function (data, node) {
                 var actionsBuilderData = data.data;
-                var constructor = data.class.constructors[0];
+                this._destroyGUIElements();
                 this._createHeader(actionsBuilderData.name, data.data.type);
+                if (!data.class)
+                    return;
+                var constructor = data.class.constructors[0];
                 for (var i = 0; i < actionsBuilderData.properties.length; i++) {
                     var property = actionsBuilderData.properties[i];
                     var propertyType = this._getParameterType(constructor, property.name);
                     if (property.name === "target") {
-                        this._createListOfElements(property.name);
+                        this._createListOfElements(property);
+                    }
+                    else if (property.name === "propertyPath") {
+                        this._createListOfElements(property, this._createPropertyPath(node));
                     }
                     else if (propertyType === "boolean") {
-                        continue;
+                        this._createCheckbox(property);
                     }
+                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
+                        this._createField(property);
+                        (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                    }
+                    this._container.append("<hr>");
                 }
+                // Add "remove" button
+                var removeButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove");
+                removeButton.css("width", "100%");
+                removeButton.addClass("btn-orange");
+                this._container.append("<br />");
+                this._container.append("<hr>");
+                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove All");
+                removeAllButton.css("width", "100%");
+                removeAllButton.addClass("btn-red");
+            };
+            // Creates a generic field
+            ActionsBuilderParametersEditor.prototype._createField = function (property) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+                this._container.append(text);
+                var id = name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement(["input", "type=\"text\""], id, "width: 100%;", "", true);
+                this._container.append(input);
+                var inputElement = $("#" + id);
+                inputElement.val(property.value);
+                inputElement.change(function (event) {
+                    property.value = inputElement.val();
+                });
+                return $("#" + id);
+            };
+            // Creates a checkbox element
+            ActionsBuilderParametersEditor.prototype._createCheckbox = function (property) {
+                var id = name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement(["input", "type=\"checkbox\""], id, "", property.name + " ", true);
+                this._container.append(input);
+                var inputElement = $("#" + id);
+                inputElement[0].checked = property.value === "true";
+                inputElement.change(function (event) {
+                    property.value = event.target.checked ? "true" : "false";
+                });
+                return $("#" + id);
             };
             // Creates a list of elements (GUI.GUIList)
-            ActionsBuilderParametersEditor.prototype._createListOfElements = function (name, items) {
-                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", name + ":", true);
+            ActionsBuilderParametersEditor.prototype._createListOfElements = function (property, items) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
                 this._container.append(text);
-                name = name + EDITOR.SceneFactory.GenerateUUID();
-                var input = EDITOR.GUI.GUIElement.CreateElement("input", name, "width: 100%;", "", true);
+                var id = property.name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
                 this._container.append(input);
-                var list = new EDITOR.GUI.GUIList(name, this._core);
+                var list = new EDITOR.GUI.GUIList(id, this._core);
                 list.renderDrop = true;
                 if (items)
                     list.items = items;
@@ -51,7 +96,12 @@ var BABYLON;
                     this._populateStringArray(list.items, this._core.currentScene.cameras, "name");
                     this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
                 }
-                list.buildElement(name);
+                debugger;
+                list.selected = property.value;
+                list.buildElement(id);
+                list.onChange = function (selected) {
+                    property.value = selected;
+                };
                 return list;
             };
             // Creates the header
@@ -107,6 +157,26 @@ var BABYLON;
                 for (var i = 0; i < properties.length - 1; i++)
                     object = object[properties[i]];
                 return object;
+            };
+            // Creates an array of elements
+            ActionsBuilderParametersEditor.prototype._createPropertyPath = function (node, properties) {
+                if (!properties)
+                    properties = [];
+                var allowedTypes = ["number", "string", "boolean"];
+                var allowedClasses = ["Vector3", "Vector2", "Color3", "Material"];
+                var fillProperties = function (object, path) {
+                    for (var thing in object) {
+                        var value = object[thing];
+                        if (allowedTypes.indexOf(typeof value) !== -1) {
+                            properties.push(path + thing);
+                        }
+                        else if (allowedClasses.indexOf(EDITOR.Tools.GetConstructorName(value)) !== -1) {
+                            fillProperties(value, path + thing + ".");
+                        }
+                    }
+                };
+                fillProperties(node, "");
+                return properties;
             };
             return ActionsBuilderParametersEditor;
         }());

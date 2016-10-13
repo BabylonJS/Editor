@@ -35,6 +35,7 @@
 
         // Private members
         private _core: EditorCore;
+        private _object: AbstractMesh | Scene;
 
         private _babylonModule: IDocEntry = null;
         private _actionsClasses: IDocEntry[] = null;
@@ -96,6 +97,13 @@
                 return false;
             }
 
+            else if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
+                this._object = event.sceneEvent.object;
+                if (ActionsBuilder._Classes) {
+                    this._graph.clear();
+                }
+            }
+
             return false;
         }
 
@@ -130,7 +138,7 @@
             var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
             mainPanel.style = "overflow: hidden;";
 
-            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 0, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
 
             this._layouts.buildElement(this._containerID);
 
@@ -249,17 +257,11 @@
             }
             else {
                 var target = this._graph.getTargetNodeId();
-                if (!target) {
-                    this._layouts.setPanelSize("right", 0);
+                if (!target)
                     return;
-                }
 
                 var data = <IActionsBuilderData>this._graph.getNodeData(target);
-                if (!data || !data.class)
-                    return;
-
-                this._layouts.setPanelSize("right", 300);
-                this._parametersEditor.drawProperties(data);
+                this._parametersEditor.drawProperties(data, this._object);
             }
         }
 

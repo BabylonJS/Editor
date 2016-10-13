@@ -53,6 +53,12 @@ var BABYLON;
                     this._containerElement.css("cursor", "default");
                     return false;
                 }
+                else if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                    this._object = event.sceneEvent.object;
+                    if (ActionsBuilder._Classes) {
+                        this._graph.clear();
+                    }
+                }
                 return false;
             };
             /**
@@ -80,7 +86,7 @@ var BABYLON;
                     "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>");
                 var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
                 mainPanel.style = "overflow: hidden;";
-                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 0, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
                 this._layouts.buildElement(this._containerID);
                 // Create triggers list
                 this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
@@ -179,15 +185,10 @@ var BABYLON;
                 }
                 else {
                     var target = this._graph.getTargetNodeId();
-                    if (!target) {
-                        this._layouts.setPanelSize("right", 0);
+                    if (!target)
                         return;
-                    }
                     var data = this._graph.getNodeData(target);
-                    if (!data || !data.class)
-                        return;
-                    this._layouts.setPanelSize("right", 300);
-                    this._parametersEditor.drawProperties(data);
+                    this._parametersEditor.drawProperties(data, this._object);
                 }
             };
             // Configures the actions builder data property

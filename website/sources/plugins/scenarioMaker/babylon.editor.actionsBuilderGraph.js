@@ -39,6 +39,10 @@ var BABYLON;
                 // Layout
                 this._graph.layout({ name: "grid" });
             };
+            // Clears the graph
+            ActionsBuilderGraph.prototype.clear = function () {
+                this._graph.remove(this._graph.nodes());
+            };
             // Sets the mouse position
             ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {
                 this._mousex = x;

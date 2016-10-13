@@ -18,7 +18,8 @@ declare module BABYLON.EDITOR.GUI {
         * Static methods
         */
         static CreateDivElement(id: string, style?: string): string;
-        static CreateElement(type: string, id: string, style?: string, innerText?: string, br?: boolean): string;
+        static CreateElement(type: string | string[], id: string, style?: string, innerText?: string, br?: boolean): string;
+        static CreateButton(parent: JQuery | string, id: string, caption: string): JQuery;
         static CreateTransition(div1: string, div2: string, type: string, callback?: () => void): void;
     }
 }

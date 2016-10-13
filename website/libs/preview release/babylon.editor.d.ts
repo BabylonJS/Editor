@@ -1154,6 +1154,59 @@ declare module BABYLON.EDITOR {
     }
 }
 
+declare module BABYLON.EDITOR {
+    class OneDriveStorage extends Storage {
+        private _editor;
+        private static _ClientID;
+        private static _TOKEN;
+        private static _TOKEN_EXPIRES_IN;
+        private static _TOKEN_EXPIRES_NOW;
+        private static _POPUP;
+        private static _OnAuthentificated();
+        private static _ClosePopup(token, expires, window);
+        private static _Login(core, success);
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void;
+        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    interface IStorageFile {
+        file: OneDrive.IChildResult;
+        name: string;
+    }
+    interface IStorageUploadFile {
+        content: string | Uint8Array | ArrayBuffer;
+        name: string;
+        parentFolder?: OneDrive.IChildResult;
+        type?: string;
+        url?: string;
+    }
+    interface IStorage {
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+    }
+    class Storage implements IStorage {
+        core: EditorCore;
+        /**
+        * Constructor
+        * @param core: the editor core instance
+        */
+        constructor(core: EditorCore);
+        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
+        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
+        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void;
+        selectFolder(success: (folder: IStorageFile) => void): void;
+    }
+}
+
 declare module BABYLON.EDITOR.GUI {
     class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
         title: string;
@@ -1208,7 +1261,8 @@ declare module BABYLON.EDITOR.GUI {
         * Static methods
         */
         static CreateDivElement(id: string, style?: string): string;
-        static CreateElement(type: string, id: string, style?: string, innerText?: string, br?: boolean): string;
+        static CreateElement(type: string | string[], id: string, style?: string, innerText?: string, br?: boolean): string;
+        static CreateButton(parent: JQuery | string, id: string, caption: string): JQuery;
         static CreateTransition(div1: string, div2: string, type: string, callback?: () => void): void;
     }
 }
@@ -1342,6 +1396,8 @@ declare module BABYLON.EDITOR.GUI {
     class GUIList extends GUIElement<W2UI.IListElement> {
         items: string[];
         renderDrop: boolean;
+        selected: string;
+        onChange: (selected: string) => void;
         /**
         * Constructor
         * @param name: the form name
@@ -1350,6 +1406,7 @@ declare module BABYLON.EDITOR.GUI {
         constructor(name: string, core: EditorCore);
         addItem(name: string): IGUIListElement;
         getSelected(): number;
+        getValue(): string;
         buildElement(parent: string): void;
     }
 }
@@ -1645,59 +1702,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class OneDriveStorage extends Storage {
-        private _editor;
-        private static _ClientID;
-        private static _TOKEN;
-        private static _TOKEN_EXPIRES_IN;
-        private static _TOKEN_EXPIRES_NOW;
-        private static _POPUP;
-        private static _OnAuthentificated();
-        private static _ClosePopup(token, expires, window);
-        private static _Login(core, success);
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void;
-        getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    interface IStorageFile {
-        file: OneDrive.IChildResult;
-        name: string;
-    }
-    interface IStorageUploadFile {
-        content: string | Uint8Array | ArrayBuffer;
-        name: string;
-        parentFolder?: OneDrive.IChildResult;
-        type?: string;
-        url?: string;
-    }
-    interface IStorage {
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: () => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-    }
-    class Storage implements IStorage {
-        core: EditorCore;
-        /**
-        * Constructor
-        * @param core: the editor core instance
-        */
-        constructor(core: EditorCore);
-        createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void): void;
-        getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
-        createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void;
-        selectFolder(success: (folder: IStorageFile) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
     class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
@@ -1890,6 +1894,7 @@ declare module BABYLON.EDITOR {
     }
     class ActionsBuilder implements IEventReceiver, ITabApplication {
         private _core;
+        private _object;
         private _babylonModule;
         private _actionsClasses;
         private _controlsClasses;
@@ -1943,6 +1948,7 @@ declare module BABYLON.EDITOR {
         */
         constructor(core: EditorCore);
         createGraph(containerID: string): void;
+        clear(): void;
         setMousePosition(x: number, y: number): void;
         addNode<T>(id: string, name: string, color: string, type: string, data?: T): void;
         getTargetNodeType(): string;
@@ -1963,13 +1969,16 @@ declare module BABYLON.EDITOR {
         * @param containerID: the div container ID
         */
         constructor(core: EditorCore, containerID: string);
-        drawProperties(data: IActionsBuilderData): void;
-        private _createListOfElements(name, items?);
+        drawProperties(data: IActionsBuilderData, node: AbstractMesh | Scene): void;
+        private _createField(property);
+        private _createCheckbox(property);
+        private _createListOfElements(property, items?);
         private _createHeader(name, type);
         private _populateStringArray(array, values, property?);
         private _destroyGUIElements();
         private _getParameterType(entry, parameter);
         private _getEffectiveTarget(object, target);
+        private _createPropertyPath(node, properties?);
     }
 }
 

@@ -367,7 +367,7 @@
         */
         text: string;
     }
-    
+
     interface IListElement extends IElement {
         /**
         * List of items
@@ -376,7 +376,11 @@
         /**
         * Returns the selected item
         */
-        val(): string;
+        val(value?: string): string;
+        /**
+        * When the element changes
+        */
+        change(event: any): void;
     }
 
     /**

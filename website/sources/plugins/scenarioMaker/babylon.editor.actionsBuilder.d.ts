@@ -23,6 +23,7 @@ declare module BABYLON.EDITOR {
     }
     class ActionsBuilder implements IEventReceiver, ITabApplication {
         private _core;
+        private _object;
         private _babylonModule;
         private _actionsClasses;
         private _controlsClasses;

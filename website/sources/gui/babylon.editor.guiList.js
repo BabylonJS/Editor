@@ -22,6 +22,7 @@ var BABYLON;
                     // Public members
                     this.items = [];
                     this.renderDrop = false;
+                    this.selected = "";
                 }
                 // Creates a new item
                 GUIList.prototype.addItem = function (name) {
@@ -33,9 +34,15 @@ var BABYLON;
                     var value = this.element.val();
                     return this.element.items.indexOf(value);
                 };
+                // Returns the value of the element
+                GUIList.prototype.getValue = function () {
+                    return this.element.val();
+                };
                 // Build element
                 GUIList.prototype.buildElement = function (parent) {
-                    this.element = $("#" + parent).w2field("list", {
+                    var _this = this;
+                    var parentElement = $("#" + parent);
+                    this.element = parentElement.w2field("list", {
                         items: this.items,
                         selected: this.items.length > 0 ? this.items[0] : "",
                         renderItem: function (item) {
@@ -47,6 +54,11 @@ var BABYLON;
                         compare: function (item, search) {
                             return item.indexOf(search) !== -1;
                         }
+                    });
+                    this.element.val(this.selected);
+                    this.element.change(function (event) {
+                        if (_this.onChange)
+                            _this.onChange(_this.element.val());
                     });
                 };
                 return GUIList;

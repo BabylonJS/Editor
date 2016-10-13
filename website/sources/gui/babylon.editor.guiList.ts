@@ -3,6 +3,8 @@
         // Public members
         public items: string[] = [];
         public renderDrop: boolean = false;
+        public selected: string = "";
+        public onChange: (selected: string) => void;
 
         // Private members
 
@@ -29,9 +31,16 @@
             return this.element.items.indexOf(value);
         }
 
+        // Returns the value of the element
+        public getValue(): string {
+            return this.element.val();
+        }
+
         // Build element
         public buildElement(parent: string): void {
-            this.element = (<any>$("#" + parent)).w2field("list", {
+            var parentElement = $("#" + parent);
+            
+            this.element = (<any>parentElement).w2field("list", {
                 items: this.items,
                 selected: this.items.length > 0 ? this.items[0] : "",
 
@@ -46,6 +55,13 @@
                 compare: (item, search) => {
                     return item.indexOf(search) !== -1;
                 }
+            });
+
+            this.element.val(this.selected);
+
+            this.element.change((event: any) => {
+                if (this.onChange)
+                    this.onChange(this.element.val());
             });
         }
     }
