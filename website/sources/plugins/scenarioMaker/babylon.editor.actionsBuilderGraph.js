@@ -46,7 +46,7 @@ var BABYLON;
             };
             // Layout
             ActionsBuilderGraph.prototype.layout = function () {
-                this._graph.layout({ name: "grid" });
+                this._graph.layout({ name: "breadthfirst" });
             };
             // Sets the mouse position
             ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {

@@ -66,7 +66,7 @@
 
         // Layout
         public layout(): void {
-            this._graph.layout({ name: "grid" });
+            this._graph.layout({ name: "breadthfirst" });
         }
 
         // Sets the mouse position

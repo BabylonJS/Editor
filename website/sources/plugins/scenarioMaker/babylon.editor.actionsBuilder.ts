@@ -293,7 +293,21 @@
         // When the user saves the graph
         private _onSave(): void {
             var graph = this.serializeGraph();
+            var actionManager: ActionManager = null;
+
+            if (!this._core.isPlaying)
+                actionManager = this._object.actionManager;
+
             ActionManager.Parse(graph, <AbstractMesh>this._object, this._core.currentScene);
+
+            if (actionManager) {
+                if (this._object instanceof AbstractMesh)
+                    SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager = this._object.actionManager;
+                else
+                    SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+
+                this._object.actionManager = actionManager;
+            }
         }
 
         // When a list element is clicked

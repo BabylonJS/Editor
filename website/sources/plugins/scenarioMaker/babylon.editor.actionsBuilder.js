@@ -209,7 +209,17 @@ var BABYLON;
             // When the user saves the graph
             ActionsBuilder.prototype._onSave = function () {
                 var graph = this.serializeGraph();
+                var actionManager = null;
+                if (!this._core.isPlaying)
+                    actionManager = this._object.actionManager;
                 BABYLON.ActionManager.Parse(graph, this._object, this._core.currentScene);
+                if (actionManager) {
+                    if (this._object instanceof BABYLON.AbstractMesh)
+                        EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager = this._object.actionManager;
+                    else
+                        EDITOR.SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+                    this._object.actionManager = actionManager;
+                }
             };
             // When a list element is clicked
             ActionsBuilder.prototype._onListElementClicked = function (list) {
