@@ -1,12 +1,17 @@
 ﻿module BABYLON.EDITOR {
     export class ActionsBuilderParametersEditor {
         // Public members
+        public onSave: () => void = () => { };
+        public onRemove: () => void = () => { };
+        public onRemoveAll: () => void = () => { };
 
         // Private members
         private _core: EditorCore;
         private _container: JQuery;
 
         private _guiElements: GUI.IGUIElement[] = [];
+        
+        private _currentTarget: AbstractMesh | Scene;
 
         /**
         * Constructor
@@ -17,11 +22,14 @@
             // Initialize
             this._core = core;
             this._container = $("#" + containerID);
+            this._currentTarget = core.currentScene;
+
+            this._destroyGUIElements();
         }
 
         // Creates the fields to configure the currently selected
         // element (action, trigger, etc.)
-        public drawProperties(data: IActionsBuilderData, node: AbstractMesh | Scene): void {
+        public drawProperties(data: IActionsBuilderData): void {
             var actionsBuilderData = data.data;
 
             this._destroyGUIElements();
@@ -37,23 +45,47 @@
                 var propertyType = this._getParameterType(constructor, property.name);
 
                 if (property.name === "target") {
-                    this._createListOfElements(property);
+                    var list = this._createListOfElements(property, null, (value: string) => {
+                        if (value === "Scene")
+                            this._currentTarget = this._core.currentScene;
+                        else
+                            this._currentTarget = this._core.currentScene.getMeshByName(value);
+
+                        property.value = "";
+                        this.drawProperties(data);
+                    });
+                    if (property.value === null)
+                        property.value = list.items[0]; // At least a scene
                 }
                 else if (property.name === "propertyPath") {
-                    this._createListOfElements(property, this._createPropertyPath(node));
+                    var list = this._createListOfElements(property, this._createPropertyPath(this._currentTarget));
+                    if (property.value === null)
+                        property.value = list.items[0];
+                }
+                else if (property.name === "sound") {
+                    this._createListOfElements(property, this._createSoundsList());
+                    if (property.value === null)
+                        this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                 }
                 else if (propertyType === "boolean") {
                     this._createCheckbox(property);
+                    if (property.value === null)
+                        property.value = "false";
                 }
                 else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
-                    this._createField(property);
-                    (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                    if (property.value === "true" || property.value === "false")
+                        this._createCheckbox(property, "Set Active");
+                    else
+                        this._createField(property);
+
+                    if (property.value === null)
+                        (propertyType === "number") ? property.value = "0" : property.value = "new value";
                 }
 
                 this._container.append("<hr>");
             }
 
-            // Add "remove" button
+            // Add "remove" buttons
             var removeButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove");
             removeButton.css("width", "100%");
             removeButton.addClass("btn-orange");
@@ -87,9 +119,9 @@
         }
 
         // Creates a checkbox element
-        private _createCheckbox(property: IActionsBuilderProperty): JQuery {
+        private _createCheckbox(property: IActionsBuilderProperty, customText?: string): JQuery {
             var id = name + SceneFactory.GenerateUUID();
-            var input = GUI.GUIElement.CreateElement(["input", "type=\"checkbox\""], id, "", property.name + " ", true);
+            var input = GUI.GUIElement.CreateElement(["input", "type=\"checkbox\""], id, "", customText || property.name + " ", true);
 
             this._container.append(input);
 
@@ -104,7 +136,7 @@
         }
 
         // Creates a list of elements (GUI.GUIList)
-        private _createListOfElements(property: IActionsBuilderProperty, items?: string[]): GUI.GUIList {
+        private _createListOfElements(property: IActionsBuilderProperty, items?: string[], callback?: (value: string) => void): GUI.GUIList {
             var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
             this._container.append(text);
 
@@ -126,13 +158,14 @@
                 this._populateStringArray(list.items, this._core.currentScene.cameras, "name");
                 this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
             }
-
-            debugger;
+            
             list.selected = property.value;
             list.buildElement(id);
 
             list.onChange = (selected: string) => {
                 property.value = selected;
+                if (callback)
+                    callback(property.value);
             };
 
             return list;
@@ -176,6 +209,18 @@
             this._container.empty();
 
             this._guiElements = [];
+
+            // Create save button
+            var saveButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Save");
+            saveButton.css("width", "100%");
+            saveButton.css("position", "absolute");
+            saveButton.css("bottom", "10px");
+            saveButton.addClass("btn-green");
+
+            saveButton.click((event) => {
+                if (this.onSave)
+                    this.onSave();
+            });
         }
 
         // Returns the parameter's type
@@ -208,6 +253,9 @@
 
             var fillProperties = (object: Object, path: string) => {
                 for (var thing in object) {
+                    if (thing[0] === "_")
+                        continue;
+
                     var value = object[thing];
 
                     if (allowedTypes.indexOf(typeof value) !== -1) {
@@ -222,6 +270,16 @@
             fillProperties(node, "");
 
             return properties;
+        }
+
+        // Creates an array of sounds
+        private _createSoundsList(): string[] {
+            var sounds = [];
+            for (var i = 0; i < this._core.currentScene.mainSoundTrack.soundCollection.length; i++) {
+                sounds.push(this._core.currentScene.mainSoundTrack.soundCollection[i].name);
+            }
+
+            return sounds;
         }
     }
 }

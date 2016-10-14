@@ -13,11 +13,14 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         createGraph(containerID: string): void;
         clear(): void;
+        layout(): void;
         setMousePosition(x: number, y: number): void;
-        addNode<T>(id: string, name: string, color: string, type: string, data?: T): void;
+        addNode<T>(id: string, name: string, color: string, type: string, parent?: string, data?: T): string;
         getTargetNodeType(): string;
         getTargetNodeId(): string;
         getNodeData(id: string): any;
+        getNodesWithParent(parent: string): string[];
+        getRootNodes(): string[];
         private _getNodeAtPosition(x, y);
     }
 }

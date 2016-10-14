@@ -55,9 +55,7 @@ var BABYLON;
                 }
                 else if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
                     this._object = event.sceneEvent.object;
-                    if (ActionsBuilder._Classes) {
-                        this._graph.clear();
-                    }
+                    this._onObjectSelected();
                 }
                 return false;
             };
@@ -69,6 +67,54 @@ var BABYLON;
                 this._actionsList.destroy();
                 this._controlsList.destroy();
                 this._layouts.destroy();
+            };
+            /**
+            * Serializes the graph
+            */
+            ActionsBuilder.prototype.serializeGraph = function (root, parent) {
+                if (!root) {
+                    root = {
+                        name: this._object instanceof BABYLON.Scene ? "Scene" : this._object.name,
+                        type: this._object instanceof BABYLON.Scene ? 3 : 4,
+                        properties: [],
+                        children: []
+                    };
+                }
+                var nodes = parent ? this._graph.getNodesWithParent(parent) : this._graph.getRootNodes();
+                for (var i = 0; i < nodes.length; i++) {
+                    var data = this._graph.getNodeData(nodes[i]).data;
+                    var childData = {
+                        name: data.name,
+                        type: data.type,
+                        properties: data.properties,
+                        children: []
+                    };
+                    this.serializeGraph(childData, nodes[i]);
+                    root.children.push(childData);
+                }
+                return root;
+            };
+            /**
+            * Deserializes the graph
+            */
+            ActionsBuilder.prototype.deserializeGraph = function (data, parent) {
+                for (var i = 0; i < data.children.length; i++) {
+                    var child = data.children[i];
+                    if (child.type === EACTION_TYPE.TRIGGER && child.children.length === 0)
+                        continue;
+                    var childData = {
+                        name: child.name,
+                        type: child.type,
+                        properties: child.properties,
+                        children: []
+                    };
+                    var nodeData = {
+                        class: this._getNodeParametersClass(childData.type, childData.name),
+                        data: childData
+                    };
+                    var childNode = this._graph.addNode(child.name, child.name, this._getNodeColor(child.type), this._getNodeTypeString(child.type), parent, nodeData);
+                    this.deserializeGraph(child, childNode);
+                }
             };
             /**
             * Creates the UI
@@ -119,6 +165,7 @@ var BABYLON;
                 this._graph.onMouseUp = function () { return _this._onMouseUpOnGraph(); };
                 // Create parameters
                 this._parametersEditor = new EDITOR.ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
+                this._parametersEditor.onSave = function () { return _this._onSave(); };
             };
             // Fills the lists on the left (triggers, actions and controls)
             ActionsBuilder.prototype._configureUI = function () {
@@ -142,6 +189,28 @@ var BABYLON;
                 // Graph
                 this._graph.createGraph("ACTIONS-BUILDER-CANVAS");
             };
+            // When the user selects an object, configure the graph
+            ActionsBuilder.prototype._onObjectSelected = function () {
+                if (!ActionsBuilder._Classes)
+                    return;
+                var actionManager = null;
+                this._graph.clear();
+                if (this._object instanceof BABYLON.Scene)
+                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
+                else
+                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
+                if (!actionManager) {
+                    debugger;
+                    return;
+                }
+                this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
+                this._graph.layout();
+            };
+            // When the user saves the graph
+            ActionsBuilder.prototype._onSave = function () {
+                var graph = this.serializeGraph();
+                BABYLON.ActionManager.Parse(graph, this._object, this._core.currentScene);
+            };
             // When a list element is clicked
             ActionsBuilder.prototype._onListElementClicked = function (list) {
                 var selected = list.getSelectedRows();
@@ -149,6 +218,32 @@ var BABYLON;
                 if (selected.length) {
                     this._currentSelected = { id: list.getRow(selected[0]).name, list: list };
                 }
+            };
+            // Returns the node class parameters for the given type
+            ActionsBuilder.prototype._getNodeParametersClass = function (type, name) {
+                if (type === EACTION_TYPE.ACTION)
+                    return this._getClass(this._actionsClasses, name);
+                else if (type === EACTION_TYPE.CONTROL)
+                    return this._getClass(this._controlsClasses, name);
+                return null;
+            };
+            // Returns the node color for the given type
+            ActionsBuilder.prototype._getNodeColor = function (type) {
+                var color = "rgb(133, 154, 185)"; // Trigger as default
+                if (type === EACTION_TYPE.ACTION)
+                    return "rgb(182, 185, 132)";
+                else if (type === EACTION_TYPE.CONTROL)
+                    return "rgb(185, 132, 140)";
+                return color;
+            };
+            // Returns the node's type string from type
+            ActionsBuilder.prototype._getNodeTypeString = function (type) {
+                var typeStr = "trigger"; // Trigger as default
+                if (type === EACTION_TYPE.ACTION)
+                    return "action";
+                else if (type === EACTION_TYPE.CONTROL)
+                    return "control";
+                return typeStr;
             };
             // When the user unclicks on the graph
             ActionsBuilder.prototype._onMouseUpOnGraph = function () {
@@ -180,7 +275,7 @@ var BABYLON;
                         return;
                     }
                     // Finally, add node and configure it
-                    this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, data);
+                    this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, null, data);
                     this._currentSelected = null;
                 }
                 else {
@@ -188,7 +283,8 @@ var BABYLON;
                     if (!target)
                         return;
                     var data = this._graph.getNodeData(target);
-                    this._parametersEditor.drawProperties(data, this._object);
+                    this._parametersEditor.drawProperties(data);
+                    var serialziedValue = this.serializeGraph();
                 }
             };
             // Configures the actions builder data property
@@ -247,7 +343,7 @@ var BABYLON;
                     var param = constructor.parameters[i];
                     var property = {
                         name: param.name,
-                        value: ""
+                        value: null
                     };
                     if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
                         continue;

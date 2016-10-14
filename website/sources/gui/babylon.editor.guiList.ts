@@ -39,10 +39,14 @@
         // Build element
         public buildElement(parent: string): void {
             var parentElement = $("#" + parent);
-            
+
+            var items: { id: string, text: string }[] = [];
+            for (var i = 0; i < this.items.length; i++)
+                items.push({ id: this.items[i], text: this.items[i] });
+
             this.element = (<any>parentElement).w2field("list", {
-                items: this.items,
-                selected: this.items.length > 0 ? this.items[0] : "",
+                items: items,
+                selected: { id: this.selected, text: this.selected },
 
                 renderItem: (item): string => {
                     return item.text;
@@ -53,11 +57,10 @@
                 },
 
                 compare: (item, search) => {
-                    return item.indexOf(search) !== -1;
+                    debugger;
+                    return item.text.indexOf(search) !== -1;
                 }
             });
-
-            this.element.val(this.selected);
 
             this.element.change((event: any) => {
                 if (this.onChange)

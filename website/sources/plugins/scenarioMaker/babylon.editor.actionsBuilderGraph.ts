@@ -12,7 +12,7 @@
     export class ActionsBuilderGraph {
         // Public members
         public canvasElement: JQuery = null;
-        public onMouseUp: () => void;
+        public onMouseUp: () => void = () => { };
 
         // Private members
         private _core: EditorCore;
@@ -64,6 +64,11 @@
             this._graph.remove(this._graph.nodes());
         }
 
+        // Layout
+        public layout(): void {
+            this._graph.layout({ name: "grid" });
+        }
+
         // Sets the mouse position
         public setMousePosition(x: number, y: number): void {
             this._mousex = x;
@@ -71,17 +76,17 @@
         }
 
         // Adds a trigger node
-        public addNode<T>(id: string, name: string, color: string, type: string, data?: T): void {
+        public addNode<T>(id: string, name: string, color: string, type: string, parent?: string, data?: T): string {
             // Create node
             var node = this._graph.add({
                 data: <INodeData>{ id: id + "_" + SceneFactory.GenerateUUID(), name: name, type: type, actionsBuilderData: data },
             });
 
             // If parent
-            var parent = this._getNodeAtPosition(this._mousex, this._mousey);
-            if (parent) {
+            var parentNode = parent && parent !== "" ? this._graph.nodes("[id=\"" + parent + "\"]") : parent === "" ? null : this._getNodeAtPosition(this._mousex, this._mousey);
+            if (parentNode) {
                 var edge = this._graph.add({
-                    data: <IEdgeData>{ name: "", source: parent.id(), target: node.id() }
+                    data: <IEdgeData>{ name: "", source: parentNode.id(), target: node.id() }
                 });
 
                 edge.css("target-arrow-shape", "triangle");
@@ -99,7 +104,9 @@
             node.css("text-valign", "center");
             node.css("text-halign", "center");
 
-            node.renderedPosition({ x: this._mousex, y: parent ? this._mousey + parent.height() + 35 : this._mousey });
+            node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
+
+            return node.id();
         }
 
         // Returns the target node type
@@ -119,6 +126,42 @@
         public getNodeData(id: string): any {
             var node = this._graph.nodes("[id=\"" + id + "\"]");
             return node.length > 0 ? node[0].data().actionsBuilderData : null;
+        }
+
+        // Returns the nodes which have the given parent
+        public getNodesWithParent(parent: string): string[] {
+            var edges = this._graph.edges();
+            var nodes: string[] = [];
+
+            for (var i = 0; i < edges.length; i++) {
+                if (edges[i].data().source === parent)
+                    nodes.push(edges[i].data().target);
+            }
+
+            return nodes;
+        }
+
+        // Returns the root nodes
+        public getRootNodes(): string[] {
+            var edges = this._graph.edges();
+            var nodes = this._graph.nodes();
+            var rootNodes: string[] = [];
+            var found = false;
+
+            for (var i = 0; i < nodes.length; i++) {
+                found = false;
+                for (var j = 0; j < edges.length; j++) {
+                    if (edges[j].data().target === nodes[i].id()) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                    rootNodes.push(nodes[i].id());
+            }
+
+            return rootNodes;
         }
 
         // Returns the node which is a position (x, y)

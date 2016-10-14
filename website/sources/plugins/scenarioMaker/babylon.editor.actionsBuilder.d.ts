@@ -49,11 +49,24 @@ declare module BABYLON.EDITOR {
         */
         dispose(): void;
         /**
+        * Serializes the graph
+        */
+        serializeGraph(root?: IActionsBuilderSerializationObject, parent?: string): IActionsBuilderSerializationObject;
+        /**
+        * Deserializes the graph
+        */
+        deserializeGraph(data: IActionsBuilderSerializationObject, parent: string): void;
+        /**
         * Creates the UI
         */
         private _createUI();
         private _configureUI();
+        private _onObjectSelected();
+        private _onSave();
         private _onListElementClicked(list);
+        private _getNodeParametersClass(type, name);
+        private _getNodeColor(type);
+        private _getNodeTypeString(type);
         private _onMouseUpOnGraph();
         private _configureActionsBuilderData(data, type);
         private _loadDefinitionsFile();

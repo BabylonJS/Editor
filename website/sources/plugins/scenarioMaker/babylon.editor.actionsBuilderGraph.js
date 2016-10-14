@@ -10,6 +10,7 @@ var BABYLON;
             function ActionsBuilderGraph(core) {
                 // Public members
                 this.canvasElement = null;
+                this.onMouseUp = function () { };
                 this._mousex = 0;
                 this._mousey = 0;
                 // Configure this
@@ -43,22 +44,26 @@ var BABYLON;
             ActionsBuilderGraph.prototype.clear = function () {
                 this._graph.remove(this._graph.nodes());
             };
+            // Layout
+            ActionsBuilderGraph.prototype.layout = function () {
+                this._graph.layout({ name: "grid" });
+            };
             // Sets the mouse position
             ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {
                 this._mousex = x;
                 this._mousey = y;
             };
             // Adds a trigger node
-            ActionsBuilderGraph.prototype.addNode = function (id, name, color, type, data) {
+            ActionsBuilderGraph.prototype.addNode = function (id, name, color, type, parent, data) {
                 // Create node
                 var node = this._graph.add({
                     data: { id: id + "_" + EDITOR.SceneFactory.GenerateUUID(), name: name, type: type, actionsBuilderData: data },
                 });
                 // If parent
-                var parent = this._getNodeAtPosition(this._mousex, this._mousey);
-                if (parent) {
+                var parentNode = parent && parent !== "" ? this._graph.nodes("[id=\"" + parent + "\"]") : parent === "" ? null : this._getNodeAtPosition(this._mousex, this._mousey);
+                if (parentNode) {
                     var edge = this._graph.add({
-                        data: { name: "", source: parent.id(), target: node.id() }
+                        data: { name: "", source: parentNode.id(), target: node.id() }
                     });
                     edge.css("target-arrow-shape", "triangle");
                     edge.css("curve-style", "unbundled-bezier");
@@ -73,7 +78,8 @@ var BABYLON;
                 node.css("label", name);
                 node.css("text-valign", "center");
                 node.css("text-halign", "center");
-                node.renderedPosition({ x: this._mousex, y: parent ? this._mousey + parent.height() + 35 : this._mousey });
+                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
+                return node.id();
             };
             // Returns the target node type
             // For example, a trigger MUSTN'T have any parent
@@ -90,6 +96,35 @@ var BABYLON;
             ActionsBuilderGraph.prototype.getNodeData = function (id) {
                 var node = this._graph.nodes("[id=\"" + id + "\"]");
                 return node.length > 0 ? node[0].data().actionsBuilderData : null;
+            };
+            // Returns the nodes which have the given parent
+            ActionsBuilderGraph.prototype.getNodesWithParent = function (parent) {
+                var edges = this._graph.edges();
+                var nodes = [];
+                for (var i = 0; i < edges.length; i++) {
+                    if (edges[i].data().source === parent)
+                        nodes.push(edges[i].data().target);
+                }
+                return nodes;
+            };
+            // Returns the root nodes
+            ActionsBuilderGraph.prototype.getRootNodes = function () {
+                var edges = this._graph.edges();
+                var nodes = this._graph.nodes();
+                var rootNodes = [];
+                var found = false;
+                for (var i = 0; i < nodes.length; i++) {
+                    found = false;
+                    for (var j = 0; j < edges.length; j++) {
+                        if (edges[j].data().target === nodes[i].id()) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        rootNodes.push(nodes[i].id());
+                }
+                return rootNodes;
             };
             // Returns the node which is a position (x, y)
             ActionsBuilderGraph.prototype._getNodeAtPosition = function (x, y) {
