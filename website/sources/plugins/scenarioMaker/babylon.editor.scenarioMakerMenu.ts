@@ -6,7 +6,7 @@
         // Private members
         private _core: EditorCore;
 
-        private _openScenarioMaker = "OPEN-SCENARIO-MAKER";
+        private _openActionsBuilder = "OPEN-SCENARIO-MAKER";
 
         /**
         * Constructor
@@ -17,19 +17,20 @@
             this._core = mainToolbar.core;
 
             // Create menu
-            var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-console");
+            var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-scenario");
 
             // Create items
-            toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
+            toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-play-game");
 
             // Test
-            var t = new ActionsBuilder(this._core);
+            // new ActionsBuilder(this._core);
 
         }
         
         // Called when a menu item is selected by the user
         public onMenuItemSelected(selected: string): void {
             switch (selected) {
+                case this._openActionsBuilder: ActionsBuilder.GetInstance(this._core); break;
                 default: break;
             }
         }

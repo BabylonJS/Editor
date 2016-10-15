@@ -59,6 +59,7 @@
     <Content Include="website\css\images\rotation.png" />
     <Content Include="website\css\images\save.png" />
     <Content Include="website\css\images\scale.png" />
+    <Content Include="website\css\images\scenario.png" />
     <Content Include="website\css\images\scene.png" />
     <Content Include="website\css\images\shaders.png" />
     <Content Include="website\css\images\sound.png" />

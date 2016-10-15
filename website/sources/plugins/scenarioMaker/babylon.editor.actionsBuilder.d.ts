@@ -37,7 +37,11 @@ declare module BABYLON.EDITOR {
         private _graph;
         private _currentSelected;
         private _parametersEditor;
+        private _currentNode;
+        private static _ActionsBuilderInstance;
         private static _Classes;
+        private static _ExcludedClasses;
+        static GetInstance(core: EditorCore): ActionsBuilder;
         /**
         * Constructor
         * @param mainToolbar: the main toolbar instance
@@ -61,6 +65,7 @@ declare module BABYLON.EDITOR {
         */
         private _createUI();
         private _configureUI();
+        private _onRemoveNode(removeChildren);
         private _onObjectSelected();
         private _onSave();
         private _onListElementClicked(list);

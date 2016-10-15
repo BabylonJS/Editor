@@ -66,7 +66,7 @@
 
         // Layout
         public layout(): void {
-            this._graph.layout({ name: "breadthfirst" });
+            this._graph.layout(<any>{ name: "breadthfirst", condense: true, padding: 45, directed: false });
         }
 
         // Sets the mouse position
@@ -107,6 +107,45 @@
             node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
 
             return node.id();
+        }
+
+        // Removes the given node id
+        public removeNode(id: string, removeChildren: boolean = false): void {
+            var node = this._graph.nodes("[id=\"" + id + "\"]");
+            if (node.length === 0)
+                return;
+            
+            var children = this.getNodesWithParent(id);
+
+            if (removeChildren) {
+                for (var i = 0; i < children.length; i++) {
+                    this.removeNode(children[i], removeChildren);
+                }
+            }
+
+            var edges = this._graph.edges();
+
+            for (var i = 0; i < edges.length; i++) {
+                var data = edges[i].data();
+                if (data.target === id) {
+                    edges[i].remove();
+
+                    if (children.length !== 0 && !removeChildren) {
+                        var edge = this._graph.add({
+                            data: <IEdgeData>{ name: "", source: data.source, target: children[0] }
+                        });
+
+                        edge.css("target-arrow-shape", "triangle");
+                        edge.css("curve-style", "unbundled-bezier");
+                        edge.css("control-point-distances", "10 -10");
+                        edge.css("control-point-weights", "0.25 0.75");
+                    }
+                    
+                    break;
+                }
+            }
+
+            node.remove();
         }
 
         // Returns the target node type

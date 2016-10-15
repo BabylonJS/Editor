@@ -46,7 +46,7 @@ var BABYLON;
             };
             // Layout
             ActionsBuilderGraph.prototype.layout = function () {
-                this._graph.layout({ name: "breadthfirst" });
+                this._graph.layout({ name: "breadthfirst", condense: true, padding: 45, directed: false });
             };
             // Sets the mouse position
             ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {
@@ -80,6 +80,37 @@ var BABYLON;
                 node.css("text-halign", "center");
                 node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
                 return node.id();
+            };
+            // Removes the given node id
+            ActionsBuilderGraph.prototype.removeNode = function (id, removeChildren) {
+                if (removeChildren === void 0) { removeChildren = false; }
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                if (node.length === 0)
+                    return;
+                var children = this.getNodesWithParent(id);
+                if (removeChildren) {
+                    for (var i = 0; i < children.length; i++) {
+                        this.removeNode(children[i], removeChildren);
+                    }
+                }
+                var edges = this._graph.edges();
+                for (var i = 0; i < edges.length; i++) {
+                    var data = edges[i].data();
+                    if (data.target === id) {
+                        edges[i].remove();
+                        if (children.length !== 0 && !removeChildren) {
+                            var edge = this._graph.add({
+                                data: { name: "", source: data.source, target: children[0] }
+                            });
+                            edge.css("target-arrow-shape", "triangle");
+                            edge.css("curve-style", "unbundled-bezier");
+                            edge.css("control-point-distances", "10 -10");
+                            edge.css("control-point-weights", "0.25 0.75");
+                        }
+                        break;
+                    }
+                }
+                node.remove();
             };
             // Returns the target node type
             // For example, a trigger MUSTN'T have any parent

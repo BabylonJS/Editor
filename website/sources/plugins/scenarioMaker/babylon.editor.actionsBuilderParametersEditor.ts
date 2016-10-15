@@ -45,6 +45,9 @@
                 var propertyType = this._getParameterType(constructor, property.name);
 
                 if (property.name === "target") {
+                    if (property.value === null)
+                        property.value = "Scene"; // At least a scene
+
                     var list = this._createListOfElements(property, null, (value: string) => {
                         if (value === "Scene")
                             this._currentTarget = this._core.currentScene;
@@ -54,8 +57,6 @@
                         property.value = "";
                         this.drawProperties(data);
                     });
-                    if (property.value === null)
-                        property.value = list.items[0]; // At least a scene
                 }
                 else if (property.name === "propertyPath") {
                     var list = this._createListOfElements(property, this._createPropertyPath(this._currentTarget));
@@ -63,7 +64,7 @@
                         property.value = list.items[0];
                 }
                 else if (property.name === "sound") {
-                    this._createListOfElements(property, this._createSoundsList());
+                    var list = this._createListOfElements(property, this._createSoundsList());
                     if (property.value === null)
                         this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                 }
@@ -89,13 +90,21 @@
             var removeButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove");
             removeButton.css("width", "100%");
             removeButton.addClass("btn-orange");
+            removeButton.click((event) => {
+                if (this.onRemove)
+                    this.onRemove();
+            });
 
             this._container.append("<br />");
             this._container.append("<hr>");
 
-            var removeAllButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove All");
+            var removeAllButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove Branch");
             removeAllButton.css("width", "100%");
             removeAllButton.addClass("btn-red");
+            removeAllButton.click((event) => {
+                if (this.onRemoveAll)
+                    this.onRemoveAll();
+            });
         }
 
         // Creates a generic field

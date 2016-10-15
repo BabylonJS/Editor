@@ -34,6 +34,8 @@ var BABYLON;
                     var property = actionsBuilderData.properties[i];
                     var propertyType = this._getParameterType(constructor, property.name);
                     if (property.name === "target") {
+                        if (property.value === null)
+                            property.value = "Scene"; // At least a scene
                         var list = this._createListOfElements(property, null, function (value) {
                             if (value === "Scene")
                                 _this._currentTarget = _this._core.currentScene;
@@ -42,8 +44,6 @@ var BABYLON;
                             property.value = "";
                             _this.drawProperties(data);
                         });
-                        if (property.value === null)
-                            property.value = list.items[0]; // At least a scene
                     }
                     else if (property.name === "propertyPath") {
                         var list = this._createListOfElements(property, this._createPropertyPath(this._currentTarget));
@@ -51,7 +51,7 @@ var BABYLON;
                             property.value = list.items[0];
                     }
                     else if (property.name === "sound") {
-                        this._createListOfElements(property, this._createSoundsList());
+                        var list = this._createListOfElements(property, this._createSoundsList());
                         if (property.value === null)
                             this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                     }
@@ -74,11 +74,19 @@ var BABYLON;
                 var removeButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove");
                 removeButton.css("width", "100%");
                 removeButton.addClass("btn-orange");
+                removeButton.click(function (event) {
+                    if (_this.onRemove)
+                        _this.onRemove();
+                });
                 this._container.append("<br />");
                 this._container.append("<hr>");
-                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove All");
+                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove Branch");
                 removeAllButton.css("width", "100%");
                 removeAllButton.addClass("btn-red");
+                removeAllButton.click(function (event) {
+                    if (_this.onRemoveAll)
+                        _this.onRemoveAll();
+                });
             };
             // Creates a generic field
             ActionsBuilderParametersEditor.prototype._createField = function (property) {

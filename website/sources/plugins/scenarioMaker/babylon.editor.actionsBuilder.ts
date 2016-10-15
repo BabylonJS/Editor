@@ -56,8 +56,22 @@
 
         private _parametersEditor: ActionsBuilderParametersEditor = null;
 
+        private _currentNode: string = null;
+
         // Static members
+        private static _ActionsBuilderInstance: ActionsBuilder = null;
         private static _Classes: IDocEntry[] = null;
+        private static _ExcludedClasses: string[] = [
+            "PredicateCondition",
+            "ExecuteCodeAction"
+        ];
+
+        public static GetInstance(core: EditorCore): ActionsBuilder {
+            if (!ActionsBuilder._ActionsBuilderInstance)
+                ActionsBuilder._ActionsBuilderInstance = new ActionsBuilder(core);
+
+            return ActionsBuilder._ActionsBuilderInstance;
+        }
 
         /**
         * Constructor
@@ -73,8 +87,10 @@
 
             if (!ActionsBuilder._Classes)
                 this._loadDefinitionsFile();
-            else
+            else {
+                this._babylonModule = this._getModule("BABYLON");
                 this._configureUI();
+            }
         }
 
         // On event
@@ -98,8 +114,11 @@
             }
 
             else if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
-                this._object = event.sceneEvent.object;
-                this._onObjectSelected();
+                var object = event.sceneEvent.object;
+                if (object instanceof AbstractMesh || object instanceof Scene) {
+                    this._object = event.sceneEvent.object;
+                    this._onObjectSelected();
+                }
             }
 
             return false;
@@ -113,6 +132,8 @@
             this._actionsList.destroy();
             this._controlsList.destroy();
             this._layouts.destroy();
+
+            ActionsBuilder._ActionsBuilderInstance = null;
         }
 
         /**
@@ -236,6 +257,8 @@
             // Create parameters
             this._parametersEditor = new ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
             this._parametersEditor.onSave = () => this._onSave();
+            this._parametersEditor.onRemove = () => this._onRemoveNode(false);
+            this._parametersEditor.onRemoveAll = () => this._onRemoveNode(true);
         }
 
         // Fills the lists on the left (triggers, actions and controls)
@@ -267,6 +290,14 @@
             this._graph.createGraph("ACTIONS-BUILDER-CANVAS");
         }
 
+        // When the user removes a node
+        private _onRemoveNode(removeChildren: boolean): void {
+            if (!this._currentNode)
+                return;
+
+            this._graph.removeNode(this._currentNode, removeChildren);
+        }
+
         // When the user selects an object, configure the graph
         private _onObjectSelected(): void {
             if (!ActionsBuilder._Classes)
@@ -282,7 +313,6 @@
                 actionManager = this._core.isPlaying ? this._object.actionManager : SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager;
 
             if (!actionManager) {
-                debugger;
                 return;
             }
             
@@ -399,7 +429,7 @@
                 var data = <IActionsBuilderData>this._graph.getNodeData(target);
                 this._parametersEditor.drawProperties(data);
 
-                var serialziedValue = this.serializeGraph();
+                this._currentNode = target;
             }
         }
 
@@ -468,8 +498,8 @@
                     continue;
 
                 if (param.name === "target") {
-                    property.targetType = "MeshProperties";
-                    property.value = this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                    property.targetType = "SceneProperties";
+                    property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
                 }
 
                 data.data.properties.push(property);
@@ -509,6 +539,9 @@
 
             for (var i = 0; i < module.classes.length; i++) {
                 var currentClass = module.classes[i];
+
+                if (ActionsBuilder._ExcludedClasses.indexOf(currentClass.name) !== -1)
+                    continue;
 
                 if (heritates) {
                     if (!currentClass.heritageClauses || !currentClass.heritageClauses.some((value: string) => value === heritates))

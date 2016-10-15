@@ -205,3 +205,7 @@ html, body {
 .w2ui-icon.icon-save {
     background: url("images/save.png");
 }
+
+.w2ui-icon.icon-scenario {
+    background: url("images/scenario.png");
+}

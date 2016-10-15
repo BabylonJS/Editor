@@ -16,6 +16,7 @@ declare module BABYLON.EDITOR {
         layout(): void;
         setMousePosition(x: number, y: number): void;
         addNode<T>(id: string, name: string, color: string, type: string, parent?: string, data?: T): string;
+        removeNode(id: string, removeChildren?: boolean): void;
         getTargetNodeType(): string;
         getTargetNodeId(): string;
         getNodeData(id: string): any;

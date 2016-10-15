@@ -10,19 +10,22 @@ var BABYLON;
             function ScenarioMakerMenu(mainToolbar) {
                 // Public members
                 this.menuID = "SCENARIO-MAKER-MENU";
-                this._openScenarioMaker = "OPEN-SCENARIO-MAKER";
+                this._openActionsBuilder = "OPEN-SCENARIO-MAKER";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
-                var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-console");
+                var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-scenario");
                 // Create items
-                toolbar.createMenuItem(menu, "button", this._openScenarioMaker, "Open Scenario Maker", "icon-play");
+                toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-play-game");
                 // Test
-                var t = new EDITOR.ActionsBuilder(this._core);
+                // new ActionsBuilder(this._core);
             }
             // Called when a menu item is selected by the user
             ScenarioMakerMenu.prototype.onMenuItemSelected = function (selected) {
                 switch (selected) {
+                    case this._openActionsBuilder:
+                        EDITOR.ActionsBuilder.GetInstance(this._core);
+                        break;
                     default: break;
                 }
             };

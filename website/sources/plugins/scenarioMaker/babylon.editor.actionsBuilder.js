@@ -27,6 +27,7 @@ var BABYLON;
                 this._graph = null;
                 this._currentSelected = null;
                 this._parametersEditor = null;
+                this._currentNode = null;
                 // Configure this
                 this._core = core;
                 core.eventReceivers.push(this);
@@ -34,9 +35,16 @@ var BABYLON;
                 this._createUI();
                 if (!ActionsBuilder._Classes)
                     this._loadDefinitionsFile();
-                else
+                else {
+                    this._babylonModule = this._getModule("BABYLON");
                     this._configureUI();
+                }
             }
+            ActionsBuilder.GetInstance = function (core) {
+                if (!ActionsBuilder._ActionsBuilderInstance)
+                    ActionsBuilder._ActionsBuilderInstance = new ActionsBuilder(core);
+                return ActionsBuilder._ActionsBuilderInstance;
+            };
             // On event
             ActionsBuilder.prototype.onEvent = function (event) {
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.DOCUMENT_UNCLICK) {
@@ -54,8 +62,11 @@ var BABYLON;
                     return false;
                 }
                 else if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
-                    this._object = event.sceneEvent.object;
-                    this._onObjectSelected();
+                    var object = event.sceneEvent.object;
+                    if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene) {
+                        this._object = event.sceneEvent.object;
+                        this._onObjectSelected();
+                    }
                 }
                 return false;
             };
@@ -67,6 +78,7 @@ var BABYLON;
                 this._actionsList.destroy();
                 this._controlsList.destroy();
                 this._layouts.destroy();
+                ActionsBuilder._ActionsBuilderInstance = null;
             };
             /**
             * Serializes the graph
@@ -166,6 +178,8 @@ var BABYLON;
                 // Create parameters
                 this._parametersEditor = new EDITOR.ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
                 this._parametersEditor.onSave = function () { return _this._onSave(); };
+                this._parametersEditor.onRemove = function () { return _this._onRemoveNode(false); };
+                this._parametersEditor.onRemoveAll = function () { return _this._onRemoveNode(true); };
             };
             // Fills the lists on the left (triggers, actions and controls)
             ActionsBuilder.prototype._configureUI = function () {
@@ -189,6 +203,12 @@ var BABYLON;
                 // Graph
                 this._graph.createGraph("ACTIONS-BUILDER-CANVAS");
             };
+            // When the user removes a node
+            ActionsBuilder.prototype._onRemoveNode = function (removeChildren) {
+                if (!this._currentNode)
+                    return;
+                this._graph.removeNode(this._currentNode, removeChildren);
+            };
             // When the user selects an object, configure the graph
             ActionsBuilder.prototype._onObjectSelected = function () {
                 if (!ActionsBuilder._Classes)
@@ -200,7 +220,6 @@ var BABYLON;
                 else
                     actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
                 if (!actionManager) {
-                    debugger;
                     return;
                 }
                 this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
@@ -294,7 +313,7 @@ var BABYLON;
                         return;
                     var data = this._graph.getNodeData(target);
                     this._parametersEditor.drawProperties(data);
-                    var serialziedValue = this.serializeGraph();
+                    this._currentNode = target;
                 }
             };
             // Configures the actions builder data property
@@ -358,8 +377,8 @@ var BABYLON;
                     if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
                         continue;
                     if (param.name === "target") {
-                        property.targetType = "MeshProperties";
-                        property.value = this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                        property.targetType = "SceneProperties";
+                        property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
                     }
                     data.data.properties.push(property);
                 }
@@ -391,6 +410,8 @@ var BABYLON;
                 var classes = [];
                 for (var i = 0; i < module.classes.length; i++) {
                     var currentClass = module.classes[i];
+                    if (ActionsBuilder._ExcludedClasses.indexOf(currentClass.name) !== -1)
+                        continue;
                     if (heritates) {
                         if (!currentClass.heritageClauses || !currentClass.heritageClauses.some(function (value) { return value === heritates; }))
                             continue;
@@ -408,7 +429,12 @@ var BABYLON;
                 return null;
             };
             // Static members
+            ActionsBuilder._ActionsBuilderInstance = null;
             ActionsBuilder._Classes = null;
+            ActionsBuilder._ExcludedClasses = [
+                "PredicateCondition",
+                "ExecuteCodeAction"
+            ];
             return ActionsBuilder;
         }());
         EDITOR.ActionsBuilder = ActionsBuilder;
