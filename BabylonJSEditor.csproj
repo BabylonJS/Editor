@@ -259,6 +259,7 @@
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderGraph.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderParametersEditor.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.postProcessBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.toolsMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />

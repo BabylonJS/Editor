@@ -213,3 +213,7 @@ html, body {
 .w2ui-icon.icon-graph {
     background: url("images/graph.png");
 }
+
+.w2ui-icon.icon-render {
+    background: url("images/render.png");
+}

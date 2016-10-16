@@ -44,7 +44,7 @@ declare module BABYLON.EDITOR {
         static GetInstance(core: EditorCore): ActionsBuilder;
         /**
         * Constructor
-        * @param mainToolbar: the main toolbar instance
+        * @param core: the editor core
         */
         constructor(core: EditorCore);
         onEvent(event: IEvent): boolean;

@@ -36,7 +36,7 @@
         }
 
         // Add callback on an event
-        public on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void {
+        public on(event: W2UI.IEvent | string, callback: (target: any, eventData: any) => void): void {
             this.element.on(event, callback);
         }
 

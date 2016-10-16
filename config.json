@@ -104,7 +104,9 @@
       "sources/plugins/mainTools/babylon.editor.toolsMenu.js",
       "sources/plugins/mainTools/babylon.editor.actionsBuilder.js",
       "sources/plugins/mainTools/babylon.editor.actionsBuilderGraph.js",
-      "sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js"
+      "sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js",
+
+      "sources/plugins/mainTools/babylon.editor.postProcessBuilder.js"
     ]
   },
   "electron": {

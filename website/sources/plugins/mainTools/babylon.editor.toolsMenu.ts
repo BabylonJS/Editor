@@ -7,6 +7,7 @@
         private _core: EditorCore;
 
         private _openActionsBuilder = "OPEN-ACTIONS-BUILDER";
+        private _openPostProcessBuilder = "OPEN-POST-PROCESS-BUILDER";
 
         /**
         * Constructor
@@ -21,16 +22,19 @@
 
             // Create items
             toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
+            toolbar.addBreak(menu);
+            toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
 
             // Test
-            ActionsBuilder.GetInstance(this._core);
-
+            // ActionsBuilder.GetInstance(this._core);
+            // new PostProcessBuilder(this._core);
         }
         
         // Called when a menu item is selected by the user
         public onMenuItemSelected(selected: string): void {
             switch (selected) {
                 case this._openActionsBuilder: ActionsBuilder.GetInstance(this._core); break;
+                case this._openPostProcessBuilder: new PostProcessBuilder(this._core); break;
                 default: break;
             }
         }

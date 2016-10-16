@@ -76,7 +76,7 @@
 
         /**
         * Constructor
-        * @param mainToolbar: the main toolbar instance
+        * @param core: the editor core
         */
         constructor(core: EditorCore) {
             // Configure this

@@ -326,7 +326,7 @@
                         return;
                     
                     if (this.onEditField)
-                        this.onEditField(event.recid, event.value_new);
+                        event.onComplete = () => this.onEditField(event.recid, event.value_new);
                     
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
@@ -342,7 +342,7 @@
                         return;
                         
                     if (this.onEditField)
-                        this.onEditField(parseInt(event.recid), event.value);
+                        event.onComplete = () => this.onEditField(parseInt(event.recid), event.value);
                         
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;

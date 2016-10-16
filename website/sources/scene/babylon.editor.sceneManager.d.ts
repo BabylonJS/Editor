@@ -25,7 +25,7 @@ declare module BABYLON.EDITOR {
         /**
         * Custom meta datas
         */
-        private static _CustomMetadatas;
+        static _CustomMetadatas: IStringDictionary<any>;
         static AddCustomMetadata<T>(key: string, data: T): void;
         static RemoveCustomMetadata(key: string): boolean;
         static GetCustomMetadata<T>(key: string): T;

@@ -3,6 +3,7 @@ declare module BABYLON.EDITOR {
         menuID: string;
         private _core;
         private _openActionsBuilder;
+        private _openPostProcessBuilder;
         /**
         * Constructor
         * @param mainToolbar: the main toolbar instance

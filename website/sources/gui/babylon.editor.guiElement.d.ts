@@ -12,7 +12,7 @@ declare module BABYLON.EDITOR.GUI {
         destroy(): void;
         refresh(): void;
         resize(): void;
-        on(event: W2UI.IEvent, callback: (target: any, eventData: any) => void): void;
+        on(event: W2UI.IEvent | string, callback: (target: any, eventData: any) => void): void;
         buildElement(parent: string): void;
         /**
         * Static methods

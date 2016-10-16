@@ -184,7 +184,7 @@
         /**
         * Custom meta datas
         */
-        private static _CustomMetadatas: IStringDictionary<any> = {};
+        public static _CustomMetadatas: IStringDictionary<any> = {};
 
         // Adds a custom meta data
         public static AddCustomMetadata<T>(key: string, data: T): void {

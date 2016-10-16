@@ -11,7 +11,7 @@ var BABYLON;
         var ActionsBuilder = (function () {
             /**
             * Constructor
-            * @param mainToolbar: the main toolbar instance
+            * @param core: the editor core
             */
             function ActionsBuilder(core) {
                 this._babylonModule = null;
