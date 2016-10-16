@@ -4622,7 +4622,7 @@ var BABYLON;
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
                         var newMainPanelTab = this._mainPanelTabs[tabID];
-                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", function () {
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
                         });
@@ -5140,6 +5140,7 @@ var BABYLON;
                 this.sidebar = null;
                 this.panel = null;
                 this._graphRootName = "RootScene";
+                this._mainSoundTrackName = "";
                 this._menuDeleteId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
                 this._menuCloneId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
                 // Initialize
@@ -5238,6 +5239,9 @@ var BABYLON;
                             else if (event.sceneEvent.object instanceof BABYLON.LensFlareSystem) {
                                 parentNode = event.sceneEvent.object.getEmitter();
                             }
+                            else if (event.sceneEvent.object instanceof BABYLON.Sound) {
+                                parentNode = this._mainSoundTrackName;
+                            }
                             this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : EDITOR.SceneFactory.GenerateUUID());
                         }
                         return false;
@@ -5278,7 +5282,9 @@ var BABYLON;
                     this.sidebar.addNodes(audioNode, this._graphRootName);
                     for (var i = 0; i < scene.soundTracks.length; i++) {
                         var soundTrack = scene.soundTracks[i];
-                        var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+                        if (i === 0)
+                            this._mainSoundTrackName = "Soundtrack " + soundTrack.id;
+                        var soundTrackNode = this.sidebar.createNode(this._mainSoundTrackName, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
                         if (scene.soundTracks.length === 1)
                             soundTrackNode.expanded = true;
                         soundTrackNode.count = soundTrack.soundCollection.length;
@@ -5405,13 +5411,13 @@ var BABYLON;
                 // Add node
                 var icon = this._getObjectIcon(node);
                 if (parentNode) {
-                    var parent = this.sidebar.getNode(parentNode.id);
+                    var parent = this.sidebar.getNode(parentNode instanceof BABYLON.Node ? parentNode.id : parentNode);
                     if (parent) {
                         parent.count = parent.count || 0;
                         parent.count++;
                     }
                 }
-                this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+                this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? (parentNode instanceof BABYLON.Node ? parentNode.id : parentNode) : this._graphRootName);
                 this.sidebar.refresh();
             };
             // Ensures that the object will delete all his dependencies
@@ -6697,11 +6703,32 @@ var BABYLON;
                 restoreObjects(scene.lights);
                 restoreObjects([scene]);
             };
+            // Adds a custom meta data
+            SceneManager.AddCustomMetadata = function (key, data) {
+                this._CustomMetadatas[key] = data;
+            };
+            // Removes a custom meta data
+            SceneManager.RemoveCustomMetadata = function (key) {
+                if (!this._CustomMetadatas[key])
+                    return false;
+                delete this._CustomMetadatas[key];
+                return true;
+            };
+            // Returns the custom metadata
+            SceneManager.GetCustomMetadata = function (key) {
+                if (!this._CustomMetadatas[key])
+                    return null;
+                return this._CustomMetadatas[key];
+            };
             // Public members
             /**
             * Objects configuration
             */
             SceneManager._ConfiguredObjectsIDs = {};
+            /**
+            * Custom meta datas
+            */
+            SceneManager._CustomMetadatas = {};
             return SceneManager;
         }());
         EDITOR.SceneManager = SceneManager;
@@ -10583,6 +10610,959 @@ var BABYLON;
         EDITOR.SoundsMenuPlugin = SoundsMenuPlugin;
         // Register plugin
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ToolsMenu = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function ToolsMenu(mainToolbar) {
+                // Public members
+                this.menuID = "TOOLS-PLUGIN-MENU";
+                this._openActionsBuilder = "OPEN-ACTIONS-BUILDER";
+                var toolbar = mainToolbar.toolbar;
+                this._core = mainToolbar.core;
+                // Create menu
+                var menu = toolbar.createMenu("menu", this.menuID, "Tools", "icon-scenario");
+                // Create items
+                toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
+                // Test
+                EDITOR.ActionsBuilder.GetInstance(this._core);
+            }
+            // Called when a menu item is selected by the user
+            ToolsMenu.prototype.onMenuItemSelected = function (selected) {
+                switch (selected) {
+                    case this._openActionsBuilder:
+                        EDITOR.ActionsBuilder.GetInstance(this._core);
+                        break;
+                    default: break;
+                }
+            };
+            return ToolsMenu;
+        }());
+        EDITOR.ToolsMenu = ToolsMenu;
+        // Finally, register the plugin using the plugin manager
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(ToolsMenu);
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        (function (EACTION_TYPE) {
+            EACTION_TYPE[EACTION_TYPE["TRIGGER"] = 0] = "TRIGGER";
+            EACTION_TYPE[EACTION_TYPE["ACTION"] = 1] = "ACTION";
+            EACTION_TYPE[EACTION_TYPE["CONTROL"] = 2] = "CONTROL";
+        })(EDITOR.EACTION_TYPE || (EDITOR.EACTION_TYPE = {}));
+        var EACTION_TYPE = EDITOR.EACTION_TYPE;
+        var ActionsBuilder = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function ActionsBuilder(core) {
+                this._babylonModule = null;
+                this._actionsClasses = null;
+                this._controlsClasses = null;
+                this._containerElement = null;
+                this._containerID = null;
+                this._tab = null;
+                this._layouts = null;
+                this._triggersList = null;
+                this._actionsList = null;
+                this._controlsList = null;
+                this._graph = null;
+                this._currentSelected = null;
+                this._parametersEditor = null;
+                this._currentNode = null;
+                // Configure this
+                this._core = core;
+                core.eventReceivers.push(this);
+                // Create UI
+                this._createUI();
+                if (!ActionsBuilder._Classes)
+                    this._loadDefinitionsFile();
+                else {
+                    this._babylonModule = this._getModule("BABYLON");
+                    this._configureUI();
+                }
+            }
+            ActionsBuilder.GetInstance = function (core) {
+                if (!ActionsBuilder._ActionsBuilderInstance)
+                    ActionsBuilder._ActionsBuilderInstance = new ActionsBuilder(core);
+                return ActionsBuilder._ActionsBuilderInstance;
+            };
+            // On event
+            ActionsBuilder.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.DOCUMENT_UNCLICK) {
+                    var mouseEvent = event.guiEvent.data;
+                    var caller = $(mouseEvent.target);
+                    // Until I find how to get the working canvas of cytoscape
+                    if (caller.parent() && caller.parent().parent()) {
+                        if (caller.parent().parent()[0] !== this._graph.canvasElement[0])
+                            this._currentSelected = null;
+                        else {
+                            this._graph.setMousePosition(mouseEvent.offsetX, mouseEvent.offsetY);
+                        }
+                    }
+                    this._containerElement.css("cursor", "default");
+                    return false;
+                }
+                else if (event.eventType === EDITOR.EventType.SCENE_EVENT && event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                    var object = event.sceneEvent.object;
+                    if (object instanceof BABYLON.AbstractMesh || object instanceof BABYLON.Scene) {
+                        this._object = event.sceneEvent.object;
+                        this._onObjectSelected();
+                    }
+                }
+                return false;
+            };
+            /**
+            * Disposes the application
+            */
+            ActionsBuilder.prototype.dispose = function () {
+                this._triggersList.destroy();
+                this._actionsList.destroy();
+                this._controlsList.destroy();
+                this._layouts.destroy();
+                ActionsBuilder._ActionsBuilderInstance = null;
+            };
+            /**
+            * Serializes the graph
+            */
+            ActionsBuilder.prototype.serializeGraph = function (root, parent) {
+                if (!root) {
+                    root = {
+                        name: this._object instanceof BABYLON.Scene ? "Scene" : this._object.name,
+                        type: this._object instanceof BABYLON.Scene ? 3 : 4,
+                        properties: [],
+                        children: []
+                    };
+                }
+                var nodes = parent ? this._graph.getNodesWithParent(parent) : this._graph.getRootNodes();
+                for (var i = 0; i < nodes.length; i++) {
+                    var data = this._graph.getNodeData(nodes[i]).data;
+                    var childData = {
+                        name: data.name,
+                        type: data.type,
+                        properties: data.properties,
+                        children: []
+                    };
+                    this.serializeGraph(childData, nodes[i]);
+                    root.children.push(childData);
+                }
+                return root;
+            };
+            /**
+            * Deserializes the graph
+            */
+            ActionsBuilder.prototype.deserializeGraph = function (data, parent) {
+                for (var i = 0; i < data.children.length; i++) {
+                    var child = data.children[i];
+                    if (child.type === EACTION_TYPE.TRIGGER && child.children.length === 0)
+                        continue;
+                    var childData = {
+                        name: child.name,
+                        type: child.type,
+                        properties: child.properties,
+                        children: []
+                    };
+                    var nodeData = {
+                        class: this._getNodeParametersClass(childData.type, childData.name),
+                        data: childData
+                    };
+                    var childNode = this._graph.addNode(child.name, child.name, this._getNodeColor(child.type), this._getNodeTypeString(child.type), parent, nodeData);
+                    this.deserializeGraph(child, childNode);
+                }
+            };
+            /**
+            * Creates the UI
+            */
+            ActionsBuilder.prototype._createUI = function () {
+                var _this = this;
+                // Create tab and container
+                this._containerID = this._core.editor.createContainer();
+                this._tab = this._core.editor.createTab("Actions Builder", this._containerID, this, true);
+                this._containerElement = $("#" + this._containerID);
+                // Create layout
+                this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
+                this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 200, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
+                    "<div id=\"ACTIONS-BUILDER-ACTIONS\" style=\"width: 100%; height: 33.33%;\"></div>" +
+                    "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>");
+                var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
+                mainPanel.style = "overflow: hidden;";
+                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+                this._layouts.buildElement(this._containerID);
+                // Create triggers list
+                this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
+                this._triggersList.showAdd = this._triggersList.showEdit = this._triggersList.showOptions = this._triggersList.showRefresh = false;
+                this._triggersList.header = "Triggers";
+                this._triggersList.fixedBody = true;
+                this._triggersList.createColumn("name", "name", "100%");
+                this._triggersList.onMouseDown = function () { return _this._onListElementClicked(_this._triggersList); };
+                this._triggersList.buildElement("ACTIONS-BUILDER-TRIGGERS");
+                // Create actions list
+                this._actionsList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-ACTIONS", this._core);
+                this._actionsList.showAdd = this._actionsList.showEdit = this._actionsList.showOptions = this._actionsList.showRefresh = false;
+                this._actionsList.header = "Actions";
+                this._actionsList.fixedBody = true;
+                this._actionsList.multiSelect = false;
+                this._actionsList.createColumn("name", "name", "100%");
+                this._actionsList.onMouseDown = function () { return _this._onListElementClicked(_this._actionsList); };
+                this._actionsList.buildElement("ACTIONS-BUILDER-ACTIONS");
+                // Create controls list
+                this._controlsList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-CONTROLS", this._core);
+                this._controlsList.showAdd = this._controlsList.showEdit = this._controlsList.showOptions = this._controlsList.showRefresh = false;
+                this._controlsList.header = "Controls";
+                this._controlsList.fixedBody = true;
+                this._controlsList.multiSelect = false;
+                this._controlsList.createColumn("name", "name", "100%");
+                this._controlsList.onMouseDown = function () { return _this._onListElementClicked(_this._controlsList); };
+                this._controlsList.buildElement("ACTIONS-BUILDER-CONTROLS");
+                // Create graph
+                this._graph = new EDITOR.ActionsBuilderGraph(this._core);
+                this._graph.onMouseUp = function () { return _this._onMouseUpOnGraph(); };
+                // Create parameters
+                this._parametersEditor = new EDITOR.ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
+                this._parametersEditor.onSave = function () { return _this._onSave(); };
+                this._parametersEditor.onRemove = function () { return _this._onRemoveNode(false); };
+                this._parametersEditor.onRemoveAll = function () { return _this._onRemoveNode(true); };
+            };
+            // Fills the lists on the left (triggers, actions and controls)
+            ActionsBuilder.prototype._configureUI = function () {
+                // Triggers
+                for (var i = BABYLON.ActionManager.NothingTrigger; i <= BABYLON.ActionManager.OnKeyUpTrigger; i++) {
+                    this._triggersList.addRecord({ recid: i, name: BABYLON.ActionManager.GetTriggerName(i), style: "background-color: rgb(133, 154, 185)" });
+                }
+                this._triggersList.refresh();
+                // Actions
+                this._actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
+                for (var i = 0; i < this._actionsClasses.length; i++) {
+                    this._actionsList.addRecord({ recid: i, name: this._actionsClasses[i].name, style: "background-color: rgb(182, 185, 132)" });
+                }
+                this._actionsList.refresh();
+                // Controls
+                this._controlsClasses = this._getClasses(this._babylonModule, "BABYLON.Condition");
+                for (var i = 0; i < this._controlsClasses.length; i++) {
+                    this._controlsList.addRecord({ recid: i, name: this._controlsClasses[i].name, style: "background-color: rgb(185, 132, 140)" });
+                }
+                this._controlsList.refresh();
+                // Graph
+                this._graph.createGraph("ACTIONS-BUILDER-CANVAS");
+            };
+            // When the user removes a node
+            ActionsBuilder.prototype._onRemoveNode = function (removeChildren) {
+                if (!this._currentNode)
+                    return;
+                this._graph.removeNode(this._currentNode, removeChildren);
+            };
+            // When the user selects an object, configure the graph
+            ActionsBuilder.prototype._onObjectSelected = function () {
+                if (!ActionsBuilder._Classes)
+                    return;
+                var actionManager = null;
+                this._graph.clear();
+                if (this._object instanceof BABYLON.Scene)
+                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
+                else
+                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
+                if (!actionManager) {
+                    return;
+                }
+                this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
+                this._graph.layout();
+            };
+            // When the user saves the graph
+            ActionsBuilder.prototype._onSave = function () {
+                var graph = this.serializeGraph();
+                var actionManager = null;
+                if (!this._core.isPlaying)
+                    actionManager = this._object.actionManager;
+                BABYLON.ActionManager.Parse(graph, this._object, this._core.currentScene);
+                if (actionManager) {
+                    if (this._object instanceof BABYLON.AbstractMesh)
+                        EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager = this._object.actionManager;
+                    else
+                        EDITOR.SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+                    this._object.actionManager = actionManager;
+                }
+                this._graph.layout();
+            };
+            // When a list element is clicked
+            ActionsBuilder.prototype._onListElementClicked = function (list) {
+                var selected = list.getSelectedRows();
+                this._containerElement.css("cursor", "copy");
+                if (selected.length) {
+                    this._currentSelected = { id: list.getRow(selected[0]).name, list: list };
+                }
+            };
+            // Returns the node class parameters for the given type
+            ActionsBuilder.prototype._getNodeParametersClass = function (type, name) {
+                if (type === EACTION_TYPE.ACTION)
+                    return this._getClass(this._actionsClasses, name);
+                else if (type === EACTION_TYPE.CONTROL)
+                    return this._getClass(this._controlsClasses, name);
+                return null;
+            };
+            // Returns the node color for the given type
+            ActionsBuilder.prototype._getNodeColor = function (type) {
+                var color = "rgb(133, 154, 185)"; // Trigger as default
+                if (type === EACTION_TYPE.ACTION)
+                    return "rgb(182, 185, 132)";
+                else if (type === EACTION_TYPE.CONTROL)
+                    return "rgb(185, 132, 140)";
+                return color;
+            };
+            // Returns the node's type string from type
+            ActionsBuilder.prototype._getNodeTypeString = function (type) {
+                var typeStr = "trigger"; // Trigger as default
+                if (type === EACTION_TYPE.ACTION)
+                    return "action";
+                else if (type === EACTION_TYPE.CONTROL)
+                    return "control";
+                return typeStr;
+            };
+            // When the user unclicks on the graph
+            ActionsBuilder.prototype._onMouseUpOnGraph = function () {
+                this._containerElement.css("cursor", "default");
+                if (this._currentSelected) {
+                    // Get target type and choose if add node or not
+                    var color = "rgb(133, 154, 185)"; // Trigger as default
+                    var type = "trigger"; // Trigger as default
+                    var data = {
+                        class: null,
+                        data: { name: this._currentSelected.id, properties: [], type: 0 /*Trigger as default*/ }
+                    };
+                    if (this._currentSelected.list === this._triggersList) {
+                        this._configureActionsBuilderData(data, EACTION_TYPE.TRIGGER);
+                    }
+                    else if (this._currentSelected.list === this._actionsList) {
+                        color = "rgb(182, 185, 132)";
+                        type = "action";
+                        data.class = this._getClass(this._actionsClasses, this._currentSelected.id);
+                        this._configureActionsBuilderData(data, EACTION_TYPE.ACTION);
+                    }
+                    else if (this._currentSelected.list === this._controlsList) {
+                        color = "rgb(185, 132, 140)";
+                        type = "control";
+                        data.class = this._getClass(this._controlsClasses, this._currentSelected.id);
+                        this._configureActionsBuilderData(data, EACTION_TYPE.CONTROL);
+                    }
+                    // Check target type
+                    var targetType = this._graph.getTargetNodeType();
+                    if (type === "trigger" && targetType !== null || type !== "trigger" && targetType === null) {
+                        this._currentSelected = null;
+                        return;
+                    }
+                    // Check children.length > 1
+                    var children = this._graph.getNodesWithParent(this._graph.getTargetNodeId());
+                    if (children.length > 0) {
+                        this._currentSelected = null;
+                        return;
+                    }
+                    // Finally, add node and configure it
+                    this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, null, data);
+                    this._currentSelected = null;
+                }
+                else {
+                    var target = this._graph.getTargetNodeId();
+                    if (!target)
+                        return;
+                    var data = this._graph.getNodeData(target);
+                    this._parametersEditor.drawProperties(data);
+                    this._currentNode = target;
+                }
+            };
+            // Configures the actions builder data property
+            // used by actions serializer / deserializer
+            ActionsBuilder.prototype._configureActionsBuilderData = function (data, type) {
+                /*
+                Example of serialized value:
+    
+                "actions": {
+                    "children": [
+                        {
+                            "type": 0,
+                            "children": [
+                                {
+                                    "type": 1,
+                                    "children": [],
+                                    "name": "InterpolateValueAction",
+                                    "properties": [
+                                        {
+                                            "name": "target",
+                                            "targetType": "MeshProperties",
+                                            "value": "sphereGlass"
+                                        },
+                                        {
+                                            "name": "propertyPath",
+                                            "value": "position"
+                                        },
+                                        {
+                                            "name": "value",
+                                            "value": "0, 0, 0"
+                                        },
+                                        {
+                                            "name": "duration",
+                                            "value": "1000"
+                                        },
+                                        {
+                                            "name": "stopOtherAnimations",
+                                            "value": "false"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "name": "OnEveryFrameTrigger",
+                            "properties": []
+                        }
+                    ],
+                    "name": "Scene",
+                    "type": 3,
+                    "properties": []
+                }
+                */
+                data.data.type = type;
+                if (!data.class) {
+                    // It's a trigger
+                    var triggerName = data.data.name;
+                    if (triggerName === "OnKeyDownTrigger") {
+                        data.data.properties.push({ name: "parameter", value: "a" });
+                    }
+                    else if (triggerName === "OnIntersectionEnterTrigger" || triggerName === "OnIntersectionExitTrigger") {
+                        data.data.properties.push({ name: "target", value: null, targetType: "MeshProperties" });
+                    }
+                }
+                else {
+                    // It's an action or condition
+                    var constructor = data.class.constructors[0];
+                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+                    for (var i = 0; i < constructor.parameters.length; i++) {
+                        var param = constructor.parameters[i];
+                        var property = {
+                            name: param.name,
+                            value: null
+                        };
+                        if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
+                            continue;
+                        if (param.name === "target") {
+                            property.targetType = null;
+                            property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                        }
+                        data.data.properties.push(property);
+                    }
+                }
+            };
+            // Loads the definitions file which contains definitions of the Babylon.js framework
+            // defined in a more simple JSON format
+            ActionsBuilder.prototype._loadDefinitionsFile = function () {
+                var _this = this;
+                this._layouts.lockPanel("main", "Loading...", true);
+                BABYLON.Tools.LoadFile("website/resources/classes.min.json", function (data) {
+                    ActionsBuilder._Classes = JSON.parse(data);
+                    _this._babylonModule = _this._getModule("BABYLON");
+                    _this._configureUI();
+                    _this._layouts.unlockPanel("main");
+                });
+            };
+            // Returns a module of the definitions file
+            ActionsBuilder.prototype._getModule = function (name) {
+                for (var i = 0; i < ActionsBuilder._Classes.length; i++) {
+                    var module = ActionsBuilder._Classes[i];
+                    if (module && module.name === name)
+                        return module;
+                }
+                return null;
+            };
+            // Returns the classes of the the given module
+            // Only classes that heritages "heritates"'s value ?
+            ActionsBuilder.prototype._getClasses = function (module, heritates) {
+                var classes = [];
+                for (var i = 0; i < module.classes.length; i++) {
+                    var currentClass = module.classes[i];
+                    if (ActionsBuilder._ExcludedClasses.indexOf(currentClass.name) !== -1)
+                        continue;
+                    if (heritates) {
+                        if (!currentClass.heritageClauses || !currentClass.heritageClauses.some(function (value) { return value === heritates; }))
+                            continue;
+                    }
+                    classes.push(currentClass);
+                }
+                return classes;
+            };
+            // Returns the class which has the given name
+            ActionsBuilder.prototype._getClass = function (classes, name) {
+                for (var i = 0; i < classes.length; i++) {
+                    if (classes[i].name === name)
+                        return classes[i];
+                }
+                return null;
+            };
+            // Static members
+            ActionsBuilder._ActionsBuilderInstance = null;
+            ActionsBuilder._Classes = null;
+            ActionsBuilder._ExcludedClasses = [
+                "PredicateCondition",
+                "ExecuteCodeAction",
+                "CombineAction"
+            ];
+            return ActionsBuilder;
+        }());
+        EDITOR.ActionsBuilder = ActionsBuilder;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ActionsBuilderGraph = (function () {
+            /**
+            * Constructor
+            * @param mainToolbar: the main toolbar instance
+            */
+            function ActionsBuilderGraph(core) {
+                // Public members
+                this.canvasElement = null;
+                this.onMouseUp = function () { };
+                this._mousex = 0;
+                this._mousey = 0;
+                // Configure this
+                this._core = core;
+            }
+            // Creates the graph
+            ActionsBuilderGraph.prototype.createGraph = function (containerID) {
+                var _this = this;
+                this.canvasElement = $("#" + containerID);
+                this._graph = cytoscape({
+                    container: this.canvasElement[0],
+                    zoomingEnabled: false,
+                    layout: {
+                        name: "grid"
+                    }
+                });
+                this.canvasElement.on("mousemove", function (event) {
+                    _this.setMousePosition(event.offsetX, event.offsetY);
+                });
+                this.canvasElement.on("mouseup", function (event) {
+                    _this._graph.trigger("mouseup");
+                });
+                this._graph.on("mouseup", function (event) {
+                    if (_this.onMouseUp)
+                        _this.onMouseUp();
+                });
+                // Layout
+                this._graph.layout({ name: "grid" });
+            };
+            // Clears the graph
+            ActionsBuilderGraph.prototype.clear = function () {
+                this._graph.remove(this._graph.nodes());
+            };
+            // Layout
+            ActionsBuilderGraph.prototype.layout = function () {
+                //this._graph.layout(<any>{ name: "breadthfirst", condense: true, padding: 45, directed: false, animate: true });
+                this._graph.layout({ name: 'breadthfirst', directed: true, padding: 0, spacingFactor: 1, animate: true });
+            };
+            // Sets the mouse position
+            ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {
+                this._mousex = x;
+                this._mousey = y;
+            };
+            // Adds a trigger node
+            ActionsBuilderGraph.prototype.addNode = function (id, name, color, type, parent, data) {
+                // Create node
+                var node = this._graph.add({
+                    data: { id: id + "_" + EDITOR.SceneFactory.GenerateUUID(), name: name, type: type, actionsBuilderData: data },
+                });
+                // If parent
+                var parentNode = parent && parent !== "" ? this._graph.nodes("[id=\"" + parent + "\"]") : parent === "" ? null : this._getNodeAtPosition(this._mousex, this._mousey);
+                if (parentNode) {
+                    var edge = this._graph.add({
+                        data: { name: "", source: parentNode.id(), target: node.id() }
+                    });
+                    edge.css("target-arrow-shape", "triangle");
+                    edge.css("curve-style", "unbundled-bezier");
+                    edge.css("control-point-distances", "10 -10");
+                    edge.css("control-point-weights", "0.25 0.75");
+                }
+                // Configure node
+                node.css("shape", "roundrectangle");
+                node.css("background-color", color);
+                node.css("width", "200px");
+                node.css("height", "40px");
+                node.css("label", name);
+                node.css("text-valign", "center");
+                node.css("text-halign", "center");
+                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
+                return node.id();
+            };
+            // Removes the given node id
+            ActionsBuilderGraph.prototype.removeNode = function (id, removeChildren) {
+                if (removeChildren === void 0) { removeChildren = false; }
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                if (node.length === 0)
+                    return;
+                var children = this.getNodesWithParent(id);
+                if (removeChildren) {
+                    for (var i = 0; i < children.length; i++) {
+                        this.removeNode(children[i], removeChildren);
+                    }
+                }
+                var edges = this._graph.edges();
+                for (var i = 0; i < edges.length; i++) {
+                    var data = edges[i].data();
+                    if (data.target === id) {
+                        edges[i].remove();
+                        if (children.length !== 0 && !removeChildren) {
+                            var edge = this._graph.add({
+                                data: { name: "", source: data.source, target: children[0] }
+                            });
+                            edge.css("target-arrow-shape", "triangle");
+                            edge.css("curve-style", "unbundled-bezier");
+                            edge.css("control-point-distances", "10 -10");
+                            edge.css("control-point-weights", "0.25 0.75");
+                        }
+                        break;
+                    }
+                }
+                node.remove();
+            };
+            // Returns the target node type
+            // For example, a trigger MUSTN'T have any parent
+            ActionsBuilderGraph.prototype.getTargetNodeType = function () {
+                var target = this._getNodeAtPosition(this._mousex, this._mousey);
+                return target ? target.data().type : null;
+            };
+            // Returns the target node id
+            ActionsBuilderGraph.prototype.getTargetNodeId = function () {
+                var target = this._getNodeAtPosition(this._mousex, this._mousey);
+                return target ? target.id() : null;
+            };
+            // Returns the given node data
+            ActionsBuilderGraph.prototype.getNodeData = function (id) {
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                return node.length > 0 ? node[0].data().actionsBuilderData : null;
+            };
+            // Returns the nodes which have the given parent
+            ActionsBuilderGraph.prototype.getNodesWithParent = function (parent) {
+                var edges = this._graph.edges();
+                var nodes = [];
+                for (var i = 0; i < edges.length; i++) {
+                    if (edges[i].data().source === parent)
+                        nodes.push(edges[i].data().target);
+                }
+                return nodes;
+            };
+            // Returns the root nodes
+            ActionsBuilderGraph.prototype.getRootNodes = function () {
+                var edges = this._graph.edges();
+                var nodes = this._graph.nodes();
+                var rootNodes = [];
+                var found = false;
+                for (var i = 0; i < nodes.length; i++) {
+                    found = false;
+                    for (var j = 0; j < edges.length; j++) {
+                        if (edges[j].data().target === nodes[i].id()) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        rootNodes.push(nodes[i].id());
+                }
+                return rootNodes;
+            };
+            // Returns the node which is a position (x, y)
+            ActionsBuilderGraph.prototype._getNodeAtPosition = function (x, y) {
+                var nodes = this._graph.nodes();
+                for (var i = 0; i < nodes.length; i++) {
+                    var node = nodes[i];
+                    var position = node.renderedPosition();
+                    if (x >= (position.x - node.width() / 2) && x <= (position.x + node.width() / 2) && y >= (position.y - node.height() / 2) && y <= (position.y + node.height() / 2))
+                        return node;
+                }
+                return null;
+            };
+            return ActionsBuilderGraph;
+        }());
+        EDITOR.ActionsBuilderGraph = ActionsBuilderGraph;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var ActionsBuilderParametersEditor = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            * @param containerID: the div container ID
+            */
+            function ActionsBuilderParametersEditor(core, containerID) {
+                // Public members
+                this.onSave = function () { };
+                this.onRemove = function () { };
+                this.onRemoveAll = function () { };
+                this._guiElements = [];
+                this._currentTarget = null;
+                this._currentProperty = null;
+                // Initialize
+                this._core = core;
+                this._container = $("#" + containerID);
+                this._currentTarget = core.currentScene;
+                this._destroyGUIElements();
+            }
+            // Creates the fields to configure the currently selected
+            // element (action, trigger, etc.)
+            ActionsBuilderParametersEditor.prototype.drawProperties = function (data) {
+                var _this = this;
+                var actionsBuilderData = data.data;
+                this._destroyGUIElements();
+                this._createHeader(actionsBuilderData.name, data.data.type);
+                // Add "remove" buttons
+                var removeButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove");
+                removeButton.css("width", "100%");
+                removeButton.addClass("btn-orange");
+                removeButton.click(function (event) {
+                    _this._destroyGUIElements();
+                    if (_this.onRemove)
+                        _this.onRemove();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
+                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove Branch");
+                removeAllButton.css("width", "100%");
+                removeAllButton.addClass("btn-red");
+                removeAllButton.click(function (event) {
+                    _this._destroyGUIElements();
+                    if (_this.onRemoveAll)
+                        _this.onRemoveAll();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
+                /*
+                if (!data.class)
+                    return;
+                */
+                // Create parameters fields
+                var constructor = data.class ? data.class.constructors[0] : null;
+                for (var i = 0; i < actionsBuilderData.properties.length; i++) {
+                    var property = actionsBuilderData.properties[i];
+                    var propertyType = constructor ? this._getParameterType(constructor, property.name) : "string";
+                    if (property.name === "target") {
+                        if (property.value === null) {
+                            property.value = "Scene"; // At least a scene
+                            if (property.targetType === "MeshProperties")
+                                property.value = this._core.currentScene.meshes[0].name;
+                            else if (property.targetType === "LightProperties")
+                                property.value = this._core.currentScene.lights[0].name;
+                            else if (property.targetType === "CameraProperties")
+                                property.value = this._core.currentScene.cameras[0].name;
+                        }
+                        var list = this._createListOfElements(property, this._getCollectionOfObjects(property.targetType), function (value) {
+                            if (value === "Scene")
+                                _this._currentTarget = _this._core.currentScene;
+                            else
+                                _this._currentTarget = _this._core.currentScene.getNodeByName(value);
+                            //property.value = "";
+                            _this.drawProperties(data);
+                        });
+                    }
+                    else if (property.name === "propertyPath") {
+                        var list = this._createListOfElements(property, this._createPropertyPath(this._currentTarget));
+                        if (property.value === null)
+                            property.value = list.items[0];
+                    }
+                    else if (property.name === "sound") {
+                        var list = this._createListOfElements(property, this._createSoundsList());
+                        if (property.value === null)
+                            this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
+                    }
+                    else if (propertyType === "boolean") {
+                        this._createCheckbox(property);
+                        if (property.value === null)
+                            property.value = "false";
+                    }
+                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
+                        if (property.value === "true" || property.value === "false")
+                            this._createCheckbox(property, "Set Active");
+                        else
+                            this._createField(property);
+                        if (property.value === null)
+                            (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                    }
+                    this._container.append("<hr>");
+                }
+            };
+            // Creates a generic field
+            ActionsBuilderParametersEditor.prototype._createField = function (property) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+                this._container.append(text);
+                var id = name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement(["input", "type=\"text\""], id, "width: 100%;", "", true);
+                this._container.append(input);
+                var inputElement = $("#" + id);
+                inputElement.val(property.value);
+                inputElement.change(function (event) {
+                    property.value = inputElement.val();
+                });
+                return $("#" + id);
+            };
+            // Creates a checkbox element
+            ActionsBuilderParametersEditor.prototype._createCheckbox = function (property, customText) {
+                var id = name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement(["input", "type=\"checkbox\""], id, "", customText || property.name + " ", true);
+                this._container.append(input);
+                var inputElement = $("#" + id);
+                inputElement[0].checked = property.value === "true";
+                inputElement.change(function (event) {
+                    property.value = event.target.checked ? "true" : "false";
+                });
+                return $("#" + id);
+            };
+            // Creates a list of elements (GUI.GUIList)
+            ActionsBuilderParametersEditor.prototype._createListOfElements = function (property, items, callback) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+                this._container.append(text);
+                var id = property.name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
+                this._container.append(input);
+                var list = new EDITOR.GUI.GUIList(id, this._core);
+                list.renderDrop = true;
+                if (items)
+                    list.items = items;
+                else {
+                    list.items = [];
+                    this._populateStringArray(list.items, ["Scene"]);
+                    this._populateStringArray(list.items, this._core.currentScene.meshes, "name");
+                    this._populateStringArray(list.items, this._core.currentScene.lights, "name");
+                    this._populateStringArray(list.items, this._core.currentScene.cameras, "name");
+                    this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
+                }
+                list.selected = property.value;
+                list.buildElement(id);
+                list.onChange = function (selected) {
+                    property.value = selected;
+                    if (callback)
+                        callback(property.value);
+                };
+                return list;
+            };
+            // Creates the header
+            ActionsBuilderParametersEditor.prototype._createHeader = function (name, type) {
+                var color = "";
+                switch (type) {
+                    case EDITOR.EACTION_TYPE.TRIGGER:
+                        color = "rgb(133, 154, 185)";
+                        break;
+                    case EDITOR.EACTION_TYPE.ACTION:
+                        color = "rgb(182, 185, 132)";
+                        break;
+                    case EDITOR.EACTION_TYPE.CONTROL:
+                        color = "rgb(185, 132, 140)";
+                        break;
+                }
+                // Div container
+                var divID = EDITOR.SceneFactory.GenerateUUID();
+                var div = EDITOR.GUI.GUIElement.CreateElement("div", divID, "width: 100%; height: 30px; text-align: center; border: 1px solid grey; margin-left: auto; margin-right: auto; background: " + color, name, true);
+                this._container.append(div);
+                // Text
+                var divContainer = $(divID, this._container);
+                var text = EDITOR.GUI.GUIElement.CreateElement("a", divID, "width: 100%; height: 100%; vertical-align: middle; line-height: 25px;", name, true);
+                divContainer.append(text);
+            };
+            // Populates the given string array with another
+            ActionsBuilderParametersEditor.prototype._populateStringArray = function (array, values, property) {
+                for (var i = 0; i < values.length; i++) {
+                    if (property)
+                        array.push(values[i][property]);
+                    else
+                        array.push(values[i]);
+                }
+            };
+            // Destroys the existing elements
+            ActionsBuilderParametersEditor.prototype._destroyGUIElements = function () {
+                var _this = this;
+                for (var i = 0; i < this._guiElements.length; i++)
+                    this._guiElements[i].destroy();
+                this._container.empty();
+                this._guiElements = [];
+                // Create save button
+                var saveButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Save");
+                saveButton.css("width", "100%");
+                saveButton.css("position", "absolute");
+                saveButton.css("bottom", "10px");
+                saveButton.addClass("btn-green");
+                saveButton.click(function (event) {
+                    if (_this.onSave)
+                        _this.onSave();
+                });
+            };
+            // Returns the parameter's type
+            ActionsBuilderParametersEditor.prototype._getParameterType = function (entry, parameter) {
+                for (var i = 0; i < entry.parameters.length; i++) {
+                    if (entry.parameters[i].name === parameter)
+                        return entry.parameters[i].type;
+                }
+                return null;
+            };
+            // Returns the effective target of an object
+            ActionsBuilderParametersEditor.prototype._getEffectiveTarget = function (object, target) {
+                var properties = target.split(".");
+                for (var i = 0; i < properties.length - 1; i++)
+                    object = object[properties[i]];
+                return object;
+            };
+            // Creates an array of elements
+            ActionsBuilderParametersEditor.prototype._createPropertyPath = function (node, properties) {
+                if (!properties)
+                    properties = [];
+                var allowedTypes = ["number", "string", "boolean"];
+                var allowedClasses = ["Vector3", "Vector2", "Color3", "Material"];
+                var fillProperties = function (object, path) {
+                    for (var thing in object) {
+                        if (thing[0] === "_")
+                            continue;
+                        var value = object[thing];
+                        if (allowedTypes.indexOf(typeof value) !== -1) {
+                            properties.push(path + thing);
+                        }
+                        else if (allowedClasses.indexOf(EDITOR.Tools.GetConstructorName(value)) !== -1) {
+                            fillProperties(value, path + thing + ".");
+                        }
+                    }
+                };
+                fillProperties(node, "");
+                return properties;
+            };
+            // Creates an array of sounds
+            ActionsBuilderParametersEditor.prototype._createSoundsList = function () {
+                var sounds = [];
+                for (var i = 0; i < this._core.currentScene.mainSoundTrack.soundCollection.length; i++) {
+                    sounds.push(this._core.currentScene.mainSoundTrack.soundCollection[i].name);
+                }
+                return sounds;
+            };
+            // Returns the colleciton of objects according to type
+            ActionsBuilderParametersEditor.prototype._getCollectionOfObjects = function (type) {
+                var array = [];
+                if (type === "SceneProperties")
+                    return ["Scene"];
+                if (type === "MeshProperties")
+                    this._populateStringArray(array, this._core.currentScene.meshes, "name");
+                if (type === "LightProperties")
+                    this._populateStringArray(array, this._core.currentScene.lights, "name");
+                if (type === "CameraProperties")
+                    this._populateStringArray(array, this._core.currentScene.cameras, "name");
+                return array.length === 0 ? null : array;
+            };
+            return ActionsBuilderParametersEditor;
+        }());
+        EDITOR.ActionsBuilderParametersEditor = ActionsBuilderParametersEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;

@@ -14,6 +14,8 @@ var BABYLON;
                 this.onRemove = function () { };
                 this.onRemoveAll = function () { };
                 this._guiElements = [];
+                this._currentTarget = null;
+                this._currentProperty = null;
                 // Initialize
                 this._core = core;
                 this._container = $("#" + containerID);
@@ -27,21 +29,52 @@ var BABYLON;
                 var actionsBuilderData = data.data;
                 this._destroyGUIElements();
                 this._createHeader(actionsBuilderData.name, data.data.type);
+                // Add "remove" buttons
+                var removeButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove");
+                removeButton.css("width", "100%");
+                removeButton.addClass("btn-orange");
+                removeButton.click(function (event) {
+                    _this._destroyGUIElements();
+                    if (_this.onRemove)
+                        _this.onRemove();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
+                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove Branch");
+                removeAllButton.css("width", "100%");
+                removeAllButton.addClass("btn-red");
+                removeAllButton.click(function (event) {
+                    _this._destroyGUIElements();
+                    if (_this.onRemoveAll)
+                        _this.onRemoveAll();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
+                /*
                 if (!data.class)
                     return;
-                var constructor = data.class.constructors[0];
+                */
+                // Create parameters fields
+                var constructor = data.class ? data.class.constructors[0] : null;
                 for (var i = 0; i < actionsBuilderData.properties.length; i++) {
                     var property = actionsBuilderData.properties[i];
-                    var propertyType = this._getParameterType(constructor, property.name);
+                    var propertyType = constructor ? this._getParameterType(constructor, property.name) : "string";
                     if (property.name === "target") {
-                        if (property.value === null)
+                        if (property.value === null) {
                             property.value = "Scene"; // At least a scene
-                        var list = this._createListOfElements(property, null, function (value) {
+                            if (property.targetType === "MeshProperties")
+                                property.value = this._core.currentScene.meshes[0].name;
+                            else if (property.targetType === "LightProperties")
+                                property.value = this._core.currentScene.lights[0].name;
+                            else if (property.targetType === "CameraProperties")
+                                property.value = this._core.currentScene.cameras[0].name;
+                        }
+                        var list = this._createListOfElements(property, this._getCollectionOfObjects(property.targetType), function (value) {
                             if (value === "Scene")
                                 _this._currentTarget = _this._core.currentScene;
                             else
-                                _this._currentTarget = _this._core.currentScene.getMeshByName(value);
-                            property.value = "";
+                                _this._currentTarget = _this._core.currentScene.getNodeByName(value);
+                            //property.value = "";
                             _this.drawProperties(data);
                         });
                     }
@@ -70,23 +103,6 @@ var BABYLON;
                     }
                     this._container.append("<hr>");
                 }
-                // Add "remove" buttons
-                var removeButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove");
-                removeButton.css("width", "100%");
-                removeButton.addClass("btn-orange");
-                removeButton.click(function (event) {
-                    if (_this.onRemove)
-                        _this.onRemove();
-                });
-                this._container.append("<br />");
-                this._container.append("<hr>");
-                var removeAllButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Remove Branch");
-                removeAllButton.css("width", "100%");
-                removeAllButton.addClass("btn-red");
-                removeAllButton.click(function (event) {
-                    if (_this.onRemoveAll)
-                        _this.onRemoveAll();
-                });
             };
             // Creates a generic field
             ActionsBuilderParametersEditor.prototype._createField = function (property) {
@@ -236,6 +252,19 @@ var BABYLON;
                     sounds.push(this._core.currentScene.mainSoundTrack.soundCollection[i].name);
                 }
                 return sounds;
+            };
+            // Returns the colleciton of objects according to type
+            ActionsBuilderParametersEditor.prototype._getCollectionOfObjects = function (type) {
+                var array = [];
+                if (type === "SceneProperties")
+                    return ["Scene"];
+                if (type === "MeshProperties")
+                    this._populateStringArray(array, this._core.currentScene.meshes, "name");
+                if (type === "LightProperties")
+                    this._populateStringArray(array, this._core.currentScene.lights, "name");
+                if (type === "CameraProperties")
+                    this._populateStringArray(array, this._core.currentScene.cameras, "name");
+                return array.length === 0 ? null : array;
             };
             return ActionsBuilderParametersEditor;
         }());

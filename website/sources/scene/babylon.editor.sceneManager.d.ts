@@ -22,5 +22,12 @@ declare module BABYLON.EDITOR {
         private static _ObjectsStatesConfiguration;
         static SaveObjectStates(scene: Scene): void;
         static RestoreObjectsStates(scene: Scene): void;
+        /**
+        * Custom meta datas
+        */
+        private static _CustomMetadatas;
+        static AddCustomMetadata<T>(key: string, data: T): void;
+        static RemoveCustomMetadata(key: string): boolean;
+        static GetCustomMetadata<T>(key: string): T;
     }
 }

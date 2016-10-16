@@ -13,6 +13,7 @@ var BABYLON;
                 this.sidebar = null;
                 this.panel = null;
                 this._graphRootName = "RootScene";
+                this._mainSoundTrackName = "";
                 this._menuDeleteId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
                 this._menuCloneId = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
                 // Initialize
@@ -111,6 +112,9 @@ var BABYLON;
                             else if (event.sceneEvent.object instanceof BABYLON.LensFlareSystem) {
                                 parentNode = event.sceneEvent.object.getEmitter();
                             }
+                            else if (event.sceneEvent.object instanceof BABYLON.Sound) {
+                                parentNode = this._mainSoundTrackName;
+                            }
                             this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : EDITOR.SceneFactory.GenerateUUID());
                         }
                         return false;
@@ -151,7 +155,9 @@ var BABYLON;
                     this.sidebar.addNodes(audioNode, this._graphRootName);
                     for (var i = 0; i < scene.soundTracks.length; i++) {
                         var soundTrack = scene.soundTracks[i];
-                        var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+                        if (i === 0)
+                            this._mainSoundTrackName = "Soundtrack " + soundTrack.id;
+                        var soundTrackNode = this.sidebar.createNode(this._mainSoundTrackName, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
                         if (scene.soundTracks.length === 1)
                             soundTrackNode.expanded = true;
                         soundTrackNode.count = soundTrack.soundCollection.length;
@@ -278,13 +284,13 @@ var BABYLON;
                 // Add node
                 var icon = this._getObjectIcon(node);
                 if (parentNode) {
-                    var parent = this.sidebar.getNode(parentNode.id);
+                    var parent = this.sidebar.getNode(parentNode instanceof BABYLON.Node ? parentNode.id : parentNode);
                     if (parent) {
                         parent.count = parent.count || 0;
                         parent.count++;
                     }
                 }
-                this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+                this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? (parentNode instanceof BABYLON.Node ? parentNode.id : parentNode) : this._graphRootName);
                 this.sidebar.refresh();
             };
             // Ensures that the object will delete all his dependencies

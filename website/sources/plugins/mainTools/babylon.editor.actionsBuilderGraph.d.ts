@@ -19,7 +19,7 @@ declare module BABYLON.EDITOR {
         removeNode(id: string, removeChildren?: boolean): void;
         getTargetNodeType(): string;
         getTargetNodeId(): string;
-        getNodeData(id: string): any;
+        getNodeData<T>(id: string): T;
         getNodesWithParent(parent: string): string[];
         getRootNodes(): string[];
         private _getNodeAtPosition(x, y);

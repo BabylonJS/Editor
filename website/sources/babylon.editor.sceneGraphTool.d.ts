@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _editor;
         private _graphRootName;
+        private _mainSoundTrackName;
         private _menuDeleteId;
         private _menuCloneId;
         /**

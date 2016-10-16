@@ -133,11 +133,32 @@ var BABYLON;
                 restoreObjects(scene.lights);
                 restoreObjects([scene]);
             };
+            // Adds a custom meta data
+            SceneManager.AddCustomMetadata = function (key, data) {
+                this._CustomMetadatas[key] = data;
+            };
+            // Removes a custom meta data
+            SceneManager.RemoveCustomMetadata = function (key) {
+                if (!this._CustomMetadatas[key])
+                    return false;
+                delete this._CustomMetadatas[key];
+                return true;
+            };
+            // Returns the custom metadata
+            SceneManager.GetCustomMetadata = function (key) {
+                if (!this._CustomMetadatas[key])
+                    return null;
+                return this._CustomMetadatas[key];
+            };
             // Public members
             /**
             * Objects configuration
             */
             SceneManager._ConfiguredObjectsIDs = {};
+            /**
+            * Custom meta datas
+            */
+            SceneManager._CustomMetadatas = {};
             return SceneManager;
         }());
         EDITOR.SceneManager = SceneManager;

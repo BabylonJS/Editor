@@ -63,7 +63,8 @@
         private static _Classes: IDocEntry[] = null;
         private static _ExcludedClasses: string[] = [
             "PredicateCondition",
-            "ExecuteCodeAction"
+            "ExecuteCodeAction",
+            "CombineAction"
         ];
 
         public static GetInstance(core: EditorCore): ActionsBuilder {
@@ -152,7 +153,7 @@
             var nodes = parent ? this._graph.getNodesWithParent(parent) : this._graph.getRootNodes();
             
             for (var i = 0; i < nodes.length; i++) {
-                var data: IActionsBuilderSerializationObject = this._graph.getNodeData(nodes[i]).data;
+                var data = this._graph.getNodeData<IActionsBuilderData>(nodes[i]).data;
                 var childData: IActionsBuilderSerializationObject = {
                     name: data.name,
                     type: data.type,
@@ -208,7 +209,7 @@
             // Create layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
 
-            this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 300, true).setContent(
+            this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 200, true).setContent(
                 "<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                 "<div id=\"ACTIONS-BUILDER-ACTIONS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                 "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>"
@@ -217,7 +218,7 @@
             var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
             mainPanel.style = "overflow: hidden;";
 
-            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+            this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 300, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
 
             this._layouts.buildElement(this._containerID);
 
@@ -264,7 +265,7 @@
         // Fills the lists on the left (triggers, actions and controls)
         private _configureUI(): void {
             // Triggers
-            for (var i = ActionManager.NothingTrigger; i < ActionManager.OnKeyUpTrigger; i++) {
+            for (var i = ActionManager.NothingTrigger; i <= ActionManager.OnKeyUpTrigger; i++) {
                 this._triggersList.addRecord(<IElementItem>{ recid: i, name: ActionManager.GetTriggerName(i), style: "background-color: rgb(133, 154, 185)" });
             }
 
@@ -338,6 +339,8 @@
 
                 this._object.actionManager = actionManager;
             }
+
+            this._graph.layout();
         }
 
         // When a list element is clicked
@@ -397,7 +400,10 @@
                     data: { name: this._currentSelected.id, properties: [], type: 0 /*Trigger as default*/ }
                 };
 
-                if (this._currentSelected.list === this._actionsList) {
+                if (this._currentSelected.list === this._triggersList) {
+                    this._configureActionsBuilderData(data, EACTION_TYPE.TRIGGER);
+                }
+                else if (this._currentSelected.list === this._actionsList) {
                     color = "rgb(182, 185, 132)";
                     type = "action";
                     data.class = this._getClass(this._actionsClasses, this._currentSelected.id);
@@ -417,6 +423,13 @@
                     return;
                 }
 
+                // Check children.length > 1
+                var children = this._graph.getNodesWithParent(this._graph.getTargetNodeId());
+                if (children.length > 0) {
+                    this._currentSelected = null;
+                    return;
+                }
+
                 // Finally, add node and configure it
                 this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, null, data);
                 this._currentSelected = null;
@@ -425,7 +438,7 @@
                 var target = this._graph.getTargetNodeId();
                 if (!target)
                     return;
-
+                
                 var data = <IActionsBuilderData>this._graph.getNodeData(target);
                 this._parametersEditor.drawProperties(data);
 
@@ -484,25 +497,38 @@
             */
             data.data.type = type;
 
-            var constructor = data.class.constructors[0];
-            var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
-
-            for (var i = 0; i < constructor.parameters.length; i++) {
-                var param = constructor.parameters[i];
-                var property: IActionsBuilderProperty = {
-                    name: param.name,
-                    value: null
-                };
-
-                if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
-                    continue;
-
-                if (param.name === "target") {
-                    property.targetType = "SceneProperties";
-                    property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+            if (!data.class) {
+                // It's a trigger
+                var triggerName = data.data.name;
+                if (triggerName === "OnKeyDownTrigger") {
+                    data.data.properties.push({ name: "parameter", value: "a" });
                 }
+                else if (triggerName === "OnIntersectionEnterTrigger" || triggerName === "OnIntersectionExitTrigger") {
+                    data.data.properties.push({ name: "target", value: null, targetType: "MeshProperties" });
+                }
+            }
+            else {
+                // It's an action or condition
+                var constructor = data.class.constructors[0];
+                var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
 
-                data.data.properties.push(property);
+                for (var i = 0; i < constructor.parameters.length; i++) {
+                    var param = constructor.parameters[i];
+                    var property: IActionsBuilderProperty = {
+                        name: param.name,
+                        value: null
+                    };
+
+                    if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
+                        continue;
+
+                    if (param.name === "target") {
+                        property.targetType = null;
+                        property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                    }
+
+                    data.data.properties.push(property);
+                }
             }
         }
 

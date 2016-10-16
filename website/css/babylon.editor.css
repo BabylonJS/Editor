@@ -209,3 +209,7 @@ html, body {
 .w2ui-icon.icon-scenario {
     background: url("images/scenario.png");
 }
+
+.w2ui-icon.icon-graph {
+    background: url("images/graph.png");
+}

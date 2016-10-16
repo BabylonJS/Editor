@@ -66,7 +66,8 @@
 
         // Layout
         public layout(): void {
-            this._graph.layout(<any>{ name: "breadthfirst", condense: true, padding: 45, directed: false });
+            //this._graph.layout(<any>{ name: "breadthfirst", condense: true, padding: 45, directed: false, animate: true });
+            this._graph.layout(<any>{ name: 'breadthfirst', directed: true, padding: 0, spacingFactor: 1, animate: true });
         }
 
         // Sets the mouse position
@@ -98,7 +99,7 @@
             // Configure node
             node.css("shape", "roundrectangle");
             node.css("background-color", color);
-            node.css("width", "180px");
+            node.css("width", "200px");
             node.css("height", "40px");
             node.css("label", name);
             node.css("text-valign", "center");
@@ -162,7 +163,7 @@
         }
 
         // Returns the given node data
-        public getNodeData(id: string): any {
+        public getNodeData<T>(id: string): T {
             var node = this._graph.nodes("[id=\"" + id + "\"]");
             return node.length > 0 ? node[0].data().actionsBuilderData : null;
         }

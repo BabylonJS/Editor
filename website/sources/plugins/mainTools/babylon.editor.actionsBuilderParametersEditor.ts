@@ -11,7 +11,8 @@
 
         private _guiElements: GUI.IGUIElement[] = [];
         
-        private _currentTarget: AbstractMesh | Scene;
+        private _currentTarget: Node | Scene = null;
+        private _currentProperty: IActionsBuilderProperty = null;
 
         /**
         * Constructor
@@ -35,26 +36,64 @@
             this._destroyGUIElements();
             this._createHeader(actionsBuilderData.name, data.data.type);
 
+            // Add "remove" buttons
+            var removeButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove");
+            removeButton.css("width", "100%");
+            removeButton.addClass("btn-orange");
+            removeButton.click((event) => {
+                this._destroyGUIElements();
+
+                if (this.onRemove)
+                    this.onRemove();
+            });
+
+            this._container.append("<br />");
+            this._container.append("<hr>");
+
+            var removeAllButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove Branch");
+            removeAllButton.css("width", "100%");
+            removeAllButton.addClass("btn-red");
+            removeAllButton.click((event) => {
+                this._destroyGUIElements();
+
+                if (this.onRemoveAll)
+                    this.onRemoveAll();
+            });
+
+            this._container.append("<br />");
+            this._container.append("<hr>");
+
+            /*
             if (!data.class)
                 return;
-            
-            var constructor = data.class.constructors[0];
+            */
+
+            // Create parameters fields
+            var constructor = data.class ? data.class.constructors[0] : null;
 
             for (var i = 0; i < actionsBuilderData.properties.length; i++) {
                 var property = actionsBuilderData.properties[i];
-                var propertyType = this._getParameterType(constructor, property.name);
+                var propertyType = constructor ? this._getParameterType(constructor, property.name) : "string";
 
                 if (property.name === "target") {
-                    if (property.value === null)
+                    if (property.value === null) {
                         property.value = "Scene"; // At least a scene
 
-                    var list = this._createListOfElements(property, null, (value: string) => {
+                        if (property.targetType === "MeshProperties")
+                            property.value = this._core.currentScene.meshes[0].name;
+                        else if (property.targetType === "LightProperties")
+                            property.value = this._core.currentScene.lights[0].name;
+                        else if (property.targetType === "CameraProperties")
+                            property.value = this._core.currentScene.cameras[0].name;
+                    }
+
+                    var list = this._createListOfElements(property, this._getCollectionOfObjects(property.targetType), (value: string) => {
                         if (value === "Scene")
                             this._currentTarget = this._core.currentScene;
                         else
-                            this._currentTarget = this._core.currentScene.getMeshByName(value);
+                            this._currentTarget = this._core.currentScene.getNodeByName(value);
 
-                        property.value = "";
+                        //property.value = "";
                         this.drawProperties(data);
                     });
                 }
@@ -85,26 +124,6 @@
 
                 this._container.append("<hr>");
             }
-
-            // Add "remove" buttons
-            var removeButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove");
-            removeButton.css("width", "100%");
-            removeButton.addClass("btn-orange");
-            removeButton.click((event) => {
-                if (this.onRemove)
-                    this.onRemove();
-            });
-
-            this._container.append("<br />");
-            this._container.append("<hr>");
-
-            var removeAllButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Remove Branch");
-            removeAllButton.css("width", "100%");
-            removeAllButton.addClass("btn-red");
-            removeAllButton.click((event) => {
-                if (this.onRemoveAll)
-                    this.onRemoveAll();
-            });
         }
 
         // Creates a generic field
@@ -253,7 +272,7 @@
         }
 
         // Creates an array of elements
-        private _createPropertyPath(node: AbstractMesh | Scene, properties?: string[]): string[] {
+        private _createPropertyPath(node: Node | Scene, properties?: string[]): string[] {
             if (!properties)
                 properties = [];
 
@@ -289,6 +308,25 @@
             }
 
             return sounds;
+        }
+
+        // Returns the colleciton of objects according to type
+        private _getCollectionOfObjects(type: string): string[] {
+            var array: string[] = [];
+
+            if (type === "SceneProperties")
+                return ["Scene"];
+
+            if (type === "MeshProperties")
+                this._populateStringArray(array, this._core.currentScene.meshes, "name");
+
+            if (type === "LightProperties")
+                this._populateStringArray(array, this._core.currentScene.lights, "name");
+
+            if (type === "CameraProperties")
+                this._populateStringArray(array, this._core.currentScene.cameras, "name");
+
+            return array.length === 0 ? null : array;
         }
     }
 }

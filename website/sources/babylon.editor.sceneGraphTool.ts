@@ -10,6 +10,7 @@
         private _editor: EditorMain;
 
         private _graphRootName: string = "RootScene";
+        private _mainSoundTrackName: string = "";
 
         private _menuDeleteId: string = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-REMOVE";
         private _menuCloneId: string = "BABYLON-EDITOR-SCENE-GRAPH-TOOL-CLONE";
@@ -130,13 +131,16 @@
                         this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
                     }
                     else {
-                        var parentNode: Node = null;
+                        var parentNode: Node | string = null;
 
                         if (event.sceneEvent.object instanceof ParticleSystem) {
                             parentNode = event.sceneEvent.object.emitter;
                         }
                         else if (event.sceneEvent.object instanceof LensFlareSystem) {
                             parentNode = (<LensFlareSystem>event.sceneEvent.object).getEmitter();
+                        }
+                        else if (event.sceneEvent.object instanceof Sound) {
+                            parentNode = this._mainSoundTrackName;
                         }
 
                         this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
@@ -191,8 +195,10 @@
 
                 for (var i = 0; i < scene.soundTracks.length; i++) {
                     var soundTrack = scene.soundTracks[i];
+                    if (i === 0)
+                        this._mainSoundTrackName = "Soundtrack " + soundTrack.id;
 
-                    var soundTrackNode = this.sidebar.createNode("Soundtrack " + soundTrack.id, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
+                    var soundTrackNode = this.sidebar.createNode(this._mainSoundTrackName, "Soundtrack " + soundTrack.id, "icon-sound", soundTrack);
 
                     if (scene.soundTracks.length === 1)
                         soundTrackNode.expanded = true;
@@ -307,7 +313,7 @@
         }
 
         // Returns the appropriate icon of the node (mesh, animated mesh, light, camera, etc.)
-        private _getObjectIcon(node: Node): string {
+        private _getObjectIcon(node: Node | Sound | SubMesh | ParticleSystem | LensFlareSystem): string {
             if (node instanceof AbstractMesh) {
                 if (node.skeleton)
                     return "icon-animated-mesh";
@@ -340,22 +346,22 @@
         }
 
         // Removes or adds a node from/to the graph
-        private _modifyElement(node: Node, parentNode: Node, id?: string): void {
+        private _modifyElement(node: Node, parentNode: Node | string, id?: string): void {
             if (!node)
                 return;
 
-                // Add node
+            // Add node
             var icon = this._getObjectIcon(node);
 
             if (parentNode) {
-                var parent = this.sidebar.getNode(parentNode.id);
+                var parent = this.sidebar.getNode(parentNode instanceof Node ? parentNode.id : parentNode);
                 if (parent) {
                     parent.count = parent.count || 0;
                     parent.count++;
                 }
             }
 
-            this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? parentNode.id : this._graphRootName);
+            this.sidebar.addNodes(this.sidebar.createNode(id ? id : node.id, node.name, icon, node), parentNode ? (parentNode instanceof Node ? parentNode.id : parentNode) : this._graphRootName);
 
             this.sidebar.refresh();
         }

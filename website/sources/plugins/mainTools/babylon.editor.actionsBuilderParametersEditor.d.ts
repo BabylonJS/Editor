@@ -7,6 +7,7 @@ declare module BABYLON.EDITOR {
         private _container;
         private _guiElements;
         private _currentTarget;
+        private _currentProperty;
         /**
         * Constructor
         * @param core: the editor core
@@ -24,5 +25,6 @@ declare module BABYLON.EDITOR {
         private _getEffectiveTarget(object, target);
         private _createPropertyPath(node, properties?);
         private _createSoundsList();
+        private _getCollectionOfObjects(type);
     }
 }

@@ -2,26 +2,26 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var ScenarioMakerMenu = (function () {
+        var ToolsMenu = (function () {
             /**
             * Constructor
             * @param mainToolbar: the main toolbar instance
             */
-            function ScenarioMakerMenu(mainToolbar) {
+            function ToolsMenu(mainToolbar) {
                 // Public members
-                this.menuID = "SCENARIO-MAKER-MENU";
-                this._openActionsBuilder = "OPEN-SCENARIO-MAKER";
+                this.menuID = "TOOLS-PLUGIN-MENU";
+                this._openActionsBuilder = "OPEN-ACTIONS-BUILDER";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
-                var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-scenario");
+                var menu = toolbar.createMenu("menu", this.menuID, "Tools", "icon-scenario");
                 // Create items
-                toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-play-game");
+                toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
                 // Test
-                // new ActionsBuilder(this._core);
+                EDITOR.ActionsBuilder.GetInstance(this._core);
             }
             // Called when a menu item is selected by the user
-            ScenarioMakerMenu.prototype.onMenuItemSelected = function (selected) {
+            ToolsMenu.prototype.onMenuItemSelected = function (selected) {
                 switch (selected) {
                     case this._openActionsBuilder:
                         EDITOR.ActionsBuilder.GetInstance(this._core);
@@ -29,10 +29,10 @@ var BABYLON;
                     default: break;
                 }
             };
-            return ScenarioMakerMenu;
+            return ToolsMenu;
         }());
-        EDITOR.ScenarioMakerMenu = ScenarioMakerMenu;
+        EDITOR.ToolsMenu = ToolsMenu;
         // Finally, register the plugin using the plugin manager
-        EDITOR.PluginManager.RegisterMainToolbarPlugin(ScenarioMakerMenu);
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(ToolsMenu);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

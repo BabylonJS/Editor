@@ -139,12 +139,12 @@ var BABYLON;
                 this._containerElement = $("#" + this._containerID);
                 // Create layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
-                this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 300, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
+                this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 200, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                     "<div id=\"ACTIONS-BUILDER-ACTIONS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                     "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>");
                 var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
                 mainPanel.style = "overflow: hidden;";
-                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 200, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
+                this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
                 this._layouts.buildElement(this._containerID);
                 // Create triggers list
                 this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
@@ -184,7 +184,7 @@ var BABYLON;
             // Fills the lists on the left (triggers, actions and controls)
             ActionsBuilder.prototype._configureUI = function () {
                 // Triggers
-                for (var i = BABYLON.ActionManager.NothingTrigger; i < BABYLON.ActionManager.OnKeyUpTrigger; i++) {
+                for (var i = BABYLON.ActionManager.NothingTrigger; i <= BABYLON.ActionManager.OnKeyUpTrigger; i++) {
                     this._triggersList.addRecord({ recid: i, name: BABYLON.ActionManager.GetTriggerName(i), style: "background-color: rgb(133, 154, 185)" });
                 }
                 this._triggersList.refresh();
@@ -239,6 +239,7 @@ var BABYLON;
                         EDITOR.SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
                     this._object.actionManager = actionManager;
                 }
+                this._graph.layout();
             };
             // When a list element is clicked
             ActionsBuilder.prototype._onListElementClicked = function (list) {
@@ -285,7 +286,10 @@ var BABYLON;
                         class: null,
                         data: { name: this._currentSelected.id, properties: [], type: 0 /*Trigger as default*/ }
                     };
-                    if (this._currentSelected.list === this._actionsList) {
+                    if (this._currentSelected.list === this._triggersList) {
+                        this._configureActionsBuilderData(data, EACTION_TYPE.TRIGGER);
+                    }
+                    else if (this._currentSelected.list === this._actionsList) {
                         color = "rgb(182, 185, 132)";
                         type = "action";
                         data.class = this._getClass(this._actionsClasses, this._currentSelected.id);
@@ -300,6 +304,12 @@ var BABYLON;
                     // Check target type
                     var targetType = this._graph.getTargetNodeType();
                     if (type === "trigger" && targetType !== null || type !== "trigger" && targetType === null) {
+                        this._currentSelected = null;
+                        return;
+                    }
+                    // Check children.length > 1
+                    var children = this._graph.getNodesWithParent(this._graph.getTargetNodeId());
+                    if (children.length > 0) {
                         this._currentSelected = null;
                         return;
                     }
@@ -366,21 +376,34 @@ var BABYLON;
                 }
                 */
                 data.data.type = type;
-                var constructor = data.class.constructors[0];
-                var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
-                for (var i = 0; i < constructor.parameters.length; i++) {
-                    var param = constructor.parameters[i];
-                    var property = {
-                        name: param.name,
-                        value: null
-                    };
-                    if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
-                        continue;
-                    if (param.name === "target") {
-                        property.targetType = "SceneProperties";
-                        property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                if (!data.class) {
+                    // It's a trigger
+                    var triggerName = data.data.name;
+                    if (triggerName === "OnKeyDownTrigger") {
+                        data.data.properties.push({ name: "parameter", value: "a" });
                     }
-                    data.data.properties.push(property);
+                    else if (triggerName === "OnIntersectionEnterTrigger" || triggerName === "OnIntersectionExitTrigger") {
+                        data.data.properties.push({ name: "target", value: null, targetType: "MeshProperties" });
+                    }
+                }
+                else {
+                    // It's an action or condition
+                    var constructor = data.class.constructors[0];
+                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+                    for (var i = 0; i < constructor.parameters.length; i++) {
+                        var param = constructor.parameters[i];
+                        var property = {
+                            name: param.name,
+                            value: null
+                        };
+                        if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
+                            continue;
+                        if (param.name === "target") {
+                            property.targetType = null;
+                            property.value = "Scene"; //this._core.currentScene.meshes.length > 0 ? this._core.currentScene.meshes[0].name : "";
+                        }
+                        data.data.properties.push(property);
+                    }
                 }
             };
             // Loads the definitions file which contains definitions of the Babylon.js framework
@@ -433,7 +456,8 @@ var BABYLON;
             ActionsBuilder._Classes = null;
             ActionsBuilder._ExcludedClasses = [
                 "PredicateCondition",
-                "ExecuteCodeAction"
+                "ExecuteCodeAction",
+                "CombineAction"
             ];
             return ActionsBuilder;
         }());

@@ -1,12 +1,12 @@
 ﻿module BABYLON.EDITOR {
-    export class ScenarioMakerMenu implements ICustomToolbarMenu {
+    export class ToolsMenu implements ICustomToolbarMenu {
         // Public members
-        public menuID = "SCENARIO-MAKER-MENU";
+        public menuID = "TOOLS-PLUGIN-MENU";
 
         // Private members
         private _core: EditorCore;
 
-        private _openActionsBuilder = "OPEN-SCENARIO-MAKER";
+        private _openActionsBuilder = "OPEN-ACTIONS-BUILDER";
 
         /**
         * Constructor
@@ -17,13 +17,13 @@
             this._core = mainToolbar.core;
 
             // Create menu
-            var menu = toolbar.createMenu("menu", this.menuID, "Scenario Maker", "icon-scenario");
+            var menu = toolbar.createMenu("menu", this.menuID, "Tools", "icon-scenario");
 
             // Create items
-            toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-play-game");
+            toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
 
             // Test
-            // new ActionsBuilder(this._core);
+            ActionsBuilder.GetInstance(this._core);
 
         }
         
@@ -37,5 +37,5 @@
     }
 
     // Finally, register the plugin using the plugin manager
-    PluginManager.RegisterMainToolbarPlugin(ScenarioMakerMenu);
+    PluginManager.RegisterMainToolbarPlugin(ToolsMenu);
 }

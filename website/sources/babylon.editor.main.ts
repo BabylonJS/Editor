@@ -128,7 +128,7 @@
                     var tabID = event.guiEvent.data;
                     var newMainPanelTab = this._mainPanelTabs[tabID];
                     
-                    GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", () => {
+                    GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", () => {
                         this.layouts.resize();
                         this.playLayouts.resize();
                     });

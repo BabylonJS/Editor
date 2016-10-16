@@ -180,5 +180,32 @@
             restoreObjects(scene.lights);
             restoreObjects([scene]);
         }
+
+        /**
+        * Custom meta datas
+        */
+        private static _CustomMetadatas: IStringDictionary<any> = {};
+
+        // Adds a custom meta data
+        public static AddCustomMetadata<T>(key: string, data: T): void {
+            this._CustomMetadatas[key] = data;
+        }
+
+        // Removes a custom meta data
+        public static RemoveCustomMetadata(key: string): boolean {
+            if (!this._CustomMetadatas[key])
+                return false;
+
+            delete this._CustomMetadatas[key];
+            return true;
+        }
+
+        // Returns the custom metadata
+        public static GetCustomMetadata<T>(key: string): T {
+            if (!this._CustomMetadatas[key])
+                return null;
+
+            return this._CustomMetadatas[key];
+        }
     }
 }

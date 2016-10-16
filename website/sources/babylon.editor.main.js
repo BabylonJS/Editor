@@ -85,7 +85,7 @@ var BABYLON;
                     else if (event.guiEvent.eventType === EDITOR.GUIEventType.TAB_CHANGED && event.guiEvent.caller === this._mainPanel) {
                         var tabID = event.guiEvent.data;
                         var newMainPanelTab = this._mainPanelTabs[tabID];
-                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "pop-in", function () {
+                        EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
                         });

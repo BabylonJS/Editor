@@ -41,6 +41,7 @@
     <Content Include="website\css\images\error.png" />
     <Content Include="website\css\images\export.png" />
     <Content Include="website\css\images\focus.png" />
+    <Content Include="website\css\images\graph.png" />
     <Content Include="website\css\images\helpers.png" />
     <Content Include="website\css\images\hill_plane.png" />
     <Content Include="website\css\images\lens_flare.png" />
@@ -255,10 +256,10 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilderGraph.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilder.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.actionsBuilderParametersEditor.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\scenarioMaker\babylon.editor.scenarioMakerMenu.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderGraph.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilder.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderParametersEditor.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.toolsMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneManager.ts" />

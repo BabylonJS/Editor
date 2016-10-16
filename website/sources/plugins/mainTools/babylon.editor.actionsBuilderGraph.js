@@ -46,7 +46,8 @@ var BABYLON;
             };
             // Layout
             ActionsBuilderGraph.prototype.layout = function () {
-                this._graph.layout({ name: "breadthfirst", condense: true, padding: 45, directed: false });
+                //this._graph.layout(<any>{ name: "breadthfirst", condense: true, padding: 45, directed: false, animate: true });
+                this._graph.layout({ name: 'breadthfirst', directed: true, padding: 0, spacingFactor: 1, animate: true });
             };
             // Sets the mouse position
             ActionsBuilderGraph.prototype.setMousePosition = function (x, y) {
@@ -73,7 +74,7 @@ var BABYLON;
                 // Configure node
                 node.css("shape", "roundrectangle");
                 node.css("background-color", color);
-                node.css("width", "180px");
+                node.css("width", "200px");
                 node.css("height", "40px");
                 node.css("label", name);
                 node.css("text-valign", "center");
