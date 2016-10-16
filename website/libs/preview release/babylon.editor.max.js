@@ -13,7 +13,8 @@ var BABYLON;
         (function (EventType) {
             EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
             EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
-            EventType[EventType["UNKNOWN"] = 2] = "UNKNOWN";
+            EventType[EventType["KEY_EVENT"] = 2] = "KEY_EVENT";
+            EventType[EventType["UNKNOWN"] = 3] = "UNKNOWN";
         })(EDITOR.EventType || (EDITOR.EventType = {}));
         var EventType = EDITOR.EventType;
         (function (GUIEventType) {
@@ -38,7 +39,9 @@ var BABYLON;
             GUIEventType[GUIEventType["OBJECT_PICKED"] = 18] = "OBJECT_PICKED";
             GUIEventType[GUIEventType["DOCUMENT_CLICK"] = 19] = "DOCUMENT_CLICK";
             GUIEventType[GUIEventType["DOCUMENT_UNCLICK"] = 20] = "DOCUMENT_UNCLICK";
-            GUIEventType[GUIEventType["UNKNOWN"] = 21] = "UNKNOWN";
+            GUIEventType[GUIEventType["DOCUMENT_KEY_DOWN"] = 21] = "DOCUMENT_KEY_DOWN";
+            GUIEventType[GUIEventType["DOCUMENT_KEY_UP"] = 22] = "DOCUMENT_KEY_UP";
+            GUIEventType[GUIEventType["UNKNOWN"] = 23] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -96,6 +99,20 @@ var BABYLON;
         }(BaseEvent));
         EDITOR.GUIEvent = GUIEvent;
         /**
+        * Key Event
+        */
+        var KeyEvent = (function (_super) {
+            __extends(KeyEvent, _super);
+            function KeyEvent(key, control, isDown, data) {
+                _super.call(this, data);
+                this.key = key;
+                this.control = control;
+                this.isDown = isDown;
+            }
+            return KeyEvent;
+        }(BaseEvent));
+        EDITOR.KeyEvent = KeyEvent;
+        /**
         * IEvent implementation
         */
         var Event = (function () {
@@ -103,6 +120,7 @@ var BABYLON;
                 this.eventType = EventType.UNKNOWN;
                 this.sceneEvent = null;
                 this.guiEvent = null;
+                this.keyEvent = null;
             }
             Event.sendSceneEvent = function (object, type, core) {
                 var ev = new Event();
@@ -114,6 +132,12 @@ var BABYLON;
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
                 ev.guiEvent = new GUIEvent(object, type, data);
+                core.sendEvent(ev);
+            };
+            Event.sendKeyEvent = function (key, control, isDown, core, data) {
+                var ev = new Event();
+                ev.eventType = EventType.KEY_EVENT;
+                ev.keyEvent = new KeyEvent(key, control, isDown, data);
                 core.sendEvent(ev);
             };
             return Event;
@@ -4879,6 +4903,12 @@ var BABYLON;
                 });
                 document.addEventListener("mouseup", function (event) {
                     EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_UNCLICK, _this.core, event);
+                });
+                document.addEventListener("keydown", function (event) {
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, true, _this.core, event);
+                });
+                document.addEventListener("keyup", function (event) {
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, false, _this.core, event);
                 });
             };
             // Statics
@@ -10733,6 +10763,7 @@ var BABYLON;
             * Disposes the application
             */
             ActionsBuilder.prototype.dispose = function () {
+                this._core.removeEventReceiver(this);
                 this._triggersList.destroy();
                 this._actionsList.destroy();
                 this._controlsList.destroy();
@@ -11604,9 +11635,11 @@ var BABYLON;
                 this._postProcessesList = null;
                 this._selectTemplateWindow = null;
                 this._editor = null;
+                this._console = null;
                 this._currentSelected = 0;
                 // Configure this
                 this._core = core;
+                core.eventReceivers.push(this);
                 // Metadatas
                 this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
                 if (!this._datas) {
@@ -11626,10 +11659,22 @@ var BABYLON;
             * Disposes the application
             */
             PostProcessBuilder.prototype.dispose = function () {
+                this._core.removeEventReceiver(this);
                 this._postProcessesList.destroy();
                 this._editor.destroy();
                 this._layouts.destroy();
                 this._engine.dispose();
+            };
+            /**
+            * On event
+            */
+            PostProcessBuilder.prototype.onEvent = function (event) {
+                if (event.eventType === EDITOR.EventType.KEY_EVENT) {
+                    if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
+                        this._onApplyPostProcessChain(false);
+                    }
+                }
+                return false;
             };
             // Creates the UI
             PostProcessBuilder.prototype._createUI = function () {
@@ -11642,6 +11687,7 @@ var BABYLON;
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
                 this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
+                this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
                 this._layouts.buildElement(this._containerID);
                 this._layouts.on("resize", function (event) {
                     _this._editor.resize(true);
@@ -11679,22 +11725,16 @@ var BABYLON;
                 container.append("<hr>");
                 container.append("<br />");
                 // Create build button
-                var buildButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Build Post-Process");
-                buildButton.css("width", "100%");
-                buildButton.css("position", "absolute");
-                buildButton.css("bottom", "10px");
-                buildButton.addClass("btn-green");
-                buildButton.click(function (event) { return _this._onApplyPostProcess(); });
-                var applyOrderButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply Chain");
+                var applyOrderButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply Chain (CTRL + B)");
                 applyOrderButton.css("width", "100%");
                 applyOrderButton.css("position", "absolute");
-                applyOrderButton.css("bottom", "40px");
+                applyOrderButton.css("bottom", "10px");
                 applyOrderButton.addClass("btn-orange");
                 applyOrderButton.click(function (event) { return _this._onApplyPostProcessChain(false); });
                 var applyOnSceneButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply On Scene");
                 applyOnSceneButton.css("width", "100%");
                 applyOnSceneButton.css("position", "absolute");
-                applyOnSceneButton.css("bottom", "70px");
+                applyOnSceneButton.css("bottom", "40px");
                 applyOnSceneButton.addClass("btn-red");
                 applyOnSceneButton.click(function (event) { return _this._onApplyPostProcessChain(true); });
                 // Editor
@@ -11703,6 +11743,12 @@ var BABYLON;
                 this._editor.getSession().setMode("ace/mode/javascript");
                 this._editor.getSession().setValue(BABYLON.Effect.ShadersStore["passPixelShader"]);
                 this._editor.getSession().on("change", function (e) { return _this._onEditorChanged(); });
+                // Console
+                this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
+                this._console.getSession().setValue("Ready.");
+                BABYLON.Tools.Error = function (entry) {
+                    _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry + "\n");
+                };
             };
             // When the user selects an item
             PostProcessBuilder.prototype._onPostProcessSelected = function (selected) {
@@ -11759,21 +11805,10 @@ var BABYLON;
             PostProcessBuilder.prototype._onEditorChanged = function () {
                 this._datas[this._currentSelected].program = this._editor.getSession().getValue();
             };
-            // When the user applies the post-process
-            PostProcessBuilder.prototype._onApplyPostProcess = function () {
-                var data = this._datas[this._currentSelected];
-                if (data.postProcess) {
-                    this._removePostProcess(data.postProcess);
-                    delete BABYLON.Effect.ShadersStore[data.postProcess.name + "PixelShader"];
-                }
-                var id = data.name + EDITOR.SceneFactory.GenerateUUID();
-                BABYLON.Effect.ShadersStore[id + "PixelShader"] = data.program;
-                data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, this._camera);
-                data.postProcess.onApply = this._postProcessCallback(data.postProcess);
-                EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
-            };
             // When the user applies the post-process chain
             PostProcessBuilder.prototype._onApplyPostProcessChain = function (applyOnScene) {
+                // Clear logs
+                this._console.getSession().setValue("Ready.");
                 // Remove post-processes
                 for (var i = 0; i < this._datas.length; i++) {
                     if (this._datas[i].postProcess) {

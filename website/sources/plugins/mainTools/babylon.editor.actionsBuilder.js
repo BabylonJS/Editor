@@ -74,6 +74,7 @@ var BABYLON;
             * Disposes the application
             */
             ActionsBuilder.prototype.dispose = function () {
+                this._core.removeEventReceiver(this);
                 this._triggersList.destroy();
                 this._actionsList.destroy();
                 this._controlsList.destroy();

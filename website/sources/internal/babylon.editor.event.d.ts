@@ -5,7 +5,8 @@ declare module BABYLON.EDITOR {
     enum EventType {
         SCENE_EVENT = 0,
         GUI_EVENT = 1,
-        UNKNOWN = 2,
+        KEY_EVENT = 2,
+        UNKNOWN = 3,
     }
     enum GUIEventType {
         FORM_CHANGED = 0,
@@ -29,7 +30,9 @@ declare module BABYLON.EDITOR {
         OBJECT_PICKED = 18,
         DOCUMENT_CLICK = 19,
         DOCUMENT_UNCLICK = 20,
-        UNKNOWN = 21,
+        DOCUMENT_KEY_DOWN = 21,
+        DOCUMENT_KEY_UP = 22,
+        UNKNOWN = 23,
     }
     enum SceneEventType {
         OBJECT_PICKED = 0,
@@ -72,13 +75,24 @@ declare module BABYLON.EDITOR {
         constructor(caller: GUI.IGUIElement, eventType: number, data?: Object);
     }
     /**
+    * Key Event
+    */
+    class KeyEvent extends BaseEvent {
+        key: string;
+        control: boolean;
+        isDown: boolean;
+        constructor(key: string, control: boolean, isDown: boolean, data?: Object);
+    }
+    /**
     * IEvent implementation
     */
     class Event implements IEvent {
         eventType: EventType;
         sceneEvent: SceneEvent;
         guiEvent: GUIEvent;
+        keyEvent: KeyEvent;
         static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
         static sendGUIEvent(object: GUI.IGUIElement, type: GUIEventType, core: EditorCore, data?: any): void;
+        static sendKeyEvent(key: string, control: boolean, isDown: boolean, core: EditorCore, data?: any): void;
     }
 }

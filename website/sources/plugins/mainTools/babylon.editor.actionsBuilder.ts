@@ -129,6 +129,8 @@
         * Disposes the application
         */
         public dispose(): void {
+            this._core.removeEventReceiver(this);
+
             this._triggersList.destroy();
             this._actionsList.destroy();
             this._controlsList.destroy();

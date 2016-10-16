@@ -452,6 +452,14 @@
             document.addEventListener("mouseup", (event: MouseEvent) => {
                 Event.sendGUIEvent(null, GUIEventType.DOCUMENT_UNCLICK, this.core, event);
             });
+
+            document.addEventListener("keydown", (event: KeyboardEvent) => {
+                Event.sendKeyEvent(event.key, event.ctrlKey, true, this.core, event);
+            });
+
+            document.addEventListener("keyup", (event: KeyboardEvent) => {
+                Event.sendKeyEvent(event.key, event.ctrlKey, false, this.core, event);
+            });
         }
     }
 }

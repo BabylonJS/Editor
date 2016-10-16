@@ -5,8 +5,9 @@
     export enum EventType {
         SCENE_EVENT = 0,
         GUI_EVENT = 1,
+        KEY_EVENT = 2,
 
-        UNKNOWN = 2
+        UNKNOWN = 3
     }
 
     export enum GUIEventType {
@@ -36,7 +37,10 @@
         DOCUMENT_CLICK = 19,
         DOCUMENT_UNCLICK = 20,
 
-        UNKNOWN = 21
+        DOCUMENT_KEY_DOWN = 21,
+        DOCUMENT_KEY_UP = 22,
+
+        UNKNOWN = 23
     }
 
     export enum SceneEventType {
@@ -101,6 +105,23 @@
     }
 
     /**
+    * Key Event
+    */
+    export class KeyEvent extends BaseEvent {
+        public key: string;
+        public control: boolean;
+        public isDown: boolean;
+
+        constructor(key: string, control: boolean, isDown: boolean, data?: Object) {
+            super(data);
+
+            this.key = key;
+            this.control = control;
+            this.isDown = isDown;
+        }
+    }
+
+    /**
     * IEvent implementation
     */
     export class Event implements IEvent {
@@ -108,6 +129,7 @@
 
         public sceneEvent: SceneEvent = null;
         public guiEvent: GUIEvent = null;
+        public keyEvent: KeyEvent = null;
 
         public static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void {
             var ev = new Event();
@@ -123,6 +145,15 @@
 
             ev.eventType = EventType.GUI_EVENT;
             ev.guiEvent = new GUIEvent(object, type, data);
+
+            core.sendEvent(ev);
+        }
+
+        public static sendKeyEvent(key: string, control: boolean, isDown: boolean, core: EditorCore, data?: any): void {
+            var ev = new Event();
+
+            ev.eventType = EventType.KEY_EVENT;
+            ev.keyEvent = new KeyEvent(key, control, isDown, data);
 
             core.sendEvent(ev);
         }

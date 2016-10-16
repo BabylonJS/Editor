@@ -13,7 +13,8 @@ var BABYLON;
         (function (EventType) {
             EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
             EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
-            EventType[EventType["UNKNOWN"] = 2] = "UNKNOWN";
+            EventType[EventType["KEY_EVENT"] = 2] = "KEY_EVENT";
+            EventType[EventType["UNKNOWN"] = 3] = "UNKNOWN";
         })(EDITOR.EventType || (EDITOR.EventType = {}));
         var EventType = EDITOR.EventType;
         (function (GUIEventType) {
@@ -38,7 +39,9 @@ var BABYLON;
             GUIEventType[GUIEventType["OBJECT_PICKED"] = 18] = "OBJECT_PICKED";
             GUIEventType[GUIEventType["DOCUMENT_CLICK"] = 19] = "DOCUMENT_CLICK";
             GUIEventType[GUIEventType["DOCUMENT_UNCLICK"] = 20] = "DOCUMENT_UNCLICK";
-            GUIEventType[GUIEventType["UNKNOWN"] = 21] = "UNKNOWN";
+            GUIEventType[GUIEventType["DOCUMENT_KEY_DOWN"] = 21] = "DOCUMENT_KEY_DOWN";
+            GUIEventType[GUIEventType["DOCUMENT_KEY_UP"] = 22] = "DOCUMENT_KEY_UP";
+            GUIEventType[GUIEventType["UNKNOWN"] = 23] = "UNKNOWN";
         })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
         var GUIEventType = EDITOR.GUIEventType;
         (function (SceneEventType) {
@@ -96,6 +99,20 @@ var BABYLON;
         }(BaseEvent));
         EDITOR.GUIEvent = GUIEvent;
         /**
+        * Key Event
+        */
+        var KeyEvent = (function (_super) {
+            __extends(KeyEvent, _super);
+            function KeyEvent(key, control, isDown, data) {
+                _super.call(this, data);
+                this.key = key;
+                this.control = control;
+                this.isDown = isDown;
+            }
+            return KeyEvent;
+        }(BaseEvent));
+        EDITOR.KeyEvent = KeyEvent;
+        /**
         * IEvent implementation
         */
         var Event = (function () {
@@ -103,6 +120,7 @@ var BABYLON;
                 this.eventType = EventType.UNKNOWN;
                 this.sceneEvent = null;
                 this.guiEvent = null;
+                this.keyEvent = null;
             }
             Event.sendSceneEvent = function (object, type, core) {
                 var ev = new Event();
@@ -114,6 +132,12 @@ var BABYLON;
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT;
                 ev.guiEvent = new GUIEvent(object, type, data);
+                core.sendEvent(ev);
+            };
+            Event.sendKeyEvent = function (key, control, isDown, core, data) {
+                var ev = new Event();
+                ev.eventType = EventType.KEY_EVENT;
+                ev.keyEvent = new KeyEvent(key, control, isDown, data);
                 core.sendEvent(ev);
             };
             return Event;

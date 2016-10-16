@@ -20,7 +20,7 @@
         "}"
     ].join("\n");
 
-    export class PostProcessBuilder implements ITabApplication {
+    export class PostProcessBuilder implements ITabApplication, IEventReceiver {
         // Public members
 
         // Private members
@@ -42,6 +42,7 @@
         private _selectTemplateWindow: GUI.GUIWindow = null;
 
         private _editor: AceAjax.Editor = null;
+        private _console: AceAjax.Editor = null;
 
         private _datas: IPostProcessBuilderData[];
         private _currentSelected: number = 0;
@@ -53,6 +54,7 @@
         constructor(core: EditorCore) {
             // Configure this
             this._core = core;
+            core.eventReceivers.push(this);
 
             // Metadatas
             this._datas = SceneManager.GetCustomMetadata<IPostProcessBuilderData[]>("PostProcessBuilder");
@@ -76,11 +78,26 @@
         * Disposes the application
         */
         public dispose(): void {
+            this._core.removeEventReceiver(this);
+
             this._postProcessesList.destroy();
             this._editor.destroy();
             this._layouts.destroy();
 
             this._engine.dispose();
+        }
+
+        /**
+        * On event
+        */
+        public onEvent(event: Event): boolean {
+            if (event.eventType === EventType.KEY_EVENT) {
+                if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
+                    this._onApplyPostProcessChain(false);
+                }
+            }
+
+            return false;
         }
 
         // Creates the UI
@@ -94,6 +111,7 @@
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
             this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
+            this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
             this._layouts.buildElement(this._containerID);
 
             this._layouts.on("resize", (event) => {
@@ -141,24 +159,17 @@
             container.append("<br />");
 
             // Create build button
-            var buildButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Build Post-Process");
-            buildButton.css("width", "100%");
-            buildButton.css("position", "absolute");
-            buildButton.css("bottom", "10px");
-            buildButton.addClass("btn-green");
-            buildButton.click((event) => this._onApplyPostProcess());
-
-            var applyOrderButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Apply Chain");
+            var applyOrderButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Apply Chain (CTRL + B)");
             applyOrderButton.css("width", "100%");
             applyOrderButton.css("position", "absolute");
-            applyOrderButton.css("bottom", "40px");
+            applyOrderButton.css("bottom", "10px");
             applyOrderButton.addClass("btn-orange");
             applyOrderButton.click((event) => this._onApplyPostProcessChain(false));
 
             var applyOnSceneButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Apply On Scene");
             applyOnSceneButton.css("width", "100%");
             applyOnSceneButton.css("position", "absolute");
-            applyOnSceneButton.css("bottom", "70px");
+            applyOnSceneButton.css("bottom", "40px");
             applyOnSceneButton.addClass("btn-red");
             applyOnSceneButton.click((event) => this._onApplyPostProcessChain(true));
 
@@ -168,6 +179,14 @@
             this._editor.getSession().setMode("ace/mode/javascript");
             this._editor.getSession().setValue(Effect.ShadersStore["passPixelShader"]);
             this._editor.getSession().on("change", (e) => this._onEditorChanged());
+
+            // Console
+            this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
+            this._console.getSession().setValue("Ready.");
+            
+            BABYLON.Tools.Error = (entry: string) => {
+                this._console.getSession().setValue(this._console.getSession().getValue() + "\n" + entry + "\n");
+            };
         }
 
         // When the user selects an item
@@ -238,25 +257,11 @@
             this._datas[this._currentSelected].program = this._editor.getSession().getValue();
         }
 
-        // When the user applies the post-process
-        private _onApplyPostProcess(): void {
-            var data = this._datas[this._currentSelected];
-            if (data.postProcess) {
-                this._removePostProcess(data.postProcess);
-                delete Effect.ShadersStore[data.postProcess.name + "PixelShader"];
-            }
-
-            var id = data.name + SceneFactory.GenerateUUID();
-            Effect.ShadersStore[id + "PixelShader"] = data.program;
-
-            data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, this._camera);
-            data.postProcess.onApply = this._postProcessCallback(data.postProcess);
-
-            SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
-        }
-
         // When the user applies the post-process chain
         private _onApplyPostProcessChain(applyOnScene: boolean): void {
+            // Clear logs
+            this._console.getSession().setValue("Ready.");
+
             // Remove post-processes
             for (var i = 0; i < this._datas.length; i++) {
                 if (this._datas[i].postProcess) {

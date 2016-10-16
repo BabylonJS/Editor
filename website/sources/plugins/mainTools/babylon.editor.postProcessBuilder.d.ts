@@ -1,5 +1,5 @@
 declare module BABYLON.EDITOR {
-    class PostProcessBuilder implements ITabApplication {
+    class PostProcessBuilder implements ITabApplication, IEventReceiver {
         private _core;
         private _engine;
         private _scene;
@@ -13,6 +13,7 @@ declare module BABYLON.EDITOR {
         private _postProcessesList;
         private _selectTemplateWindow;
         private _editor;
+        private _console;
         private _datas;
         private _currentSelected;
         /**
@@ -24,13 +25,16 @@ declare module BABYLON.EDITOR {
         * Disposes the application
         */
         dispose(): void;
+        /**
+        * On event
+        */
+        onEvent(event: Event): boolean;
         private _createUI();
         private _onPostProcessSelected(selected);
         private _onPostProcessAdd();
         private _onPostProcessRemove(selected);
         private _onPostProcessEditField(recid, value);
         private _onEditorChanged();
-        private _onApplyPostProcess();
         private _onApplyPostProcessChain(applyOnScene);
         private _removePostProcess(postProcess, applyOnScene?);
         private _postProcessCallback(postProcess, applyOnScene?);
