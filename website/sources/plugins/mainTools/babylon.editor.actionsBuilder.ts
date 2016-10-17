@@ -159,9 +159,19 @@
                 var childData: IActionsBuilderSerializationObject = {
                     name: data.name,
                     type: data.type,
-                    properties: data.properties,
+                    properties: [],
                     children: []
                 };
+
+                // Configure properties
+                for (var j = 0; j < data.properties.length; j++) {
+                    var property = data.properties[j];
+                    var newProperty: IActionsBuilderProperty = { name: property.name, value: property.value, targetType: property.targetType };
+                    if (property.name === "target" && property.value === "Scene")
+                        newProperty.targetType = "SceneProperties";
+
+                    childData.properties.push(newProperty);
+                }
 
                 this.serializeGraph(childData, nodes[i]);
 
@@ -325,21 +335,59 @@
 
         // When the user saves the graph
         private _onSave(): void {
-            var graph = this.serializeGraph();
-            var actionManager: ActionManager = null;
+            if (!this._object) {
+                // Create a window to select an object
+                var inputID = SceneFactory.GenerateUUID();
 
-            if (!this._core.isPlaying)
-                actionManager = this._object.actionManager;
+                // Window
+                var window = new GUI.GUIWindow("SELECT-OBJECT-WINDOW", this._core, "Select object", GUI.GUIElement.CreateElement("input", inputID, "width: 100%;"), new Vector2(400, 150), ["Select", "Close"]);
+                window.setOnCloseCallback(() => {
+                    window.destroy();
+                });
 
-            ActionManager.Parse(graph, <AbstractMesh>this._object, this._core.currentScene);
+                window.buildElement(null);
 
-            if (actionManager) {
-                if (this._object instanceof AbstractMesh)
-                    SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager = this._object.actionManager;
-                else
-                    SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+                // List
+                var items: string[] = [];
+                this._parametersEditor.populateStringArray(items, ["Scene"]);
+                this._parametersEditor.populateStringArray(items, this._core.currentScene.meshes, "name");
 
-                this._object.actionManager = actionManager;
+                var list = new GUI.GUIList(inputID, this._core);
+                list.renderDrop = true;
+                list.items = items;
+                list.buildElement(inputID);
+
+                // Events
+                window.onButtonClicked = (buttonId: string) => {
+                    if (buttonId === "Select") {
+                        var selected = list.getValue();
+                        if (selected === "Scene")
+                            this._object = this._core.currentScene;
+                        else
+                            this._object = this._core.currentScene.getMeshByName(selected);
+                    }
+
+                    window.close();
+                    this._onSave();
+                };
+            }
+            else {
+                var graph = this.serializeGraph();
+                var actionManager: ActionManager = null;
+
+                if (!this._core.isPlaying)
+                    actionManager = this._object.actionManager;
+
+                ActionManager.Parse(graph, <AbstractMesh>this._object, this._core.currentScene);
+
+                if (!this._core.isPlaying) {
+                    if (this._object instanceof AbstractMesh)
+                        SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager = this._object.actionManager;
+                    else
+                        SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+
+                    this._object.actionManager = actionManager;
+                }
             }
 
             this._graph.layout();
@@ -425,11 +473,15 @@
                     return;
                 }
 
-                // Check children.length > 1
-                var children = this._graph.getNodesWithParent(this._graph.getTargetNodeId());
-                if (children.length > 0) {
-                    this._currentSelected = null;
-                    return;
+                // Check children.length > 1 and not a trigger
+                var targetNodeId = this._graph.getTargetNodeId();
+                if (targetNodeId) {
+                    var targetNodeData = this._graph.getNodeData<IActionsBuilderData>(targetNodeId);
+                    var children = this._graph.getNodesWithParent(targetNodeId);
+                    if (children.length > 0 && targetNodeData.data.type !== EACTION_TYPE.TRIGGER) {
+                        this._currentSelected = null;
+                        return;
+                    }
                 }
 
                 // Finally, add node and configure it
@@ -502,8 +554,8 @@
             if (!data.class) {
                 // It's a trigger
                 var triggerName = data.data.name;
-                if (triggerName === "OnKeyDownTrigger") {
-                    data.data.properties.push({ name: "parameter", value: "a" });
+                if (triggerName === "OnKeyDownTrigger" || triggerName === "OnKeyUpTrigger") {
+                    data.data.properties.push({ name: "parameter", value: "a", targetType: null });
                 }
                 else if (triggerName === "OnIntersectionEnterTrigger" || triggerName === "OnIntersectionExitTrigger") {
                     data.data.properties.push({ name: "target", value: null, targetType: "MeshProperties" });
@@ -518,7 +570,8 @@
                     var param = constructor.parameters[i];
                     var property: IActionsBuilderProperty = {
                         name: param.name,
-                        value: null
+                        value: null,
+                        targetType: null
                     };
 
                     if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)

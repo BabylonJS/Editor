@@ -126,6 +126,16 @@
             }
         }
 
+        // Populates the given string array with another
+        public populateStringArray(array: string[], values: string[] | any[], property?: string): void {
+            for (var i = 0; i < values.length; i++) {
+                if (property)
+                    array.push(values[i][property]);
+                else
+                    array.push(values[i]);
+            }
+        }
+
         // Creates a generic field
         private _createField(property: IActionsBuilderProperty): JQuery {
             var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
@@ -139,7 +149,7 @@
             var inputElement = $("#" + id);
             inputElement.val(property.value);
 
-            inputElement.change((event: any) => {
+            inputElement.keyup((event) => {
                 property.value = inputElement.val();
             });
 
@@ -180,11 +190,11 @@
                 list.items = items;
             else {
                 list.items = [];
-                this._populateStringArray(list.items, ["Scene"]);
-                this._populateStringArray(list.items, this._core.currentScene.meshes, "name");
-                this._populateStringArray(list.items, this._core.currentScene.lights, "name");
-                this._populateStringArray(list.items, this._core.currentScene.cameras, "name");
-                this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
+                this.populateStringArray(list.items, ["Scene"]);
+                this.populateStringArray(list.items, this._core.currentScene.meshes, "name");
+                this.populateStringArray(list.items, this._core.currentScene.lights, "name");
+                this.populateStringArray(list.items, this._core.currentScene.cameras, "name");
+                this.populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
             }
             
             list.selected = property.value;
@@ -192,6 +202,7 @@
 
             list.onChange = (selected: string) => {
                 property.value = selected;
+
                 if (callback)
                     callback(property.value);
             };
@@ -217,16 +228,6 @@
             var divContainer = $(divID, this._container);
             var text = GUI.GUIElement.CreateElement("a", divID, "width: 100%; height: 100%; vertical-align: middle; line-height: 25px;", name, true);
             divContainer.append(text);
-        }
-
-        // Populates the given string array with another
-        private _populateStringArray(array: string[], values: string[] | any[], property?: string): void {
-            for (var i = 0; i < values.length; i++) {
-                if (property)
-                    array.push(values[i][property]);
-                else
-                    array.push(values[i]);
-            }
         }
 
         // Destroys the existing elements
@@ -318,13 +319,13 @@
                 return ["Scene"];
 
             if (type === "MeshProperties")
-                this._populateStringArray(array, this._core.currentScene.meshes, "name");
+                this.populateStringArray(array, this._core.currentScene.meshes, "name");
 
             if (type === "LightProperties")
-                this._populateStringArray(array, this._core.currentScene.lights, "name");
+                this.populateStringArray(array, this._core.currentScene.lights, "name");
 
             if (type === "CameraProperties")
-                this._populateStringArray(array, this._core.currentScene.cameras, "name");
+                this.populateStringArray(array, this._core.currentScene.cameras, "name");
 
             return array.length === 0 ? null : array;
         }

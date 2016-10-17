@@ -99,9 +99,17 @@ var BABYLON;
                     var childData = {
                         name: data.name,
                         type: data.type,
-                        properties: data.properties,
+                        properties: [],
                         children: []
                     };
+                    // Configure properties
+                    for (var j = 0; j < data.properties.length; j++) {
+                        var property = data.properties[j];
+                        var newProperty = { name: property.name, value: property.value, targetType: property.targetType };
+                        if (property.name === "target" && property.value === "Scene")
+                            newProperty.targetType = "SceneProperties";
+                        childData.properties.push(newProperty);
+                    }
                     this.serializeGraph(childData, nodes[i]);
                     root.children.push(childData);
                 }
@@ -228,17 +236,50 @@ var BABYLON;
             };
             // When the user saves the graph
             ActionsBuilder.prototype._onSave = function () {
-                var graph = this.serializeGraph();
-                var actionManager = null;
-                if (!this._core.isPlaying)
-                    actionManager = this._object.actionManager;
-                BABYLON.ActionManager.Parse(graph, this._object, this._core.currentScene);
-                if (actionManager) {
-                    if (this._object instanceof BABYLON.AbstractMesh)
-                        EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager = this._object.actionManager;
-                    else
-                        EDITOR.SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
-                    this._object.actionManager = actionManager;
+                var _this = this;
+                if (!this._object) {
+                    // Create a window to select an object
+                    var inputID = EDITOR.SceneFactory.GenerateUUID();
+                    // Window
+                    var window = new EDITOR.GUI.GUIWindow("SELECT-OBJECT-WINDOW", this._core, "Select object", EDITOR.GUI.GUIElement.CreateElement("input", inputID, "width: 100%;"), new BABYLON.Vector2(400, 150), ["Select", "Close"]);
+                    window.setOnCloseCallback(function () {
+                        window.destroy();
+                    });
+                    window.buildElement(null);
+                    // List
+                    var items = [];
+                    this._parametersEditor.populateStringArray(items, ["Scene"]);
+                    this._parametersEditor.populateStringArray(items, this._core.currentScene.meshes, "name");
+                    var list = new EDITOR.GUI.GUIList(inputID, this._core);
+                    list.renderDrop = true;
+                    list.items = items;
+                    list.buildElement(inputID);
+                    // Events
+                    window.onButtonClicked = function (buttonId) {
+                        if (buttonId === "Select") {
+                            var selected = list.getValue();
+                            if (selected === "Scene")
+                                _this._object = _this._core.currentScene;
+                            else
+                                _this._object = _this._core.currentScene.getMeshByName(selected);
+                        }
+                        window.close();
+                        _this._onSave();
+                    };
+                }
+                else {
+                    var graph = this.serializeGraph();
+                    var actionManager = null;
+                    if (!this._core.isPlaying)
+                        actionManager = this._object.actionManager;
+                    BABYLON.ActionManager.Parse(graph, this._object, this._core.currentScene);
+                    if (!this._core.isPlaying) {
+                        if (this._object instanceof BABYLON.AbstractMesh)
+                            EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager = this._object.actionManager;
+                        else
+                            EDITOR.SceneManager._SceneConfiguration.actionManager = this._object.actionManager;
+                        this._object.actionManager = actionManager;
+                    }
                 }
                 this._graph.layout();
             };
@@ -308,11 +349,15 @@ var BABYLON;
                         this._currentSelected = null;
                         return;
                     }
-                    // Check children.length > 1
-                    var children = this._graph.getNodesWithParent(this._graph.getTargetNodeId());
-                    if (children.length > 0) {
-                        this._currentSelected = null;
-                        return;
+                    // Check children.length > 1 and not a trigger
+                    var targetNodeId = this._graph.getTargetNodeId();
+                    if (targetNodeId) {
+                        var targetNodeData = this._graph.getNodeData(targetNodeId);
+                        var children = this._graph.getNodesWithParent(targetNodeId);
+                        if (children.length > 0 && targetNodeData.data.type !== EACTION_TYPE.TRIGGER) {
+                            this._currentSelected = null;
+                            return;
+                        }
                     }
                     // Finally, add node and configure it
                     this._graph.addNode(this._currentSelected.id, this._currentSelected.id, color, type, null, data);
@@ -380,8 +425,8 @@ var BABYLON;
                 if (!data.class) {
                     // It's a trigger
                     var triggerName = data.data.name;
-                    if (triggerName === "OnKeyDownTrigger") {
-                        data.data.properties.push({ name: "parameter", value: "a" });
+                    if (triggerName === "OnKeyDownTrigger" || triggerName === "OnKeyUpTrigger") {
+                        data.data.properties.push({ name: "parameter", value: "a", targetType: null });
                     }
                     else if (triggerName === "OnIntersectionEnterTrigger" || triggerName === "OnIntersectionExitTrigger") {
                         data.data.properties.push({ name: "target", value: null, targetType: "MeshProperties" });
@@ -395,7 +440,8 @@ var BABYLON;
                         var param = constructor.parameters[i];
                         var property = {
                             name: param.name,
-                            value: null
+                            value: null,
+                            targetType: null
                         };
                         if (param.name === "triggerOptions" || param.name === "condition" || allowedTypes.indexOf(param.type) === -1)
                             continue;

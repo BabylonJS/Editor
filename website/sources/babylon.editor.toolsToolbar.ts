@@ -71,7 +71,7 @@
 
                     if (checked) {
                         // Save states
-                        SceneManager.SaveObjectStates(this._core.currentScene);
+                        //SceneManager.SaveObjectStates(this._core.currentScene);
 
                         // Transformers
                         this._editor.transformer.setNode(null);
@@ -101,7 +101,7 @@
                     }
                     else {
                         // Restore states
-                        SceneManager.RestoreObjectsStates(this._core.currentScene);
+                        //SceneManager.RestoreObjectsStates(this._core.currentScene);
 
                         this._core.engine.resize();
 

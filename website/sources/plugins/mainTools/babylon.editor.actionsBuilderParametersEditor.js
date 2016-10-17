@@ -104,6 +104,15 @@ var BABYLON;
                     this._container.append("<hr>");
                 }
             };
+            // Populates the given string array with another
+            ActionsBuilderParametersEditor.prototype.populateStringArray = function (array, values, property) {
+                for (var i = 0; i < values.length; i++) {
+                    if (property)
+                        array.push(values[i][property]);
+                    else
+                        array.push(values[i]);
+                }
+            };
             // Creates a generic field
             ActionsBuilderParametersEditor.prototype._createField = function (property) {
                 var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
@@ -113,7 +122,7 @@ var BABYLON;
                 this._container.append(input);
                 var inputElement = $("#" + id);
                 inputElement.val(property.value);
-                inputElement.change(function (event) {
+                inputElement.keyup(function (event) {
                     property.value = inputElement.val();
                 });
                 return $("#" + id);
@@ -143,11 +152,11 @@ var BABYLON;
                     list.items = items;
                 else {
                     list.items = [];
-                    this._populateStringArray(list.items, ["Scene"]);
-                    this._populateStringArray(list.items, this._core.currentScene.meshes, "name");
-                    this._populateStringArray(list.items, this._core.currentScene.lights, "name");
-                    this._populateStringArray(list.items, this._core.currentScene.cameras, "name");
-                    this._populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
+                    this.populateStringArray(list.items, ["Scene"]);
+                    this.populateStringArray(list.items, this._core.currentScene.meshes, "name");
+                    this.populateStringArray(list.items, this._core.currentScene.lights, "name");
+                    this.populateStringArray(list.items, this._core.currentScene.cameras, "name");
+                    this.populateStringArray(list.items, this._core.currentScene.particleSystems, "name");
                 }
                 list.selected = property.value;
                 list.buildElement(id);
@@ -180,15 +189,6 @@ var BABYLON;
                 var divContainer = $(divID, this._container);
                 var text = EDITOR.GUI.GUIElement.CreateElement("a", divID, "width: 100%; height: 100%; vertical-align: middle; line-height: 25px;", name, true);
                 divContainer.append(text);
-            };
-            // Populates the given string array with another
-            ActionsBuilderParametersEditor.prototype._populateStringArray = function (array, values, property) {
-                for (var i = 0; i < values.length; i++) {
-                    if (property)
-                        array.push(values[i][property]);
-                    else
-                        array.push(values[i]);
-                }
             };
             // Destroys the existing elements
             ActionsBuilderParametersEditor.prototype._destroyGUIElements = function () {
@@ -259,11 +259,11 @@ var BABYLON;
                 if (type === "SceneProperties")
                     return ["Scene"];
                 if (type === "MeshProperties")
-                    this._populateStringArray(array, this._core.currentScene.meshes, "name");
+                    this.populateStringArray(array, this._core.currentScene.meshes, "name");
                 if (type === "LightProperties")
-                    this._populateStringArray(array, this._core.currentScene.lights, "name");
+                    this.populateStringArray(array, this._core.currentScene.lights, "name");
                 if (type === "CameraProperties")
-                    this._populateStringArray(array, this._core.currentScene.cameras, "name");
+                    this.populateStringArray(array, this._core.currentScene.cameras, "name");
                 return array.length === 0 ? null : array;
             };
             return ActionsBuilderParametersEditor;
