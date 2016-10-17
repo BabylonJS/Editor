@@ -158,9 +158,20 @@
         // Apply the selected material
         private _applyMaterial(): void {
             var material = new BABYLON[this._libraryDummyProperty]("New Material " + SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
-            this.object.material = material;
 
-            if (material instanceof FurMaterial) {
+            if (this.object instanceof AbstractMesh)
+                this.object.material = material;
+            else if (this.object instanceof SubMesh) {
+                var subMesh = <SubMesh>this.object;
+                var subMeshMaterial = <MultiMaterial>subMesh.getMesh().material;
+
+                if (!(subMeshMaterial instanceof MultiMaterial))
+                    return;
+
+                subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
+            }
+
+            if (material instanceof FurMaterial && this.object instanceof AbstractMesh) {
                 var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                 (<FurMaterial>material).furTexture = furTexture;
                 

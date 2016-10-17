@@ -2816,8 +2816,16 @@ var BABYLON;
             // Apply the selected material
             MaterialTool.prototype._applyMaterial = function () {
                 var material = new BABYLON[this._libraryDummyProperty]("New Material " + EDITOR.SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
-                this.object.material = material;
-                if (material instanceof BABYLON.FurMaterial) {
+                if (this.object instanceof BABYLON.AbstractMesh)
+                    this.object.material = material;
+                else if (this.object instanceof BABYLON.SubMesh) {
+                    var subMesh = this.object;
+                    var subMeshMaterial = subMesh.getMesh().material;
+                    if (!(subMeshMaterial instanceof BABYLON.MultiMaterial))
+                        return;
+                    subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
+                }
+                if (material instanceof BABYLON.FurMaterial && this.object instanceof BABYLON.AbstractMesh) {
                     var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                     material.furTexture = furTexture;
                     var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);
