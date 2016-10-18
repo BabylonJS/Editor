@@ -2,8 +2,14 @@
     interface IPostProcessBuilderData {
         name: string;
         program: string;
+        configuration: string;
         postProcess?: PostProcess;
         mainPostProcess?: PostProcess;
+    }
+
+    interface IPostProcessConfiguration {
+        ratio: number;
+        defines: string[];
     }
 
     interface IPostProcessGridItem extends GUI.IGridRowData {
@@ -37,7 +43,12 @@
         private _tab: GUI.IGUITab = null;
 
         private _layouts: GUI.GUILayout = null;
+        private _mainPanel: GUI.GUIPanel = null;
         private _postProcessesList: GUI.GUIGrid<IPostProcessGridItem> = null;
+
+        private _glslTabId: string = null;
+        private _configurationTabId: string = null;
+        private _currentTabId: string = null;
 
         private _selectTemplateWindow: GUI.GUIWindow = null;
 
@@ -46,6 +57,9 @@
 
         private _datas: IPostProcessBuilderData[];
         private _currentSelected: number = 0;
+
+        // Static members
+        public static _ConfigurationFileContent: string = null;
 
         /**
         * Constructor
@@ -56,22 +70,25 @@
             this._core = core;
             core.eventReceivers.push(this);
 
-            // Metadatas
-            this._datas = SceneManager.GetCustomMetadata<IPostProcessBuilderData[]>("PostProcessBuilder");
-            if (!this._datas) {
-                this._datas = [{ name: "NewPostProcess", program: Effect.ShadersStore["passPixelShader"] }];
-                SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
-            }
+            // Finalize
+            this._getConfigurationFile(() => {
+                // Metadatas
+                this._datas = SceneManager.GetCustomMetadata<IPostProcessBuilderData[]>("PostProcessBuilder");
+                if (!this._datas) {
+                    this._datas = [{ name: "NewPostProcess", program: Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                    SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
+                }
 
-            // Create UI
-            this._createUI();
-            this._onPostProcessSelected([0]);
+                // Create UI
+                this._createUI();
+                this._onPostProcessSelected([0]);
 
-            // Create main post-process
-            var postProcess = new PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, this._camera);
-            postProcess.onApply = (effect: Effect) => {
-                effect.setTexture("originalSampler", this._texture);
-            };
+                // Create main post-process
+                var postProcess = new PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, this._camera);
+                postProcess.onApply = (effect: Effect) => {
+                    effect.setTexture("originalSampler", this._texture);
+                };
+            });
         }
 
         /**
@@ -127,6 +144,14 @@
             this._layouts.on("resize", (event) => {
                 this._editor.resize(true);
             });
+
+            this._glslTabId = this._currentTabId = SceneFactory.GenerateUUID();
+            this._configurationTabId = SceneFactory.GenerateUUID();
+
+            this._mainPanel = this._layouts.getPanelFromType("main");
+            this._mainPanel.createTab({ caption: "GLSL", closable: false, id: this._glslTabId });
+            this._mainPanel.createTab({ caption: "Configuration", closable: false, id: this._configurationTabId });
+            this._mainPanel.onTabChanged = (id) => this._onTabChanged(id);
 
             // GUI
             var container = $("#POST-PROCESS-BUILDER-EDIT");
@@ -199,13 +224,27 @@
             };
         }
 
+        // On tab changed
+        private _onTabChanged(id: string): void {
+            this._currentTabId = id;
+
+            if (id === this._glslTabId) {
+                this._editor.getSession().setMode("ace/mode/glsl");
+                this._editor.getSession().setValue(this._datas[this._currentSelected].program);
+            }
+            else {
+                this._editor.getSession().setMode("ace/mode/javascript");
+                this._editor.getSession().setValue(this._datas[this._currentSelected].configuration);
+            }
+        }
+
         // When the user selects an item
         private _onPostProcessSelected(selected: number[]): void {
             if (selected.length < 1)
                 return;
 
             this._currentSelected = selected[0];
-            this._editor.getSession().setValue(this._datas[selected[0]].program);
+            this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
         }
 
         // When the user adds a new post-process
@@ -236,7 +275,7 @@
             this._selectTemplateWindow.onButtonClicked = (buttonId: string) => {
                 if (buttonId === "Select") {
                     var selected = list.getValue();
-                    var data: IPostProcessBuilderData = { name: selected + this._datas.length, program: Effect.ShadersStore[selected] };
+                    var data: IPostProcessBuilderData = { name: selected + this._datas.length, program: Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
 
                     this._datas.push(data);
                     this._postProcessesList.addRecord({ name: data.name });
@@ -268,8 +307,14 @@
 
         // When the user modifies a post-process
         private _onEditorChanged(): void {
-            if (this._currentSelected >= 0)
-                this._datas[this._currentSelected].program = this._editor.getSession().getValue();
+            if (this._currentSelected >= 0) {
+                var value = this._editor.getSession().getValue();
+
+                if (this._currentTabId === this._glslTabId)
+                    this._datas[this._currentSelected].program = value;
+                else
+                    this._datas[this._currentSelected].configuration = value;
+            }
         }
 
         // When the user applies the post-process chain
@@ -305,11 +350,17 @@
 
                 Effect.ShadersStore[id + "PixelShader"] = data.program;
 
-                data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, this._camera);
+                var configuration = <IPostProcessConfiguration>JSON.parse(data.configuration);
+                var defines: string[] = [];
+                for (var j = 0; j < configuration.defines.length; j++) {
+                    defines.push("#define " + configuration.defines[j] + "\n");
+                }
+
+                data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, this._camera, Texture.BILINEAR_SAMPLINGMODE, this._engine, false, defines.join());
                 data.postProcess.onApply = this._postProcessCallback(data.postProcess);
 
                 if (applyOnScene) {
-                    data.mainPostProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, null, Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false);
+                    data.mainPostProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false, defines.join());
                     data.mainPostProcess.onApply = this._postProcessCallback(data.postProcess, true);
 
                     for (var j = 0; j < this._core.currentScene.cameras.length; j++)
@@ -354,10 +405,25 @@
 
             for (var i = 0; i < this._datas.length; i++) {
                 var data = this._datas[i];
-                customData.push({ name: data.name, program: data.program, postProcess: null, mainPostProcess: null });
+                customData.push({ name: data.name, program: data.program, configuration: data.configuration, postProcess: null, mainPostProcess: null });
             }
 
             SceneManager.AddCustomMetadata("PostProcessBuilder", customData);
+        }
+
+        // Gets the configuration file
+        private _getConfigurationFile(callback: () => void): void {
+            if (!PostProcessBuilder._ConfigurationFileContent) {
+                this._core.editor.layouts.lockPanel("preview", "Loading...", true);
+
+                BABYLON.Tools.LoadFile("website/resources/template.postprocess.configuration.json", (data: string) => {
+                    PostProcessBuilder._ConfigurationFileContent = data;
+                    this._core.editor.layouts.unlockPanel("preview");
+                    callback();
+                });
+            }
+            else
+                callback();
         }
     }
 }

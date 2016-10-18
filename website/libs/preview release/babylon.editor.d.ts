@@ -701,6 +701,402 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class Exporter {
+        core: EditorCore;
+        private _window;
+        private _editor;
+        private _editorID;
+        private _generatedCode;
+        /**
+        * Constructor
+        */
+        constructor(core: EditorCore);
+        openSceneExporter(babylonScene?: boolean): void;
+        generateCode(babylonScene?: boolean): string;
+        static ExportCode(core: EditorCore): string;
+        _exportSceneValues(): string;
+        _exportScene(): string;
+        _exportReflectionProbes(): string;
+        _exportNodeTransform(node: any): string;
+        _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportPostProcesses(): string;
+        _exportAnimations(node: IAnimatable): string;
+        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
+        _exportSky(node: Node): string;
+        _exportParticleSystem(particleSystem: ParticleSystem): string;
+        _exportLight(light: Light): string;
+        _exportVector2(vector: Vector2): string;
+        _exportVector3(vector: Vector3): string;
+        _exportQuaternion(quaternion: Quaternion): string;
+        _exportColor3(color: Color3): string;
+        _exportColor4(color: Color4): string;
+        private _traverseNodes(node?);
+        private _fillRootNodes(data, propertyPath);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ProjectExporter {
+        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
+        private static _SerializeGlobalAnimations();
+        private static _SerializeSounds(core);
+        private static _SerializeRenderTargets(core);
+        private static _SerializeLensFlares(core);
+        private static _SerializePostProcesses();
+        private static _TraverseNodes(core, node, project);
+        private static _SerializeActionManager(object);
+        private static _SerializeCustomMetadatas();
+        private static _RequestMaterial(core, project, material);
+        private static _GetSerializedMaterial(project, materialName);
+        private static _ConfigureMaterial(material, projectMaterial);
+        private static _ConfigureBase64Texture(source, objectToConfigure);
+        private static _FillRootNodes(core, data, propertyPath);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class ProjectImporter {
+        static ImportProject(core: EditorCore, data: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class StorageExporter implements IEventReceiver {
+        core: EditorCore;
+        private _storage;
+        private _window;
+        private _filesList;
+        private _currentChildrenFolder;
+        private _currentFolder;
+        private _previousFolders;
+        private _onFolderSelected;
+        private _statusBarId;
+        private static _projectFolder;
+        private static _projectFolderChildren;
+        static OneDriveStorage: string;
+        /**
+        * Constructor
+        */
+        constructor(core: EditorCore, storageType?: string);
+        onEvent(event: Event): boolean;
+        createTemplate(): void;
+        export(): void;
+        getFolder(name: string): IStorageFile;
+        getFile(name: string): IStorageFile;
+        private _createTemplate();
+        private _fileExists(files, name, parent?);
+        private _processIndexHTML(project, content);
+        private _openFolderDialog(success?);
+        private _updateFolderDialog(folder?);
+        private _updateFileList(onSuccess);
+        private _getFileFolder(name, type, files);
+        private _lockPanel(message);
+        private _unlockPanel();
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
+        title: string;
+        body: string;
+        callback: (data: string) => void;
+        /**
+        * Constructor
+        * @param name: the form name
+        */
+        constructor(name: string, core: EditorCore, title: string, body: string);
+        buildElement(parent: string): void;
+        static CreateDialog(body: string, title?: string, yesCallback?: () => void, noCallback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIEditForm extends GUIElement<W2UI.IElement> {
+        private _datElement;
+        /**
+        * Constructor
+        * @param name: the form name
+        */
+        constructor(name: string, core: EditorCore);
+        remove(): void;
+        addFolder(name: any, parent?: dat.IFolderElement): dat.IFolderElement;
+        add(object: Object, propertyPath: string, items?: Array<string>, name?: string): dat.IGUIElement;
+        tagObjectIfChanged(element: dat.IGUIElement, object: any, property: string): void;
+        width: number;
+        height: number;
+        remember(object: any): void;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIElement<T extends W2UI.IElement> implements IGUIElement {
+        element: T;
+        name: string;
+        core: EditorCore;
+        /**
+        * Constructor
+        * @param name: the gui element name
+        * @param core: the editor core
+        */
+        constructor(name: string, core: EditorCore);
+        destroy(): void;
+        refresh(): void;
+        resize(): void;
+        on(event: W2UI.IEvent | string, callback: (target: any, eventData: any) => void): void;
+        buildElement(parent: string): void;
+        /**
+        * Static methods
+        */
+        static CreateDivElement(id: string, style?: string): string;
+        static CreateElement(type: string | string[], id: string, style?: string, innerText?: string, br?: boolean): string;
+        static CreateButton(parent: JQuery | string, id: string, caption: string): JQuery;
+        static CreateTransition(div1: string, div2: string, type: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIForm extends GUIElement<W2UI.IFormElement> {
+        header: string;
+        fields: Array<GUI.IGUIFormField>;
+        toolbarFields: Array<GUI.IToolbarElement>;
+        onFormChanged: () => void;
+        onToolbarClicked: (id: string) => void;
+        /**
+        * Constructor
+        * @param name: the form name
+        * @param header: form's header text
+        */
+        constructor(name: string, header: string, core: EditorCore);
+        createField(name: string, type: string, caption: string, span?: number, text?: string, options?: any): IGUIForm;
+        createToolbarField(id: string, type: string, caption: string, img: string): IToolbarElement;
+        setRecord(name: string, value: any): void;
+        getRecord(name: string): any;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIGraph extends GUIElement<W2UI.IGraphElement> {
+        menus: Array<IGraphMenuElement>;
+        onGraphClick: (data: any) => void;
+        onGraphDblClick: (data: any) => void;
+        onMenuClick: (id: string) => void;
+        /**
+        * Constructor
+        * @param name: the form name
+        * @param header: form's header text
+        */
+        constructor(name: string, core: EditorCore);
+        addMenu(id: string, text: string, img?: string): void;
+        createNode(id: string, text: string, img?: string, data?: any): IGraphNodeElement;
+        addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;
+        removeNode(node: IGraphNodeElement | string): void;
+        setNodeExpanded(node: string, expanded: boolean): void;
+        setSelected(node: string): void;
+        getSelected(): string;
+        getSelectedNode(): IGraphNodeElement;
+        getNode(id: string): IGraphNodeElement;
+        getSelectedData(): Object;
+        clear(): void;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIGrid<T extends IGridRowData> extends GUIElement<W2UI.IGridElement<T>> {
+        columns: W2UI.IGridColumnData[];
+        records: T[];
+        header: string;
+        fixedBody: boolean;
+        showToolbar: boolean;
+        showFooter: boolean;
+        showDelete: boolean;
+        showAdd: boolean;
+        showEdit: boolean;
+        showOptions: boolean;
+        showRefresh: boolean;
+        showSearch: boolean;
+        showColumnHeaders: boolean;
+        menus: W2UI.IGridMenu[];
+        autoMergeChanges: boolean;
+        multiSelect: boolean;
+        onClick: (selected: number[]) => void;
+        onMenuClick: (id: number) => void;
+        onDelete: (selected: number[]) => void;
+        onAdd: () => void;
+        onEdit: (selected: number[]) => void;
+        onReload: () => void;
+        onEditField: (recid: number, value: any) => void;
+        onMouseDown: () => void;
+        onMouseUp: () => void;
+        hasSubGrid: boolean;
+        subGridHeight: number;
+        onExpand: (id: string, recid: number) => GUIGrid<IGridRowData>;
+        /**
+        * Constructor
+        * @param name: the form name
+        * @param core: the editor core
+        */
+        constructor(name: string, core: EditorCore);
+        addMenu(id: number, text: string, icon: string): void;
+        createColumn(id: string, text: string, size?: string, style?: string): void;
+        createEditableColumn(id: string, text: string, editable: IGridColumnEditable, size?: string, style?: string): void;
+        addRow(data: T): void;
+        addRecord(data: T): void;
+        removeRow(recid: number): void;
+        removeRecord(recid: number): void;
+        refresh(): void;
+        getRowCount(): number;
+        clear(): void;
+        lock(message: string, spinner?: boolean): void;
+        unlock(): void;
+        getSelectedRows(): number[];
+        setSelected(selected: number[]): void;
+        getRow(indice: number): T;
+        modifyRow(indice: number, data: T): void;
+        getChanges(recid?: number): T[];
+        scrollIntoView(indice: number): void;
+        mergeChanges(): void;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUILayout extends GUIElement<W2UI.ILayoutsElement> {
+        panels: Array<GUIPanel>;
+        /**
+        * Constructor
+        * @param name: layouts name
+        */
+        constructor(name: string, core: EditorCore);
+        createPanel(name: string, type: string, size: number, resizable?: boolean): GUIPanel;
+        lockPanel(type: string, message?: string, spinner?: boolean): void;
+        unlockPanel(type: string): void;
+        getPanelFromType(type: string): GUIPanel;
+        getPanelFromName(name: string): GUIPanel;
+        setPanelSize(panelType: string, size: number): void;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIList extends GUIElement<W2UI.IListElement> {
+        items: string[];
+        renderDrop: boolean;
+        selected: string;
+        onChange: (selected: string) => void;
+        /**
+        * Constructor
+        * @param name: the form name
+        * @param core: the editor core
+        */
+        constructor(name: string, core: EditorCore);
+        addItem(name: string): IGUIListElement;
+        getSelected(): number;
+        getValue(): string;
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIPanel extends GUIElement<W2UI.IElement> {
+        tabs: Array<IGUITab>;
+        type: string;
+        size: number;
+        minSize: number;
+        maxSize: any;
+        content: string;
+        resizable: boolean;
+        style: string;
+        toolbar: any;
+        _panelElement: W2UI.IPanelElement;
+        onTabChanged: (id: string) => void;
+        onTabClosed: (id: string) => void;
+        /**
+        * Constructor
+        * @param name: panel name
+        * @param type: panel type (left, right, etc.)
+        * @param size: panel size
+        * @param resizable: if the panel is resizable
+        * @param core: the editor core
+        */
+        constructor(name: string, type: string, size: number, resizable: boolean, core: EditorCore);
+        createTab(tab: IGUITab): GUIPanel;
+        removeTab(id: string): boolean;
+        width: number;
+        height: number;
+        getTabCount(): number;
+        setTabEnabled(id: string, enable: boolean): GUIPanel;
+        setActiveTab(id: string): void;
+        getTabIDFromIndex(index: number): string;
+        getTab(id: string): IGUITab;
+        setContent(content: string): GUIPanel;
+        hideTab(id: string): boolean;
+        showTab(id: string): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
+        menus: IToolbarMenuElement[];
+        /**
+        * Constructor
+        * @param name: the form name
+        */
+        constructor(name: string, core: EditorCore);
+        createMenu(type: string, id: string, text: string, icon: string, checked?: boolean, tooltip?: string): IToolbarMenuElement;
+        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement;
+        createInput(id: string, inputId: string, text: string, size?: number): IToolbarMenuElement;
+        addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;
+        addSpacer(): IToolbarMenuElement;
+        setItemText(item: string, text: string, menu?: string): void;
+        setItemChecked(item: string, checked: boolean, menu?: string): void;
+        setItemAutoChecked(item: string, menu?: string): void;
+        isItemChecked(item: string, menu?: string): boolean;
+        setItemEnabled(item: string, enabled: boolean, menu?: string): boolean;
+        getItemByID(id: string): IToolbarBaseElement;
+        decomposeSelectedMenu(id: string): {
+            hasParent: boolean;
+            parent: string;
+            selected: string;
+        };
+        buildElement(parent: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR.GUI {
+    class GUIWindow extends GUIElement<W2UI.IWindowElement> {
+        title: string;
+        body: string;
+        size: Vector2;
+        buttons: Array<string>;
+        modal: boolean;
+        showClose: boolean;
+        showMax: boolean;
+        onButtonClicked: (buttonId: string) => void;
+        private _onCloseCallbacks;
+        private _onCloseCallback;
+        private _onToggle;
+        /**
+        * Constructor
+        * @param name: the form name
+        */
+        constructor(name: string, core: EditorCore, title: string, body: string, size?: Vector2, buttons?: Array<string>);
+        destroy(): void;
+        setOnCloseCallback(callback: () => void): void;
+        close(): void;
+        maximize(): void;
+        lock(message?: string): void;
+        unlock(): void;
+        onToggle: (maximized: boolean, width: number, height: number) => void;
+        notify(message: string): void;
+        buildElement(parent: string): void;
+        static CreateAlert(message: string, title?: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
     /**
     * Event Type
     */
@@ -990,101 +1386,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class Exporter {
-        core: EditorCore;
-        private _window;
-        private _editor;
-        private _editorID;
-        private _generatedCode;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore);
-        openSceneExporter(babylonScene?: boolean): void;
-        generateCode(babylonScene?: boolean): string;
-        static ExportCode(core: EditorCore): string;
-        _exportSceneValues(): string;
-        _exportScene(): string;
-        _exportReflectionProbes(): string;
-        _exportNodeTransform(node: any): string;
-        _getTextureByName(name: string, scene: Scene): BaseTexture;
-        _exportPostProcesses(): string;
-        _exportAnimations(node: IAnimatable): string;
-        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
-        _exportSky(node: Node): string;
-        _exportParticleSystem(particleSystem: ParticleSystem): string;
-        _exportLight(light: Light): string;
-        _exportVector2(vector: Vector2): string;
-        _exportVector3(vector: Vector3): string;
-        _exportQuaternion(quaternion: Quaternion): string;
-        _exportColor3(color: Color3): string;
-        _exportColor4(color: Color4): string;
-        private _traverseNodes(node?);
-        private _fillRootNodes(data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectExporter {
-        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
-        private static _SerializeGlobalAnimations();
-        private static _SerializeSounds(core);
-        private static _SerializeRenderTargets(core);
-        private static _SerializeLensFlares(core);
-        private static _SerializePostProcesses();
-        private static _TraverseNodes(core, node, project);
-        private static _SerializeActionManager(object);
-        private static _SerializeCustomMetadatas();
-        private static _RequestMaterial(core, project, material);
-        private static _GetSerializedMaterial(project, materialName);
-        private static _ConfigureMaterial(material, projectMaterial);
-        private static _ConfigureBase64Texture(source, objectToConfigure);
-        private static _FillRootNodes(core, data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectImporter {
-        static ImportProject(core: EditorCore, data: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class StorageExporter implements IEventReceiver {
-        core: EditorCore;
-        private _storage;
-        private _window;
-        private _filesList;
-        private _currentChildrenFolder;
-        private _currentFolder;
-        private _previousFolders;
-        private _onFolderSelected;
-        private _statusBarId;
-        private static _projectFolder;
-        private static _projectFolderChildren;
-        static OneDriveStorage: string;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore, storageType?: string);
-        onEvent(event: Event): boolean;
-        createTemplate(): void;
-        export(): void;
-        getFolder(name: string): IStorageFile;
-        getFile(name: string): IStorageFile;
-        private _createTemplate();
-        private _fileExists(files, name, parent?);
-        private _processIndexHTML(project, content);
-        private _openFolderDialog(success?);
-        private _updateFolderDialog(folder?);
-        private _updateFileList(onSuccess);
-        private _getFileFolder(name, type, files);
-        private _lockPanel(message);
-        private _unlockPanel();
-    }
-}
-
-declare module BABYLON.EDITOR {
     class FilesInput extends BABYLON.FilesInput {
         constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
         private static _callbackStart(core);
@@ -1227,305 +1528,6 @@ declare module BABYLON.EDITOR {
         getFiles(folder: IStorageFile, success: (children: IStorageFile[]) => void, failed?: (message: string) => void): void;
         createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void;
         selectFolder(success: (folder: IStorageFile) => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIDialog extends GUIElement<W2UI.IWindowConfirmDialog> {
-        title: string;
-        body: string;
-        callback: (data: string) => void;
-        /**
-        * Constructor
-        * @param name: the form name
-        */
-        constructor(name: string, core: EditorCore, title: string, body: string);
-        buildElement(parent: string): void;
-        static CreateDialog(body: string, title?: string, yesCallback?: () => void, noCallback?: () => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIEditForm extends GUIElement<W2UI.IElement> {
-        private _datElement;
-        /**
-        * Constructor
-        * @param name: the form name
-        */
-        constructor(name: string, core: EditorCore);
-        remove(): void;
-        addFolder(name: any, parent?: dat.IFolderElement): dat.IFolderElement;
-        add(object: Object, propertyPath: string, items?: Array<string>, name?: string): dat.IGUIElement;
-        tagObjectIfChanged(element: dat.IGUIElement, object: any, property: string): void;
-        width: number;
-        height: number;
-        remember(object: any): void;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIElement<T extends W2UI.IElement> implements IGUIElement {
-        element: T;
-        name: string;
-        core: EditorCore;
-        /**
-        * Constructor
-        * @param name: the gui element name
-        * @param core: the editor core
-        */
-        constructor(name: string, core: EditorCore);
-        destroy(): void;
-        refresh(): void;
-        resize(): void;
-        on(event: W2UI.IEvent | string, callback: (target: any, eventData: any) => void): void;
-        buildElement(parent: string): void;
-        /**
-        * Static methods
-        */
-        static CreateDivElement(id: string, style?: string): string;
-        static CreateElement(type: string | string[], id: string, style?: string, innerText?: string, br?: boolean): string;
-        static CreateButton(parent: JQuery | string, id: string, caption: string): JQuery;
-        static CreateTransition(div1: string, div2: string, type: string, callback?: () => void): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIForm extends GUIElement<W2UI.IFormElement> {
-        header: string;
-        fields: Array<GUI.IGUIFormField>;
-        toolbarFields: Array<GUI.IToolbarElement>;
-        onFormChanged: () => void;
-        onToolbarClicked: (id: string) => void;
-        /**
-        * Constructor
-        * @param name: the form name
-        * @param header: form's header text
-        */
-        constructor(name: string, header: string, core: EditorCore);
-        createField(name: string, type: string, caption: string, span?: number, text?: string, options?: any): IGUIForm;
-        createToolbarField(id: string, type: string, caption: string, img: string): IToolbarElement;
-        setRecord(name: string, value: any): void;
-        getRecord(name: string): any;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIGraph extends GUIElement<W2UI.IGraphElement> {
-        menus: Array<IGraphMenuElement>;
-        onGraphClick: (data: any) => void;
-        onGraphDblClick: (data: any) => void;
-        onMenuClick: (id: string) => void;
-        /**
-        * Constructor
-        * @param name: the form name
-        * @param header: form's header text
-        */
-        constructor(name: string, core: EditorCore);
-        addMenu(id: string, text: string, img?: string): void;
-        createNode(id: string, text: string, img?: string, data?: any): IGraphNodeElement;
-        addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void;
-        removeNode(node: IGraphNodeElement | string): void;
-        setNodeExpanded(node: string, expanded: boolean): void;
-        setSelected(node: string): void;
-        getSelected(): string;
-        getSelectedNode(): IGraphNodeElement;
-        getNode(id: string): IGraphNodeElement;
-        getSelectedData(): Object;
-        clear(): void;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIGrid<T extends IGridRowData> extends GUIElement<W2UI.IGridElement<T>> {
-        columns: W2UI.IGridColumnData[];
-        records: T[];
-        header: string;
-        fixedBody: boolean;
-        showToolbar: boolean;
-        showFooter: boolean;
-        showDelete: boolean;
-        showAdd: boolean;
-        showEdit: boolean;
-        showOptions: boolean;
-        showRefresh: boolean;
-        showSearch: boolean;
-        showColumnHeaders: boolean;
-        menus: W2UI.IGridMenu[];
-        autoMergeChanges: boolean;
-        multiSelect: boolean;
-        onClick: (selected: number[]) => void;
-        onMenuClick: (id: number) => void;
-        onDelete: (selected: number[]) => void;
-        onAdd: () => void;
-        onEdit: (selected: number[]) => void;
-        onReload: () => void;
-        onEditField: (recid: number, value: any) => void;
-        onMouseDown: () => void;
-        onMouseUp: () => void;
-        hasSubGrid: boolean;
-        subGridHeight: number;
-        onExpand: (id: string, recid: number) => GUIGrid<IGridRowData>;
-        /**
-        * Constructor
-        * @param name: the form name
-        * @param core: the editor core
-        */
-        constructor(name: string, core: EditorCore);
-        addMenu(id: number, text: string, icon: string): void;
-        createColumn(id: string, text: string, size?: string, style?: string): void;
-        createEditableColumn(id: string, text: string, editable: IGridColumnEditable, size?: string, style?: string): void;
-        addRow(data: T): void;
-        addRecord(data: T): void;
-        removeRow(recid: number): void;
-        removeRecord(recid: number): void;
-        refresh(): void;
-        getRowCount(): number;
-        clear(): void;
-        lock(message: string, spinner?: boolean): void;
-        unlock(): void;
-        getSelectedRows(): number[];
-        setSelected(selected: number[]): void;
-        getRow(indice: number): T;
-        modifyRow(indice: number, data: T): void;
-        getChanges(recid?: number): T[];
-        scrollIntoView(indice: number): void;
-        mergeChanges(): void;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUILayout extends GUIElement<W2UI.ILayoutsElement> {
-        panels: Array<GUIPanel>;
-        /**
-        * Constructor
-        * @param name: layouts name
-        */
-        constructor(name: string, core: EditorCore);
-        createPanel(name: string, type: string, size: number, resizable?: boolean): GUIPanel;
-        lockPanel(type: string, message?: string, spinner?: boolean): void;
-        unlockPanel(type: string): void;
-        getPanelFromType(type: string): GUIPanel;
-        getPanelFromName(name: string): GUIPanel;
-        setPanelSize(panelType: string, size: number): void;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIList extends GUIElement<W2UI.IListElement> {
-        items: string[];
-        renderDrop: boolean;
-        selected: string;
-        onChange: (selected: string) => void;
-        /**
-        * Constructor
-        * @param name: the form name
-        * @param core: the editor core
-        */
-        constructor(name: string, core: EditorCore);
-        addItem(name: string): IGUIListElement;
-        getSelected(): number;
-        getValue(): string;
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIPanel extends GUIElement<W2UI.IElement> {
-        tabs: Array<IGUITab>;
-        type: string;
-        size: number;
-        minSize: number;
-        maxSize: any;
-        content: string;
-        resizable: boolean;
-        style: string;
-        toolbar: any;
-        _panelElement: W2UI.IPanelElement;
-        /**
-        * Constructor
-        * @param name: panel name
-        * @param type: panel type (left, right, etc.)
-        * @param size: panel size
-        * @param resizable: if the panel is resizable
-        * @param core: the editor core
-        */
-        constructor(name: string, type: string, size: number, resizable: boolean, core: EditorCore);
-        createTab(tab: IGUITab): GUIPanel;
-        removeTab(id: string): boolean;
-        width: number;
-        height: number;
-        getTabCount(): number;
-        setTabEnabled(id: string, enable: boolean): GUIPanel;
-        setActiveTab(id: string): void;
-        getTabIDFromIndex(index: number): string;
-        getTab(id: string): IGUITab;
-        setContent(content: string): GUIPanel;
-        hideTab(id: string): boolean;
-        showTab(id: string): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
-        menus: IToolbarMenuElement[];
-        /**
-        * Constructor
-        * @param name: the form name
-        */
-        constructor(name: string, core: EditorCore);
-        createMenu(type: string, id: string, text: string, icon: string, checked?: boolean, tooltip?: string): IToolbarMenuElement;
-        createMenuItem(menu: IToolbarMenuElement, type: string, id: string, text: string, icon: string, checked?: boolean, disabled?: boolean): IToolbarElement;
-        createInput(id: string, inputId: string, text: string, size?: number): IToolbarMenuElement;
-        addBreak(menu?: IToolbarMenuElement): IToolbarMenuElement;
-        addSpacer(): IToolbarMenuElement;
-        setItemText(item: string, text: string, menu?: string): void;
-        setItemChecked(item: string, checked: boolean, menu?: string): void;
-        setItemAutoChecked(item: string, menu?: string): void;
-        isItemChecked(item: string, menu?: string): boolean;
-        setItemEnabled(item: string, enabled: boolean, menu?: string): boolean;
-        getItemByID(id: string): IToolbarBaseElement;
-        decomposeSelectedMenu(id: string): {
-            hasParent: boolean;
-            parent: string;
-            selected: string;
-        };
-        buildElement(parent: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR.GUI {
-    class GUIWindow extends GUIElement<W2UI.IWindowElement> {
-        title: string;
-        body: string;
-        size: Vector2;
-        buttons: Array<string>;
-        modal: boolean;
-        showClose: boolean;
-        showMax: boolean;
-        onButtonClicked: (buttonId: string) => void;
-        private _onCloseCallbacks;
-        private _onCloseCallback;
-        private _onToggle;
-        /**
-        * Constructor
-        * @param name: the form name
-        */
-        constructor(name: string, core: EditorCore, title: string, body: string, size?: Vector2, buttons?: Array<string>);
-        destroy(): void;
-        setOnCloseCallback(callback: () => void): void;
-        close(): void;
-        maximize(): void;
-        lock(message?: string): void;
-        unlock(): void;
-        onToggle: (maximized: boolean, width: number, height: number) => void;
-        notify(message: string): void;
-        buildElement(parent: string): void;
-        static CreateAlert(message: string, title?: string, callback?: () => void): void;
     }
 }
 
@@ -2046,12 +2048,17 @@ declare module BABYLON.EDITOR {
         private _containerID;
         private _tab;
         private _layouts;
+        private _mainPanel;
         private _postProcessesList;
+        private _glslTabId;
+        private _configurationTabId;
+        private _currentTabId;
         private _selectTemplateWindow;
         private _editor;
         private _console;
         private _datas;
         private _currentSelected;
+        static _ConfigurationFileContent: string;
         /**
         * Constructor
         * @param core: the editor core
@@ -2066,6 +2073,7 @@ declare module BABYLON.EDITOR {
         */
         onEvent(event: Event): boolean;
         private _createUI();
+        private _onTabChanged(id);
         private _onPostProcessSelected(selected);
         private _onPostProcessAdd();
         private _onPostProcessRemove(selected);
@@ -2075,6 +2083,7 @@ declare module BABYLON.EDITOR {
         private _removePostProcess(postProcess, applyOnScene?);
         private _postProcessCallback(postProcess, applyOnScene?);
         private _storeMetadatas();
+        private _getConfigurationFile(callback);
     }
 }
 

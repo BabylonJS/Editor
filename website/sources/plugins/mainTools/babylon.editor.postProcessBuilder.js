@@ -27,7 +27,11 @@ var BABYLON;
                 this._containerID = null;
                 this._tab = null;
                 this._layouts = null;
+                this._mainPanel = null;
                 this._postProcessesList = null;
+                this._glslTabId = null;
+                this._configurationTabId = null;
+                this._currentTabId = null;
                 this._selectTemplateWindow = null;
                 this._editor = null;
                 this._console = null;
@@ -35,20 +39,23 @@ var BABYLON;
                 // Configure this
                 this._core = core;
                 core.eventReceivers.push(this);
-                // Metadatas
-                this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
-                if (!this._datas) {
-                    this._datas = [{ name: "NewPostProcess", program: BABYLON.Effect.ShadersStore["passPixelShader"] }];
-                    EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
-                }
-                // Create UI
-                this._createUI();
-                this._onPostProcessSelected([0]);
-                // Create main post-process
-                var postProcess = new BABYLON.PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, this._camera);
-                postProcess.onApply = function (effect) {
-                    effect.setTexture("originalSampler", _this._texture);
-                };
+                // Finalize
+                this._getConfigurationFile(function () {
+                    // Metadatas
+                    _this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
+                    if (!_this._datas) {
+                        _this._datas = [{ name: "NewPostProcess", program: BABYLON.Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                        EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", _this._datas);
+                    }
+                    // Create UI
+                    _this._createUI();
+                    _this._onPostProcessSelected([0]);
+                    // Create main post-process
+                    var postProcess = new BABYLON.PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, _this._camera);
+                    postProcess.onApply = function (effect) {
+                        effect.setTexture("originalSampler", _this._texture);
+                    };
+                });
             }
             /**
             * Disposes the application
@@ -96,6 +103,12 @@ var BABYLON;
                 this._layouts.on("resize", function (event) {
                     _this._editor.resize(true);
                 });
+                this._glslTabId = this._currentTabId = EDITOR.SceneFactory.GenerateUUID();
+                this._configurationTabId = EDITOR.SceneFactory.GenerateUUID();
+                this._mainPanel = this._layouts.getPanelFromType("main");
+                this._mainPanel.createTab({ caption: "GLSL", closable: false, id: this._glslTabId });
+                this._mainPanel.createTab({ caption: "Configuration", closable: false, id: this._configurationTabId });
+                this._mainPanel.onTabChanged = function (id) { return _this._onTabChanged(id); };
                 // GUI
                 var container = $("#POST-PROCESS-BUILDER-EDIT");
                 container.append(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
@@ -154,12 +167,24 @@ var BABYLON;
                     _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry);
                 };
             };
+            // On tab changed
+            PostProcessBuilder.prototype._onTabChanged = function (id) {
+                this._currentTabId = id;
+                if (id === this._glslTabId) {
+                    this._editor.getSession().setMode("ace/mode/glsl");
+                    this._editor.getSession().setValue(this._datas[this._currentSelected].program);
+                }
+                else {
+                    this._editor.getSession().setMode("ace/mode/javascript");
+                    this._editor.getSession().setValue(this._datas[this._currentSelected].configuration);
+                }
+            };
             // When the user selects an item
             PostProcessBuilder.prototype._onPostProcessSelected = function (selected) {
                 if (selected.length < 1)
                     return;
                 this._currentSelected = selected[0];
-                this._editor.getSession().setValue(this._datas[selected[0]].program);
+                this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
             };
             // When the user adds a new post-process
             PostProcessBuilder.prototype._onPostProcessAdd = function () {
@@ -185,7 +210,7 @@ var BABYLON;
                 this._selectTemplateWindow.onButtonClicked = function (buttonId) {
                     if (buttonId === "Select") {
                         var selected = list.getValue();
-                        var data = { name: selected + _this._datas.length, program: BABYLON.Effect.ShadersStore[selected] };
+                        var data = { name: selected + _this._datas.length, program: BABYLON.Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
                         _this._datas.push(data);
                         _this._postProcessesList.addRecord({ name: data.name });
                         _this._postProcessesList.refresh();
@@ -210,8 +235,13 @@ var BABYLON;
             };
             // When the user modifies a post-process
             PostProcessBuilder.prototype._onEditorChanged = function () {
-                if (this._currentSelected >= 0)
-                    this._datas[this._currentSelected].program = this._editor.getSession().getValue();
+                if (this._currentSelected >= 0) {
+                    var value = this._editor.getSession().getValue();
+                    if (this._currentTabId === this._glslTabId)
+                        this._datas[this._currentSelected].program = value;
+                    else
+                        this._datas[this._currentSelected].configuration = value;
+                }
             };
             // When the user applies the post-process chain
             PostProcessBuilder.prototype._onApplyPostProcessChain = function (applyOnScene) {
@@ -240,10 +270,15 @@ var BABYLON;
                     var data = this._datas[i];
                     var id = data.name + EDITOR.SceneFactory.GenerateUUID();
                     BABYLON.Effect.ShadersStore[id + "PixelShader"] = data.program;
-                    data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, this._camera);
+                    var configuration = JSON.parse(data.configuration);
+                    var defines = [];
+                    for (var j = 0; j < configuration.defines.length; j++) {
+                        defines.push("#define " + configuration.defines[j] + "\n");
+                    }
+                    data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, this._camera, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._engine, false, defines.join());
                     data.postProcess.onApply = this._postProcessCallback(data.postProcess);
                     if (applyOnScene) {
-                        data.mainPostProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], 1.0, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false);
+                        data.mainPostProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false, defines.join());
                         data.mainPostProcess.onApply = this._postProcessCallback(data.postProcess, true);
                         for (var j = 0; j < this._core.currentScene.cameras.length; j++)
                             this._core.currentScene.cameras[j].attachPostProcess(data.mainPostProcess);
@@ -281,10 +316,26 @@ var BABYLON;
                 var customData = [];
                 for (var i = 0; i < this._datas.length; i++) {
                     var data = this._datas[i];
-                    customData.push({ name: data.name, program: data.program, postProcess: null, mainPostProcess: null });
+                    customData.push({ name: data.name, program: data.program, configuration: data.configuration, postProcess: null, mainPostProcess: null });
                 }
                 EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", customData);
             };
+            // Gets the configuration file
+            PostProcessBuilder.prototype._getConfigurationFile = function (callback) {
+                var _this = this;
+                if (!PostProcessBuilder._ConfigurationFileContent) {
+                    this._core.editor.layouts.lockPanel("preview", "Loading...", true);
+                    BABYLON.Tools.LoadFile("website/resources/template.postprocess.configuration.json", function (data) {
+                        PostProcessBuilder._ConfigurationFileContent = data;
+                        _this._core.editor.layouts.unlockPanel("preview");
+                        callback();
+                    });
+                }
+                else
+                    callback();
+            };
+            // Static members
+            PostProcessBuilder._ConfigurationFileContent = null;
             return PostProcessBuilder;
         }());
         EDITOR.PostProcessBuilder = PostProcessBuilder;

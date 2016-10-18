@@ -103,6 +103,7 @@ var BABYLON;
                                 mainPanelTab.application.dispose();
                             }
                             $("#" + mainPanelTab.container).remove();
+                            _this._mainPanel.removeTab(mainPanelTab.tab.id);
                             _this.layouts.resize();
                             _this.playLayouts.resize();
                         });
@@ -254,6 +255,11 @@ var BABYLON;
             EditorMain.prototype._handleSceneLoaded = function () {
                 var _this = this;
                 return function (file, scene) {
+                    // Close already opened tabs
+                    for (var thing in _this._mainPanelTabs) {
+                        if (_this._mainPanelTabs[thing].tab.id !== _this._mainPanelSceneTab.tab.id)
+                            EDITOR.Event.sendGUIEvent(_this._mainPanel, EDITOR.GUIEventType.TAB_CLOSED, _this.core, _this._mainPanelTabs[thing].tab.id);
+                    }
                     // Set active scene
                     _this.core.removeScene(_this.core.currentScene);
                     _this.core.scenes.push({ scene: scene, render: true });

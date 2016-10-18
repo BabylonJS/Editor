@@ -13,6 +13,9 @@
 
         public _panelElement: W2UI.IPanelElement;
 
+        public onTabChanged: (id: string) => void;
+        public onTabClosed: (id: string) => void;
+
         /**
         * Constructor
         * @param name: panel name
@@ -33,6 +36,9 @@
         public createTab(tab: IGUITab): GUIPanel {
             // Configure event
             (<any>tab).onClick = (event) => {
+                if (this.onTabChanged)
+                    this.onTabChanged(event.target);
+
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT
                 ev.guiEvent = new GUIEvent(this, GUIEventType.TAB_CHANGED, event.target);
@@ -40,6 +46,9 @@
             };
 
             (<any>tab).onClose = (event) => {
+                if (this.onTabClosed)
+                    this.onTabClosed(event.target);
+
                 var ev = new Event();
                 ev.eventType = EventType.GUI_EVENT
                 ev.guiEvent = new GUIEvent(this, GUIEventType.TAB_CLOSED, event.target);

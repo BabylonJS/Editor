@@ -10,12 +10,17 @@ declare module BABYLON.EDITOR {
         private _containerID;
         private _tab;
         private _layouts;
+        private _mainPanel;
         private _postProcessesList;
+        private _glslTabId;
+        private _configurationTabId;
+        private _currentTabId;
         private _selectTemplateWindow;
         private _editor;
         private _console;
         private _datas;
         private _currentSelected;
+        static _ConfigurationFileContent: string;
         /**
         * Constructor
         * @param core: the editor core
@@ -30,6 +35,7 @@ declare module BABYLON.EDITOR {
         */
         onEvent(event: Event): boolean;
         private _createUI();
+        private _onTabChanged(id);
         private _onPostProcessSelected(selected);
         private _onPostProcessAdd();
         private _onPostProcessRemove(selected);
@@ -39,5 +45,6 @@ declare module BABYLON.EDITOR {
         private _removePostProcess(postProcess, applyOnScene?);
         private _postProcessCallback(postProcess, applyOnScene?);
         private _storeMetadatas();
+        private _getConfigurationFile(callback);
     }
 }

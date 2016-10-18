@@ -1,0 +1,21 @@
+﻿{
+  "ratio": 1.0,
+  "defines": 
+  [
+    "MY_DEFINE"
+  ],
+  "samplers": 
+  [
+    {
+      "uniform": "originalSampler",
+      "source": "myPostProcess"
+    }
+  ],
+  "uniforms": 
+  [
+    {
+      "name": "exposure",
+      "value": 1.0
+    }
+  ]
+}

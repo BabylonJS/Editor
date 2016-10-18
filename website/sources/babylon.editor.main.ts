@@ -152,6 +152,7 @@
 
                         $("#" + mainPanelTab.container).remove();
 
+                        this._mainPanel.removeTab(mainPanelTab.tab.id);
                         this.layouts.resize();
                         this.playLayouts.resize();
                     });
@@ -342,6 +343,12 @@
         */
         private _handleSceneLoaded(): (file: File, scene: Scene) => void {
             return (file: File, scene: Scene) => {
+                // Close already opened tabs
+                for (var thing in this._mainPanelTabs) {
+                    if (this._mainPanelTabs[thing].tab.id !== this._mainPanelSceneTab.tab.id)
+                        Event.sendGUIEvent(this._mainPanel, GUIEventType.TAB_CLOSED, this.core, this._mainPanelTabs[thing].tab.id);
+                }
+
                 // Set active scene
                 this.core.removeScene(this.core.currentScene);
                 this.core.scenes.push({ scene: scene, render: true });

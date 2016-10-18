@@ -37,12 +37,16 @@ var BABYLON;
                     var _this = this;
                     // Configure event
                     tab.onClick = function (event) {
+                        if (_this.onTabChanged)
+                            _this.onTabChanged(event.target);
                         var ev = new EDITOR.Event();
                         ev.eventType = EDITOR.EventType.GUI_EVENT;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CHANGED, event.target);
                         _this.core.sendEvent(ev);
                     };
                     tab.onClose = function (event) {
+                        if (_this.onTabClosed)
+                            _this.onTabClosed(event.target);
                         var ev = new EDITOR.Event();
                         ev.eventType = EDITOR.EventType.GUI_EVENT;
                         ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TAB_CLOSED, event.target);

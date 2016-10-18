@@ -10,6 +10,8 @@ declare module BABYLON.EDITOR.GUI {
         style: string;
         toolbar: any;
         _panelElement: W2UI.IPanelElement;
+        onTabChanged: (id: string) => void;
+        onTabClosed: (id: string) => void;
         /**
         * Constructor
         * @param name: panel name
