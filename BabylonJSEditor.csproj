@@ -161,10 +161,9 @@
     </None>
     <Content Include="website\website\Tests\textures\environment.babylon.hdr" />
     <Content Include="website\website\Tests\textures\room.hdr" />
+    <Content Include="website\website\resources\template.postprocess.configuration.json" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="website\website\resources\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <TypeScriptCompile Include="defines\babylon.d.ts" />
     <TypeScriptCompile Include="defines\babylon.editor.d.ts" />
