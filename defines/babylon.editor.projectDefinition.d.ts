@@ -115,5 +115,6 @@ declare module BABYLON.EDITOR.INTERNAL {
         sounds: ISound[];
         actions: any;
         requestedMaterials?: string[];
+        customMetadatas?: IStringDictionary<any>;
     }
 }

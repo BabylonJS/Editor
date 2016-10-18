@@ -25,7 +25,8 @@
                 actions: this._SerializeActionManager(core.currentScene),
                 sounds: this._SerializeSounds(core),
 
-                requestedMaterials: requestMaterials ? [] : undefined
+                requestedMaterials: requestMaterials ? [] : undefined,
+                customMetadatas: this._SerializeCustomMetadatas()
             };
 
             this._TraverseNodes(core, null, project);
@@ -413,6 +414,18 @@
             }
 
             return null;
+        }
+
+        // Serializes the custom metadatas, largely used by plugins like post-process builder
+        // plugin.
+        private static _SerializeCustomMetadatas(): IStringDictionary<any> {
+            var dict: IStringDictionary<any> = {};
+
+            for (var thing in SceneManager._CustomMetadatas) {
+                dict[thing] = SceneManager._CustomMetadatas[thing];
+            }
+
+            return dict;
         }
 
         // Setups the requested materials (to be uploaded in template or release)

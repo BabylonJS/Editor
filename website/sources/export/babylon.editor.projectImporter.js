@@ -227,6 +227,10 @@ var BABYLON;
                             mesh.material = project.materials[i]._babylonMaterial;
                     }
                 }
+                // Custom metadatas
+                for (var thing in project.customMetadatas) {
+                    EDITOR.SceneManager.AddCustomMetadata(thing, project.customMetadatas[thing]);
+                }
             };
             return ProjectImporter;
         }());

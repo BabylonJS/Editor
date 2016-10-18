@@ -38,5 +38,6 @@ declare module BABYLON.EDITOR {
         private _onApplyPostProcessChain(applyOnScene);
         private _removePostProcess(postProcess, applyOnScene?);
         private _postProcessCallback(postProcess, applyOnScene?);
+        private _storeMetadatas();
     }
 }

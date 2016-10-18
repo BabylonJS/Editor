@@ -26,7 +26,8 @@ var BABYLON;
                     renderTargets: this._SerializeRenderTargets(core),
                     actions: this._SerializeActionManager(core.currentScene),
                     sounds: this._SerializeSounds(core),
-                    requestedMaterials: requestMaterials ? [] : undefined
+                    requestedMaterials: requestMaterials ? [] : undefined,
+                    customMetadatas: this._SerializeCustomMetadatas()
                 };
                 this._TraverseNodes(core, null, project);
                 if (!core.isPlaying)
@@ -339,6 +340,15 @@ var BABYLON;
                     return object.actionManager.serialize(object instanceof BABYLON.Scene ? "Scene" : object.name);
                 }
                 return null;
+            };
+            // Serializes the custom metadatas, largely used by plugins like post-process builder
+            // plugin.
+            ProjectExporter._SerializeCustomMetadatas = function () {
+                var dict = {};
+                for (var thing in EDITOR.SceneManager._CustomMetadatas) {
+                    dict[thing] = EDITOR.SceneManager._CustomMetadatas[thing];
+                }
+                return dict;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {

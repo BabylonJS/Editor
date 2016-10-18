@@ -137,5 +137,6 @@ declare module BABYLON.EDITOR.INTERNAL {
         actions: any;
 
         requestedMaterials?: string[];
+        customMetadatas?: IStringDictionary<any>;
     }
 }

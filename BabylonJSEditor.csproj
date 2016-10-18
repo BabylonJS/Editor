@@ -71,6 +71,7 @@
     <Content Include="website\css\w2ui-1.4.1.css" />
     <Content Include="gulpfile.js" />
     <Content Include="website\libs\ace\ace.js" />
+    <Content Include="website\libs\ace\mode-glsl.js" />
     <Content Include="website\libs\ace\mode-javascript.js" />
     <Content Include="website\libs\ace\theme-clouds.js" />
     <Content Include="website\libs\actionsBuilder\actionsbuilder.max.js" />

@@ -153,6 +153,7 @@ var BABYLON;
             Tools.CleanProject = function (project) {
                 project.renderTargets = project.renderTargets || [];
                 project.sounds = project.sounds || [];
+                project.customMetadatas = project.customMetadatas || {};
             };
             /**
             * Returns the constructor name of an object

@@ -171,7 +171,8 @@
         */
         public static CleanProject(project: INTERNAL.IProjectRoot): void {
             project.renderTargets = project.renderTargets || [];
-            project.sounds = project.sounds || [];
+            project.sounds = project.sounds || [];
+            project.customMetadatas = project.customMetadatas || { };
         }
 
         /**

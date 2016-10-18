@@ -265,6 +265,11 @@
                         mesh.material = project.materials[i]._babylonMaterial;
                 }
             }
+
+            // Custom metadatas
+            for (var thing in project.customMetadatas) {
+                SceneManager.AddCustomMetadata(thing, project.customMetadatas[thing]);
+            }
         }
     }
 }
