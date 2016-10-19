@@ -42,6 +42,15 @@ if (args._[0] === "electron" || args._[0] === "electron-watch") {
 }
 
 /*
+* Configure extension files
+*/
+var extensionFiles = ["defines/babylon.d.ts"];
+
+for (var i = 0; i < config.editorExtensions.files.length; i++) {
+    extensionFiles.push(config.editorExtensions.files[i].replace(".js", ".ts"));
+}
+
+/*
 * Compiles all typescript files and creating a declaration file.
 */
 gulp.task("typescript-compile", function () {
@@ -65,7 +74,7 @@ gulp.task("typescript-compile", function () {
 /*
 * Compiles all typescript files and merges in a single file babylon.editor.js
 */
-gulp.task("build", ["typescript-compile"], function () {
+gulp.task("build", ["build-extensions", "typescript-compile"], function () {
     var result = gulp.src(files)
         .pipe(typescript({
             target: "ES5",
@@ -77,8 +86,27 @@ gulp.task("build", ["typescript-compile"], function () {
 	return result.js.pipe(gulp.dest(config.build.outputDirectory))
         .pipe(concat(config.build.filename))
         .pipe(cleants())
-        //.pipe(replace(extendsSearchRegex, ""))
-        //.pipe(addModuleExports("BABYLON.EDITOR"))
+        .pipe(gulp.dest(config.build.outputDirectory))
+        .pipe(rename(config.build.minFilename))
+        .pipe(uglify())
+        .pipe(gulp.dest(config.build.outputDirectory));
+});
+
+/*
+* Builds the editor extensions, used by generated templates
+*/
+gulp.task("build-extensions", function () {
+    var result = gulp.src(extensionFiles)
+        .pipe(typescript({
+            target: "ES5",
+            declarationFiles: false,
+            experimentalDecorators: false,
+            out: config.editorExtensions.filename
+        }));
+
+    return result.js.pipe(gulp.dest(config.build.outputDirectory))
+        .pipe(concat(config.editorExtensions.filename))
+        .pipe(cleants())
         .pipe(gulp.dest(config.build.outputDirectory))
         .pipe(rename(config.build.minFilename))
         .pipe(uglify())

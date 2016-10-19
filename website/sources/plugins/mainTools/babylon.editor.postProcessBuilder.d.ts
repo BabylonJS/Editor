@@ -1,4 +1,7 @@
 declare module BABYLON.EDITOR {
+    interface IPostProcessBuilderData extends EDITOR.EXTENSIONS.IPostProcessExtensionData {
+        editorPostProcess?: PostProcess;
+    }
     class PostProcessBuilder implements ITabApplication, IEventReceiver {
         private _core;
         private _engine;
@@ -20,6 +23,8 @@ declare module BABYLON.EDITOR {
         private _console;
         private _datas;
         private _currentSelected;
+        private _extension;
+        private _mainExtension;
         static _ConfigurationFileContent: string;
         /**
         * Constructor
@@ -42,8 +47,6 @@ declare module BABYLON.EDITOR {
         private _onPostProcessEditField(recid, value);
         private _onEditorChanged();
         private _onApplyPostProcessChain(applyOnScene);
-        private _removePostProcess(postProcess, applyOnScene?);
-        private _postProcessCallback(postProcess, applyOnScene?);
         private _storeMetadatas();
         private _getConfigurationFile(callback);
     }

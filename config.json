@@ -9,11 +9,13 @@
   "core": {
     "defines": [
       "!sources/**/*.d.ts",
+      "Tools/EditorExtensions/**/*.d.ts",
       "defines/**/*.d.ts"
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
       "!website/sources/**/*.d.ts",
+      "Tools/EditorExtensions/**/*.d.ts",
       "defines/**/*.d.ts"
     ],
     "files": [
@@ -124,6 +126,12 @@
       "sources/electron/plugins/babylon.editor.electronPhotoshopPlugin.js",
       "sources/electron/babylon.editor.electronPlugin.js",
       "sources/electron/babylon.editor.localExporter.js"
+    ]
+  },
+  "editorExtensions": {
+    "filename": "babylon.editor.extensions.js",
+    "files": [
+      "Tools/EditorExtensions/babylon.editor.postProcessExtension.js"
     ]
   }
 }

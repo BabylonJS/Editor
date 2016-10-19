@@ -104,6 +104,8 @@
     <Content Include="website\libs\materials\babylon.terrainMaterial.js" />
     <Content Include="website\libs\materials\babylon.triPlanarMaterial.js" />
     <Content Include="website\libs\materials\babylon.waterMaterial.js" />
+    <Content Include="website\libs\preview release\babylon.editor.extensions.js" />
+    <Content Include="website\libs\preview release\babylon.editor.max.js" />
     <Content Include="website\libs\raphael.js" />
     <Content Include="website\libs\w2ui-1.4.1.js" />
     <Content Include="website\redirect.html" />
@@ -191,6 +193,7 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.postProcessExtension.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\main.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\test.file.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />

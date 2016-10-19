@@ -11686,15 +11686,6 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        BABYLON.Effect.ShadersStore["editorTemplatePixelShader"] = [
-            "varying vec2 vUV;",
-            "uniform sampler2D textureSampler;",
-            "uniform sampler2D originalSampler;",
-            "void main(void) ",
-            "{",
-            "    gl_FragColor=texture2D(originalSampler, vUV);",
-            "}"
-        ].join("\n");
         var PostProcessBuilder = (function () {
             /**
             * Constructor
@@ -11728,17 +11719,16 @@ var BABYLON;
                     // Metadatas
                     _this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
                     if (!_this._datas) {
-                        _this._datas = [{ name: "NewPostProcess", program: BABYLON.Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                        _this._datas = [{ name: "NewPostProcess", id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
                         EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", _this._datas);
                     }
                     // Create UI
                     _this._createUI();
                     _this._onPostProcessSelected([0]);
-                    // Create main post-process
-                    var postProcess = new BABYLON.PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, _this._camera);
-                    postProcess.onApply = function (effect) {
-                        effect.setTexture("originalSampler", _this._texture);
-                    };
+                    // Extensions
+                    _this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._scene);
+                    _this._extension.placeHolderTexture = _this._texture;
+                    _this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._core.currentScene);
                 });
             }
             /**
@@ -11748,8 +11738,11 @@ var BABYLON;
                 // Remove post-processes
                 for (var i = 0; i < this._datas.length; i++) {
                     if (this._datas[i].postProcess) {
-                        this._removePostProcess(this._datas[i].postProcess);
+                        this._mainExtension.removePostProcess(this._datas[i].postProcess);
+                        if (this._datas[i].editorPostProcess)
+                            this._extension.removePostProcess(this._datas[i].editorPostProcess);
                         this._datas[i].postProcess = null;
+                        this._datas[i].editorPostProcess = null;
                     }
                 }
                 // Finalize dispose
@@ -11894,7 +11887,7 @@ var BABYLON;
                 this._selectTemplateWindow.onButtonClicked = function (buttonId) {
                     if (buttonId === "Select") {
                         var selected = list.getValue();
-                        var data = { name: selected + _this._datas.length, program: BABYLON.Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
+                        var data = { name: selected + _this._datas.length, id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
                         _this._datas.push(data);
                         _this._postProcessesList.addRecord({ name: data.name });
                         _this._postProcessesList.refresh();
@@ -11905,10 +11898,10 @@ var BABYLON;
             // When the user removes a post-process
             PostProcessBuilder.prototype._onPostProcessRemove = function (selected) {
                 var data = this._datas[selected[0]];
-                if (data.postProcess) {
-                    this._removePostProcess(data.postProcess);
-                    this._removePostProcess(data.mainPostProcess, true);
-                }
+                if (data.postProcess)
+                    this._mainExtension.removePostProcess(data.postProcess);
+                if (data.editorPostProcess)
+                    this._extension.removePostProcess(data.editorPostProcess);
                 this._datas.splice(selected[0], 1);
                 this._currentSelected = -1;
                 this._storeMetadatas();
@@ -11933,74 +11926,36 @@ var BABYLON;
                 this._console.getSession().setValue("Ready.");
                 // Remove post-processes
                 for (var i = 0; i < this._datas.length; i++) {
+                    if (this._datas[i].editorPostProcess) {
+                        this._extension.removePostProcess(this._datas[i].editorPostProcess);
+                        delete BABYLON.Effect.ShadersStore[this._datas[i].editorPostProcess.name + "PixelShader"];
+                        this._datas[i].editorPostProcess = null;
+                    }
                     if (this._datas[i].postProcess) {
-                        this._removePostProcess(this._datas[i].postProcess);
+                        this._mainExtension.removePostProcess(this._datas[i].postProcess);
                         delete BABYLON.Effect.ShadersStore[this._datas[i].postProcess.name + "PixelShader"];
                         this._datas[i].postProcess = null;
                     }
-                    if (this._datas[i].mainPostProcess && applyOnScene) {
-                        this._removePostProcess(this._datas[i].mainPostProcess, true);
-                        this._datas[i].mainPostProcess = null;
-                    }
                 }
-                // Apply original if on scene
-                if (applyOnScene && !this._scenePassPostProcess) {
-                    this._scenePassPostProcess = new BABYLON.PassPostProcess("ScenePassPostProcess", 1.0, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._core.engine, true);
-                    for (var j = 0; j < this._core.currentScene.cameras.length; j++)
-                        this._core.currentScene.cameras[j].attachPostProcess(this._scenePassPostProcess);
-                }
-                // Recreate post-processes
                 for (var i = 0; i < this._datas.length; i++) {
                     var data = this._datas[i];
-                    var id = data.name + EDITOR.SceneFactory.GenerateUUID();
-                    BABYLON.Effect.ShadersStore[id + "PixelShader"] = data.program;
-                    var configuration = JSON.parse(data.configuration);
-                    var defines = [];
-                    for (var j = 0; j < configuration.defines.length; j++) {
-                        defines.push("#define " + configuration.defines[j] + "\n");
-                    }
-                    data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, this._camera, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._engine, false, defines.join());
-                    data.postProcess.onApply = this._postProcessCallback(data.postProcess);
+                    data.id = EDITOR.SceneFactory.GenerateUUID();
+                    this._extension.applyPostProcess(data);
+                    data.editorPostProcess = data.postProcess;
+                    data.postProcess = null;
                     if (applyOnScene) {
-                        data.mainPostProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false, defines.join());
-                        data.mainPostProcess.onApply = this._postProcessCallback(data.postProcess, true);
-                        for (var j = 0; j < this._core.currentScene.cameras.length; j++)
-                            this._core.currentScene.cameras[j].attachPostProcess(data.mainPostProcess);
+                        data.id = EDITOR.SceneFactory.GenerateUUID();
+                        this._mainExtension.applyPostProcess(data);
                     }
                 }
                 this._storeMetadatas();
-            };
-            // Removes the given post-process
-            PostProcessBuilder.prototype._removePostProcess = function (postProcess, applyOnScene) {
-                if (applyOnScene === void 0) { applyOnScene = false; }
-                this._camera.detachPostProcess(postProcess);
-                if (applyOnScene) {
-                    for (var i = 0; i < this._core.currentScene.cameras.length; i++)
-                        this._core.currentScene.cameras[i].detachPostProcess(postProcess);
-                }
-                postProcess.dispose();
-            };
-            // Callback post-process
-            PostProcessBuilder.prototype._postProcessCallback = function (postProcess, applyOnScene) {
-                var _this = this;
-                if (applyOnScene === void 0) { applyOnScene = false; }
-                var screenSize = BABYLON.Vector2.Zero();
-                return function (effect) {
-                    if (applyOnScene)
-                        effect.setTextureFromPostProcess("originalSampler", _this._scenePassPostProcess);
-                    else
-                        effect.setTexture("originalSampler", _this._texture);
-                    screenSize.x = postProcess.width;
-                    screenSize.y = postProcess.height;
-                    effect.setVector2("screenSize", screenSize);
-                };
             };
             // Stores the datas into the custom metadatas
             PostProcessBuilder.prototype._storeMetadatas = function () {
                 var customData = [];
                 for (var i = 0; i < this._datas.length; i++) {
                     var data = this._datas[i];
-                    customData.push({ name: data.name, program: data.program, configuration: data.configuration, postProcess: null, mainPostProcess: null });
+                    customData.push({ name: data.name, id: data.id, program: data.program, configuration: data.configuration, postProcess: null, editorPostProcess: null });
                 }
                 EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", customData);
             };

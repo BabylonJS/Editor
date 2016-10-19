@@ -1315,77 +1315,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createPlane;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * "selected" is the id of the selected item
-        */
-        onMenuItemSelected(selected: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class LightsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _configureSound(sound);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class SoundsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addSoundtrack;
-        private _add3DSound;
-        private _stopAllSounds;
-        private _playAllSounds;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _stopPlayAllSounds(play);
-        private _configureSound(sound);
-        private _createInput(callback);
-        private _onReadFileCallback(name, callback);
-    }
-}
-
-declare module BABYLON.EDITOR {
     class FilesInput extends BABYLON.FilesInput {
         constructor(core: EditorCore, sceneLoadedCallback: any, progressCallback: any, additionnalRenderLoopLogicCallback: any, textureLoadingCallback: any, startingProcessingFilesCallback: any);
         private static _callbackStart(core);
@@ -1475,6 +1404,77 @@ declare module BABYLON.EDITOR {
         static AddCustomMetadata<T>(key: string, data: T): void;
         static RemoveCustomMetadata(key: string): boolean;
         static GetCustomMetadata<T>(key: string): T;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createPlane;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * "selected" is the id of the selected item
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SoundsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addSoundtrack;
+        private _add3DSound;
+        private _stopAllSounds;
+        private _playAllSounds;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _stopPlayAllSounds(play);
+        private _configureSound(sound);
+        private _createInput(callback);
+        private _onReadFileCallback(name, callback);
     }
 }
 
@@ -2037,6 +2037,9 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    interface IPostProcessBuilderData extends EDITOR.EXTENSIONS.IPostProcessExtensionData {
+        editorPostProcess?: PostProcess;
+    }
     class PostProcessBuilder implements ITabApplication, IEventReceiver {
         private _core;
         private _engine;
@@ -2058,6 +2061,8 @@ declare module BABYLON.EDITOR {
         private _console;
         private _datas;
         private _currentSelected;
+        private _extension;
+        private _mainExtension;
         static _ConfigurationFileContent: string;
         /**
         * Constructor
@@ -2080,8 +2085,6 @@ declare module BABYLON.EDITOR {
         private _onPostProcessEditField(recid, value);
         private _onEditorChanged();
         private _onApplyPostProcessChain(applyOnScene);
-        private _removePostProcess(postProcess, applyOnScene?);
-        private _postProcessCallback(postProcess, applyOnScene?);
         private _storeMetadatas();
         private _getConfigurationFile(callback);
     }

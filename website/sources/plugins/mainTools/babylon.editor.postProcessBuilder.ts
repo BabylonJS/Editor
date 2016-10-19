@@ -1,30 +1,11 @@
 ﻿module BABYLON.EDITOR {
-    interface IPostProcessBuilderData {
-        name: string;
-        program: string;
-        configuration: string;
-        postProcess?: PostProcess;
-        mainPostProcess?: PostProcess;
-    }
-
-    interface IPostProcessConfiguration {
-        ratio: number;
-        defines: string[];
+    export interface IPostProcessBuilderData extends EDITOR.EXTENSIONS.IPostProcessExtensionData {
+        editorPostProcess?: PostProcess;
     }
 
     interface IPostProcessGridItem extends GUI.IGridRowData {
         name: string;
     }
-
-    Effect.ShadersStore["editorTemplatePixelShader"] = [
-        "varying vec2 vUV;",
-        "uniform sampler2D textureSampler;",
-        "uniform sampler2D originalSampler;",
-        "void main(void) ",
-        "{",
-        "    gl_FragColor=texture2D(originalSampler, vUV);",
-        "}"
-    ].join("\n");
 
     export class PostProcessBuilder implements ITabApplication, IEventReceiver {
         // Public members
@@ -36,7 +17,7 @@
         private _scene: Scene = null;
         private _camera: Camera = null;
         private _texture: Texture = null;
-        private _scenePassPostProcess = null;
+        private _scenePassPostProcess: PostProcess = null;
 
         private _containerElement: JQuery = null;
         private _containerID: string = null;
@@ -58,6 +39,9 @@
         private _datas: IPostProcessBuilderData[];
         private _currentSelected: number = 0;
 
+        private _extension: EDITOR.EXTENSIONS.PostProcessBuilderExtension;
+        private _mainExtension: EDITOR.EXTENSIONS.PostProcessBuilderExtension;
+
         // Static members
         public static _ConfigurationFileContent: string = null;
 
@@ -75,7 +59,7 @@
                 // Metadatas
                 this._datas = SceneManager.GetCustomMetadata<IPostProcessBuilderData[]>("PostProcessBuilder");
                 if (!this._datas) {
-                    this._datas = [{ name: "NewPostProcess", program: Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                    this._datas = [{ name: "NewPostProcess", id: SceneFactory.GenerateUUID(), program: Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
                     SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
                 }
 
@@ -83,11 +67,11 @@
                 this._createUI();
                 this._onPostProcessSelected([0]);
 
-                // Create main post-process
-                var postProcess = new PostProcess("mainPostProcess", "editorTemplate", [], ["originalSampler"], 1.0, this._camera);
-                postProcess.onApply = (effect: Effect) => {
-                    effect.setTexture("originalSampler", this._texture);
-                };
+                // Extensions
+                this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._scene);
+                this._extension.placeHolderTexture = this._texture;
+
+                this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._core.currentScene);
             });
         }
 
@@ -98,8 +82,13 @@
             // Remove post-processes
             for (var i = 0; i < this._datas.length; i++) {
                 if (this._datas[i].postProcess) {
-                    this._removePostProcess(this._datas[i].postProcess);
+                    this._mainExtension.removePostProcess(this._datas[i].postProcess);
+
+                    if (this._datas[i].editorPostProcess)
+                        this._extension.removePostProcess(this._datas[i].editorPostProcess);
+
                     this._datas[i].postProcess = null;
+                    this._datas[i].editorPostProcess = null;
                 }
             }
 
@@ -275,7 +264,7 @@
             this._selectTemplateWindow.onButtonClicked = (buttonId: string) => {
                 if (buttonId === "Select") {
                     var selected = list.getValue();
-                    var data: IPostProcessBuilderData = { name: selected + this._datas.length, program: Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
+                    var data: IPostProcessBuilderData = { name: selected + this._datas.length, id: SceneFactory.GenerateUUID(), program: Effect.ShadersStore[selected], configuration: PostProcessBuilder._ConfigurationFileContent };
 
                     this._datas.push(data);
                     this._postProcessesList.addRecord({ name: data.name });
@@ -289,10 +278,11 @@
         // When the user removes a post-process
         private _onPostProcessRemove(selected: number[]): void {
             var data = this._datas[selected[0]];
-            if (data.postProcess) {
-                this._removePostProcess(data.postProcess);
-                this._removePostProcess(data.mainPostProcess, true);
-            }
+            if (data.postProcess)
+                this._mainExtension.removePostProcess(data.postProcess);
+
+            if (data.editorPostProcess)
+                this._extension.removePostProcess(data.editorPostProcess);
 
             this._datas.splice(selected[0], 1);
             this._currentSelected = -1;
@@ -324,79 +314,34 @@
 
             // Remove post-processes
             for (var i = 0; i < this._datas.length; i++) {
+                if (this._datas[i].editorPostProcess) {
+                    this._extension.removePostProcess(this._datas[i].editorPostProcess);
+                    delete Effect.ShadersStore[this._datas[i].editorPostProcess.name + "PixelShader"];
+                    this._datas[i].editorPostProcess = null;
+                }
+
                 if (this._datas[i].postProcess) {
-                    this._removePostProcess(this._datas[i].postProcess);
+                    this._mainExtension.removePostProcess(this._datas[i].postProcess);
                     delete Effect.ShadersStore[this._datas[i].postProcess.name + "PixelShader"];
                     this._datas[i].postProcess = null;
                 }
-
-                if (this._datas[i].mainPostProcess && applyOnScene) {
-                    this._removePostProcess(this._datas[i].mainPostProcess, true);
-                    this._datas[i].mainPostProcess = null;
-                }
             }
 
-            // Apply original if on scene
-            if (applyOnScene && !this._scenePassPostProcess) {
-                this._scenePassPostProcess = new PassPostProcess("ScenePassPostProcess", 1.0, null, Texture.BILINEAR_SAMPLINGMODE, this._core.engine, true);
-                for (var j = 0; j < this._core.currentScene.cameras.length; j++)
-                    this._core.currentScene.cameras[j].attachPostProcess(this._scenePassPostProcess);
-            }
-
-            // Recreate post-processes
             for (var i = 0; i < this._datas.length; i++) {
                 var data = this._datas[i];
-                var id = data.name + SceneFactory.GenerateUUID();
+                data.id = SceneFactory.GenerateUUID();
 
-                Effect.ShadersStore[id + "PixelShader"] = data.program;
-
-                var configuration = <IPostProcessConfiguration>JSON.parse(data.configuration);
-                var defines: string[] = [];
-                for (var j = 0; j < configuration.defines.length; j++) {
-                    defines.push("#define " + configuration.defines[j] + "\n");
-                }
-
-                data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, this._camera, Texture.BILINEAR_SAMPLINGMODE, this._engine, false, defines.join());
-                data.postProcess.onApply = this._postProcessCallback(data.postProcess);
+                this._extension.applyPostProcess(data);
+                data.editorPostProcess = data.postProcess;
+                data.postProcess = null;
 
                 if (applyOnScene) {
-                    data.mainPostProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, Texture.BILINEAR_SAMPLINGMODE, this._core.engine, false, defines.join());
-                    data.mainPostProcess.onApply = this._postProcessCallback(data.postProcess, true);
-
-                    for (var j = 0; j < this._core.currentScene.cameras.length; j++)
-                        this._core.currentScene.cameras[j].attachPostProcess(data.mainPostProcess);
+                    data.id = SceneFactory.GenerateUUID();
+                    this._mainExtension.applyPostProcess(data);
                 }
             }
 
             this._storeMetadatas();
-        }
-
-        // Removes the given post-process
-        private _removePostProcess(postProcess: PostProcess, applyOnScene: boolean = false): void {
-            this._camera.detachPostProcess(postProcess);
-
-            if (applyOnScene) {
-                for (var i = 0; i < this._core.currentScene.cameras.length; i++)
-                    this._core.currentScene.cameras[i].detachPostProcess(postProcess);
-            }
-
-            postProcess.dispose();
-        }
-
-        // Callback post-process
-        private _postProcessCallback(postProcess: PostProcess, applyOnScene: boolean = false): (effect: Effect) => void {
-            var screenSize = Vector2.Zero();
-
-            return (effect: Effect) => {
-                if (applyOnScene)
-                    effect.setTextureFromPostProcess("originalSampler", this._scenePassPostProcess);
-                else
-                    effect.setTexture("originalSampler", this._texture);
-
-                screenSize.x = postProcess.width;
-                screenSize.y = postProcess.height;
-                effect.setVector2("screenSize", screenSize);
-            };
         }
 
         // Stores the datas into the custom metadatas
@@ -405,7 +350,7 @@
 
             for (var i = 0; i < this._datas.length; i++) {
                 var data = this._datas[i];
-                customData.push({ name: data.name, program: data.program, configuration: data.configuration, postProcess: null, mainPostProcess: null });
+                customData.push({ name: data.name, id: data.id, program: data.program, configuration: data.configuration, postProcess: null, editorPostProcess: null });
             }
 
             SceneManager.AddCustomMetadata("PostProcessBuilder", customData);
