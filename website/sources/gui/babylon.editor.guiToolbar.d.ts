@@ -1,6 +1,11 @@
 declare module BABYLON.EDITOR.GUI {
     class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
         menus: IToolbarMenuElement[];
+        onClick: (item: {
+            hasParent: boolean;
+            parent: string;
+            selected: string;
+        }) => void;
         /**
         * Constructor
         * @param name: the form name

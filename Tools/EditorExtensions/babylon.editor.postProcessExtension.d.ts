@@ -10,7 +10,9 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         ratio: number;
         defines: string[];
     }
-    class PostProcessBuilderExtension {
+    class PostProcessBuilderExtension implements IEditorExtension<IPostProcessExtensionData[]> {
+        extensionKey: string;
+        applyEvenIfDataIsNull: boolean;
         placeHolderTexture: Texture;
         private _scene;
         private _scenePassPostProcess;
@@ -19,6 +21,7 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         * @param core: the editor core
         */
         constructor(scene: Scene);
+        apply(data: IPostProcessExtensionData[]): void;
         removePostProcess(postProcess: PostProcess): void;
         applyPostProcess(data: IPostProcessExtensionData): void;
         private _postProcessCallback(postProcess);

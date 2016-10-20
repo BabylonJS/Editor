@@ -131,6 +131,7 @@
   "editorExtensions": {
     "filename": "babylon.editor.extensions.js",
     "files": [
+      "Tools/EditorExtensions/babylon.editor.editorExtensions.js",
       "Tools/EditorExtensions/babylon.editor.postProcessExtension.js"
     ]
   }

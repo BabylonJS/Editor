@@ -20,6 +20,7 @@ var BABYLON;
                 this._layouts = null;
                 this._mainPanel = null;
                 this._postProcessesList = null;
+                this._toolbar = null;
                 this._glslTabId = null;
                 this._configurationTabId = null;
                 this._currentTabId = null;
@@ -63,6 +64,7 @@ var BABYLON;
                 }
                 // Finalize dispose
                 this._core.removeEventReceiver(this);
+                this._toolbar.destroy();
                 this._postProcessesList.destroy();
                 this._editor.destroy();
                 this._console.destroy();
@@ -89,6 +91,7 @@ var BABYLON;
                 this._containerElement = $("#" + this._containerID);
                 // Layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
+                this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
@@ -105,6 +108,13 @@ var BABYLON;
                 // GUI
                 var container = $("#POST-PROCESS-BUILDER-EDIT");
                 container.append(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+                // Toolbar
+                this._toolbar = new EDITOR.GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
+                this._toolbar.createMenu("button", "BUILD-CHAIN", "Apply Chain (CTRL + B)", "icon-play-game", false, "Builds post-processes and applies chain");
+                this._toolbar.addBreak();
+                this._toolbar.createMenu("button", "BUILD-CHAIN-SCENE", "Apply Chain on Scene", "icon-scene", false, "Builds post-processes and applies chain on scene");
+                this._toolbar.buildElement("POST-PROCESS-BUILDER-TOOLBAR");
+                this._toolbar.onClick = function (item) { return _this._onApplyPostProcessChain(item.parent === "BUILD-CHAIN-SCENE"); };
                 // List
                 this._postProcessesList = new EDITOR.GUI.GUIGrid("POST-PROCESS-BUILDER-EDIT-LIST", this._core);
                 this._postProcessesList.createEditableColumn("name", "name", { type: "string" }, "100%");
@@ -131,22 +141,6 @@ var BABYLON;
                 this._camera = new BABYLON.Camera("PostProcessCamera", BABYLON.Vector3.Zero(), this._scene);
                 this._texture = new BABYLON.Texture("website/Tests/textures/no_smoke.png", this._scene);
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
-                container.append("<br />");
-                container.append("<hr>");
-                container.append("<br />");
-                // Create build button
-                var applyOrderButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply Chain (CTRL + B)");
-                applyOrderButton.css("width", "100%");
-                applyOrderButton.css("position", "absolute");
-                applyOrderButton.css("bottom", "10px");
-                applyOrderButton.addClass("btn-orange");
-                applyOrderButton.click(function (event) { return _this._onApplyPostProcessChain(false); });
-                var applyOnSceneButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply On Scene");
-                applyOnSceneButton.css("width", "100%");
-                applyOnSceneButton.css("position", "absolute");
-                applyOnSceneButton.css("bottom", "40px");
-                applyOnSceneButton.addClass("btn-red");
-                applyOnSceneButton.click(function (event) { return _this._onApplyPostProcessChain(true); });
                 // Editor
                 this._editor = ace.edit("POST-PROCESS-BUILDER-PROGRAM");
                 this._editor.setTheme("ace/theme/clouds");

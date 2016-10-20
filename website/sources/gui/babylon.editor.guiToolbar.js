@@ -205,6 +205,8 @@ var BABYLON;
                         name: this.name,
                         items: this.menus,
                         onClick: function (event) {
+                            if (_this.onClick)
+                                _this.onClick(_this.decomposeSelectedMenu(event.target));
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED);

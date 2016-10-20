@@ -19,6 +19,9 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function PostProcessBuilderExtension(scene) {
+                    // IEditorExtension members
+                    this.extensionKey = "PostProcessBuilder";
+                    this.applyEvenIfDataIsNull = false;
                     // Public members
                     this.placeHolderTexture = null;
                     this._scenePassPostProcess = null;
@@ -34,6 +37,11 @@ var BABYLON;
                     this.applyPostProcess(data);
                     this._scenePassPostProcess = data.postProcess;
                 }
+                // Applies the extension
+                PostProcessBuilderExtension.prototype.apply = function (data) {
+                    for (var i = 0; i < data.length; i++)
+                        this.applyPostProcess(data[i]);
+                };
                 // Removes a post-process from the scene
                 PostProcessBuilderExtension.prototype.removePostProcess = function (postProcess) {
                     for (var i = 0; i < this._scene.cameras.length; i++)
@@ -71,6 +79,7 @@ var BABYLON;
                 return PostProcessBuilderExtension;
             }());
             EXTENSIONS.PostProcessBuilderExtension = PostProcessBuilderExtension;
+            EXTENSIONS.EditorExtension.RegisterExtension(PostProcessBuilderExtension);
         })(EXTENSIONS = EDITOR.EXTENSIONS || (EDITOR.EXTENSIONS = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

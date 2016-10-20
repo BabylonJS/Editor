@@ -157,6 +157,9 @@
                 var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
                 files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(BabylonExporter.GenerateFinalBabylonFile(this.core)), parentFolder: sceneFolder.file });
 
+                files.push({ name: "scene.editorproject", content: JSON.stringify(project), parentFolder: sceneFolder.file });
+                files.push({ name: "extensions.editorextensions", content: JSON.stringify(project.customMetadatas), parentFolder: sceneFolder.file });
+
                 // Lens flare textures
                 for (var i = 0; i < project.lensFlares.length; i++) {
                     var lf = project.lensFlares[i].serializationObject;
@@ -200,7 +203,8 @@
 
                 files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                 files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                files.push({ name: "babylon.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
+                files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
+                files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: this.getFolder("js").file });
 
                 // Materials
                 for (var i = 0; i < project.requestedMaterials.length; i++) {

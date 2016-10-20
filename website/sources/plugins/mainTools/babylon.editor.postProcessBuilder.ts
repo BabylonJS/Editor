@@ -26,6 +26,7 @@
         private _layouts: GUI.GUILayout = null;
         private _mainPanel: GUI.GUIPanel = null;
         private _postProcessesList: GUI.GUIGrid<IPostProcessGridItem> = null;
+        private _toolbar: GUI.GUIToolbar = null;
 
         private _glslTabId: string = null;
         private _configurationTabId: string = null;
@@ -95,6 +96,7 @@
             // Finalize dispose
             this._core.removeEventReceiver(this);
 
+            this._toolbar.destroy();
             this._postProcessesList.destroy();
             this._editor.destroy();
             this._console.destroy();
@@ -125,6 +127,7 @@
 
             // Layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
+            this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
@@ -145,6 +148,15 @@
             // GUI
             var container = $("#POST-PROCESS-BUILDER-EDIT");
             container.append(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+
+            // Toolbar
+            this._toolbar = new GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
+            this._toolbar.createMenu("button", "BUILD-CHAIN", "Apply Chain (CTRL + B)", "icon-play-game", false, "Builds post-processes and applies chain");
+            this._toolbar.addBreak();
+            this._toolbar.createMenu("button", "BUILD-CHAIN-SCENE", "Apply Chain on Scene", "icon-scene", false, "Builds post-processes and applies chain on scene");
+            this._toolbar.buildElement("POST-PROCESS-BUILDER-TOOLBAR");
+
+            this._toolbar.onClick = (item) => this._onApplyPostProcessChain(item.parent === "BUILD-CHAIN-SCENE");
 
             // List
             this._postProcessesList = new GUI.GUIGrid<IPostProcessGridItem>("POST-PROCESS-BUILDER-EDIT-LIST", this._core);
@@ -177,25 +189,6 @@
             this._camera = new Camera("PostProcessCamera", Vector3.Zero(), this._scene);
             this._texture = new Texture("website/Tests/textures/no_smoke.png", this._scene);
             this._engine.runRenderLoop(() => this._scene.render());
-
-            container.append("<br />");
-            container.append("<hr>");
-            container.append("<br />");
-
-            // Create build button
-            var applyOrderButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Apply Chain (CTRL + B)");
-            applyOrderButton.css("width", "100%");
-            applyOrderButton.css("position", "absolute");
-            applyOrderButton.css("bottom", "10px");
-            applyOrderButton.addClass("btn-orange");
-            applyOrderButton.click((event) => this._onApplyPostProcessChain(false));
-
-            var applyOnSceneButton = GUI.GUIElement.CreateButton(container, SceneFactory.GenerateUUID(), "Apply On Scene");
-            applyOnSceneButton.css("width", "100%");
-            applyOnSceneButton.css("position", "absolute");
-            applyOnSceneButton.css("bottom", "40px");
-            applyOnSceneButton.addClass("btn-red");
-            applyOnSceneButton.click((event) => this._onApplyPostProcessChain(true));
 
             // Editor
             this._editor = ace.edit("POST-PROCESS-BUILDER-PROGRAM");

@@ -3,6 +3,8 @@
         // Public members
         public menus: IToolbarMenuElement[] = [];
 
+        public onClick: (item: { hasParent: boolean, parent: string, selected: string }) => void;
+
         // Private members
 
         /**
@@ -233,6 +235,9 @@
                 name: this.name,
                 items: this.menus,
                 onClick: (event: any) => {
+                    if (this.onClick)
+                        this.onClick(this.decomposeSelectedMenu(event.target));
+
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.TOOLBAR_MENU_SELECTED);

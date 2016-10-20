@@ -193,6 +193,7 @@
     <TypeScriptCompile Include="defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="defines\w2ui.d.ts" />
     <TypeScriptCompile Include="defines\ace\ace.d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.editorExtensions.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.postProcessExtension.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\main.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\test.file.ts" />

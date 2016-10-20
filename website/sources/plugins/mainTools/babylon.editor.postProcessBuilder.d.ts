@@ -15,6 +15,7 @@ declare module BABYLON.EDITOR {
         private _layouts;
         private _mainPanel;
         private _postProcessesList;
+        private _toolbar;
         private _glslTabId;
         private _configurationTabId;
         private _currentTabId;

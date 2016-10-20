@@ -22,7 +22,11 @@
         "}"
     ].join("\n");
 
-    export class PostProcessBuilderExtension {
+    export class PostProcessBuilderExtension implements IEditorExtension<IPostProcessExtensionData[]> {
+        // IEditorExtension members
+        extensionKey: string = "PostProcessBuilder";
+        applyEvenIfDataIsNull: boolean = false;
+
         // Public members
         public placeHolderTexture: Texture = null;
 
@@ -48,6 +52,12 @@
 
             this.applyPostProcess(data);
             this._scenePassPostProcess = data.postProcess;
+        }
+
+        // Applies the extension
+        public apply(data: IPostProcessExtensionData[]): void {
+            for (var i = 0; i < data.length; i++)
+                this.applyPostProcess(data[i]);
         }
 
         // Removes a post-process from the scene
@@ -93,4 +103,6 @@
             };
         }
     }
+
+    EXTENSIONS.EditorExtension.RegisterExtension(PostProcessBuilderExtension);
 }

@@ -4,6 +4,49 @@ var BABYLON;
     (function (EDITOR) {
         var EXTENSIONS;
         (function (EXTENSIONS) {
+            var EditorExtension = (function () {
+                function EditorExtension() {
+                }
+                // Loads the extensions file and parses it
+                EditorExtension.LoadExtensionsFile = function (url, callback) {
+                    BABYLON.Tools.LoadFile(url, function (data) {
+                        EditorExtension._ExtensionsDatas = JSON.parse(data);
+                        callback();
+                    });
+                };
+                // Returns the wanted extension of type T
+                EditorExtension.GetExtensionData = function (key) {
+                    if (!EditorExtension._ExtensionsDatas[key])
+                        return null;
+                    return EditorExtension._ExtensionsDatas[key];
+                };
+                // Applies all the extensions
+                EditorExtension.ApplyExtensions = function (scene) {
+                    for (var i = 0; i < EditorExtension._Extensions.length; i++) {
+                        var extension = new EditorExtension._Extensions[i](scene);
+                        var data = EditorExtension.GetExtensionData(extension.extensionKey);
+                        if (data || (!data && extension.applyEvenIfDataIsNull))
+                            extension.apply(data);
+                    }
+                };
+                // Registers extension
+                EditorExtension.RegisterExtension = function (extension) {
+                    EditorExtension._Extensions.push(extension);
+                };
+                // The extensions plugins
+                EditorExtension._Extensions = [];
+                return EditorExtension;
+            }());
+            EXTENSIONS.EditorExtension = EditorExtension;
+        })(EXTENSIONS = EDITOR.EXTENSIONS || (EDITOR.EXTENSIONS = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var EXTENSIONS;
+        (function (EXTENSIONS) {
             BABYLON.Effect.ShadersStore["editorTemplatePixelShader"] = [
                 "varying vec2 vUV;",
                 "uniform sampler2D textureSampler;",
@@ -19,6 +62,9 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function PostProcessBuilderExtension(scene) {
+                    // IEditorExtension members
+                    this.extensionKey = "PostProcessBuilder";
+                    this.applyEvenIfDataIsNull = false;
                     // Public members
                     this.placeHolderTexture = null;
                     this._scenePassPostProcess = null;
@@ -34,6 +80,11 @@ var BABYLON;
                     this.applyPostProcess(data);
                     this._scenePassPostProcess = data.postProcess;
                 }
+                // Applies the extension
+                PostProcessBuilderExtension.prototype.apply = function (data) {
+                    for (var i = 0; i < data.length; i++)
+                        this.applyPostProcess(data[i]);
+                };
                 // Removes a post-process from the scene
                 PostProcessBuilderExtension.prototype.removePostProcess = function (postProcess) {
                     for (var i = 0; i < this._scene.cameras.length; i++)
@@ -71,6 +122,7 @@ var BABYLON;
                 return PostProcessBuilderExtension;
             }());
             EXTENSIONS.PostProcessBuilderExtension = PostProcessBuilderExtension;
+            EXTENSIONS.EditorExtension.RegisterExtension(PostProcessBuilderExtension);
         })(EXTENSIONS = EDITOR.EXTENSIONS || (EDITOR.EXTENSIONS = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

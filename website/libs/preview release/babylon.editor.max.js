@@ -1727,6 +1727,8 @@ var BABYLON;
                         name: this.name,
                         items: this.menus,
                         onClick: function (event) {
+                            if (_this.onClick)
+                                _this.onClick(_this.decomposeSelectedMenu(event.target));
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED);
@@ -2986,8 +2988,13 @@ var BABYLON;
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
+                    var toneMapFolder = standardFolder.addFolder("Tone Mapping");
+                    toneMapFolder.add(EDITOR.SceneFactory.StandardPipeline, "ToneMappingEnabled").name("Tone Mapping Enabled");
+                    toneMapFolder.add(EDITOR.SceneFactory.StandardPipeline.toneMappingPostProcess, "exposureAdjustment").min(0).max(10).step(0.01).name("Exposure Adjustment");
+                    toneMapFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
@@ -8270,6 +8277,8 @@ var BABYLON;
                     //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
                     files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
+                    files.push({ name: "scene.editorproject", content: JSON.stringify(project), parentFolder: sceneFolder.file });
+                    files.push({ name: "extensions.editorextensions", content: JSON.stringify(project.customMetadatas), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
                         var lf = project.lensFlares[i].serializationObject;
@@ -8308,7 +8317,8 @@ var BABYLON;
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                     files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                    files.push({ name: "babylon.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
+                    files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
+                    files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("js").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -11704,6 +11714,7 @@ var BABYLON;
                 this._layouts = null;
                 this._mainPanel = null;
                 this._postProcessesList = null;
+                this._toolbar = null;
                 this._glslTabId = null;
                 this._configurationTabId = null;
                 this._currentTabId = null;
@@ -11747,6 +11758,7 @@ var BABYLON;
                 }
                 // Finalize dispose
                 this._core.removeEventReceiver(this);
+                this._toolbar.destroy();
                 this._postProcessesList.destroy();
                 this._editor.destroy();
                 this._console.destroy();
@@ -11773,6 +11785,7 @@ var BABYLON;
                 this._containerElement = $("#" + this._containerID);
                 // Layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
+                this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
@@ -11789,6 +11802,13 @@ var BABYLON;
                 // GUI
                 var container = $("#POST-PROCESS-BUILDER-EDIT");
                 container.append(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+                // Toolbar
+                this._toolbar = new EDITOR.GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
+                this._toolbar.createMenu("button", "BUILD-CHAIN", "Apply Chain (CTRL + B)", "icon-play-game", false, "Builds post-processes and applies chain");
+                this._toolbar.addBreak();
+                this._toolbar.createMenu("button", "BUILD-CHAIN-SCENE", "Apply Chain on Scene", "icon-scene", false, "Builds post-processes and applies chain on scene");
+                this._toolbar.buildElement("POST-PROCESS-BUILDER-TOOLBAR");
+                this._toolbar.onClick = function (item) { return _this._onApplyPostProcessChain(item.parent === "BUILD-CHAIN-SCENE"); };
                 // List
                 this._postProcessesList = new EDITOR.GUI.GUIGrid("POST-PROCESS-BUILDER-EDIT-LIST", this._core);
                 this._postProcessesList.createEditableColumn("name", "name", { type: "string" }, "100%");
@@ -11815,22 +11835,6 @@ var BABYLON;
                 this._camera = new BABYLON.Camera("PostProcessCamera", BABYLON.Vector3.Zero(), this._scene);
                 this._texture = new BABYLON.Texture("website/Tests/textures/no_smoke.png", this._scene);
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
-                container.append("<br />");
-                container.append("<hr>");
-                container.append("<br />");
-                // Create build button
-                var applyOrderButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply Chain (CTRL + B)");
-                applyOrderButton.css("width", "100%");
-                applyOrderButton.css("position", "absolute");
-                applyOrderButton.css("bottom", "10px");
-                applyOrderButton.addClass("btn-orange");
-                applyOrderButton.click(function (event) { return _this._onApplyPostProcessChain(false); });
-                var applyOnSceneButton = EDITOR.GUI.GUIElement.CreateButton(container, EDITOR.SceneFactory.GenerateUUID(), "Apply On Scene");
-                applyOnSceneButton.css("width", "100%");
-                applyOnSceneButton.css("position", "absolute");
-                applyOnSceneButton.css("bottom", "40px");
-                applyOnSceneButton.addClass("btn-red");
-                applyOnSceneButton.click(function (event) { return _this._onApplyPostProcessChain(true); });
                 // Editor
                 this._editor = ace.edit("POST-PROCESS-BUILDER-PROGRAM");
                 this._editor.setTheme("ace/theme/clouds");
