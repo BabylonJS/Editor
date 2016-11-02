@@ -2,7 +2,7 @@
 var ts = require("../../node_modules/typescript");
 var fs = require("fs");
 console.log("Parsing...");
-var filename = ["../../defines/babylon.d.ts"];
+var filename = ["../../defines/babylon.d.ts", "../EditorExtensions/babylon.editor.extensions.d.ts"];
 ;
 var output = [];
 var program = ts.createProgram(filename, {});

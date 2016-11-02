@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 console.log("Parsing...");
 
-var filename = ["../../defines/babylon.d.ts"];
+var filename = ["../../defines/babylon.d.ts", "../EditorExtensions/babylon.editor.extensions.d.ts"];
 //var filename = ["test.file.ts"];
 
 interface DocEntry {

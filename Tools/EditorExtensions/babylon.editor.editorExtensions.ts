@@ -19,10 +19,10 @@
 
         // Static members
         // The extensions data
-        public static _ExtensionsDatas: { [name: string]: any };
+        private static _ExtensionsDatas: { [name: string]: any };
 
         // The extensions plugins
-        public static _Extensions: _EditorExtensionConstructor[] = [];
+        private static _Extensions: _EditorExtensionConstructor[] = [];
 
         // Loads the extensions file and parses it
         public static LoadExtensionsFile(url: string, callback?: () => void): void {

@@ -57,7 +57,7 @@ var BABYLON;
                     for (var i = 0; i < configuration.defines.length; i++) {
                         defines.push("#define " + configuration.defines[i] + "\n");
                     }
-                    data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, defines.join());
+                    data.postProcess = new BABYLON.PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio / devicePixelRatio, null, BABYLON.Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, defines.join());
                     data.postProcess.onApply = this._postProcessCallback(data.postProcess);
                     for (var i = 0; i < this._scene.cameras.length; i++)
                         this._scene.cameras[i].attachPostProcess(data.postProcess);

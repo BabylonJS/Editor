@@ -13,6 +13,7 @@
         type: number;
         name: string;
         properties: IActionsBuilderProperty[];
+        comment?: string;
     }
 
     export interface IActionsBuilderSerializationObject extends IActionsBuilderElement {
@@ -148,7 +149,8 @@
                     name: this._object instanceof Scene ? "Scene" : (<AbstractMesh>this._object).name,
                     type: this._object instanceof Scene ? 3 : 4,
                     properties: [],
-                    children: []
+                    children: [],
+                    comment: ""
                 };
             }
 
@@ -160,7 +162,8 @@
                     name: data.name,
                     type: data.type,
                     properties: [],
-                    children: []
+                    children: [],
+                    comment: data.comment
                 };
 
                 // Configure properties
@@ -195,7 +198,8 @@
                     name: child.name,
                     type: child.type,
                     properties: child.properties,
-                    children: []
+                    children: [],
+                    comment: child.comment
                 };
 
                 var nodeData: IActionsBuilderData = {
@@ -320,17 +324,13 @@
 
             this._graph.clear();
 
-            if (this._object instanceof Scene)
-                actionManager = this._core.isPlaying ? this._object.actionManager : SceneManager._SceneConfiguration.actionManager;
-            else
-                actionManager = this._core.isPlaying ? this._object.actionManager : SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager;
+            var metadata = SceneManager.GetCustomMetadata<IStringDictionary<IActionsBuilderSerializationObject>>("ActionsBuilder") || {};
+            var graph = metadata[this._object instanceof Scene ? "Scene" : (<AbstractMesh>this._object).name];
 
-            if (!actionManager) {
-                return;
+            if (graph) {
+                this.deserializeGraph(graph, "");
+                this._graph.layout();
             }
-            
-            this.deserializeGraph(actionManager.serialize(this._object instanceof Scene ? "Scene" : (<AbstractMesh>this._object).name), "");
-            this._graph.layout();
         }
 
         // When the user saves the graph
@@ -373,6 +373,11 @@
             }
             else {
                 var graph = this.serializeGraph();
+
+                var metadata = SceneManager.GetCustomMetadata<IStringDictionary<IActionsBuilderSerializationObject>>("ActionsBuilder") || {};
+                metadata[this._object instanceof Scene ? "Scene" : (<AbstractMesh>this._object).name] = graph;
+                SceneManager.AddCustomMetadata("ActionsBuilder", metadata);
+
                 var actionManager: ActionManager = null;
 
                 if (!this._core.isPlaying)
@@ -564,7 +569,7 @@
             else {
                 // It's an action or condition
                 var constructor = data.class.constructors[0];
-                var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+                var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound", "ParticleSystem"];
 
                 for (var i = 0; i < constructor.parameters.length; i++) {
                     var param = constructor.parameters[i];

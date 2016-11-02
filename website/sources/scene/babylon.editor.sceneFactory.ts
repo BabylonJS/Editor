@@ -384,7 +384,7 @@
             var skyboxMaterial = new SkyMaterial("skyMaterial", core.currentScene);
             skyboxMaterial.backFaceCulling = false;
 
-            var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+            var skybox = Mesh.CreateBox("skyBox", 1000.0, core.currentScene, false, Mesh.BACKSIDE);
             skybox.id = this.GenerateUUID();
             skybox.material = skyboxMaterial;
             

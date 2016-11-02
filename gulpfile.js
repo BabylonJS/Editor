@@ -99,18 +99,23 @@ gulp.task("build-extensions", function () {
     var result = gulp.src(extensionFiles)
         .pipe(typescript({
             target: "ES5",
-            declarationFiles: false,
+            declarationFiles: true,
             experimentalDecorators: false,
             out: config.editorExtensions.filename
         }));
 
-    return result.js.pipe(gulp.dest(config.build.outputDirectory))
-        .pipe(concat(config.editorExtensions.filename))
-        .pipe(cleants())
-        .pipe(gulp.dest(config.build.outputDirectory))
-        .pipe(rename(config.build.minFilename))
-        .pipe(uglify())
-        .pipe(gulp.dest(config.build.outputDirectory));
+    return merge2([
+        result.js.pipe(gulp.dest(config.build.outputDirectory))
+            .pipe(concat(config.editorExtensions.filename))
+            .pipe(cleants())
+            .pipe(gulp.dest(config.build.outputDirectory))
+            .pipe(rename(config.build.minFilename))
+            .pipe(uglify())
+            .pipe(gulp.dest(config.build.outputDirectory)),
+        result.dts
+            .pipe(concat(config.editorExtensions.declarationFilename))
+            .pipe(gulp.dest(config.editorExtensions.outputDeclarionFilename))
+    ]);
 });
 
 /*

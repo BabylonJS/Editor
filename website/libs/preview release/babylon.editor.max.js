@@ -2109,7 +2109,7 @@ var BABYLON;
                     cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
                     if (object.speed)
-                        cameraFolder.add(this.object, "speed").min(0).step(0.1).name("Speed");
+                        cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
                 }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
@@ -2988,13 +2988,9 @@ var BABYLON;
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                    //highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
-                    var toneMapFolder = standardFolder.addFolder("Tone Mapping");
-                    toneMapFolder.add(EDITOR.SceneFactory.StandardPipeline, "ToneMappingEnabled").name("Tone Mapping Enabled");
-                    toneMapFolder.add(EDITOR.SceneFactory.StandardPipeline.toneMappingPostProcess, "exposureAdjustment").min(0).max(10).step(0.01).name("Exposure Adjustment");
-                    toneMapFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
@@ -6572,7 +6568,7 @@ var BABYLON;
             SceneFactory.AddSkyMesh = function (core) {
                 var skyboxMaterial = new BABYLON.SkyMaterial("skyMaterial", core.currentScene);
                 skyboxMaterial.backFaceCulling = false;
-                var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+                var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene, false, BABYLON.Mesh.BACKSIDE);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
                 this.ConfigureObject(skybox, core);
@@ -10699,6 +10695,7 @@ var BABYLON;
                 this.menuID = "TOOLS-PLUGIN-MENU";
                 this._openActionsBuilder = "OPEN-ACTIONS-BUILDER";
                 this._openPostProcessBuilder = "OPEN-POST-PROCESS-BUILDER";
+                this._openCosmos = "OPEN-COSMOS";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
@@ -10707,9 +10704,12 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);
                 // new PostProcessBuilder(this._core);
+                // new CosmosEditor(this._core);
             }
             // Called when a menu item is selected by the user
             ToolsMenu.prototype.onMenuItemSelected = function (selected) {
@@ -10719,6 +10719,9 @@ var BABYLON;
                         break;
                     case this._openPostProcessBuilder:
                         new EDITOR.PostProcessBuilder(this._core);
+                        break;
+                    case this._openCosmos:
+                        new EDITOR.CosmosEditor(this._core);
                         break;
                     default: break;
                 }
@@ -10822,7 +10825,8 @@ var BABYLON;
                         name: this._object instanceof BABYLON.Scene ? "Scene" : this._object.name,
                         type: this._object instanceof BABYLON.Scene ? 3 : 4,
                         properties: [],
-                        children: []
+                        children: [],
+                        comment: ""
                     };
                 }
                 var nodes = parent ? this._graph.getNodesWithParent(parent) : this._graph.getRootNodes();
@@ -10832,7 +10836,8 @@ var BABYLON;
                         name: data.name,
                         type: data.type,
                         properties: [],
-                        children: []
+                        children: [],
+                        comment: data.comment
                     };
                     // Configure properties
                     for (var j = 0; j < data.properties.length; j++) {
@@ -10859,7 +10864,8 @@ var BABYLON;
                         name: child.name,
                         type: child.type,
                         properties: child.properties,
-                        children: []
+                        children: [],
+                        comment: child.comment
                     };
                     var nodeData = {
                         class: this._getNodeParametersClass(childData.type, childData.name),
@@ -10956,15 +10962,12 @@ var BABYLON;
                     return;
                 var actionManager = null;
                 this._graph.clear();
-                if (this._object instanceof BABYLON.Scene)
-                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
-                else
-                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
-                if (!actionManager) {
-                    return;
+                var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
+                var graph = metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name];
+                if (graph) {
+                    this.deserializeGraph(graph, "");
+                    this._graph.layout();
                 }
-                this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
-                this._graph.layout();
             };
             // When the user saves the graph
             ActionsBuilder.prototype._onSave = function () {
@@ -11001,6 +11004,9 @@ var BABYLON;
                 }
                 else {
                     var graph = this.serializeGraph();
+                    var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
+                    metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name] = graph;
+                    EDITOR.SceneManager.AddCustomMetadata("ActionsBuilder", metadata);
                     var actionManager = null;
                     if (!this._core.isPlaying)
                         actionManager = this._object.actionManager;
@@ -11167,7 +11173,7 @@ var BABYLON;
                 else {
                     // It's an action or condition
                     var constructor = data.class.constructors[0];
-                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound", "ParticleSystem"];
                     for (var i = 0; i < constructor.parameters.length; i++) {
                         var param = constructor.parameters[i];
                         var property = {
@@ -11315,6 +11321,7 @@ var BABYLON;
                     edge.css("curve-style", "unbundled-bezier");
                     edge.css("control-point-distances", "10 -10");
                     edge.css("control-point-weights", "0.25 0.75");
+                    edge.css("label", (data["data"] && data["data"]["comment"] ? data["data"]["comment"].substr(0, 20) + "..." : ""));
                 }
                 // Configure node
                 node.css("shape", "roundrectangle");
@@ -11509,6 +11516,11 @@ var BABYLON;
                         if (property.value === null)
                             this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                     }
+                    else if (property.name === "particleSystem") {
+                        var list = this._createListOfElements(property, this._createParticleSystemList());
+                        if (property.value === null)
+                            this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
+                    }
                     else if (propertyType === "boolean") {
                         this._createCheckbox(property);
                         if (property.value === null)
@@ -11524,6 +11536,15 @@ var BABYLON;
                     }
                     this._container.append("<hr>");
                 }
+                // Comments
+                var commentsID = EDITOR.SceneFactory.GenerateUUID();
+                this._container.append(EDITOR.GUI.GUIElement.CreateElement("textarea", commentsID, "width: 100%; height: 150px;", data.data.comment || "your comment..."));
+                var comments = $("#" + commentsID);
+                comments.keyup(function (event) {
+                    data.data.comment = comments.val();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
             };
             // Populates the given string array with another
             ActionsBuilderParametersEditor.prototype.populateStringArray = function (array, values, property) {
@@ -11666,13 +11687,21 @@ var BABYLON;
                 fillProperties(node, "");
                 return properties;
             };
-            // Creates an array of sounds
+            // Creates an array of sounds names
             ActionsBuilderParametersEditor.prototype._createSoundsList = function () {
                 var sounds = [];
                 for (var i = 0; i < this._core.currentScene.mainSoundTrack.soundCollection.length; i++) {
                     sounds.push(this._core.currentScene.mainSoundTrack.soundCollection[i].name);
                 }
                 return sounds;
+            };
+            // Creates an array of particle systems ids
+            ActionsBuilderParametersEditor.prototype._createParticleSystemList = function () {
+                var ps = [];
+                for (var i = 0; i < this._core.currentScene.particleSystems.length; i++) {
+                    ps.push(this._core.currentScene.particleSystems[i].id);
+                }
+                return ps;
             };
             // Returns the colleciton of objects according to type
             ActionsBuilderParametersEditor.prototype._getCollectionOfObjects = function (type) {
@@ -11982,6 +12011,132 @@ var BABYLON;
             return PostProcessBuilder;
         }());
         EDITOR.PostProcessBuilder = PostProcessBuilder;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var CosmosEditor = (function () {
+            /**
+            * Constructor
+            * @param core: the editor core
+            */
+            function CosmosEditor(core) {
+                this._engine = null;
+                this._scene = null;
+                this._camera = null;
+                this._light = null;
+                this._skybox = null;
+                this._containerElement = null;
+                this._containerID = null;
+                this._tab = null;
+                this._layouts = null;
+                this._editor = null;
+                this._extension = null;
+                this._dummyIdSearch = "";
+                // Configure this
+                this._core = core;
+                // Create UI
+                this._createUI();
+            }
+            /**
+            * Disposes the application
+            */
+            CosmosEditor.prototype.dispose = function () {
+                this._layouts.destroy();
+                this._engine.dispose();
+            };
+            // Creates the UI
+            CosmosEditor.prototype._createUI = function () {
+                var _this = this;
+                // Create tab and container
+                this._containerID = this._core.editor.createContainer();
+                this._tab = this._core.editor.createTab("Cosmos Editor", this._containerID, this, true);
+                this._containerElement = $("#" + this._containerID);
+                // Layout
+                this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
+                this._layouts.createPanel("COSMOS-EDITOR-LEFT-PANEL", "left", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "COSMOS-EDITOR-EDIT", "width: 100%; height: 100%;"));
+                this._layouts.createPanel("COSMOS-EDITOR-MAIN-PANEL", "main", 0, false).setContent(EDITOR.GUI.GUIElement.CreateElement("canvas", "COSMOS-EDITOR-CANVAS"));
+                this._layouts.buildElement(this._containerID);
+                this._layouts.on("resize", function (event) {
+                    _this._engine.resize();
+                });
+                // Canvas
+                this._engine = new BABYLON.Engine($("#COSMOS-EDITOR-CANVAS")[0]);
+                this._scene = new BABYLON.Scene(this._engine);
+                this._scene.clearColor = BABYLON.Color3.Black();
+                this._camera = new BABYLON.FreeCamera("CosmosFreeCamera", new BABYLON.Vector3(150, 150, 150), this._scene);
+                this._camera.setTarget(BABYLON.Vector3.Zero());
+                this._camera.attachControl(this._engine.getRenderingCanvas());
+                this._light = new BABYLON.PointLight("CosmosLight", BABYLON.Vector3.Zero(), this._scene);
+                this._light.parent = this._camera;
+                this._skybox = BABYLON.Mesh.CreateBox("skyBox", 10000.0, this._scene);
+                var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", this._scene);
+                skyboxMaterial.backFaceCulling = false;
+                var files = [
+                    "website/textures/space/space_left.jpg",
+                    "website/textures/space/space_up.jpg",
+                    "website/textures/space/space_front.jpg",
+                    "website/textures/space/space_right.jpg",
+                    "website/textures/space/space_down.jpg",
+                    "website/textures/space/space_back.jpg",
+                ];
+                skyboxMaterial.reflectionTexture = BABYLON.CubeTexture.CreateFromImages(files, this._scene);
+                skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+                skyboxMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+                skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+                skyboxMaterial.disableLighting = true;
+                this._skybox.material = skyboxMaterial;
+                var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", this._scene, 1.0 / devicePixelRatio, null, [this._camera]);
+                standard.LensFlareEnabled = true;
+                standard.lensFlareStrength = 50;
+                standard.brightThreshold = 0.8;
+                standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", this._scene);
+                standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", this._scene);
+                standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", this._scene);
+                this._engine.runRenderLoop(function () {
+                    _this._scene.render();
+                    _this._extension.updateMeshes();
+                });
+                // Create Extension
+                this._extension = new EDITOR.EXTENSIONS.CosmosExtension(this._scene);
+                // Editor
+                this._editor = new EDITOR.GUI.GUIEditForm("COSMOS-EDITOR-EDIT", this._core);
+                this._editor.buildElement("COSMOS-EDITOR-EDIT");
+                var rootFolder = this._editor.addFolder("Root node");
+                rootFolder.add(this._extension, "distanceToRoot").min(1).max(1000).step(1).name("Distance to root").onChange(function () { return _this._reset(); });
+                rootFolder.add(this._extension, "heightFromRoot").min(1).max(500).step(1).name("Height from root").onChange(function () { return _this._reset(); });
+                var functionsFolder = this._editor.addFolder("Functions nodes");
+                functionsFolder.add(this._extension, "distanceToFunction").min(0).max(100).name("Distance to function").onChange(function () { return _this._reset(); });
+                functionsFolder.add(this._extension, "functionsDistance").min(0.01).max(10).step(0.01).name("Functions distance").onChange(function () { return _this._reset(); });
+                functionsFolder.add(this._extension, "sphereDiameter").min(0).max(100).step(0.01).name("Spheres diameter").onChange(function () { return _this._reset(); });
+                var animationsFolder = this._editor.addFolder("Animations");
+                animationsFolder.add(this._extension, "animationsDistance").min(1).max(10).step(0.01).name("Animations distance").onChange(function () { return _this._reset(); });
+                var searchFolder = this._editor.addFolder("Search");
+                searchFolder.add(this, "_dummyIdSearch").name("Search title").onChange(function (value) {
+                    _this._extension.animateCameraToId(value === "" ? "root" : value);
+                });
+            };
+            // Reset the extension
+            CosmosEditor.prototype._reset = function () {
+                this._extension.reset();
+                // Add custom metadatas
+                var data = {
+                    distanceToRoot: this._extension.distanceToRoot,
+                    heightFromRoot: this._extension.heightFromRoot,
+                    functionsDistance: this._extension.functionsDistance,
+                    animationsDistance: this._extension.animationsDistance,
+                    sphereDiameter: this._extension.sphereDiameter
+                };
+                EDITOR.SceneManager.AddCustomMetadata("CosmosExtension", data);
+                this._extension.apply(data);
+            };
+            // Static members
+            CosmosEditor._ConfigurationFileContent = null;
+            return CosmosEditor;
+        }());
+        EDITOR.CosmosEditor = CosmosEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;

@@ -24,8 +24,8 @@
 
     export class PostProcessBuilderExtension implements IEditorExtension<IPostProcessExtensionData[]> {
         // IEditorExtension members
-        extensionKey: string = "PostProcessBuilder";
-        applyEvenIfDataIsNull: boolean = false;
+        public extensionKey: string = "PostProcessBuilder";
+        public applyEvenIfDataIsNull: boolean = false;
 
         // Public members
         public placeHolderTexture: Texture = null;
@@ -80,7 +80,7 @@
                 defines.push("#define " + configuration.defines[i] + "\n");
             }
 
-            data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio, null, Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, defines.join());
+            data.postProcess = new PostProcess(id, id, ["screenSize"], ["originalSampler"], configuration.ratio / devicePixelRatio, null, Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, defines.join());
             data.postProcess.onApply = this._postProcessCallback(data.postProcess);
 
             for (var i = 0; i < this._scene.cameras.length; i++)
@@ -104,5 +104,5 @@
         }
     }
 
-    EXTENSIONS.EditorExtension.RegisterExtension(PostProcessBuilderExtension);
+    EditorExtension.RegisterExtension(PostProcessBuilderExtension);
 }

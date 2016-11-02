@@ -4,6 +4,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _openActionsBuilder;
         private _openPostProcessBuilder;
+        private _openCosmos;
         /**
         * Constructor
         * @param mainToolbar: the main toolbar instance

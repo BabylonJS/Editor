@@ -8,6 +8,7 @@ declare module BABYLON.EDITOR {
         type: number;
         name: string;
         properties: IActionsBuilderProperty[];
+        comment?: string;
     }
     interface IActionsBuilderSerializationObject extends IActionsBuilderElement {
         children: IActionsBuilderSerializationObject[];

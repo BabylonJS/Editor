@@ -280,7 +280,7 @@ var BABYLON;
             SceneFactory.AddSkyMesh = function (core) {
                 var skyboxMaterial = new BABYLON.SkyMaterial("skyMaterial", core.currentScene);
                 skyboxMaterial.backFaceCulling = false;
-                var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene);
+                var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, core.currentScene, false, BABYLON.Mesh.BACKSIDE);
                 skybox.id = this.GenerateUUID();
                 skybox.material = skyboxMaterial;
                 this.ConfigureObject(skybox, core);

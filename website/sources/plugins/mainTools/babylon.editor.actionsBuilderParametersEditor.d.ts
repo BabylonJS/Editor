@@ -25,6 +25,7 @@ declare module BABYLON.EDITOR {
         private _getEffectiveTarget(object, target);
         private _createPropertyPath(node, properties?);
         private _createSoundsList();
+        private _createParticleSystemList();
         private _getCollectionOfObjects(type);
     }
 }

@@ -88,6 +88,11 @@ var BABYLON;
                         if (property.value === null)
                             this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                     }
+                    else if (property.name === "particleSystem") {
+                        var list = this._createListOfElements(property, this._createParticleSystemList());
+                        if (property.value === null)
+                            this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
+                    }
                     else if (propertyType === "boolean") {
                         this._createCheckbox(property);
                         if (property.value === null)
@@ -103,6 +108,15 @@ var BABYLON;
                     }
                     this._container.append("<hr>");
                 }
+                // Comments
+                var commentsID = EDITOR.SceneFactory.GenerateUUID();
+                this._container.append(EDITOR.GUI.GUIElement.CreateElement("textarea", commentsID, "width: 100%; height: 150px;", data.data.comment || "your comment..."));
+                var comments = $("#" + commentsID);
+                comments.keyup(function (event) {
+                    data.data.comment = comments.val();
+                });
+                this._container.append("<br />");
+                this._container.append("<hr>");
             };
             // Populates the given string array with another
             ActionsBuilderParametersEditor.prototype.populateStringArray = function (array, values, property) {
@@ -245,13 +259,21 @@ var BABYLON;
                 fillProperties(node, "");
                 return properties;
             };
-            // Creates an array of sounds
+            // Creates an array of sounds names
             ActionsBuilderParametersEditor.prototype._createSoundsList = function () {
                 var sounds = [];
                 for (var i = 0; i < this._core.currentScene.mainSoundTrack.soundCollection.length; i++) {
                     sounds.push(this._core.currentScene.mainSoundTrack.soundCollection[i].name);
                 }
                 return sounds;
+            };
+            // Creates an array of particle systems ids
+            ActionsBuilderParametersEditor.prototype._createParticleSystemList = function () {
+                var ps = [];
+                for (var i = 0; i < this._core.currentScene.particleSystems.length; i++) {
+                    ps.push(this._core.currentScene.particleSystems[i].id);
+                }
+                return ps;
             };
             // Returns the colleciton of objects according to type
             ActionsBuilderParametersEditor.prototype._getCollectionOfObjects = function (type) {

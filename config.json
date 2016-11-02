@@ -9,14 +9,14 @@
   "core": {
     "defines": [
       "!sources/**/*.d.ts",
-      "Tools/EditorExtensions/**/*.d.ts",
+      "Tools/EditorExtensions/babylon.editor.extensions.d.ts",
       "defines/**/*.d.ts"
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
       "!website/sources/**/*.d.ts",
-      "Tools/EditorExtensions/**/*.d.ts",
-      "defines/**/*.d.ts"
+      "defines/**/*.d.ts",
+      "Tools/EditorExtensions/babylon.editor.extensions.d.ts"
     ],
     "files": [
       "sources/internal/babylon.editor.event.js",
@@ -108,7 +108,9 @@
       "sources/plugins/mainTools/babylon.editor.actionsBuilderGraph.js",
       "sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js",
 
-      "sources/plugins/mainTools/babylon.editor.postProcessBuilder.js"
+      "sources/plugins/mainTools/babylon.editor.postProcessBuilder.js",
+
+      "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
     ]
   },
   "electron": {
@@ -130,9 +132,14 @@
   },
   "editorExtensions": {
     "filename": "babylon.editor.extensions.js",
+    "declarationFilename": "babylon.editor.extensions.d.ts",
+    "outputDeclarionFilename": "Tools/EditorExtensions",
     "files": [
       "Tools/EditorExtensions/babylon.editor.editorExtensions.js",
-      "Tools/EditorExtensions/babylon.editor.postProcessExtension.js"
+      "Tools/EditorExtensions/babylon.editor.postProcessExtension.js",
+      "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
+
+      "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts"
     ]
   }
 }

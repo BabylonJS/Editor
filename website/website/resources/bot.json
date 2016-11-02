@@ -1,0 +1,46 @@
+{
+	"groups": [
+		{
+			"title": "Help",
+			"functions": [
+				{
+					"title": "contactTheAgency"
+				},
+				{
+					"title": "contactTheFirstNegociator"
+				},
+				{
+					"title": "contactTheSecondNegociator"
+				}
+			]
+		},
+		{
+			"title": "Products",
+			"functions": [
+				{
+					"title": "viewHouses"
+				},
+				{
+					"title": "viewAHouse"
+				},
+				{
+					"title": "viewApartments"
+				},
+				{
+					"title": "viewAnApartment"
+				}
+			]
+		},
+		{
+			"title": "Sales",
+			"functions": [
+				{
+					"title": "estimateMyProperty"
+				},
+				{
+					"title": "saleMyProperty"
+				}
+			]
+		}
+	]
+}

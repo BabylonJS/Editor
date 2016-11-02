@@ -12,6 +12,7 @@ var BABYLON;
                 this.menuID = "TOOLS-PLUGIN-MENU";
                 this._openActionsBuilder = "OPEN-ACTIONS-BUILDER";
                 this._openPostProcessBuilder = "OPEN-POST-PROCESS-BUILDER";
+                this._openCosmos = "OPEN-COSMOS";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
@@ -20,9 +21,12 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);
                 // new PostProcessBuilder(this._core);
+                // new CosmosEditor(this._core);
             }
             // Called when a menu item is selected by the user
             ToolsMenu.prototype.onMenuItemSelected = function (selected) {
@@ -32,6 +36,9 @@ var BABYLON;
                         break;
                     case this._openPostProcessBuilder:
                         new EDITOR.PostProcessBuilder(this._core);
+                        break;
+                    case this._openCosmos:
+                        new EDITOR.CosmosEditor(this._core);
                         break;
                     default: break;
                 }

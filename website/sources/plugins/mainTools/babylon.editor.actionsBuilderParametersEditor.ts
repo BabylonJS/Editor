@@ -107,6 +107,11 @@
                     if (property.value === null)
                         this._core.currentScene.mainSoundTrack.soundCollection.length > 0 ? property.value = list.items[0] : property.value = "";
                 }
+                else if (property.name === "particleSystem") {
+                    var list = this._createListOfElements(property, this._createParticleSystemList());
+                    if (property.value === null)
+                        this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
+                }
                 else if (propertyType === "boolean") {
                     this._createCheckbox(property);
                     if (property.value === null)
@@ -124,6 +129,17 @@
 
                 this._container.append("<hr>");
             }
+
+            // Comments
+            var commentsID = SceneFactory.GenerateUUID();
+            this._container.append(GUI.GUIElement.CreateElement("textarea", commentsID, "width: 100%; height: 150px;", data.data.comment || "your comment..."));
+            var comments = $("#" + commentsID);
+            comments.keyup((event) => {
+                data.data.comment = comments.val();
+            });
+
+            this._container.append("<br />");
+            this._container.append("<hr>");
         }
 
         // Populates the given string array with another
@@ -301,7 +317,7 @@
             return properties;
         }
 
-        // Creates an array of sounds
+        // Creates an array of sounds names
         private _createSoundsList(): string[] {
             var sounds = [];
             for (var i = 0; i < this._core.currentScene.mainSoundTrack.soundCollection.length; i++) {
@@ -309,6 +325,16 @@
             }
 
             return sounds;
+        }
+
+        // Creates an array of particle systems ids
+        private _createParticleSystemList(): string[] {
+            var ps = [];
+            for (var i = 0; i < this._core.currentScene.particleSystems.length; i++) {
+                ps.push(this._core.currentScene.particleSystems[i].id);
+            }
+
+            return ps;
         }
 
         // Returns the colleciton of objects according to type

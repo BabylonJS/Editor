@@ -90,7 +90,8 @@ var BABYLON;
                         name: this._object instanceof BABYLON.Scene ? "Scene" : this._object.name,
                         type: this._object instanceof BABYLON.Scene ? 3 : 4,
                         properties: [],
-                        children: []
+                        children: [],
+                        comment: ""
                     };
                 }
                 var nodes = parent ? this._graph.getNodesWithParent(parent) : this._graph.getRootNodes();
@@ -100,7 +101,8 @@ var BABYLON;
                         name: data.name,
                         type: data.type,
                         properties: [],
-                        children: []
+                        children: [],
+                        comment: data.comment
                     };
                     // Configure properties
                     for (var j = 0; j < data.properties.length; j++) {
@@ -127,7 +129,8 @@ var BABYLON;
                         name: child.name,
                         type: child.type,
                         properties: child.properties,
-                        children: []
+                        children: [],
+                        comment: child.comment
                     };
                     var nodeData = {
                         class: this._getNodeParametersClass(childData.type, childData.name),
@@ -224,15 +227,12 @@ var BABYLON;
                     return;
                 var actionManager = null;
                 this._graph.clear();
-                if (this._object instanceof BABYLON.Scene)
-                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
-                else
-                    actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
-                if (!actionManager) {
-                    return;
+                var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
+                var graph = metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name];
+                if (graph) {
+                    this.deserializeGraph(graph, "");
+                    this._graph.layout();
                 }
-                this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
-                this._graph.layout();
             };
             // When the user saves the graph
             ActionsBuilder.prototype._onSave = function () {
@@ -269,6 +269,9 @@ var BABYLON;
                 }
                 else {
                     var graph = this.serializeGraph();
+                    var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
+                    metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name] = graph;
+                    EDITOR.SceneManager.AddCustomMetadata("ActionsBuilder", metadata);
                     var actionManager = null;
                     if (!this._core.isPlaying)
                         actionManager = this._object.actionManager;
@@ -435,7 +438,7 @@ var BABYLON;
                 else {
                     // It's an action or condition
                     var constructor = data.class.constructors[0];
-                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound"];
+                    var allowedTypes = ["number", "string", "boolean", "any", "Vector3", "Vector2", "Sound", "ParticleSystem"];
                     for (var i = 0; i < constructor.parameters.length; i++) {
                         var param = constructor.parameters[i];
                         var property = {

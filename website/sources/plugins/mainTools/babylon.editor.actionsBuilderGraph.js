@@ -70,6 +70,7 @@ var BABYLON;
                     edge.css("curve-style", "unbundled-bezier");
                     edge.css("control-point-distances", "10 -10");
                     edge.css("control-point-weights", "0.25 0.75");
+                    edge.css("label", (data["data"] && data["data"]["comment"] ? data["data"]["comment"].substr(0, 20) + "..." : ""));
                 }
                 // Configure node
                 node.css("shape", "roundrectangle");
