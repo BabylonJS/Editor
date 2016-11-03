@@ -14,6 +14,8 @@
         private _currentTarget: Node | Scene = null;
         private _currentProperty: IActionsBuilderProperty = null;
 
+        private _editors: AceAjax.Editor[] = [];
+
         /**
         * Constructor
         * @param core: the editor core
@@ -116,6 +118,18 @@
                     this._createCheckbox(property);
                     if (property.value === null)
                         property.value = "false";
+                }
+                else if (propertyType === "string" && property.name === "data") {
+                    var defaultData = [
+                        "{",
+                        "   eventName: \"myEvent\",",
+                        "   eventData: {",
+                        "       ",
+                        "   }",
+                        "}"
+                    ].join("\n");
+
+                    this._createEditor(property, defaultData);
                 }
                 else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
                     if (property.value === "true" || property.value === "false")
@@ -226,6 +240,24 @@
             return list;
         }
 
+        // Creates a new editor
+        private _createEditor(property: IActionsBuilderProperty, defaultValue: string): AceAjax.Editor {
+            var divID = SceneFactory.GenerateUUID();
+
+            var div = GUI.GUIElement.CreateElement("div", divID, "width: 100%; height: 300px;", "", true);
+            this._container.append(div);
+
+            var editor = ace.edit(divID);
+            editor.setTheme("ace/theme/clouds");
+            editor.getSession().setMode("ace/mode/javascript");
+            editor.getSession().setValue(property.value || defaultValue);
+            editor.getSession().on("change", (e) => property.value = editor.getSession().getValue());
+
+            this._editors.push(editor);
+
+            return editor;
+        }
+
         // Creates the header
         private _createHeader(name: string, type: EACTION_TYPE): void {
             var color = "";
@@ -251,9 +283,13 @@
             for (var i = 0; i < this._guiElements.length; i++)
                 this._guiElements[i].destroy();
 
+            for (var i = 0; i < this._editors.length; i++)
+                this._editors[i].destroy();
+
             this._container.empty();
 
             this._guiElements = [];
+            this._editors = [];
 
             // Create save button
             var saveButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Save");

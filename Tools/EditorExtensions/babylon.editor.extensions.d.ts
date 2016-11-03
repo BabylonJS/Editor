@@ -78,7 +78,7 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         static _BotDatas: IBotRoot;
         /**
         * Constructor
-        * @param core: the editor core
+        * @param scene: the Babylon.js scene
         */
         constructor(scene: Scene);
         apply(data: ICosmosConfiguration): void;
@@ -87,6 +87,31 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         animateCameraToId(id: string): void;
         private _createCosmosGalaxy(name, rootPosition, names, distance, animate);
         private _loadBotDatas(callback);
+    }
+}
+declare module BABYLON.EDITOR.EXTENSIONS {
+    interface IDevelopentBaseExtensionEventData<T> {
+        eventName: string;
+        eventData: T;
+    }
+    class DevelopmentBaseExtension {
+        namespace: string;
+        private _events;
+        protected scene: Scene;
+        private static _EventReceivers;
+        /**
+        * Constructor
+        * @param scene: the Babylon.js scene
+        */
+        constructor(scene: Scene, namespace: string);
+        onEvent<T>(eventName: string, callback: (eventData: IDevelopentBaseExtensionEventData<T>) => void): void;
+        removeEvent(eventName: string): boolean;
+        callEvent<T>(eventData: IDevelopentBaseExtensionEventData<T>): void;
+        /**
+        * Static functions
+        */
+        static SendEvent<T>(namespace: string, eventData: IDevelopentBaseExtensionEventData<T>): void;
+        static RegisterEventListener(listener: DevelopmentBaseExtension): void;
     }
 }
 declare module BABYLON {
@@ -100,6 +125,17 @@ declare module BABYLON {
     class StopParticleSystemAction extends Action {
         private _particleSystem;
         constructor(triggerOptions: any, particleSystem: ParticleSystem, condition?: Condition);
+        _prepare(): void;
+        execute(): void;
+        serialize(parent: any): any;
+    }
+}
+declare module BABYLON {
+    class SendDevelopmentEventAction extends Action {
+        private _namespace;
+        private _eventName;
+        private _data;
+        constructor(triggerOptions: any, namespace: string, eventName: string, data?: string, condition?: Condition);
         _prepare(): void;
         execute(): void;
         serialize(parent: any): any;

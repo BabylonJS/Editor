@@ -7,7 +7,7 @@ var BABYLON;
             var CosmosExtension = (function () {
                 /**
                 * Constructor
-                * @param core: the editor core
+                * @param scene: the Babylon.js scene
                 */
                 function CosmosExtension(scene) {
                     var _this = this;

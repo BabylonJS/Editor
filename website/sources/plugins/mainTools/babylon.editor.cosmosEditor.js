@@ -76,7 +76,7 @@ var BABYLON;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", this._scene, 1.0 / devicePixelRatio, null, [this._camera]);
                 standard.LensFlareEnabled = true;
                 standard.lensFlareStrength = 50;
-                standard.brightThreshold = 0.8;
+                standard.brightThreshold = 1;
                 standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", this._scene);
                 standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", this._scene);
                 standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", this._scene);

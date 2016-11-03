@@ -102,7 +102,7 @@
             node.css("background-color", color);
             node.css("width", "200px");
             node.css("height", "40px");
-            node.css("label", name);
+            node.css("label", name.length > 23 ? name.substr(0, 20) + "..." : name);
             node.css("text-valign", "center");
             node.css("text-halign", "center");
 

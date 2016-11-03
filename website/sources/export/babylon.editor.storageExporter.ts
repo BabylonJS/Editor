@@ -87,11 +87,24 @@
                 StorageExporter._projectFolder = folder;
                 StorageExporter._projectFolderChildren = folderChildren;
 
-                this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, () => {
+                // Dont replace or rename already existing folders
+                var folders = ["Materials", "Textures", "js", "Scene", "defines"];
+                for (var i = 0; i < folderChildren.length; i++) {
+                    var folderIndex = folders.indexOf(folderChildren[i].name);
+
+                    if (folderIndex !== -1)
+                        folders.splice(folderIndex, 1);
+                }
+
+                if (folders.length === 0)
                     this._createTemplate();
-                }, () => {
-                    this.core.editor.statusBar.removeElement(this._statusBarId);
-                });
+                else {
+                    this._storage.createFolders(folders, folder, () => {
+                        this._createTemplate();
+                    }, () => {
+                        this.core.editor.statusBar.removeElement(this._statusBarId);
+                    });
+                }
             });
         }
 
@@ -205,6 +218,8 @@
                 files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
                 files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: this.getFolder("js").file });
                 files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: this.getFolder("js").file });
+                //files.push({ name: "babylon.d.ts", url: url + "../defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
+                //files.push({ name: "babylon.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
 
                 // Materials
                 for (var i = 0; i < project.requestedMaterials.length; i++) {

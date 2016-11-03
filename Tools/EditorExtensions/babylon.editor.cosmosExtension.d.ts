@@ -33,7 +33,7 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         static _BotDatas: IBotRoot;
         /**
         * Constructor
-        * @param core: the editor core
+        * @param scene: the Babylon.js scene
         */
         constructor(scene: Scene);
         apply(data: ICosmosConfiguration): void;

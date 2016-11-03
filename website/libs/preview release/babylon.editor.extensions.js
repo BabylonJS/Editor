@@ -140,7 +140,7 @@ var BABYLON;
             var CosmosExtension = (function () {
                 /**
                 * Constructor
-                * @param core: the editor core
+                * @param scene: the Babylon.js scene
                 */
                 function CosmosExtension(scene) {
                     var _this = this;
@@ -318,6 +318,73 @@ var BABYLON;
 })(BABYLON || (BABYLON = {}));
 var BABYLON;
 (function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var EXTENSIONS;
+        (function (EXTENSIONS) {
+            var DevelopmentBaseExtension = (function () {
+                /**
+                * Constructor
+                * @param scene: the Babylon.js scene
+                */
+                function DevelopmentBaseExtension(scene, namespace) {
+                    // Private members
+                    this._events = {};
+                    // Initialize
+                    this.scene = scene;
+                    this.namespace = namespace;
+                }
+                // Registers an event. When raised, the associated callback is called
+                DevelopmentBaseExtension.prototype.onEvent = function (eventName, callback) {
+                    var event = this._events[eventName];
+                    if (event)
+                        BABYLON.Tools.Warn("The event \"" + eventName + "\ already exists. It has been replaces");
+                    this._events[eventName] = callback;
+                };
+                // Removes an event
+                DevelopmentBaseExtension.prototype.removeEvent = function (eventName) {
+                    if (this._events[eventName]) {
+                        delete this._events[eventName];
+                        return true;
+                    }
+                    return false;
+                };
+                // Calls an event
+                DevelopmentBaseExtension.prototype.callEvent = function (eventData) {
+                    var event = this._events[eventData.eventName];
+                    if (event)
+                        event(eventData);
+                };
+                /**
+                * Static functions
+                */
+                // 
+                DevelopmentBaseExtension.SendEvent = function (namespace, eventData) {
+                    var events = this._EventReceivers[namespace];
+                    if (!events)
+                        return;
+                    for (var i = 0; i < events.length; i++) {
+                        events[i].callEvent(eventData);
+                    }
+                };
+                // Registers a new event listener
+                DevelopmentBaseExtension.RegisterEventListener = function (listener) {
+                    var events = this._EventReceivers[listener.namespace];
+                    if (!events)
+                        this._EventReceivers[listener.namespace] = [listener];
+                    else
+                        events.push(listener);
+                };
+                // Static members
+                DevelopmentBaseExtension._EventReceivers = {};
+                return DevelopmentBaseExtension;
+            }());
+            EXTENSIONS.DevelopmentBaseExtension = DevelopmentBaseExtension;
+        })(EXTENSIONS = EDITOR.EXTENSIONS || (EDITOR.EXTENSIONS = {}));
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
     // Start particle system
     var StartParticleSystemAction = (function (_super) {
         __extends(StartParticleSystemAction, _super);
@@ -362,4 +429,43 @@ var BABYLON;
         return StopParticleSystemAction;
     }(BABYLON.Action));
     BABYLON.StopParticleSystemAction = StopParticleSystemAction;
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var defaultData = [
+        "{",
+        "   eventName: \"myEvent\",",
+        "   eventData: {",
+        "       ",
+        "   }",
+        "}"
+    ].join("\n");
+    // Send a development event
+    var SendDevelopmentEventAction = (function (_super) {
+        __extends(SendDevelopmentEventAction, _super);
+        function SendDevelopmentEventAction(triggerOptions, namespace, eventName, data, condition) {
+            if (data === void 0) { data = defaultData; }
+            _super.call(this, triggerOptions, condition);
+            this._namespace = namespace;
+            this._eventName = eventName;
+            this._data = JSON.parse(data);
+        }
+        SendDevelopmentEventAction.prototype._prepare = function () {
+        };
+        SendDevelopmentEventAction.prototype.execute = function () {
+            BABYLON.EDITOR.EXTENSIONS.DevelopmentBaseExtension.SendEvent(this._namespace, { eventName: this._eventName, eventData: this._data });
+        };
+        SendDevelopmentEventAction.prototype.serialize = function (parent) {
+            return _super.prototype._serialize.call(this, {
+                name: "SendDevelopmentEventAction",
+                properties: [
+                    { name: "namespace", value: this._namespace },
+                    { name: "eventName", value: this._eventName },
+                    { name: "data", value: JSON.stringify(this._data) }
+                ]
+            }, parent);
+        };
+        return SendDevelopmentEventAction;
+    }(BABYLON.Action));
+    BABYLON.SendDevelopmentEventAction = SendDevelopmentEventAction;
 })(BABYLON || (BABYLON = {}));

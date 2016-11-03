@@ -8216,11 +8216,22 @@ var BABYLON;
                     _this.core.editor.statusBar.showSpinner(_this._statusBarId);
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
-                    _this._storage.createFolders(["Materials", "Textures", "js", "Scene"], folder, function () {
+                    // Dont replace or rename already existing folders
+                    var folders = ["Materials", "Textures", "js", "Scene", "defines"];
+                    for (var i = 0; i < folderChildren.length; i++) {
+                        var folderIndex = folders.indexOf(folderChildren[i].name);
+                        if (folderIndex !== -1)
+                            folders.splice(folderIndex, 1);
+                    }
+                    if (folders.length === 0)
                         _this._createTemplate();
-                    }, function () {
-                        _this.core.editor.statusBar.removeElement(_this._statusBarId);
-                    });
+                    else {
+                        _this._storage.createFolders(folders, folder, function () {
+                            _this._createTemplate();
+                        }, function () {
+                            _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                        });
+                    }
                 });
             };
             // Exports
@@ -8315,6 +8326,8 @@ var BABYLON;
                     files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
                     files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("js").file });
+                    //files.push({ name: "babylon.d.ts", url: url + "../defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
+                    //files.push({ name: "babylon.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -11328,7 +11341,7 @@ var BABYLON;
                 node.css("background-color", color);
                 node.css("width", "200px");
                 node.css("height", "40px");
-                node.css("label", name);
+                node.css("label", name.length > 23 ? name.substr(0, 20) + "..." : name);
                 node.css("text-valign", "center");
                 node.css("text-halign", "center");
                 node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
@@ -11444,6 +11457,7 @@ var BABYLON;
                 this._guiElements = [];
                 this._currentTarget = null;
                 this._currentProperty = null;
+                this._editors = [];
                 // Initialize
                 this._core = core;
                 this._container = $("#" + containerID);
@@ -11525,6 +11539,17 @@ var BABYLON;
                         this._createCheckbox(property);
                         if (property.value === null)
                             property.value = "false";
+                    }
+                    else if (propertyType === "string" && property.name === "data") {
+                        var defaultData = [
+                            "{",
+                            "   eventName: \"myEvent\",",
+                            "   eventData: {",
+                            "       ",
+                            "   }",
+                            "}"
+                        ].join("\n");
+                        this._createEditor(property, defaultData);
                     }
                     else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
                         if (property.value === "true" || property.value === "false")
@@ -11609,6 +11634,19 @@ var BABYLON;
                 };
                 return list;
             };
+            // Creates a new editor
+            ActionsBuilderParametersEditor.prototype._createEditor = function (property, defaultValue) {
+                var divID = EDITOR.SceneFactory.GenerateUUID();
+                var div = EDITOR.GUI.GUIElement.CreateElement("div", divID, "width: 100%; height: 300px;", "", true);
+                this._container.append(div);
+                var editor = ace.edit(divID);
+                editor.setTheme("ace/theme/clouds");
+                editor.getSession().setMode("ace/mode/javascript");
+                editor.getSession().setValue(property.value || defaultValue);
+                editor.getSession().on("change", function (e) { return property.value = editor.getSession().getValue(); });
+                this._editors.push(editor);
+                return editor;
+            };
             // Creates the header
             ActionsBuilderParametersEditor.prototype._createHeader = function (name, type) {
                 var color = "";
@@ -11637,8 +11675,11 @@ var BABYLON;
                 var _this = this;
                 for (var i = 0; i < this._guiElements.length; i++)
                     this._guiElements[i].destroy();
+                for (var i = 0; i < this._editors.length; i++)
+                    this._editors[i].destroy();
                 this._container.empty();
                 this._guiElements = [];
+                this._editors = [];
                 // Create save button
                 var saveButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Save");
                 saveButton.css("width", "100%");
@@ -12091,7 +12132,7 @@ var BABYLON;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", this._scene, 1.0 / devicePixelRatio, null, [this._camera]);
                 standard.LensFlareEnabled = true;
                 standard.lensFlareStrength = 50;
-                standard.brightThreshold = 0.8;
+                standard.brightThreshold = 1;
                 standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", this._scene);
                 standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", this._scene);
                 standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", this._scene);

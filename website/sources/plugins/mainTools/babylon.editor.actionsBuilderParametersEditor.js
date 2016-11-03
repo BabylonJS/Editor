@@ -16,6 +16,7 @@ var BABYLON;
                 this._guiElements = [];
                 this._currentTarget = null;
                 this._currentProperty = null;
+                this._editors = [];
                 // Initialize
                 this._core = core;
                 this._container = $("#" + containerID);
@@ -97,6 +98,17 @@ var BABYLON;
                         this._createCheckbox(property);
                         if (property.value === null)
                             property.value = "false";
+                    }
+                    else if (propertyType === "string" && property.name === "data") {
+                        var defaultData = [
+                            "{",
+                            "   eventName: \"myEvent\",",
+                            "   eventData: {",
+                            "       ",
+                            "   }",
+                            "}"
+                        ].join("\n");
+                        this._createEditor(property, defaultData);
                     }
                     else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
                         if (property.value === "true" || property.value === "false")
@@ -181,6 +193,19 @@ var BABYLON;
                 };
                 return list;
             };
+            // Creates a new editor
+            ActionsBuilderParametersEditor.prototype._createEditor = function (property, defaultValue) {
+                var divID = EDITOR.SceneFactory.GenerateUUID();
+                var div = EDITOR.GUI.GUIElement.CreateElement("div", divID, "width: 100%; height: 300px;", "", true);
+                this._container.append(div);
+                var editor = ace.edit(divID);
+                editor.setTheme("ace/theme/clouds");
+                editor.getSession().setMode("ace/mode/javascript");
+                editor.getSession().setValue(property.value || defaultValue);
+                editor.getSession().on("change", function (e) { return property.value = editor.getSession().getValue(); });
+                this._editors.push(editor);
+                return editor;
+            };
             // Creates the header
             ActionsBuilderParametersEditor.prototype._createHeader = function (name, type) {
                 var color = "";
@@ -209,8 +234,11 @@ var BABYLON;
                 var _this = this;
                 for (var i = 0; i < this._guiElements.length; i++)
                     this._guiElements[i].destroy();
+                for (var i = 0; i < this._editors.length; i++)
+                    this._editors[i].destroy();
                 this._container.empty();
                 this._guiElements = [];
+                this._editors = [];
                 // Create save button
                 var saveButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Save");
                 saveButton.css("width", "100%");

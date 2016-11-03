@@ -139,7 +139,10 @@
       "Tools/EditorExtensions/babylon.editor.postProcessExtension.js",
       "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
 
-      "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts"
+      "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
+
+      "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts",
+      "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts"
     ]
   }
 }

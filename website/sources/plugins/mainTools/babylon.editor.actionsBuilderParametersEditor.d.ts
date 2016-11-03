@@ -8,6 +8,7 @@ declare module BABYLON.EDITOR {
         private _guiElements;
         private _currentTarget;
         private _currentProperty;
+        private _editors;
         /**
         * Constructor
         * @param core: the editor core
@@ -19,6 +20,7 @@ declare module BABYLON.EDITOR {
         private _createField(property);
         private _createCheckbox(property, customText?);
         private _createListOfElements(property, items?, callback?);
+        private _createEditor(property, defaultValue);
         private _createHeader(name, type);
         private _destroyGUIElements();
         private _getParameterType(entry, parameter);
