@@ -231,8 +231,17 @@ var BABYLON;
                 var graph = metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name];
                 if (graph) {
                     this.deserializeGraph(graph, "");
-                    this._graph.layout();
                 }
+                else {
+                    if (this._object instanceof BABYLON.Scene)
+                        actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._SceneConfiguration.actionManager;
+                    else
+                        actionManager = this._core.isPlaying ? this._object.actionManager : EDITOR.SceneManager._ConfiguredObjectsIDs[this._object.id].actionManager;
+                    if (!actionManager)
+                        return;
+                    this.deserializeGraph(actionManager.serialize(this._object instanceof BABYLON.Scene ? "Scene" : this._object.name), "");
+                }
+                this._graph.layout();
             };
             // When the user saves the graph
             ActionsBuilder.prototype._onSave = function () {

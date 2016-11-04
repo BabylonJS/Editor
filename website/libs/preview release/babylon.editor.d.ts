@@ -421,101 +421,6 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class Exporter {
-        core: EditorCore;
-        private _window;
-        private _editor;
-        private _editorID;
-        private _generatedCode;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore);
-        openSceneExporter(babylonScene?: boolean): void;
-        generateCode(babylonScene?: boolean): string;
-        static ExportCode(core: EditorCore): string;
-        _exportSceneValues(): string;
-        _exportScene(): string;
-        _exportReflectionProbes(): string;
-        _exportNodeTransform(node: any): string;
-        _getTextureByName(name: string, scene: Scene): BaseTexture;
-        _exportPostProcesses(): string;
-        _exportAnimations(node: IAnimatable): string;
-        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
-        _exportSky(node: Node): string;
-        _exportParticleSystem(particleSystem: ParticleSystem): string;
-        _exportLight(light: Light): string;
-        _exportVector2(vector: Vector2): string;
-        _exportVector3(vector: Vector3): string;
-        _exportQuaternion(quaternion: Quaternion): string;
-        _exportColor3(color: Color3): string;
-        _exportColor4(color: Color4): string;
-        private _traverseNodes(node?);
-        private _fillRootNodes(data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectExporter {
-        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
-        private static _SerializeGlobalAnimations();
-        private static _SerializeSounds(core);
-        private static _SerializeRenderTargets(core);
-        private static _SerializeLensFlares(core);
-        private static _SerializePostProcesses();
-        private static _TraverseNodes(core, node, project);
-        private static _SerializeActionManager(object);
-        private static _SerializeCustomMetadatas();
-        private static _RequestMaterial(core, project, material);
-        private static _GetSerializedMaterial(project, materialName);
-        private static _ConfigureMaterial(material, projectMaterial);
-        private static _ConfigureBase64Texture(source, objectToConfigure);
-        private static _FillRootNodes(core, data, propertyPath);
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class ProjectImporter {
-        static ImportProject(core: EditorCore, data: string): void;
-    }
-}
-
-declare module BABYLON.EDITOR {
-    class StorageExporter implements IEventReceiver {
-        core: EditorCore;
-        private _storage;
-        private _window;
-        private _filesList;
-        private _currentChildrenFolder;
-        private _currentFolder;
-        private _previousFolders;
-        private _onFolderSelected;
-        private _statusBarId;
-        private static _projectFolder;
-        private static _projectFolderChildren;
-        static OneDriveStorage: string;
-        /**
-        * Constructor
-        */
-        constructor(core: EditorCore, storageType?: string);
-        onEvent(event: Event): boolean;
-        createTemplate(): void;
-        export(): void;
-        getFolder(name: string): IStorageFile;
-        getFile(name: string): IStorageFile;
-        private _createTemplate();
-        private _fileExists(files, name, parent?);
-        private _processIndexHTML(project, content);
-        private _openFolderDialog(success?);
-        private _updateFolderDialog(folder?);
-        private _updateFileList(onSuccess);
-        private _getFileFolder(name, type, files);
-        private _lockPanel(message);
-        private _unlockPanel();
-    }
-}
-
-declare module BABYLON.EDITOR {
     class ElectronHelper {
         /**
         * Scene file
@@ -796,73 +701,97 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
-    class GeometriesMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _createCubeID;
-        private _createSphereID;
-        private _createGroundID;
-        private _createPlane;
+    class Exporter {
+        core: EditorCore;
+        private _window;
+        private _editor;
+        private _editorID;
+        private _generatedCode;
         /**
         * Constructor
-        * @param mainToolbar: the main toolbar instance
         */
-        constructor(mainToolbar: MainToolbar);
-        /**
-        * Called when a menu item is selected by the user
-        * "selected" is the id of the selected item
-        */
-        onMenuItemSelected(selected: string): void;
+        constructor(core: EditorCore);
+        openSceneExporter(babylonScene?: boolean): void;
+        generateCode(babylonScene?: boolean): string;
+        static ExportCode(core: EditorCore): string;
+        _exportSceneValues(): string;
+        _exportScene(): string;
+        _exportReflectionProbes(): string;
+        _exportNodeTransform(node: any): string;
+        _getTextureByName(name: string, scene: Scene): BaseTexture;
+        _exportPostProcesses(): string;
+        _exportAnimations(node: IAnimatable): string;
+        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
+        _exportSky(node: Node): string;
+        _exportParticleSystem(particleSystem: ParticleSystem): string;
+        _exportLight(light: Light): string;
+        _exportVector2(vector: Vector2): string;
+        _exportVector3(vector: Vector3): string;
+        _exportQuaternion(quaternion: Quaternion): string;
+        _exportColor3(color: Color3): string;
+        _exportColor4(color: Color4): string;
+        private _traverseNodes(node?);
+        private _fillRootNodes(data, propertyPath);
     }
 }
 
 declare module BABYLON.EDITOR {
-    class LightsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addPointLight;
-        private _addDirectionalLight;
-        private _addSpotLight;
-        private _addHemisphericLight;
-        /**
-        * Constructor
-        * @param mainToolbar: the main toolbar instance
-        */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _configureSound(sound);
+    class ProjectExporter {
+        static ExportProject(core: EditorCore, requestMaterials?: boolean): string;
+        private static _SerializeGlobalAnimations();
+        private static _SerializeSounds(core);
+        private static _SerializeRenderTargets(core);
+        private static _SerializeLensFlares(core);
+        private static _SerializePostProcesses();
+        private static _TraverseNodes(core, node, project);
+        private static _SerializeActionManager(object);
+        private static _SerializeCustomMetadatas();
+        private static _RequestMaterial(core, project, material);
+        private static _GetSerializedMaterial(project, materialName);
+        private static _ConfigureMaterial(material, projectMaterial);
+        private static _ConfigureBase64Texture(source, objectToConfigure);
+        private static _FillRootNodes(core, data, propertyPath);
     }
 }
 
 declare module BABYLON.EDITOR {
-    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
-        /**
-        * Constructor
-        * @param editionTool: edition tool instance
-        */
-        constructor(editionTool: EditionTool);
-        update(): boolean;
+    class ProjectImporter {
+        static ImportProject(core: EditorCore, data: string): void;
     }
 }
 
 declare module BABYLON.EDITOR {
-    class SoundsMenuPlugin implements ICustomToolbarMenu {
-        menuID: string;
-        private _core;
-        private _addSoundtrack;
-        private _add3DSound;
-        private _stopAllSounds;
-        private _playAllSounds;
+    class StorageExporter implements IEventReceiver {
+        core: EditorCore;
+        private _storage;
+        private _window;
+        private _filesList;
+        private _currentChildrenFolder;
+        private _currentFolder;
+        private _previousFolders;
+        private _onFolderSelected;
+        private _statusBarId;
+        private static _projectFolder;
+        private static _projectFolderChildren;
+        static OneDriveStorage: string;
         /**
         * Constructor
-        * @param mainToolbar: the main toolbar instance
         */
-        constructor(mainToolbar: MainToolbar);
-        onMenuItemSelected(selected: string): void;
-        private _stopPlayAllSounds(play);
-        private _configureSound(sound);
-        private _createInput(callback);
-        private _onReadFileCallback(name, callback);
+        constructor(core: EditorCore, storageType?: string);
+        onEvent(event: Event): boolean;
+        createTemplate(): void;
+        export(): void;
+        getFolder(name: string): IStorageFile;
+        getFile(name: string): IStorageFile;
+        private _createTemplate();
+        private _fileExists(files, name, parent?);
+        private _processIndexHTML(project, content);
+        private _openFolderDialog(success?);
+        private _updateFolderDialog(folder?);
+        private _updateFileList(onSuccess);
+        private _getFileFolder(name, type, files);
+        private _lockPanel(message);
+        private _unlockPanel();
     }
 }
 
@@ -1387,6 +1316,77 @@ declare module BABYLON.EDITOR.GUI {
         notify(message: string): void;
         buildElement(parent: string): void;
         static CreateAlert(message: string, title?: string, callback?: () => void): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GeometriesMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _createCubeID;
+        private _createSphereID;
+        private _createGroundID;
+        private _createPlane;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        /**
+        * Called when a menu item is selected by the user
+        * "selected" is the id of the selected item
+        */
+        onMenuItemSelected(selected: string): void;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class LightsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addPointLight;
+        private _addDirectionalLight;
+        private _addSpotLight;
+        private _addHemisphericLight;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _configureSound(sound);
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SimpleMaterialTool extends AbstractMaterialTool<SimpleMaterial> {
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class SoundsMenuPlugin implements ICustomToolbarMenu {
+        menuID: string;
+        private _core;
+        private _addSoundtrack;
+        private _add3DSound;
+        private _stopAllSounds;
+        private _playAllSounds;
+        /**
+        * Constructor
+        * @param mainToolbar: the main toolbar instance
+        */
+        constructor(mainToolbar: MainToolbar);
+        onMenuItemSelected(selected: string): void;
+        private _stopPlayAllSounds(play);
+        private _configureSound(sound);
+        private _createInput(callback);
+        private _onReadFileCallback(name, callback);
     }
 }
 

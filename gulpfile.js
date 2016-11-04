@@ -15,6 +15,7 @@ var through = require("through2");
 var webserver = require("gulp-webserver");
 var electronPackager = require('electron-packager');
 var cmdArgs = require("yargs");
+var typescriptParser = require("./Tools/TypeScriptParser/parser.js");
 
 var args = cmdArgs.argv;
 
@@ -75,6 +76,12 @@ gulp.task("typescript-compile", function () {
 * Compiles all typescript files and merges in a single file babylon.editor.js
 */
 gulp.task("build", ["build-extensions", "typescript-compile"], function () {
+    // Build dependencies
+    // Typescript parser
+    var filenames = ["defines/babylon.d.ts", "Tools/EditorExtensions/babylon.editor.extensions.d.ts"];
+    typescriptParser.ParseTypescriptFiles(filenames, "website/website/resources/classes.min.json", false);
+
+    // Build editor
     var result = gulp.src(files)
         .pipe(typescript({
             target: "ES5",

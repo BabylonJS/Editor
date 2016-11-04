@@ -329,8 +329,20 @@
 
             if (graph) {
                 this.deserializeGraph(graph, "");
-                this._graph.layout();
             }
+            else {
+                if (this._object instanceof Scene)
+                    actionManager = this._core.isPlaying ? this._object.actionManager : SceneManager._SceneConfiguration.actionManager;
+                else
+                    actionManager = this._core.isPlaying ? this._object.actionManager : SceneManager._ConfiguredObjectsIDs[(<AbstractMesh>this._object).id].actionManager;
+
+                if (!actionManager)
+                    return;
+
+                this.deserializeGraph(actionManager.serialize(this._object instanceof Scene ? "Scene" : (<AbstractMesh>this._object).name), "");
+            }
+
+            this._graph.layout();
         }
 
         // When the user saves the graph
