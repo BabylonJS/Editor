@@ -122,14 +122,14 @@
                 else if (propertyType === "string" && property.name === "data") {
                     var defaultData = [
                         "{",
-                        "   eventName: \"myEvent\",",
-                        "   eventData: {",
-                        "       ",
-                        "   }",
+                        "   \"stringExample\": \"myStringExample\"",
                         "}"
                     ].join("\n");
 
                     this._createEditor(property, defaultData);
+
+                    if (property.value === null)
+                        property.value = defaultData;
                 }
                 else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
                     if (property.value === "true" || property.value === "false")

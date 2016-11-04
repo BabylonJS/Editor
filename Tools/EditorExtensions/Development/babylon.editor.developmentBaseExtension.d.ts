@@ -13,7 +13,7 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         * @param scene: the Babylon.js scene
         */
         constructor(scene: Scene, namespace: string);
-        onEvent<T>(eventName: string, callback: (eventData: IDevelopentBaseExtensionEventData<T>) => void): void;
+        onEvent<T>(eventName: string, callback: (eventData: T) => void): void;
         removeEvent(eventName: string): boolean;
         callEvent<T>(eventData: IDevelopentBaseExtensionEventData<T>): void;
         /**

@@ -1,0 +1,31 @@
+﻿module BABYLON.GAME {
+    interface IDevelopmentTestEventData {
+        testString: string;
+        testNumber: number;
+    }
+
+    export class Development<T extends IDevelopmentTestEventData> extends EDITOR.EXTENSIONS.DevelopmentBaseExtension {
+        // Public members
+
+        // Private members
+        private _scene: Scene;
+
+        /**
+        * Constructor
+        * @param scene: the game scene
+        */
+        constructor(scene: Scene) {
+            // Initialize
+            super(scene, "development");
+
+            // Events
+            this.onEvent<T>("test", (eventData) => this._testEvent(eventData));
+        }
+
+        // Applies the extension
+        private _testEvent(data: T): void {
+            debugger;
+            console.log(data);
+        }
+    }
+}

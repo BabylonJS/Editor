@@ -9,7 +9,7 @@
         public namespace: string;
 
         // Private members
-        private _events: { [index: string]: (eventData: IDevelopentBaseExtensionEventData<any>) => void } = { };
+        private _events: { [index: string]: (eventData: any) => void } = { };
 
         // Protected members
         protected scene: Scene;
@@ -28,7 +28,7 @@
         }
 
         // Registers an event. When raised, the associated callback is called
-        public onEvent<T>(eventName: string, callback: (eventData: IDevelopentBaseExtensionEventData<T>) => void): void {
+        public onEvent<T>(eventName: string, callback: (eventData: T) => void): void {
             var event = this._events[eventName];
             if (event)
                 BABYLON.Tools.Warn("The event \"" + eventName + "\ already exists. It has been replaces");
@@ -51,7 +51,7 @@
             var event = this._events[eventData.eventName];
 
             if (event)
-                event(eventData);
+                event(eventData.eventData);
         }
 
         /**

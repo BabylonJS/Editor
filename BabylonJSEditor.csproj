@@ -132,7 +132,7 @@
     <Content Include="website\website\textures\waterbump.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="website\templates\Template.xml" />
+    <Content Include="website\templates\WebConfigTemplate.xml" />
     <Content Include="config.json" />
     <Content Include="website\libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.eot" />
     <Content Include="website\libs\actionsBuilder\fonts\SinkinSans\SinkinSans-300Light.otf" />
@@ -164,6 +164,7 @@
     <Content Include="website\website\Tests\textures\environment.babylon.hdr" />
     <Content Include="website\website\Tests\textures\room.hdr" />
     <Content Include="website\website\resources\template.postprocess.configuration.json" />
+    <Content Include="website\templates\tsconfigTemplate.json" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -200,6 +201,7 @@
     <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.postProcessExtension.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Development\babylon.editor.developmentBaseExtension.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\main.ts" />
+    <TypeScriptCompile Include="Tools\TypeScriptParser\parser.ts" />
     <TypeScriptCompile Include="Tools\TypeScriptParser\test.file.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.statusBar.ts" />
@@ -282,6 +284,8 @@
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.animationEditor.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.objectPicker.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.textureEditor.ts" />
+    <None Include="website\templates\game.ts.template" />
+    <None Include="website\templates\development.ts.template" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>

@@ -8218,17 +8218,20 @@ var BABYLON;
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
                     // Dont replace or rename already existing folders
-                    var folders = ["Materials", "Textures", "js", "Scene", "defines"];
+                    var folders = ["materials", "textures", "libs", "scene", "defines", "code"];
                     for (var i = 0; i < folderChildren.length; i++) {
                         var folderIndex = folders.indexOf(folderChildren[i].name);
                         if (folderIndex !== -1)
                             folders.splice(folderIndex, 1);
                     }
+                    var config = {
+                        codeFolderExists: folders.indexOf("code") === -1
+                    };
                     if (folders.length === 0)
-                        _this._createTemplate();
+                        _this._createTemplate(config);
                     else {
                         _this._storage.createFolders(folders, folder, function () {
-                            _this._createTemplate();
+                            _this._createTemplate(config);
                         }, function () {
                             _this.core.editor.statusBar.removeElement(_this._statusBarId);
                         });
@@ -8269,7 +8272,7 @@ var BABYLON;
                 return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
             };
             // Creates the template with all files
-            StorageExporter.prototype._createTemplate = function () {
+            StorageExporter.prototype._createTemplate = function (config) {
                 var _this = this;
                 this._updateFileList(function () {
                     // Files
@@ -8279,7 +8282,7 @@ var BABYLON;
                     var url = EDITOR.Tools.GetBaseURL();
                     var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
                     var project = JSON.parse(projectContent);
-                    var sceneFolder = _this.getFolder("Scene");
+                    var sceneFolder = _this.getFolder("scene");
                     // Files already loaded
                     //files.push({ name: "scene.js", content: projectContent });
                     //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
@@ -8318,21 +8321,27 @@ var BABYLON;
                         files.push({
                             name: lensTextureName,
                             content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(EDITOR.SceneFactory.HDRPipeline.lensTexture._buffer),
-                            parentFolder: _this.getFolder("Textures").file
+                            parentFolder: _this.getFolder("textures").file
                         });
                     }
                     // Files to load
                     var count = files.length;
-                    files.push({ name: "index.html", url: url + "templates/index.html", content: null });
-                    files.push({ name: "Web.config", url: url + "templates/Template.xml", content: null });
-                    files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("js").file });
-                    files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("js").file });
+                    if (!_this.getFile("index.html").file)
+                        files.push({ name: "index.html", url: url + "templates/index.html", content: null });
+                    if (!config.codeFolderExists) {
+                        files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
+                        files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
+                    }
+                    files.push({ name: "tsconfig.json", url: url + "templates/tsconfigTemplate.json", content: null });
+                    files.push({ name: "Web.config", url: url + "templates/WebConfigTemplate.xml", content: null });
+                    files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("libs").file });
+                    files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("libs").file });
                     //files.push({ name: "babylon.d.ts", url: url + "../defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
-                    //files.push({ name: "babylon.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
+                    //files.push({ name: "babylon.editor.extensions.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
-                        files.push({ name: name, url: url + "libs/materials/" + name, content: null, parentFolder: _this.getFolder("Materials").file });
+                        files.push({ name: name, url: url + "libs/materials/" + name, content: null, parentFolder: _this.getFolder("materials").file });
                     }
                     // Load files
                     var loadCallback = function (indice) {
@@ -8391,7 +8400,7 @@ var BABYLON;
                 var finalString = content;
                 var scripts = "";
                 for (var i = 0; i < project.requestedMaterials.length; i++) {
-                    scripts += "\t<script src=\"Materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
+                    scripts += "\t<script src=\"materials/babylon." + project.requestedMaterials[i] + ".js\" type=\"text/javascript\"></script>\n";
                 }
                 var sceneToLoad = this.core.editor.filesInput._sceneFileToLoad;
                 finalString = finalString.replace("EXPORTER-SCENE-NAME", sceneToLoad ? sceneToLoad.name : "scene.babylon");
@@ -11554,13 +11563,12 @@ var BABYLON;
                     else if (propertyType === "string" && property.name === "data") {
                         var defaultData = [
                             "{",
-                            "   eventName: \"myEvent\",",
-                            "   eventData: {",
-                            "       ",
-                            "   }",
+                            "   \"stringExample\": \"myStringExample\"",
                             "}"
                         ].join("\n");
                         this._createEditor(property, defaultData);
+                        if (property.value === null)
+                            property.value = defaultData;
                     }
                     else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
                         if (property.value === "true" || property.value === "false")

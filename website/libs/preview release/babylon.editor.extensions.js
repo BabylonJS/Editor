@@ -353,7 +353,7 @@ var BABYLON;
                 DevelopmentBaseExtension.prototype.callEvent = function (eventData) {
                     var event = this._events[eventData.eventName];
                     if (event)
-                        event(eventData);
+                        event(eventData.eventData);
                 };
                 /**
                 * Static functions
