@@ -63,13 +63,15 @@ var BABYLON;
                         var pixelsSize = finalBuffer.readUInt32BE(4);
                         var width = finalBuffer.readUInt32BE(8);
                         var height = finalBuffer.readUInt32BE(12);
+                        var effectiveWidth = BABYLON.Tools.GetExponentOfTwo(width, 4096);
+                        var effectiveHeight = BABYLON.Tools.GetExponentOfTwo(height, 4096);
                         var documentNameLength = finalBuffer.readUInt32BE(16);
                         var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
                         var texture = ElectronPhotoshopPlugin._Textures[documentName];
-                        if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
+                        if (!texture || texture.getBaseSize().width !== effectiveWidth || texture.getBaseSize().height !== effectiveHeight) {
                             if (texture)
                                 texture.dispose();
-                            var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
+                            var texture = new BABYLON.DynamicTexture(documentName, { width: effectiveWidth, height: effectiveHeight }, _this._core.currentScene, false);
                             EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
                             ElectronPhotoshopPlugin._Textures[documentName] = texture;
                         }

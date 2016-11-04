@@ -265,6 +265,7 @@
                             });
                         }
                         else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
+                            BABYLON.FilesInput.FilesTextures[name] = data.target.files[i];
                             BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(name), null);
                         }
                         else {

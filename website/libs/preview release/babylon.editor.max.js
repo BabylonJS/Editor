@@ -6585,8 +6585,9 @@ var BABYLON;
                 */
                 BABYLON.Tools.LoadFile("website/textures/normal.png", function (data) {
                     var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
-                    var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "normal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "waternormal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
+                    BABYLON.FilesInput.FilesTextures["waternormal.png"] = EDITOR.Tools.CreateFile(new Uint8Array(data), "waternormal.png");
                 }, null, null, true);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
@@ -10165,6 +10166,7 @@ var BABYLON;
                                 });
                             }
                             else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
+                                BABYLON.FilesInput.FilesTextures[name] = data.target.files[i];
                                 BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(name), null);
                             }
                             else {
@@ -12350,13 +12352,15 @@ var BABYLON;
                         var pixelsSize = finalBuffer.readUInt32BE(4);
                         var width = finalBuffer.readUInt32BE(8);
                         var height = finalBuffer.readUInt32BE(12);
+                        var effectiveWidth = BABYLON.Tools.GetExponentOfTwo(width, 4096);
+                        var effectiveHeight = BABYLON.Tools.GetExponentOfTwo(height, 4096);
                         var documentNameLength = finalBuffer.readUInt32BE(16);
                         var documentName = finalBuffer.toString("utf-8", 20, 20 + documentNameLength);
                         var texture = ElectronPhotoshopPlugin._Textures[documentName];
-                        if (!texture || texture.getBaseSize().width !== width || texture.getBaseSize().height !== height) {
+                        if (!texture || texture.getBaseSize().width !== effectiveWidth || texture.getBaseSize().height !== effectiveHeight) {
                             if (texture)
                                 texture.dispose();
-                            var texture = new BABYLON.DynamicTexture(documentName, { width: width, height: height }, _this._core.currentScene, false);
+                            var texture = new BABYLON.DynamicTexture(documentName, { width: effectiveWidth, height: effectiveHeight }, _this._core.currentScene, false);
                             EDITOR.Event.sendSceneEvent(texture, EDITOR.SceneEventType.OBJECT_ADDED, _this._core);
                             ElectronPhotoshopPlugin._Textures[documentName] = texture;
                         }

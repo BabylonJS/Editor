@@ -297,8 +297,9 @@ var BABYLON;
                 */
                 BABYLON.Tools.LoadFile("website/textures/normal.png", function (data) {
                     var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
-                    var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "normal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "waternormal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
+                    BABYLON.FilesInput.FilesTextures["waternormal.png"] = EDITOR.Tools.CreateFile(new Uint8Array(data), "waternormal.png");
                 }, null, null, true);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
