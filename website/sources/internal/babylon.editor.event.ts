@@ -158,20 +158,4 @@
             core.sendEvent(ev);
         }
     }
-
-    /**
-    * Statics
-    */
-
-    /**
-    * Sends a scene event
-    */
-    var sendSceneEvent = (object: any, type: SceneEventType, core: EditorCore) => {
-        var ev = new Event();
-
-        ev.eventType = EventType.SCENE_EVENT;
-        ev.sceneEvent = new SceneEvent(object, type);
-
-        core.sendEvent(ev);
-    };
 }

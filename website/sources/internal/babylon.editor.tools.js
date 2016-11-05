@@ -58,7 +58,7 @@ var BABYLON;
                 }
             };
             /**
-            * Normlalized the given URI
+            * Normlalizes the given URI
             */
             Tools.NormalizeUri = function (uri) {
                 while (uri.indexOf("\\") !== -1)
@@ -135,7 +135,7 @@ var BABYLON;
                 return input;
             };
             /**
-            * Beautify a variable name (escapeds + upper case)
+            * Beautify a variable name (escapes + upper case)
             */
             Tools.BeautifyName = function (name) {
                 var result = name[0].toUpperCase();

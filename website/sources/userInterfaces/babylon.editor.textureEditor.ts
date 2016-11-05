@@ -13,9 +13,8 @@
     
     interface ITextureRow extends GUI.IGridRowData {
         name: string;
-        coordinatesMode: string;
-        uScale: number;
-        vScale: number;
+        width: number;
+        height: number;
     }
     
     interface ISubTextureRow extends GUI.IGridRowData {
@@ -144,9 +143,8 @@
             this._texturesList = new GUI.GUIGrid<ITextureRow>(texturesListID, this._core);
             this._texturesList.header = this._objectName ? this._objectName : "Textures ";
             this._texturesList.createColumn("name", "name", "100px");
-            this._texturesList.createEditableColumn("coordinatesMode", "Coordinates Mode", { type: "select", items: coordinatesModes }, "80px");
-            this._texturesList.createEditableColumn("uScale", "uScale", { type: "float" }, "80px");
-            this._texturesList.createEditableColumn("uScale", "vScale", { type: "float" }, "80px");
+            this._texturesList.createColumn("width", "width", "80px");
+            this._texturesList.createColumn("height", "height", "80px");
             this._texturesList.showSearch = true;
             this._texturesList.showOptions = true;
             this._texturesList.showAdd = true;
@@ -300,26 +298,6 @@
                 
                 return subGrid;
             };
-            
-            this._texturesList.onEditField = (recid: number, value: any) => {
-                var changes = this._texturesList.getChanges();
-                
-                for (var i = 0; i < changes.length; i++) {
-                    var diff = changes[i];
-                    var texture = this._core.currentScene.textures[diff.recid];
-                    
-                    delete diff.recid;
-                    
-                    for (var thing in diff) {
-                        if (thing === "coordinatesMode") {
-                            texture.coordinatesMode = parseInt(diff.coordinatesMode);
-                        }
-                        else {
-                            texture[thing] = diff[thing];
-                        }
-                    }
-                }
-            };
 
             // Finish
             this._core.editor.editPanel.onClose = () => {
@@ -377,9 +355,8 @@
                 
                 var row: ITextureRow = {
                     name: texture.name,
-                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                    uScale: texture instanceof Texture ? texture.uScale : 0,
-                    vScale: texture instanceof Texture ? texture.vScale : 0,
+                    width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                    height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                     recid: i
                 };
                 
@@ -399,9 +376,8 @@
         private _addTextureToList(texture: BaseTexture): void {
             this._texturesList.addRow({
                 name: texture.name,
-                coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                uScale: texture instanceof Texture ? texture.uScale : 0,
-                vScale: texture instanceof Texture ? texture.vScale : 0,
+                width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                 recid: this._texturesList.getRowCount() - 1
             });
 
@@ -428,7 +404,7 @@
                 }
                 else {
                     texture = Texture.CreateFromBase64String(<string>data, name, this._core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
-                    texture.name = texture.name.replace("data:", "");
+                    texture.name = (<any>texture).url = texture.name.replace("data:", "");
                 }
 
                 this._addTextureToList(texture);

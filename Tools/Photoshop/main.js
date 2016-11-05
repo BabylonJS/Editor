@@ -130,7 +130,4 @@ module.exports.init = function (generator) {
             }
         });    
     }
-    
-    
-    
 };

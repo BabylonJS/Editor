@@ -143,17 +143,5 @@ var BABYLON;
             return Event;
         }());
         EDITOR.Event = Event;
-        /**
-        * Statics
-        */
-        /**
-        * Sends a scene event
-        */
-        var sendSceneEvent = function (object, type, core) {
-            var ev = new Event();
-            ev.eventType = EventType.SCENE_EVENT;
-            ev.sceneEvent = new SceneEvent(object, type);
-            core.sendEvent(ev);
-        };
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

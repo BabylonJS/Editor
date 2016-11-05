@@ -299,6 +299,7 @@ var BABYLON;
                     var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
                     var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "waternormal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
+                    texture.url = texture.url.replace("data:", "");
                     BABYLON.FilesInput.FilesTextures["waternormal.png"] = EDITOR.Tools.CreateFile(new Uint8Array(data), "waternormal.png");
                 }, null, null, true);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);

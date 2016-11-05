@@ -143,18 +143,6 @@ var BABYLON;
             return Event;
         }());
         EDITOR.Event = Event;
-        /**
-        * Statics
-        */
-        /**
-        * Sends a scene event
-        */
-        var sendSceneEvent = function (object, type, core) {
-            var ev = new Event();
-            ev.eventType = EventType.SCENE_EVENT;
-            ev.sceneEvent = new SceneEvent(object, type);
-            core.sendEvent(ev);
-        };
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 var BABYLON;
@@ -217,7 +205,7 @@ var BABYLON;
                 }
             };
             /**
-            * Normlalized the given URI
+            * Normlalizes the given URI
             */
             Tools.NormalizeUri = function (uri) {
                 while (uri.indexOf("\\") !== -1)
@@ -294,7 +282,7 @@ var BABYLON;
                 return input;
             };
             /**
-            * Beautify a variable name (escapeds + upper case)
+            * Beautify a variable name (escapes + upper case)
             */
             Tools.BeautifyName = function (name) {
                 var result = name[0].toUpperCase();
@@ -2110,6 +2098,8 @@ var BABYLON;
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
                     if (object.speed)
                         cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
+                    if (object.fov)
+                        cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");
                 }
                 // Transforms
                 var transformFolder = this._element.addFolder("Transforms");
@@ -6659,6 +6649,7 @@ var BABYLON;
                     var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
                     var texture = waterMaterial.bumpTexture = BABYLON.Texture.CreateFromBase64String(base64, "waternormal.png", core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
+                    texture.url = texture.url.replace("data:", "");
                     BABYLON.FilesInput.FilesTextures["waternormal.png"] = EDITOR.Tools.CreateFile(new Uint8Array(data), "waternormal.png");
                 }, null, null, true);
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
@@ -8285,10 +8276,10 @@ var BABYLON;
                 var _this = this;
                 this._openFolderDialog(function (folder, folderChildren) {
                     // Status bar
-                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Exporting Template...", "icon-one-drive");
+                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Preparing Template...", "icon-one-drive");
                     _this.core.editor.statusBar.showSpinner(_this._statusBarId);
-                    StorageExporter._projectFolder = folder;
-                    StorageExporter._projectFolderChildren = folderChildren;
+                    StorageExporter._ProjectFolder = folder;
+                    StorageExporter._ProjectFolderChildren = folderChildren;
                     // Dont replace or rename already existing folders
                     var folders = ["materials", "textures", "libs", "scene", "defines", "code", ".vscode"];
                     for (var i = 0; i < folderChildren.length; i++) {
@@ -8314,10 +8305,10 @@ var BABYLON;
             // Exports
             StorageExporter.prototype.export = function () {
                 var _this = this;
-                if (!StorageExporter._projectFolder) {
+                if (!StorageExporter._ProjectFolder) {
                     this._openFolderDialog(function (folder, folderChildren) {
-                        StorageExporter._projectFolder = folder;
-                        StorageExporter._projectFolderChildren = folderChildren;
+                        StorageExporter._ProjectFolder = folder;
+                        StorageExporter._ProjectFolderChildren = folderChildren;
                         _this.export();
                     });
                     return;
@@ -8331,18 +8322,18 @@ var BABYLON;
                     var files = [
                         { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
-                    _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                    _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                         _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
             // Returns the folder object from its name
             StorageExporter.prototype.getFolder = function (name) {
-                return this._getFileFolder(name, "folder", StorageExporter._projectFolderChildren);
+                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
             };
             // Returns the file object from its name
             StorageExporter.prototype.getFile = function (name) {
-                return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Creates the template with all files
             StorageExporter.prototype._createTemplate = function (config) {
@@ -8350,18 +8341,13 @@ var BABYLON;
                 this._updateFileList(function () {
                     // Files
                     var files = [];
-                    //var url = window.location.href;
-                    //url = url.replace(BABYLON.Tools.GetFilename(url), "");
                     var url = EDITOR.Tools.GetBaseURL();
                     var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
                     var project = JSON.parse(projectContent);
                     var sceneFolder = _this.getFolder("scene");
                     // Files already loaded
-                    //files.push({ name: "scene.js", content: projectContent });
-                    //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
                     files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
-                    files.push({ name: "scene.editorproject", content: JSON.stringify(project), parentFolder: sceneFolder.file });
                     files.push({ name: "extensions.editorextensions", content: JSON.stringify(project.customMetadatas), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
@@ -8399,8 +8385,7 @@ var BABYLON;
                     }
                     // Files to load
                     var count = files.length;
-                    if (!_this.getFile("index.html").file)
-                        files.push({ name: "index.html", url: url + "templates/index.html", content: null });
+                    files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                     if (!config.codeFolderExists) {
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
@@ -8429,13 +8414,15 @@ var BABYLON;
                                 files[indice].content = data;
                             }
                             if (count >= files.length) {
-                                _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                                _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (message) {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (count) {
                                     _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });
+                                StorageExporter._ProjectFolder = null;
+                                StorageExporter._ProjectFolderChildren = null;
                             }
                         };
                     };
@@ -8444,6 +8431,7 @@ var BABYLON;
                         loadCallback(-1)(null);
                     }
                     else {
+                        _this.core.editor.statusBar.setText(_this._statusBarId, "Configuring files...");
                         // Files from server
                         for (var i = 0; i < files.length; i++) {
                             if (files[i].url)
@@ -8540,8 +8528,8 @@ var BABYLON;
             // Updates the file list
             StorageExporter.prototype._updateFileList = function (onSuccess) {
                 // Update files list and create files
-                this._storage.getFiles(StorageExporter._projectFolder, function (children) {
-                    StorageExporter._projectFolderChildren = children;
+                this._storage.getFiles(StorageExporter._ProjectFolder, function (children) {
+                    StorageExporter._ProjectFolderChildren = children;
                     onSuccess();
                 });
             };
@@ -8567,8 +8555,8 @@ var BABYLON;
                 this.core.editor.layouts.unlockPanel("bottom");
             };
             // Static members
-            StorageExporter._projectFolder = null;
-            StorageExporter._projectFolderChildren = null;
+            StorageExporter._ProjectFolder = null;
+            StorageExporter._ProjectFolderChildren = null;
             return StorageExporter;
         }());
         EDITOR.StorageExporter = StorageExporter;
@@ -10156,9 +10144,8 @@ var BABYLON;
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
                 this._texturesList.header = this._objectName ? this._objectName : "Textures ";
                 this._texturesList.createColumn("name", "name", "100px");
-                this._texturesList.createEditableColumn("coordinatesMode", "Coordinates Mode", { type: "select", items: coordinatesModes }, "80px");
-                this._texturesList.createEditableColumn("uScale", "uScale", { type: "float" }, "80px");
-                this._texturesList.createEditableColumn("uScale", "vScale", { type: "float" }, "80px");
+                this._texturesList.createColumn("width", "width", "80px");
+                this._texturesList.createColumn("height", "height", "80px");
                 this._texturesList.showSearch = true;
                 this._texturesList.showOptions = true;
                 this._texturesList.showAdd = true;
@@ -10285,22 +10272,6 @@ var BABYLON;
                     }
                     return subGrid;
                 };
-                this._texturesList.onEditField = function (recid, value) {
-                    var changes = _this._texturesList.getChanges();
-                    for (var i = 0; i < changes.length; i++) {
-                        var diff = changes[i];
-                        var texture = _this._core.currentScene.textures[diff.recid];
-                        delete diff.recid;
-                        for (var thing in diff) {
-                            if (thing === "coordinatesMode") {
-                                texture.coordinatesMode = parseInt(diff.coordinatesMode);
-                            }
-                            else {
-                                texture[thing] = diff[thing];
-                            }
-                        }
-                    }
-                };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
@@ -10343,9 +10314,8 @@ var BABYLON;
                     var texture = this._core.currentScene.textures[i];
                     var row = {
                         name: texture.name,
-                        coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                        uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
-                        vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
+                        width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                        height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                         recid: i
                     };
                     if (texture.isCube) {
@@ -10361,9 +10331,8 @@ var BABYLON;
             GUITextureEditor.prototype._addTextureToList = function (texture) {
                 this._texturesList.addRow({
                     name: texture.name,
-                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                    uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
-                    vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
+                    width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                    height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                     recid: this._texturesList.getRowCount() - 1
                 });
                 this._core.editor.editionTool.updateEditionTool();
@@ -10387,7 +10356,7 @@ var BABYLON;
                     }
                     else {
                         texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
-                        texture.name = texture.name.replace("data:", "");
+                        texture.name = texture.url = texture.name.replace("data:", "");
                     }
                     _this._addTextureToList(texture);
                 };
@@ -11392,6 +11361,7 @@ var BABYLON;
                         name: "grid"
                     }
                 });
+                this.canvasElement.on("resize", function (event) { return _this._graph.resize(); });
                 this.canvasElement.on("mousemove", function (event) {
                     _this.setMousePosition(event.offsetX, event.offsetY);
                 });
@@ -11440,12 +11410,13 @@ var BABYLON;
                 // Configure node
                 node.css("shape", "roundrectangle");
                 node.css("background-color", color);
-                node.css("width", "200px");
-                node.css("height", "40px");
-                node.css("label", name.length > 23 ? name.substr(0, 20) + "..." : name);
+                node.css("width", "150px");
+                node.css("height", "25px");
+                node.css("font", "normal 12px");
+                node.css("label", name.length > 16 ? name.substr(0, 13) + "..." : name);
                 node.css("text-valign", "center");
                 node.css("text-halign", "center");
-                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
+                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 25 : this._mousey });
                 return node.id();
             };
             // Removes the given node id
@@ -11636,6 +11607,9 @@ var BABYLON;
                         if (property.value === null)
                             this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
                     }
+                    else if (property.name === "operator") {
+                        var list = this._createListOfOperators(property);
+                    }
                     else if (propertyType === "boolean") {
                         this._createCheckbox(property);
                         if (property.value === null)
@@ -11746,6 +11720,29 @@ var BABYLON;
                 editor.getSession().on("change", function (e) { return property.value = editor.getSession().getValue(); });
                 this._editors.push(editor);
                 return editor;
+            };
+            // Creates a list of operators
+            ActionsBuilderParametersEditor.prototype._createListOfOperators = function (property) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+                this._container.append(text);
+                var id = property.name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
+                this._container.append(input);
+                var items = [
+                    "IsEqual",
+                    "IsDifferent",
+                    "IsGreater",
+                    "IsLesser"
+                ];
+                if (property.value === null)
+                    property.value = BABYLON.ValueCondition[items[0]].toString();
+                var list = new EDITOR.GUI.GUIList(id, this._core);
+                list.renderDrop = true;
+                list.selected = property.value ? items[parseInt(property.value)] : items[0];
+                list.items = items;
+                list.buildElement(id);
+                list.onChange = function (selected) { return property.value = items.indexOf(selected).toString(); };
+                return list;
             };
             // Creates the header
             ActionsBuilderParametersEditor.prototype._createHeader = function (name, type) {
@@ -11900,7 +11897,7 @@ var BABYLON;
                     // Metadatas
                     _this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
                     if (!_this._datas) {
-                        _this._datas = [{ name: "NewPostProcess", id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                        _this._datas = [{ name: "NewPostProcess", id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore["editorTemplatePixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
                         EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", _this._datas);
                     }
                     // Create UI

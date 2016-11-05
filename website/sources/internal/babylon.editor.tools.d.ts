@@ -18,7 +18,7 @@ declare module BABYLON.EDITOR {
         */
         static OpenFileBrowser(core: EditorCore, elementName: string, onChange: (data: any) => void, isOpenScene?: boolean): void;
         /**
-        * Normlalized the given URI
+        * Normlalizes the given URI
         */
         static NormalizeUri(uri: string): string;
         /**
@@ -47,7 +47,7 @@ declare module BABYLON.EDITOR {
         */
         static CreateFileInpuElement(id: string): JQuery;
         /**
-        * Beautify a variable name (escapeds + upper case)
+        * Beautify a variable name (escapes + upper case)
         */
         static BeautifyName(name: string): string;
         /**

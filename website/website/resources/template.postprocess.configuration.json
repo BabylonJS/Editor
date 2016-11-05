@@ -7,8 +7,8 @@
   "samplers": 
   [
     {
-      "uniform": "originalSampler",
-      "source": "myPostProcess"
+      "uniform": "mySampler",
+      "source": "myPostProcess or my texture"
     }
   ],
   "uniforms": 

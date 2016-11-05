@@ -60,7 +60,7 @@
                 // Metadatas
                 this._datas = SceneManager.GetCustomMetadata<IPostProcessBuilderData[]>("PostProcessBuilder");
                 if (!this._datas) {
-                    this._datas = [{ name: "NewPostProcess", id: SceneFactory.GenerateUUID(), program: Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                    this._datas = [{ name: "NewPostProcess", id: SceneFactory.GenerateUUID(), program: Effect.ShadersStore["editorTemplatePixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
                     SceneManager.AddCustomMetadata("PostProcessBuilder", this._datas);
                 }
 

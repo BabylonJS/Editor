@@ -63,10 +63,10 @@ var BABYLON;
                 var _this = this;
                 this._openFolderDialog(function (folder, folderChildren) {
                     // Status bar
-                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Exporting Template...", "icon-one-drive");
+                    _this.core.editor.statusBar.addElement(_this._statusBarId, "Preparing Template...", "icon-one-drive");
                     _this.core.editor.statusBar.showSpinner(_this._statusBarId);
-                    StorageExporter._projectFolder = folder;
-                    StorageExporter._projectFolderChildren = folderChildren;
+                    StorageExporter._ProjectFolder = folder;
+                    StorageExporter._ProjectFolderChildren = folderChildren;
                     // Dont replace or rename already existing folders
                     var folders = ["materials", "textures", "libs", "scene", "defines", "code", ".vscode"];
                     for (var i = 0; i < folderChildren.length; i++) {
@@ -92,10 +92,10 @@ var BABYLON;
             // Exports
             StorageExporter.prototype.export = function () {
                 var _this = this;
-                if (!StorageExporter._projectFolder) {
+                if (!StorageExporter._ProjectFolder) {
                     this._openFolderDialog(function (folder, folderChildren) {
-                        StorageExporter._projectFolder = folder;
-                        StorageExporter._projectFolderChildren = folderChildren;
+                        StorageExporter._ProjectFolder = folder;
+                        StorageExporter._ProjectFolderChildren = folderChildren;
                         _this.export();
                     });
                     return;
@@ -109,18 +109,18 @@ var BABYLON;
                     var files = [
                         { name: "scene.editorproject", content: EDITOR.ProjectExporter.ExportProject(_this.core) }
                     ];
-                    _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                    _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                         _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
             };
             // Returns the folder object from its name
             StorageExporter.prototype.getFolder = function (name) {
-                return this._getFileFolder(name, "folder", StorageExporter._projectFolderChildren);
+                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
             };
             // Returns the file object from its name
             StorageExporter.prototype.getFile = function (name) {
-                return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Creates the template with all files
             StorageExporter.prototype._createTemplate = function (config) {
@@ -128,18 +128,13 @@ var BABYLON;
                 this._updateFileList(function () {
                     // Files
                     var files = [];
-                    //var url = window.location.href;
-                    //url = url.replace(BABYLON.Tools.GetFilename(url), "");
                     var url = EDITOR.Tools.GetBaseURL();
                     var projectContent = EDITOR.ProjectExporter.ExportProject(_this.core, true);
                     var project = JSON.parse(projectContent);
                     var sceneFolder = _this.getFolder("scene");
                     // Files already loaded
-                    //files.push({ name: "scene.js", content: projectContent });
-                    //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
                     var sceneToLoad = _this.core.editor.filesInput._sceneFileToLoad;
                     files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(EDITOR.BabylonExporter.GenerateFinalBabylonFile(_this.core)), parentFolder: sceneFolder.file });
-                    files.push({ name: "scene.editorproject", content: JSON.stringify(project), parentFolder: sceneFolder.file });
                     files.push({ name: "extensions.editorextensions", content: JSON.stringify(project.customMetadatas), parentFolder: sceneFolder.file });
                     // Lens flare textures
                     for (var i = 0; i < project.lensFlares.length; i++) {
@@ -177,8 +172,7 @@ var BABYLON;
                     }
                     // Files to load
                     var count = files.length;
-                    if (!_this.getFile("index.html").file)
-                        files.push({ name: "index.html", url: url + "templates/index.html", content: null });
+                    files.push({ name: "index.html", url: url + "templates/index.html", content: null });
                     if (!config.codeFolderExists) {
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
@@ -207,13 +201,15 @@ var BABYLON;
                                 files[indice].content = data;
                             }
                             if (count >= files.length) {
-                                _this._storage.createFiles(files, StorageExporter._projectFolder, function () {
+                                _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (message) {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (count) {
                                     _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });
+                                StorageExporter._ProjectFolder = null;
+                                StorageExporter._ProjectFolderChildren = null;
                             }
                         };
                     };
@@ -222,6 +218,7 @@ var BABYLON;
                         loadCallback(-1)(null);
                     }
                     else {
+                        _this.core.editor.statusBar.setText(_this._statusBarId, "Configuring files...");
                         // Files from server
                         for (var i = 0; i < files.length; i++) {
                             if (files[i].url)
@@ -318,8 +315,8 @@ var BABYLON;
             // Updates the file list
             StorageExporter.prototype._updateFileList = function (onSuccess) {
                 // Update files list and create files
-                this._storage.getFiles(StorageExporter._projectFolder, function (children) {
-                    StorageExporter._projectFolderChildren = children;
+                this._storage.getFiles(StorageExporter._ProjectFolder, function (children) {
+                    StorageExporter._ProjectFolderChildren = children;
                     onSuccess();
                 });
             };
@@ -345,8 +342,8 @@ var BABYLON;
                 this.core.editor.layouts.unlockPanel("bottom");
             };
             // Static members
-            StorageExporter._projectFolder = null;
-            StorageExporter._projectFolderChildren = null;
+            StorageExporter._ProjectFolder = null;
+            StorageExporter._ProjectFolderChildren = null;
             return StorageExporter;
         }());
         EDITOR.StorageExporter = StorageExporter;

@@ -21,6 +21,7 @@ declare module BABYLON.EDITOR {
         private _createCheckbox(property, customText?);
         private _createListOfElements(property, items?, callback?);
         private _createEditor(property, defaultValue);
+        private _createListOfOperators(property);
         private _createHeader(name, type);
         private _destroyGUIElements();
         private _getParameterType(entry, parameter);

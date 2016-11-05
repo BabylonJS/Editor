@@ -19,7 +19,6 @@
         * Opens a window popup
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
-
             var features = [
                 "width=" + width,
                 "height=" + height,
@@ -62,7 +61,7 @@
         }
 
         /**
-        * Normlalized the given URI
+        * Normlalizes the given URI
         */
         public static NormalizeUri(uri: string): string {
             while (uri.indexOf("\\") !== -1)
@@ -149,7 +148,7 @@
         }
 
         /**
-        * Beautify a variable name (escapeds + upper case)
+        * Beautify a variable name (escapes + upper case)
         */
         public static BeautifyName(name: string): string {
             var result = name[0].toUpperCase();

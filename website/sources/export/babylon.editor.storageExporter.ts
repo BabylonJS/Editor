@@ -26,8 +26,8 @@
         private _statusBarId: string = "ONE-DRIVE-STATUS-BAR";
 
         // Static members
-        private static _projectFolder: IStorageFile = null;
-        private static _projectFolderChildren: IStorageFile[] = null;
+        private static _ProjectFolder: IStorageFile = null;
+        private static _ProjectFolderChildren: IStorageFile[] = null;
 
         // Static members
         public static get OneDriveStorage(): string {
@@ -86,11 +86,11 @@
         public createTemplate(): void {
             this._openFolderDialog((folder: IStorageFile, folderChildren: IStorageFile[]) => {
                 // Status bar
-                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting Template...", "icon-one-drive");
+                this.core.editor.statusBar.addElement(this._statusBarId, "Preparing Template...", "icon-one-drive");
                 this.core.editor.statusBar.showSpinner(this._statusBarId);
 
-                StorageExporter._projectFolder = folder;
-                StorageExporter._projectFolderChildren = folderChildren;
+                StorageExporter._ProjectFolder = folder;
+                StorageExporter._ProjectFolderChildren = folderChildren;
 
                 // Dont replace or rename already existing folders
                 var folders = ["materials", "textures", "libs", "scene", "defines", "code", ".vscode"];
@@ -120,10 +120,10 @@
 
         // Exports
         public export(): void {
-            if (!StorageExporter._projectFolder) {
+            if (!StorageExporter._ProjectFolder) {
                 this._openFolderDialog((folder: IStorageFile, folderChildren: IStorageFile[]) => {
-                    StorageExporter._projectFolder = folder;
-                    StorageExporter._projectFolderChildren = folderChildren;
+                    StorageExporter._ProjectFolder = folder;
+                    StorageExporter._ProjectFolderChildren = folderChildren;
 
                     this.export();
                 });
@@ -142,7 +142,7 @@
                     { name: "scene.editorproject", content: ProjectExporter.ExportProject(this.core) }
                 ];
 
-                this._storage.createFiles(files, StorageExporter._projectFolder, () => {
+                this._storage.createFiles(files, StorageExporter._ProjectFolder, () => {
                     this.core.editor.statusBar.removeElement(this._statusBarId);
                 });
             });
@@ -150,12 +150,12 @@
 
         // Returns the folder object from its name
         public getFolder(name: string): IStorageFile {
-            return this._getFileFolder(name, "folder", StorageExporter._projectFolderChildren);
+            return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
         }
 
         // Returns the file object from its name
         public getFile(name: string): IStorageFile {
-            return this._getFileFolder(name, "file", StorageExporter._projectFolderChildren);
+            return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
         }
 
         // Creates the template with all files
@@ -163,24 +163,15 @@
             this._updateFileList(() => {
                 // Files
                 var files: IStorageUploadFile[] = [];
-
-                //var url = window.location.href;
-                //url = url.replace(BABYLON.Tools.GetFilename(url), "");
                 var url = Tools.GetBaseURL();
-
                 var projectContent = ProjectExporter.ExportProject(this.core, true);
                 var project: INTERNAL.IProjectRoot = JSON.parse(projectContent);
-
                 var sceneFolder = this.getFolder("scene");
 
                 // Files already loaded
-                //files.push({ name: "scene.js", content: projectContent });
-                //files.push({ name: "template.js", content: Exporter.ExportCode(this.core), parentFolder: this.getFolder("js").file });
-
                 var sceneToLoad: File = (<any>this.core.editor.filesInput)._sceneFileToLoad;
                 files.push({ name: sceneToLoad ? sceneToLoad.name : "scene.babylon", content: JSON.stringify(BabylonExporter.GenerateFinalBabylonFile(this.core)), parentFolder: sceneFolder.file });
 
-                files.push({ name: "scene.editorproject", content: JSON.stringify(project), parentFolder: sceneFolder.file });
                 files.push({ name: "extensions.editorextensions", content: JSON.stringify(project.customMetadatas), parentFolder: sceneFolder.file });
 
                 // Lens flare textures
@@ -224,8 +215,7 @@
                 // Files to load
                 var count = files.length;
                 
-                if (!this.getFile("index.html").file)
-                    files.push({ name: "index.html", url: url + "templates/index.html", content: null });
+                files.push({ name: "index.html", url: url + "templates/index.html", content: null });
 
                 if (!config.codeFolderExists) {
                     files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: this.getFolder("code").file });
@@ -263,13 +253,16 @@
                         }
 
                         if (count >= files.length) {
-                            this._storage.createFiles(files, StorageExporter._projectFolder, () => {
+                            this._storage.createFiles(files, StorageExporter._ProjectFolder, () => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
                             }, (message: string) => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
                             }, (count: number) => {
                                 this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                             });
+
+                            StorageExporter._ProjectFolder = null;
+                            StorageExporter._ProjectFolderChildren = null;
                         }
                     }
                 };
@@ -279,6 +272,8 @@
                     loadCallback(-1)(null);
                 }
                 else {
+                    this.core.editor.statusBar.setText(this._statusBarId, "Configuring files...");
+
                     // Files from server
                     for (var i = 0; i < files.length; i++) {
                         if (files[i].url)
@@ -396,8 +391,8 @@
         // Updates the file list
         private _updateFileList(onSuccess: () => void): void {
             // Update files list and create files
-            this._storage.getFiles(StorageExporter._projectFolder, (children: IStorageFile[]) => {
-                StorageExporter._projectFolderChildren = children;
+            this._storage.getFiles(StorageExporter._ProjectFolder, (children: IStorageFile[]) => {
+                StorageExporter._ProjectFolderChildren = children;
                 onSuccess();
             });
         }

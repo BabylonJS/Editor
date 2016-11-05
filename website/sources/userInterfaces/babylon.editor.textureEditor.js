@@ -101,9 +101,8 @@ var BABYLON;
                 this._texturesList = new EDITOR.GUI.GUIGrid(texturesListID, this._core);
                 this._texturesList.header = this._objectName ? this._objectName : "Textures ";
                 this._texturesList.createColumn("name", "name", "100px");
-                this._texturesList.createEditableColumn("coordinatesMode", "Coordinates Mode", { type: "select", items: coordinatesModes }, "80px");
-                this._texturesList.createEditableColumn("uScale", "uScale", { type: "float" }, "80px");
-                this._texturesList.createEditableColumn("uScale", "vScale", { type: "float" }, "80px");
+                this._texturesList.createColumn("width", "width", "80px");
+                this._texturesList.createColumn("height", "height", "80px");
                 this._texturesList.showSearch = true;
                 this._texturesList.showOptions = true;
                 this._texturesList.showAdd = true;
@@ -230,22 +229,6 @@ var BABYLON;
                     }
                     return subGrid;
                 };
-                this._texturesList.onEditField = function (recid, value) {
-                    var changes = _this._texturesList.getChanges();
-                    for (var i = 0; i < changes.length; i++) {
-                        var diff = changes[i];
-                        var texture = _this._core.currentScene.textures[diff.recid];
-                        delete diff.recid;
-                        for (var thing in diff) {
-                            if (thing === "coordinatesMode") {
-                                texture.coordinatesMode = parseInt(diff.coordinatesMode);
-                            }
-                            else {
-                                texture[thing] = diff[thing];
-                            }
-                        }
-                    }
-                };
                 // Finish
                 this._core.editor.editPanel.onClose = function () {
                     _this._texturesList.destroy();
@@ -288,9 +271,8 @@ var BABYLON;
                     var texture = this._core.currentScene.textures[i];
                     var row = {
                         name: texture.name,
-                        coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                        uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
-                        vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
+                        width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                        height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                         recid: i
                     };
                     if (texture.isCube) {
@@ -306,9 +288,8 @@ var BABYLON;
             GUITextureEditor.prototype._addTextureToList = function (texture) {
                 this._texturesList.addRow({
                     name: texture.name,
-                    coordinatesMode: coordinatesModes[texture.coordinatesMode].text,
-                    uScale: texture instanceof BABYLON.Texture ? texture.uScale : 0,
-                    vScale: texture instanceof BABYLON.Texture ? texture.vScale : 0,
+                    width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
+                    height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                     recid: this._texturesList.getRowCount() - 1
                 });
                 this._core.editor.editionTool.updateEditionTool();
@@ -332,7 +313,7 @@ var BABYLON;
                     }
                     else {
                         texture = BABYLON.Texture.CreateFromBase64String(data, name, _this._core.currentScene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
-                        texture.name = texture.name.replace("data:", "");
+                        texture.name = texture.url = texture.name.replace("data:", "");
                     }
                     _this._addTextureToList(texture);
                 };

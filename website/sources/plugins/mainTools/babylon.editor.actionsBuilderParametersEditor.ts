@@ -114,6 +114,9 @@
                     if (property.value === null)
                         this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
                 }
+                else if (property.name === "operator") {
+                    var list = this._createListOfOperators(property);
+                }
                 else if (propertyType === "boolean") {
                     this._createCheckbox(property);
                     if (property.value === null)
@@ -256,6 +259,37 @@
             this._editors.push(editor);
 
             return editor;
+        }
+
+        // Creates a list of operators
+        private _createListOfOperators(property: IActionsBuilderProperty): GUI.GUIList {
+            var text = GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+            this._container.append(text);
+
+            var id = property.name + SceneFactory.GenerateUUID();
+
+            var input = GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
+            this._container.append(input);
+
+            var items: string[] = [
+                "IsEqual",
+                "IsDifferent",
+                "IsGreater",
+                "IsLesser"
+            ];
+
+            if (property.value === null)
+                property.value = ValueCondition[items[0]].toString();
+
+            var list = new GUI.GUIList(id, this._core);
+            list.renderDrop = true;
+            list.selected = property.value ? items[parseInt(property.value)] : items[0];
+            list.items = items;
+            list.buildElement(id);
+
+            list.onChange = (selected: string) => property.value = items.indexOf(selected).toString();
+
+            return list;
         }
 
         // Creates the header

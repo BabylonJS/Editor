@@ -36,7 +36,7 @@ var BABYLON;
                     // Metadatas
                     _this._datas = EDITOR.SceneManager.GetCustomMetadata("PostProcessBuilder");
                     if (!_this._datas) {
-                        _this._datas = [{ name: "NewPostProcess", id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore["passPixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
+                        _this._datas = [{ name: "NewPostProcess", id: EDITOR.SceneFactory.GenerateUUID(), program: BABYLON.Effect.ShadersStore["editorTemplatePixelShader"], configuration: PostProcessBuilder._ConfigurationFileContent }];
                         EDITOR.SceneManager.AddCustomMetadata("PostProcessBuilder", _this._datas);
                     }
                     // Create UI

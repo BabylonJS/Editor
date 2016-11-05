@@ -27,6 +27,7 @@ var BABYLON;
                         name: "grid"
                     }
                 });
+                this.canvasElement.on("resize", function (event) { return _this._graph.resize(); });
                 this.canvasElement.on("mousemove", function (event) {
                     _this.setMousePosition(event.offsetX, event.offsetY);
                 });
@@ -75,12 +76,13 @@ var BABYLON;
                 // Configure node
                 node.css("shape", "roundrectangle");
                 node.css("background-color", color);
-                node.css("width", "200px");
-                node.css("height", "40px");
-                node.css("label", name.length > 23 ? name.substr(0, 20) + "..." : name);
+                node.css("width", "150px");
+                node.css("height", "25px");
+                node.css("font", "normal 12px");
+                node.css("label", name.length > 16 ? name.substr(0, 13) + "..." : name);
                 node.css("text-valign", "center");
                 node.css("text-halign", "center");
-                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 35 : this._mousey });
+                node.renderedPosition({ x: this._mousex, y: parentNode ? this._mousey + parentNode.height() + 25 : this._mousey });
                 return node.id();
             };
             // Removes the given node id

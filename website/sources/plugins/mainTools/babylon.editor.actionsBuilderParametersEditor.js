@@ -94,6 +94,9 @@ var BABYLON;
                         if (property.value === null)
                             this._core.currentScene.particleSystems.length > 0 ? property.value = list.items[0] : property.value = "";
                     }
+                    else if (property.name === "operator") {
+                        var list = this._createListOfOperators(property);
+                    }
                     else if (propertyType === "boolean") {
                         this._createCheckbox(property);
                         if (property.value === null)
@@ -204,6 +207,29 @@ var BABYLON;
                 editor.getSession().on("change", function (e) { return property.value = editor.getSession().getValue(); });
                 this._editors.push(editor);
                 return editor;
+            };
+            // Creates a list of operators
+            ActionsBuilderParametersEditor.prototype._createListOfOperators = function (property) {
+                var text = EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%; height: 0px;", property.name + ":", true);
+                this._container.append(text);
+                var id = property.name + EDITOR.SceneFactory.GenerateUUID();
+                var input = EDITOR.GUI.GUIElement.CreateElement("input", id, "width: 100%;", "", true);
+                this._container.append(input);
+                var items = [
+                    "IsEqual",
+                    "IsDifferent",
+                    "IsGreater",
+                    "IsLesser"
+                ];
+                if (property.value === null)
+                    property.value = BABYLON.ValueCondition[items[0]].toString();
+                var list = new EDITOR.GUI.GUIList(id, this._core);
+                list.renderDrop = true;
+                list.selected = property.value ? items[parseInt(property.value)] : items[0];
+                list.items = items;
+                list.buildElement(id);
+                list.onChange = function (selected) { return property.value = items.indexOf(selected).toString(); };
+                return list;
             };
             // Creates the header
             ActionsBuilderParametersEditor.prototype._createHeader = function (name, type) {

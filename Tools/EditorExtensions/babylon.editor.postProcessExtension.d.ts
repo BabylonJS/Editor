@@ -6,16 +6,13 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         configuration: string;
         postProcess?: PostProcess;
     }
-    interface IPostProcessExtensionConfiguration {
-        ratio: number;
-        defines: string[];
-    }
     class PostProcessBuilderExtension implements IEditorExtension<IPostProcessExtensionData[]> {
         extensionKey: string;
         applyEvenIfDataIsNull: boolean;
         placeHolderTexture: Texture;
         private _scene;
         private _scenePassPostProcess;
+        private _postProcesses;
         /**
         * Constructor
         * @param core: the editor core
@@ -24,6 +21,6 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         apply(data: IPostProcessExtensionData[]): void;
         removePostProcess(postProcess: PostProcess): void;
         applyPostProcess(data: IPostProcessExtensionData): void;
-        private _postProcessCallback(postProcess);
+        private _postProcessCallback(postProcess, config);
     }
 }
