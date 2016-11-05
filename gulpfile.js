@@ -45,7 +45,7 @@ if (args._[0] === "electron" || args._[0] === "electron-watch") {
 /*
 * Configure extension files
 */
-var extensionFiles = ["defines/babylon.d.ts"];
+var extensionFiles = ["website/defines/babylon.d.ts"];
 
 for (var i = 0; i < config.editorExtensions.files.length; i++) {
     extensionFiles.push(config.editorExtensions.files[i].replace(".js", ".ts"));
@@ -78,7 +78,7 @@ gulp.task("typescript-compile", function () {
 gulp.task("build", ["build-extensions", "typescript-compile"], function () {
     // Build dependencies
     // Typescript parser
-    var filenames = ["defines/babylon.d.ts", "Tools/EditorExtensions/babylon.editor.extensions.d.ts"];
+    var filenames = ["website/defines/babylon.d.ts", "website/libs/preview release/babylon.editor.extensions.d.ts"];
     typescriptParser.ParseTypescriptFiles(filenames, "website/website/resources/classes.min.json", false);
 
     // Build editor
@@ -121,7 +121,7 @@ gulp.task("build-extensions", function () {
             .pipe(gulp.dest(config.build.outputDirectory)),
         result.dts
             .pipe(concat(config.editorExtensions.declarationFilename))
-            .pipe(gulp.dest(config.editorExtensions.outputDeclarionFilename))
+            .pipe(gulp.dest(config.build.outputDirectory))
     ]);
 });
 

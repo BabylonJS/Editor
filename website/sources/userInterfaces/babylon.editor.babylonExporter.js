@@ -104,6 +104,13 @@ var BABYLON;
                     EDITOR.SceneManager.SwitchActionManager();
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
+                // Remove editor camera
+                for (var i = 0; i < obj.cameras.length; i++) {
+                    if (obj.cameras[i].name === core.camera.name) {
+                        obj.cameras.splice(i, 1);
+                        i--;
+                    }
+                }
                 // Set auto play
                 var maxFrame = EDITOR.GUIAnimationEditor.GetSceneFrameCount(core.currentScene);
                 var setAutoPlay = function (objects) {

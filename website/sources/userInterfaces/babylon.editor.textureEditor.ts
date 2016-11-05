@@ -164,11 +164,10 @@
                 
                 var selectedTexture: BaseTexture = this._core.currentScene.textures[selected[0]];
 
-                /*
-                if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
-                    return;
-                */
+                // Send event texture has been selected
+                Event.sendSceneEvent(selectedTexture, SceneEventType.OBJECT_PICKED, this._core);
 
+                // Configure texture to preview
                 if (this._targetTexture) {
                     this._targetTexture.dispose();
                     this._targetTexture = null;

@@ -3493,6 +3493,77 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var TextureTool = (function (_super) {
+            __extends(TextureTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function TextureTool(editionTool) {
+                _super.call(this, editionTool);
+                // Public members
+                this.tab = "TEXTURE.TAB";
+                // Private members
+                this._currentCoordinatesMode = "";
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-TEXTURE"
+                ];
+            }
+            // Object supported
+            TextureTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.BaseTexture)
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            TextureTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Texture" });
+            };
+            // Update
+            TextureTool.prototype.update = function () {
+                var object = this.object = this._editionTool.object;
+                _super.prototype.update.call(this);
+                if (!object)
+                    return false;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                // Common
+                var coordinatesModes = [
+                    "EXPLICIT_MODE",
+                    "SPHERICAL_MODE",
+                    "PLANAR_MODE",
+                    "CUBIC_MODE",
+                    "PROJECTION_MODE",
+                    "SKYBOX_MODE",
+                    "INVCUBIC_MODE",
+                    "EQUIRECTANGULAR_MODE",
+                    "FIXED_EQUIRECTANGULAR_MODE"
+                ];
+                var commonFolder = this._element.addFolder("Common");
+                commonFolder.add(object, "getAlphaFromRGB").name("Get Alpha From RGB");
+                commonFolder.add(object, "hasAlpha").name("Has Alpha");
+                this._currentCoordinatesMode = coordinatesModes[object.coordinatesMode];
+                commonFolder.add(this, "_currentCoordinatesMode", coordinatesModes, "Coordinates Mode").name("Coordinates Mode").onChange(function (value) { return object.coordinatesMode = BABYLON.Texture[value]; });
+                // Texture
+                if (object instanceof BABYLON.Texture) {
+                    var textureFolder = this._element.addFolder("Texture");
+                    textureFolder.add(object, "uScale").name("uScale");
+                    textureFolder.add(object, "vScale").name("vScale");
+                }
+                return true;
+            };
+            return TextureTool;
+        }(EDITOR.AbstractDatTool));
+        EDITOR.TextureTool = TextureTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var AbstractMaterialTool = (function (_super) {
             __extends(AbstractMaterialTool, _super);
             /**
@@ -4452,12 +4523,13 @@ var BABYLON;
                 this.addTool(new EDITOR.GeneralTool(this));
                 this.addTool(new EDITOR.SceneTool(this));
                 this.addTool(new EDITOR.LightTool(this));
-                this.addTool(new EDITOR.AnimationTool(this));
-                this.addTool(new EDITOR.PostProcessesTool(this));
-                this.addTool(new EDITOR.ReflectionProbeTool(this));
+                this.addTool(new EDITOR.TextureTool(this));
                 this.addTool(new EDITOR.AudioTool(this));
                 this.addTool(new EDITOR.ParticleSystemTool(this));
+                this.addTool(new EDITOR.ReflectionProbeTool(this));
                 this.addTool(new EDITOR.LensFlareTool(this));
+                this.addTool(new EDITOR.AnimationTool(this));
+                this.addTool(new EDITOR.PostProcessesTool(this));
                 this.addTool(new EDITOR.MaterialTool(this));
                 this.addTool(new EDITOR.StandardMaterialTool(this));
                 this.addTool(new EDITOR.SkyMaterialTool(this));
@@ -8218,14 +8290,15 @@ var BABYLON;
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
                     // Dont replace or rename already existing folders
-                    var folders = ["materials", "textures", "libs", "scene", "defines", "code"];
+                    var folders = ["materials", "textures", "libs", "scene", "defines", "code", ".vscode"];
                     for (var i = 0; i < folderChildren.length; i++) {
                         var folderIndex = folders.indexOf(folderChildren[i].name);
                         if (folderIndex !== -1)
                             folders.splice(folderIndex, 1);
                     }
                     var config = {
-                        codeFolderExists: folders.indexOf("code") === -1
+                        codeFolderExists: folders.indexOf("code") === -1,
+                        vscodeFolderExists: folders.indexOf(".vscode") === -1
                     };
                     if (folders.length === 0)
                         _this._createTemplate(config);
@@ -8332,12 +8405,14 @@ var BABYLON;
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                     }
+                    if (!config.vscodeFolderExists)
+                        files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
                     files.push({ name: "tsconfig.json", url: url + "templates/tsconfigTemplate.json", content: null });
                     files.push({ name: "Web.config", url: url + "templates/WebConfigTemplate.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("libs").file });
-                    //files.push({ name: "babylon.d.ts", url: url + "../defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
-                    //files.push({ name: "babylon.editor.extensions.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
+                    files.push({ name: "babylon.d.ts", url: url + "defines/babylon.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
+                    files.push({ name: "babylon.editor.extensions.d.ts", url: url + "libs/preview release/babylon.editor.extensions.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";
@@ -9343,6 +9418,13 @@ var BABYLON;
                     EDITOR.SceneManager.SwitchActionManager();
                 if (core.playCamera)
                     obj.activeCameraID = core.playCamera.id;
+                // Remove editor camera
+                for (var i = 0; i < obj.cameras.length; i++) {
+                    if (obj.cameras[i].name === core.camera.name) {
+                        obj.cameras.splice(i, 1);
+                        i--;
+                    }
+                }
                 // Set auto play
                 var maxFrame = EDITOR.GUIAnimationEditor.GetSceneFrameCount(core.currentScene);
                 var setAutoPlay = function (objects) {
@@ -10089,10 +10171,9 @@ var BABYLON;
                     if (_this._currentRenderTarget)
                         _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
-                    /*
-                    if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
-                        return;
-                    */
+                    // Send event texture has been selected
+                    EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
+                    // Configure texture to preview
                     if (_this._targetTexture) {
                         _this._targetTexture.dispose();
                         _this._targetTexture = null;

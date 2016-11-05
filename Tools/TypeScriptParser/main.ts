@@ -1,7 +1,7 @@
 // Import parser
 var Parser = require("./parser.js");
 
-var filenames = ["../../defines/babylon.d.ts", "../EditorExtensions/babylon.editor.extensions.d.ts"];
+var filenames = ["../../website/defines/babylon.d.ts", "../../website/libs/preview release/babylon.editor.extensions.d.ts"];
 //var filename = ["test.file.ts"];
 
 // Parse

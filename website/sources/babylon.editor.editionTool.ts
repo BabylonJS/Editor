@@ -144,12 +144,13 @@
             this.addTool(new GeneralTool(this));
             this.addTool(new SceneTool(this));
             this.addTool(new LightTool(this));
-            this.addTool(new AnimationTool(this));
-            this.addTool(new PostProcessesTool(this));
-            this.addTool(new ReflectionProbeTool(this));
+            this.addTool(new TextureTool(this));
             this.addTool(new AudioTool(this));
             this.addTool(new ParticleSystemTool(this));
+            this.addTool(new ReflectionProbeTool(this));
             this.addTool(new LensFlareTool(this));
+            this.addTool(new AnimationTool(this));
+            this.addTool(new PostProcessesTool(this));
 
             this.addTool(new MaterialTool(this));
             this.addTool(new StandardMaterialTool(this));

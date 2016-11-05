@@ -68,14 +68,15 @@ var BABYLON;
                     StorageExporter._projectFolder = folder;
                     StorageExporter._projectFolderChildren = folderChildren;
                     // Dont replace or rename already existing folders
-                    var folders = ["materials", "textures", "libs", "scene", "defines", "code"];
+                    var folders = ["materials", "textures", "libs", "scene", "defines", "code", ".vscode"];
                     for (var i = 0; i < folderChildren.length; i++) {
                         var folderIndex = folders.indexOf(folderChildren[i].name);
                         if (folderIndex !== -1)
                             folders.splice(folderIndex, 1);
                     }
                     var config = {
-                        codeFolderExists: folders.indexOf("code") === -1
+                        codeFolderExists: folders.indexOf("code") === -1,
+                        vscodeFolderExists: folders.indexOf(".vscode") === -1
                     };
                     if (folders.length === 0)
                         _this._createTemplate(config);
@@ -182,12 +183,14 @@ var BABYLON;
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                     }
+                    if (!config.vscodeFolderExists)
+                        files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
                     files.push({ name: "tsconfig.json", url: url + "templates/tsconfigTemplate.json", content: null });
                     files.push({ name: "Web.config", url: url + "templates/WebConfigTemplate.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("libs").file });
-                    //files.push({ name: "babylon.d.ts", url: url + "../defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
-                    //files.push({ name: "babylon.editor.extensions.d.ts", url: url + "../Tools/EditorExtensions/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
+                    files.push({ name: "babylon.d.ts", url: url + "defines/babylon.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
+                    files.push({ name: "babylon.editor.extensions.d.ts", url: url + "libs/preview release/babylon.editor.extensions.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     // Materials
                     for (var i = 0; i < project.requestedMaterials.length; i++) {
                         var name = "babylon." + project.requestedMaterials[i] + ".js";

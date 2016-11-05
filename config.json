@@ -9,14 +9,14 @@
   "core": {
     "defines": [
       "!sources/**/*.d.ts",
-      "Tools/EditorExtensions/babylon.editor.extensions.d.ts",
-      "defines/**/*.d.ts"
+      "website/libs/preview release/babylon.editor.extensions.d.ts",
+      "website/defines/**/*.d.ts"
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
       "!website/sources/**/*.d.ts",
-      "defines/**/*.d.ts",
-      "Tools/EditorExtensions/babylon.editor.extensions.d.ts"
+      "website/defines/**/*.d.ts",
+      "website/libs/preview release/babylon.editor.extensions.d.ts"
     ],
     "files": [
       "sources/internal/babylon.editor.event.js",
@@ -47,6 +47,7 @@
       "sources/editionTools/babylon.editor.postProcesses.js",
       "sources/editionTools/babylon.editor.reflectionProbeTool.js",
       "sources/editionTools/babylon.editor.sceneTool.js",
+      "sources/editionTools/babylon.editor.textureTool.js",
 
       "sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js",
@@ -117,7 +118,7 @@
     "typescriptBuild": [
       "website/electron/**/*.ts",
       "!website/electron/**/*.d.ts",
-      "defines/electron/*.d.ts"
+      "website/defines/electron/*.d.ts"
     ],
     "files": [
       "electron/main.js"

@@ -116,10 +116,9 @@ var BABYLON;
                     if (_this._currentRenderTarget)
                         _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
-                    /*
-                    if (selectedTexture.name.toLowerCase().indexOf(".hdr") !== -1)
-                        return;
-                    */
+                    // Send event texture has been selected
+                    EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
+                    // Configure texture to preview
                     if (_this._targetTexture) {
                         _this._targetTexture.dispose();
                         _this._targetTexture = null;
