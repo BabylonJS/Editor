@@ -249,6 +249,9 @@ var BABYLON;
             // Creates the UI dialog to choose folder
             StorageExporter.prototype._openFolderDialog = function (success) {
                 var _this = this;
+                if (StorageExporter._IsWindowOpened)
+                    return;
+                StorageExporter._IsWindowOpened = true;
                 this._onFolderSelected = success;
                 var gridID = "BABYLON-STORAGE-EXPORTER-GRID";
                 var gridDiv = EDITOR.GUI.GUIElement.CreateElement("div", gridID);
@@ -261,6 +264,7 @@ var BABYLON;
                     "Cancel"
                 ];
                 this._window.setOnCloseCallback(function () {
+                    StorageExporter._IsWindowOpened = false;
                     _this.core.removeEventReceiver(_this);
                     _this._filesList.destroy();
                 });
@@ -331,6 +335,7 @@ var BABYLON;
             // Static members
             StorageExporter._ProjectFolder = null;
             StorageExporter._ProjectFolderChildren = null;
+            StorageExporter._IsWindowOpened = false;
             return StorageExporter;
         }());
         EDITOR.StorageExporter = StorageExporter;

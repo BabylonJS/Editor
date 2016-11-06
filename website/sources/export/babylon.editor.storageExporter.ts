@@ -29,6 +29,8 @@
         private static _ProjectFolder: IStorageFile = null;
         private static _ProjectFolderChildren: IStorageFile[] = null;
 
+        private static _IsWindowOpened: boolean = false;
+
         // Static members
         public static get OneDriveStorage(): string {
             return "OneDriveStorage";
@@ -311,6 +313,11 @@
 
         // Creates the UI dialog to choose folder
         private _openFolderDialog(success?: (folder: IStorageFile, folderChildren: IStorageFile[]) => void): void {
+            if (StorageExporter._IsWindowOpened)
+                return;
+            
+            StorageExporter._IsWindowOpened = true;
+
             this._onFolderSelected = success;
 
             var gridID = "BABYLON-STORAGE-EXPORTER-GRID";
@@ -326,6 +333,8 @@
             ];
 
             this._window.setOnCloseCallback(() => {
+                StorageExporter._IsWindowOpened = false;
+                
                 this.core.removeEventReceiver(this);
                 this._filesList.destroy();
             });

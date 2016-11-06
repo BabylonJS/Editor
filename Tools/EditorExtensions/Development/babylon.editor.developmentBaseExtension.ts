@@ -48,10 +48,16 @@
 
         // Calls an event
         public callEvent<T>(eventData: IDevelopentBaseExtensionEventData<T>): void {
-            var event = this._events[eventData.eventName];
-
-            if (event)
-                event(eventData.eventData);
+            if (eventData.eventName === "*") {
+                for (var thing in this._events) {
+                    this._events[thing](eventData.eventData);
+                }
+            }
+            else {
+                var event = this._events[eventData.eventName];
+                if (event)
+                    event(eventData.eventData);
+            }
         }
 
         /**
@@ -59,12 +65,23 @@
         */
         // 
         public static SendEvent<T>(namespace: string, eventData: IDevelopentBaseExtensionEventData<T>): void {
-            var events = this._EventReceivers[namespace];
-            if (!events)
-                return;
+            if (eventData.eventName === "*") {
+                for (var thing in this._EventReceivers) {
+                    var eventReceivers = this._EventReceivers[thing];
 
-            for (var i = 0; i < events.length; i++) {
-                events[i].callEvent(eventData);
+                    for (var i = 0; i < eventReceivers.length; i++) {
+                        eventReceivers[i].callEvent(eventData);
+                    }
+                }
+            }
+            else {
+                var eventReceivers = this._EventReceivers[namespace];
+                if (!eventReceivers)
+                    return;
+
+                for (var i = 0; i < eventReceivers.length; i++) {
+                    eventReceivers[i].callEvent(eventData);
+                }
             }
         }
 
