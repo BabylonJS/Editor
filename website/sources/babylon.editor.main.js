@@ -281,7 +281,7 @@ var BABYLON;
                     var parent = null;
                     // Configure meshes
                     for (var i = 0; i < scene.meshes.length; i++) {
-                        EDITOR.SceneManager.ConfigureObject(scene.meshes[i], _this.core, parent);
+                        EDITOR.SceneManager.ConfigureObject(scene.meshes[i], _this.core, parent, false);
                     }
                     // Configure scene
                     EDITOR.SceneManager._SceneConfiguration = {

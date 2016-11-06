@@ -360,7 +360,7 @@
             this._filesList.clear();
 
             this._currentFolder = folder;
-            this._filesList.addRow({
+            this._filesList.addRecord({
                 name: "..",
                 type: "previous",
                 recid: 0
@@ -371,13 +371,14 @@
                 this._currentChildrenFolder = children;
 
                 for (var i = 0; i < children.length; i++) {
-                    this._filesList.addRow({
+                    this._filesList.addRecord({
                         name: children[i].name,
                         type: children[i].file.folder ? "folder" : "file",
                         recid: i + 1
                     });
                 }
-
+                
+                this._filesList.refresh();
                 this._filesList.unlock();
             }, () => {
                 this._filesList.unlock();

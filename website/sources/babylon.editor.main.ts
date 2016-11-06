@@ -376,7 +376,7 @@
                 
                 // Configure meshes
                 for (var i = 0; i < scene.meshes.length; i++) {
-                    SceneManager.ConfigureObject(scene.meshes[i], this.core, parent);
+                    SceneManager.ConfigureObject(scene.meshes[i], this.core, parent, false);
                 }
 
                 // Configure scene

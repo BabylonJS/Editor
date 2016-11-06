@@ -23,7 +23,8 @@ var BABYLON;
                 }
             };
             // Configures and object
-            SceneManager.ConfigureObject = function (object, core, parentNode) {
+            SceneManager.ConfigureObject = function (object, core, parentNode, sendEventSelected) {
+                if (sendEventSelected === void 0) { sendEventSelected = true; }
                 if (object instanceof BABYLON.AbstractMesh) {
                     var mesh = object;
                     var scene = mesh.getScene();
@@ -60,11 +61,13 @@ var BABYLON;
                         mesh.parent = parentNode;
                     }
                 }
-                // Send event configured
-                var ev = new EDITOR.Event();
-                ev.eventType = EDITOR.EventType.SCENE_EVENT;
-                ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
-                core.sendEvent(ev);
+                if (sendEventSelected) {
+                    // Send event configured
+                    var ev = new EDITOR.Event();
+                    ev.eventType = EDITOR.EventType.SCENE_EVENT;
+                    ev.sceneEvent = new EDITOR.SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
+                    core.sendEvent(ev);
+                }
             };
             // Save objects states
             SceneManager.SaveObjectStates = function (scene) {

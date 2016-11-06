@@ -40,7 +40,7 @@
         }
 
         // Configures and object
-        public static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void {
+        public static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node, sendEventSelected: boolean = true): void {
             if (object instanceof AbstractMesh) {
                 var mesh: AbstractMesh = object;
                 var scene = mesh.getScene();
@@ -89,11 +89,13 @@
                 }
             }
 
-            // Send event configured
-            var ev = new Event();
-            ev.eventType = EventType.SCENE_EVENT;
-            ev.sceneEvent = new SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
-            core.sendEvent(ev);
+            if (sendEventSelected) {
+                // Send event configured
+                var ev = new Event();
+                ev.eventType = EventType.SCENE_EVENT;
+                ev.sceneEvent = new SceneEvent(object, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED);
+                core.sendEvent(ev);
+            }
         }
 
         /**
