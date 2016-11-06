@@ -74,8 +74,8 @@
         }
 
         // Adds a texture element
-        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement {
-            return super.addTextureFolder(this.material, name, property, parentFolder, callback);
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, acceptCubes: boolean = false, callback?: () => void): dat.IFolderElement {
+            return super.addTextureFolder(this.material, name, property, parentFolder, acceptCubes, callback);
         }
     }
 }

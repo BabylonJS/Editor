@@ -72,7 +72,7 @@ var BABYLON;
                 var reflectionFolder = this._element.addFolder("Reflection");
                 this.addColorFolder(this.material.reflectionColor, "Reflection Color", true, reflectionFolder);
                 reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
-                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder);
+                this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder, true);
                 // Emissive
                 var emissiveFolder = this._element.addFolder("Emissive");
                 this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);
@@ -84,6 +84,10 @@ var BABYLON;
                 var ambientFolder = this._element.addFolder("Ambient");
                 this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
                 this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
+                // Refraction
+                var refractionFolder = this._element.addFolder("Refraction");
+                refractionFolder.add(this.material, "indexOfRefraction").name("Index of Refraction");
+                this.addTextureButton("Refraction Texture", "refractionTexture", refractionFolder, true);
                 // Options
                 var optionsFolder = this._element.addFolder("Options");
                 optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");

@@ -68,13 +68,16 @@ var BABYLON;
                 return folder;
             };
             // Adds a texture element
-            AbstractDatTool.prototype.addTextureFolder = function (object, name, property, parentFolder, callback) {
+            AbstractDatTool.prototype.addTextureFolder = function (object, name, property, parentFolder, acceptCubes, callback) {
                 var _this = this;
+                if (acceptCubes === void 0) { acceptCubes = false; }
                 var stringName = name.replace(" ", "");
                 var functionName = "_set" + stringName;
                 var textures = ["None"];
                 var scene = this._editionTool.core.currentScene;
                 for (var i = 0; i < scene.textures.length; i++) {
+                    if (!acceptCubes && scene.textures[i].isCube)
+                        continue;
                     textures.push(scene.textures[i].name);
                 }
                 this[functionName] = function () {

@@ -191,7 +191,7 @@ gulp.task("electron", ["build"], function () {
 
     var options = {
         arch: args.arch ? args.arch : "x64",
-        dir: "./",
+        dir: "./website/",
         platform: args.platform ? args.platform : "darwin",
         out: "electronPackages/",
         overwrite: true

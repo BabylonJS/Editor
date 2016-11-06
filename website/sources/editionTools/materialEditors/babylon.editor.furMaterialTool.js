@@ -32,7 +32,7 @@ var BABYLON;
                 // Diffuse
                 var diffuseFolder = this._element.addFolder("Diffuse");
                 this.addColorFolder(this.material.diffuseColor, "Diffuse Color", true, diffuseFolder, callback);
-                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder, callback);
+                this.addTextureButton("Texture", "diffuseTexture", diffuseFolder, false, callback);
                 // Fur
                 var furFolder = this._element.addFolder("Fur");
                 this.addColorFolder(this.material.furColor, "Fur Color", true, furFolder, callback);

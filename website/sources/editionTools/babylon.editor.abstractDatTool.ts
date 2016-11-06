@@ -74,13 +74,16 @@
         }
 
         // Adds a texture element
-        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement {
+        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, acceptCubes: boolean = false, callback?: () => void): dat.IFolderElement {
             var stringName = name.replace(" ", "");
             var functionName = "_set" + stringName;
             var textures = ["None"];
             var scene = this._editionTool.core.currentScene;
 
             for (var i = 0; i < scene.textures.length; i++) {
+                if (!acceptCubes && scene.textures[i].isCube)
+                    continue;
+                
                 textures.push(scene.textures[i].name);
             }
 

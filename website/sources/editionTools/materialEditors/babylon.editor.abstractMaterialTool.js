@@ -65,8 +65,9 @@ var BABYLON;
                 return true;
             };
             // Adds a texture element
-            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, callback) {
-                return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, callback);
+            AbstractMaterialTool.prototype.addTextureButton = function (name, property, parentFolder, acceptCubes, callback) {
+                if (acceptCubes === void 0) { acceptCubes = false; }
+                return _super.prototype.addTextureFolder.call(this, this.material, name, property, parentFolder, acceptCubes, callback);
             };
             return AbstractMaterialTool;
         }(EDITOR.AbstractDatTool));
