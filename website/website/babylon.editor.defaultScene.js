@@ -1,4 +1,4 @@
-﻿/// <reference path="../../defines/babylon.d.ts" />
+﻿/// <reference path="../defines/babylon.d.ts" />
 
 // Creates the default scene of the editor
 // Basically a skybox with planes and spheres and lights
@@ -102,7 +102,6 @@ function createDefaultScene(core) {
 
     BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/environment.babylon.hdr", function (file) {
         var texture = new BABYLON.HDRCubeTexture("file:environment.babylon.hdr", scene);
-        texture.name = "environment.babylon.hdr";
 
         hdrSkyboxMaterial.reflectionTexture = texture.clone();
         hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
@@ -112,6 +111,10 @@ function createDefaultScene(core) {
         metal.reflectionTexture = texture;
         plastic.reflectionTexture = texture;
         wood.reflectionTexture = texture;
+
+        texture.name = texture.url = "environment.babylon.hdr";
+        hdrSkyboxMaterial.reflectionTexture.name = hdrSkyboxMaterial.reflectionTexture.url = "environment.babylon.hdr";
+
     }, false);
     BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/albedo.png", function (file) {
         wood.albedoTexture = new BABYLON.Texture("file:albedo.png", scene);

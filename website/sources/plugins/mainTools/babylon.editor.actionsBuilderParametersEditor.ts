@@ -279,15 +279,15 @@
             ];
 
             if (property.value === null)
-                property.value = ValueCondition[items[0]].toString();
+                property.value = items[0];
 
             var list = new GUI.GUIList(id, this._core);
             list.renderDrop = true;
-            list.selected = property.value ? items[parseInt(property.value)] : items[0];
+            list.selected = property.value || items[0];
             list.items = items;
             list.buildElement(id);
 
-            list.onChange = (selected: string) => property.value = items.indexOf(selected).toString();
+            list.onChange = (selected: string) => property.value = selected;
 
             return list;
         }

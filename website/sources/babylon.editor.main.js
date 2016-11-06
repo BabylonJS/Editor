@@ -350,10 +350,10 @@ var BABYLON;
                     EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_UNCLICK, _this.core, event);
                 });
                 document.addEventListener("keydown", function (event) {
-                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, true, _this.core, event);
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, true, _this.core, event);
                 });
                 document.addEventListener("keyup", function (event) {
-                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, false, _this.core, event);
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, false, _this.core, event);
                 });
             };
             // Statics

@@ -103,10 +103,11 @@ var BABYLON;
         */
         var KeyEvent = (function (_super) {
             __extends(KeyEvent, _super);
-            function KeyEvent(key, control, isDown, data) {
+            function KeyEvent(key, control, shift, isDown, data) {
                 _super.call(this, data);
                 this.key = key;
                 this.control = control;
+                this.shift = shift;
                 this.isDown = isDown;
             }
             return KeyEvent;
@@ -134,10 +135,10 @@ var BABYLON;
                 ev.guiEvent = new GUIEvent(object, type, data);
                 core.sendEvent(ev);
             };
-            Event.sendKeyEvent = function (key, control, isDown, core, data) {
+            Event.sendKeyEvent = function (key, control, shift, isDown, core, data) {
                 var ev = new Event();
                 ev.eventType = EventType.KEY_EVENT;
-                ev.keyEvent = new KeyEvent(key, control, isDown, data);
+                ev.keyEvent = new KeyEvent(key, control, shift, isDown, data);
                 core.sendEvent(ev);
             };
             return Event;

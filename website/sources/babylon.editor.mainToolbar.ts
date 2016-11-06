@@ -22,7 +22,7 @@
         private _projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
         private _projectSaveLocal = "PROJECT-SAVE-LOCAL";
         private _projectTemplateLocal = "PROJECT-TEMPLATE-LOCAL";
-        private _projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+        private _projectSaveStorage = "PROJECT-CONNECT-STORAGE";
         private _projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
 
         private _mainEdit = "MAIN-EDIT";
@@ -71,7 +71,16 @@
 
         // Event
         public onEvent(event: Event): boolean {
-            if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.TOOLBAR_MENU_SELECTED) {
+            if (event.eventType === EventType.KEY_EVENT) {
+                if (event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                    this._callSaveAction(Tools.CheckIfElectron() ? this._projectSaveLocal : this._projectSaveStorage);
+                }
+                else if (event.keyEvent.shift && event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                    this._callSaveAction(Tools.CheckIfElectron() ? this._projectTemplateLocal : this._projectTemplateStorage);
+                }
+            }
+
+            else if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.TOOLBAR_MENU_SELECTED) {
                 if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                     return false;
                 }
@@ -113,23 +122,8 @@
                         babylonExporter.createUI();
                     }
 
-                    else if (selected.selected === this._projectSaveLocal) {
-                        var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
-                        storageExporter.export();
-                        FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                    }
-                    else if (selected.selected === this._projectTemplateLocal) {
-                        var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
-                        storageExporter.createTemplate();
-                    }
-                    else if (selected.selected === this._projectConnectStorage) {
-                        var storageExporter = new StorageExporter(this.core);
-                        storageExporter.export();
-                        FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                    }
-                    else if (selected.selected === this._projectTemplateStorage) {
-                        var storageExporter = new StorageExporter(this.core);
-                        storageExporter.createTemplate();
+                    else {
+                        this._callSaveAction(selected.selected);
                     }
 
                     return true;
@@ -235,7 +229,7 @@
             
             this.toolbar.addBreak(menu);
             if (!Tools.CheckIfElectron()) {
-                this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                this.toolbar.createMenuItem(menu, "button", this._projectSaveStorage, "Save on OneDrive", "icon-one-drive");
                 this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
             }
             else {
@@ -275,6 +269,28 @@
 
             // Build element
             this.toolbar.buildElement(this.container);
+        }
+
+        // Calls save actions
+        private _callSaveAction(selected: string): void {
+            if (selected === this._projectSaveLocal) {
+                var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
+                storageExporter.export();
+                FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+            }
+            else if (selected === this._projectTemplateLocal) {
+                var storageExporter = new StorageExporter(this.core, "ElectronLocalStorage");
+                storageExporter.createTemplate();
+            }
+            else if (selected === this._projectSaveStorage) {
+                var storageExporter = new StorageExporter(this.core);
+                storageExporter.export();
+                FilesInput.FilesToLoad["scene.editorproject"] = Tools.CreateFile(Tools.ConvertStringToArray(ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+            }
+            else if (selected === this._projectTemplateStorage) {
+                var storageExporter = new StorageExporter(this.core);
+                storageExporter.createTemplate();
+            }
         }
     }
 }

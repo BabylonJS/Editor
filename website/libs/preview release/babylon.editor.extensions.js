@@ -539,3 +539,82 @@ var BABYLON;
     }(BABYLON.Action));
     BABYLON.SendDevelopmentEventAction = SendDevelopmentEventAction;
 })(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var TimerCondition = (function (_super) {
+        __extends(TimerCondition, _super);
+        function TimerCondition(actionManager, value) {
+            // Initialize
+            _super.call(this, actionManager);
+            this._started = false;
+            this._finished = false;
+            this._value = value;
+        }
+        // Methods
+        TimerCondition.prototype.isValid = function () {
+            var _this = this;
+            if (!this._started) {
+                this._started = true;
+                setTimeout(function () { return _this._finished = true; }, this._value);
+            }
+            var returnValue = this._finished;
+            if (this._finished) {
+                // Reset condition
+                this._finished = false;
+                this._started = false;
+            }
+            return returnValue;
+        };
+        TimerCondition.prototype.serialize = function () {
+            return this._serialize({
+                name: "TimerCondition",
+                properties: [
+                    { name: "value", value: this._value }
+                ]
+            });
+        };
+        return TimerCondition;
+    }(BABYLON.Condition));
+    BABYLON.TimerCondition = TimerCondition;
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var DistanceToCameraCondition = (function (_super) {
+        __extends(DistanceToCameraCondition, _super);
+        function DistanceToCameraCondition(actionManager, target, distance, operator) {
+            if (operator === void 0) { operator = BABYLON.ValueCondition.IsEqual; }
+            // Initialize
+            _super.call(this, actionManager);
+            this._target = target;
+            this._distance = distance;
+            this._operator = operator;
+        }
+        // Methods
+        DistanceToCameraCondition.prototype.isValid = function () {
+            var scene = this._actionManager.getScene();
+            if (scene.activeCamera && this._target && this._target.position) {
+                var distance = BABYLON.Vector3.Distance(this._actionManager.getScene().activeCamera.position, this._target.position);
+                switch (this._operator) {
+                    case BABYLON.ValueCondition.IsGreater: return distance > this._distance;
+                    case BABYLON.ValueCondition.IsLesser: return distance < this._distance;
+                    case BABYLON.ValueCondition.IsEqual:
+                    case BABYLON.ValueCondition.IsDifferent:
+                        var check = check = this._distance === distance;
+                        return this._operator === BABYLON.ValueCondition.IsEqual ? check : !check;
+                }
+            }
+            return false;
+        };
+        DistanceToCameraCondition.prototype.serialize = function () {
+            return this._serialize({
+                name: "DistanceToCameraCondition",
+                properties: [
+                    BABYLON.Action._GetTargetProperty(this._target),
+                    { name: "value", value: this._distance }
+                ]
+            });
+        };
+        return DistanceToCameraCondition;
+    }(BABYLON.Condition));
+    BABYLON.DistanceToCameraCondition = DistanceToCameraCondition;
+})(BABYLON || (BABYLON = {}));

@@ -138,3 +138,25 @@ declare module BABYLON {
         serialize(parent: any): any;
     }
 }
+declare module BABYLON {
+    class TimerCondition extends Condition {
+        _actionManager: ActionManager;
+        private _value;
+        private _started;
+        private _finished;
+        constructor(actionManager: ActionManager, value: number);
+        isValid(): boolean;
+        serialize(): any;
+    }
+}
+declare module BABYLON {
+    class DistanceToCameraCondition extends Condition {
+        _actionManager: ActionManager;
+        private _target;
+        private _distance;
+        private _operator;
+        constructor(actionManager: ActionManager, target: any, distance: number, operator?: number);
+        isValid(): boolean;
+        serialize(): any;
+    }
+}

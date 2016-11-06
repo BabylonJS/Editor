@@ -166,7 +166,7 @@ var BABYLON;
                     if (selectedTexture) {
                         _this._selectedTexture = selectedTexture;
                         camera.detachPostProcess(postProcess);
-                        if (selectedTexture.isCube) {
+                        if (selectedTexture.isCube && !selectedTexture.isRenderTarget) {
                             sphere.setEnabled(true);
                             material.reflectionTexture = _this._targetTexture;
                         }

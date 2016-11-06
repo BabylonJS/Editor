@@ -40,6 +40,11 @@ EXPORTER-JS-FILES-TO-ADD
         var engine = new BABYLON.Engine(canvas);
 
         BABYLON.SceneLoader.Load("./Scene/", "EXPORTER-SCENE-NAME", engine, function (scene) {
+            if (!scene.activeCamera) {
+                var camera = new BABYLON.FreeCamera("Default Camera", new BABYLON.Vector3(15, 15, 15), scene);
+                camera.setTarget(BABYLON.Vector3.Zero());
+            }
+
             scene.activeCamera.attachControl(canvas);
 
             BABYLON.EDITOR.EXTENSIONS.EditorExtension.LoadExtensionsFile("./Scene/extensions.editorextensions", function (data) {

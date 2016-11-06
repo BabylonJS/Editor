@@ -103,10 +103,11 @@ var BABYLON;
         */
         var KeyEvent = (function (_super) {
             __extends(KeyEvent, _super);
-            function KeyEvent(key, control, isDown, data) {
+            function KeyEvent(key, control, shift, isDown, data) {
                 _super.call(this, data);
                 this.key = key;
                 this.control = control;
+                this.shift = shift;
                 this.isDown = isDown;
             }
             return KeyEvent;
@@ -134,10 +135,10 @@ var BABYLON;
                 ev.guiEvent = new GUIEvent(object, type, data);
                 core.sendEvent(ev);
             };
-            Event.sendKeyEvent = function (key, control, isDown, core, data) {
+            Event.sendKeyEvent = function (key, control, shift, isDown, core, data) {
                 var ev = new Event();
                 ev.eventType = EventType.KEY_EVENT;
-                ev.keyEvent = new KeyEvent(key, control, isDown, data);
+                ev.keyEvent = new KeyEvent(key, control, shift, isDown, data);
                 core.sendEvent(ev);
             };
             return Event;
@@ -4989,10 +4990,10 @@ var BABYLON;
                     EDITOR.Event.sendGUIEvent(null, EDITOR.GUIEventType.DOCUMENT_UNCLICK, _this.core, event);
                 });
                 document.addEventListener("keydown", function (event) {
-                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, true, _this.core, event);
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, true, _this.core, event);
                 });
                 document.addEventListener("keyup", function (event) {
-                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, false, _this.core, event);
+                    EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, false, _this.core, event);
                 });
             };
             // Statics
@@ -5028,7 +5029,7 @@ var BABYLON;
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
                 this._projectSaveLocal = "PROJECT-SAVE-LOCAL";
                 this._projectTemplateLocal = "PROJECT-TEMPLATE-LOCAL";
-                this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+                this._projectSaveStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
                 this._mainEditLaunch = "EDIT-LAUNCH";
@@ -5062,7 +5063,15 @@ var BABYLON;
             // Event
             MainToolbar.prototype.onEvent = function (event) {
                 var _this = this;
-                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
+                if (event.eventType === EDITOR.EventType.KEY_EVENT) {
+                    if (event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                        this._callSaveAction(EDITOR.Tools.CheckIfElectron() ? this._projectSaveLocal : this._projectSaveStorage);
+                    }
+                    else if (event.keyEvent.shift && event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                        this._callSaveAction(EDITOR.Tools.CheckIfElectron() ? this._projectTemplateLocal : this._projectTemplateStorage);
+                    }
+                }
+                else if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
@@ -5098,23 +5107,8 @@ var BABYLON;
                             var babylonExporter = new EDITOR.BabylonExporter(this.core);
                             babylonExporter.createUI();
                         }
-                        else if (selected.selected === this._projectSaveLocal) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
-                            storageExporter.export();
-                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                        }
-                        else if (selected.selected === this._projectTemplateLocal) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
-                            storageExporter.createTemplate();
-                        }
-                        else if (selected.selected === this._projectConnectStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core);
-                            storageExporter.export();
-                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                        }
-                        else if (selected.selected === this._projectTemplateStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core);
-                            storageExporter.createTemplate();
+                        else {
+                            this._callSaveAction(selected.selected);
                         }
                         return true;
                     }
@@ -5198,7 +5192,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");
                 this.toolbar.addBreak(menu);
                 if (!EDITOR.Tools.CheckIfElectron()) {
-                    this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                    this.toolbar.createMenuItem(menu, "button", this._projectSaveStorage, "Save on OneDrive", "icon-one-drive");
                     this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 }
                 else {
@@ -5233,6 +5227,27 @@ var BABYLON;
                     this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugins[i](this));
                 // Build element
                 this.toolbar.buildElement(this.container);
+            };
+            // Calls save actions
+            MainToolbar.prototype._callSaveAction = function (selected) {
+                if (selected === this._projectSaveLocal) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                    storageExporter.export();
+                    EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                }
+                else if (selected === this._projectTemplateLocal) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                    storageExporter.createTemplate();
+                }
+                else if (selected === this._projectSaveStorage) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core);
+                    storageExporter.export();
+                    EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                }
+                else if (selected === this._projectTemplateStorage) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core);
+                    storageExporter.createTemplate();
+                }
             };
             return MainToolbar;
         }());
@@ -8313,10 +8328,7 @@ var BABYLON;
                     });
                     return;
                 }
-                if (EDITOR.Tools.CheckIfElectron())
-                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
-                else
-                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", EDITOR.Tools.CheckIfElectron() ? "icon-save" : "icon-one-drive");
                 this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
@@ -8326,14 +8338,6 @@ var BABYLON;
                         _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
-            };
-            // Returns the folder object from its name
-            StorageExporter.prototype.getFolder = function (name) {
-                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
-            };
-            // Returns the file object from its name
-            StorageExporter.prototype.getFile = function (name) {
-                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Creates the template with all files
             StorageExporter.prototype._createTemplate = function (config) {
@@ -8544,15 +8548,13 @@ var BABYLON;
                     name: ""
                 };
             };
-            // Locks the panel
-            StorageExporter.prototype._lockPanel = function (message) {
-                this.core.editor.layouts.setPanelSize("bottom", 0);
-                this.core.editor.layouts.lockPanel("bottom", message, true);
+            // Returns the folder object from its name
+            StorageExporter.prototype.getFolder = function (name) {
+                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
             };
-            // Unlocks the panel
-            StorageExporter.prototype._unlockPanel = function () {
-                this.core.editor.layouts.setPanelSize("bottom", 0);
-                this.core.editor.layouts.unlockPanel("bottom");
+            // Returns the file object from its name
+            StorageExporter.prototype.getFile = function (name) {
+                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Static members
             StorageExporter._ProjectFolder = null;
@@ -10209,7 +10211,7 @@ var BABYLON;
                     if (selectedTexture) {
                         _this._selectedTexture = selectedTexture;
                         camera.detachPostProcess(postProcess);
-                        if (selectedTexture.isCube) {
+                        if (selectedTexture.isCube && !selectedTexture.isRenderTarget) {
                             sphere.setEnabled(true);
                             material.reflectionTexture = _this._targetTexture;
                         }
@@ -11735,13 +11737,13 @@ var BABYLON;
                     "IsLesser"
                 ];
                 if (property.value === null)
-                    property.value = BABYLON.ValueCondition[items[0]].toString();
+                    property.value = items[0];
                 var list = new EDITOR.GUI.GUIList(id, this._core);
                 list.renderDrop = true;
-                list.selected = property.value ? items[parseInt(property.value)] : items[0];
+                list.selected = property.value || items[0];
                 list.items = items;
                 list.buildElement(id);
-                list.onChange = function (selected) { return property.value = items.indexOf(selected).toString(); };
+                list.onChange = function (selected) { return property.value = selected; };
                 return list;
             };
             // Creates the header
@@ -12305,7 +12307,7 @@ var BABYLON;
                         files.push(file);
                         // If scene file, watch file
                         var extension = EDITOR.Tools.GetFileExtension(filename);
-                        if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                        if (extension === "babylon" || extension === "obj" || extension === "stl" || extension === "gltf") {
                             _this.SceneFilename = filename;
                             fs.watch(filename, null, function (event, modifiedFilename) {
                                 if (!_this.ReloadSceneOnFileChanged)

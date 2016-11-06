@@ -24,7 +24,7 @@ var BABYLON;
                 this._projectExportBabylonScene = "PROJECT-EXPORT-BABYLON-SCENE";
                 this._projectSaveLocal = "PROJECT-SAVE-LOCAL";
                 this._projectTemplateLocal = "PROJECT-TEMPLATE-LOCAL";
-                this._projectConnectStorage = "PROJECT-CONNECT-STORAGE";
+                this._projectSaveStorage = "PROJECT-CONNECT-STORAGE";
                 this._projectTemplateStorage = "PROJECT-TEMPLATE-STORAGE";
                 this._mainEdit = "MAIN-EDIT";
                 this._mainEditLaunch = "EDIT-LAUNCH";
@@ -58,7 +58,15 @@ var BABYLON;
             // Event
             MainToolbar.prototype.onEvent = function (event) {
                 var _this = this;
-                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
+                if (event.eventType === EDITOR.EventType.KEY_EVENT) {
+                    if (event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                        this._callSaveAction(EDITOR.Tools.CheckIfElectron() ? this._projectSaveLocal : this._projectSaveStorage);
+                    }
+                    else if (event.keyEvent.shift && event.keyEvent.control && event.keyEvent.key === "s" && !event.keyEvent.isDown) {
+                        this._callSaveAction(EDITOR.Tools.CheckIfElectron() ? this._projectTemplateLocal : this._projectTemplateStorage);
+                    }
+                }
+                else if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
                     }
@@ -94,23 +102,8 @@ var BABYLON;
                             var babylonExporter = new EDITOR.BabylonExporter(this.core);
                             babylonExporter.createUI();
                         }
-                        else if (selected.selected === this._projectSaveLocal) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
-                            storageExporter.export();
-                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                        }
-                        else if (selected.selected === this._projectTemplateLocal) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
-                            storageExporter.createTemplate();
-                        }
-                        else if (selected.selected === this._projectConnectStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core);
-                            storageExporter.export();
-                            EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
-                        }
-                        else if (selected.selected === this._projectTemplateStorage) {
-                            var storageExporter = new EDITOR.StorageExporter(this.core);
-                            storageExporter.createTemplate();
+                        else {
+                            this._callSaveAction(selected.selected);
                         }
                         return true;
                     }
@@ -194,7 +187,7 @@ var BABYLON;
                 this.toolbar.createMenuItem(menu, "button", this._projectExportBabylonScene, "Export .babylon Scene...", "icon-export");
                 this.toolbar.addBreak(menu);
                 if (!EDITOR.Tools.CheckIfElectron()) {
-                    this.toolbar.createMenuItem(menu, "button", this._projectConnectStorage, "Save on OneDrive", "icon-one-drive");
+                    this.toolbar.createMenuItem(menu, "button", this._projectSaveStorage, "Save on OneDrive", "icon-one-drive");
                     this.toolbar.createMenuItem(menu, "button", this._projectTemplateStorage, "Template on OneDrive", "icon-one-drive");
                 }
                 else {
@@ -229,6 +222,27 @@ var BABYLON;
                     this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugins[i](this));
                 // Build element
                 this.toolbar.buildElement(this.container);
+            };
+            // Calls save actions
+            MainToolbar.prototype._callSaveAction = function (selected) {
+                if (selected === this._projectSaveLocal) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                    storageExporter.export();
+                    EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                }
+                else if (selected === this._projectTemplateLocal) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core, "ElectronLocalStorage");
+                    storageExporter.createTemplate();
+                }
+                else if (selected === this._projectSaveStorage) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core);
+                    storageExporter.export();
+                    EDITOR.FilesInput.FilesToLoad["scene.editorproject"] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(EDITOR.ProjectExporter.ExportProject(this.core)), "scene.editorproject");
+                }
+                else if (selected === this._projectTemplateStorage) {
+                    var storageExporter = new EDITOR.StorageExporter(this.core);
+                    storageExporter.createTemplate();
+                }
             };
             return MainToolbar;
         }());

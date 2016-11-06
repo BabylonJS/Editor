@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
         "experimentalDecorators": true,
-        "module": "commonjs", 
+        "module": "system", 
         "target": "es5"
     },
     "exclude": [
-        "libs/preview release/babylon.editor.d.ts"
+        "electronPackages/**/*.d.ts",
+        "website/libs/**/**.d.ts",
+        "website/sources/**/*.d.ts"
     ]
 }

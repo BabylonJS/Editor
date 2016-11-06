@@ -26,7 +26,7 @@ var BABYLON;
                         files.push(file);
                         // If scene file, watch file
                         var extension = EDITOR.Tools.GetFileExtension(filename);
-                        if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                        if (extension === "babylon" || extension === "obj" || extension === "stl" || extension === "gltf") {
                             _this.SceneFilename = filename;
                             fs.watch(filename, null, function (event, modifiedFilename) {
                                 if (!_this.ReloadSceneOnFileChanged)

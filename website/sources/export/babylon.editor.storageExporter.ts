@@ -131,10 +131,7 @@
                 return;
             }
 
-            if (Tools.CheckIfElectron())
-                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
-            else
-                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+            this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", Tools.CheckIfElectron() ? "icon-save" : "icon-one-drive");
             this.core.editor.statusBar.showSpinner(this._statusBarId);
 
             this._updateFileList(() => {
@@ -146,16 +143,6 @@
                     this.core.editor.statusBar.removeElement(this._statusBarId);
                 });
             });
-        }
-
-        // Returns the folder object from its name
-        public getFolder(name: string): IStorageFile {
-            return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
-        }
-
-        // Returns the file object from its name
-        public getFile(name: string): IStorageFile {
-            return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
         }
 
         // Creates the template with all files
@@ -410,16 +397,14 @@
             };
         }
 
-        // Locks the panel
-        private _lockPanel(message: string): void {
-            this.core.editor.layouts.setPanelSize("bottom", 0);
-            this.core.editor.layouts.lockPanel("bottom", message, true);
+        // Returns the folder object from its name
+        public getFolder(name: string): IStorageFile {
+            return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
         }
 
-        // Unlocks the panel
-        private _unlockPanel(): void {
-            this.core.editor.layouts.setPanelSize("bottom", 0);
-            this.core.editor.layouts.unlockPanel("bottom");
+        // Returns the file object from its name
+        public getFile(name: string): IStorageFile {
+            return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
         }
     }
 }

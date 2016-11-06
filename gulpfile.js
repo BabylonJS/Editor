@@ -129,7 +129,7 @@ gulp.task("build-extensions", function () {
 * Automatically call the "default" task when a TS file changes
 */
 gulp.task("watch", function() {
-	gulp.watch(files, ["typescript-compile"]);
+	gulp.watch(files, ["build-extensions", "typescript-compile"]);
 });
 
 /**

@@ -21,7 +21,7 @@
                 return (err: any, data: Uint8Array) => {
                     if (!data)
                         return;
-                        
+                    
                     // Create file
                     var file = new File([new Blob([data])], BABYLON.Tools.GetFilename(Tools.NormalizeUri(filename)), {
                         type: Tools.GetFileType(Tools.GetFileExtension(filename))
@@ -31,7 +31,7 @@
 
                     // If scene file, watch file
                     var extension = Tools.GetFileExtension(filename);
-                    if (extension === "babylon" || extension === "obj" || extension === "stl") {
+                    if (extension === "babylon" || extension === "obj" || extension === "stl" || extension === "gltf") {
                         this.SceneFilename = filename;
 
                         fs.watch(filename, null, (event: any, modifiedFilename: string) => {

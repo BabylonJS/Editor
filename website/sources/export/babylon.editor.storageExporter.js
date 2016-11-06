@@ -100,10 +100,7 @@ var BABYLON;
                     });
                     return;
                 }
-                if (EDITOR.Tools.CheckIfElectron())
-                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-save");
-                else
-                    this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", "icon-one-drive");
+                this.core.editor.statusBar.addElement(this._statusBarId, "Exporting...", EDITOR.Tools.CheckIfElectron() ? "icon-save" : "icon-one-drive");
                 this.core.editor.statusBar.showSpinner(this._statusBarId);
                 this._updateFileList(function () {
                     var files = [
@@ -113,14 +110,6 @@ var BABYLON;
                         _this.core.editor.statusBar.removeElement(_this._statusBarId);
                     });
                 });
-            };
-            // Returns the folder object from its name
-            StorageExporter.prototype.getFolder = function (name) {
-                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
-            };
-            // Returns the file object from its name
-            StorageExporter.prototype.getFile = function (name) {
-                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Creates the template with all files
             StorageExporter.prototype._createTemplate = function (config) {
@@ -331,15 +320,13 @@ var BABYLON;
                     name: ""
                 };
             };
-            // Locks the panel
-            StorageExporter.prototype._lockPanel = function (message) {
-                this.core.editor.layouts.setPanelSize("bottom", 0);
-                this.core.editor.layouts.lockPanel("bottom", message, true);
+            // Returns the folder object from its name
+            StorageExporter.prototype.getFolder = function (name) {
+                return this._getFileFolder(name, "folder", StorageExporter._ProjectFolderChildren);
             };
-            // Unlocks the panel
-            StorageExporter.prototype._unlockPanel = function () {
-                this.core.editor.layouts.setPanelSize("bottom", 0);
-                this.core.editor.layouts.unlockPanel("bottom");
+            // Returns the file object from its name
+            StorageExporter.prototype.getFile = function (name) {
+                return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
             // Static members
             StorageExporter._ProjectFolder = null;

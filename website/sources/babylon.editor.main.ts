@@ -461,11 +461,11 @@
             });
 
             document.addEventListener("keydown", (event: KeyboardEvent) => {
-                Event.sendKeyEvent(event.key, event.ctrlKey, true, this.core, event);
+                Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, true, this.core, event);
             });
 
             document.addEventListener("keyup", (event: KeyboardEvent) => {
-                Event.sendKeyEvent(event.key, event.ctrlKey, false, this.core, event);
+                Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, false, this.core, event);
             });
         }
     }

@@ -110,13 +110,15 @@
     export class KeyEvent extends BaseEvent {
         public key: string;
         public control: boolean;
+        public shift: boolean;
         public isDown: boolean;
 
-        constructor(key: string, control: boolean, isDown: boolean, data?: Object) {
+        constructor(key: string, control: boolean, shift: boolean, isDown: boolean, data?: Object) {
             super(data);
 
             this.key = key;
             this.control = control;
+            this.shift = shift;
             this.isDown = isDown;
         }
     }
@@ -149,11 +151,11 @@
             core.sendEvent(ev);
         }
 
-        public static sendKeyEvent(key: string, control: boolean, isDown: boolean, core: EditorCore, data?: any): void {
+        public static sendKeyEvent(key: string, control: boolean, shift: boolean, isDown: boolean, core: EditorCore, data?: any): void {
             var ev = new Event();
 
             ev.eventType = EventType.KEY_EVENT;
-            ev.keyEvent = new KeyEvent(key, control, isDown, data);
+            ev.keyEvent = new KeyEvent(key, control, shift, isDown, data);
 
             core.sendEvent(ev);
         }
