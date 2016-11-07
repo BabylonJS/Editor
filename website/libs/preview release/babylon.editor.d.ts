@@ -436,7 +436,7 @@ declare module BABYLON.EDITOR {
         */
         protected addColorFolder(color: Color3 | Color4, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
         protected addVectorFolder(vector: Vector2 | Vector3, propertyName: string, open?: boolean, parent?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
-        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+        protected addTextureFolder(object: Object, name: string, property: string, parentFolder?: dat.IFolderElement, acceptCubes?: boolean, callback?: () => void): dat.IFolderElement;
     }
 }
 
@@ -729,25 +729,10 @@ declare module BABYLON.EDITOR {
         constructor(core: EditorCore);
         openSceneExporter(babylonScene?: boolean): void;
         generateCode(babylonScene?: boolean): string;
-        static ExportCode(core: EditorCore): string;
-        _exportSceneValues(): string;
-        _exportScene(): string;
-        _exportReflectionProbes(): string;
-        _exportNodeTransform(node: any): string;
-        _getTextureByName(name: string, scene: Scene): BaseTexture;
-        _exportPostProcesses(): string;
-        _exportAnimations(node: IAnimatable): string;
-        _exportNodeMaterial(node: AbstractMesh | SubMesh, subMeshId?: number): string;
-        _exportSky(node: Node): string;
         _exportParticleSystem(particleSystem: ParticleSystem): string;
-        _exportLight(light: Light): string;
-        _exportVector2(vector: Vector2): string;
         _exportVector3(vector: Vector3): string;
-        _exportQuaternion(quaternion: Quaternion): string;
         _exportColor3(color: Color3): string;
         _exportColor4(color: Color4): string;
-        private _traverseNodes(node?);
-        private _fillRootNodes(data, propertyPath);
     }
 }
 
@@ -789,6 +774,7 @@ declare module BABYLON.EDITOR {
         private _statusBarId;
         private static _ProjectFolder;
         private static _ProjectFolderChildren;
+        private static _IsWindowOpened;
         static OneDriveStorage: string;
         /**
         * Constructor
@@ -1481,7 +1467,7 @@ declare module BABYLON.EDITOR {
         static _SceneConfiguration: ISceneConfiguration;
         static ResetConfiguredObjects(): void;
         static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node, sendEventSelected?: boolean): void;
         /**
         * States saver
         */
@@ -1759,7 +1745,7 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, acceptCubes?: boolean, callback?: () => void): dat.IFolderElement;
     }
 }
 
