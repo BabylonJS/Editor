@@ -11,6 +11,7 @@ declare module BABYLON.EDITOR {
         private _statusBarId;
         private static _ProjectFolder;
         private static _ProjectFolderChildren;
+        private static _IsWindowOpened;
         static OneDriveStorage: string;
         /**
         * Constructor
@@ -19,8 +20,6 @@ declare module BABYLON.EDITOR {
         onEvent(event: Event): boolean;
         createTemplate(): void;
         export(): void;
-        getFolder(name: string): IStorageFile;
-        getFile(name: string): IStorageFile;
         private _createTemplate(config);
         private _fileExists(files, name, parent?);
         private _processIndexHTML(project, content);
@@ -28,7 +27,7 @@ declare module BABYLON.EDITOR {
         private _updateFolderDialog(folder?);
         private _updateFileList(onSuccess);
         private _getFileFolder(name, type, files);
-        private _lockPanel(message);
-        private _unlockPanel();
+        getFolder(name: string): IStorageFile;
+        getFile(name: string): IStorageFile;
     }
 }

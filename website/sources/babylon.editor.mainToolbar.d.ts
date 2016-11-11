@@ -17,7 +17,7 @@ declare module BABYLON.EDITOR {
         private _projectExportBabylonScene;
         private _projectSaveLocal;
         private _projectTemplateLocal;
-        private _projectConnectStorage;
+        private _projectSaveStorage;
         private _projectTemplateStorage;
         private _mainEdit;
         private _mainEditLaunch;
@@ -43,5 +43,6 @@ declare module BABYLON.EDITOR {
         onPostUpdate(): void;
         onEvent(event: Event): boolean;
         createUI(): void;
+        private _callSaveAction(selected);
     }
 }

@@ -218,12 +218,12 @@ var BABYLON;
                     this.extensionKey = "Cosmos";
                     this.applyEvenIfDataIsNull = false;
                     // Public members
-                    this.distanceToRoot = 50;
-                    this.distanceToFunction = 20;
-                    this.heightFromRoot = 50;
+                    this.distanceToRoot = 1000;
+                    this.distanceToFunction = 5;
+                    this.heightFromRoot = 5;
                     this.functionsDistance = 1;
-                    this.animationsDistance = 10;
-                    this.sphereDiameter = 5;
+                    this.animationsDistance = 5;
+                    this.sphereDiameter = 1;
                     this._galaxies = [];
                     this._sphereMesh = null;
                     // Initialize
@@ -341,7 +341,20 @@ var BABYLON;
                             .add(rootPosition);
                         vector = vector.multiply(new BABYLON.Vector3(distance, distance, distance));
                         // Create animated node
-                        var animatedNode = new BABYLON.Mesh(name + "_animatedMesh_" + i, this._scene);
+                        var animatedNode = null;
+                        if (animate) {
+                            animatedNode = BABYLON.Mesh.CreatePlane(name + "_animatedMesh_" + i, 5, this._scene);
+                            animatedNode.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                            var texture = new BABYLON.DynamicTexture(name + "_animatedMeshTexture_" + i, { width: 1024, height: 1024 }, this._scene, true);
+                            texture.drawText(names[i], null, 512, "bold 60px verdana", "white", "transparent");
+                            texture.hasAlpha = true;
+                            texture.update(true);
+                            var material = new BABYLON.StandardMaterial(name + "_animatedMeshMaterial_" + i, this._scene);
+                            material.diffuseTexture = texture;
+                            animatedNode.material = material;
+                        }
+                        else
+                            animatedNode = new BABYLON.Mesh(name + "_animatedMesh_" + i, this._scene);
                         animatedNode.id = names[i];
                         animatedNode.position = vector;
                         galaxy.nodes.push(animatedNode);

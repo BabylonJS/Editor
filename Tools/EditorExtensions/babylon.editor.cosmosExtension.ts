@@ -35,12 +35,12 @@
         public applyEvenIfDataIsNull: boolean = false;
 
         // Public members
-        public distanceToRoot: number = 50;
-        public distanceToFunction: number = 20;
-        public heightFromRoot: number = 50;
+        public distanceToRoot: number = 1000;
+        public distanceToFunction: number = 5;
+        public heightFromRoot: number = 5;
         public functionsDistance: number = 1;
-        public animationsDistance: number = 10;
-        public sphereDiameter: number = 5;
+        public animationsDistance: number = 5;
+        public sphereDiameter: number = 1;
 
         // Private members
         private _scene: Scene;
@@ -209,7 +209,24 @@
                 vector = vector.multiply(new Vector3(distance, distance, distance));
 
                 // Create animated node
-                var animatedNode = new Mesh(name + "_animatedMesh_" + i, this._scene);
+                var animatedNode: Mesh = null;
+
+                if (animate) {
+                    animatedNode = Mesh.CreatePlane(name + "_animatedMesh_" + i, 5, this._scene);
+                    animatedNode.billboardMode = Mesh.BILLBOARDMODE_ALL;
+
+                    var texture = new DynamicTexture(name + "_animatedMeshTexture_" + i, { width: 1024, height: 1024 }, this._scene, true);
+                    texture.drawText(names[i], null, 512, "bold 60px verdana", "white", "transparent");
+                    texture.hasAlpha = true;
+                    texture.update(true);
+
+                    var material = new StandardMaterial(name + "_animatedMeshMaterial_" + i, this._scene);
+                    material.diffuseTexture = texture;
+                    animatedNode.material = material;
+                }
+                else
+                    animatedNode = new Mesh(name + "_animatedMesh_" + i, this._scene);
+
                 animatedNode.id = names[i];
                 animatedNode.position = vector;
 

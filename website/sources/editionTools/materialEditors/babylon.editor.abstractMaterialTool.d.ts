@@ -11,6 +11,6 @@ declare module BABYLON.EDITOR {
         isObjectSupported(object: any): boolean;
         createUI(): void;
         update(): boolean;
-        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, callback?: () => void): dat.IFolderElement;
+        protected addTextureButton(name: string, property: string, parentFolder?: dat.IFolderElement, acceptCubes?: boolean, callback?: () => void): dat.IFolderElement;
     }
 }

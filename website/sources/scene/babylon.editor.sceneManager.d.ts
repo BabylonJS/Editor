@@ -15,7 +15,7 @@ declare module BABYLON.EDITOR {
         static _SceneConfiguration: ISceneConfiguration;
         static ResetConfiguredObjects(): void;
         static SwitchActionManager(): void;
-        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node): void;
+        static ConfigureObject(object: AbstractMesh | Scene, core: EditorCore, parentNode?: Node, sendEventSelected?: boolean): void;
         /**
         * States saver
         */

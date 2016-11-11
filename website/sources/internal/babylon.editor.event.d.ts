@@ -80,8 +80,9 @@ declare module BABYLON.EDITOR {
     class KeyEvent extends BaseEvent {
         key: string;
         control: boolean;
+        shift: boolean;
         isDown: boolean;
-        constructor(key: string, control: boolean, isDown: boolean, data?: Object);
+        constructor(key: string, control: boolean, shift: boolean, isDown: boolean, data?: Object);
     }
     /**
     * IEvent implementation
@@ -93,6 +94,6 @@ declare module BABYLON.EDITOR {
         keyEvent: KeyEvent;
         static sendSceneEvent(object: any, type: SceneEventType, core: EditorCore): void;
         static sendGUIEvent(object: GUI.IGUIElement, type: GUIEventType, core: EditorCore, data?: any): void;
-        static sendKeyEvent(key: string, control: boolean, isDown: boolean, core: EditorCore, data?: any): void;
+        static sendKeyEvent(key: string, control: boolean, shift: boolean, isDown: boolean, core: EditorCore, data?: any): void;
     }
 }
