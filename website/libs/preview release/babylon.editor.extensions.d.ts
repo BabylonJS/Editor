@@ -6,7 +6,9 @@ declare module BABYLON.EDITOR.EXTENSIONS {
     }
     type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<T>;
     class EditorExtension {
-        private static _ExtensionsDatas;
+        static _ExtensionsDatas: {
+            [name: string]: any;
+        };
         private static _Extensions;
         static LoadExtensionsFile(url: string, callback?: () => void): void;
         static GetExtensionData<T>(key: string): T;

@@ -19,6 +19,11 @@
         * Opens a window popup
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
+            var popup: any = null;
+
+            if (Tools.CheckIfElectron())
+                url = "file://" + __dirname + "/" + url;
+
             var features = [
                 "width=" + width,
                 "height=" + height,
@@ -30,7 +35,7 @@
                 "menubar=no",
                 "scrollbars=yes"];
 
-            var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
+            popup = window.open(url, "Dumped Frame Buffer", features.join(","));
 
             popup.focus();
 
@@ -279,6 +284,25 @@
             });
 
             return file;
+        }
+
+        /**
+        * Loads, create a base64 texture and creates the associated
+        * texture file
+        */
+        public static LoadAndCreateBase64Texture(url: string, scene: Scene, callback: (texture: Texture) => void): void {
+            BABYLON.Tools.LoadFile(url, (data: ArrayBuffer) => {
+                //debugger;
+                var filename = BABYLON.Tools.GetFilename(url);
+                var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
+                var texture = Texture.CreateFromBase64String(base64, filename, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+                texture.name = texture.name.replace("data:", "");
+                texture.url = texture.url.replace("data:", "");
+
+                BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), filename);
+
+                callback(texture);
+            }, null, null, true);
         }
     }
 }

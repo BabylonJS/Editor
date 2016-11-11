@@ -6,7 +6,7 @@ var mainWindow;
 var createWindow = function () {
     // Create windo
     mainWindow = new BrowserWindow({ width: 800, height: 600 });
-    mainWindow.loadURL("file://" + __dirname + "/index.html");
+    mainWindow.loadURL("file://" + __dirname + "/../index.html");
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
     mainWindow.on('closed', function () {

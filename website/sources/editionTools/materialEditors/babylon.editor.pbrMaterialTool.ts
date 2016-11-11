@@ -47,6 +47,7 @@
             pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
             pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
             pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
+            pbrFolder.add(this.material, "usePhysicalLightFalloff").name("use Physical Light Fall Off");
             
             // Albedo
             var albedoFolder = this._element.addFolder("Albedo");
@@ -89,6 +90,11 @@
             var ambientFolder = this._element.addFolder("Ambient");
             this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
             this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
+
+            // Light Map
+            var lightMapFolder = this._element.addFolder("Light Map");
+            lightMapFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
+            this.addTextureButton("Light Map Texture", "lightmapTexture", lightMapFolder);
 
             // Refraction
             var refractionFolder = this._element.addFolder("Refraction");

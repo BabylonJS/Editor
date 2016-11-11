@@ -10,6 +10,7 @@
         private _editor: EditorMain;
 
         private _playGameID: string = "PLAY-GAME";
+        private _testGameID: string = "TEST-GAME";
 
         private _transformerPositionID: string = "TRANSFORMER-POSITION";
 
@@ -60,6 +61,10 @@
 
                     this._editor.transformer.enabled = !checked;
 
+                    return true;
+                }
+                else if (id === this._testGameID) {
+                    GameTester.RunInWindow(this._core);
                     return true;
                 }
                 else if (id === this._playGameID) {
@@ -140,6 +145,7 @@
 
             // Play game
             this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
+            this.toolbar.createMenu("button", this._testGameID, "Test...", "icon-play-game-windowed", undefined, "Test Game...");
             this.toolbar.addBreak();
 
             this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");

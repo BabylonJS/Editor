@@ -217,3 +217,7 @@ html, body {
 .w2ui-icon.icon-render {
     background: url("images/render.png");
 }
+
+.w2ui-icon.icon-play-game-windowed {
+    background: url("images/play_game_windowed.png");
+}

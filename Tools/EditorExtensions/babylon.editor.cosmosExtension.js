@@ -10,7 +10,6 @@ var BABYLON;
                 * @param scene: the Babylon.js scene
                 */
                 function CosmosExtension(scene) {
-                    var _this = this;
                     // IEditorExtension members
                     this.extensionKey = "Cosmos";
                     this.applyEvenIfDataIsNull = false;
@@ -26,7 +25,7 @@ var BABYLON;
                     // Initialize
                     this._scene = scene;
                     // Load JSON
-                    this._loadBotDatas(function (data) { return _this.apply(null); });
+                    // this._loadBotDatas((data) => this.apply(null));
                 }
                 // Applies the extension
                 CosmosExtension.prototype.apply = function (data) {

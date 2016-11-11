@@ -33,7 +33,6 @@
 
             // Options
             var optionsFolder = this._element.addFolder("Options");
-            optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
             optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
             optionsFolder.add(this.material, "useReflectionFresnelFromSpecular").name("Use Reflection Fresnel From Specular");
 
@@ -72,6 +71,11 @@
             var ambientFolder = this._element.addFolder("Ambient");
             this.addColorFolder(this.material.ambientColor, "Ambient Color", true, ambientFolder);
             this.addTextureButton("Ambient Texture", "ambientTexture", ambientFolder);
+
+            // Light Map
+            var lightMapFolder = this._element.addFolder("Light Map");
+            lightMapFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
+            this.addTextureButton("Light Map Texture", "lightmapTexture", lightMapFolder);
 
             // Reflection
             var reflectionFolder = this._element.addFolder("Reflection");

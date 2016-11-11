@@ -87,5 +87,10 @@ declare module BABYLON.EDITOR {
         * Creates a new file object
         */
         static CreateFile(array: Uint8Array, filename: string): File;
+        /**
+        * Loads, create a base64 texture and creates the associated
+        * texture file
+        */
+        static LoadAndCreateBase64Texture(url: string, scene: Scene, callback: (texture: Texture) => void): void;
     }
 }

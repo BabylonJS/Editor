@@ -22,6 +22,9 @@ var BABYLON;
             * Opens a window popup
             */
             Tools.OpenWindowPopup = function (url, width, height) {
+                var popup = null;
+                if (Tools.CheckIfElectron())
+                    url = "file://" + __dirname + "/" + url;
                 var features = [
                     "width=" + width,
                     "height=" + height,
@@ -32,7 +35,7 @@ var BABYLON;
                     "toolbar=no",
                     "menubar=no",
                     "scrollbars=yes"];
-                var popup = window.open(url, "Dumped Frame Buffer", features.join(","));
+                popup = window.open(url, "Dumped Frame Buffer", features.join(","));
                 popup.focus();
                 return popup;
             };
@@ -242,6 +245,22 @@ var BABYLON;
                     type: Tools.GetFileType(Tools.GetFileExtension(filename))
                 });
                 return file;
+            };
+            /**
+            * Loads, create a base64 texture and creates the associated
+            * texture file
+            */
+            Tools.LoadAndCreateBase64Texture = function (url, scene, callback) {
+                BABYLON.Tools.LoadFile(url, function (data) {
+                    //debugger;
+                    var filename = BABYLON.Tools.GetFilename(url);
+                    var base64 = BABYLON.Tools.EncodeArrayBufferTobase64(data);
+                    var texture = BABYLON.Texture.CreateFromBase64String(base64, filename, scene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+                    texture.name = texture.name.replace("data:", "");
+                    texture.url = texture.url.replace("data:", "");
+                    BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(data), filename);
+                    callback(texture);
+                }, null, null, true);
             };
             return Tools;
         }());

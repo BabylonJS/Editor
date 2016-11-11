@@ -13,6 +13,7 @@ var BABYLON;
                 this.toolbar = null;
                 this.panel = null;
                 this._playGameID = "PLAY-GAME";
+                this._testGameID = "TEST-GAME";
                 this._transformerPositionID = "TRANSFORMER-POSITION";
                 // Initialize
                 this._editor = core.editor;
@@ -43,6 +44,10 @@ var BABYLON;
                         var checked = this.toolbar.isItemChecked(id);
                         this.toolbar.setItemChecked(id, !checked);
                         this._editor.transformer.enabled = !checked;
+                        return true;
+                    }
+                    else if (id === this._testGameID) {
+                        EDITOR.GameTester.RunInWindow(this._core);
                         return true;
                     }
                     else if (id === this._playGameID) {
@@ -103,6 +108,7 @@ var BABYLON;
                 this.toolbar = new EDITOR.GUI.GUIToolbar(this.container, this._core);
                 // Play game
                 this.toolbar.createMenu("button", this._playGameID, "Play...", "icon-play-game", undefined, "Play Game...");
+                this.toolbar.createMenu("button", this._testGameID, "Test...", "icon-play-game-windowed", undefined, "Test Game...");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
                 // Build element

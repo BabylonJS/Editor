@@ -19,7 +19,7 @@
 
         // Static members
         // The extensions data
-        private static _ExtensionsDatas: { [name: string]: any };
+        public static _ExtensionsDatas: { [name: string]: any };
 
         // The extensions plugins
         private static _Extensions: _EditorExtensionConstructor[] = [];

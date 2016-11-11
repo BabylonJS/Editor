@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         private _core;
         private _editor;
         private _playGameID;
+        private _testGameID;
         private _transformerPositionID;
         /**
         * Constructor

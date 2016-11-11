@@ -215,7 +215,7 @@
                     files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: this.getFolder(".vscode").file });
 
                 files.push({ name: "run.bat", url: url + "templates/run.bat", content: null });
-                files.push({ name: "run.bat", url: url + "templates/run.sh", content: null });
+                files.push({ name: "run.sh", url: url + "templates/run.bat", content: null });
                 files.push({ name: "server.js", url: url + "templates/server.js", content: null });
 
                 files.push({ name: "tsconfig.json", url: url + "templates/tsconfigTemplate.json", content: null });
