@@ -223,6 +223,9 @@
                 files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: this.getFolder("libs").file });
                 files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: this.getFolder("libs").file });
 
+                if (this.core.currentScene.getPhysicsEngine())
+                    files.push({ name: "cannon.js", url: url + "libs/cannon.js", content: null, parentFolder: this.getFolder("libs").file });
+
                 files.push({ name: "babylon.d.ts", url: url + "defines/babylon.d.ts", content: null, parentFolder: this.getFolder("defines").file });
                 files.push({ name: "babylon.editor.extensions.d.ts", url: url + "libs/preview release/babylon.editor.extensions.d.ts", content: null, parentFolder: this.getFolder("defines").file });
 

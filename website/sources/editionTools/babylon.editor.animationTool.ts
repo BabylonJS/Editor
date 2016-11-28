@@ -7,6 +7,11 @@
         private _animationSpeed: number = 1.0;
         private _loopAnimation: boolean = false;
 
+        private _impostor: string = "";
+        private _mass: number = 0;
+        private _friction: number = 0;
+        private _restitution: number = 0;
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -31,7 +36,7 @@
         // Creates the UI
         public createUI(): void {
             // Tabs
-            this._editionTool.panel.createTab({ id: this.tab, caption: "Animations" });
+            this._editionTool.panel.createTab({ id: this.tab, caption: "Behavior" });
         }
 
         // Update
@@ -70,6 +75,49 @@
                 actionsBuilderFolder.add(this, "_openActionsBuilder").name("Open Actions Builder");
             }
 
+            // Physics
+            if (object instanceof AbstractMesh && this._editionTool.core.currentScene.getPhysicsEngine()) {
+                var physicsFolder = this._element.addFolder("Physics");
+                var scene = this._editionTool.core.currentScene;
+                var states = [
+                    "NoImpostor",
+                    "SphereImpostor",
+                    "BoxImpostor",
+                    "PlaneImpostor",
+                    "MeshImpostor",
+                    "CylinderImpostor",
+                    "ParticleImpostor",
+                    "HeightmapImpostor"
+                ];
+
+                this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
+
+                physicsFolder.add(this, "_impostor", states).name("Impostor").onChange((value: string) => {
+                    if (object.getPhysicsImpostor()) {
+                        object.getPhysicsImpostor().dispose();
+                        object.physicsImpostor = null;
+                    }
+
+                    if (value !== states[0]) { // If not NoImpostor
+                        object.setPhysicsState(PhysicsEngine[value], { mass: 0 });
+                        object.getPhysicsImpostor().sleep();
+
+                        Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
+                    }
+
+                    this._editionTool.updateEditionTool();
+                });
+
+                if (object.getPhysicsImpostor()) {
+                    this._mass = object.getPhysicsMass();
+                    this._friction = object.getPhysicsFriction();
+                    this._restitution = object.getPhysicsRestitution();
+
+                    physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setMass(value));
+                    physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setParam("friction", value));
+                    physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setParam("restitution", value));
+                }
+            }
             return true;
         }
 

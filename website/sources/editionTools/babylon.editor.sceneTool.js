@@ -19,6 +19,7 @@ var BABYLON;
                 this.tab = "SCENE.TAB";
                 // Private members
                 this._fogType = "";
+                this._physicsEnabled = false;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
@@ -65,6 +66,17 @@ var BABYLON;
                 gravityFolder.add(object.gravity, "x");
                 gravityFolder.add(object.gravity, "y");
                 gravityFolder.add(object.gravity, "z");
+                // Physics
+                var physicsFolder = this._element.addFolder("Physics");
+                this._physicsEnabled = object.isPhysicsEnabled();
+                physicsFolder.add(this, "_physicsEnabled").name("Enable Physics").onChange(function (value) {
+                    if (!value)
+                        object.disablePhysicsEngine();
+                    else {
+                        object.enablePhysics(object.gravity, new BABYLON.CannonJSPlugin());
+                        object.getPhysicsEngine().setTimeStep(0);
+                    }
+                });
                 // Audio
                 var audioFolder = this._element.addFolder("Audio");
                 audioFolder.add(object, "audioEnabled").name("Audio Enabled");

@@ -85,6 +85,7 @@
     <Content Include="website\libs\actionsBuilder\index.html" />
     <Content Include="website\libs\babylon.js" />
     <Content Include="website\libs\babylon.max.js" />
+    <Content Include="website\libs\cannon.js" />
     <Content Include="website\libs\cytoscape\cytoscape.js" />
     <Content Include="website\libs\cytoscape\cytoscape.min.js" />
     <Content Include="website\libs\dat.gui.min.js" />
@@ -104,6 +105,7 @@
     <Content Include="website\libs\materials\babylon.terrainMaterial.js" />
     <Content Include="website\libs\materials\babylon.triPlanarMaterial.js" />
     <Content Include="website\libs\materials\babylon.waterMaterial.js" />
+    <Content Include="website\libs\preview bjs\babylon.max.js" />
     <Content Include="website\libs\preview release\babylon.editor.extensions.js" />
     <Content Include="website\libs\preview release\babylon.editor.max.js" />
     <Content Include="website\libs\raphael.js" />
@@ -172,6 +174,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.physicsAction.ts" />
     <TypeScriptCompile Include="website\defines\babylon.d.ts" />
     <TypeScriptCompile Include="website\defines\babylon.editor.d.ts" />
     <TypeScriptCompile Include="website\defines\babylon.editor.gui.d.ts" />

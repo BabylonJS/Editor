@@ -5,6 +5,7 @@
 
         // Private members
         private _fogType: string = "";
+        private _physicsEnabled: boolean = false;
 
         /**
         * Constructor
@@ -72,6 +73,19 @@
             gravityFolder.add(object.gravity, "x");
             gravityFolder.add(object.gravity, "y");
             gravityFolder.add(object.gravity, "z");
+
+            // Physics
+            var physicsFolder = this._element.addFolder("Physics");
+            this._physicsEnabled = object.isPhysicsEnabled();
+
+            physicsFolder.add(this, "_physicsEnabled").name("Enable Physics").onChange((value: boolean) => {
+                if (!value)
+                    object.disablePhysicsEngine();
+                else {
+                    object.enablePhysics(object.gravity, new CannonJSPlugin());
+                    object.getPhysicsEngine().setTimeStep(0);
+                }
+            });
 
             // Audio
             var audioFolder = this._element.addFolder("Audio");

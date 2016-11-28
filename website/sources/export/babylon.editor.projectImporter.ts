@@ -11,6 +11,10 @@
             var project: INTERNAL.IProjectRoot = JSON.parse(data);
             Tools.CleanProject(project);
 
+            // Check Physics
+            if (!core.currentScene.isPhysicsEnabled() && project.physicsEnabled)
+                core.currentScene.enablePhysics(core.currentScene.gravity, new CannonJSPlugin());
+
             // First, create the render targets (maybe used by the materials)
             // (serialized materials will be able to retrieve the textures)
             for (var i = 0; i < project.renderTargets.length; i++) {
@@ -129,8 +133,20 @@
                     Tags.AddTagsTo(newAnimation, "modified");
                 }
 
-                // Actions
+                // Actions and physics
                 if (newNode instanceof AbstractMesh) {
+                    // Physics
+                    if (node.physics) {
+                        debugger;
+
+                        newNode.setPhysicsState(node.physics.physicsImpostor, {
+                            mass: node.physics.physicsMass,
+                            friction: node.physics.physicsFriction,
+                            restitution: node.physics.physicsRestitution
+                        });
+                    }
+
+                    // Actions
                     var oldActionManager = newNode.actionManager;
 
                     if (node.actions) {

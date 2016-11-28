@@ -13,6 +13,9 @@ var BABYLON;
             ProjectImporter.ImportProject = function (core, data) {
                 var project = JSON.parse(data);
                 EDITOR.Tools.CleanProject(project);
+                // Check Physics
+                if (!core.currentScene.isPhysicsEnabled() && project.physicsEnabled)
+                    core.currentScene.enablePhysics(core.currentScene.gravity, new BABYLON.CannonJSPlugin());
                 // First, create the render targets (maybe used by the materials)
                 // (serialized materials will be able to retrieve the textures)
                 for (var i = 0; i < project.renderTargets.length; i++) {
@@ -113,8 +116,18 @@ var BABYLON;
                         BABYLON.Tags.EnableFor(newAnimation);
                         BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
-                    // Actions
+                    // Actions and physics
                     if (newNode instanceof BABYLON.AbstractMesh) {
+                        // Physics
+                        if (node.physics) {
+                            debugger;
+                            newNode.setPhysicsState(node.physics.physicsImpostor, {
+                                mass: node.physics.physicsMass,
+                                friction: node.physics.physicsFriction,
+                                restitution: node.physics.physicsRestitution
+                            });
+                        }
+                        // Actions
                         var oldActionManager = newNode.actionManager;
                         if (node.actions) {
                             BABYLON.ActionManager.Parse(node.actions, newNode, core.currentScene);

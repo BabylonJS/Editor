@@ -305,6 +305,7 @@ var BABYLON;
                 project.renderTargets = project.renderTargets || [];
                 project.sounds = project.sounds || [];
                 project.customMetadatas = project.customMetadatas || {};
+                project.physicsEnabled = project.physicsEnabled || false;
             };
             /**
             * Returns the constructor name of an object
@@ -2193,6 +2194,9 @@ var BABYLON;
                 }
                 // Rendering
                 if (object instanceof BABYLON.AbstractMesh) {
+                    var collisionsFolder = this._element.addFolder("Collisions");
+                    collisionsFolder.add(object, "checkCollisions").name("Check Collision");
+                    collisionsFolder.add(object, "isBlocker").name("Is Blocker");
                     var renderingFolder = this._element.addFolder("Rendering");
                     renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
                     renderingFolder.add(object, "applyFog").name("Apply Fog");
@@ -2293,6 +2297,10 @@ var BABYLON;
                 // Private members
                 this._animationSpeed = 1.0;
                 this._loopAnimation = false;
+                this._impostor = "";
+                this._mass = 0;
+                this._friction = 0;
+                this._restitution = 0;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
@@ -2307,10 +2315,11 @@ var BABYLON;
             // Creates the UI
             AnimationTool.prototype.createUI = function () {
                 // Tabs
-                this._editionTool.panel.createTab({ id: this.tab, caption: "Animations" });
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Behavior" });
             };
             // Update
             AnimationTool.prototype.update = function () {
+                var _this = this;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
@@ -2335,6 +2344,42 @@ var BABYLON;
                 if (object instanceof BABYLON.Scene || object instanceof BABYLON.AbstractMesh) {
                     var actionsBuilderFolder = this._element.addFolder("Actions Builder");
                     actionsBuilderFolder.add(this, "_openActionsBuilder").name("Open Actions Builder");
+                }
+                // Physics
+                if (object instanceof BABYLON.AbstractMesh && this._editionTool.core.currentScene.getPhysicsEngine()) {
+                    var physicsFolder = this._element.addFolder("Physics");
+                    var scene = this._editionTool.core.currentScene;
+                    var states = [
+                        "NoImpostor",
+                        "SphereImpostor",
+                        "BoxImpostor",
+                        "PlaneImpostor",
+                        "MeshImpostor",
+                        "CylinderImpostor",
+                        "ParticleImpostor",
+                        "HeightmapImpostor"
+                    ];
+                    this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
+                    physicsFolder.add(this, "_impostor", states).name("Impostor").onChange(function (value) {
+                        if (object.getPhysicsImpostor()) {
+                            object.getPhysicsImpostor().dispose();
+                            object.physicsImpostor = null;
+                        }
+                        if (value !== states[0]) {
+                            object.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
+                            object.getPhysicsImpostor().sleep();
+                            BABYLON.Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
+                        }
+                        _this._editionTool.updateEditionTool();
+                    });
+                    if (object.getPhysicsImpostor()) {
+                        this._mass = object.getPhysicsMass();
+                        this._friction = object.getPhysicsFriction();
+                        this._restitution = object.getPhysicsRestitution();
+                        physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setMass(value); });
+                        physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("friction", value); });
+                        physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("restitution", value); });
+                    }
                 }
                 return true;
             };
@@ -3434,6 +3479,7 @@ var BABYLON;
                 this.tab = "SCENE.TAB";
                 // Private members
                 this._fogType = "";
+                this._physicsEnabled = false;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
@@ -3480,6 +3526,17 @@ var BABYLON;
                 gravityFolder.add(object.gravity, "x");
                 gravityFolder.add(object.gravity, "y");
                 gravityFolder.add(object.gravity, "z");
+                // Physics
+                var physicsFolder = this._element.addFolder("Physics");
+                this._physicsEnabled = object.isPhysicsEnabled();
+                physicsFolder.add(this, "_physicsEnabled").name("Enable Physics").onChange(function (value) {
+                    if (!value)
+                        object.disablePhysicsEngine();
+                    else {
+                        object.enablePhysics(object.gravity, new BABYLON.CannonJSPlugin());
+                        object.getPhysicsEngine().setTimeStep(0);
+                    }
+                });
                 // Audio
                 var audioFolder = this._element.addFolder("Audio");
                 audioFolder.add(object, "audioEnabled").name("Audio Enabled");
@@ -5014,6 +5071,9 @@ var BABYLON;
                         actionManager: scene.actionManager
                     };
                     scene.actionManager = null;
+                    // Physics
+                    if (scene.getPhysicsEngine())
+                        scene.getPhysicsEngine().setTimeStep(0);
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();
@@ -6594,6 +6654,7 @@ var BABYLON;
             // Adds a plane
             SceneFactory.AddPlaneMesh = function (core) {
                 var plane = BABYLON.Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
+                plane.rotation.x = Math.PI / 2;
                 plane.id = this.GenerateUUID();
                 this.ConfigureObject(plane, core);
                 return plane;
@@ -7115,6 +7176,7 @@ var BABYLON;
                     });
                 });
             };
+            // private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
             OneDriveStorage._ClientID = "0000000048182B1B";
             OneDriveStorage._TOKEN = "";
             OneDriveStorage._TOKEN_EXPIRES_IN = 0;
@@ -7262,6 +7324,7 @@ var BABYLON;
                     lensFlares: this._SerializeLensFlares(core),
                     renderTargets: this._SerializeRenderTargets(core),
                     actions: this._SerializeActionManager(core.currentScene),
+                    physicsEnabled: core.currentScene.isPhysicsEnabled(),
                     sounds: this._SerializeSounds(core),
                     requestedMaterials: requestMaterials ? [] : undefined,
                     customMetadatas: this._SerializeCustomMetadatas()
@@ -7556,8 +7619,23 @@ var BABYLON;
                             }
                         }
                         // Actions
-                        if (node instanceof BABYLON.AbstractMesh)
+                        if (node instanceof BABYLON.AbstractMesh) {
+                            // Check physics
+                            var physicsImpostor = node.getPhysicsImpostor();
+                            if (physicsImpostor && BABYLON.Tags.HasTags(physicsImpostor) && BABYLON.Tags.MatchesQuery(physicsImpostor, "added")) {
+                                addNodeObj = true;
+                                nodeObj.physics = {
+                                    physicsMass: node.getPhysicsMass(),
+                                    physicsFriction: node.getPhysicsFriction(),
+                                    physicsRestitution: node.getPhysicsRestitution(),
+                                    physicsImpostor: node.getPhysicsImpostor().type
+                                };
+                            }
+                            // Actions
                             nodeObj.actions = this._SerializeActionManager(node);
+                            if (nodeObj.actions)
+                                addNodeObj = true;
+                        }
                         // Add
                         if (addNodeObj) {
                             project.nodes.push(nodeObj);
@@ -7654,6 +7732,9 @@ var BABYLON;
             ProjectImporter.ImportProject = function (core, data) {
                 var project = JSON.parse(data);
                 EDITOR.Tools.CleanProject(project);
+                // Check Physics
+                if (!core.currentScene.isPhysicsEnabled() && project.physicsEnabled)
+                    core.currentScene.enablePhysics(core.currentScene.gravity, new BABYLON.CannonJSPlugin());
                 // First, create the render targets (maybe used by the materials)
                 // (serialized materials will be able to retrieve the textures)
                 for (var i = 0; i < project.renderTargets.length; i++) {
@@ -7754,8 +7835,18 @@ var BABYLON;
                         BABYLON.Tags.EnableFor(newAnimation);
                         BABYLON.Tags.AddTagsTo(newAnimation, "modified");
                     }
-                    // Actions
+                    // Actions and physics
                     if (newNode instanceof BABYLON.AbstractMesh) {
+                        // Physics
+                        if (node.physics) {
+                            debugger;
+                            newNode.setPhysicsState(node.physics.physicsImpostor, {
+                                mass: node.physics.physicsMass,
+                                friction: node.physics.physicsFriction,
+                                restitution: node.physics.physicsRestitution
+                            });
+                        }
+                        // Actions
                         var oldActionManager = newNode.actionManager;
                         if (node.actions) {
                             BABYLON.ActionManager.Parse(node.actions, newNode, core.currentScene);
@@ -8055,6 +8146,8 @@ var BABYLON;
                     files.push({ name: "Web.config", url: url + "templates/WebConfigTemplate.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("libs").file });
+                    if (_this.core.currentScene.getPhysicsEngine())
+                        files.push({ name: "cannon.js", url: url + "libs/cannon.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.d.ts", url: url + "defines/babylon.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     files.push({ name: "babylon.editor.extensions.d.ts", url: url + "libs/preview release/babylon.editor.extensions.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     // Materials
@@ -11292,13 +11385,13 @@ var BABYLON;
                         if (property.value === null)
                             property.value = defaultData;
                     }
-                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
+                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any" || propertyType === "Vector3") {
                         if (property.value === "true" || property.value === "false")
                             this._createCheckbox(property, "Set Active");
                         else
                             this._createField(property);
                         if (property.value === null)
-                            (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                            (propertyType === "number") ? property.value = "0" : (propertyType === "Vector3") ? property.value = "0, 0, 0" : property.value = "new value";
                     }
                     this._container.append("<hr>");
                 }

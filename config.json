@@ -145,6 +145,7 @@
 
       "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts",
       "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts",
+      "Tools/EditorExtensions/Actions/babylon.physicsAction.ts",
       "Tools/EditorExtensions/Actions/babylon.timerCondition.ts",
       "Tools/EditorExtensions/Actions/babylon.distanceToCameraCondition.ts"
     ]

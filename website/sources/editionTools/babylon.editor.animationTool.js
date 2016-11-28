@@ -20,6 +20,10 @@ var BABYLON;
                 // Private members
                 this._animationSpeed = 1.0;
                 this._loopAnimation = false;
+                this._impostor = "";
+                this._mass = 0;
+                this._friction = 0;
+                this._restitution = 0;
                 // Initialize
                 this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
@@ -34,10 +38,11 @@ var BABYLON;
             // Creates the UI
             AnimationTool.prototype.createUI = function () {
                 // Tabs
-                this._editionTool.panel.createTab({ id: this.tab, caption: "Animations" });
+                this._editionTool.panel.createTab({ id: this.tab, caption: "Behavior" });
             };
             // Update
             AnimationTool.prototype.update = function () {
+                var _this = this;
                 var object = this.object = this._editionTool.object;
                 _super.prototype.update.call(this);
                 if (!object)
@@ -62,6 +67,42 @@ var BABYLON;
                 if (object instanceof BABYLON.Scene || object instanceof BABYLON.AbstractMesh) {
                     var actionsBuilderFolder = this._element.addFolder("Actions Builder");
                     actionsBuilderFolder.add(this, "_openActionsBuilder").name("Open Actions Builder");
+                }
+                // Physics
+                if (object instanceof BABYLON.AbstractMesh && this._editionTool.core.currentScene.getPhysicsEngine()) {
+                    var physicsFolder = this._element.addFolder("Physics");
+                    var scene = this._editionTool.core.currentScene;
+                    var states = [
+                        "NoImpostor",
+                        "SphereImpostor",
+                        "BoxImpostor",
+                        "PlaneImpostor",
+                        "MeshImpostor",
+                        "CylinderImpostor",
+                        "ParticleImpostor",
+                        "HeightmapImpostor"
+                    ];
+                    this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
+                    physicsFolder.add(this, "_impostor", states).name("Impostor").onChange(function (value) {
+                        if (object.getPhysicsImpostor()) {
+                            object.getPhysicsImpostor().dispose();
+                            object.physicsImpostor = null;
+                        }
+                        if (value !== states[0]) {
+                            object.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
+                            object.getPhysicsImpostor().sleep();
+                            BABYLON.Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
+                        }
+                        _this._editionTool.updateEditionTool();
+                    });
+                    if (object.getPhysicsImpostor()) {
+                        this._mass = object.getPhysicsMass();
+                        this._friction = object.getPhysicsFriction();
+                        this._restitution = object.getPhysicsRestitution();
+                        physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setMass(value); });
+                        physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("friction", value); });
+                        physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("restitution", value); });
+                    }
                 }
                 return true;
             };

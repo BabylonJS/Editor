@@ -231,6 +231,7 @@
         // Adds a plane
         static AddPlaneMesh(core: EditorCore): Mesh {
             var plane = Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
+            plane.rotation.x = Math.PI / 2;
             plane.id = this.GenerateUUID();
 
             this.ConfigureObject(plane, core);

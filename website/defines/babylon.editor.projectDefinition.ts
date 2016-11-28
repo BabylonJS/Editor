@@ -63,6 +63,16 @@ declare module BABYLON.EDITOR.INTERNAL {
     }
 
     /**
+    * Custom physics impostors
+    */
+    interface IPhysicsImpostor {
+        physicsMass: number;
+        physicsFriction: number;
+        physicsRestitution: number;
+        physicsImpostor: number;
+    }
+
+    /**
     * Modified nodes in the editor (custom animations, for custom materials, etc.)
     */
     interface INode {
@@ -70,7 +80,8 @@ declare module BABYLON.EDITOR.INTERNAL {
         id: string; // The node id
         type: string; // The type of node (Node, Scene or Sound)
         animations: IAnimation[]; // Animations of the node
-        actions?: any;
+        actions?: any; // Related actions of the node
+        physics?: IPhysicsImpostor;
 
         serializationObject?: any;
     }
@@ -135,6 +146,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         renderTargets: IRenderTarget[];
         sounds: ISound[];
         actions: any;
+        physicsEnabled: boolean;
 
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;

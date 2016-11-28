@@ -3,6 +3,10 @@ declare module BABYLON.EDITOR {
         tab: string;
         private _animationSpeed;
         private _loopAnimation;
+        private _impostor;
+        private _mass;
+        private _friction;
+        private _restitution;
         /**
         * Constructor
         * @param editionTool: edition tool instance

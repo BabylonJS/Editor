@@ -289,6 +289,9 @@ var BABYLON;
                         actionManager: scene.actionManager
                     };
                     scene.actionManager = null;
+                    // Physics
+                    if (scene.getPhysicsEngine())
+                        scene.getPhysicsEngine().setTimeStep(0);
                     // Reset UI
                     _this.sceneGraphTool.createUI();
                     _this.sceneGraphTool.fillGraph();

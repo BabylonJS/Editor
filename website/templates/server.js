@@ -11,6 +11,9 @@ var createServer = function() {
     }).listen(8000);
 
     console.log("You can now access http://localhost:8000 to run your game");
+
+    var spawn = require("child_process").spawn;
+    spawn("open", ["http://localhost:8000/index.html"]);
 }
 
 try {

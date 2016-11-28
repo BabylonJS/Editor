@@ -112,13 +112,13 @@ var BABYLON;
                         if (property.value === null)
                             property.value = defaultData;
                     }
-                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any") {
+                    else if (propertyType === "number" || propertyType === "string" || propertyType === "any" || propertyType === "Vector3") {
                         if (property.value === "true" || property.value === "false")
                             this._createCheckbox(property, "Set Active");
                         else
                             this._createField(property);
                         if (property.value === null)
-                            (propertyType === "number") ? property.value = "0" : property.value = "new value";
+                            (propertyType === "number") ? property.value = "0" : (propertyType === "Vector3") ? property.value = "0, 0, 0" : property.value = "new value";
                     }
                     this._container.append("<hr>");
                 }

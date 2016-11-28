@@ -386,6 +386,10 @@
                 };
                 scene.actionManager = null;
 
+                // Physics
+                if (scene.getPhysicsEngine())
+                    scene.getPhysicsEngine().setTimeStep(0);
+
                 // Reset UI
                 this.sceneGraphTool.createUI();
                 this.sceneGraphTool.fillGraph();

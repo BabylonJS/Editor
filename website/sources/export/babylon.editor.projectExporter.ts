@@ -23,6 +23,7 @@
                 lensFlares: this._SerializeLensFlares(core),
                 renderTargets: this._SerializeRenderTargets(core),
                 actions: this._SerializeActionManager(core.currentScene),
+                physicsEnabled: core.currentScene.isPhysicsEnabled(),
                 sounds: this._SerializeSounds(core),
 
                 requestedMaterials: requestMaterials ? [] : undefined,
@@ -389,8 +390,26 @@
                     }
 
                     // Actions
-                    if (node instanceof AbstractMesh)
+                    if (node instanceof AbstractMesh) {
+                        // Check physics
+                        var physicsImpostor = node.getPhysicsImpostor();
+
+                        if (physicsImpostor && Tags.HasTags(physicsImpostor) && Tags.MatchesQuery(physicsImpostor, "added")) {
+                            addNodeObj = true;
+
+                            nodeObj.physics = {
+                                physicsMass: node.getPhysicsMass(),
+                                physicsFriction: node.getPhysicsFriction(),
+                                physicsRestitution: node.getPhysicsRestitution(),
+                                physicsImpostor: node.getPhysicsImpostor().type
+                            }
+                        }
+
+                        // Actions
                         nodeObj.actions = this._SerializeActionManager(node);
+                        if (nodeObj.actions)
+                            addNodeObj = true;
+                    }
 
                     // Add
                     if (addNodeObj) {

@@ -117,6 +117,9 @@ var BABYLON;
                 }
                 // Rendering
                 if (object instanceof BABYLON.AbstractMesh) {
+                    var collisionsFolder = this._element.addFolder("Collisions");
+                    collisionsFolder.add(object, "checkCollisions").name("Check Collision");
+                    collisionsFolder.add(object, "isBlocker").name("Is Blocker");
                     var renderingFolder = this._element.addFolder("Rendering");
                     renderingFolder.add(object, "receiveShadows").name("Receive Shadows");
                     renderingFolder.add(object, "applyFog").name("Apply Fog");

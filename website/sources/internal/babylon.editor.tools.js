@@ -157,6 +157,7 @@ var BABYLON;
                 project.renderTargets = project.renderTargets || [];
                 project.sounds = project.sounds || [];
                 project.customMetadatas = project.customMetadatas || {};
+                project.physicsEnabled = project.physicsEnabled || false;
             };
             /**
             * Returns the constructor name of an object

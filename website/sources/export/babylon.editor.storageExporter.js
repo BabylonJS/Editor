@@ -175,6 +175,8 @@ var BABYLON;
                     files.push({ name: "Web.config", url: url + "templates/WebConfigTemplate.xml", content: null });
                     files.push({ name: "babylon.max.js", url: url + "libs/preview bjs/babylon.max.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.editor.extensions.js", url: url + "libs/preview release/babylon.editor.extensions.js", content: null, parentFolder: _this.getFolder("libs").file });
+                    if (_this.core.currentScene.getPhysicsEngine())
+                        files.push({ name: "cannon.js", url: url + "libs/cannon.js", content: null, parentFolder: _this.getFolder("libs").file });
                     files.push({ name: "babylon.d.ts", url: url + "defines/babylon.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     files.push({ name: "babylon.editor.extensions.d.ts", url: url + "libs/preview release/babylon.editor.extensions.d.ts", content: null, parentFolder: _this.getFolder("defines").file });
                     // Materials
