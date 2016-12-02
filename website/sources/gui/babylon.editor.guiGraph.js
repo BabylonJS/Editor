@@ -40,11 +40,12 @@ var BABYLON;
                     };
                 };
                 // Adds new nodes to the graph
-                GUIGraph.prototype.addNodes = function (nodes, parent) {
+                GUIGraph.prototype.addNodes = function (nodes, parent, refresh) {
+                    if (refresh === void 0) { refresh = true; }
                     if (!parent)
                         this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
                     else
-                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes], refresh);
                 };
                 // Removes the provided node
                 GUIGraph.prototype.removeNode = function (node) {

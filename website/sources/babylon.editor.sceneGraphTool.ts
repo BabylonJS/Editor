@@ -175,23 +175,23 @@
 
                 // Reflection probes
                 var rpNode = this.sidebar.createNode(this._graphRootName + "TARGETS", "Render Targets", "icon-folder");
-                this.sidebar.addNodes(rpNode, this._graphRootName);
+                this.sidebar.addNodes(rpNode, this._graphRootName, false);
 
                 for (var i = 0; i < scene.reflectionProbes.length; i++) {
                     var rp = scene.reflectionProbes[i];
-                    this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
+                    this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id, false);
                 }
 
                 for (var i = 0; i < scene.customRenderTargets.length; i++) {
                     var rt = scene.customRenderTargets[i];
 
                     if (Tags.HasTags(rt) && Tags.MatchesQuery(rt, "added"))
-                        this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
+                        this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id, false);
                 }
 
                 // Audio
                 var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
-                this.sidebar.addNodes(audioNode, this._graphRootName);
+                this.sidebar.addNodes(audioNode, this._graphRootName, false);
 
                 for (var i = 0; i < scene.soundTracks.length; i++) {
                     var soundTrack = scene.soundTracks[i];
@@ -204,11 +204,11 @@
                         soundTrackNode.expanded = true;
 
                     soundTrackNode.count = soundTrack.soundCollection.length;
-                    this.sidebar.addNodes(soundTrackNode, audioNode.id);
+                    this.sidebar.addNodes(soundTrackNode, audioNode.id, false);
 
                     for (var j = 0; j < soundTrack.soundCollection.length; j++) {
                         var sound = soundTrack.soundCollection[j];
-                        this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id);
+                        this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                     }
                 }
             }
@@ -232,7 +232,7 @@
                     var ps = scene.particleSystems[i];
                     if (ps.emitter && ps.emitter === node) {
                         var psNode = this.sidebar.createNode(ps.id, ps.name, "icon-particles", ps);
-                        this.sidebar.addNodes(psNode, node.id);
+                        this.sidebar.addNodes(psNode, node.id, false);
                     }
                 }
             }
@@ -243,7 +243,7 @@
                     var system = scene.lensFlareSystems[i];
                     if (system.getEmitter() === node) {
                         var lfNode = this.sidebar.createNode(SceneFactory.GenerateUUID(), system.name, "icon-lens-flare", system);
-                        this.sidebar.addNodes(lfNode, node.id);
+                        this.sidebar.addNodes(lfNode, node.id, false);
                     }
                 }
             }
@@ -252,12 +252,12 @@
             if (node instanceof AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                 var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
                 subMeshesNode.count = node.subMeshes.length;
-                this.sidebar.addNodes(subMeshesNode, node.id);
+                this.sidebar.addNodes(subMeshesNode, node.id, false);
 
                 for (var i = 0; i < node.subMeshes.length; i++) {
                     var subMesh = node.subMeshes[i];
                     var subMeshNode = this.sidebar.createNode(node.id + "SubMesh" + i, subMesh.getMaterial().name, "icon-mesh", subMesh);
-                    this.sidebar.addNodes(subMeshNode, subMeshesNode.id);
+                    this.sidebar.addNodes(subMeshNode, subMeshesNode.id, false);
                 }
             }
 
@@ -274,7 +274,7 @@
                     if (childrenLength > 0)
                         childNode.count = childrenLength;
 
-                    this.sidebar.addNodes(childNode, root ? root : node.id);
+                    this.sidebar.addNodes(childNode, root ? root : node.id, false);
 
                     this.fillGraph(object, object.id);
                 }

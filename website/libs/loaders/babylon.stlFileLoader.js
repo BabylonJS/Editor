@@ -1,3 +1,4 @@
+/// <reference path="../../../dist/preview release/babylon.d.ts"/>
 var BABYLON;
 (function (BABYLON) {
     var STLFileLoader = (function () {
@@ -74,8 +75,9 @@ var BABYLON;
             mesh.computeWorldMatrix(true);
         };
         return STLFileLoader;
-    })();
+    }());
     BABYLON.STLFileLoader = STLFileLoader;
     BABYLON.SceneLoader.RegisterPlugin(new STLFileLoader());
 })(BABYLON || (BABYLON = {}));
+
 //# sourceMappingURL=babylon.stlFileLoader.js.map

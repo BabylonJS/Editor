@@ -211,7 +211,7 @@
         /**
         * Adds a new node to the graph with the provided parent has parent
         */
-        add(parent: string, nodes: IGraphNodeElement[] | IGraphNodeElement): void;
+        add(parent: string, nodes: IGraphNodeElement[] | IGraphNodeElement, refresh: boolean): void;
         /**
         * Removes the provided node from the graph
         */

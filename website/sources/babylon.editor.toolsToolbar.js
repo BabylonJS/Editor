@@ -111,6 +111,7 @@ var BABYLON;
                 this.toolbar.createMenu("button", this._testGameID, "Test...", "icon-play-game-windowed", undefined, "Test Game...");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
+                this.toolbar.addBreak();
                 // Build element
                 this.toolbar.buildElement(this.container);
             };

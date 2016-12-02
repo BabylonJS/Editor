@@ -9723,17 +9723,21 @@ var w2confirm = function (msg, title, callBack) {
             sidebar         : null
         },
 
-        add: function (parent, nodes) {
+        add: function (parent, nodes, refresh) {
+            if (refresh === undefined) refresh = true;
+
             if (arguments.length == 1) {
                 // need to be in reverse order
                 nodes  = arguments[0];
                 parent = this;
             }
             if (typeof parent == 'string') parent = this.get(parent);
-            return this.insert(parent, null, nodes);
+            return this.insert(parent, null, nodes, refresh);
         },
 
-        insert: function (parent, before, nodes) {
+        insert: function (parent, before, nodes, refresh) {
+            if (refresh === undefined) refresh = true;
+
             var txt, ind, tmp, node, nd;
             if (arguments.length == 2) {
                 // need to be in reverse order
@@ -9782,7 +9786,8 @@ var w2confirm = function (msg, title, callBack) {
                     this.insert(tmp, null, nd);
                 }
             }
-            this.refresh(parent.id);
+
+            if (refresh) this.refresh(parent.id);
             return tmp;
         },
 

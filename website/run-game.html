@@ -52,6 +52,7 @@
 
         var filesInput = new BABYLON.FilesInput(engine, null, canvas, function () {
             var scene = engine.scenes[0];
+            scene.debugLayer.show();
 
             // Camera
             if (!scene.activeCamera || scene.activeCamera.name === "default camera") {

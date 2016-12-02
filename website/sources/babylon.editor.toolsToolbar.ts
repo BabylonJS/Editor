@@ -150,6 +150,8 @@
 
             this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
 
+            this.toolbar.addBreak();
+
             // Build element
             this.toolbar.buildElement(this.container);
         }

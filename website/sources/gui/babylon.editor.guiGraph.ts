@@ -35,11 +35,11 @@
         }
 
         // Adds new nodes to the graph
-        public addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string): void {
+        public addNodes(nodes: IGraphNodeElement[] | IGraphNodeElement, parent?: string, refresh: boolean = true): void {
             if (!parent)
                 this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
             else
-                this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes], refresh);
         }
         
         // Removes the provided node
