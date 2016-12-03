@@ -7,10 +7,16 @@ var BABYLON;
             }
             // Public members
             SceneFactory.GenerateUUID = function () {
-                var s4 = function () {
+                /*
+                var s4 = () => {
                     return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-                };
+                }
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+                */
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
             };
             Object.defineProperty(SceneFactory, "DummyNodeID", {
                 get: function () {
@@ -327,3 +333,5 @@ var BABYLON;
         EDITOR.SceneFactory = SceneFactory;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.sceneFactory.js.map

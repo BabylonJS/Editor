@@ -10552,8 +10552,8 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
-                toolbar.addBreak(menu);
-                toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
+                //toolbar.addBreak(menu);
+                //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);
                 // new PostProcessBuilder(this._core);

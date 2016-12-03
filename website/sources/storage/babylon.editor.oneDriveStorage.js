@@ -163,6 +163,7 @@ var BABYLON;
                     });
                 });
             };
+            //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
             OneDriveStorage._ClientID = "0000000048182B1B";
             OneDriveStorage._TOKEN = "";
             OneDriveStorage._TOKEN_EXPIRES_IN = 0;
@@ -173,3 +174,5 @@ var BABYLON;
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.oneDriveStorage.js.map

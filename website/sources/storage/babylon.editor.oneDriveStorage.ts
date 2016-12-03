@@ -5,6 +5,7 @@
         // Private members
         private _editor: EditorMain;
 
+        //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
         private static _ClientID = "0000000048182B1B";
         private static _TOKEN = "";
         private static _TOKEN_EXPIRES_IN = 0;
