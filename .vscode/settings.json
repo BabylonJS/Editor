@@ -11,6 +11,8 @@
         "Tools/**/*.d.ts": true,
         "Tools/**/*.js.map": true,
 
+        "**/.tempChromeProfileForDebug": true,
+
         "**.config": true,
         "**.csproj": true,
         "**.sln": true,

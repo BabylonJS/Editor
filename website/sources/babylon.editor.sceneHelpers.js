@@ -124,3 +124,5 @@ var BABYLON;
         EDITOR.SceneHelpers = SceneHelpers;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.sceneHelpers.js.map

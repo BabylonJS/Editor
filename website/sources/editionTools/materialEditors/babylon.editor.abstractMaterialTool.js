@@ -74,3 +74,5 @@ var BABYLON;
         EDITOR.AbstractMaterialTool = AbstractMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.abstractMaterialTool.js.map

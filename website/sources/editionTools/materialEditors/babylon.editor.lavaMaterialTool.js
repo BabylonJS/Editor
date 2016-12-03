@@ -46,3 +46,5 @@ var BABYLON;
         EDITOR.LavaMaterialTool = LavaMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.lavaMaterialTool.js.map

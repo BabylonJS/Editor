@@ -347,3 +347,5 @@ var BABYLON;
         EDITOR.StorageExporter = StorageExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.storageExporter.js.map

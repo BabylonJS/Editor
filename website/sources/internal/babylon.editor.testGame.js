@@ -45,3 +45,5 @@ var BABYLON;
         EDITOR.GameTester = GameTester;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.testGame.js.map

@@ -154,3 +154,5 @@ var BABYLON;
         EDITOR.EditionTool = EditionTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.editionTool.js.map

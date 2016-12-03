@@ -133,3 +133,5 @@ var BABYLON;
         EDITOR.AudioTool = AudioTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.audioTool.js.map

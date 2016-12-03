@@ -42,3 +42,5 @@ var BABYLON;
         EDITOR.PluginManager.RegisterEditionTool(SimpleMaterialTool);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.simpleMaterialTool.js.map

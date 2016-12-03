@@ -146,3 +146,5 @@ var BABYLON;
         EDITOR.Event = Event;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.event.js.map

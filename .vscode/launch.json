@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch (source maps)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:1338/index-debug.html",
+            "webRoot": "${workspaceRoot}/",
+            "sourceMaps": true,
+            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+        },
+        {
+            "name": "Launch (without source maps)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:1338/index-debug.html",
+            "webRoot": "${workspaceRoot}/",
+            "sourceMaps": false,
+            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+        }
+    ]
+}

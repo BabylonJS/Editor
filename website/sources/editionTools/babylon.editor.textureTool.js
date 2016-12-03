@@ -74,3 +74,5 @@ var BABYLON;
         EDITOR.TextureTool = TextureTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.textureTool.js.map

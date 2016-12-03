@@ -125,3 +125,6 @@ node_modules
 
 # For Electron packages
 electronPackages
+
+# For chrome debugging
+.tempChromeProfileForDebug

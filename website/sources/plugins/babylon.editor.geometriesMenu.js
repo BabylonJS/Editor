@@ -55,3 +55,5 @@ var BABYLON;
         EDITOR.PluginManager.RegisterMainToolbarPlugin(GeometriesMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.geometriesMenu.js.map

@@ -50,3 +50,5 @@ var BABYLON;
         EDITOR.TriPlanarMaterialTool = TriPlanarMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.triPlanarMaterialTool.js.map

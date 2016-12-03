@@ -80,3 +80,5 @@ var BABYLON;
         EDITOR.ElectronLocalStorage = ElectronLocalStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.localExporter.js.map

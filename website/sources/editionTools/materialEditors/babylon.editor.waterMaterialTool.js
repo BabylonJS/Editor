@@ -88,3 +88,5 @@ var BABYLON;
         EDITOR.WaterMaterialTool = WaterMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.waterMaterialTool.js.map

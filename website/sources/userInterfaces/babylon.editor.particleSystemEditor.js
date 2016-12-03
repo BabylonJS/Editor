@@ -417,3 +417,5 @@ var BABYLON;
         EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.particleSystemEditor.js.map

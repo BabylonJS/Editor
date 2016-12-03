@@ -171,3 +171,5 @@ var BABYLON;
         EDITOR.PBRMaterialTool = PBRMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.pbrMaterialTool.js.map

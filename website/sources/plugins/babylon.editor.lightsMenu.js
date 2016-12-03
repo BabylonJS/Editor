@@ -53,3 +53,5 @@ var BABYLON;
         EDITOR.PluginManager.RegisterMainToolbarPlugin(LightsMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.lightsMenu.js.map

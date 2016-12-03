@@ -27,3 +27,5 @@ var BABYLON;
         EDITOR.Storage = Storage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.storage.js.map

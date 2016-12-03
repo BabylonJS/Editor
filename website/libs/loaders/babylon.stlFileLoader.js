@@ -79,5 +79,3 @@ var BABYLON;
     BABYLON.STLFileLoader = STLFileLoader;
     BABYLON.SceneLoader.RegisterPlugin(new STLFileLoader());
 })(BABYLON || (BABYLON = {}));
-
-//# sourceMappingURL=babylon.stlFileLoader.js.map

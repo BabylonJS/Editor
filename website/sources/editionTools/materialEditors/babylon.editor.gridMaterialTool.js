@@ -40,3 +40,5 @@ var BABYLON;
         EDITOR.GridMaterialTool = GridMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.gridMaterialTool.js.map

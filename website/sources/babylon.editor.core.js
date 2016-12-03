@@ -75,3 +75,5 @@ var BABYLON;
         EDITOR.EditorCore = EditorCore;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.core.js.map

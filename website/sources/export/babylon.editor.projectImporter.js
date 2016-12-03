@@ -250,3 +250,5 @@ var BABYLON;
         EDITOR.ProjectImporter = ProjectImporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.projectImporter.js.map

@@ -94,3 +94,5 @@ var BABYLON;
         EDITOR.ElectronHelper = ElectronHelper;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.electronHelper.js.map

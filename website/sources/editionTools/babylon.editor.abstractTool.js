@@ -33,3 +33,5 @@ var BABYLON;
         EDITOR.AbstractTool = AbstractTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.abstractTool.js.map

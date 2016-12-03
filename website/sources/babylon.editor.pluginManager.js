@@ -24,3 +24,5 @@ var BABYLON;
         EDITOR.PluginManager = PluginManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.pluginManager.js.map

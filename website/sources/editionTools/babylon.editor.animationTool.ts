@@ -90,15 +90,22 @@
                     "HeightmapImpostor"
                 ];
 
+                var realStates = [
+                    "NoImpostor",
+                    "SphereImpostor",
+                    "BoxImpostor",
+                    "CylinderImpostor"
+                ];
+
                 this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
 
-                physicsFolder.add(this, "_impostor", states).name("Impostor").onChange((value: string) => {
+                physicsFolder.add(this, "_impostor", realStates).name("Impostor").onChange((value: string) => {
                     if (object.getPhysicsImpostor()) {
                         object.getPhysicsImpostor().dispose();
                         object.physicsImpostor = null;
                     }
 
-                    if (value !== states[0]) { // If not NoImpostor
+                    if (value !== realStates[0]) { // If not NoImpostor
                         object.setPhysicsState(PhysicsEngine[value], { mass: 0 });
                         object.getPhysicsImpostor().sleep();
 

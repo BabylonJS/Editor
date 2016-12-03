@@ -917,11 +917,12 @@ var BABYLON;
                     };
                 };
                 // Adds new nodes to the graph
-                GUIGraph.prototype.addNodes = function (nodes, parent) {
+                GUIGraph.prototype.addNodes = function (nodes, parent, refresh) {
+                    if (refresh === void 0) { refresh = true; }
                     if (!parent)
                         this.element.add(Array.isArray(nodes) ? nodes : [nodes]);
                     else
-                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes]);
+                        this.element.add(parent, Array.isArray(nodes) ? nodes : [nodes], refresh);
                 };
                 // Removes the provided node
                 GUIGraph.prototype.removeNode = function (node) {
@@ -2359,13 +2360,19 @@ var BABYLON;
                         "ParticleImpostor",
                         "HeightmapImpostor"
                     ];
+                    var realStates = [
+                        "NoImpostor",
+                        "SphereImpostor",
+                        "BoxImpostor",
+                        "CylinderImpostor"
+                    ];
                     this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
-                    physicsFolder.add(this, "_impostor", states).name("Impostor").onChange(function (value) {
+                    physicsFolder.add(this, "_impostor", realStates).name("Impostor").onChange(function (value) {
                         if (object.getPhysicsImpostor()) {
                             object.getPhysicsImpostor().dispose();
                             object.physicsImpostor = null;
                         }
-                        if (value !== states[0]) {
+                        if (value !== realStates[0]) {
                             object.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
                             object.getPhysicsImpostor().sleep();
                             BABYLON.Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
@@ -3093,7 +3100,7 @@ var BABYLON;
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    //highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
@@ -5541,19 +5548,19 @@ var BABYLON;
                     root = this._graphRootName;
                     // Reflection probes
                     var rpNode = this.sidebar.createNode(this._graphRootName + "TARGETS", "Render Targets", "icon-folder");
-                    this.sidebar.addNodes(rpNode, this._graphRootName);
+                    this.sidebar.addNodes(rpNode, this._graphRootName, false);
                     for (var i = 0; i < scene.reflectionProbes.length; i++) {
                         var rp = scene.reflectionProbes[i];
-                        this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id);
+                        this.sidebar.addNodes(this.sidebar.createNode(rp.name + i, rp.name, "icon-effects", rp), rpNode.id, false);
                     }
                     for (var i = 0; i < scene.customRenderTargets.length; i++) {
                         var rt = scene.customRenderTargets[i];
                         if (BABYLON.Tags.HasTags(rt) && BABYLON.Tags.MatchesQuery(rt, "added"))
-                            this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id);
+                            this.sidebar.addNodes(this.sidebar.createNode(rt.name + i, rp.name, "icon-camera", rp), rpNode.id, false);
                     }
                     // Audio
                     var audioNode = this.sidebar.createNode(this._graphRootName + "AUDIO", "Audio", "icon-folder");
-                    this.sidebar.addNodes(audioNode, this._graphRootName);
+                    this.sidebar.addNodes(audioNode, this._graphRootName, false);
                     for (var i = 0; i < scene.soundTracks.length; i++) {
                         var soundTrack = scene.soundTracks[i];
                         if (i === 0)
@@ -5562,10 +5569,10 @@ var BABYLON;
                         if (scene.soundTracks.length === 1)
                             soundTrackNode.expanded = true;
                         soundTrackNode.count = soundTrack.soundCollection.length;
-                        this.sidebar.addNodes(soundTrackNode, audioNode.id);
+                        this.sidebar.addNodes(soundTrackNode, audioNode.id, false);
                         for (var j = 0; j < soundTrack.soundCollection.length; j++) {
                             var sound = soundTrack.soundCollection[j];
-                            this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id);
+                            this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                         }
                     }
                 }
@@ -5585,7 +5592,7 @@ var BABYLON;
                         var ps = scene.particleSystems[i];
                         if (ps.emitter && ps.emitter === node) {
                             var psNode = this.sidebar.createNode(ps.id, ps.name, "icon-particles", ps);
-                            this.sidebar.addNodes(psNode, node.id);
+                            this.sidebar.addNodes(psNode, node.id, false);
                         }
                     }
                 }
@@ -5595,7 +5602,7 @@ var BABYLON;
                         var system = scene.lensFlareSystems[i];
                         if (system.getEmitter() === node) {
                             var lfNode = this.sidebar.createNode(EDITOR.SceneFactory.GenerateUUID(), system.name, "icon-lens-flare", system);
-                            this.sidebar.addNodes(lfNode, node.id);
+                            this.sidebar.addNodes(lfNode, node.id, false);
                         }
                     }
                 }
@@ -5603,11 +5610,11 @@ var BABYLON;
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
                     var subMeshesNode = this.sidebar.createNode(node.id + "SubMeshes", "Sub-Meshes", "icon-mesh", node);
                     subMeshesNode.count = node.subMeshes.length;
-                    this.sidebar.addNodes(subMeshesNode, node.id);
+                    this.sidebar.addNodes(subMeshesNode, node.id, false);
                     for (var i = 0; i < node.subMeshes.length; i++) {
                         var subMesh = node.subMeshes[i];
                         var subMeshNode = this.sidebar.createNode(node.id + "SubMesh" + i, subMesh.getMaterial().name, "icon-mesh", subMesh);
-                        this.sidebar.addNodes(subMeshNode, subMeshesNode.id);
+                        this.sidebar.addNodes(subMeshNode, subMeshesNode.id, false);
                     }
                 }
                 // If children, then fill the graph recursively
@@ -5620,7 +5627,7 @@ var BABYLON;
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                         if (childrenLength > 0)
                             childNode.count = childrenLength;
-                        this.sidebar.addNodes(childNode, root ? root : node.id);
+                        this.sidebar.addNodes(childNode, root ? root : node.id, false);
                         this.fillGraph(object, object.id);
                     }
                 }
@@ -6228,6 +6235,7 @@ var BABYLON;
                 this.toolbar.createMenu("button", this._testGameID, "Test...", "icon-play-game-windowed", undefined, "Test Game...");
                 this.toolbar.addBreak();
                 this.toolbar.createMenu("button", this._transformerPositionID, "", "icon-position", undefined, "Draw / Hide Manipulators");
+                this.toolbar.addBreak();
                 // Build element
                 this.toolbar.buildElement(this.container);
             };
@@ -6498,10 +6506,16 @@ var BABYLON;
             }
             // Public members
             SceneFactory.GenerateUUID = function () {
-                var s4 = function () {
+                /*
+                var s4 = () => {
                     return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-                };
+                }
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+                */
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
             };
             Object.defineProperty(SceneFactory, "DummyNodeID", {
                 get: function () {
@@ -7176,8 +7190,8 @@ var BABYLON;
                     });
                 });
             };
-            // private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
-            OneDriveStorage._ClientID = "0000000048182B1B";
+            OneDriveStorage._ClientID = "000000004C18353E"; // editor.babylonjs.com
+            //private static _ClientID = "0000000048182B1B";
             OneDriveStorage._TOKEN = "";
             OneDriveStorage._TOKEN_EXPIRES_IN = 0;
             OneDriveStorage._TOKEN_EXPIRES_NOW = 0;

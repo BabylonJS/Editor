@@ -45,3 +45,5 @@ var BABYLON;
         EDITOR.GradientMaterialTool = GradientMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.gradientMaterialTool.js.map

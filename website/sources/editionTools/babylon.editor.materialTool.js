@@ -189,3 +189,5 @@ var BABYLON;
         EDITOR.MaterialTool = MaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.materialTool.js.map

@@ -173,3 +173,5 @@ var BABYLON;
         EDITOR.SceneToolbar = SceneToolbar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.sceneToolbar.js.map

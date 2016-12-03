@@ -108,3 +108,5 @@ var BABYLON;
         EDITOR.Exporter = Exporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.exporter.js.map

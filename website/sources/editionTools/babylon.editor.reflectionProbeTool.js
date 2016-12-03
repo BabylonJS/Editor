@@ -219,3 +219,5 @@ var BABYLON;
         EDITOR.ReflectionProbeTool = ReflectionProbeTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.reflectionProbeTool.js.map

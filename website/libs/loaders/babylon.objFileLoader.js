@@ -739,5 +739,3 @@ var BABYLON;
     //Add this loader into the register plugin
     BABYLON.SceneLoader.RegisterPlugin(new OBJFileLoader());
 })(BABYLON || (BABYLON = {}));
-
-//# sourceMappingURL=babylon.objFileLoader.js.map

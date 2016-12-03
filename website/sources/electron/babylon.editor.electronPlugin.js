@@ -50,3 +50,5 @@ var BABYLON;
             EDITOR.PluginManager.RegisterMainToolbarPlugin(ElectronMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.electronPlugin.js.map

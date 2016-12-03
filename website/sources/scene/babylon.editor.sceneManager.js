@@ -167,3 +167,5 @@ var BABYLON;
         EDITOR.SceneManager = SceneManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.sceneManager.js.map

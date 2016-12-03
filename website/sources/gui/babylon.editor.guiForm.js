@@ -85,3 +85,5 @@ var BABYLON;
         })(GUI = EDITOR.GUI || (EDITOR.GUI = {}));
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.guiForm.js.map

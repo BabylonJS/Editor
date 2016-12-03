@@ -42,3 +42,5 @@ var BABYLON;
         EDITOR.FireMaterialTool = FireMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.fireMaterialTool.js.map

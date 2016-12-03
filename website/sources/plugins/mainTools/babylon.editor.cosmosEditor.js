@@ -124,3 +124,5 @@ var BABYLON;
         EDITOR.CosmosEditor = CosmosEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.cosmosEditor.js.map

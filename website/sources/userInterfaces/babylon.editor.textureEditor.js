@@ -323,3 +323,5 @@ var BABYLON;
         EDITOR.GUITextureEditor = GUITextureEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.textureEditor.js.map

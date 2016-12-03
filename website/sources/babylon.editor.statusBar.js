@@ -80,3 +80,5 @@ var BABYLON;
         EDITOR.StatusBar = StatusBar;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.statusBar.js.map

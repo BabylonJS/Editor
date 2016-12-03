@@ -51,3 +51,5 @@ var BABYLON;
         EDITOR.FurMaterialTool = FurMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.furMaterialTool.js.map

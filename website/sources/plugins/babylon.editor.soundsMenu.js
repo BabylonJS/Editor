@@ -105,3 +105,5 @@ var BABYLON;
         EDITOR.PluginManager.RegisterMainToolbarPlugin(SoundsMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.soundsMenu.js.map

@@ -56,18 +56,26 @@ for (var i = 0; i < config.editorExtensions.files.length; i++) {
 */
 gulp.task("typescript-compile", function () {
     var result = gulp.src(config.core.typescriptBuild)
+        .pipe(sourcemaps.init())
         .pipe(typescript({
             noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: false
         }));
-        
+    
     return merge2([
         result.dts
             .pipe(concat(config.build.declarationFilename))
             .pipe(gulp.dest(config.build.outputDirectory)),
         result.js
+            .pipe(sourcemaps.write("./", 
+            {
+                includeContent: false, 
+                sourceRoot: (filePath) => {
+                    return "";
+                }
+            }))
             .pipe(gulp.dest(config.build.srcOutputDirectory))
     ]);
 });
@@ -89,7 +97,7 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
             experimentalDecorators: false,
             out: config.build.filename
         }));
-        
+    
 	return result.js.pipe(gulp.dest(config.build.outputDirectory))
         .pipe(concat(config.build.filename))
         .pipe(cleants())
@@ -113,6 +121,13 @@ gulp.task("build-extensions", function () {
 
     return merge2([
         result.js.pipe(gulp.dest(config.build.outputDirectory))
+            .pipe(sourcemaps.write("./", 
+            {
+                includeContent: false, 
+                sourceRoot: (filePath) => {
+                    return ""; 
+                }
+            }))
             .pipe(concat(config.editorExtensions.filename))
             .pipe(cleants())
             .pipe(gulp.dest(config.build.outputDirectory))

@@ -346,3 +346,5 @@ var BABYLON;
         EDITOR.ActionsBuilderParametersEditor = ActionsBuilderParametersEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.actionsBuilderParametersEditor.js.map

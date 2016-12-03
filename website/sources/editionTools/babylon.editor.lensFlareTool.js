@@ -114,3 +114,5 @@ var BABYLON;
         EDITOR.LensFlareTool = LensFlareTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.lensFlareTool.js.map

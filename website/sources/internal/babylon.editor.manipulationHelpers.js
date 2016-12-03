@@ -114,3 +114,5 @@ var BABYLON;
         EDITOR.ManipulationHelper = ManipulationHelper;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.manipulationHelpers.js.map

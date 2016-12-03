@@ -50,3 +50,5 @@ var BABYLON;
         EDITOR.TerrainMaterialTool = TerrainMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.terrainMaterialTool.js.map

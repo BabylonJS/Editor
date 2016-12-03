@@ -82,13 +82,19 @@ var BABYLON;
                         "ParticleImpostor",
                         "HeightmapImpostor"
                     ];
+                    var realStates = [
+                        "NoImpostor",
+                        "SphereImpostor",
+                        "BoxImpostor",
+                        "CylinderImpostor"
+                    ];
                     this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
-                    physicsFolder.add(this, "_impostor", states).name("Impostor").onChange(function (value) {
+                    physicsFolder.add(this, "_impostor", realStates).name("Impostor").onChange(function (value) {
                         if (object.getPhysicsImpostor()) {
                             object.getPhysicsImpostor().dispose();
                             object.physicsImpostor = null;
                         }
-                        if (value !== states[0]) {
+                        if (value !== realStates[0]) {
                             object.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
                             object.getPhysicsImpostor().sleep();
                             BABYLON.Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
@@ -142,3 +148,5 @@ var BABYLON;
         EDITOR.AnimationTool = AnimationTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.animationTool.js.map

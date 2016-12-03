@@ -118,3 +118,5 @@ var BABYLON;
         EDITOR.ElectronPhotoshopPlugin = ElectronPhotoshopPlugin;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.electronPhotoshopPlugin.js.map

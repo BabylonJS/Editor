@@ -133,3 +133,5 @@ var BABYLON;
         EDITOR.LightTool = LightTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.lightTool.js.map

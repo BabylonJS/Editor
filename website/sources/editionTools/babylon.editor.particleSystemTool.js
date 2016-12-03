@@ -55,3 +55,5 @@ var BABYLON;
         EDITOR.ParticleSystemTool = ParticleSystemTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
+
+//# sourceMappingURL=babylon.editor.particleSystemTool.js.map
