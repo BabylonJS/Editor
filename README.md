@@ -1,4 +1,4 @@
-Babylon.js Editor v0.9
+Babylon.js Editor v1.0
 ======
 
 Getting started with the Babylon.js Editor?
@@ -14,20 +14,29 @@ Features
 * Create and edit particle systems
 * Create and edit animations
 * Create and edit lens flares systems
-* Create and edit materials (complete materials editor will come in version 1.0)
+* Create and edit physics states on meshes
+* Create and edit materials (including materials library)
+* Add and edit sounds
 * Save projects on OneDrive (Drop Box will come in future versions)
 * Deploy project template on OneDrive (Drop Box will come in future versions)
 * Cinematics Editor
 * Scene graph view
-* Create and edit post-process (soon exported in final .babylon scenes)
+* Create and edit post-process
 * Create and edit render targets (soon exported in final .babylon scenes)
+* Create post-processes using "Post-Process Builder"
+* Create actions using Actions Builder
+* Live test your scenes
+
+**Additional features with Electron**
+* Photoshop plugin (live texturing)
+* Auto reload scenes (file watching)
 
 Contribute
 ======
 
 The branch "**master**" contains the online version of the editor, available at http://editor.babylonjs.com/
 
-If you want to contribute, you can use the branch "**dev**" and pull request.
+If you want to contribute, you can use the branch "**develop**" and pull request.
 The **master** branch will be merged with the **dev** branch at each stable version, even preview :)
 
 Build
@@ -77,13 +86,17 @@ Where "--platform" is the target platform:
 * linux
 * all (to package all platforms above with a single command line)
 
-And "--arch" the architecture:
+And "--arch" the architecture (optional):
 * x64
 * x86
 
-Roadmap for v1.0
+Example:
+* gulp electron --win32
+
+Roadmap for v1.1
 ======
-* Introduce Actions Builder
+* Introduce Shader Material Creator
+* Introduce physics tools
 
 Licence
 ======
