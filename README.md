@@ -17,6 +17,8 @@ Features
 * Create and edit physics states on meshes
 * Create and edit materials (including materials library)
 * Add and edit sounds
+* Create and edit materials (including materials library)
+* Add and edit textures (including render target textures preview)
 * Save projects on OneDrive (Drop Box will come in future versions)
 * Deploy project template on OneDrive (Drop Box will come in future versions)
 * Cinematics Editor
