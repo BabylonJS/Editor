@@ -75,6 +75,11 @@ module BABYLON.EDITOR {
             if (!this._selectedMesh || !(this._selectedMesh instanceof GroundMesh))
                 return;
 
+            // Configure gravity
+            this._scene.gravity = this._core.currentScene.gravity;
+            this._scene.getPhysicsEngine().setGravity(this._scene.gravity);
+
+            // Apply
             this._extension.apply([{
                 meshName: this._selectedMesh.name,
                 applied: true,
@@ -98,6 +103,8 @@ module BABYLON.EDITOR {
 
             // Create mesh
             var newMesh = <GroundMesh>Mesh.CreateGround("SoftBodyMesh", mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
+            newMesh.rotation = mesh.rotation;
+            newMesh.rotationQuaternion = mesh.rotationQuaternion;
 
             if (mesh.material) {
                 newMesh.material = Material.Parse(mesh.material.serialize(), this._scene, "file:");
@@ -182,6 +189,7 @@ module BABYLON.EDITOR {
             this._light = new PointLight("SoftBodyLight", new Vector3(15, 15, 15), this._scene);
             this._engine.runRenderLoop(() => this._scene.render());
 
+            this._scene.gravity = this._core.currentScene.gravity;
             this._scene.clearColor = Color3.Black();
             this._scene.defaultMaterial.backFaceCulling = false;
 

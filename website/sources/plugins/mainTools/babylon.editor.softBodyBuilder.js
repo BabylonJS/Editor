@@ -57,6 +57,10 @@ var BABYLON;
             SoftBodyBuilder.prototype._previewMesh = function () {
                 if (!this._selectedMesh || !(this._selectedMesh instanceof BABYLON.GroundMesh))
                     return;
+                // Configure gravity
+                this._scene.gravity = this._core.currentScene.gravity;
+                this._scene.getPhysicsEngine().setGravity(this._scene.gravity);
+                // Apply
                 this._extension.apply([{
                         meshName: this._selectedMesh.name,
                         applied: true,
@@ -76,6 +80,8 @@ var BABYLON;
                 }
                 // Create mesh
                 var newMesh = BABYLON.Mesh.CreateGround("SoftBodyMesh", mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
+                newMesh.rotation = mesh.rotation;
+                newMesh.rotationQuaternion = mesh.rotationQuaternion;
                 if (mesh.material) {
                     newMesh.material = BABYLON.Material.Parse(mesh.material.serialize(), this._scene, "file:");
                     newMesh.material.backFaceCulling = false;
@@ -149,6 +155,7 @@ var BABYLON;
                 this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
                 this._light = new BABYLON.PointLight("SoftBodyLight", new BABYLON.Vector3(15, 15, 15), this._scene);
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
+                this._scene.gravity = this._core.currentScene.gravity;
                 this._scene.clearColor = BABYLON.Color3.Black();
                 this._scene.defaultMaterial.backFaceCulling = false;
                 this._camera.setTarget(BABYLON.Vector3.Zero());

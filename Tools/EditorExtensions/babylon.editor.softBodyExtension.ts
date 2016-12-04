@@ -98,7 +98,7 @@ module BABYLON.EDITOR.EXTENSIONS {
             // Create impostors
             for (var i = 0; i < config.spheres.length; i++) {
                 var point = config.spheres[i];
-                var mass = i < (data.subdivisions + 1) ? 0 : 1;
+                var mass = i < (data.subdivisions + 1) ? 0 : 0.1;
 
                 point.physicsImpostor = new PhysicsImpostor(point, BABYLON.PhysicsImpostor.ParticleImpostor, { mass: mass }, this._scene);
 
