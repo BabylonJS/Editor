@@ -145,6 +145,7 @@ gulp.task("build-extensions", function () {
 */
 gulp.task("watch", function() {
 	gulp.watch(files, ["build-extensions", "typescript-compile"]);
+    gulp.watch(extensionFiles, ["build-extensions", "typescript-compile"]);
 });
 
 /**

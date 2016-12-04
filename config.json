@@ -111,6 +111,7 @@
       "sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js",
 
       "sources/plugins/mainTools/babylon.editor.postProcessBuilder.js",
+      "sources/plugins/mainTools/babylon.editor.softBodyBuilder.js",
 
       "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
     ]
@@ -140,6 +141,7 @@
       "Tools/EditorExtensions/babylon.editor.editorExtensions.js",
       "Tools/EditorExtensions/babylon.editor.postProcessExtension.js",
       "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
+      "Tools/EditorExtensions/babylon.editor.softBodyExtension.ts",
 
       "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
 

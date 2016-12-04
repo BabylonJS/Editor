@@ -176,7 +176,7 @@ var BABYLON;
             };
             // Adds a ground
             SceneFactory.AddGroundMesh = function (core) {
-                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, false);
                 ground.id = this.GenerateUUID();
                 this.ConfigureObject(ground, core);
                 return ground;

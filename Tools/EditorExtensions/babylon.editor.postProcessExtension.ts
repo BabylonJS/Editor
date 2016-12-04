@@ -57,7 +57,7 @@
 
         /**
         * Constructor
-        * @param core: the editor core
+        * @param scene: the babylon.js scene
         */
         constructor(scene: Scene) {
             // Initialize
