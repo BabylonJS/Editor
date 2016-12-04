@@ -4474,6 +4474,103 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var AbstractMeshTool = (function (_super) {
+            __extends(AbstractMeshTool, _super);
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function AbstractMeshTool(editionTool, containerID, tabID, tabName) {
+                _super.call(this, editionTool);
+                // Public members
+                // Private members
+                this._tabName = "New Tab";
+                this.mesh = null;
+                // Initialize
+                this.containers = [
+                    "BABYLON-EDITOR-EDITION-TOOL-" + containerID
+                ];
+                this.tab = "MESH." + tabID;
+                this._tabName = tabName;
+            }
+            // Object supported
+            AbstractMeshTool.prototype.isObjectSupported = function (object) {
+                if (object instanceof BABYLON.Mesh && this.onObjectSupported(object))
+                    return true;
+                return false;
+            };
+            // Creates the UI
+            AbstractMeshTool.prototype.createUI = function () {
+                // Tabs
+                this._editionTool.panel.createTab({ id: this.tab, caption: this._tabName });
+            };
+            // Update
+            AbstractMeshTool.prototype.update = function () {
+                var object = this._editionTool.object;
+                var scene = this._editionTool.core.currentScene;
+                _super.prototype.update.call(this);
+                this.mesh = object;
+                this.object = object;
+                this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
+                this._element.buildElement(this.containers[0]);
+                this._element.remember(object);
+                return true;
+            };
+            return AbstractMeshTool;
+        }(EDITOR.AbstractDatTool));
+        EDITOR.AbstractMeshTool = AbstractMeshTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
+        var GroundMeshTool = (function (_super) {
+            __extends(GroundMeshTool, _super);
+            // Protected members
+            /**
+            * Constructor
+            * @param editionTool: edition tool instance
+            */
+            function GroundMeshTool(editionTool) {
+                _super.call(this, editionTool, "GROUND-MESH", "GROUND", "Ground");
+                // Public members
+                // Private members
+                this._subdivisions = 0;
+                // Initialize
+                this.onObjectSupported = function (mesh) { return mesh instanceof BABYLON.GroundMesh; };
+            }
+            // Update
+            GroundMeshTool.prototype.update = function () {
+                var _this = this;
+                if (!_super.prototype.update.call(this))
+                    return false;
+                // Geometry
+                this._subdivisions = this.mesh.subdivisions;
+                var geometryFolder = this._element.addFolder("Geometry");
+                geometryFolder.add(this.mesh, "_width").min(0.1).max(100).step(0.1).name("Width").onChange(function () { return _this._propertyChanged(); });
+                geometryFolder.add(this, "_subdivisions").min(1).max(100).step(1).name("Subdivisions").onChange(function () { return _this._propertyChanged(); });
+                // Finish
+                return true;
+            };
+            // Property changed
+            GroundMeshTool.prototype._propertyChanged = function () {
+                this.mesh.geometry.setAllVerticesData(BABYLON.VertexData.CreateGround({
+                    width: this.mesh._width,
+                    height: this.mesh._width,
+                    subdivisions: this._subdivisions
+                }));
+                this.mesh._subdivisionsX = this.mesh._subdivisionsY = this._subdivisions;
+            };
+            return GroundMeshTool;
+        }(EDITOR.AbstractMeshTool));
+        EDITOR.GroundMeshTool = GroundMeshTool;
+    })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
+})(BABYLON || (BABYLON = {}));
+var BABYLON;
+(function (BABYLON) {
+    var EDITOR;
+    (function (EDITOR) {
         var EditorCore = (function () {
             /**
             * Constructor
@@ -4682,6 +4779,7 @@ var BABYLON;
                 this.addTool(new EDITOR.TriPlanarMaterialTool(this));
                 this.addTool(new EDITOR.GridMaterialTool(this));
                 this.addTool(new EDITOR.FireMaterialTool(this));
+                this.addTool(new EDITOR.GroundMeshTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };
@@ -6675,7 +6773,7 @@ var BABYLON;
             };
             // Adds a ground
             SceneFactory.AddGroundMesh = function (core) {
-                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, false);
+                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, true);
                 ground.id = this.GenerateUUID();
                 this.ConfigureObject(ground, core);
                 return ground;
@@ -7190,8 +7288,8 @@ var BABYLON;
                     });
                 });
             };
-            OneDriveStorage._ClientID = "000000004C18353E"; // editor.babylonjs.com
-            //private static _ClientID = "0000000048182B1B";
+            //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
+            OneDriveStorage._ClientID = "0000000048182B1B";
             OneDriveStorage._TOKEN = "";
             OneDriveStorage._TOKEN_EXPIRES_IN = 0;
             OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
@@ -8151,8 +8249,10 @@ var BABYLON;
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                     }
-                    if (!config.vscodeFolderExists)
+                    if (!config.vscodeFolderExists) {
                         files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                        files.push({ name: "launch.json", url: url + "templates/launchTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                    }
                     files.push({ name: "run.bat", url: url + "templates/run.bat", content: null });
                     files.push({ name: "run.sh", url: url + "templates/run.bat", content: null });
                     files.push({ name: "server.js", url: url + "templates/server.js", content: null });
@@ -11946,6 +12046,7 @@ var BABYLON;
                 this._camera = null;
                 this._light = null;
                 this._selectedMesh = null;
+                this._baseMesh = null;
                 this._containerElement = null;
                 this._containerID = null;
                 this._tab = null;
@@ -11977,9 +12078,11 @@ var BABYLON;
             SoftBodyBuilder.prototype.onEvent = function (event) {
                 if (event.eventType !== EDITOR.EventType.SCENE_EVENT)
                     return;
-                var object = event.sceneEvent.object;
-                if (object instanceof BABYLON.GroundMesh) {
-                    this._configureMesh(object);
+                if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                    var object = event.sceneEvent.object;
+                    if (object instanceof BABYLON.GroundMesh) {
+                        this._configureMesh(object);
+                    }
                 }
                 return false;
             };
@@ -11988,20 +12091,49 @@ var BABYLON;
                 if (!this._selectedMesh || !(this._selectedMesh instanceof BABYLON.GroundMesh))
                     return;
                 this._extension.apply([{
-                        meshName: this._selectedMesh.name
+                        meshName: this._selectedMesh.name,
+                        applied: true,
+                        width: this._selectedMesh._width,
+                        height: this._selectedMesh._height,
+                        subdivisions: this._selectedMesh.subdivisions
                     }]);
             };
             // Configure mesh
             SoftBodyBuilder.prototype._configureMesh = function (mesh) {
+                // Dispose mesh
                 if (this._selectedMesh) {
                     this._selectedMesh.dispose();
                     this._selectedMesh = null;
+                    this._baseMesh = null;
                     this._extension.apply([]);
                 }
+                // Create mesh
                 var newMesh = BABYLON.Mesh.CreateGround("SoftBodyMesh", mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
-                if (mesh.material)
+                if (mesh.material) {
                     newMesh.material = BABYLON.Material.Parse(mesh.material.serialize(), this._scene, "file:");
+                    newMesh.material.backFaceCulling = false;
+                }
                 this._selectedMesh = newMesh;
+                this._baseMesh = mesh;
+                // Configure toolbar
+                this._toolbar.setItemChecked("APPLIED", false);
+                this._toolbar.setItemChecked("HIDE-SPHERES", true);
+                for (var i = 0; i < this._metadatas.length; i++) {
+                    if (this._metadatas[i].meshName === mesh.name) {
+                        this._toolbar.setItemChecked("APPLIED", true);
+                        this._previewMesh();
+                        return;
+                    }
+                }
+            };
+            // Private draw spheres
+            SoftBodyBuilder.prototype._drawSpheres = function (draw) {
+                var config = this._extension.getConfiguration(this._selectedMesh.name);
+                if (!config)
+                    return;
+                for (var i = 0; i < config.spheres.length; i++) {
+                    config.spheres[i].isVisible = draw;
+                }
             };
             // Creates the UI
             SoftBodyBuilder.prototype._createUI = function () {
@@ -12024,28 +12156,57 @@ var BABYLON;
                 this._toolbar.addBreak();
                 this._toolbar.createMenu("button", "APPLIED", "Applied on scene", "icon-scene", false, "If the simulation will be applied on scene");
                 this._toolbar.addBreak();
-                this._toolbar.createMenu("button", "DRAW-SPHERES", "Draw spheres", "icon-sphere-mesh", false, "If the spheres should be drawn");
+                this._toolbar.createMenu("button", "HIDE-SPHERES", "Hide spheres", "icon-sphere-mesh", false, "Hide the debug spheres");
                 this._toolbar.buildElement("SOFT-BODY-BUILDER-TOOLBAR");
                 this._toolbar.onClick = function (item) {
+                    _this._storeMetadatas();
                     switch (item.parent) {
                         case "PREVIEW":
                             _this._previewMesh();
                             break;
-                        case "APPLIED": break;
+                        case "APPLIED":
+                            var checked = !_this._toolbar.isItemChecked(item.parent);
+                            _this._toolbar.setItemChecked(item.parent, checked);
+                            _this._storeMetadatas();
+                            break;
+                        case "HIDE-SPHERES":
+                            var checked = _this._toolbar.isItemChecked(item.parent);
+                            _this._drawSpheres(checked);
+                            _this._toolbar.setItemChecked(item.parent, !checked);
+                            break;
                     }
                 };
                 // Engine and scene
                 this._engine = new BABYLON.Engine($("#SOFT-BODY-BUILDER-PREVIEW")[0]);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
+                this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
                 this._light = new BABYLON.PointLight("SoftBodyLight", new BABYLON.Vector3(15, 15, 15), this._scene);
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
-                // this._scene.clearColor = Color3.Black();
+                this._scene.clearColor = BABYLON.Color3.Black();
+                this._scene.defaultMaterial.backFaceCulling = false;
                 this._camera.setTarget(BABYLON.Vector3.Zero());
                 this._camera.attachControl(this._engine.getRenderingCanvas());
                 this._scene.enablePhysics(this._scene.gravity, new BABYLON.CannonJSPlugin());
                 // Extension
                 this._extension = new EDITOR.EXTENSIONS.SoftBodyBuilderExtension(this._scene);
+            };
+            // Stores the Metadatas
+            SoftBodyBuilder.prototype._storeMetadatas = function () {
+                var data = {
+                    meshName: this._baseMesh.name,
+                    applied: this._toolbar.isItemChecked("APPLIED"),
+                    width: this._selectedMesh._width,
+                    height: this._selectedMesh._height,
+                    subdivisions: this._selectedMesh.subdivisions
+                };
+                for (var i = 0; i < this._metadatas.length; i++) {
+                    if (this._metadatas[i].meshName === data.meshName) {
+                        this._metadatas[i] = data;
+                        return;
+                    }
+                }
+                this._metadatas.push(data);
+                EDITOR.SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas);
             };
             return SoftBodyBuilder;
         }());

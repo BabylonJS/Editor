@@ -91,8 +91,13 @@ declare module BABYLON.EDITOR.EXTENSIONS {
 declare module BABYLON.EDITOR.EXTENSIONS {
     interface ISoftBodyData {
         meshName: string;
+        applied: boolean;
+        width: number;
+        height: number;
+        subdivisions: number;
     }
-    interface ISoftBodyConfiguration extends ISoftBodyData {
+    interface ISoftBodyConfiguration {
+        meshName: string;
         spheres: Mesh[];
         beforeRenderFunction?: () => void;
     }
@@ -108,7 +113,7 @@ declare module BABYLON.EDITOR.EXTENSIONS {
         constructor(scene: Scene);
         apply(data: ISoftBodyData[]): void;
         getConfiguration(meshName: string): ISoftBodyConfiguration;
-        private _configureMesh(mesh, index);
+        private _configureMesh(mesh, data);
         private _createJoint(impostor1, impostor2, distanceBetweenPoints);
     }
 }

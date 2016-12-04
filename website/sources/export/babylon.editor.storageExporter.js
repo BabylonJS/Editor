@@ -166,8 +166,10 @@ var BABYLON;
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                     }
-                    if (!config.vscodeFolderExists)
+                    if (!config.vscodeFolderExists) {
                         files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                        files.push({ name: "launch.json", url: url + "templates/launchTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                    }
                     files.push({ name: "run.bat", url: url + "templates/run.bat", content: null });
                     files.push({ name: "run.sh", url: url + "templates/run.bat", content: null });
                     files.push({ name: "server.js", url: url + "templates/server.js", content: null });

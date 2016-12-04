@@ -45,9 +45,11 @@ var BABYLON;
             SoftBodyBuilder.prototype.onEvent = function (event) {
                 if (event.eventType !== EDITOR.EventType.SCENE_EVENT)
                     return;
-                var object = event.sceneEvent.object;
-                if (object instanceof BABYLON.GroundMesh) {
-                    this._configureMesh(object);
+                if (event.sceneEvent.eventType === EDITOR.SceneEventType.OBJECT_PICKED) {
+                    var object = event.sceneEvent.object;
+                    if (object instanceof BABYLON.GroundMesh) {
+                        this._configureMesh(object);
+                    }
                 }
                 return false;
             };

@@ -60,9 +60,11 @@ module BABYLON.EDITOR {
             if (event.eventType !== EventType.SCENE_EVENT)
                 return;
 
-            var object = event.sceneEvent.object;
-            if (object instanceof GroundMesh) {
-                this._configureMesh(object);
+            if (event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
+                var object = event.sceneEvent.object;
+                if (object instanceof GroundMesh) {
+                    this._configureMesh(object);
+                }
             }
 
             return false;
@@ -182,7 +184,7 @@ module BABYLON.EDITOR {
 
             this._scene.clearColor = Color3.Black();
             this._scene.defaultMaterial.backFaceCulling = false;
-            
+
             this._camera.setTarget(Vector3.Zero());
             this._camera.attachControl(this._engine.getRenderingCanvas());
 
