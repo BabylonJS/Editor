@@ -13,6 +13,7 @@ var BABYLON;
                 this._camera = null;
                 this._light = null;
                 this._selectedMesh = null;
+                this._baseMesh = null;
                 this._containerElement = null;
                 this._containerID = null;
                 this._tab = null;
@@ -55,20 +56,49 @@ var BABYLON;
                 if (!this._selectedMesh || !(this._selectedMesh instanceof BABYLON.GroundMesh))
                     return;
                 this._extension.apply([{
-                        meshName: this._selectedMesh.name
+                        meshName: this._selectedMesh.name,
+                        applied: true,
+                        width: this._selectedMesh._width,
+                        height: this._selectedMesh._height,
+                        subdivisions: this._selectedMesh.subdivisions
                     }]);
             };
             // Configure mesh
             SoftBodyBuilder.prototype._configureMesh = function (mesh) {
+                // Dispose mesh
                 if (this._selectedMesh) {
                     this._selectedMesh.dispose();
                     this._selectedMesh = null;
+                    this._baseMesh = null;
                     this._extension.apply([]);
                 }
+                // Create mesh
                 var newMesh = BABYLON.Mesh.CreateGround("SoftBodyMesh", mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
-                if (mesh.material)
+                if (mesh.material) {
                     newMesh.material = BABYLON.Material.Parse(mesh.material.serialize(), this._scene, "file:");
+                    newMesh.material.backFaceCulling = false;
+                }
                 this._selectedMesh = newMesh;
+                this._baseMesh = mesh;
+                // Configure toolbar
+                this._toolbar.setItemChecked("APPLIED", false);
+                this._toolbar.setItemChecked("HIDE-SPHERES", true);
+                for (var i = 0; i < this._metadatas.length; i++) {
+                    if (this._metadatas[i].meshName === mesh.name) {
+                        this._toolbar.setItemChecked("APPLIED", true);
+                        this._previewMesh();
+                        return;
+                    }
+                }
+            };
+            // Private draw spheres
+            SoftBodyBuilder.prototype._drawSpheres = function (draw) {
+                var config = this._extension.getConfiguration(this._selectedMesh.name);
+                if (!config)
+                    return;
+                for (var i = 0; i < config.spheres.length; i++) {
+                    config.spheres[i].isVisible = draw;
+                }
             };
             // Creates the UI
             SoftBodyBuilder.prototype._createUI = function () {
@@ -91,28 +121,57 @@ var BABYLON;
                 this._toolbar.addBreak();
                 this._toolbar.createMenu("button", "APPLIED", "Applied on scene", "icon-scene", false, "If the simulation will be applied on scene");
                 this._toolbar.addBreak();
-                this._toolbar.createMenu("button", "DRAW-SPHERES", "Draw spheres", "icon-sphere-mesh", false, "If the spheres should be drawn");
+                this._toolbar.createMenu("button", "HIDE-SPHERES", "Hide spheres", "icon-sphere-mesh", false, "Hide the debug spheres");
                 this._toolbar.buildElement("SOFT-BODY-BUILDER-TOOLBAR");
                 this._toolbar.onClick = function (item) {
+                    _this._storeMetadatas();
                     switch (item.parent) {
                         case "PREVIEW":
                             _this._previewMesh();
                             break;
-                        case "APPLIED": break;
+                        case "APPLIED":
+                            var checked = !_this._toolbar.isItemChecked(item.parent);
+                            _this._toolbar.setItemChecked(item.parent, checked);
+                            _this._storeMetadatas();
+                            break;
+                        case "HIDE-SPHERES":
+                            var checked = _this._toolbar.isItemChecked(item.parent);
+                            _this._drawSpheres(checked);
+                            _this._toolbar.setItemChecked(item.parent, !checked);
+                            break;
                     }
                 };
                 // Engine and scene
                 this._engine = new BABYLON.Engine($("#SOFT-BODY-BUILDER-PREVIEW")[0]);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
+                this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
                 this._light = new BABYLON.PointLight("SoftBodyLight", new BABYLON.Vector3(15, 15, 15), this._scene);
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
-                // this._scene.clearColor = Color3.Black();
+                this._scene.clearColor = BABYLON.Color3.Black();
+                this._scene.defaultMaterial.backFaceCulling = false;
                 this._camera.setTarget(BABYLON.Vector3.Zero());
                 this._camera.attachControl(this._engine.getRenderingCanvas());
                 this._scene.enablePhysics(this._scene.gravity, new BABYLON.CannonJSPlugin());
                 // Extension
                 this._extension = new EDITOR.EXTENSIONS.SoftBodyBuilderExtension(this._scene);
+            };
+            // Stores the Metadatas
+            SoftBodyBuilder.prototype._storeMetadatas = function () {
+                var data = {
+                    meshName: this._baseMesh.name,
+                    applied: this._toolbar.isItemChecked("APPLIED"),
+                    width: this._selectedMesh._width,
+                    height: this._selectedMesh._height,
+                    subdivisions: this._selectedMesh.subdivisions
+                };
+                for (var i = 0; i < this._metadatas.length; i++) {
+                    if (this._metadatas[i].meshName === data.meshName) {
+                        this._metadatas[i] = data;
+                        return;
+                    }
+                }
+                this._metadatas.push(data);
+                EDITOR.SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas);
             };
             return SoftBodyBuilder;
         }());

@@ -63,6 +63,9 @@
       "sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.fireMaterialTool.js",
 
+      "sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js",
+      "sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js",
+
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",
       "sources/babylon.editor.editPanel.js",

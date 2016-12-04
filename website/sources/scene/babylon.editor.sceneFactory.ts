@@ -247,7 +247,7 @@
         
         // Adds a ground
         static AddGroundMesh(core: EditorCore): Mesh {
-            var ground = Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, false);
+            var ground = Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, true);
             ground.id = this.GenerateUUID();
             
             this.ConfigureObject(ground, core);

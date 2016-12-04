@@ -36125,6 +36125,7 @@ var BABYLON;
             this._engine = scene.getEngine();
             this._meshes = [];
             this._scene = scene;
+            this._updatable = updatable;
             //Init vertex buffer cache
             this._vertexBuffers = {};
             this._indices = [];
@@ -36576,6 +36577,7 @@ var BABYLON;
         Geometry.prototype.serialize = function () {
             var serializationObject = {};
             serializationObject.id = this.id;
+            serializationObject.updatable = this._updatable;
             if (BABYLON.Tags.HasTags(this)) {
                 serializationObject.tags = BABYLON.Tags.GetTags(this);
             }
@@ -36800,7 +36802,7 @@ var BABYLON;
             if (scene.getGeometryByID(parsedVertexData.id)) {
                 return null; // null since geometry could be something else than a box...
             }
-            var geometry = new Geometry(parsedVertexData.id, scene);
+            var geometry = new Geometry(parsedVertexData.id, scene, null, parsedVertexData.updatable || false);
             BABYLON.Tags.AddTagsTo(geometry, parsedVertexData.tags);
             if (parsedVertexData.delayLoadingFile) {
                 geometry.delayLoadState = BABYLON.Engine.DELAYLOADSTATE_NOTLOADED;

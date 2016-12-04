@@ -164,6 +164,8 @@
             this.addTool(new TriPlanarMaterialTool(this));
             this.addTool(new GridMaterialTool(this));
             this.addTool(new FireMaterialTool(this));
+
+            this.addTool(new GroundMeshTool(this));
             
             for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
                 this.addTool(new PluginManager.EditionToolPlugins[i](this));

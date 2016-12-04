@@ -1,9 +1,14 @@
 module BABYLON.EDITOR.EXTENSIONS {
     export interface ISoftBodyData {
         meshName: string;
+        applied: boolean;
+        width: number;
+        height: number;
+        subdivisions: number;
     }
 
-    export interface ISoftBodyConfiguration extends ISoftBodyData {
+    export interface ISoftBodyConfiguration {
+        meshName: string;
         spheres: Mesh[];
         beforeRenderFunction?: () => void;
     }
@@ -30,6 +35,11 @@ module BABYLON.EDITOR.EXTENSIONS {
 
         // Applies the extension
         public apply(data: ISoftBodyData[]): void {
+            if (!this._scene.isPhysicsEnabled()) {
+                BABYLON.Tools.Warn("Don't forget to enable physics to use soft body simulations");
+                return;
+            }
+            
             // Clear
             for (var i = 0; i < this.configs.length; i++) {
                 var config = this.configs[i];
@@ -44,10 +54,13 @@ module BABYLON.EDITOR.EXTENSIONS {
 
             // Create
             for (var i = 0; i < data.length; i++) {
+                if (!data[i].applied)
+                    continue;
+                
                 // Configure mesh
                 var mesh = this._scene.getMeshByName(data[i].meshName);
-                if (mesh && mesh instanceof GroundMesh)
-                    this._configureMesh(mesh, i);
+                if (mesh)
+                    this._configureMesh(<Mesh>mesh, data[i]);
             }
         }
 
@@ -62,20 +75,21 @@ module BABYLON.EDITOR.EXTENSIONS {
         }
 
         // Configure the mesh and physics
-        private _configureMesh(mesh: GroundMesh, index: number): void {
+        private _configureMesh(mesh: Mesh, data: ISoftBodyData): void {
             var config: ISoftBodyConfiguration = {
                 meshName: mesh.name,
                 spheres: []
             };
 
             var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-            var distanceBetweenPoints = mesh._width / (mesh.subdivisions + 1);
+            var distanceBetweenPoints = (data.width * mesh.scaling.length()) / (data.subdivisions + 1);
 
             // Create spheres
             for (var i = 0; i < positions.length; i += 3) {
                 var v = BABYLON.Vector3.FromArray(positions, i);
-                var sphere = BABYLON.MeshBuilder.CreateSphere("s" + i, { diameter: 0.1 }, this._scene);
-
+                
+                var sphere = BABYLON.MeshBuilder.CreateSphere("s" + i, { diameter: 0.1, segments: 1 }, this._scene);
+                sphere.isVisible = false;
                 sphere.position.copyFrom(v);
 
                 config.spheres.push(sphere);
@@ -84,26 +98,30 @@ module BABYLON.EDITOR.EXTENSIONS {
             // Create impostors
             for (var i = 0; i < config.spheres.length; i++) {
                 var point = config.spheres[i];
-                var mass = i < (mesh.subdivisions + 1) ? 0 : 1;
+                var mass = i < (data.subdivisions + 1) ? 0 : 1;
 
                 point.physicsImpostor = new PhysicsImpostor(point, BABYLON.PhysicsImpostor.ParticleImpostor, { mass: mass }, this._scene);
 
-                if (i >= (mesh.subdivisions + 1)) {
-                    this._createJoint(point.physicsImpostor, config.spheres[i - (mesh.subdivisions + 1)].physicsImpostor, distanceBetweenPoints);
+                if (i >= (data.subdivisions + 1)) {
+                    this._createJoint(point.physicsImpostor, config.spheres[i - (data.subdivisions + 1)].physicsImpostor, distanceBetweenPoints);
 
-                    if (i % (mesh.subdivisions + 1)) {
+                    if (i % (data.subdivisions + 1)) {
                         this._createJoint(point.physicsImpostor, config.spheres[i - 1].physicsImpostor, distanceBetweenPoints);
                     }
                 }
             }
 
             // Update function
+            positions = new Array(config.spheres.length * 3);
+
             config.beforeRenderFunction = () => {
-                var positions = [];
                 
                 for (var i = 0; i < config.spheres.length; i++) {
                     var s = config.spheres[i];
-                    positions.push(s.position.x, s.position.y, s.position.z);
+
+                    positions[i * 3] = s.position.x * mesh.scaling.x;
+                    positions[i * 3 + 1] = s.position.y * mesh.scaling.y;
+                    positions[i * 3 + 2] = s.position.z * mesh.scaling.z;
                 }
 
                 mesh.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
@@ -125,4 +143,6 @@ module BABYLON.EDITOR.EXTENSIONS {
             impostor1.addJoint(impostor2, joint);
         }
     }
+
+    EditorExtension.RegisterExtension(SoftBodyBuilderExtension);
 }
