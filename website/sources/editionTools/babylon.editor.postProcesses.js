@@ -69,6 +69,7 @@ var BABYLON;
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
