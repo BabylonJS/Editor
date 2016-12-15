@@ -40,13 +40,13 @@
             // Etc.
             for (var i = 0; i < project.materials.length; i++) {
                 var material = project.materials[i];
+                var materialType: any = null;
 
-                // For now, continue
-                // If no customType, the changes can be done in the modeler (3ds Max, Blender, Unity3D, etc.)
                 if (!material.newInstance || !material.serializedValues.customType)
-                    continue;
+                    materialType = BABYLON.Tools.Instantiate("BABYLON.StandardMaterial");
+                else
+                    materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
 
-                var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                 material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "file:");
             }
             
@@ -137,8 +137,6 @@
                 if (newNode instanceof AbstractMesh) {
                     // Physics
                     if (node.physics) {
-                        debugger;
-
                         newNode.setPhysicsState(node.physics.physicsImpostor, {
                             mass: node.physics.physicsMass,
                             friction: node.physics.physicsFriction,

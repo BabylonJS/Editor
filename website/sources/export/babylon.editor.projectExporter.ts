@@ -263,7 +263,7 @@
                     }
 
                     // Check materials
-                    if (node instanceof AbstractMesh && node.material && !(node.material instanceof StandardMaterial)) {
+                    if (node instanceof AbstractMesh && node.material && (!(node.material instanceof StandardMaterial) || Tags.MatchesQuery(node.material, "added"))) {
                         var material = node.material;
 
                         if (!Tags.HasTags(material) || !Tags.MatchesQuery(material, "furShellMaterial")) {

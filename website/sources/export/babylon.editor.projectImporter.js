@@ -38,11 +38,11 @@ var BABYLON;
                 // Etc.
                 for (var i = 0; i < project.materials.length; i++) {
                     var material = project.materials[i];
-                    // For now, continue
-                    // If no customType, the changes can be done in the modeler (3ds Max, Blender, Unity3D, etc.)
+                    var materialType = null;
                     if (!material.newInstance || !material.serializedValues.customType)
-                        continue;
-                    var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
+                        materialType = BABYLON.Tools.Instantiate("BABYLON.StandardMaterial");
+                    else
+                        materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                     material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "file:");
                 }
                 // Sounds

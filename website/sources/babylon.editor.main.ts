@@ -52,7 +52,7 @@
         /**
         * Constructor
         */
-        constructor(containerID: string, antialias: boolean = false, options: any = null) {
+        constructor(containerID: string, antialias: boolean = false, options: EngineOptions = null) {
             // Initialize
             this.core = new EditorCore();
             this.core.editor = this;
@@ -429,7 +429,7 @@
         * Creates the editor camera
         */
         private _createBabylonCamera(): void {
-            var cameraPosition = new Vector3(0, 0, 10)
+            var cameraPosition = new Vector3(0, 0, 10);
             var cameraTarget = Vector3.Zero();
             var cameraRadius = 10;
             

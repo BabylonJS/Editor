@@ -159,6 +159,8 @@
         private _applyMaterial(): void {
             var material = new BABYLON[this._libraryDummyProperty]("New Material " + SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
 
+            Tags.AddTagsTo(material, "added");
+
             if (this.object instanceof AbstractMesh)
                 this.object.material = material;
             else if (this.object instanceof SubMesh) {

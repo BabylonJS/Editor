@@ -216,7 +216,8 @@ gulp.task("electron", ["build"], function () {
         dir: "./website/",
         platform: args.platform ? args.platform : "darwin",
         out: "electronPackages/",
-        overwrite: true
+        overwrite: true,
+        prune: false
     };
     
     if (args.osx || args.mas) {
@@ -230,6 +231,13 @@ gulp.task("electron", ["build"], function () {
     }
 
     electronPackager(options, function (err, appPath) {
+        if (err !== null) {
+            console.log(err);
+            return;
+        }
+        else
+            console.log("No errors");
+        
         console.log(appPath);
         console.log("Copying package.json into the package...");
         gulp.src("package.json")

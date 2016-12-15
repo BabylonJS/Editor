@@ -214,7 +214,7 @@ var BABYLON;
                             }
                         }
                         // Check materials
-                        if (node instanceof BABYLON.AbstractMesh && node.material && !(node.material instanceof BABYLON.StandardMaterial)) {
+                        if (node instanceof BABYLON.AbstractMesh && node.material && (!(node.material instanceof BABYLON.StandardMaterial) || BABYLON.Tags.MatchesQuery(node.material, "added"))) {
                             var material = node.material;
                             if (!BABYLON.Tags.HasTags(material) || !BABYLON.Tags.MatchesQuery(material, "furShellMaterial")) {
                                 if (material instanceof BABYLON.MultiMaterial) {

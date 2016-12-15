@@ -142,6 +142,7 @@ var BABYLON;
             // Apply the selected material
             MaterialTool.prototype._applyMaterial = function () {
                 var material = new BABYLON[this._libraryDummyProperty]("New Material " + EDITOR.SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
+                BABYLON.Tags.AddTagsTo(material, "added");
                 if (this.object instanceof BABYLON.AbstractMesh)
                     this.object.material = material;
                 else if (this.object instanceof BABYLON.SubMesh) {
