@@ -97,6 +97,18 @@
             return 0;
         }
 
+        // Set width
+        public set width(width: number) {
+            if (this._panelElement)
+                this._panelElement.width = width;
+        }
+
+        // Set height
+        public set height(height: number) {
+            if (this._panelElement)
+                this._panelElement.height = height;
+        }
+
         // Return tab count
         public getTabCount(): number {
             return this.tabs.length;

@@ -135,7 +135,7 @@
                 var index = this.object.materialIndex;
                 var multiMaterial = this.object.getMesh().material;
                 if (multiMaterial instanceof MultiMaterial)
-                    this.object.getMesh().material.subMaterials[index] = pbr;
+                    multiMaterial.subMaterials[index] = pbr;
             }
             else
                 this.object.material = pbr;

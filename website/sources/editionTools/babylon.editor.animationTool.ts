@@ -41,7 +41,7 @@
 
         // Update
         public update(): boolean {
-            var object: { animations: Animation[] } = this.object = this._editionTool.object;
+            var object: IAnimatable = this.object = this._editionTool.object;
 
             super.update();
 
@@ -77,6 +77,7 @@
 
             // Physics
             if (object instanceof AbstractMesh && this._editionTool.core.currentScene.getPhysicsEngine()) {
+                var physicsObject = object;
                 var physicsFolder = this._element.addFolder("Physics");
                 var scene = this._editionTool.core.currentScene;
                 var states = [
@@ -100,29 +101,29 @@
                 this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
 
                 physicsFolder.add(this, "_impostor", realStates).name("Impostor").onChange((value: string) => {
-                    if (object.getPhysicsImpostor()) {
-                        object.getPhysicsImpostor().dispose();
-                        object.physicsImpostor = null;
+                    if (physicsObject.getPhysicsImpostor()) {
+                        physicsObject.getPhysicsImpostor().dispose();
+                        physicsObject.physicsImpostor = null;
                     }
 
                     if (value !== realStates[0]) { // If not NoImpostor
-                        object.setPhysicsState(PhysicsEngine[value], { mass: 0 });
-                        object.getPhysicsImpostor().sleep();
+                        physicsObject.setPhysicsState(PhysicsEngine[value], { mass: 0 });
+                        physicsObject.getPhysicsImpostor().sleep();
 
-                        Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
+                        Tags.AddTagsTo(physicsObject.getPhysicsImpostor(), "added");
                     }
 
                     this._editionTool.updateEditionTool();
                 });
 
-                if (object.getPhysicsImpostor()) {
-                    this._mass = object.getPhysicsMass();
-                    this._friction = object.getPhysicsFriction();
-                    this._restitution = object.getPhysicsRestitution();
+                if (physicsObject.getPhysicsImpostor()) {
+                    this._mass = physicsObject.getPhysicsMass();
+                    this._friction = physicsObject.getPhysicsFriction();
+                    this._restitution = physicsObject.getPhysicsRestitution();
 
-                    physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setMass(value));
-                    physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setParam("friction", value));
-                    physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange((value: number) => object.getPhysicsImpostor().setParam("restitution", value));
+                    physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange((value: number) => physicsObject.getPhysicsImpostor().setMass(value));
+                    physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange((value: number) => physicsObject.getPhysicsImpostor().setParam("friction", value));
+                    physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange((value: number) => physicsObject.getPhysicsImpostor().setParam("restitution", value));
                 }
             }
             return true;

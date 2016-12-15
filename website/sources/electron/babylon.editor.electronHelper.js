@@ -84,13 +84,13 @@ var BABYLON;
                     callback(filename);
                 });
             };
-            /**
-            * Scene file
-            */
-            ElectronHelper.ReloadSceneOnFileChanged = false;
-            ElectronHelper.SceneFilename = "";
             return ElectronHelper;
         }());
+        /**
+        * Scene file
+        */
+        ElectronHelper.ReloadSceneOnFileChanged = false;
+        ElectronHelper.SceneFilename = "";
         EDITOR.ElectronHelper = ElectronHelper;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

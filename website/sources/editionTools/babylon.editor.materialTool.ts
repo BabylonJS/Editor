@@ -91,7 +91,7 @@
                         var index = this._editionTool.object.materialIndex;
                         var multiMaterial = this._editionTool.object.getMesh().material;
                         if (multiMaterial instanceof MultiMaterial)
-                            this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                            multiMaterial.subMaterials[index] = newmaterial;
                     }
                     else
                         this._editionTool.object.material = newmaterial;
@@ -171,7 +171,7 @@
                 subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
             }
 
-            if (material instanceof FurMaterial && this.object instanceof AbstractMesh) {
+            if (material instanceof FurMaterial && this.object instanceof Mesh) {
                 var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                 (<FurMaterial>material).furTexture = furTexture;
                 

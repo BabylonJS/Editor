@@ -9,6 +9,7 @@ module BABYLON.EDITOR {
         private _scene: Scene = null;
         private _camera: ArcRotateCamera = null;
         private _light: PointLight = null;
+        private _sphere: Mesh = null;
 
         private _selectedMesh: GroundMesh = null;
         private _baseMesh: GroundMesh = null;
@@ -19,9 +20,19 @@ module BABYLON.EDITOR {
 
         private _layouts: GUI.GUILayout = null;
         private _toolbar: GUI.GUIToolbar = null;
+        private _editTool: GUI.GUIEditForm = null;
 
         private _extension: EDITOR.EXTENSIONS.SoftBodyBuilderExtension;
         private _metadatas: EXTENSIONS.ISoftBodyData[] = [];
+
+        private _windForce: number = 1;
+        private _windForceInterval: number = 1000; // in ms
+        private _windDirection: Vector3 = Vector3.Zero();
+
+        private _freeFall: boolean = false;
+
+        private _onlySelectedJoints: boolean = false;
+        private _selectedJointsCount: number = 1;
 
         /**
         * Constructor
@@ -35,7 +46,7 @@ module BABYLON.EDITOR {
             // Metadatas
             this._metadatas = SceneManager.GetCustomMetadata<EXTENSIONS.ISoftBodyData[]>("SoftBodyBuilder") || [];
             if (!this._metadatas )
-                SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas );
+                SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas);
 
             // Create UI
             this._createUI();
@@ -85,8 +96,20 @@ module BABYLON.EDITOR {
                 applied: true,
                 width: this._selectedMesh._width,
                 height: this._selectedMesh._height,
-                subdivisions: this._selectedMesh.subdivisions
+                subdivisions: this._selectedMesh.subdivisions,
+
+                onlySelectedJoints: this._onlySelectedJoints,
+                firstJoints: this._selectedJointsCount,
+
+                constantForce: this._windForce,
+                constantForceInterval: this._windForceInterval,
+                constantForceDirection: this._windDirection,
+
+                freeFall: this._freeFall
             }]);
+
+            // Store Metadatas
+            this._storeMetadatas();
         }
 
         // Configure mesh
@@ -121,7 +144,31 @@ module BABYLON.EDITOR {
             for (var i = 0; i < this._metadatas.length; i++) {
                 if (this._metadatas[i].meshName === mesh.name) {
                     this._toolbar.setItemChecked("APPLIED", true);
+
+                    // Configure edit element
+                    this._windForce = this._metadatas[i].constantForce;
+                    this._windForceInterval = this._metadatas[i].constantForceInterval;
+                    this._windDirection = this._metadatas[i].constantForceDirection;
+
+                    this._onlySelectedJoints = this._metadatas[i].onlySelectedJoints;
+                    this._selectedJointsCount = this._metadatas[i].firstJoints;
+
+                    this._freeFall = this._metadatas[i].freeFall;
+
+                    this._editTool.updatePropertyValue("_windForce", this._windForce, "Wind");
+                    this._editTool.updatePropertyValue("_windForceInterval", this._windForceInterval, "Wind");
+                    this._editTool.updatePropertyValue("x", this._windDirection.x, "Wind");
+                    this._editTool.updatePropertyValue("y", this._windDirection.y, "Wind");
+                    this._editTool.updatePropertyValue("z", this._windDirection.z, "Wind");
+
+                    this._editTool.updatePropertyValue("_freeFall", this._freeFall);
+
+                    this._editTool.updatePropertyValue("_onlySelectedJoints", this._onlySelectedJoints);
+                    this._editTool.updatePropertyValue("_selectedJointsCount", this._selectedJointsCount);
+
+                    // Preview
                     this._previewMesh();
+
                     return;
                 }
             }
@@ -148,11 +195,41 @@ module BABYLON.EDITOR {
             // Layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
             this._layouts.createPanel("SOFT-BODY-BUILDER-TOP-PANEL", "top", 45, false).setContent(GUI.GUIElement.CreateElement("div", "SOFT-BODY-BUILDER-TOOLBAR"));
+            this._layouts.createPanel("SOFT-BODY-BUILDER-LEFT-PANEL", "left", 300, true).setContent(GUI.GUIElement.CreateElement("div", "SOFT-BODY-BUILDER-TOOLS"));
             this._layouts.createPanel("SOFT-BODY-BUILDER-MAIN-PANEL", "main", 0, false).setContent(GUI.GUIElement.CreateElement("canvas", "SOFT-BODY-BUILDER-PREVIEW"));
             this._layouts.buildElement(this._containerID);
 
             this._layouts.on("resize", (event) => {
                 this._engine.resize();
+                this._editTool.resize(this._layouts.getPanelFromType("left").width);
+            });
+
+            // Edit tool
+            this._editTool = new GUI.GUIEditForm("SOFT-BODY-BUILDER-TOOLS", this._core);
+            this._editTool.buildElement("SOFT-BODY-BUILDER-TOOLS");
+
+            var windFolder = this._editTool.addFolder("Wind");
+            windFolder.add(this, "_windForce").min(0).step(0.1).name("Wind force").onChange(() => this._storeMetadatas());
+            windFolder.add(this, "_windForceInterval").min(0).step(1).name("Wind force interval").onChange(() => this._storeMetadatas());
+            windFolder.add(this._windDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x");
+            windFolder.add(this._windDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y");
+            windFolder.add(this._windDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z");
+
+            this._editTool.add(this, "_onlySelectedJoints").name("Only one joint").onChange(() => this._storeMetadatas());
+            this._editTool.add(this, "_selectedJointsCount").min(0).step(1).name("Selected joints");
+
+            this._editTool.add(this, "_freeFall").name("Free fall").onFinishChange((value: boolean) => {
+                if (value) {
+                    this._sphere.setPhysicsState(PhysicsImpostor.SphereImpostor, { mass: 0 });
+                }
+                else if (this._sphere.getPhysicsImpostor()) {
+                    this._sphere.getPhysicsImpostor().dispose();
+                    this._sphere.setPhysicsState(PhysicsImpostor.NoImpostor, { mass: 0 });
+                }
+
+                this._sphere.isVisible = value;
+
+                this._storeMetadatas();
             });
 
             // Toolbar
@@ -168,11 +245,10 @@ module BABYLON.EDITOR {
                 this._storeMetadatas();
 
                 switch (item.parent) {
-                    case "PREVIEW": this._previewMesh(); break;
+                    case "PREVIEW": this._configureMesh(this._baseMesh); break;
                     case "APPLIED":
                         var checked = !this._toolbar.isItemChecked(item.parent);
                         this._toolbar.setItemChecked(item.parent, checked);
-                        this._storeMetadatas();
                         break;
                     case "HIDE-SPHERES":
                         var checked = this._toolbar.isItemChecked(item.parent);
@@ -187,6 +263,7 @@ module BABYLON.EDITOR {
             this._scene = new Scene(this._engine);
             this._camera = new ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, Vector3.Zero(), this._scene);
             this._light = new PointLight("SoftBodyLight", new Vector3(15, 15, 15), this._scene);
+            this._sphere = Mesh.CreateSphere("sphere", 16, 4, this._scene, false);
             this._engine.runRenderLoop(() => this._scene.render());
 
             this._scene.gravity = this._core.currentScene.gravity;
@@ -198,18 +275,33 @@ module BABYLON.EDITOR {
 
             this._scene.enablePhysics(this._scene.gravity, new CannonJSPlugin());
 
+            this._sphere.position.y = -4;
+            this._sphere.isVisible = false;
+
             // Extension
             this._extension = new EXTENSIONS.SoftBodyBuilderExtension(this._scene);
         }
 
         // Stores the Metadatas
         private _storeMetadatas(): void {
+            if (!this._baseMesh)
+                return;
+            
             var data: EXTENSIONS.ISoftBodyData = {
                 meshName: this._baseMesh.name,
                 applied: this._toolbar.isItemChecked("APPLIED"),
                 width: this._selectedMesh._width,
                 height: this._selectedMesh._height,
-                subdivisions: this._selectedMesh.subdivisions
+                subdivisions: this._selectedMesh.subdivisions,
+
+                onlySelectedJoints: this._onlySelectedJoints,
+                firstJoints: this._selectedJointsCount,
+                
+                constantForce: this._windForce,
+                constantForceInterval: this._windForceInterval,
+                constantForceDirection: this._windDirection,
+
+                freeFall: this._freeFall
             };
 
             for (var i = 0; i < this._metadatas.length; i++) {

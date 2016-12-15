@@ -70,7 +70,7 @@ var BABYLON;
                 }
             };
             // Save objects states
-            SceneManager.SaveObjectStates = function (scene) {
+            SceneManager.SaveObjectStates = function (scene, core) {
                 var _this = this;
                 this._ObjectsStatesConfiguration = {};
                 var recursivelySaveStates = function (object, statesObject) {
@@ -95,8 +95,11 @@ var BABYLON;
                 };
                 var saveObjects = function (objects) {
                     for (var i = 0; i < objects.length; i++) {
+                        var object = objects[i];
+                        if (object === core.camera || object === core.playCamera)
+                            continue;
                         var id = "Scene";
-                        if (!(objects[i] instanceof BABYLON.Scene))
+                        if (!(object instanceof BABYLON.Scene))
                             id = objects[i].id;
                         _this._ObjectsStatesConfiguration[id] = {};
                         recursivelySaveStates(objects[i], _this._ObjectsStatesConfiguration[id]);
@@ -153,17 +156,17 @@ var BABYLON;
                     return null;
                 return this._CustomMetadatas[key];
             };
-            // Public members
-            /**
-            * Objects configuration
-            */
-            SceneManager._ConfiguredObjectsIDs = {};
-            /**
-            * Custom meta datas
-            */
-            SceneManager._CustomMetadatas = {};
             return SceneManager;
         }());
+        // Public members
+        /**
+        * Objects configuration
+        */
+        SceneManager._ConfiguredObjectsIDs = {};
+        /**
+        * Custom meta datas
+        */
+        SceneManager._CustomMetadatas = {};
         EDITOR.SceneManager = SceneManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

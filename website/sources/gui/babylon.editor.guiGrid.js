@@ -21,25 +21,26 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function GUIGrid(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.columns = [];
-                    this.records = [];
-                    this.header = "";
-                    this.fixedBody = true;
-                    this.showToolbar = true;
-                    this.showFooter = false;
-                    this.showDelete = false;
-                    this.showAdd = false;
-                    this.showEdit = false;
-                    this.showOptions = true;
-                    this.showRefresh = true;
-                    this.showSearch = true;
-                    this.showColumnHeaders = true;
-                    this.menus = [];
-                    this.autoMergeChanges = true;
-                    this.multiSelect = true;
-                    this.hasSubGrid = false;
+                    _this.columns = [];
+                    _this.records = [];
+                    _this.header = "";
+                    _this.fixedBody = true;
+                    _this.showToolbar = true;
+                    _this.showFooter = false;
+                    _this.showDelete = false;
+                    _this.showAdd = false;
+                    _this.showEdit = false;
+                    _this.showOptions = true;
+                    _this.showRefresh = true;
+                    _this.showSearch = true;
+                    _this.showColumnHeaders = true;
+                    _this.menus = [];
+                    _this.autoMergeChanges = true;
+                    _this.multiSelect = true;
+                    _this.hasSubGrid = false;
+                    return _this;
                 }
                 // Adds a menu
                 GUIGrid.prototype.addMenu = function (id, text, icon) {

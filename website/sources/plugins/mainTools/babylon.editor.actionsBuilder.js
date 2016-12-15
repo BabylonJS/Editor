@@ -2,12 +2,12 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
+        var EACTION_TYPE;
         (function (EACTION_TYPE) {
             EACTION_TYPE[EACTION_TYPE["TRIGGER"] = 0] = "TRIGGER";
             EACTION_TYPE[EACTION_TYPE["ACTION"] = 1] = "ACTION";
             EACTION_TYPE[EACTION_TYPE["CONTROL"] = 2] = "CONTROL";
-        })(EDITOR.EACTION_TYPE || (EDITOR.EACTION_TYPE = {}));
-        var EACTION_TYPE = EDITOR.EACTION_TYPE;
+        })(EACTION_TYPE = EDITOR.EACTION_TYPE || (EDITOR.EACTION_TYPE = {}));
         var ActionsBuilder = (function () {
             /**
             * Constructor
@@ -21,6 +21,7 @@ var BABYLON;
                 this._containerID = null;
                 this._tab = null;
                 this._layouts = null;
+                this._toolbar = null;
                 this._triggersList = null;
                 this._actionsList = null;
                 this._controlsList = null;
@@ -78,6 +79,7 @@ var BABYLON;
                 this._triggersList.destroy();
                 this._actionsList.destroy();
                 this._controlsList.destroy();
+                this._toolbar.destroy();
                 this._layouts.destroy();
                 ActionsBuilder._ActionsBuilderInstance = null;
             };
@@ -151,13 +153,19 @@ var BABYLON;
                 this._containerElement = $("#" + this._containerID);
                 // Create layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
-                this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 200, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
+                this._layouts.createPanel("ACTIONS-BUILDER-TOP-PANEL", "top", 45, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-TOOLBAR"));
+                this._layouts.createPanel("ACTIONS-BUILDER-MODULES", "left", 200, true).setContent("<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                     "<div id=\"ACTIONS-BUILDER-ACTIONS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                     "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>");
                 var mainPanel = this._layouts.createPanel("ACTIONS-BUILDER-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"ACTIONS-BUILDER-CANVAS\" style=\"height: 100%; width: 100%; position: absolute;\"></div>");
                 mainPanel.style = "overflow: hidden;";
                 this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
                 this._layouts.buildElement(this._containerID);
+                // Create toolbar
+                this._toolbar = new EDITOR.GUI.GUIToolbar("ACTIONS-BUILDER-TOOLBAR", this._core);
+                this._toolbar.createMenu("button", "ACTIONS-BUILDER-SAVE", "Save", "icon-export");
+                this._toolbar.buildElement("ACTIONS-BUILDER-TOOLBAR");
+                this._toolbar.onClick = function (selected) { return _this._onSave(); };
                 // Create triggers list
                 this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
                 this._triggersList.showAdd = this._triggersList.showEdit = this._triggersList.showOptions = this._triggersList.showRefresh = false;
@@ -189,7 +197,6 @@ var BABYLON;
                 this._graph.onMouseUp = function () { return _this._onMouseUpOnGraph(); };
                 // Create parameters
                 this._parametersEditor = new EDITOR.ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
-                this._parametersEditor.onSave = function () { return _this._onSave(); };
                 this._parametersEditor.onRemove = function () { return _this._onRemoveNode(false); };
                 this._parametersEditor.onRemoveAll = function () { return _this._onRemoveNode(true); };
             };
@@ -277,6 +284,7 @@ var BABYLON;
                     };
                 }
                 else {
+                    debugger;
                     var graph = this.serializeGraph();
                     var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
                     metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name] = graph;
@@ -510,16 +518,16 @@ var BABYLON;
                 }
                 return null;
             };
-            // Static members
-            ActionsBuilder._ActionsBuilderInstance = null;
-            ActionsBuilder._Classes = null;
-            ActionsBuilder._ExcludedClasses = [
-                "PredicateCondition",
-                "ExecuteCodeAction",
-                "CombineAction"
-            ];
             return ActionsBuilder;
         }());
+        // Static members
+        ActionsBuilder._ActionsBuilderInstance = null;
+        ActionsBuilder._Classes = null;
+        ActionsBuilder._ExcludedClasses = [
+            "PredicateCondition",
+            "ExecuteCodeAction",
+            "CombineAction"
+        ];
         EDITOR.ActionsBuilder = ActionsBuilder;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

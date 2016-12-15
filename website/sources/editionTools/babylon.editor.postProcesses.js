@@ -14,15 +14,16 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function PostProcessesTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "POSTPROCESSES.TAB";
+                _this.tab = "POSTPROCESSES.TAB";
                 // Private members
-                this._renderEffects = {};
+                _this._renderEffects = {};
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
                 ];
+                return _this;
             }
             // Object supported
             PostProcessesTool.prototype.isObjectSupported = function (object) {

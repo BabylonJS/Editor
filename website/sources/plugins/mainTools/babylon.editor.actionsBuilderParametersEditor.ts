@@ -1,7 +1,6 @@
 ﻿module BABYLON.EDITOR {
     export class ActionsBuilderParametersEditor {
         // Public members
-        public onSave: () => void = () => { };
         public onRemove: () => void = () => { };
         public onRemoveAll: () => void = () => { };
 
@@ -324,18 +323,6 @@
 
             this._guiElements = [];
             this._editors = [];
-
-            // Create save button
-            var saveButton = GUI.GUIElement.CreateButton(this._container, SceneFactory.GenerateUUID(), "Save");
-            saveButton.css("width", "100%");
-            saveButton.css("position", "absolute");
-            saveButton.css("bottom", "10px");
-            saveButton.addClass("btn-green");
-
-            saveButton.click((event) => {
-                if (this.onSave)
-                    this.onSave();
-            });
         }
 
         // Returns the parameter's type

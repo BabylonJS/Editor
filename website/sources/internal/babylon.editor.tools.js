@@ -34,7 +34,8 @@ var BABYLON;
                     "resizable=yes",
                     "toolbar=no",
                     "menubar=no",
-                    "scrollbars=yes"];
+                    "scrollbars=yes"
+                ];
                 popup = window.open(url, "Dumped Frame Buffer", features.join(","));
                 popup.focus();
                 return popup;

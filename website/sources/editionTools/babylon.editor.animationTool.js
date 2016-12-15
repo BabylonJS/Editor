@@ -14,20 +14,21 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function AnimationTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "ANIMATION.TAB";
+                _this.tab = "ANIMATION.TAB";
                 // Private members
-                this._animationSpeed = 1.0;
-                this._loopAnimation = false;
-                this._impostor = "";
-                this._mass = 0;
-                this._friction = 0;
-                this._restitution = 0;
+                _this._animationSpeed = 1.0;
+                _this._loopAnimation = false;
+                _this._impostor = "";
+                _this._mass = 0;
+                _this._friction = 0;
+                _this._restitution = 0;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-ANIMATION"
                 ];
+                return _this;
             }
             // Object supported
             AnimationTool.prototype.isObjectSupported = function (object) {
@@ -70,6 +71,7 @@ var BABYLON;
                 }
                 // Physics
                 if (object instanceof BABYLON.AbstractMesh && this._editionTool.core.currentScene.getPhysicsEngine()) {
+                    var physicsObject = object;
                     var physicsFolder = this._element.addFolder("Physics");
                     var scene = this._editionTool.core.currentScene;
                     var states = [
@@ -90,24 +92,24 @@ var BABYLON;
                     ];
                     this._impostor = object.getPhysicsImpostor() ? states[object.getPhysicsImpostor().type] || states[0] : states[0];
                     physicsFolder.add(this, "_impostor", realStates).name("Impostor").onChange(function (value) {
-                        if (object.getPhysicsImpostor()) {
-                            object.getPhysicsImpostor().dispose();
-                            object.physicsImpostor = null;
+                        if (physicsObject.getPhysicsImpostor()) {
+                            physicsObject.getPhysicsImpostor().dispose();
+                            physicsObject.physicsImpostor = null;
                         }
                         if (value !== realStates[0]) {
-                            object.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
-                            object.getPhysicsImpostor().sleep();
-                            BABYLON.Tags.AddTagsTo(object.getPhysicsImpostor(), "added");
+                            physicsObject.setPhysicsState(BABYLON.PhysicsEngine[value], { mass: 0 });
+                            physicsObject.getPhysicsImpostor().sleep();
+                            BABYLON.Tags.AddTagsTo(physicsObject.getPhysicsImpostor(), "added");
                         }
                         _this._editionTool.updateEditionTool();
                     });
-                    if (object.getPhysicsImpostor()) {
-                        this._mass = object.getPhysicsMass();
-                        this._friction = object.getPhysicsFriction();
-                        this._restitution = object.getPhysicsRestitution();
-                        physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setMass(value); });
-                        physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("friction", value); });
-                        physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange(function (value) { return object.getPhysicsImpostor().setParam("restitution", value); });
+                    if (physicsObject.getPhysicsImpostor()) {
+                        this._mass = physicsObject.getPhysicsMass();
+                        this._friction = physicsObject.getPhysicsFriction();
+                        this._restitution = physicsObject.getPhysicsRestitution();
+                        physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange(function (value) { return physicsObject.getPhysicsImpostor().setMass(value); });
+                        physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange(function (value) { return physicsObject.getPhysicsImpostor().setParam("friction", value); });
+                        physicsFolder.add(this, "_restitution").name("Restitution").min(0).step(0.01).onChange(function (value) { return physicsObject.getPhysicsImpostor().setParam("restitution", value); });
                     }
                 }
                 return true;

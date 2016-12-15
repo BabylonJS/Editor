@@ -8,8 +8,8 @@ var BABYLON;
             * @param core: the editor core
             */
             function GUIParticleSystemEditor(core, particleSystem, createUI) {
-                var _this = this;
                 if (createUI === void 0) { createUI = true; }
+                var _this = this;
                 // Public members
                 this.core = null;
                 // Private members
@@ -296,7 +296,7 @@ var BABYLON;
                     if (value instanceof BABYLON.Vector3 || value instanceof BABYLON.Color4)
                         this._particleSystemToEdit[thing] = value;
                     if (value instanceof BABYLON.Texture)
-                        this._particleSystemToEdit[thing] = BABYLON.Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
+                        this._particleSystemToEdit[thing] = BABYLON.Texture.CreateFromBase64String(value["_buffer"], value.name, this.core.currentScene);
                 }
                 this._updateGraphNode(this._particleSystem.name);
             };
@@ -409,11 +409,11 @@ var BABYLON;
                 dummy.attachedParticleSystem = ps;
                 return ps;
             };
-            // Static members
-            GUIParticleSystemEditor._CurrentParticleSystem = null;
-            GUIParticleSystemEditor._CopiedParticleSystem = null;
             return GUIParticleSystemEditor;
         }());
+        // Static members
+        GUIParticleSystemEditor._CurrentParticleSystem = null;
+        GUIParticleSystemEditor._CopiedParticleSystem = null;
         EDITOR.GUIParticleSystemEditor = GUIParticleSystemEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

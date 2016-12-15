@@ -311,25 +311,25 @@ var BABYLON;
                 }
                 return water;
             };
-            // Public members
-            SceneFactory.HDRPipeline = null;
-            SceneFactory.StandardPipeline = null;
-            SceneFactory.SSAOPipeline = null;
-            SceneFactory.VLSPostProcess = null;
-            SceneFactory.EnabledPostProcesses = {
-                hdr: false,
-                attachHDR: true,
-                ssao: false,
-                ssaoOnly: false,
-                attachSSAO: true,
-                standard: false,
-                attachStandard: true,
-                vls: false
-            };
-            SceneFactory.NodesToStart = [];
-            SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;
         }());
+        // Public members
+        SceneFactory.HDRPipeline = null;
+        SceneFactory.StandardPipeline = null;
+        SceneFactory.SSAOPipeline = null;
+        SceneFactory.VLSPostProcess = null;
+        SceneFactory.EnabledPostProcesses = {
+            hdr: false,
+            attachHDR: true,
+            ssao: false,
+            ssaoOnly: false,
+            attachSSAO: true,
+            standard: false,
+            attachStandard: true,
+            vls: false
+        };
+        SceneFactory.NodesToStart = [];
+        SceneFactory.AnimationSpeed = 1.0;
         EDITOR.SceneFactory = SceneFactory;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

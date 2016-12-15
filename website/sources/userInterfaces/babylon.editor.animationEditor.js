@@ -728,11 +728,11 @@ var BABYLON;
                     core.currentScene.beginAnimation(objs[i], frame, frame + 1, false, 1.0);
                 }
             };
-            // Static members
-            GUIAnimationEditor.FramesPerSecond = 24;
-            GUIAnimationEditor._CopiedAnimations = [];
             return GUIAnimationEditor;
         }());
+        // Static members
+        GUIAnimationEditor.FramesPerSecond = 24;
+        GUIAnimationEditor._CopiedAnimations = [];
         EDITOR.GUIAnimationEditor = GUIAnimationEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

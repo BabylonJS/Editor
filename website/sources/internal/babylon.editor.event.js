@@ -10,13 +10,14 @@ var BABYLON;
         /**
         * Event Type
         */
+        var EventType;
         (function (EventType) {
             EventType[EventType["SCENE_EVENT"] = 0] = "SCENE_EVENT";
             EventType[EventType["GUI_EVENT"] = 1] = "GUI_EVENT";
             EventType[EventType["KEY_EVENT"] = 2] = "KEY_EVENT";
             EventType[EventType["UNKNOWN"] = 3] = "UNKNOWN";
-        })(EDITOR.EventType || (EDITOR.EventType = {}));
-        var EventType = EDITOR.EventType;
+        })(EventType = EDITOR.EventType || (EDITOR.EventType = {}));
+        var GUIEventType;
         (function (GUIEventType) {
             GUIEventType[GUIEventType["FORM_CHANGED"] = 0] = "FORM_CHANGED";
             GUIEventType[GUIEventType["FORM_TOOLBAR_CLICKED"] = 1] = "FORM_TOOLBAR_CLICKED";
@@ -42,8 +43,8 @@ var BABYLON;
             GUIEventType[GUIEventType["DOCUMENT_KEY_DOWN"] = 21] = "DOCUMENT_KEY_DOWN";
             GUIEventType[GUIEventType["DOCUMENT_KEY_UP"] = 22] = "DOCUMENT_KEY_UP";
             GUIEventType[GUIEventType["UNKNOWN"] = 23] = "UNKNOWN";
-        })(EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
-        var GUIEventType = EDITOR.GUIEventType;
+        })(GUIEventType = EDITOR.GUIEventType || (EDITOR.GUIEventType = {}));
+        var SceneEventType;
         (function (SceneEventType) {
             SceneEventType[SceneEventType["OBJECT_PICKED"] = 0] = "OBJECT_PICKED";
             SceneEventType[SceneEventType["OBJECT_ADDED"] = 1] = "OBJECT_ADDED";
@@ -51,8 +52,7 @@ var BABYLON;
             SceneEventType[SceneEventType["OBJECT_CHANGED"] = 3] = "OBJECT_CHANGED";
             SceneEventType[SceneEventType["NEW_SCENE_CREATED"] = 4] = "NEW_SCENE_CREATED";
             SceneEventType[SceneEventType["UNKNOWN"] = 4] = "UNKNOWN";
-        })(EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
-        var SceneEventType = EDITOR.SceneEventType;
+        })(SceneEventType = EDITOR.SceneEventType || (EDITOR.SceneEventType = {}));
         /**
         * Base Event
         */
@@ -73,9 +73,10 @@ var BABYLON;
             * @param object: the object generating the event
             */
             function SceneEvent(object, eventType, data) {
-                _super.call(this, data);
-                this.object = object;
-                this.eventType = eventType;
+                var _this = _super.call(this, data) || this;
+                _this.object = object;
+                _this.eventType = eventType;
+                return _this;
             }
             return SceneEvent;
         }(BaseEvent));
@@ -91,9 +92,10 @@ var BABYLON;
             * @param eventType: the gui event type
             */
             function GUIEvent(caller, eventType, data) {
-                _super.call(this, data);
-                this.caller = caller;
-                this.eventType = eventType;
+                var _this = _super.call(this, data) || this;
+                _this.caller = caller;
+                _this.eventType = eventType;
+                return _this;
             }
             return GUIEvent;
         }(BaseEvent));
@@ -104,11 +106,12 @@ var BABYLON;
         var KeyEvent = (function (_super) {
             __extends(KeyEvent, _super);
             function KeyEvent(key, control, shift, isDown, data) {
-                _super.call(this, data);
-                this.key = key;
-                this.control = control;
-                this.shift = shift;
-                this.isDown = isDown;
+                var _this = _super.call(this, data) || this;
+                _this.key = key;
+                _this.control = control;
+                _this.shift = shift;
+                _this.isDown = isDown;
+                return _this;
             }
             return KeyEvent;
         }(BaseEvent));

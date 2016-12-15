@@ -95,7 +95,7 @@ module BABYLON.EDITOR {
                         case "audio/x-mpeg-3":
                         case "audio/ogg":
                             BABYLON.Tools.ReadFile(file, this._onReadFileCallback(file.name, callback), null, true);
-                            BABYLON.FilesInput.FilesToLoad[name.toLowerCase()] = file;
+                            BABYLON.FilesInput.FilesToLoad[file.name.toLowerCase()] = file;
                         break;
                     }
                 }

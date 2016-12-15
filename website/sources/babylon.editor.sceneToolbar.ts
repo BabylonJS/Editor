@@ -101,7 +101,9 @@
                     this._drawingDebugLayer = checked;
 
                     if (checked) {
-                        scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
+                        debugger;
+                        scene.debugLayer.show(true);
+                        //scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
                         this._configureDebugLayer();
                     }
                     else

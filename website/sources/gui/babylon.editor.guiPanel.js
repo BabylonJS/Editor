@@ -20,17 +20,18 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function GUIPanel(name, type, size, resizable, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public memebers
-                    this.tabs = new Array();
-                    this.size = 70;
-                    this.minSize = 10;
-                    this.maxSize = undefined;
-                    this.style = "background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;";
-                    this.toolbar = null;
-                    this.type = type;
-                    this.size = size;
-                    this.resizable = resizable;
+                    _this.tabs = new Array();
+                    _this.size = 70;
+                    _this.minSize = 10;
+                    _this.maxSize = undefined;
+                    _this.style = "background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;";
+                    _this.toolbar = null;
+                    _this.type = type;
+                    _this.size = size;
+                    _this.resizable = resizable;
+                    return _this;
                 }
                 // Create tab
                 GUIPanel.prototype.createTab = function (tab) {
@@ -79,6 +80,11 @@ var BABYLON;
                             return this._panelElement.width;
                         return 0;
                     },
+                    // Set width
+                    set: function (width) {
+                        if (this._panelElement)
+                            this._panelElement.width = width;
+                    },
                     enumerable: true,
                     configurable: true
                 });
@@ -88,6 +94,11 @@ var BABYLON;
                         if (this._panelElement)
                             return this._panelElement.height;
                         return 0;
+                    },
+                    // Set height
+                    set: function (height) {
+                        if (this._panelElement)
+                            this._panelElement.height = height;
                     },
                     enumerable: true,
                     configurable: true

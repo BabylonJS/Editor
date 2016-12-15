@@ -314,7 +314,7 @@
             var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
                 "<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
                     "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
-                        "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                        //"<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                         "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                         "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "</div>" +

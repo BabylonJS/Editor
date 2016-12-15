@@ -15,12 +15,12 @@ var BABYLON;
             PluginManager.RegisterCustomUpdatePlugin = function (plugin) {
                 this.CustomUpdatePlugins.push(plugin);
             };
-            // Plugins
-            PluginManager.EditionToolPlugins = [];
-            PluginManager.MainToolbarPlugins = [];
-            PluginManager.CustomUpdatePlugins = [];
             return PluginManager;
         }());
+        // Plugins
+        PluginManager.EditionToolPlugins = [];
+        PluginManager.MainToolbarPlugins = [];
+        PluginManager.CustomUpdatePlugins = [];
         EDITOR.PluginManager = PluginManager;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

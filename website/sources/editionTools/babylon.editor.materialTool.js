@@ -14,16 +14,17 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function MaterialTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "MATERIAL.TAB";
+                _this.tab = "MATERIAL.TAB";
                 // Private members
-                this._dummyProperty = "";
-                this._libraryDummyProperty = "";
+                _this._dummyProperty = "";
+                _this._libraryDummyProperty = "";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
                 ];
+                return _this;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
@@ -86,7 +87,7 @@ var BABYLON;
                             var index = _this._editionTool.object.materialIndex;
                             var multiMaterial = _this._editionTool.object.getMesh().material;
                             if (multiMaterial instanceof BABYLON.MultiMaterial)
-                                _this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                                multiMaterial.subMaterials[index] = newmaterial;
                         }
                         else
                             _this._editionTool.object.material = newmaterial;
@@ -150,7 +151,7 @@ var BABYLON;
                         return;
                     subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
                 }
-                if (material instanceof BABYLON.FurMaterial && this.object instanceof BABYLON.AbstractMesh) {
+                if (material instanceof BABYLON.FurMaterial && this.object instanceof BABYLON.Mesh) {
                     var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                     material.furTexture = furTexture;
                     var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);

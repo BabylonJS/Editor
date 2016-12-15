@@ -14,16 +14,17 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function SceneTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "SCENE.TAB";
+                _this.tab = "SCENE.TAB";
                 // Private members
-                this._fogType = "";
-                this._physicsEnabled = false;
+                _this._fogType = "";
+                _this._physicsEnabled = false;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SCENE"
                 ];
+                return _this;
             }
             // Object supported
             SceneTool.prototype.isObjectSupported = function (object) {

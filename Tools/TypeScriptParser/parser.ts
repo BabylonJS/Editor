@@ -57,7 +57,7 @@ var serializeSymbol = (symbol: ts.Symbol): DocEntry => {
     return {
         name: symbol.getName(),
         documentation: ts.displayPartsToString(symbol.getDocumentationComment()),
-        type: checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration))
+        type: symbol.valueDeclaration ? checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration)) : ""
     };
 };
 

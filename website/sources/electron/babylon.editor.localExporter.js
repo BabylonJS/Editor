@@ -14,8 +14,9 @@ var BABYLON;
             * @param core: the editor core instance
             */
             function ElectronLocalStorage(core) {
-                _super.call(this, core);
-                this._editor = core.editor;
+                var _this = _super.call(this, core) || this;
+                _this._editor = core.editor;
+                return _this;
             }
             // Creates folders
             ElectronLocalStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
@@ -41,7 +42,8 @@ var BABYLON;
                     var file = files[i];
                     var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
                     var data = null;
-                    if (file.content instanceof ArrayBuffer || file.content instanceof Uint8Array)
+                    var content = file.content;
+                    if (content instanceof ArrayBuffer || content instanceof Uint8Array)
                         data = new global.Buffer(file.content);
                     else
                         data = file.content;

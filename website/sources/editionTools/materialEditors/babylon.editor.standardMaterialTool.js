@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function StandardMaterialTool(editionTool) {
-                _super.call(this, editionTool, "STANDARD-MATERIAL", "STANDARD", "Std Material");
+                var _this = _super.call(this, editionTool, "STANDARD-MATERIAL", "STANDARD", "Std Material") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.StandardMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.StandardMaterial; };
+                return _this;
             }
             // Update
             StandardMaterialTool.prototype.update = function () {
@@ -113,7 +114,7 @@ var BABYLON;
                     var index = this.object.materialIndex;
                     var multiMaterial = this.object.getMesh().material;
                     if (multiMaterial instanceof BABYLON.MultiMaterial)
-                        this.object.getMesh().material.subMaterials[index] = pbr;
+                        multiMaterial.subMaterials[index] = pbr;
                 }
                 else
                     this.object.material = pbr;

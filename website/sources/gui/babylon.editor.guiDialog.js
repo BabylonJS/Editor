@@ -17,11 +17,12 @@ var BABYLON;
                 * @param name: the form name
                 */
                 function GUIDialog(name, core, title, body) {
-                    _super.call(this, name, core);
-                    this.callback = null;
+                    var _this = _super.call(this, name, core) || this;
+                    _this.callback = null;
                     // Initialize
-                    this.title = title;
-                    this.body = body;
+                    _this.title = title;
+                    _this.body = body;
+                    return _this;
                 }
                 // Build element
                 GUIDialog.prototype.buildElement = function (parent) {

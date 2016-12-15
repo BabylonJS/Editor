@@ -359,7 +359,7 @@
                     this._particleSystemToEdit[thing] = value;
 
                 if (value instanceof Texture)
-                    this._particleSystemToEdit[thing] = Texture.CreateFromBase64String(value._buffer, value.name, this.core.currentScene);
+                    this._particleSystemToEdit[thing] = Texture.CreateFromBase64String(value["_buffer"], value.name, this.core.currentScene);
             }
 
             this._updateGraphNode(this._particleSystem.name);

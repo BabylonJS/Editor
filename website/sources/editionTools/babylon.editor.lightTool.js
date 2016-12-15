@@ -14,15 +14,16 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function LightTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "LIGHT.TAB";
+                _this.tab = "LIGHT.TAB";
                 // Private members
-                this._customShadowsGeneratorSize = 512;
+                _this._customShadowsGeneratorSize = 512;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-LIGHT"
                 ];
+                return _this;
             }
             // Object supported
             LightTool.prototype.isObjectSupported = function (object) {

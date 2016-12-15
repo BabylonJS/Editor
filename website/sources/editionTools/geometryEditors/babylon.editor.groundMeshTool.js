@@ -15,12 +15,13 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function GroundMeshTool(editionTool) {
-                _super.call(this, editionTool, "GROUND-MESH", "GROUND", "Ground");
+                var _this = _super.call(this, editionTool, "GROUND-MESH", "GROUND", "Ground") || this;
                 // Public members
                 // Private members
-                this._subdivisions = 0;
+                _this._subdivisions = 0;
                 // Initialize
-                this.onObjectSupported = function (mesh) { return mesh instanceof BABYLON.GroundMesh; };
+                _this.onObjectSupported = function (mesh) { return mesh instanceof BABYLON.GroundMesh; };
+                return _this;
             }
             // Update
             GroundMeshTool.prototype.update = function () {

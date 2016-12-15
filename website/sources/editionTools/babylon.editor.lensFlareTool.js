@@ -14,16 +14,17 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function LensFlareTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "LENSFLARE.TAB";
+                _this.tab = "LENSFLARE.TAB";
                 // Private members
-                this._dummyProperty = "Lens Flare 1";
-                this._currentLensFlareId = 0;
+                _this._dummyProperty = "Lens Flare 1";
+                _this._currentLensFlareId = 0;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-LENS-FLARE"
                 ];
+                return _this;
             }
             // Object supported
             LensFlareTool.prototype.isObjectSupported = function (object) {

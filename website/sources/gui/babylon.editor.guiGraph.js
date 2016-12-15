@@ -17,9 +17,10 @@ var BABYLON;
                 * @param header: form's header text
                 */
                 function GUIGraph(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.menus = [];
+                    _this.menus = [];
+                    return _this;
                 }
                 GUIGraph.prototype.addMenu = function (id, text, img) {
                     if (img === void 0) { img = ""; }

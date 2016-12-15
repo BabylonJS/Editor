@@ -104,7 +104,7 @@
         private static _ObjectsStatesConfiguration: IStringDictionary<any>;
 
         // Save objects states
-        public static SaveObjectStates(scene: Scene): void {
+        public static SaveObjectStates(scene: Scene, core: EditorCore): void {
             this._ObjectsStatesConfiguration = {};
 
             var recursivelySaveStates = (object: any, statesObject: any): void => {
@@ -132,9 +132,13 @@
 
             var saveObjects = (objects: Node[] | Scene[]): void => {
                 for (var i = 0; i < objects.length; i++) {
+                    var object = objects[i];
+                    if (object === core.camera || object === core.playCamera)
+                        continue;
+                    
                     var id = "Scene";
 
-                    if (!(objects[i] instanceof Scene))
+                    if (!(object instanceof Scene))
                         id = (<Node>objects[i]).id;
 
                     this._ObjectsStatesConfiguration[id] = { };

@@ -14,17 +14,18 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function AbstractMeshTool(editionTool, containerID, tabID, tabName) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
                 // Private members
-                this._tabName = "New Tab";
-                this.mesh = null;
+                _this._tabName = "New Tab";
+                _this.mesh = null;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-" + containerID
                 ];
-                this.tab = "MESH." + tabID;
-                this._tabName = tabName;
+                _this.tab = "MESH." + tabID;
+                _this._tabName = tabName;
+                return _this;
             }
             // Object supported
             AbstractMeshTool.prototype.isObjectSupported = function (object) {

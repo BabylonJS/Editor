@@ -14,15 +14,16 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function TextureTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "TEXTURE.TAB";
+                _this.tab = "TEXTURE.TAB";
                 // Private members
-                this._currentCoordinatesMode = "";
+                _this._currentCoordinatesMode = "";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-TEXTURE"
                 ];
+                return _this;
             }
             // Object supported
             TextureTool.prototype.isObjectSupported = function (object) {

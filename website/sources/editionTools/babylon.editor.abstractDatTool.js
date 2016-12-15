@@ -15,7 +15,7 @@ var BABYLON;
             */
             function AbstractDatTool(editionTool) {
                 // Initialize
-                _super.call(this, editionTool);
+                return _super.call(this, editionTool) || this;
             }
             // Update
             AbstractDatTool.prototype.update = function () {

@@ -231,7 +231,7 @@ var BABYLON;
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
                 var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
                     "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
-                    "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                    //"<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                     "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "</div>" +
@@ -359,10 +359,10 @@ var BABYLON;
                     EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, false, _this.core, event);
                 });
             };
-            // Statics
-            EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
             return EditorMain;
         }());
+        // Statics
+        EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
         EDITOR.EditorMain = EditorMain;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -14,8 +14,9 @@ var BABYLON;
             * @param core: the editor core instance
             */
             function OneDriveStorage(core) {
-                _super.call(this, core);
-                this._editor = core.editor;
+                var _this = _super.call(this, core) || this;
+                _this._editor = core.editor;
+                return _this;
             }
             // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
             OneDriveStorage._OnAuthentificated = function () {
@@ -163,14 +164,14 @@ var BABYLON;
                     });
                 });
             };
-            //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
-            OneDriveStorage._ClientID = "0000000048182B1B";
-            OneDriveStorage._TOKEN = "";
-            OneDriveStorage._TOKEN_EXPIRES_IN = 0;
-            OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
-            OneDriveStorage._POPUP = null;
             return OneDriveStorage;
         }(EDITOR.Storage));
+        //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
+        OneDriveStorage._ClientID = "0000000048182B1B";
+        OneDriveStorage._TOKEN = "";
+        OneDriveStorage._TOKEN_EXPIRES_IN = 0;
+        OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
+        OneDriveStorage._POPUP = null;
         EDITOR.OneDriveStorage = OneDriveStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

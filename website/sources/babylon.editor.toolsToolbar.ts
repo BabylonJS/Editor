@@ -76,8 +76,8 @@
 
                     if (checked) {
                         // Save states
-                        //SceneManager.SaveObjectStates(this._core.currentScene);
-
+                        SceneManager.SaveObjectStates(this._core.currentScene, this._core);
+                        
                         // Transformers
                         this._editor.transformer.setNode(null);
                         this._editor.transformer.enabled = false;
@@ -106,8 +106,8 @@
                     }
                     else {
                         // Restore states
-                        //SceneManager.RestoreObjectsStates(this._core.currentScene);
-
+                        SceneManager.RestoreObjectsStates(this._core.currentScene);
+                        
                         this._core.engine.resize();
 
                         // Animate at launch

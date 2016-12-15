@@ -14,17 +14,18 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function GeneralTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.object = null;
-                this.tab = "GENERAL.TAB";
+                _this.object = null;
+                _this.tab = "GENERAL.TAB";
                 // Private members
-                this._isActiveCamera = false;
-                this._isActivePlayCamera = false;
+                _this._isActiveCamera = false;
+                _this._isActivePlayCamera = false;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
                 ];
+                return _this;
             }
             // Object supported
             GeneralTool.prototype.isObjectSupported = function (object) {
@@ -90,7 +91,7 @@ var BABYLON;
                     });
                     cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
-                    if (object.speed)
+                    if (object["speed"] !== undefined)
                         cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
                     if (object.fov)
                         cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");

@@ -55,10 +55,10 @@
             super.update();
 
             if (object instanceof AbstractMesh) {
-                this.material = object.material;
+                this.material = <T>object.material;
             }
             else if (object instanceof SubMesh) {
-                this.material = object.getMaterial();
+                this.material = <T>object.getMaterial();
             }
 
             if (!this.material)

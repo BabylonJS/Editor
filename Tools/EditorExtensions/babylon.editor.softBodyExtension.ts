@@ -5,6 +5,15 @@ module BABYLON.EDITOR.EXTENSIONS {
         width: number;
         height: number;
         subdivisions: number;
+
+        onlySelectedJoints: boolean;
+        firstJoints: number;
+
+        constantForce: number;
+        constantForceInterval: number;
+        constantForceDirection: Vector3;
+
+        freeFall: boolean;
     }
 
     export interface ISoftBodyConfiguration {
@@ -98,7 +107,12 @@ module BABYLON.EDITOR.EXTENSIONS {
             // Create impostors
             for (var i = 0; i < config.spheres.length; i++) {
                 var point = config.spheres[i];
-                var mass = i < (data.subdivisions + 1) ? 0 : 0.1;
+                var mass = i < (data.subdivisions + 1) ? 0.0 : 1.0;
+                
+                if (data.freeFall)
+                    mass = 1.0;
+                else if (data.onlySelectedJoints)
+                    mass = i > data.firstJoints ? 1.0 : 0.0;
 
                 point.physicsImpostor = new PhysicsImpostor(point, BABYLON.PhysicsImpostor.ParticleImpostor, { mass: mass }, this._scene);
 
@@ -112,10 +126,27 @@ module BABYLON.EDITOR.EXTENSIONS {
             }
 
             // Update function
+            var engine = this._scene.getEngine();
+            var lastForceTime = 0;
+
+            var direction = data.constantForceDirection;
+
             positions = new Array(config.spheres.length * 3);
 
             config.beforeRenderFunction = () => {
-                
+                // Update force (wind)
+                if (lastForceTime >= data.constantForceInterval) {
+                    for (var i = 0; i < config.spheres.length; i++) {
+                        var force = Math.random() * data.constantForce;
+                        config.spheres[i].applyImpulse(new Vector3(direction.x * force, direction.y * force, direction.z * force), Vector3.Zero());
+                    }
+
+                    lastForceTime = 0;
+                }
+
+                lastForceTime += engine.getDeltaTime();
+
+                // Update vertices
                 for (var i = 0; i < config.spheres.length; i++) {
                     var s = config.spheres[i];
 

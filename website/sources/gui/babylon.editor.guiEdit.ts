@@ -49,6 +49,26 @@
             });
         }
 
+        // Updates the given property value
+        public updatePropertyValue<T>(property: string, value: T, folder?: string, startElement?: dat.GUI): void {
+            if (!startElement)
+                startElement = this._datElement;
+            
+            for (var i = 0; i < startElement.__controllers.length; i++) {
+                var controller = startElement.__controllers[i];
+
+                if (controller.property === property) {
+                    controller.setValue(value);
+                    break;
+                }
+            }
+
+            if (folder) {
+                for (var folder in startElement.__folders)
+                    this.updatePropertyValue(property, value, folder, startElement.__folders[folder]);
+            }
+        }
+
         // Get / Set width
         public set width(width: number) {
             this._datElement.width = width;
@@ -83,6 +103,23 @@
             this._datElement.width = parentElement.width();
 
             this.element = <any>parentElement[0].appendChild(this._datElement.domElement);
+        }
+
+        /**
+         * Overrides
+         */
+
+        // Destroy the element (W2UI)
+        public destroy(): void
+        { }
+
+        // Refresh the element (W2UI)
+        public refresh(): void
+        { }
+
+        // Resize the element (W2UI)
+        public resize(width?: number): void {
+            this._datElement.width = width;
         }
     }
 }

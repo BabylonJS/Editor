@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function TerrainMaterialTool(editionTool) {
-                _super.call(this, editionTool, "TERRAIN-MATERIAL", "TERRAIN", "Terrain");
+                var _this = _super.call(this, editionTool, "TERRAIN-MATERIAL", "TERRAIN", "Terrain") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.TerrainMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.TerrainMaterial; };
+                return _this;
             }
             // Update
             TerrainMaterialTool.prototype.update = function () {

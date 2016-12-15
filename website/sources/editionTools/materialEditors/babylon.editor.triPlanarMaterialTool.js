@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function TriPlanarMaterialTool(editionTool) {
-                _super.call(this, editionTool, "TRI-PLANAR-MATERIAL", "TRI-PLANAR", "Tri Planar");
+                var _this = _super.call(this, editionTool, "TRI-PLANAR-MATERIAL", "TRI-PLANAR", "Tri Planar") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.TriPlanarMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.TriPlanarMaterial; };
+                return _this;
             }
             // Update
             TriPlanarMaterialTool.prototype.update = function () {

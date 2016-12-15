@@ -47,6 +47,7 @@
         private _tab: GUI.IGUITab = null;
 
         private _layouts: GUI.GUILayout = null;
+        private _toolbar: GUI.GUIToolbar = null;
         private _triggersList: GUI.GUIGrid<IElementItem> = null;
         private _actionsList: GUI.GUIGrid<IElementItem> = null;
         private _controlsList: GUI.GUIGrid<IElementItem> = null;
@@ -135,6 +136,7 @@
             this._triggersList.destroy();
             this._actionsList.destroy();
             this._controlsList.destroy();
+            this._toolbar.destroy();
             this._layouts.destroy();
 
             ActionsBuilder._ActionsBuilderInstance = null;
@@ -225,7 +227,8 @@
             // Create layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
 
-            this._layouts.createPanel("SCENARIO-MAKER-MODULES", "left", 200, true).setContent(
+            this._layouts.createPanel("ACTIONS-BUILDER-TOP-PANEL", "top", 45, false).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-TOOLBAR"));
+            this._layouts.createPanel("ACTIONS-BUILDER-MODULES", "left", 200, true).setContent(
                 "<div id=\"ACTIONS-BUILDER-TRIGGERS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                 "<div id=\"ACTIONS-BUILDER-ACTIONS\" style=\"width: 100%; height: 33.33%;\"></div>" +
                 "<div id=\"ACTIONS-BUILDER-CONTROLS\" style=\"width: 100%; height: 33.33%;\"></div>"
@@ -237,6 +240,12 @@
             this._layouts.createPanel("ACTIONS-BUILDER-RIGHT-PANEL", "right", 300, true).setContent(GUI.GUIElement.CreateElement("div", "ACTIONS-BUILDER-EDIT"));
 
             this._layouts.buildElement(this._containerID);
+
+            // Create toolbar
+            this._toolbar = new GUI.GUIToolbar("ACTIONS-BUILDER-TOOLBAR", this._core);
+            this._toolbar.createMenu("button", "ACTIONS-BUILDER-SAVE", "Save", "icon-export");
+            this._toolbar.buildElement("ACTIONS-BUILDER-TOOLBAR");
+            this._toolbar.onClick = (selected) => this._onSave();
 
             // Create triggers list
             this._triggersList = new GUI.GUIGrid<IElementItem>("ACTIONS-BUILDER-TRIGGERS", this._core);
@@ -273,7 +282,6 @@
 
             // Create parameters
             this._parametersEditor = new ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
-            this._parametersEditor.onSave = () => this._onSave();
             this._parametersEditor.onRemove = () => this._onRemoveNode(false);
             this._parametersEditor.onRemoveAll = () => this._onRemoveNode(true);
         }
@@ -384,6 +392,7 @@
                 };
             }
             else {
+                debugger;
                 var graph = this.serializeGraph();
 
                 var metadata = SceneManager.GetCustomMetadata<IStringDictionary<IActionsBuilderSerializationObject>>("ActionsBuilder") || {};

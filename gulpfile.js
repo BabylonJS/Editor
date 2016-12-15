@@ -58,7 +58,6 @@ gulp.task("typescript-compile", function () {
     var result = gulp.src(config.core.typescriptBuild)
         .pipe(sourcemaps.init())
         .pipe(typescript({
-            noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: false
@@ -88,7 +87,7 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
     // Typescript parser
     var filenames = ["website/defines/babylon.d.ts", "website/libs/preview release/babylon.editor.extensions.d.ts"];
     typescriptParser.ParseTypescriptFiles(filenames, "website/website/resources/classes.min.json", false);
-
+    
     // Build editor
     var result = gulp.src(files)
         .pipe(typescript({
@@ -98,6 +97,7 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
             out: config.build.filename
         }));
     
+    // Return js
 	return result.js.pipe(gulp.dest(config.build.outputDirectory))
         .pipe(concat(config.build.filename))
         .pipe(cleants())
@@ -161,6 +161,13 @@ gulp.task("webserver", function() {
     }));
 });
 
+/**
+ * Runs gulp with tasks webserver and watch
+ */
+gulp.task("run", ["webserver", "watch"], function() {
+    console.log("Running...");
+})
+
 /*
 * Automatically call the "electron" task when a TS file changes
 */
@@ -175,7 +182,6 @@ gulp.task("electron", ["build"], function () {
     // TypeScript files
     var result = gulp.src(config.electron.typescriptBuild)
         .pipe(typescript({
-            noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: false

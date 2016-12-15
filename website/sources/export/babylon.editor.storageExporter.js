@@ -340,12 +340,12 @@ var BABYLON;
             StorageExporter.prototype.getFile = function (name) {
                 return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
-            // Static members
-            StorageExporter._ProjectFolder = null;
-            StorageExporter._ProjectFolderChildren = null;
-            StorageExporter._IsWindowOpened = false;
             return StorageExporter;
         }());
+        // Static members
+        StorageExporter._ProjectFolder = null;
+        StorageExporter._ProjectFolderChildren = null;
+        StorageExporter._IsWindowOpened = false;
         EDITOR.StorageExporter = StorageExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

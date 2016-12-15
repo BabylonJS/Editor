@@ -14,17 +14,18 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function AbstractMaterialTool(editionTool, containerID, tabID, tabName) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
                 // Private members
-                this._tabName = "New Tab";
-                this.material = null;
+                _this._tabName = "New Tab";
+                _this.material = null;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-" + containerID
                 ];
-                this.tab = "MATERIAL." + tabID;
-                this._tabName = tabName;
+                _this.tab = "MATERIAL." + tabID;
+                _this._tabName = tabName;
+                return _this;
             }
             // Object supported
             AbstractMaterialTool.prototype.isObjectSupported = function (object) {

@@ -283,10 +283,10 @@ var BABYLON;
                 else
                     callback();
             };
-            // Static members
-            PostProcessBuilder._ConfigurationFileContent = null;
             return PostProcessBuilder;
         }());
+        // Static members
+        PostProcessBuilder._ConfigurationFileContent = null;
         EDITOR.PostProcessBuilder = PostProcessBuilder;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

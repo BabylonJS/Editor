@@ -10,7 +10,6 @@ var BABYLON;
             */
             function ActionsBuilderParametersEditor(core, containerID) {
                 // Public members
-                this.onSave = function () { };
                 this.onRemove = function () { };
                 this.onRemoveAll = function () { };
                 this._guiElements = [];
@@ -256,7 +255,6 @@ var BABYLON;
             };
             // Destroys the existing elements
             ActionsBuilderParametersEditor.prototype._destroyGUIElements = function () {
-                var _this = this;
                 for (var i = 0; i < this._guiElements.length; i++)
                     this._guiElements[i].destroy();
                 for (var i = 0; i < this._editors.length; i++)
@@ -264,16 +262,6 @@ var BABYLON;
                 this._container.empty();
                 this._guiElements = [];
                 this._editors = [];
-                // Create save button
-                var saveButton = EDITOR.GUI.GUIElement.CreateButton(this._container, EDITOR.SceneFactory.GenerateUUID(), "Save");
-                saveButton.css("width", "100%");
-                saveButton.css("position", "absolute");
-                saveButton.css("bottom", "10px");
-                saveButton.addClass("btn-green");
-                saveButton.click(function (event) {
-                    if (_this.onSave)
-                        _this.onSave();
-                });
             };
             // Returns the parameter's type
             ActionsBuilderParametersEditor.prototype._getParameterType = function (entry, parameter) {

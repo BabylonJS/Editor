@@ -15,6 +15,18 @@
         addFolder(name: string): IFolderElement;
     }
 
+    interface IController {
+        /**
+        * The controller's property name
+        */
+        property: string;
+
+        /**
+        * Sets the value of the controller
+        */
+        setValue<T>(value: T): void;
+    }
+
     /**
     * Creates a new dat.GUI object
     */
@@ -52,6 +64,16 @@
         * Remember initial object
         */
         remember(object: any): void;
+
+        /**
+        * Associated controllers
+        */
+        __controllers: IController[];
+
+        /**
+        * Associated folders containing folders and controllers etc.
+        */
+        __folders: IStringDictionary<GUI>;
     }
 
     interface IFolderElement extends IFolderCreator {

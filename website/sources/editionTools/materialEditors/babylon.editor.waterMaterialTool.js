@@ -15,9 +15,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function WaterMaterialTool(editionTool) {
-                _super.call(this, editionTool, "WATER-MATERIAL", "WATER", "Water");
+                var _this = _super.call(this, editionTool, "WATER-MATERIAL", "WATER", "Water") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.WaterMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.WaterMaterial; };
+                return _this;
             }
             // Update
             WaterMaterialTool.prototype.update = function () {

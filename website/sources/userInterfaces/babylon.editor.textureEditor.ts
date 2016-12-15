@@ -385,7 +385,7 @@
         }
 
         // On readed texture file callback
-        private _onReadFileCallback(name: string): (data: string) => void {
+        private _onReadFileCallback(name: string): (data: string | ArrayBuffer) => void {
             return (data: string | ArrayBuffer) => {
                 var texture: BaseTexture = null;
 

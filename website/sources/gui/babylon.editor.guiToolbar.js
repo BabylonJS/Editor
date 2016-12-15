@@ -17,9 +17,10 @@ var BABYLON;
                 * @param name: the form name
                 */
                 function GUIToolbar(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.menus = [];
+                    _this.menus = [];
+                    return _this;
                 }
                 // Creates a new menu
                 GUIToolbar.prototype.createMenu = function (type, id, text, icon, checked, tooltip) {

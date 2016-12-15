@@ -117,10 +117,10 @@ var BABYLON;
                 EDITOR.SceneManager.AddCustomMetadata("CosmosExtension", data);
                 this._extension.apply(data);
             };
-            // Static members
-            CosmosEditor._ConfigurationFileContent = null;
             return CosmosEditor;
         }());
+        // Static members
+        CosmosEditor._ConfigurationFileContent = null;
         EDITOR.CosmosEditor = CosmosEditor;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
