@@ -120,7 +120,6 @@ var BABYLON;
                     if (newNode instanceof BABYLON.AbstractMesh) {
                         // Physics
                         if (node.physics) {
-                            debugger;
                             newNode.setPhysicsState(node.physics.physicsImpostor, {
                                 mass: node.physics.physicsMass,
                                 friction: node.physics.physicsFriction,

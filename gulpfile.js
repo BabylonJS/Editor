@@ -92,6 +92,7 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
     var result = gulp.src(files)
         .pipe(typescript({
             target: "ES5",
+            module: "amd",
             declarationFiles: false,
             experimentalDecorators: false,
             out: config.build.filename
@@ -152,20 +153,25 @@ gulp.task("watch", function() {
  * Web server task to serve a local test page
  */
 gulp.task("webserver", function() {
-  gulp.src("./website/")
+    gulp.src("./website/")
     .pipe(webserver({
-      livereload: false,
-      open: "http://localhost:1338/index-debug.html",
-      port: 1338,
-      fallback: "index-debug.html"
+        livereload: false,
+        open: "http://localhost:1338/index-debug.html",
+        port: 1338,
+        fallback: "index-debug.html"
     }));
 });
 
 /**
  * Runs gulp with tasks webserver and watch
  */
-gulp.task("run", ["webserver", "watch"], function() {
-    console.log("Running...");
+gulp.task("run", ["watch"], function() {
+    gulp.src("./website/")
+        .pipe(webserver({
+            livereload: false,
+            port: 1338,
+            fallback: "index-debug.html"
+        }));
 })
 
 /*
@@ -184,6 +190,7 @@ gulp.task("electron", ["build"], function () {
         .pipe(typescript({
             target: "ES5",
             declarationFiles: true,
+            module: "amd",
             experimentalDecorators: false
         }));
 

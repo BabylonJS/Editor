@@ -6,26 +6,26 @@ const BrowserWindow = electron.BrowserWindow;
 let mainWindow: Electron.BrowserWindow;
 
 var createWindow = () => {
-    // Create windo
+    // Create window
     mainWindow = new BrowserWindow({ width: 800, height: 600 });
     mainWindow.loadURL("file://" + __dirname + "/../index.html");
 
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
     
-    mainWindow.on('closed', function () {
+    mainWindow.on("closed", function () {
         mainWindow = null;
     });
 }
 
-app.on('ready', createWindow);
+app.on("ready", createWindow);
 
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin')
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin")
         app.quit();
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
     if (mainWindow === null)
         createWindow();
 });

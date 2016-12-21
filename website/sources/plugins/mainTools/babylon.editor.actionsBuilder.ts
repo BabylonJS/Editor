@@ -59,6 +59,7 @@
         private _parametersEditor: ActionsBuilderParametersEditor = null;
 
         private _currentNode: string = null;
+        private _currentCopyNode: string = null;
 
         // Static members
         private static _ActionsBuilderInstance: ActionsBuilder = null;
@@ -244,8 +245,19 @@
             // Create toolbar
             this._toolbar = new GUI.GUIToolbar("ACTIONS-BUILDER-TOOLBAR", this._core);
             this._toolbar.createMenu("button", "ACTIONS-BUILDER-SAVE", "Save", "icon-export");
+            this._toolbar.addBreak();
+            this._toolbar.createMenu("button", "ACTIONS-BUILDER-COPY", "Copy", "icon-copy");
+            this._toolbar.addBreak();
+            this._toolbar.createMenu("button", "ACTIONS-BUILDER-PASTE", "Paste", "icon-copy");
             this._toolbar.buildElement("ACTIONS-BUILDER-TOOLBAR");
-            this._toolbar.onClick = (selected) => this._onSave();
+            this._toolbar.onClick = (selected) => {
+                switch (selected.parent) {
+                    case "ACTIONS-BUILDER-SAVE": this._onSave(); break;
+                    case "ACTIONS-BUILDER-COPY": this._onCopy(); break;
+                    case "ACTIONS-BUILDER-PASTE": this._onPaste(); break;
+                    default: break;
+                }
+            }
 
             // Create triggers list
             this._triggersList = new GUI.GUIGrid<IElementItem>("ACTIONS-BUILDER-TRIGGERS", this._core);
@@ -284,6 +296,70 @@
             this._parametersEditor = new ActionsBuilderParametersEditor(this._core, "ACTIONS-BUILDER-EDIT");
             this._parametersEditor.onRemove = () => this._onRemoveNode(false);
             this._parametersEditor.onRemoveAll = () => this._onRemoveNode(true);
+        }
+
+        // Copy selected node
+        private _onCopy(): void {
+            if (this._currentNode) {
+                this._currentCopyNode = this._currentNode;
+            }
+        }
+
+        // Paste on selected node
+        private _onPaste(parent?: string, createdParent?: string): void {
+            if (!this._currentCopyNode || !this._currentNode)
+                return;
+
+            var hasChildren = this._graph.getNodesWithParent(this._currentNode).length !== 0;
+            if (hasChildren && !parent)
+                return;
+
+            if (parent && parent === this._currentNode)
+                return;
+
+            var children: string[] = [this._currentCopyNode];
+            if (parent)
+                children = this._graph.getNodesWithParent(parent);
+            
+            for (var i = 0; i < children.length; i++) {
+                var data = this._graph.getNodeData<IActionsBuilderData>(children[i]);
+                var newData: IActionsBuilderData = {
+                    class: data.class,
+                    data: {
+                        name: data.data.name,
+                        type: data.data.type,
+                        comment: data.data.comment,
+                        properties: []    
+                    }
+                };
+
+                // Copy properties
+                for (var j = 0; j < data.data.properties.length; j++) {
+                    var property = data.data.properties[j];
+                    newData.data.properties.push({
+                        name: property.name,
+                        value: property.value,
+                        targetType: property.targetType
+                    });
+                }
+
+                // Add node in graph
+                var newCreatedParent = this._graph.addNode(
+                    this._graph.getNodeName(children[i]),
+                    this._graph.getNodeName(children[i]),
+                    this._getNodeColor(this._getNodeTypeEnum(this._graph.getNodeType(children[i]))),
+                    this._graph.getNodeType(children[i]),
+                    createdParent ? createdParent : this._currentNode,
+                    newData
+                );
+
+                // Do same for each children
+                this._onPaste(children[i], newCreatedParent);
+            }
+
+            // Layout
+            if (!parent)
+                this._graph.layout();
         }
 
         // Fills the lists on the left (triggers, actions and controls)
@@ -330,6 +406,7 @@
             
             var actionManager: ActionManager = null;
 
+            this._currentCopyNode = null;
             this._graph.clear();
 
             var metadata = SceneManager.GetCustomMetadata<IStringDictionary<IActionsBuilderSerializationObject>>("ActionsBuilder") || {};
@@ -392,7 +469,6 @@
                 };
             }
             else {
-                debugger;
                 var graph = this.serializeGraph();
 
                 var metadata = SceneManager.GetCustomMetadata<IStringDictionary<IActionsBuilderSerializationObject>>("ActionsBuilder") || {};
@@ -461,6 +537,18 @@
                 return "control";
 
             return typeStr;
+        }
+
+        // Returns the node's type from string
+        private _getNodeTypeEnum(type: string): EACTION_TYPE {
+            var typeEnum = EACTION_TYPE.TRIGGER; // Trigger as default
+
+            if (type === "action")
+                return EACTION_TYPE.ACTION;
+            else if (type === "control")
+                return EACTION_TYPE.CONTROL;
+
+            return typeEnum;
         }
 
         // When the user unclicks on the graph

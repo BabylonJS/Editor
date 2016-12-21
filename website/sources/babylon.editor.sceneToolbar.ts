@@ -16,8 +16,6 @@
         private _centerOnObjectID: string = "CENTER-ON-OBJECT";
         private _renderHelpersID: string = "RENDER-HELPERS";
         private _renderDebugLayerID: string = "RENDER-DEBUG-LAYER";
-        
-        private _drawingDebugLayer: boolean = false;
 
         /**
         * Constructor
@@ -47,11 +45,6 @@
 
         // Event
         public onEvent(event: Event): boolean {
-            if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.LAYOUT_CHANGED && this._drawingDebugLayer) {
-                this._configureDebugLayer();
-                return false;
-            }
-                
             if (event.eventType === EventType.GUI_EVENT && event.guiEvent.eventType === GUIEventType.TOOLBAR_MENU_SELECTED) {
                 if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                     return false;
@@ -97,19 +90,7 @@
                     return true;
                 }
                 else if (id === this._renderDebugLayerID) {
-                    var checked = !this.toolbar.isItemChecked(id);
-                    this._drawingDebugLayer = checked;
-
-                    if (checked) {
-                        debugger;
-                        scene.debugLayer.show(true);
-                        //scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
-                        this._configureDebugLayer();
-                    }
-                    else
-                        scene.debugLayer.hide();
-
-                    this.toolbar.setItemChecked(id, checked);
+                    scene.debugLayer.show(true);
                     return true;
                 }
             }
@@ -186,13 +167,6 @@
         public setFramesPerSecond(fps: number): void {
             this._fpsInput.val(String(fps));
             this._configureFramesPerSecond();
-        }
-        
-        // Configure debug layer
-        private _configureDebugLayer(): void {
-            var layer = $("#DebugLayer");
-            layer.css("left", "10px");
-            layer.css("top", "10px");
         }
 
         // Set new frames per second

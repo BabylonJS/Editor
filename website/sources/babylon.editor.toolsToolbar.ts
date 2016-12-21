@@ -64,7 +64,7 @@
                     return true;
                 }
                 else if (id === this._testGameID) {
-                    GameTester.RunInWindow(this._core);
+                    TestGame.RunInWindow(this._core);
                     return true;
                 }
                 else if (id === this._playGameID) {

@@ -23,16 +23,7 @@ module BABYLON.EDITOR {
         private _editTool: GUI.GUIEditForm = null;
 
         private _extension: EDITOR.EXTENSIONS.SoftBodyBuilderExtension;
-        private _metadatas: EXTENSIONS.ISoftBodyData[] = [];
-
-        private _windForce: number = 1;
-        private _windForceInterval: number = 1000; // in ms
-        private _windDirection: Vector3 = Vector3.Zero();
-
-        private _freeFall: boolean = false;
-
-        private _onlySelectedJoints: boolean = false;
-        private _selectedJointsCount: number = 1;
+        private _selectedMetadata: EXTENSIONS.ISoftBodyData;
 
         /**
         * Constructor
@@ -43,10 +34,8 @@ module BABYLON.EDITOR {
             this._core = core;
             core.eventReceivers.push(this);
 
-            // Metadatas
-            this._metadatas = SceneManager.GetCustomMetadata<EXTENSIONS.ISoftBodyData[]>("SoftBodyBuilder") || [];
-            if (!this._metadatas )
-                SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas);
+            // Default Metadatas
+            this._selectedMetadata = this._createDefaultMetadata();
 
             // Create UI
             this._createUI();
@@ -91,22 +80,7 @@ module BABYLON.EDITOR {
             this._scene.getPhysicsEngine().setGravity(this._scene.gravity);
 
             // Apply
-            this._extension.apply([{
-                meshName: this._selectedMesh.name,
-                applied: true,
-                width: this._selectedMesh._width,
-                height: this._selectedMesh._height,
-                subdivisions: this._selectedMesh.subdivisions,
-
-                onlySelectedJoints: this._onlySelectedJoints,
-                firstJoints: this._selectedJointsCount,
-
-                constantForce: this._windForce,
-                constantForceInterval: this._windForceInterval,
-                constantForceDirection: this._windDirection,
-
-                freeFall: this._freeFall
-            }]);
+            this._extension.apply([this._selectedMetadata]);
 
             // Store Metadatas
             this._storeMetadatas();
@@ -125,7 +99,7 @@ module BABYLON.EDITOR {
             }
 
             // Create mesh
-            var newMesh = <GroundMesh>Mesh.CreateGround("SoftBodyMesh", mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
+            var newMesh = <GroundMesh>Mesh.CreateGround(mesh.name, mesh._width, mesh._height, mesh.subdivisions, this._scene, true);
             newMesh.rotation = mesh.rotation;
             newMesh.rotationQuaternion = mesh.rotationQuaternion;
 
@@ -141,30 +115,15 @@ module BABYLON.EDITOR {
             this._toolbar.setItemChecked("APPLIED", false);
             this._toolbar.setItemChecked("HIDE-SPHERES", true);
 
-            for (var i = 0; i < this._metadatas.length; i++) {
-                if (this._metadatas[i].meshName === mesh.name) {
+            var metadatas = this._getMetadatas();
+
+            for (var i = 0; i < metadatas.length; i++) {
+                if (metadatas[i].meshName === mesh.name) {
                     this._toolbar.setItemChecked("APPLIED", true);
 
                     // Configure edit element
-                    this._windForce = this._metadatas[i].constantForce;
-                    this._windForceInterval = this._metadatas[i].constantForceInterval;
-                    this._windDirection = this._metadatas[i].constantForceDirection;
-
-                    this._onlySelectedJoints = this._metadatas[i].onlySelectedJoints;
-                    this._selectedJointsCount = this._metadatas[i].firstJoints;
-
-                    this._freeFall = this._metadatas[i].freeFall;
-
-                    this._editTool.updatePropertyValue("_windForce", this._windForce, "Wind");
-                    this._editTool.updatePropertyValue("_windForceInterval", this._windForceInterval, "Wind");
-                    this._editTool.updatePropertyValue("x", this._windDirection.x, "Wind");
-                    this._editTool.updatePropertyValue("y", this._windDirection.y, "Wind");
-                    this._editTool.updatePropertyValue("z", this._windDirection.z, "Wind");
-
-                    this._editTool.updatePropertyValue("_freeFall", this._freeFall);
-
-                    this._editTool.updatePropertyValue("_onlySelectedJoints", this._onlySelectedJoints);
-                    this._editTool.updatePropertyValue("_selectedJointsCount", this._selectedJointsCount);
+                    this._selectedMetadata = metadatas[i];
+                    this._buildEditionTool();
 
                     // Preview
                     this._previewMesh();
@@ -172,6 +131,8 @@ module BABYLON.EDITOR {
                     return;
                 }
             }
+
+            this._selectedMetadata = this._createDefaultMetadata();
         }
 
         // Private draw spheres
@@ -205,32 +166,7 @@ module BABYLON.EDITOR {
             });
 
             // Edit tool
-            this._editTool = new GUI.GUIEditForm("SOFT-BODY-BUILDER-TOOLS", this._core);
-            this._editTool.buildElement("SOFT-BODY-BUILDER-TOOLS");
-
-            var windFolder = this._editTool.addFolder("Wind");
-            windFolder.add(this, "_windForce").min(0).step(0.1).name("Wind force").onChange(() => this._storeMetadatas());
-            windFolder.add(this, "_windForceInterval").min(0).step(1).name("Wind force interval").onChange(() => this._storeMetadatas());
-            windFolder.add(this._windDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x");
-            windFolder.add(this._windDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y");
-            windFolder.add(this._windDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z");
-
-            this._editTool.add(this, "_onlySelectedJoints").name("Only one joint").onChange(() => this._storeMetadatas());
-            this._editTool.add(this, "_selectedJointsCount").min(0).step(1).name("Selected joints");
-
-            this._editTool.add(this, "_freeFall").name("Free fall").onFinishChange((value: boolean) => {
-                if (value) {
-                    this._sphere.setPhysicsState(PhysicsImpostor.SphereImpostor, { mass: 0 });
-                }
-                else if (this._sphere.getPhysicsImpostor()) {
-                    this._sphere.getPhysicsImpostor().dispose();
-                    this._sphere.setPhysicsState(PhysicsImpostor.NoImpostor, { mass: 0 });
-                }
-
-                this._sphere.isVisible = value;
-
-                this._storeMetadatas();
-            });
+            this._buildEditionTool();
 
             // Toolbar
             this._toolbar = new GUI.GUIToolbar("SOFT-BODY-BUILDER-TOOLBAR", this._core);
@@ -267,7 +203,7 @@ module BABYLON.EDITOR {
             this._engine.runRenderLoop(() => this._scene.render());
 
             this._scene.gravity = this._core.currentScene.gravity;
-            this._scene.clearColor = Color3.Black();
+            this._scene.clearColor = new Color4(0, 0, 0, 1);
             this._scene.defaultMaterial.backFaceCulling = false;
 
             this._camera.setTarget(Vector3.Zero());
@@ -282,37 +218,94 @@ module BABYLON.EDITOR {
             this._extension = new EXTENSIONS.SoftBodyBuilderExtension(this._scene);
         }
 
+        // Builds the edition tool
+        private _buildEditionTool(): void {
+            if (this._editTool)
+                this._editTool.remove();
+            
+            this._editTool = new GUI.GUIEditForm("SOFT-BODY-BUILDER-TOOLS", this._core);
+            this._editTool.buildElement("SOFT-BODY-BUILDER-TOOLS");
+
+            var windFolder = this._editTool.addFolder("Wind");
+            windFolder.add(this._selectedMetadata, "constantForce").min(0).step(0.1).name("Wind force").onChange(() => this._storeMetadatas());
+            windFolder.add(this._selectedMetadata, "constantForceInterval").min(0).step(1).name("Wind force interval").onChange(() => this._storeMetadatas());
+            windFolder.add(this._selectedMetadata.constantForceDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x");
+            windFolder.add(this._selectedMetadata.constantForceDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y");
+            windFolder.add(this._selectedMetadata.constantForceDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z");
+
+            this._editTool.add(this._selectedMetadata, "onlySelectedJoints").name("Only first joints").onChange(() => this._storeMetadatas());
+            this._editTool.add(this._selectedMetadata, "firstJoints").min(0).step(1).name("First joints");
+
+            this._editTool.add(this._selectedMetadata, "freeFall").name("Free fall").onFinishChange((value: boolean) => {
+                if (value) {
+                    this._sphere.setPhysicsState(PhysicsImpostor.SphereImpostor, { mass: 0 });
+                }
+                else if (this._sphere.getPhysicsImpostor()) {
+                    this._sphere.getPhysicsImpostor().dispose();
+                    this._sphere.setPhysicsState(PhysicsImpostor.NoImpostor, { mass: 0 });
+                }
+
+                this._sphere.isVisible = value;
+
+                this._storeMetadatas();
+            });
+        }
+
+        // Creates a default Metadatas
+        private _createDefaultMetadata(): EXTENSIONS.ISoftBodyData {
+            return {
+                meshName: "",
+                applied: true,
+                width: 0,
+                height: 0,
+                subdivisions: 0,
+
+                onlySelectedJoints: false,
+                firstJoints: 1,
+
+                constantForce: 1,
+                constantForceInterval: 1000,
+                constantForceDirection: Vector3.Zero(),
+
+                freeFall: false
+            };
+        }
+
+        // Returns the metadatas
+        private _getMetadatas(): EXTENSIONS.ISoftBodyData[] {
+            var metadatas = SceneManager.GetCustomMetadata<EXTENSIONS.ISoftBodyData[]>("SoftBodyBuilder");
+
+            if (!metadatas) {
+                metadatas = [];
+                SceneManager.AddCustomMetadata("SoftBodyBuilder", metadatas);
+            }
+
+            return metadatas;
+        }
+
         // Stores the Metadatas
         private _storeMetadatas(): void {
             if (!this._baseMesh)
                 return;
             
-            var data: EXTENSIONS.ISoftBodyData = {
-                meshName: this._baseMesh.name,
-                applied: this._toolbar.isItemChecked("APPLIED"),
-                width: this._selectedMesh._width,
-                height: this._selectedMesh._height,
-                subdivisions: this._selectedMesh.subdivisions,
+            this._selectedMetadata.meshName = this._baseMesh.name;
+            this._selectedMetadata.applied = this._toolbar.isItemChecked("APPLIED");
+            this._selectedMetadata.width = this._selectedMesh._width;
+            this._selectedMetadata.height = this._selectedMesh._height;
+            this._selectedMetadata.subdivisions = this._selectedMesh.subdivisions;
 
-                onlySelectedJoints: this._onlySelectedJoints,
-                firstJoints: this._selectedJointsCount,
-                
-                constantForce: this._windForce,
-                constantForceInterval: this._windForceInterval,
-                constantForceDirection: this._windDirection,
+            var metadatas = this._getMetadatas();
 
-                freeFall: this._freeFall
-            };
-
-            for (var i = 0; i < this._metadatas.length; i++) {
-                if (this._metadatas[i].meshName === data.meshName) {
-                    this._metadatas[i] = data;
+            for (var i = 0; i < metadatas.length; i++) {
+                if (metadatas[i].meshName === this._selectedMetadata.meshName) {
+                    metadatas[i] = this._selectedMetadata;
+                    SceneManager.AddCustomMetadata("SoftBodyBuilder", metadatas);
                     return;
                 }
             }
 
-            this._metadatas.push(data);
-            SceneManager.AddCustomMetadata("SoftBodyBuilder", this._metadatas);
+            metadatas.push(this._selectedMetadata);
+            SceneManager.AddCustomMetadata("SoftBodyBuilder", metadatas);
         }
     }
 }

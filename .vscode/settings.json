@@ -3,9 +3,14 @@
     "files.exclude": {
 		"**/.git": true,
 		"**/.DS_Store": true,
+
         "website/sources/**/**.js": true,
         "website/sources/**/*.d.ts": true,
         "website/sources/**/*.js.map": true,
+
+        "website/electron/*.js": true,
+        "website/electron/*.js.map": true,
+        "website/electron/*.d.ts": true,
 
         "Tools/**/*.js": true,
         "Tools/**/*.d.ts": true,

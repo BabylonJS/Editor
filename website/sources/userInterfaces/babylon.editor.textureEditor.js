@@ -79,7 +79,7 @@ var BABYLON;
                 // Texture canvas
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
+                this._scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
                 var camera = new BABYLON.ArcRotateCamera("TextureEditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this._scene);
                 camera.attachControl(this._engine.getRenderingCanvas());
                 var material = new BABYLON.StandardMaterial("TextureEditorSphereMaterial", this._scene);
@@ -136,6 +136,9 @@ var BABYLON;
                             _this._targetTexture._context = selectedTexture._context;
                             _this._targetTexture._canvas = selectedTexture._canvas;
                             _this._targetTexture.update(true);
+                        }
+                        else if (selectedTexture.name.indexOf("/") !== -1) {
+                            _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
                         else {
                             // Guess texture

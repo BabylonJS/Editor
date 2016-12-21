@@ -29,6 +29,7 @@ var BABYLON;
                 this._currentSelected = null;
                 this._parametersEditor = null;
                 this._currentNode = null;
+                this._currentCopyNode = null;
                 // Configure this
                 this._core = core;
                 core.eventReceivers.push(this);
@@ -164,8 +165,25 @@ var BABYLON;
                 // Create toolbar
                 this._toolbar = new EDITOR.GUI.GUIToolbar("ACTIONS-BUILDER-TOOLBAR", this._core);
                 this._toolbar.createMenu("button", "ACTIONS-BUILDER-SAVE", "Save", "icon-export");
+                this._toolbar.addBreak();
+                this._toolbar.createMenu("button", "ACTIONS-BUILDER-COPY", "Copy", "icon-copy");
+                this._toolbar.addBreak();
+                this._toolbar.createMenu("button", "ACTIONS-BUILDER-PASTE", "Paste", "icon-copy");
                 this._toolbar.buildElement("ACTIONS-BUILDER-TOOLBAR");
-                this._toolbar.onClick = function (selected) { return _this._onSave(); };
+                this._toolbar.onClick = function (selected) {
+                    switch (selected.parent) {
+                        case "ACTIONS-BUILDER-SAVE":
+                            _this._onSave();
+                            break;
+                        case "ACTIONS-BUILDER-COPY":
+                            _this._onCopy();
+                            break;
+                        case "ACTIONS-BUILDER-PASTE":
+                            _this._onPaste();
+                            break;
+                        default: break;
+                    }
+                };
                 // Create triggers list
                 this._triggersList = new EDITOR.GUI.GUIGrid("ACTIONS-BUILDER-TRIGGERS", this._core);
                 this._triggersList.showAdd = this._triggersList.showEdit = this._triggersList.showOptions = this._triggersList.showRefresh = false;
@@ -200,6 +218,53 @@ var BABYLON;
                 this._parametersEditor.onRemove = function () { return _this._onRemoveNode(false); };
                 this._parametersEditor.onRemoveAll = function () { return _this._onRemoveNode(true); };
             };
+            // Copy selected node
+            ActionsBuilder.prototype._onCopy = function () {
+                if (this._currentNode) {
+                    this._currentCopyNode = this._currentNode;
+                }
+            };
+            // Paste on selected node
+            ActionsBuilder.prototype._onPaste = function (parent, createdParent) {
+                if (!this._currentCopyNode || !this._currentNode)
+                    return;
+                var hasChildren = this._graph.getNodesWithParent(this._currentNode).length !== 0;
+                if (hasChildren && !parent)
+                    return;
+                if (parent && parent === this._currentNode)
+                    return;
+                var children = [this._currentCopyNode];
+                if (parent)
+                    children = this._graph.getNodesWithParent(parent);
+                for (var i = 0; i < children.length; i++) {
+                    var data = this._graph.getNodeData(children[i]);
+                    var newData = {
+                        class: data.class,
+                        data: {
+                            name: data.data.name,
+                            type: data.data.type,
+                            comment: data.data.comment,
+                            properties: []
+                        }
+                    };
+                    // Copy properties
+                    for (var j = 0; j < data.data.properties.length; j++) {
+                        var property = data.data.properties[j];
+                        newData.data.properties.push({
+                            name: property.name,
+                            value: property.value,
+                            targetType: property.targetType
+                        });
+                    }
+                    // Add node in graph
+                    var newCreatedParent = this._graph.addNode(this._graph.getNodeName(children[i]), this._graph.getNodeName(children[i]), this._getNodeColor(this._getNodeTypeEnum(this._graph.getNodeType(children[i]))), this._graph.getNodeType(children[i]), createdParent ? createdParent : this._currentNode, newData);
+                    // Do same for each children
+                    this._onPaste(children[i], newCreatedParent);
+                }
+                // Layout
+                if (!parent)
+                    this._graph.layout();
+            };
             // Fills the lists on the left (triggers, actions and controls)
             ActionsBuilder.prototype._configureUI = function () {
                 // Triggers
@@ -233,6 +298,7 @@ var BABYLON;
                 if (!ActionsBuilder._Classes)
                     return;
                 var actionManager = null;
+                this._currentCopyNode = null;
                 this._graph.clear();
                 var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
                 var graph = metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name];
@@ -284,7 +350,6 @@ var BABYLON;
                     };
                 }
                 else {
-                    debugger;
                     var graph = this.serializeGraph();
                     var metadata = EDITOR.SceneManager.GetCustomMetadata("ActionsBuilder") || {};
                     metadata[this._object instanceof BABYLON.Scene ? "Scene" : this._object.name] = graph;
@@ -336,6 +401,15 @@ var BABYLON;
                 else if (type === EACTION_TYPE.CONTROL)
                     return "control";
                 return typeStr;
+            };
+            // Returns the node's type from string
+            ActionsBuilder.prototype._getNodeTypeEnum = function (type) {
+                var typeEnum = EACTION_TYPE.TRIGGER; // Trigger as default
+                if (type === "action")
+                    return EACTION_TYPE.ACTION;
+                else if (type === "control")
+                    return EACTION_TYPE.CONTROL;
+                return typeEnum;
             };
             // When the user unclicks on the graph
             ActionsBuilder.prototype._onMouseUpOnGraph = function () {

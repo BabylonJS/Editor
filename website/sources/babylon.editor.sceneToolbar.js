@@ -18,7 +18,6 @@ var BABYLON;
                 this._centerOnObjectID = "CENTER-ON-OBJECT";
                 this._renderHelpersID = "RENDER-HELPERS";
                 this._renderDebugLayerID = "RENDER-DEBUG-LAYER";
-                this._drawingDebugLayer = false;
                 // Initialize
                 this._editor = core.editor;
                 this._core = core;
@@ -35,10 +34,6 @@ var BABYLON;
             };
             // Event
             SceneToolbar.prototype.onEvent = function (event) {
-                if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.LAYOUT_CHANGED && this._drawingDebugLayer) {
-                    this._configureDebugLayer();
-                    return false;
-                }
                 if (event.eventType === EDITOR.EventType.GUI_EVENT && event.guiEvent.eventType === EDITOR.GUIEventType.TOOLBAR_MENU_SELECTED) {
                     if (event.guiEvent.caller !== this.toolbar || !event.guiEvent.data) {
                         return false;
@@ -73,17 +68,7 @@ var BABYLON;
                         return true;
                     }
                     else if (id === this._renderDebugLayerID) {
-                        var checked = !this.toolbar.isItemChecked(id);
-                        this._drawingDebugLayer = checked;
-                        if (checked) {
-                            debugger;
-                            scene.debugLayer.show(true);
-                            //scene.debugLayer.show(true, scene.activeCamera, $("#BABYLON-EDITOR-MAIN-DEBUG-LAYER")[0]);
-                            this._configureDebugLayer();
-                        }
-                        else
-                            scene.debugLayer.hide();
-                        this.toolbar.setItemChecked(id, checked);
+                        scene.debugLayer.show(true);
                         return true;
                     }
                 }
@@ -146,12 +131,6 @@ var BABYLON;
             SceneToolbar.prototype.setFramesPerSecond = function (fps) {
                 this._fpsInput.val(String(fps));
                 this._configureFramesPerSecond();
-            };
-            // Configure debug layer
-            SceneToolbar.prototype._configureDebugLayer = function () {
-                var layer = $("#DebugLayer");
-                layer.css("left", "10px");
-                layer.css("top", "10px");
             };
             // Set new frames per second
             SceneToolbar.prototype._configureFramesPerSecond = function () {

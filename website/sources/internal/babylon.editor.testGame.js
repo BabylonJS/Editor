@@ -2,11 +2,11 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var GameTester = (function () {
-            function GameTester() {
+        var TestGame = (function () {
+            function TestGame() {
             }
             // Static members
-            GameTester.RunInWindow = function (core) {
+            TestGame.RunInWindow = function (core) {
                 var popup = EDITOR.Tools.OpenWindowPopup("run-game.html", 1280, 800);
                 popup.onloadeddata = function () {
                     var filesInput = popup.BABYLON.FilesInput;
@@ -33,16 +33,16 @@ var BABYLON;
                         popup.BABYLON.FilesInput.FilesTextures[ps.base64TextureName.toLowerCase()] = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertBase64StringToArrayBuffer(ps.base64Texture), ps.base64TextureName);
                     }
                     // Scene data
-                    var scene = EDITOR.BabylonExporter.GenerateFinalBabylonFile(core);
+                    var scene = EDITOR.BabylonExporter.GenerateFinalBabylonFile(core, core.editor.timeline.currentTime);
                     popup.filesInput._sceneFileToLoad = EDITOR.Tools.CreateFile(EDITOR.Tools.ConvertStringToArray(JSON.stringify(scene)), "scene.babylon");
                     popup.BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = EDITOR.SceneManager._CustomMetadatas;
                     // Reload scene
                     popup.loadScene();
                 };
             };
-            return GameTester;
+            return TestGame;
         }());
-        EDITOR.GameTester = GameTester;
+        EDITOR.TestGame = TestGame;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 

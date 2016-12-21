@@ -127,6 +127,16 @@ var BABYLON;
                 var target = this._getNodeAtPosition(this._mousex, this._mousey);
                 return target ? target.id() : null;
             };
+            // Returns the node name
+            ActionsBuilderGraph.prototype.getNodeName = function (id) {
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                return node.length > 0 ? node[0].data().name : null;
+            };
+            // Returns the node type
+            ActionsBuilderGraph.prototype.getNodeType = function (id) {
+                var node = this._graph.nodes("[id=\"" + id + "\"]");
+                return node.length > 0 ? node[0].data().type : null;
+            };
             // Returns the given node data
             ActionsBuilderGraph.prototype.getNodeData = function (id) {
                 var node = this._graph.nodes("[id=\"" + id + "\"]");

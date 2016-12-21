@@ -23,8 +23,6 @@ var BABYLON;
             */
             Tools.OpenWindowPopup = function (url, width, height) {
                 var popup = null;
-                if (Tools.CheckIfElectron())
-                    url = "file://" + __dirname + "/" + url;
                 var features = [
                     "width=" + width,
                     "height=" + height,

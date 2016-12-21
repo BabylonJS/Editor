@@ -47,7 +47,7 @@ var BABYLON;
                         return true;
                     }
                     else if (id === this._testGameID) {
-                        EDITOR.GameTester.RunInWindow(this._core);
+                        EDITOR.TestGame.RunInWindow(this._core);
                         return true;
                     }
                     else if (id === this._playGameID) {

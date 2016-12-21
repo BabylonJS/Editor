@@ -95,7 +95,8 @@ var BABYLON;
                     this._configForm.setRecord("activeCamera", this._core.playCamera.name);
             };
             // Generates the final .babylon file
-            BabylonExporter.GenerateFinalBabylonFile = function (core) {
+            BabylonExporter.GenerateFinalBabylonFile = function (core, autoAnimateFrom) {
+                if (autoAnimateFrom === void 0) { autoAnimateFrom = 0; }
                 // Set action managers, serialize and reset action managers
                 if (!core.isPlaying)
                     EDITOR.SceneManager.SwitchActionManager();
@@ -120,7 +121,7 @@ var BABYLON;
                             if (!EDITOR.SceneFactory.NodesToStart[j].name === name)
                                 continue;
                             objects[i].autoAnimate = true;
-                            objects[i].autoAnimateFrom = 0;
+                            objects[i].autoAnimateFrom = autoAnimateFrom;
                             objects[i].autoAnimateTo = maxFrame;
                             objects[i].autoAnimateLoop = false;
                             objects[i].autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;
@@ -130,7 +131,7 @@ var BABYLON;
                 // Scene autoplay
                 if (EDITOR.SceneFactory.NodesToStart.some(function (value, index, array) { return value instanceof BABYLON.Scene; })) {
                     obj.autoAnimate = true;
-                    obj.autoAnimateFrom = 0;
+                    obj.autoAnimateFrom = autoAnimateFrom;
                     obj.autoAnimateTo = maxFrame;
                     obj.autoAnimateLoop = false;
                     obj.autoAnimateSpeed = EDITOR.SceneFactory.AnimationSpeed;

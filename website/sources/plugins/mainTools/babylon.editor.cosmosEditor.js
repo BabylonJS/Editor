@@ -50,7 +50,7 @@ var BABYLON;
                 // Canvas
                 this._engine = new BABYLON.Engine($("#COSMOS-EDITOR-CANVAS")[0]);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._scene.clearColor = BABYLON.Color3.Black();
+                this._scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
                 this._camera = new BABYLON.FreeCamera("CosmosFreeCamera", new BABYLON.Vector3(150, 150, 150), this._scene);
                 this._camera.setTarget(BABYLON.Vector3.Zero());
                 this._camera.attachControl(this._engine.getRenderingCanvas());

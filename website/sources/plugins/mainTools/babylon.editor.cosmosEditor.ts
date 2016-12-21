@@ -66,7 +66,7 @@
             this._engine = new Engine(<HTMLCanvasElement>$("#COSMOS-EDITOR-CANVAS")[0]);
 
             this._scene = new Scene(this._engine);
-            this._scene.clearColor = Color3.Black();
+            this._scene.clearColor = new Color4(0, 0, 0, 1);
 
             this._camera = new FreeCamera("CosmosFreeCamera", new Vector3(150, 150, 150), this._scene);
             this._camera.setTarget(Vector3.Zero());

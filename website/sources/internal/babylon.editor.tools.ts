@@ -20,10 +20,6 @@
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
             var popup: any = null;
-
-            if (Tools.CheckIfElectron())
-                url = "file://" + __dirname + "/" + url;
-
             var features = [
                 "width=" + width,
                 "height=" + height,
@@ -36,7 +32,6 @@
                 "scrollbars=yes"];
 
             popup = window.open(url, "Dumped Frame Buffer", features.join(","));
-
             popup.focus();
 
             return popup;

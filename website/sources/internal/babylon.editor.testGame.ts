@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class GameTester {
+    export class TestGame {
         // Static members
         public static RunInWindow(core: EditorCore): void {
             var popup = Tools.OpenWindowPopup("run-game.html", 1280, 800);
@@ -34,7 +34,7 @@
                 }
 
                 // Scene data
-                var scene = BabylonExporter.GenerateFinalBabylonFile(core);
+                var scene = BabylonExporter.GenerateFinalBabylonFile(core, core.editor.timeline.currentTime);
                 popup.filesInput._sceneFileToLoad = Tools.CreateFile(Tools.ConvertStringToArray(JSON.stringify(scene)), "scene.babylon");
 
                 popup.BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = SceneManager._CustomMetadatas;

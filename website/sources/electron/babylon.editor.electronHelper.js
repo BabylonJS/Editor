@@ -84,6 +84,17 @@ var BABYLON;
                     callback(filename);
                 });
             };
+            /**
+            * Creates a new window
+            */
+            ElectronHelper.CreateNewWindow = function (url, width, height, loadedDataCallback) {
+                var electron = require("electron");
+                // Create window
+                var window = new electron.remote.BrowserWindow({ width: width, height: height });
+                window.loadURL("file://" + __dirname + "/" + url);
+                window.webContents.openDevTools();
+                return window;
+            };
             return ElectronHelper;
         }());
         /**

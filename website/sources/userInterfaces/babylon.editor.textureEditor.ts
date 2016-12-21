@@ -114,7 +114,7 @@
             // Texture canvas
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0], true);
             this._scene = new Scene(this._engine);
-            this._scene.clearColor = new Color3(0, 0, 0);
+            this._scene.clearColor = new Color4(0, 0, 0, 1);
 
             var camera = new ArcRotateCamera("TextureEditorCamera", 0, 0, 10, Vector3.Zero(), this._scene);
             camera.attachControl(this._engine.getRenderingCanvas());
@@ -188,6 +188,9 @@
                         (<any>this._targetTexture)._context = (<any>selectedTexture)._context;
                         (<any>this._targetTexture)._canvas = (<any>selectedTexture)._canvas;
                         (<DynamicTexture>this._targetTexture).update(true);
+                    }
+                    else if (selectedTexture.name.indexOf("/") !== -1) {
+                        this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
                     }
                     else {
                         // Guess texture

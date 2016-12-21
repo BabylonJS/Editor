@@ -166,6 +166,18 @@
             return target ? target.id() : null;
         }
 
+        // Returns the node name
+        public getNodeName(id: string): string {
+            var node = this._graph.nodes("[id=\"" + id + "\"]");
+            return node.length > 0 ? node[0].data().name : null;
+        }
+
+        // Returns the node type
+        public getNodeType(id: string): string {
+            var node = this._graph.nodes("[id=\"" + id + "\"]");
+            return node.length > 0 ? node[0].data().type : null;
+        }
+
         // Returns the given node data
         public getNodeData<T>(id: string): T {
             var node = this._graph.nodes("[id=\"" + id + "\"]");
