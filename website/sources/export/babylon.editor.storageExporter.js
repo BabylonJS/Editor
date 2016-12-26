@@ -28,6 +28,13 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(StorageExporter, "DropBoxStorage", {
+                get: function () {
+                    return "DropBoxStorage";
+                },
+                enumerable: true,
+                configurable: true
+            });
             // On event received
             StorageExporter.prototype.onEvent = function (event) {
                 var _this = this;
@@ -84,7 +91,8 @@ var BABYLON;
                         _this._storage.createFolders(folders, folder, function () {
                             _this._createTemplate(config);
                         }, function () {
-                            _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                            //this.core.editor.statusBar.removeElement(this._statusBarId);
+                            _this.core.editor.statusBar.setText(_this._statusBarId, "Errors, see console log...");
                         });
                     }
                 });
@@ -200,7 +208,8 @@ var BABYLON;
                                 _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (message) {
-                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                                    // this.core.editor.statusBar.removeElement(this._statusBarId);
+                                    _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length + " (width errors...");
                                 }, function (count) {
                                     _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });

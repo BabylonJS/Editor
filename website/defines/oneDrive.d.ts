@@ -17,6 +17,7 @@ declare module OneDrive {
         name: string;
         size?: number;
         id?: string;
+        path?: string;
         parentReference?: IParentReference;
         folder?: IFolder;
         file?: IFile;

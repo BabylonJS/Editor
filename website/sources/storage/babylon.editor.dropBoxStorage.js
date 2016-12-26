@@ -7,28 +7,27 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var OneDriveStorage = (function (_super) {
-            __extends(OneDriveStorage, _super);
+        var DropBoxStorage = (function (_super) {
+            __extends(DropBoxStorage, _super);
             /**
             * Constructor
             * @param core: the editor core instance
             */
-            function OneDriveStorage(core) {
+            function DropBoxStorage(core) {
                 var _this = 
                 // Initialize
                 _super.call(this, core) || this;
                 _this._editor = core.editor;
                 // OAuth
-                //var cliendID= "000000004C18353E"; // editor.babylonjs.com
-                var clientID = "0000000048182B1B";
-                EDITOR.OAuthManager._URI = "https://login.live.com/oauth20_authorize.srf"
+                var clientID = "pn1wz1qwruoj648";
+                EDITOR.OAuthManager._URI = "https://www.dropbox.com/1/oauth2/authorize"
                     + "?client_id=" + clientID
                     + "&redirect_uri=" + EDITOR.Tools.GetBaseURL() + "redirect.html"
-                    + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
+                    + "&response_type=token";
                 return _this;
             }
             // Creates folders
-            OneDriveStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
+            DropBoxStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
                 EDITOR.OAuthManager._Login(this.core, function () {
                     var count = 0;
                     var error = "";
@@ -43,13 +42,11 @@ var BABYLON;
                     };
                     for (var i = 0; i < folders.length; i++) {
                         $.ajax({
-                            url: "https://Api.Onedrive.com/v1.0/drive/items/" + parentFolder.file.id + "/children",
+                            url: "https://api.dropboxapi.com/2/files/create_folder",
                             type: "POST",
                             contentType: "application/json",
                             data: JSON.stringify({
-                                "name": folders[i],
-                                "folder": {},
-                                "@name.conflictBehavior": "rename"
+                                "path": parentFolder ? parentFolder.path + "/" + folders[i] : "/" + folders[i]
                             }),
                             headers: {
                                 "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
@@ -67,7 +64,7 @@ var BABYLON;
                 });
             };
             // Creates files
-            OneDriveStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
+            DropBoxStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
                 EDITOR.OAuthManager._Login(this.core, function () {
                     var count = 0;
                     var error = "";
@@ -83,13 +80,30 @@ var BABYLON;
                         }
                     };
                     for (var i = 0; i < files.length; i++) {
+                        var content = files[i].content;
+                        var path = "";
+                        if (folder)
+                            path = folder.path;
+                        if (!files[i].parentFolder)
+                            path += "/" + files[i].name;
+                        else
+                            path += "/" + files[i].parentFolder.name + "/" + files[i].name;
                         $.ajax({
-                            url: "https://Api.Onedrive.com/v1.0/drive/items/" + (files[i].parentFolder ? files[i].parentFolder.id : folder.file.id) + ":/" + files[i].name + ":/content",
+                            url: "https://content.dropboxapi.com/2/files/upload",
                             processData: false,
-                            data: files[i].content,
-                            type: "PUT",
+                            contentType: "application/octet-stream",
+                            data: content,
+                            type: "POST",
                             headers: {
-                                "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
+                                "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN,
+                                "Content-Type": "application/octet-stream",
+                                "Dropbox-API-Arg": JSON.stringify({
+                                    "path": path,
+                                    "mode": {
+                                        ".tag": "overwrite"
+                                    },
+                                    "autorename": false
+                                })
                             },
                             success: function () {
                                 callback();
@@ -104,22 +118,31 @@ var BABYLON;
                 });
             };
             // Gets the children files of a folder
-            OneDriveStorage.prototype.getFiles = function (folder, success, failed) {
+            DropBoxStorage.prototype.getFiles = function (folder, success, failed) {
                 EDITOR.OAuthManager._Login(this.core, function () {
                     $.ajax({
-                        url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
-                        type: "GET",
+                        url: "https://api.dropboxapi.com/2/files/list_folder",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({
+                            path: folder ? folder.path : ""
+                        }),
                         headers: {
                             "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
                         },
                         success: function (response) {
                             var children = [];
-                            for (var i = 0; i < response.value.length; i++)
-                                children.push({ file: response.value[i], name: response.value[i].name });
+                            for (var i = 0; i < response.entries.length; i++) {
+                                var entry = response.entries[i];
+                                var file = { id: entry.id, name: entry.name, folder: null };
+                                if (entry.size === undefined)
+                                    file.folder = { name: entry.name };
+                                children.push({ file: file, name: entry.name, path: entry.path_display });
+                            }
                             success(children);
                         },
                         error: function (err) {
-                            var message = "BABYLON.EDITOR.OneDriveStorage: Cannot get files (GET, children) of " + (folder ? "folder " + folder.name : "root");
+                            var message = "BABYLON.EDITOR.DropBoxStorage: Cannot get files (GET, children) of " + (folder ? "folder " + folder.name : "root");
                             if (failed)
                                 failed(message);
                             else
@@ -128,10 +151,10 @@ var BABYLON;
                     });
                 });
             };
-            return OneDriveStorage;
+            return DropBoxStorage;
         }(EDITOR.Storage));
-        EDITOR.OneDriveStorage = OneDriveStorage;
+        EDITOR.DropBoxStorage = DropBoxStorage;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 
-//# sourceMappingURL=babylon.editor.oneDriveStorage.js.map
+//# sourceMappingURL=babylon.editor.dropBoxStorage.js.map

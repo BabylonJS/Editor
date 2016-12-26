@@ -60,7 +60,10 @@ var BABYLON;
                 this._scene.gravity = this._core.currentScene.gravity;
                 this._scene.getPhysicsEngine().setGravity(this._scene.gravity);
                 // Apply
+                var applied = this._selectedMetadata.applied;
+                this._selectedMetadata.applied = true;
                 this._extension.apply([this._selectedMetadata]);
+                this._selectedMetadata.applied = applied;
                 // Store Metadatas
                 this._storeMetadatas();
             };

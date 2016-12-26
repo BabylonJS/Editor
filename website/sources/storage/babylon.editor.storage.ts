@@ -5,6 +5,9 @@
 
         // File name
         name: string;
+
+        // File or folder path
+        path?: string;
     }
 
     export interface IStorageUploadFile {

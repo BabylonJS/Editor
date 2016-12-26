@@ -83,7 +83,9 @@
       "sources/scene/babylon.editor.sceneManager.js",
 
       "sources/storage/babylon.editor.storage.js",
+      "sources/storage/babylon.editor.oauthManager.js",
       "sources/storage/babylon.editor.oneDriveStorage.js",
+      "sources/storage/babylon.editor.dropBoxStorage.js",
 
       "sources/export/babylon.editor.exporter.js",
       "sources/export/babylon.editor.projectExporter.js",

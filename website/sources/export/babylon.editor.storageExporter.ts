@@ -36,6 +36,10 @@
             return "OneDriveStorage";
         }
 
+        public static get DropBoxStorage(): string {
+            return "DropBoxStorage";
+        }
+
         /**
         * Constructor
         */
@@ -114,7 +118,8 @@
                     this._storage.createFolders(folders, folder, () => {
                         this._createTemplate(config);
                     }, () => {
-                        this.core.editor.statusBar.removeElement(this._statusBarId);
+                        //this.core.editor.statusBar.removeElement(this._statusBarId);
+                        this.core.editor.statusBar.setText(this._statusBarId, "Errors, see console log...");
                     });
                 }
             });
@@ -254,7 +259,8 @@
                             this._storage.createFiles(files, StorageExporter._ProjectFolder, () => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
                             }, (message: string) => {
-                                this.core.editor.statusBar.removeElement(this._statusBarId);
+                                // this.core.editor.statusBar.removeElement(this._statusBarId);
+                                this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length + " (width errors...");
                             }, (count: number) => {
                                 this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                             });
