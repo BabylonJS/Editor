@@ -12,6 +12,7 @@ var BABYLON;
                 this.menuID = "TOOLS-PLUGIN-MENU";
                 this._openActionsBuilder = "OPEN-ACTIONS-BUILDER";
                 this._openPostProcessBuilder = "OPEN-POST-PROCESS-BUILDER";
+                this._openMaterialBuilder = "OPEN-MATERIAL-BUILDER";
                 this._openSoftBodyBuilder = "OPEN-SOFT-BODY-BUILDER";
                 this._openCosmos = "OPEN-COSMOS";
                 var toolbar = mainToolbar.toolbar;
@@ -22,6 +23,7 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openActionsBuilder, "Open Actions Builder", "icon-graph");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
+                toolbar.createMenuItem(menu, "button", this._openMaterialBuilder, "Open Material Builder", "icon-shaders");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openSoftBodyBuilder, "Open Soft Body Builder", "icon-mesh");
                 //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
@@ -39,6 +41,9 @@ var BABYLON;
                         break;
                     case this._openPostProcessBuilder:
                         new EDITOR.PostProcessBuilder(this._core);
+                        break;
+                    case this._openMaterialBuilder:
+                        new EDITOR.MaterialBuilder(this._core);
                         break;
                     case this._openSoftBodyBuilder:
                         new EDITOR.SoftBodyBuilder(this._core);

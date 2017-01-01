@@ -50,7 +50,7 @@ var BABYLON;
                 EDITOR.SceneFactory.EnabledPostProcesses.standard = EDITOR.SceneFactory.StandardPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
                 // Standard
-                var standardFolder = this._element.addFolder("HDR2");
+                var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
                 standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange(function (result) {
                     if (result === true)
                         EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core);

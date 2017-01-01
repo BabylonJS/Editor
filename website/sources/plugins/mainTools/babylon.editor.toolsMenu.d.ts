@@ -4,6 +4,8 @@ declare module BABYLON.EDITOR {
         private _core;
         private _openActionsBuilder;
         private _openPostProcessBuilder;
+        private _openMaterialBuilder;
+        private _openSoftBodyBuilder;
         private _openCosmos;
         /**
         * Constructor

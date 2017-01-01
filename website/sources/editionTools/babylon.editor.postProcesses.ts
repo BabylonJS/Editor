@@ -52,7 +52,7 @@
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
             // Standard
-            var standardFolder = this._element.addFolder("HDR2");
+            var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
             standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
                 if (result === true)
                     SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core);

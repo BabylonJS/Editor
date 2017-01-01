@@ -20,7 +20,7 @@
         * Constructor
         * @param name: the form name
         */
-        constructor(name: string, core: EditorCore, title: string, body: string, size?: Vector2, buttons?: Array<string>) {
+        constructor(name: string, core: EditorCore, title: string, body?: string, size?: Vector2, buttons?: Array<string>) {
             super(name, core);
 
             // Initialize

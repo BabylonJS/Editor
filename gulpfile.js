@@ -31,12 +31,12 @@ for (var i = 0; i < config.plugins.files.length; i++) {
     files.push("website/" + config.plugins.files[i].replace(".js", ".ts"));
 }
 
-for (var i = 0; i < config.electron.editorFiles.length; i++) {
-    files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
-}
-
 // If electron, add electron files
 if (args._[0] === "electron" || args._[0] === "electron-watch") {
+    for (var i = 0; i < config.electron.editorFiles.length; i++) {
+        files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
+    }
+
     for (var i = 0; i < config.electron.files.length; i++) {
         files.push("website/" + config.electron.files[i].replace(".js", ".ts"));
     }
@@ -116,7 +116,7 @@ gulp.task("build-extensions", function () {
         .pipe(typescript({
             target: "ES5",
             declarationFiles: true,
-            experimentalDecorators: false,
+            experimentalDecorators: true,
             out: config.editorExtensions.filename
         }));
 

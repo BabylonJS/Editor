@@ -151,34 +151,6 @@ var BABYLON;
                     }
                     return obj;
                 };
-                if (EDITOR.SceneFactory.SSAOPipeline) {
-                    /*
-                    config.push({
-                        attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                        name: "SSAOPipeline",
-                        serializationObject: serialize(SceneFactory.SSAOPipeline)
-                    });
-                    */
-                    config.push({
-                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachSSAO,
-                        name: "SSAOPipeline",
-                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.SSAOPipeline, EDITOR.SceneFactory.SSAOPipeline.serialize())
-                    });
-                }
-                if (EDITOR.SceneFactory.HDRPipeline) {
-                    /*
-                    config.push({
-                        attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: serialize(SceneFactory.HDRPipeline)
-                    });
-                    */
-                    config.push({
-                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.HDRPipeline, EDITOR.SceneFactory.HDRPipeline.serialize())
-                    });
-                }
                 return config;
             };
             // Traverses nodes

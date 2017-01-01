@@ -187,38 +187,6 @@
                 return obj;
             };
 
-            if (SceneFactory.SSAOPipeline) {
-                /*
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: serialize(SceneFactory.SSAOPipeline)
-                });
-                */
-                
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
-                });
-                
-            }
-            if (SceneFactory.HDRPipeline) {
-                /*
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                    name: "HDRPipeline",
-                    serializationObject: serialize(SceneFactory.HDRPipeline)
-                });
-                */
-
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                    name: "HDRPipeline",
-                    serializationObject: this._ConfigureBase64Texture(SceneFactory.HDRPipeline, SceneFactory.HDRPipeline.serialize())
-                });
-            }
-
             return config;
         }
 

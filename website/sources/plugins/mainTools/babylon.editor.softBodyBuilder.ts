@@ -10,6 +10,7 @@ module BABYLON.EDITOR {
         private _camera: ArcRotateCamera = null;
         private _light: PointLight = null;
         private _sphere: Mesh = null;
+        private _plane: Mesh = null;
 
         private _selectedMesh: GroundMesh = null;
         private _baseMesh: GroundMesh = null;
@@ -108,6 +109,8 @@ module BABYLON.EDITOR {
             newMesh.rotation = mesh.rotation;
             newMesh.rotationQuaternion = mesh.rotationQuaternion;
 
+            this._plane.position.y = -newMesh._height - 3;
+
             if (mesh.material) {
                 newMesh.material = Material.Parse(mesh.material.serialize(), this._scene, "file:");
                 newMesh.material.backFaceCulling = false;
@@ -205,6 +208,12 @@ module BABYLON.EDITOR {
             this._camera = new ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, Vector3.Zero(), this._scene);
             this._light = new PointLight("SoftBodyLight", new Vector3(15, 15, 15), this._scene);
             this._sphere = Mesh.CreateSphere("sphere", 16, 4, this._scene, false);
+
+            this._plane = Mesh.CreateGround("SoftBodyPlane", 100, 100, 2, this._scene);
+            var planeMaterial = new GridMaterial("grid", this._scene);
+            planeMaterial.gridRatio = 0.1;
+            this._plane.material = planeMaterial;
+
             this._engine.runRenderLoop(() => this._scene.render());
 
             this._scene.gravity = this._core.currentScene.gravity;
@@ -215,6 +224,8 @@ module BABYLON.EDITOR {
             this._camera.attachControl(this._engine.getRenderingCanvas());
 
             this._scene.enablePhysics(this._scene.gravity, new CannonJSPlugin());
+
+            this._plane.setPhysicsState(PhysicsEngine.BoxImpostor, { mass: 0 });
 
             this._sphere.position.y = -4;
             this._sphere.isVisible = false;

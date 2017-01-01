@@ -44,51 +44,11 @@ var BABYLON;
                 }
                 var cameras = core.currentScene.cameras;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-                standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
-                standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
-                standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) { return standard.lensTexture = standard.lensFlareDirtTexture = texture; });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, function (texture) { return standard.lensStarTexture = texture; });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, function (texture) { return standard.lensColorTexture = texture; });
                 this.StandardPipeline = standard;
                 return standard;
-            };
-            // Creates HDR pipeline
-            SceneFactory.CreateHDRPipeline = function (core, serializationObject) {
-                if (serializationObject === void 0) { serializationObject = {}; }
-                if (this.HDRPipeline) {
-                    this.HDRPipeline.dispose();
-                    this.HDRPipeline = null;
-                }
-                var cameras = core.currentScene.cameras;
-                var ratio = {
-                    finalRatio: 1.0,
-                    blurRatio: 0.25 / devicePixelRatio
-                };
-                var lensTexture;
-                if (serializationObject.lensTexture && serializationObject.lensTexture.name) {
-                    lensTexture = BABYLON.Texture.Parse(serializationObject.lensTexture, core.currentScene, "./");
-                }
-                else {
-                    if (serializationObject.lensTexture && serializationObject.lensTexture.base64Name) {
-                        var b64LensTexutre = serializationObject.lensTexture.base64Buffer;
-                        lensTexture = BABYLON.Texture.CreateFromBase64String(b64LensTexutre, "lensdirt.jpg", core.currentScene);
-                    }
-                    else {
-                        lensTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
-                    }
-                }
-                lensTexture.name = lensTexture.name.replace("data:", "");
-                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras, lensTexture);
-                hdr.brightThreshold = serializationObject.brightThreshold || 1.0;
-                hdr.gaussCoeff = serializationObject.gaussCoeff || 0.4;
-                hdr.gaussMean = serializationObject.gaussMean || 0.0;
-                hdr.gaussStandDev = serializationObject.gaussStandDev || 9.0;
-                hdr.minimumLuminance = serializationObject.minimumLuminance || 0.5;
-                hdr.luminanceDecreaseRate = serializationObject.luminanceDecreaseRate || 0.5;
-                hdr.luminanceIncreaserate = serializationObject.luminanceIncreaserate || 0.5;
-                hdr.exposure = serializationObject.exposure || 1;
-                hdr.gaussMultiplier = serializationObject.gaussMultiplier || 4;
-                hdr.exposureAdjustment = serializationObject.exposureAdjustment || hdr.exposureAdjustment;
-                this.HDRPipeline = hdr;
-                return hdr;
             };
             // Creates SSAO pipeline
             SceneFactory.CreateSSAOPipeline = function (core, serializationObject) {
@@ -319,8 +279,6 @@ var BABYLON;
         SceneFactory.SSAOPipeline = null;
         SceneFactory.VLSPostProcess = null;
         SceneFactory.EnabledPostProcesses = {
-            hdr: false,
-            attachHDR: true,
             ssao: false,
             ssaoOnly: false,
             attachSSAO: true,

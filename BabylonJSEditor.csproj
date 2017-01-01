@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.1.4</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort>33404</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
@@ -105,6 +105,7 @@
     <Content Include="website\libs\materials\babylon.terrainMaterial.js" />
     <Content Include="website\libs\materials\babylon.triPlanarMaterial.js" />
     <Content Include="website\libs\materials\babylon.waterMaterial.js" />
+    <Content Include="website\libs\preview bjs\babylon.inspector.bundle.js" />
     <Content Include="website\libs\preview bjs\babylon.max.js" />
     <Content Include="website\libs\preview release\babylon.editor.extensions.js" />
     <Content Include="website\libs\preview release\babylon.editor.max.js" />
@@ -174,13 +175,19 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.distanceToCameraCondition.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.physicsAction.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.timerCondition.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.softBodyExtension.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\Materials\babylon.editor.materialBaseExtension.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\Materials\babylon.editor.materialExtension.ts" />
     <TypeScriptCompile Include="website\defines\babylon.d.ts" />
     <TypeScriptCompile Include="website\defines\babylon.editor.d.ts" />
     <TypeScriptCompile Include="website\defines\babylon.editor.gui.d.ts" />
     <TypeScriptCompile Include="website\defines\babylon.editor.projectDefinition.ts" />
     <TypeScriptCompile Include="website\defines\cytoscape\cytoscape.d.ts" />
     <TypeScriptCompile Include="website\defines\dat.gui.d.ts" />
+    <TypeScriptCompile Include="website\defines\dropBox.d.ts" />
     <TypeScriptCompile Include="website\defines\electron\github-electron.d.ts" />
     <TypeScriptCompile Include="website\defines\electron\node.d.ts" />
     <TypeScriptCompile Include="website\defines\electron\node.extensions.d.ts" />
@@ -213,6 +220,8 @@
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.statusBar.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\babylon.editor.textureTool.ts" />
+    <TypeScriptCompile Include="website\sources\editionTools\geometryEditors\babylon.editor.abstractMeshTool.ts" />
+    <TypeScriptCompile Include="website\sources\editionTools\geometryEditors\babylon.editor.groundMeshTool.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronHelper.ts" />
     <TypeScriptCompile Include="website\sources\electron\babylon.editor.electronPlugin.ts" />
     <TypeScriptCompile Include="website\electron\main.ts" />
@@ -279,11 +288,15 @@
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderParametersEditor.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.cosmosEditor.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.materialBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.postProcessBuilder.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.softBodyBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.toolsMenu.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.filesInput.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneFactory.ts" />
     <TypeScriptCompile Include="website\sources\scene\babylon.editor.sceneManager.ts" />
+    <TypeScriptCompile Include="website\sources\storage\babylon.editor.dropBoxStorage.ts" />
+    <TypeScriptCompile Include="website\sources\storage\babylon.editor.oauthManager.ts" />
     <TypeScriptCompile Include="website\sources\storage\babylon.editor.oneDriveStorage.ts" />
     <TypeScriptCompile Include="website\sources\storage\babylon.editor.storage.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.actionsBuilder.ts" />
