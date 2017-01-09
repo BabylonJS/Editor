@@ -9,6 +9,8 @@ var BABYLON;
             */
             function PostProcessBuilder(core) {
                 var _this = this;
+                // Public members
+                this.hasFocus = true;
                 this._engine = null;
                 this._scene = null;
                 this._camera = null;
@@ -72,9 +74,20 @@ var BABYLON;
                 this._engine.dispose();
             };
             /**
+            * On Focus
+            */
+            PostProcessBuilder.prototype.onFocus = function () {
+                var _this = this;
+                BABYLON.Tools.Error = function (entry) {
+                    _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry);
+                };
+            };
+            /**
             * On event
             */
             PostProcessBuilder.prototype.onEvent = function (event) {
+                if (!this.hasFocus)
+                    return false;
                 if (event.eventType === EDITOR.EventType.KEY_EVENT) {
                     if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
                         this._onApplyPostProcessChain(false);
@@ -150,9 +163,7 @@ var BABYLON;
                 // Console
                 this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
                 this._console.getSession().setValue("Ready.");
-                BABYLON.Tools.Error = function (entry) {
-                    _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry);
-                };
+                this.onFocus();
             };
             // On tab changed
             PostProcessBuilder.prototype._onTabChanged = function (id) {

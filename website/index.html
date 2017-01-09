@@ -76,7 +76,7 @@
 
     <script type="text/javascript">
         
-        var editorMain = new BABYLON.EDITOR.EditorMain("BABYLON-EDITOR-MAIN");
+        var editorMain = new BABYLON.EDITOR.EditorMain("BABYLON-EDITOR-MAIN", true, { disableWebGL2Support: true });
         var core = editorMain.core;
         editorMain.createRenderLoop();
 

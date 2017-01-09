@@ -88,7 +88,13 @@ var BABYLON;
                         EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
+                            if (newMainPanelTab.application && newMainPanelTab.application.onFocus)
+                                newMainPanelTab.application.onFocus();
                         });
+                        if (newMainPanelTab.application)
+                            newMainPanelTab.application.hasFocus = true;
+                        if (this._currentTab.application)
+                            this._currentTab.application.hasFocus = false;
                         this._lastTabUsed = this._currentTab;
                         this._currentTab = newMainPanelTab;
                         this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;

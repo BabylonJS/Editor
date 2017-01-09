@@ -8,12 +8,15 @@ var BABYLON;
             * @param core: the editor core
             */
             function MaterialBuilder(core) {
+                // Public members
+                this.hasFocus = true;
                 this._engine = null;
                 this._scene = null;
                 this._camera = null;
                 this._box = null;
                 this._ground = null;
                 this._skybox = null;
+                this._defaultMaterial = null;
                 this._pointLight = null;
                 this._hemisphericLight = null;
                 this._directionalLight = null;
@@ -23,27 +26,33 @@ var BABYLON;
                 this._tab = null;
                 this._layouts = null;
                 this._editLayouts = null;
+                this._debugLayouts = null;
                 this._toolbar = null;
                 this._codePanel = null;
                 this._vertexTabId = EDITOR.SceneFactory.GenerateUUID();
                 this._pixelTabId = EDITOR.SceneFactory.GenerateUUID();
                 this._configTabId = EDITOR.SceneFactory.GenerateUUID();
-                this._currentTabId = null;
+                this._currentTabId = this._vertexTabId;
                 this._codeEditor = null;
+                this._debugEditor = null;
                 this._editForm = null;
                 this._extension = null;
                 this._mainExtension = null;
                 this._currentMetadata = null;
+                this._currentSettings = null;
                 this._sceneConfig = {
                     pointLight: true,
                     hemisphericLight: false,
                     directionalLight: false,
                     spotLight: false,
                     drawShadow: true,
-                    shadowIntensity: 0
+                    shadowIntensity: 0,
+                    meshes: ["box", "ground"],
+                    currentMesh: "box"
                 };
                 // Configure this
                 this._core = core;
+                core.eventReceivers.push(this);
                 // Finalize
                 this._createSelectionWindow(core);
             }
@@ -51,15 +60,42 @@ var BABYLON;
             * Disposes the application
             */
             MaterialBuilder.prototype.dispose = function () {
+                this._core.removeEventReceiver(this);
                 // Finalize dispose
                 this._codeEditor.destroy();
+                this._debugEditor.destroy();
+                this._toolbar.destroy();
                 this._editLayouts.destroy();
+                this._debugLayouts.destroy();
                 this._layouts.destroy();
                 this._engine.dispose();
+            };
+            /**
+            * On Focus
+            */
+            MaterialBuilder.prototype.onFocus = function () {
+                var _this = this;
+                BABYLON.Tools.Error = function (entry) {
+                    _this._debugEditor.getSession().setValue(_this._debugEditor.getSession().getValue() + "\n" + entry);
+                };
+            };
+            /**
+            * On event
+            */
+            MaterialBuilder.prototype.onEvent = function (event) {
+                if (!this.hasFocus)
+                    return false;
+                if (event.eventType === EDITOR.EventType.KEY_EVENT) {
+                    if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
+                        this._buildMaterial();
+                    }
+                }
+                return false;
             };
             // Builds the material
             MaterialBuilder.prototype._buildMaterial = function (releaseOnScene) {
                 if (releaseOnScene === void 0) { releaseOnScene = false; }
+                this._debugEditor.getSession().setValue("Ready.");
                 try {
                     // Set up textures for test scene
                     var settings = JSON.parse(this._currentMetadata.config);
@@ -71,17 +107,23 @@ var BABYLON;
                         }
                     }
                     // Build material etc.
-                    this._extension.apply([this._currentMetadata]);
-                    this._box.material = this._scene.getMaterialByName(this._currentMetadata.name);
-                    if (releaseOnScene && this._box.material)
+                    if (!releaseOnScene) {
+                        this._extension.apply([this._currentMetadata]);
+                        this._box.material = this._scene.getMaterialByName(this._currentMetadata.name);
+                    }
+                    else {
                         this._mainExtension.apply([this._currentMetadata]);
+                    }
+                    this._currentSettings = this._currentMetadata.object;
+                    delete this._currentMetadata.object;
                     this._buildEditForm();
                 }
                 catch (e) {
-                    EDITOR.GUI.GUIWindow.CreateAlert("Cannot parse given configuration... " + (e.message ? e.message : ""), "Warning");
+                    // GUI.GUIWindow.CreateAlert("Cannot parse given configuration... " + (e.message ? e.message : ""), "Warning");
+                    BABYLON.Tools.Error("Cannot parse given configuration...\n" + (e.message ? e.message : ""));
                 }
             };
-            // Builds the GUI editor form to edit custom 
+            // Builds the GUI editor form to edit custom
             MaterialBuilder.prototype._buildEditForm = function () {
                 var _this = this;
                 if (this._editForm)
@@ -92,18 +134,37 @@ var BABYLON;
                 generalFolder.add(this._currentMetadata, "name").name("Name");
                 generalFolder.add(this, "_buildMaterial").name("Build Material");
                 var configFolder = this._editForm.addFolder("Configuration");
-                configFolder.add(this._sceneConfig, "pointLight").name("Point Light").onChange(function (result) { return _this._pointLight.setEnabled(result); });
-                configFolder.add(this._sceneConfig, "hemisphericLight").name("Hemispheric Light").onChange(function (result) { return _this._hemisphericLight.setEnabled(result); });
-                configFolder.add(this._sceneConfig, "directionalLight").name("Directional Light").onChange(function (result) { return _this._directionalLight.setEnabled(result); });
-                configFolder.add(this._sceneConfig, "spotLight").name("Spot Light").onChange(function (result) { return _this._spotLight.setEnabled(result); });
-                configFolder.add(this._sceneConfig, "drawShadow").name("Draw shadows").onChange(function (result) { return _this._ground.receiveShadows = result; });
-                configFolder.add(this._sceneConfig, "shadowIntensity").min(0).max(1).name("Shadow Intensity").onChange(function (result) {
+                var lightsFolder = configFolder.addFolder("Lights");
+                lightsFolder.open();
+                lightsFolder.add(this._sceneConfig, "pointLight").name("Point Light").onChange(function (result) { return _this._pointLight.setEnabled(result); });
+                lightsFolder.add(this._sceneConfig, "hemisphericLight").name("Hemispheric Light").onChange(function (result) { return _this._hemisphericLight.setEnabled(result); });
+                lightsFolder.add(this._sceneConfig, "directionalLight").name("Directional Light").onChange(function (result) { return _this._directionalLight.setEnabled(result); });
+                lightsFolder.add(this._sceneConfig, "spotLight").name("Spot Light").onChange(function (result) { return _this._spotLight.setEnabled(result); });
+                var shadowFolder = configFolder.addFolder("Shadows");
+                shadowFolder.open();
+                shadowFolder.add(this._sceneConfig, "drawShadow").name("Draw shadows").onChange(function (result) { return _this._ground.receiveShadows = result; });
+                shadowFolder.add(this._sceneConfig, "shadowIntensity").min(0).max(1).name("Shadow Intensity").onChange(function (result) {
                     _this._pointLight.getShadowGenerator().setDarkness(result);
                     _this._directionalLight.getShadowGenerator().setDarkness(result);
                     _this._spotLight.getShadowGenerator().setDarkness(result);
                 });
-                if (this._currentMetadata && this._currentMetadata.object) {
-                    var config = this._currentMetadata.object;
+                var meshFolder = configFolder.addFolder("Meshes");
+                meshFolder.open();
+                meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange(function (result) {
+                    _this._box.material = _this._ground.material = _this._defaultMaterial;
+                    var material = _this._scene.getMaterialByID(_this._currentMetadata.name);
+                    switch (result) {
+                        case "box":
+                            _this._box.material = material;
+                            break;
+                        case "ground":
+                            _this._ground.material = material;
+                            break;
+                        default: break;
+                    }
+                });
+                if (this._currentMetadata && this._currentSettings) {
+                    var config = this._currentSettings;
                     // Uniforms
                     var uniformsFolder = this._editForm.addFolder("Uniforms");
                     for (var i = 0; i < config.uniforms.length; i++) {
@@ -144,7 +205,7 @@ var BABYLON;
                 this._containerElement = $("#" + this._containerID);
                 // Layouts
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
-                this._layouts.createPanel("MATERIAL-BUILDER-LEFT-PANEL", "left", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+                this._layouts.createPanel("MATERIAL-BUILDER-LEFT-PANEL", "left", 330, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-DEBUG"));
                 this._layouts.createPanel("MATERIAL-BUILDER-RIGHT-PANEL", "main", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-LAYOUT", "width: 100%; height: 100%;"));
                 this._layouts.createPanel("MATERIAL-BUILDER-TOP-PANEL", "top", 45, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-TOOLBAR", "width: 100%; height: 100%;"));
                 this._layouts.buildElement(this._containerID);
@@ -153,6 +214,11 @@ var BABYLON;
                 this._editLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("canvas", "MATERIAL-BUILDER-CANVAS", "width: 100%; height: 100%;"));
                 this._editLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", editLayoutDiv.height() - 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-CODE-EDIT", "width: 100%; height: 100%;"));
                 this._editLayouts.buildElement("MATERIAL-BUILDER-EDIT-LAYOUT");
+                var debugLayoutDiv = $("#MATERIAL-BUILDER-EDIT-DEBUG");
+                this._debugLayouts = new EDITOR.GUI.GUILayout("MATERIAL-BUILDER-EDIT-DEBUG", this._core);
+                this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
+                this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+                this._debugLayouts.buildElement("MATERIAL-BUILDER-EDIT-DEBUG");
                 // Tabs
                 this._codePanel = this._editLayouts.getPanelFromType("top");
                 this._codePanel.createTab({ caption: "Vertex", closable: false, id: this._vertexTabId });
@@ -169,6 +235,11 @@ var BABYLON;
                 this._codeEditor.getSession().setMode("ace/mode/glsl");
                 this._codeEditor.getSession().setValue(this._currentMetadata.vertex);
                 this._codeEditor.getSession().on("change", function (e) { return _this._onCodeEditorChanged(); });
+                // Console
+                this._debugEditor = ace.edit("MATERIAL-BUILDER-EDIT-CONSOLE");
+                this._debugEditor.setTheme("ace/theme/clouds");
+                this._debugEditor.getSession().setMode("ace/mode/javascript");
+                this._debugEditor.getSession().setValue("");
                 // Engine and scene
                 this._engine = new BABYLON.Engine($("#MATERIAL-BUILDER-CANVAS")[0]);
                 this._scene = new BABYLON.Scene(this._engine);
@@ -183,14 +254,18 @@ var BABYLON;
                 this._spotLight.setEnabled(false);
                 this._box = BABYLON.Mesh.CreateBox("box", 10, this._scene);
                 // Ground
-                this._ground = BABYLON.Mesh.CreateGround("MaterialBuilderGround", 200, 200, 2, this._scene);
+                this._ground = BABYLON.Mesh.CreateGround("MaterialBuilderGround", 200, 200, 64, this._scene);
                 this._ground.receiveShadows = true;
                 this._ground.position.y = -5;
                 var groundMaterial = new BABYLON.StandardMaterial("MaterialBuilderGroundMaterial", this._scene);
-                var diffuseTexture = new BABYLON.Texture("website/textures/empty.jpg", this._scene);
-                diffuseTexture.uScale = diffuseTexture.vScale = 10;
-                groundMaterial.diffuseTexture = diffuseTexture;
+                EDITOR.Tools.CreateFileFromURL("website/textures/empty.jpg", function (file) {
+                    var diffuseTexture = new BABYLON.Texture("file:empty.jpg", _this._scene);
+                    diffuseTexture.name = "groundEmpty.jpg";
+                    diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                    groundMaterial.diffuseTexture = diffuseTexture;
+                }, true);
                 this._ground.material = groundMaterial;
+                this._defaultMaterial = groundMaterial;
                 this._skybox = BABYLON.Mesh.CreateBox("MaterialBuilderSkyBox", 1000, this._scene, false, BABYLON.Mesh._BACKSIDE);
                 (this._skybox.material = new BABYLON.SkyMaterial("MaterialBuilderSkyMaterial", this._scene)).inclination = 0;
                 // Shadow
@@ -217,9 +292,11 @@ var BABYLON;
                 };
                 // Extensions
                 this._extension = new EDITOR.EXTENSIONS.MaterialBuilderExtension(this._scene);
-                this._mainExtension = new EDITOR.EXTENSIONS.MaterialBuilderExtension(this._core.currentScene, false);
+                this._mainExtension = new EDITOR.EXTENSIONS.MaterialBuilderExtension(this._core.currentScene, true);
                 // Form
                 this._buildEditForm();
+                // Error
+                this.onFocus();
             };
             // On tab changed
             MaterialBuilder.prototype._onTabChanged = function (id) {
@@ -276,9 +353,17 @@ var BABYLON;
             // Stores the metadatas
             MaterialBuilder.prototype._storeMetadatas = function (data) {
                 var datas = this._getMetadatas();
+                // Set metadatas
+                var newData = {
+                    name: data.name,
+                    pixel: data.pixel,
+                    vertex: data.vertex,
+                    config: data.config
+                };
+                // Store
                 for (var i = 0; i < datas.length; i++) {
                     if (datas[i].name === data.name) {
-                        datas[i] = data;
+                        datas[i] = newData;
                         return;
                     }
                 }
@@ -312,12 +397,12 @@ var BABYLON;
                         pixel: MaterialBuilder._PixelShaderString,
                         config: JSON.stringify({
                             samplers: [{
-                                    "textureName": "albedo.png",
+                                    "textureName": "empty.jpg",
                                     "uniformName": "myTexture"
                                 }],
                             uniforms: [{
                                     name: "exposure",
-                                    value: 10
+                                    value: 1
                                 }]
                         }, null, "\t"),
                     };

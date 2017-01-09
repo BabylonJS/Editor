@@ -3,8 +3,9 @@ module BABYLON.EDITOR {
         name: string;
     }
 
-    export class MaterialBuilder implements ITabApplication {
+    export class MaterialBuilder implements ITabApplication, IEventReceiver {
         // Public members
+        public hasFocus: boolean = true;
 
         // Private members
         private _core: EditorCore;
@@ -15,6 +16,7 @@ module BABYLON.EDITOR {
         private _box: Mesh = null;
         private _ground: Mesh = null;
         private _skybox: Mesh = null;
+        private _defaultMaterial: Material = null;
 
         private _pointLight: PointLight = null;
         private _hemisphericLight: HemisphericLight = null;
@@ -27,6 +29,7 @@ module BABYLON.EDITOR {
 
         private _layouts: GUI.GUILayout = null;
         private _editLayouts: GUI.GUILayout = null;
+        private _debugLayouts: GUI.GUILayout = null;
 
         private _toolbar: GUI.GUIToolbar = null;
 
@@ -34,23 +37,29 @@ module BABYLON.EDITOR {
         private _vertexTabId: string = SceneFactory.GenerateUUID();
         private _pixelTabId: string = SceneFactory.GenerateUUID();
         private _configTabId: string = SceneFactory.GenerateUUID();
-        private _currentTabId: string = null;
+        private _currentTabId: string = this._vertexTabId;
 
         private _codeEditor: AceAjax.Editor = null;
+        private _debugEditor: AceAjax.Editor = null;
 
         private _editForm: GUI.GUIEditForm = null;
 
         private _extension: EXTENSIONS.MaterialBuilderExtension = null;
         private _mainExtension: EXTENSIONS.MaterialBuilderExtension = null;
         private _currentMetadata: EXTENSIONS.IMaterialExtensionData = null;
+        private _currentSettings: EXTENSIONS.IMaterialBuilderSettings = null;
 
         private _sceneConfig = {
             pointLight: true,
             hemisphericLight: false,
             directionalLight: false,
             spotLight: false,
+
             drawShadow: true,
-            shadowIntensity: 0
+            shadowIntensity: 0,
+
+            meshes: ["box", "ground"],
+            currentMesh: "box"
         };
 
         // Static members
@@ -64,6 +73,7 @@ module BABYLON.EDITOR {
         constructor(core: EditorCore) {
             // Configure this
             this._core = core;
+            core.eventReceivers.push(this);
 
             // Finalize
             this._createSelectionWindow(core);
@@ -73,16 +83,49 @@ module BABYLON.EDITOR {
         * Disposes the application
         */
         public dispose(): void {
+            this._core.removeEventReceiver(this);
+
             // Finalize dispose
             this._codeEditor.destroy();
+            this._debugEditor.destroy();
+
+            this._toolbar.destroy();
             this._editLayouts.destroy();
+            this._debugLayouts.destroy();
             this._layouts.destroy();
 
             this._engine.dispose();
         }
 
+        /**
+        * On Focus
+        */
+        public onFocus(): void {
+            BABYLON.Tools.Error = (entry: string) => {
+                this._debugEditor.getSession().setValue(this._debugEditor.getSession().getValue() + "\n" + entry);
+            };
+        }
+
+        /**
+        * On event
+        */
+        public onEvent(event: Event): boolean {
+            if (!this.hasFocus)
+                return false;
+            
+            if (event.eventType === EventType.KEY_EVENT) {
+                if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
+                    this._buildMaterial();
+                }
+            }
+
+            return false;
+        }
+
         // Builds the material
         private _buildMaterial(releaseOnScene: boolean = false): void {
+            this._debugEditor.getSession().setValue("Ready.");
+
             try {
                 // Set up textures for test scene
                 var settings = <EXTENSIONS.IMaterialBuilderSettings> JSON.parse(this._currentMetadata.config);
@@ -97,21 +140,26 @@ module BABYLON.EDITOR {
                 }
 
                 // Build material etc.
-                this._extension.apply([this._currentMetadata]);
-                this._box.material = this._scene.getMaterialByName(this._currentMetadata.name);
-
-
-                if (releaseOnScene && this._box.material)
+                if (!releaseOnScene) {
+                    this._extension.apply([this._currentMetadata]);
+                    this._box.material = this._scene.getMaterialByName(this._currentMetadata.name);
+                }
+                else {
                     this._mainExtension.apply([this._currentMetadata]);
+                }
+
+                this._currentSettings = this._currentMetadata.object;
+                delete this._currentMetadata.object;
 
                 this._buildEditForm();
             }
             catch (e) {
-                GUI.GUIWindow.CreateAlert("Cannot parse given configuration... " + (e.message ? e.message : ""), "Warning");
+                // GUI.GUIWindow.CreateAlert("Cannot parse given configuration... " + (e.message ? e.message : ""), "Warning");
+                BABYLON.Tools.Error("Cannot parse given configuration...\n" + (e.message ? e.message : ""));
             }
         }
 
-        // Builds the GUI editor form to edit custom 
+        // Builds the GUI editor form to edit custom
         private _buildEditForm(): void {
             if (this._editForm)
                 this._editForm.remove();
@@ -124,19 +172,38 @@ module BABYLON.EDITOR {
             generalFolder.add(this, "_buildMaterial").name("Build Material");
 
             var configFolder = this._editForm.addFolder("Configuration");
-            configFolder.add(this._sceneConfig, "pointLight").name("Point Light").onChange((result) => this._pointLight.setEnabled(result));
-            configFolder.add(this._sceneConfig, "hemisphericLight").name("Hemispheric Light").onChange((result) => this._hemisphericLight.setEnabled(result));
-            configFolder.add(this._sceneConfig, "directionalLight").name("Directional Light").onChange((result) => this._directionalLight.setEnabled(result));
-            configFolder.add(this._sceneConfig, "spotLight").name("Spot Light").onChange((result) => this._spotLight.setEnabled(result));
-            configFolder.add(this._sceneConfig, "drawShadow").name("Draw shadows").onChange((result) => this._ground.receiveShadows = result);
-            configFolder.add(this._sceneConfig, "shadowIntensity").min(0).max(1).name("Shadow Intensity").onChange((result) => {
+
+            var lightsFolder = configFolder.addFolder("Lights");
+            lightsFolder.open();
+            lightsFolder.add(this._sceneConfig, "pointLight").name("Point Light").onChange((result) => this._pointLight.setEnabled(result));
+            lightsFolder.add(this._sceneConfig, "hemisphericLight").name("Hemispheric Light").onChange((result) => this._hemisphericLight.setEnabled(result));
+            lightsFolder.add(this._sceneConfig, "directionalLight").name("Directional Light").onChange((result) => this._directionalLight.setEnabled(result));
+            lightsFolder.add(this._sceneConfig, "spotLight").name("Spot Light").onChange((result) => this._spotLight.setEnabled(result));
+
+            var shadowFolder = configFolder.addFolder("Shadows");
+            shadowFolder.open();
+            shadowFolder.add(this._sceneConfig, "drawShadow").name("Draw shadows").onChange((result) => this._ground.receiveShadows = result);
+            shadowFolder.add(this._sceneConfig, "shadowIntensity").min(0).max(1).name("Shadow Intensity").onChange((result) => {
                 (<ShadowGenerator>this._pointLight.getShadowGenerator()).setDarkness(result);
                 (<ShadowGenerator>this._directionalLight.getShadowGenerator()).setDarkness(result);
                 (<ShadowGenerator>this._spotLight.getShadowGenerator()).setDarkness(result);
             });
 
-            if (this._currentMetadata && this._currentMetadata.object) {
-                var config = this._currentMetadata.object;
+            var meshFolder = configFolder.addFolder("Meshes");
+            meshFolder.open();
+            meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange((result) => {
+                this._box.material = this._ground.material = this._defaultMaterial;
+                var material = this._scene.getMaterialByID(this._currentMetadata.name);
+
+                switch (result) {
+                    case "box": this._box.material = material; break;
+                    case "ground": this._ground.material = material; break;
+                    default: break;
+                }
+            });
+
+            if (this._currentMetadata && this._currentSettings) {
+                var config = this._currentSettings;
 
                 // Uniforms
                 var uniformsFolder = this._editForm.addFolder("Uniforms");
@@ -184,7 +251,7 @@ module BABYLON.EDITOR {
 
             // Layouts
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
-            this._layouts.createPanel("MATERIAL-BUILDER-LEFT-PANEL", "left", 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+            this._layouts.createPanel("MATERIAL-BUILDER-LEFT-PANEL", "left", 330, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-DEBUG"));
             this._layouts.createPanel("MATERIAL-BUILDER-RIGHT-PANEL", "main", 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-LAYOUT", "width: 100%; height: 100%;"));
             this._layouts.createPanel("MATERIAL-BUILDER-TOP-PANEL", "top", 45, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-TOOLBAR", "width: 100%; height: 100%;"));
             this._layouts.buildElement(this._containerID);
@@ -195,6 +262,12 @@ module BABYLON.EDITOR {
             this._editLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(GUI.GUIElement.CreateElement("canvas", "MATERIAL-BUILDER-CANVAS", "width: 100%; height: 100%;"));
             this._editLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", editLayoutDiv.height() - 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-CODE-EDIT", "width: 100%; height: 100%;"));
             this._editLayouts.buildElement("MATERIAL-BUILDER-EDIT-LAYOUT");
+
+            var debugLayoutDiv = $("#MATERIAL-BUILDER-EDIT-DEBUG");
+            this._debugLayouts = new GUI.GUILayout("MATERIAL-BUILDER-EDIT-DEBUG", this._core);
+            this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
+            this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+            this._debugLayouts.buildElement("MATERIAL-BUILDER-EDIT-DEBUG");
 
             // Tabs
             this._codePanel = this._editLayouts.getPanelFromType("top");
@@ -214,6 +287,12 @@ module BABYLON.EDITOR {
             this._codeEditor.getSession().setMode("ace/mode/glsl");
             this._codeEditor.getSession().setValue(this._currentMetadata.vertex);
             this._codeEditor.getSession().on("change", (e) => this._onCodeEditorChanged());
+
+            // Console
+            this._debugEditor = ace.edit("MATERIAL-BUILDER-EDIT-CONSOLE");
+            this._debugEditor.setTheme("ace/theme/clouds");
+            this._debugEditor.getSession().setMode("ace/mode/javascript");
+            this._debugEditor.getSession().setValue("");
 
             // Engine and scene
             this._engine = new Engine(<HTMLCanvasElement>$("#MATERIAL-BUILDER-CANVAS")[0]);
@@ -236,16 +315,21 @@ module BABYLON.EDITOR {
             this._box = Mesh.CreateBox("box", 10, this._scene);
 
             // Ground
-            this._ground = Mesh.CreateGround("MaterialBuilderGround", 200, 200, 2, this._scene);
+            this._ground = Mesh.CreateGround("MaterialBuilderGround", 200, 200, 64, this._scene);
             this._ground.receiveShadows = true;
             this._ground.position.y = -5;
 
             var groundMaterial = new StandardMaterial("MaterialBuilderGroundMaterial", this._scene);
-            var diffuseTexture = new Texture("website/textures/empty.jpg", this._scene);
-            diffuseTexture.uScale = diffuseTexture.vScale = 10;
-            groundMaterial.diffuseTexture = diffuseTexture;
+
+            Tools.CreateFileFromURL("website/textures/empty.jpg", (file) => {
+                var diffuseTexture = new Texture("file:empty.jpg", this._scene);
+                diffuseTexture.name = "groundEmpty.jpg";
+                diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                groundMaterial.diffuseTexture = diffuseTexture;
+            }, true);
 
             this._ground.material = groundMaterial;
+            this._defaultMaterial = groundMaterial;
 
             this._skybox = Mesh.CreateBox("MaterialBuilderSkyBox", 1000, this._scene, false, Mesh._BACKSIDE);
             (this._skybox.material = new SkyMaterial("MaterialBuilderSkyMaterial", this._scene)).inclination = 0;
@@ -277,10 +361,13 @@ module BABYLON.EDITOR {
 
             // Extensions
             this._extension = new EXTENSIONS.MaterialBuilderExtension(this._scene);
-            this._mainExtension = new EXTENSIONS.MaterialBuilderExtension(this._core.currentScene, false);
+            this._mainExtension = new EXTENSIONS.MaterialBuilderExtension(this._core.currentScene, true);
 
             // Form
             this._buildEditForm();
+
+            // Error
+            this.onFocus();
         }
 
         // On tab changed
@@ -337,9 +424,18 @@ module BABYLON.EDITOR {
         private _storeMetadatas(data: EXTENSIONS.IMaterialExtensionData): void {
             var datas = this._getMetadatas();
 
+            // Set metadatas
+            var newData = <EXTENSIONS.IMaterialExtensionData>{
+                name: data.name,
+                pixel: data.pixel,
+                vertex: data.vertex,
+                config: data.config
+            };
+
+            // Store
             for (var i = 0; i < datas.length; i++) {
                 if (datas[i].name === data.name) {
-                    datas[i] = data;
+                    datas[i] = newData;
                     return;
                 }
             }
@@ -378,12 +474,12 @@ module BABYLON.EDITOR {
                     pixel: MaterialBuilder._PixelShaderString,
                     config: JSON.stringify(<EXTENSIONS.IMaterialBuilderSettings> {
                         samplers: [{
-                            "textureName": "albedo.png",
+                            "textureName": "empty.jpg",
                             "uniformName": "myTexture"
                         }],
                         uniforms: [{
                             name: "exposure",
-                            value: 10
+                            value: 1
                         }] 
                     }, null, "\t"),
                 };

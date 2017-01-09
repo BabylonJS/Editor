@@ -37,7 +37,7 @@
                 var scene = BabylonExporter.GenerateFinalBabylonFile(core, core.editor.timeline.currentTime);
                 popup.filesInput._sceneFileToLoad = Tools.CreateFile(Tools.ConvertStringToArray(JSON.stringify(scene)), "scene.babylon");
 
-                popup.BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = SceneManager._CustomMetadatas;
+                popup.BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = project.customMetadatas;
 
                 // Reload scene
                 popup.loadScene();

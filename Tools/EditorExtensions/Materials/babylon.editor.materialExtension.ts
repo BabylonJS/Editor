@@ -31,6 +31,14 @@ module BABYLON.EDITOR.EXTENSIONS {
             this.removeOnApply = removeOnApply;
         }
 
+        // Called when extension is serialized
+        public onSerialize(data: IMaterialExtensionData[]): void {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].object)
+                    delete data[i].object;
+            }
+        }
+
         // Applies the extension
         public apply(data: IMaterialExtensionData[]): void {
             if (this.removeOnApply) {
@@ -43,21 +51,26 @@ module BABYLON.EDITOR.EXTENSIONS {
 
             // Apply or create materials
             for (var i = 0; i < data.length; i++) {
-                Effect.ShadersStore[data[i].name + "VertexShader"] = data[i].vertex;
-                Effect.ShadersStore[data[i].name + "PixelShader"] = data[i].pixel;
-
                 var settings: IMaterialBuilderSettings = JSON.parse(data[i].config);
                 data[i].object = settings;
 
                 var material = <MaterialBuilder> this._scene.getMaterialByName(data[i].name);
-                if (!material)
+                if (!material) {
+                    Effect.ShadersStore[data[i].name + "VertexShader"] = data[i].vertex;
+                    Effect.ShadersStore[data[i].name + "PixelShader"] = data[i].pixel;
+
                     material = new MaterialBuilder(data[i].name, this._scene, settings);
+                }
 
                 // Set up textures
                 for (var j = 0; j < settings.samplers.length; j++) {
                     var sampler = settings.samplers[j];
                     sampler.object = this._getTexture(sampler.textureName);
                 }
+
+                // Set up serialization
+                material.settings = settings;
+                material._data = data[i];
 
                 this._materials.push(material);
             }

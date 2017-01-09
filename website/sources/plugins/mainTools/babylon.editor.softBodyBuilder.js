@@ -22,6 +22,7 @@ var BABYLON;
                 this._layouts = null;
                 this._toolbar = null;
                 this._editTool = null;
+                this._useFreeFallSphere = false;
                 // Configure this
                 this._core = core;
                 core.eventReceivers.push(this);
@@ -85,6 +86,7 @@ var BABYLON;
                 if (mesh.material) {
                     newMesh.material = BABYLON.Material.Parse(mesh.material.serialize(), this._scene, "file:");
                     newMesh.material.backFaceCulling = false;
+                    newMesh.material.zOffset = -40;
                 }
                 this._selectedMesh = newMesh;
                 this._baseMesh = mesh;
@@ -164,7 +166,8 @@ var BABYLON;
                 this._camera = new BABYLON.ArcRotateCamera("SoftBodyCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
                 this._light = new BABYLON.PointLight("SoftBodyLight", new BABYLON.Vector3(15, 15, 15), this._scene);
                 this._sphere = BABYLON.Mesh.CreateSphere("sphere", 16, 4, this._scene, false);
-                this._plane = BABYLON.Mesh.CreateGround("SoftBodyPlane", 100, 100, 2, this._scene);
+                this._plane = BABYLON.Mesh.CreateBox("SoftBodyPlane", 100, this._scene); // Mesh.CreateGround("SoftBodyPlane", 100, 100, 2, this._scene);
+                this._plane.scaling.y = 0.001;
                 var planeMaterial = new BABYLON.GridMaterial("grid", this._scene);
                 planeMaterial.gridRatio = 0.1;
                 this._plane.material = planeMaterial;
@@ -191,22 +194,29 @@ var BABYLON;
                 var windFolder = this._editTool.addFolder("Wind");
                 windFolder.add(this._selectedMetadata, "constantForce").min(0).step(0.1).name("Wind force").onChange(function () { return _this._storeMetadatas(); });
                 windFolder.add(this._selectedMetadata, "constantForceInterval").min(0).step(1).name("Wind force interval").onChange(function () { return _this._storeMetadatas(); });
-                windFolder.add(this._selectedMetadata.constantForceDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x");
-                windFolder.add(this._selectedMetadata.constantForceDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y");
-                windFolder.add(this._selectedMetadata.constantForceDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z");
-                this._editTool.add(this._selectedMetadata, "onlySelectedJoints").name("Only first joints").onChange(function () { return _this._storeMetadatas(); });
-                this._editTool.add(this._selectedMetadata, "firstJoints").min(0).step(1).name("First joints");
-                this._editTool.add(this._selectedMetadata, "freeFall").name("Free fall").onFinishChange(function (value) {
+                windFolder.add(this._selectedMetadata.constantForceDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x").onChange(function () { return _this._storeMetadatas(); });
+                windFolder.add(this._selectedMetadata.constantForceDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y").onChange(function () { return _this._storeMetadatas(); });
+                windFolder.add(this._selectedMetadata.constantForceDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z").onChange(function () { return _this._storeMetadatas(); });
+                var fixedJoints = this._editTool.addFolder("Fixed Joints");
+                fixedJoints.add(this._selectedMetadata, "onlySelectedJoints").name("Select fixed joints").onChange(function () { return _this._storeMetadatas(); });
+                fixedJoints.add(this._selectedMetadata, "firstJoints").min(0).step(1).name("First fixed joints").onChange(function () { return _this._storeMetadatas(); });
+                var freeFallFolder = this._editTool.addFolder("Free Fall");
+                freeFallFolder.add(this, "_useFreeFallSphere").name("Use Sphere Impostor").onFinishChange(function (value) {
                     if (value) {
                         _this._sphere.setPhysicsState(BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0 });
                     }
                     else if (_this._sphere.getPhysicsImpostor()) {
                         _this._sphere.getPhysicsImpostor().dispose();
-                        _this._sphere.setPhysicsState(BABYLON.PhysicsImpostor.NoImpostor, { mass: 0 });
                     }
                     _this._sphere.isVisible = value;
+                    _this._useFreeFallSphere = value;
+                });
+                freeFallFolder.add(this._selectedMetadata, "freeFall").name("Free fall").onFinishChange(function (value) {
+                    _this._selectedMetadata.freeFall = value;
                     _this._storeMetadatas();
                 });
+                var miscFolder = this._editTool.addFolder("Misc");
+                miscFolder.add(this._selectedMetadata, "distanceFactor").step(0.01).name("Distance factor");
             };
             // Creates a default Metadatas
             SoftBodyBuilder.prototype._createDefaultMetadata = function () {
@@ -221,7 +231,8 @@ var BABYLON;
                     constantForce: 1,
                     constantForceInterval: 1000,
                     constantForceDirection: BABYLON.Vector3.Zero(),
-                    freeFall: false
+                    freeFall: false,
+                    distanceFactor: 1
                 };
             };
             // Returns the metadatas

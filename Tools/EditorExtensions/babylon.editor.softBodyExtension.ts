@@ -14,6 +14,8 @@ module BABYLON.EDITOR.EXTENSIONS {
         constantForceDirection: Vector3;
 
         freeFall: boolean;
+
+        distanceFactor: number;
     }
 
     export interface ISoftBodyConfiguration {
@@ -91,7 +93,7 @@ module BABYLON.EDITOR.EXTENSIONS {
             };
 
             var positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-            var distanceBetweenPoints = (data.width * mesh.scaling.length()) / (data.subdivisions + 1);
+            var distanceBetweenPoints = ((data.width * mesh.scaling.length()) / (data.subdivisions + 1)) * data.distanceFactor;
 
             // Create spheres
             for (var i = 0; i < positions.length; i += 3) {

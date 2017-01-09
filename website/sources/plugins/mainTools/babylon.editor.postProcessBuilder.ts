@@ -9,6 +9,7 @@
 
     export class PostProcessBuilder implements ITabApplication, IEventReceiver {
         // Public members
+        public hasFocus: boolean = true;
 
         // Private members
         private _core: EditorCore;
@@ -106,9 +107,21 @@
         }
 
         /**
+        * On Focus
+        */
+        public onFocus(): void {
+            BABYLON.Tools.Error = (entry: string) => {
+                this._console.getSession().setValue(this._console.getSession().getValue() + "\n" + entry);
+            };
+        }
+
+        /**
         * On event
         */
         public onEvent(event: Event): boolean {
+            if (!this.hasFocus)
+                return false;
+            
             if (event.eventType === EventType.KEY_EVENT) {
                 if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
                     this._onApplyPostProcessChain(false);
@@ -200,10 +213,8 @@
             // Console
             this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
             this._console.getSession().setValue("Ready.");
-            
-            BABYLON.Tools.Error = (entry: string) => {
-                this._console.getSession().setValue(this._console.getSession().getValue() + "\n" + entry);
-            };
+
+            this.onFocus();
         }
 
         // On tab changed

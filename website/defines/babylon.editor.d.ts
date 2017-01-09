@@ -124,8 +124,14 @@ declare module BABYLON.EDITOR {
     */
     interface ITabApplication extends IDisposable {
         /**
-        * Empty for instance...
+        * Called when tab application is focused back
         */
+        onFocus?(): void;
+
+        /**
+        * If the application has focus
+        */
+        hasFocus?: boolean;
     }
 }
 

@@ -131,7 +131,16 @@
                     GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", () => {
                         this.layouts.resize();
                         this.playLayouts.resize();
+
+                        if (newMainPanelTab.application && newMainPanelTab.application.onFocus)
+                            newMainPanelTab.application.onFocus();
                     });
+
+                    if (newMainPanelTab.application)
+                            newMainPanelTab.application.hasFocus = true;
+
+                    if (this._currentTab.application)
+                        this._currentTab.application.hasFocus = false;
 
                     this._lastTabUsed = this._currentTab;
                     this._currentTab = newMainPanelTab;

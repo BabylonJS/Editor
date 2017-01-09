@@ -45,13 +45,16 @@ module BABYLON.EDITOR.EXTENSIONS {
         
         @serialize()
         public maxSimultaneousLights = 4;
-
+        
         public settings: IMaterialBuilderSettings = null;
+        public _data: IMaterialExtensionData = null;
 
         private _renderId: number;
 
         private _defines = new MaterialBuilderDefines();
         private _cachedDefines = new MaterialBuilderDefines();
+
+        private _currentTime: number = 0;
 
         constructor(name: string, scene: Scene, settings?: IMaterialBuilderSettings) {
             super(name, scene);
@@ -124,6 +127,8 @@ module BABYLON.EDITOR.EXTENSIONS {
                         if (!sampler.object || !sampler.object.isReady()) {
                             return false;
                         }
+
+                        this._defines["TEXTURE_" + sampler.uniformName.toUpperCase()] = true;
                     }
                     
                     needUVs = true;
@@ -335,8 +340,14 @@ module BABYLON.EDITOR.EXTENSIONS {
 
                 if (uniform.value instanceof Array)
                     this._effect.setArray(uniform.name, uniform.value);
-                else
-                    this._effect.setFloat(uniform.name, uniform.value);
+                else {
+                    var value = uniform.value;
+
+                    if (uniform.name === "time")
+                        value = (this._currentTime += scene.getEngine().getDeltaTime());
+
+                    this._effect.setFloat(uniform.name, value);
+                }
             }
 
             super.bind(world, mesh);
@@ -366,11 +377,42 @@ module BABYLON.EDITOR.EXTENSIONS {
         public serialize(): any {
             var serializationObject = SerializationHelper.Serialize(this);
             serializationObject.customType = "BABYLON.EDITOR.EXTENSIONS.MaterialBuilder";
+            
+            // Settings
+            var settings = <IMaterialBuilderSettings> {
+                uniforms: [],
+                samplers: []
+            };
+
+            for (var i = 0; i < this.settings.uniforms.length; i++) {
+                var uniform = this.settings.uniforms[i];
+                settings.uniforms.push({
+                    name: uniform.name,
+                    value: uniform.value
+                });
+            }
+
+            for (var i = 0; i < this.settings.samplers.length; i++) {
+                var sampler = this.settings.samplers[i];
+                settings.samplers.push({
+                    uniformName: sampler.uniformName,
+                    textureName: sampler.textureName
+                });
+            }
+
+            serializationObject.settings = settings;
+            serializationObject.pixelShader = this._data.pixel;
+            serializationObject.vertexShader = this._data.vertex;
+            serializationObject.materialName = this._data.name;
+
             return serializationObject;
         }
 
         // Statics
         public static Parse(source: any, scene: Scene, rootUrl: string): MaterialBuilder {
+            Effect.ShadersStore[source.materialName + "VertexShader"] = source.vertexShader;
+            Effect.ShadersStore[source.materialName + "PixelShader"] = source.pixelShader;
+
             return SerializationHelper.Parse(() => new MaterialBuilder(source.name, scene), source, scene, rootUrl);
         }
     }

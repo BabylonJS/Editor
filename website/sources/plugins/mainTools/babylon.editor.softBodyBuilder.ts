@@ -26,6 +26,8 @@ module BABYLON.EDITOR {
         private _extension: EDITOR.EXTENSIONS.SoftBodyBuilderExtension;
         private _selectedMetadata: EXTENSIONS.ISoftBodyData;
 
+        private _useFreeFallSphere: boolean = false;
+
         /**
         * Constructor
         * @param core: the editor core
@@ -114,6 +116,7 @@ module BABYLON.EDITOR {
             if (mesh.material) {
                 newMesh.material = Material.Parse(mesh.material.serialize(), this._scene, "file:");
                 newMesh.material.backFaceCulling = false;
+                newMesh.material.zOffset = -40;
             }
 
             this._selectedMesh = newMesh;
@@ -209,7 +212,8 @@ module BABYLON.EDITOR {
             this._light = new PointLight("SoftBodyLight", new Vector3(15, 15, 15), this._scene);
             this._sphere = Mesh.CreateSphere("sphere", 16, 4, this._scene, false);
 
-            this._plane = Mesh.CreateGround("SoftBodyPlane", 100, 100, 2, this._scene);
+            this._plane = Mesh.CreateBox("SoftBodyPlane", 100, this._scene); // Mesh.CreateGround("SoftBodyPlane", 100, 100, 2, this._scene);
+            this._plane.scaling.y = 0.001;
             var planeMaterial = new GridMaterial("grid", this._scene);
             planeMaterial.gridRatio = 0.1;
             this._plane.material = planeMaterial;
@@ -245,26 +249,35 @@ module BABYLON.EDITOR {
             var windFolder = this._editTool.addFolder("Wind");
             windFolder.add(this._selectedMetadata, "constantForce").min(0).step(0.1).name("Wind force").onChange(() => this._storeMetadatas());
             windFolder.add(this._selectedMetadata, "constantForceInterval").min(0).step(1).name("Wind force interval").onChange(() => this._storeMetadatas());
-            windFolder.add(this._selectedMetadata.constantForceDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x");
-            windFolder.add(this._selectedMetadata.constantForceDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y");
-            windFolder.add(this._selectedMetadata.constantForceDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z");
+            windFolder.add(this._selectedMetadata.constantForceDirection, "x").min(-1).max(1).step(0.01).name("Wind direction x").onChange(() => this._storeMetadatas());
+            windFolder.add(this._selectedMetadata.constantForceDirection, "y").min(-1).max(1).step(0.01).name("Wind direction y").onChange(() => this._storeMetadatas());
+            windFolder.add(this._selectedMetadata.constantForceDirection, "z").min(-1).max(1).step(0.01).name("Wind direction z").onChange(() => this._storeMetadatas());
 
-            this._editTool.add(this._selectedMetadata, "onlySelectedJoints").name("Only first joints").onChange(() => this._storeMetadatas());
-            this._editTool.add(this._selectedMetadata, "firstJoints").min(0).step(1).name("First joints");
+            var fixedJoints = this._editTool.addFolder("Fixed Joints");
+            fixedJoints.add(this._selectedMetadata, "onlySelectedJoints").name("Select fixed joints").onChange(() => this._storeMetadatas());
+            fixedJoints.add(this._selectedMetadata, "firstJoints").min(0).step(1).name("First fixed joints").onChange(() => this._storeMetadatas());
 
-            this._editTool.add(this._selectedMetadata, "freeFall").name("Free fall").onFinishChange((value: boolean) => {
+            var freeFallFolder = this._editTool.addFolder("Free Fall");
+            freeFallFolder.add(this, "_useFreeFallSphere").name("Use Sphere Impostor").onFinishChange((value: boolean) => {
                 if (value) {
                     this._sphere.setPhysicsState(PhysicsImpostor.SphereImpostor, { mass: 0 });
                 }
                 else if (this._sphere.getPhysicsImpostor()) {
                     this._sphere.getPhysicsImpostor().dispose();
-                    this._sphere.setPhysicsState(PhysicsImpostor.NoImpostor, { mass: 0 });
+                    //this._sphere.setPhysicsState(PhysicsImpostor.NoImpostor, { mass: 0 });
                 }
 
                 this._sphere.isVisible = value;
+                this._useFreeFallSphere = value;
+            });
 
+            freeFallFolder.add(this._selectedMetadata, "freeFall").name("Free fall").onFinishChange((value: boolean) => {
+                this._selectedMetadata.freeFall = value;
                 this._storeMetadatas();
             });
+
+            var miscFolder = this._editTool.addFolder("Misc");
+            miscFolder.add(this._selectedMetadata, "distanceFactor").step(0.01).name("Distance factor");
         }
 
         // Creates a default Metadatas
@@ -283,7 +296,9 @@ module BABYLON.EDITOR {
                 constantForceInterval: 1000,
                 constantForceDirection: Vector3.Zero(),
 
-                freeFall: false
+                freeFall: false,
+
+                distanceFactor: 1
             };
         }
 
