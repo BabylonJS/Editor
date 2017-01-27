@@ -72,7 +72,7 @@ gulp.task("typescript-compile", function () {
             {
                 includeContent: false, 
                 sourceRoot: (filePath) => {
-                    return "";
+                    return "./";
                 }
             }))
             .pipe(gulp.dest(config.build.srcOutputDirectory))
@@ -126,7 +126,7 @@ gulp.task("build-extensions", function () {
             {
                 includeContent: false, 
                 sourceRoot: (filePath) => {
-                    return ""; 
+                    return "./"; 
                 }
             }))
             .pipe(concat(config.editorExtensions.filename))

@@ -46,17 +46,15 @@ var BABYLON;
             * On pre update
             */
             EditorCore.prototype.onPreUpdate = function () {
-                for (var i = 0; i < this.updates.length; i++) {
+                for (var i = 0; i < this.updates.length; i++)
                     this.updates[i].onPreUpdate();
-                }
             };
             /**
             * On post update
             */
             EditorCore.prototype.onPostUpdate = function () {
-                for (var i = 0; i < this.updates.length; i++) {
+                for (var i = 0; i < this.updates.length; i++)
                     this.updates[i].onPostUpdate();
-                }
             };
             /**
             * Send an event to the event receivers

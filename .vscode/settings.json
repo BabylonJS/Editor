@@ -12,9 +12,9 @@
         "website/electron/*.js.map": true,
         "website/electron/*.d.ts": true,
 
-        "Tools/**/*.js": true,
-        "Tools/**/*.d.ts": true,
-        "Tools/**/*.js.map": true,
+        "Tools/TypeScriptParser/*.js": true,
+        "Tools/TypeScriptParser/*.d.ts": true,
+        "Tools/TypeScriptParser/*.js.map": true,
 
         "**/.tempChromeProfileForDebug": true,
 

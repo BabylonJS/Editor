@@ -31,14 +31,12 @@
         }
 
         // Pre update
-        public onPreUpdate(): void {
-
-        }
+        public onPreUpdate(): void
+        { }
         
         // Post update
-        public onPostUpdate(): void {
-
-        }
+        public onPostUpdate(): void
+        { }
 
         // Event
         public onEvent(event: Event): boolean {

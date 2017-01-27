@@ -149,6 +149,9 @@ module BABYLON.EDITOR.EXTENSIONS {
                 lastForceTime += engine.getDeltaTime();
 
                 // Update vertices
+                if (!mesh.isVisible)
+                    return;
+                
                 for (var i = 0; i < config.spheres.length; i++) {
                     var s = config.spheres[i];
 

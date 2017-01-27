@@ -22,11 +22,9 @@ var BABYLON;
                 this.core.eventReceivers.push(this);
             }
             // Pre update
-            EditionTool.prototype.onPreUpdate = function () {
-            };
+            EditionTool.prototype.onPreUpdate = function () { };
             // Post update
-            EditionTool.prototype.onPostUpdate = function () {
-            };
+            EditionTool.prototype.onPostUpdate = function () { };
             // Event
             EditionTool.prototype.onEvent = function (event) {
                 // GUI Event

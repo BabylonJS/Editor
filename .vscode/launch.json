@@ -6,7 +6,7 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
-            "webRoot": "${workspaceRoot}/",
+            "webRoot": "${workspaceRoot}/website/",
             "sourceMaps": true,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
@@ -15,7 +15,7 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
-            "webRoot": "${workspaceRoot}/",
+            "webRoot": "${workspaceRoot}/website/",
             "sourceMaps": false,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         }

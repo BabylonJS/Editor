@@ -22,8 +22,8 @@
             this._data = JSON.parse(data);
         }
 
-        public _prepare(): void {
-        }
+        public _prepare(): void
+        { }
 
         public execute(): void {
             EDITOR.EXTENSIONS.DevelopmentBaseExtension.SendEvent(this._namespace, { eventName: this._eventName, eventData: this._data });

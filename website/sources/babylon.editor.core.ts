@@ -47,6 +47,7 @@
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -54,18 +55,16 @@
         * On pre update
         */
         public onPreUpdate(): void {
-            for (var i = 0; i < this.updates.length; i++) {
+            for (var i = 0; i < this.updates.length; i++)
                 this.updates[i].onPreUpdate();
-            }
         }
 
         /**
         * On post update
         */
         public onPostUpdate(): void {
-            for (var i = 0; i < this.updates.length; i++) {
+            for (var i = 0; i < this.updates.length; i++)
                 this.updates[i].onPostUpdate();
-            }
         }
 
         /**
