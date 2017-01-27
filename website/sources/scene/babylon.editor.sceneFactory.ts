@@ -182,6 +182,16 @@
             return sphere;
         }
 
+        // Adds a tube
+        static AddCylinderMesh(core: EditorCore): Mesh {
+            var tube = Mesh.CreateCylinder("New Cylinder", 5, 2, 2, 32, 32, core.currentScene);
+            tube.id = this.GenerateUUID();
+
+            this.ConfigureObject(tube, core);
+
+            return tube;
+        }
+
         // Adds a plane
         static AddPlaneMesh(core: EditorCore): Mesh {
             var plane = Mesh.CreatePlane("New Plane", 1, core.currentScene, false);

@@ -25,7 +25,7 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openPostProcessBuilder, "Open Post-Process Builder", "icon-render");
                 toolbar.createMenuItem(menu, "button", this._openMaterialBuilder, "Open Material Builder", "icon-shaders");
                 toolbar.addBreak(menu);
-                toolbar.createMenuItem(menu, "button", this._openSoftBodyBuilder, "Open Soft Body Builder", "icon-mesh");
+                toolbar.createMenuItem(menu, "button", this._openSoftBodyBuilder, "Open Soft Body Builder", "icon-soft-body");
                 //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);

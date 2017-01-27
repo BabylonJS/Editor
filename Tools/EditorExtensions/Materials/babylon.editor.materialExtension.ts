@@ -86,6 +86,13 @@ module BABYLON.EDITOR.EXTENSIONS {
                     return texture;
             }
 
+            for (var i = 0; i < this._scene.customRenderTargets.length; i++) {
+                var rt = this._scene.customRenderTargets[i];
+                
+                if (rt.name === name)
+                    return rt;
+            }
+
             return null;
         }
     }

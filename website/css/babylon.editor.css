@@ -221,3 +221,19 @@ html, body {
 .w2ui-icon.icon-play-game-windowed {
     background: url("images/play_game_windowed.png");
 }
+
+.w2ui-icon.icon-cylinder {
+    background: url("images/cylinder.png");
+}
+
+.w2ui-icon.icon-ground {
+    background: url("images/ground.png");
+}
+
+.w2ui-icon.icon-plane {
+    background: url("images/plane.png");
+}
+
+.w2ui-icon.icon-soft-body {
+    background: url("images/soft_body.png");
+}

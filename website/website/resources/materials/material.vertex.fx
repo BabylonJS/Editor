@@ -46,59 +46,66 @@ varying vec3 vNormalW;
 varying vec4 vColor;
 #endif
 
-
 #include<clipPlaneVertexDeclaration>
 
 #include<fogVertexDeclaration>
 #include<shadowsVertexDeclaration>[0..maxSimultaneousLights]
 
+uniform float time;
+
 void main(void) {
 
-#include<instancesVertex>
-#include<bonesVertex>
+	#include<instancesVertex>
+	#include<bonesVertex>
 
-	gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
+    vec3 pos = position;
+    
+    // The ultimate waves function
+    pos.y += (sin(((pos.x / 0.05) + time * 0.01)) * 2.0)
+           + (cos(((pos.z / 0.05) + time * 0.01)) * 2.0);
+            
+	gl_Position = viewProjection * finalWorld * vec4(pos, 1.0);
 
-	vec4 worldPos = finalWorld * vec4(position, 1.0);
+	vec4 worldPos = finalWorld * vec4(pos, 1.0);
 	vPositionW = vec3(worldPos);
 
-#ifdef NORMAL
-	vNormalW = normalize(vec3(finalWorld * vec4(normal, 0.0)));
-#endif
+	#ifdef NORMAL
+		vNormalW = normalize(vec3(finalWorld * vec4(normal, 0.0)));
+	#endif
 
 	// Texture coordinates
-#ifndef UV1
-	vec2 uv = vec2(0., 0.);
-#endif
-#ifndef UV2
-	vec2 uv2 = vec2(0., 0.);
-#endif
+	#ifndef UV1
+		vec2 uv = vec2(0., 0.);
+	#endif
+	#ifndef UV2
+		vec2 uv2 = vec2(0., 0.);
+	#endif
 
-#ifdef TEXTURE
-	if (vMyTextureInfos.x == 0.)
-	{
-		vMyTextureUV = vec2(myTextureMatrix * vec4(uv, 1.0, 0.0));
-	}
-	else
-	{
-		vMyTextureUV = vec2(myTextureMatrix * vec4(uv2, 1.0, 0.0));
-	}
-#endif
+	#ifdef TEXTURE
+		if (vMyTextureInfos.x == 0.)
+		{
+			vMyTextureUV = vec2(myTextureMatrix * vec4(uv, 1.0, 0.0));
+		}
+		else
+		{
+			vMyTextureUV = vec2(myTextureMatrix * vec4(uv2, 1.0, 0.0));
+		}
+	#endif
 
-	// Clip plane
-#include<clipPlaneVertex>
+		// Clip plane
+	#include<clipPlaneVertex>
 
     // Fog
-#include<fogVertex>
-#include<shadowsVertex>[0..maxSimultaneousLights]
+	#include<fogVertex>
+	#include<shadowsVertex>[0..maxSimultaneousLights]
 
 	// Vertex color
-#ifdef VERTEXCOLOR
-	vColor = color;
-#endif
+	#ifdef VERTEXCOLOR
+		vColor = color;
+	#endif
 
 	// Point size
-#ifdef POINTSIZE
-	gl_PointSize = pointSize;
-#endif
+	#ifdef POINTSIZE
+		gl_PointSize = pointSize;
+	#endif
 }

@@ -18,7 +18,6 @@ varying vec4 vColor;
 // Lights
 #include<lightFragmentDeclaration>[0..maxSimultaneousLights]
 
-
 #include<lightsFragmentFunctions>
 #include<shadowsFragmentFunctions>
 
@@ -38,7 +37,7 @@ uniform float exposure;
 #include<fogFragmentDeclaration>
 
 void main(void) {
-#include<clipPlaneFragment>
+	#include<clipPlaneFragment>
 
 	vec3 viewDirectionW = normalize(vEyePosition - vPositionW);
 
@@ -49,27 +48,27 @@ void main(void) {
 	// Alpha
 	float alpha = vDiffuseColor.a;
 
-#ifdef TEXTURE
-	baseColor = texture2D(myTextureSampler, vMyTextureUV);
+	#ifdef TEXTURE
+		baseColor = texture2D(myTextureSampler, vMyTextureUV);
 
-#ifdef ALPHATEST
-	if (baseColor.a < 0.4)
-		discard;
-#endif
+	#ifdef ALPHATEST
+		if (baseColor.a < 0.4)
+			discard;
+	#endif
 
-	baseColor.rgb *= vMyTextureInfos.y;
-#endif
+		baseColor.rgb *= vMyTextureInfos.y;
+	#endif
 
-#ifdef VERTEXCOLOR
-	baseColor.rgb *= vColor.rgb;
-#endif
+	#ifdef VERTEXCOLOR
+		baseColor.rgb *= vColor.rgb;
+	#endif
 
 	// Normal
-#ifdef NORMAL
-	vec3 normalW = normalize(vNormalW);
-#else
-	vec3 normalW = vec3(1.0, 1.0, 1.0);
-#endif
+	#ifdef NORMAL
+		vec3 normalW = normalize(vNormalW);
+	#else
+		vec3 normalW = vec3(1.0, 1.0, 1.0);
+	#endif
 
 	// Lighting
 	vec3 diffuseBase = vec3(0., 0., 0.);
@@ -77,19 +76,18 @@ void main(void) {
 	float shadow = 1.;
     float glossiness = 0.;
     
-#include<lightFragment>[0..maxSimultaneousLights]
+	#include<lightFragment>[0..maxSimultaneousLights]
 
-
-#ifdef VERTEXALPHA
-	alpha *= vColor.a;
-#endif
+	#ifdef VERTEXALPHA
+		alpha *= vColor.a;
+	#endif
 
 	vec3 finalDiffuse = clamp(diffuseBase * diffuseColor, 0.0, 1.0) * baseColor.rgb * exposure;
 
 	// Composition
 	vec4 color = vec4(finalDiffuse, alpha);
 
-#include<fogFragment>
+	#include<fogFragment>
 
 	gl_FragColor = color;
 }

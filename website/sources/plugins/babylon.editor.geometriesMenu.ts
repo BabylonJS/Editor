@@ -8,7 +8,8 @@
 
         private _createCubeID = "CREATE-CUBE";
         private _createSphereID = "CREATE-SPHERE";
-        
+        private _createTubeID = "CREATE-TUBE";
+
         private _createGroundID = "CREATE-GROUND";
         private _createPlane = "CREATE-PLANE";
 
@@ -26,9 +27,10 @@
             // Create items
             toolbar.createMenuItem(menu, "button", this._createCubeID, "Add Cube", "icon-box-mesh");
             toolbar.createMenuItem(menu, "button", this._createSphereID, "Add Sphere", "icon-sphere-mesh");
+            toolbar.createMenuItem(menu, "button", this._createTubeID, "Create Tube", "icon-cylinder");
             toolbar.addBreak(menu); // Or not
-            toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-mesh");
-            toolbar.createMenuItem(menu, "button", this._createPlane, "Add Plane", "icon-mesh");
+            toolbar.createMenuItem(menu, "button", this._createGroundID, "Add Ground", "icon-ground");
+            toolbar.createMenuItem(menu, "button", this._createPlane, "Add Plane", "icon-plane");
             // Etc.
         }
 
@@ -45,6 +47,10 @@
                 case this._createSphereID:
                     SceneFactory.AddSphereMesh(this._core);
                     break;
+                case this._createTubeID:
+                    SceneFactory.AddCylinderMesh(this._core);
+                    break;
+
                 case this._createGroundID:
                     SceneFactory.AddGroundMesh(this._core);
                     break;

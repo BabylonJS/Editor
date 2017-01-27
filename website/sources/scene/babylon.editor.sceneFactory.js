@@ -126,6 +126,13 @@ var BABYLON;
                 this.ConfigureObject(sphere, core);
                 return sphere;
             };
+            // Adds a tube
+            SceneFactory.AddCylinderMesh = function (core) {
+                var tube = BABYLON.Mesh.CreateCylinder("New Cylinder", 5, 2, 2, 32, 32, core.currentScene);
+                tube.id = this.GenerateUUID();
+                this.ConfigureObject(tube, core);
+                return tube;
+            };
             // Adds a plane
             SceneFactory.AddPlaneMesh = function (core) {
                 var plane = BABYLON.Mesh.CreatePlane("New Plane", 1, core.currentScene, false);

@@ -109,7 +109,16 @@ var BABYLON;
                     // Build material etc.
                     if (!releaseOnScene) {
                         this._extension.apply([this._currentMetadata]);
-                        this._box.material = this._scene.getMaterialByName(this._currentMetadata.name);
+                        var material = this._scene.getMaterialByName(this._currentMetadata.name);
+                        switch (this._sceneConfig.currentMesh) {
+                            case "box":
+                                this._box.material = material;
+                                break;
+                            case "ground":
+                                this._ground.material = material;
+                                break;
+                            default: break;
+                        }
                     }
                     else {
                         this._mainExtension.apply([this._currentMetadata]);
@@ -268,7 +277,7 @@ var BABYLON;
                 this._defaultMaterial = groundMaterial;
                 this._skybox = BABYLON.Mesh.CreateBox("MaterialBuilderSkyBox", 1000, this._scene, false, BABYLON.Mesh._BACKSIDE);
                 (this._skybox.material = new BABYLON.SkyMaterial("MaterialBuilderSkyMaterial", this._scene)).inclination = 0;
-                // Shadow
+                // Shadow generators
                 new BABYLON.ShadowGenerator(512, this._spotLight).getShadowMap().renderList.push(this._box);
                 new BABYLON.ShadowGenerator(512, this._pointLight).getShadowMap().renderList.push(this._box);
                 new BABYLON.ShadowGenerator(512, this._directionalLight).getShadowMap().renderList.push(this._box);
@@ -403,6 +412,10 @@ var BABYLON;
                             uniforms: [{
                                     name: "exposure",
                                     value: 1
+                                },
+                                {
+                                    "name": "time",
+                                    "value": 0
                                 }]
                         }, null, "\t"),
                     };
