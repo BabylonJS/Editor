@@ -13,8 +13,8 @@ var createWindow = () => {
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
     
-    mainWindow.on("closed", function () {
-        mainWindow = null;
+    mainWindow.on("closed", () => {
+        app.quit();
     });
 }
 

@@ -130,6 +130,7 @@
       "!website/electron/**/*.d.ts",
       "website/defines/electron/*.d.ts"
     ],
+    "typescriptOutDir": "website/electron/",
     "files": [
       "electron/main.js"
     ],

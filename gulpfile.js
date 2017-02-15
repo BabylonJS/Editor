@@ -186,13 +186,14 @@ gulp.task("electron-watch", function () {
  */
 gulp.task("electron", ["build"], function () {
     // TypeScript files
-    var result = gulp.src(config.electron.typescriptBuild)
+    var result = gulp.src(config.electron.typescriptBuild.concat(config.electron.files))
         .pipe(typescript({
             target: "ES5",
             declarationFiles: true,
-            module: "amd",
             experimentalDecorators: false
         }));
+
+    result.js.pipe(gulp.dest(config.electron.typescriptOutDir));
 
     // OS X
     // gulp electron --osx --arch=x64 --platform=darwin
