@@ -72,6 +72,9 @@ module BABYLON.EDITOR.EXTENSIONS {
                 material.settings = settings;
                 material._data = data[i];
 
+                // Setup cache
+                material.setupCachedValues();
+
                 this._materials.push(material);
             }
         }

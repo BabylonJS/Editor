@@ -137,10 +137,20 @@ var BABYLON;
                 var _this = this;
                 if (this._editForm)
                     this._editForm.remove();
+                var material = this._scene.getMaterialByID(this._currentMetadata.name);
                 this._editForm = new EDITOR.GUI.GUIEditForm("MATERIAL-BUILDER-EDIT", this._core);
                 this._editForm.buildElement("MATERIAL-BUILDER-EDIT");
                 var generalFolder = this._editForm.addFolder("General");
-                generalFolder.add(this._currentMetadata, "name").name("Name");
+                generalFolder.add(this._currentMetadata, "name").name("Name").onChange(function (result) {
+                    if (!material)
+                        return;
+                    var releasedMaterial = _this._core.currentScene.getMaterialByID(material.id);
+                    if (releasedMaterial)
+                        releasedMaterial.id = releasedMaterial.name = result;
+                    material.id = material.name = result;
+                    // Update edition tools
+                    _this._core.editor.editionTool.updateEditionTool();
+                });
                 generalFolder.add(this, "_buildMaterial").name("Build Material");
                 var configFolder = this._editForm.addFolder("Configuration");
                 var lightsFolder = configFolder.addFolder("Lights");
@@ -161,7 +171,6 @@ var BABYLON;
                 meshFolder.open();
                 meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange(function (result) {
                     _this._box.material = _this._ground.material = _this._defaultMaterial;
-                    var material = _this._scene.getMaterialByID(_this._currentMetadata.name);
                     switch (result) {
                         case "box":
                             _this._box.material = material;
@@ -182,10 +191,10 @@ var BABYLON;
                             var arrayFolder = uniformsFolder.addFolder(config.uniforms[i].name);
                             arrayFolder.open();
                             for (var j = 0; j < value.length; j++)
-                                arrayFolder.add(config.uniforms[i].value, j.toString()).name("Value " + j);
+                                arrayFolder.add(config.uniforms[i]._cachedValue, j.toString()).name("Value " + j);
                         }
                         else
-                            uniformsFolder.add(config.uniforms[i], "value").name(config.uniforms[i].name);
+                            uniformsFolder.add(config.uniforms[i], "_cachedValue").name(config.uniforms[i].name);
                     }
                     // Samplers
                     var samplersFolder = this._editForm.addFolder("Samplers");
@@ -412,11 +421,8 @@ var BABYLON;
                             uniforms: [{
                                     name: "exposure",
                                     value: 1
-                                },
-                                {
-                                    "name": "time",
-                                    "value": 0
-                                }]
+                                }],
+                            time: true
                         }, null, "\t"),
                     };
                     _this._storeMetadatas(newMaterial);
@@ -426,6 +432,13 @@ var BABYLON;
                 grid.onDelete = function (selected) {
                     var count = 0;
                     for (var i = 0; i < selected.length; i++) {
+                        var material = _this._core.currentScene.getMaterialByID(datas[selected[i] - count].name);
+                        if (material) {
+                            var meshes = material.getBindedMeshes();
+                            for (var j = 0; j < meshes.length; j++)
+                                meshes[j].material = null;
+                        }
+                        material.dispose(true, false);
                         datas.splice(selected[i] - count, 1);
                         count++;
                     }

@@ -170,11 +170,25 @@ module BABYLON.EDITOR {
             if (this._editForm)
                 this._editForm.remove();
 
+            var material = this._scene.getMaterialByID(this._currentMetadata.name);
+
             this._editForm = new GUI.GUIEditForm("MATERIAL-BUILDER-EDIT", this._core);
             this._editForm.buildElement("MATERIAL-BUILDER-EDIT");
 
             var generalFolder = this._editForm.addFolder("General");
-            generalFolder.add(this._currentMetadata, "name").name("Name");
+            generalFolder.add(this._currentMetadata, "name").name("Name").onChange((result: any) => {
+                if (!material)
+                    return;
+
+                var releasedMaterial = this._core.currentScene.getMaterialByID(material.id);
+                if (releasedMaterial)
+                    releasedMaterial.id = releasedMaterial.name = result;
+
+                material.id = material.name = result;
+                
+                // Update edition tools
+                this._core.editor.editionTool.updateEditionTool();
+            });
             generalFolder.add(this, "_buildMaterial").name("Build Material");
 
             var configFolder = this._editForm.addFolder("Configuration");
@@ -199,7 +213,6 @@ module BABYLON.EDITOR {
             meshFolder.open();
             meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange((result) => {
                 this._box.material = this._ground.material = this._defaultMaterial;
-                var material = this._scene.getMaterialByID(this._currentMetadata.name);
 
                 switch (result) {
                     case "box": this._box.material = material; break;
@@ -221,10 +234,10 @@ module BABYLON.EDITOR {
                         arrayFolder.open();
 
                         for (var j = 0; j < value.length; j++)
-                            arrayFolder.add(config.uniforms[i].value, j.toString()).name("Value " + j);
+                            arrayFolder.add(config.uniforms[i]._cachedValue, j.toString()).name("Value " + j);
                     }
                     else
-                        uniformsFolder.add(config.uniforms[i], "value").name(config.uniforms[i].name);
+                        uniformsFolder.add(config.uniforms[i], "_cachedValue").name(config.uniforms[i].name);
                 }
 
                 // Samplers
@@ -486,11 +499,8 @@ module BABYLON.EDITOR {
                         uniforms: [{
                             name: "exposure",
                             value: 1
-                        },
-                        {
-                            "name": "time",
-                            "value": 0
-                        }] 
+                        }],
+                        time: true
                     }, null, "\t"),
                 };
 
@@ -502,6 +512,15 @@ module BABYLON.EDITOR {
             grid.onDelete = (selected: number[]) => {
                 var count = 0;
                 for (var i = 0; i < selected.length; i++) {
+                    var material = this._core.currentScene.getMaterialByID(datas[selected[i] - count].name);
+                    if (material) {
+                        var meshes = material.getBindedMeshes();
+                        for (var j = 0; j < meshes.length; j++)
+                            meshes[j].material = null;
+                    }
+
+                    material.dispose(true, false);
+
                     datas.splice(selected[i] - count, 1);
                     count++;
                 }
