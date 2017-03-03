@@ -454,7 +454,6 @@ module BABYLON.EDITOR.EXTENSIONS {
                 }
             }
 
-            debugger;
             var material = SerializationHelper.Parse(() => new MaterialBuilder(source.name, scene, source.settings), source, scene, rootUrl);
             material.setupCachedValues();
 

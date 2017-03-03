@@ -160,4 +160,22 @@
             core.sendEvent(ev);
         }
     }
+
+    /**
+     * Event emitter
+     */
+    export class EventEmitter<T> implements IEventEmitter {
+        private _eventName: string;
+        private _data: T;
+
+        constructor(eventName: string, data?: T) {
+            this._eventName = eventName;
+            this._data = data;
+        }
+
+        public on(eventName: string, callback: (data: T) => void): void {
+            if (eventName === this._eventName)
+                callback(this._data);
+        }
+    }
 }

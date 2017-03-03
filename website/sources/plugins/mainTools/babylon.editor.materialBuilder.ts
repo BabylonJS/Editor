@@ -211,7 +211,7 @@ module BABYLON.EDITOR {
 
             var meshFolder = configFolder.addFolder("Meshes");
             meshFolder.open();
-            meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange((result) => {
+            meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).name("Current Mesh").onChange((result) => {
                 this._box.material = this._ground.material = this._defaultMaterial;
 
                 switch (result) {
@@ -284,8 +284,8 @@ module BABYLON.EDITOR {
 
             var debugLayoutDiv = $("#MATERIAL-BUILDER-EDIT-DEBUG");
             this._debugLayouts = new GUI.GUILayout("MATERIAL-BUILDER-EDIT-DEBUG", this._core);
-            this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
-            this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 300, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+            this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 200, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
+            this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 200, true).setContent(GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
             this._debugLayouts.buildElement("MATERIAL-BUILDER-EDIT-DEBUG");
 
             // Tabs
@@ -493,7 +493,7 @@ module BABYLON.EDITOR {
                     pixel: MaterialBuilder._PixelShaderString,
                     config: JSON.stringify(<EXTENSIONS.IMaterialBuilderSettings> {
                         samplers: [{
-                            "textureName": "empty.jpg",
+                            "textureName": "albedo.png",
                             "uniformName": "myTexture"
                         }],
                         uniforms: [{

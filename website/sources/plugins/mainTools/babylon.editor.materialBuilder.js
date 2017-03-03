@@ -169,7 +169,7 @@ var BABYLON;
                 });
                 var meshFolder = configFolder.addFolder("Meshes");
                 meshFolder.open();
-                meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).onChange(function (result) {
+                meshFolder.add(this._sceneConfig, "currentMesh", this._sceneConfig.meshes).name("Current Mesh").onChange(function (result) {
                     _this._box.material = _this._ground.material = _this._defaultMaterial;
                     switch (result) {
                         case "box":
@@ -234,8 +234,8 @@ var BABYLON;
                 this._editLayouts.buildElement("MATERIAL-BUILDER-EDIT-LAYOUT");
                 var debugLayoutDiv = $("#MATERIAL-BUILDER-EDIT-DEBUG");
                 this._debugLayouts = new EDITOR.GUI.GUILayout("MATERIAL-BUILDER-EDIT-DEBUG", this._core);
-                this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
-                this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 300, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
+                this._debugLayouts.createPanel("MATERIAL-BUILDER-CANVAS-PANEL", "main", 200, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT-CONSOLE", "width: 100%; height: 100%;"));
+                this._debugLayouts.createPanel("MATERIAL-BUILDER-CODE-PANEL", "top", debugLayoutDiv.height() - 200, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "MATERIAL-BUILDER-EDIT", "width: 100%; height: 100%;"));
                 this._debugLayouts.buildElement("MATERIAL-BUILDER-EDIT-DEBUG");
                 // Tabs
                 this._codePanel = this._editLayouts.getPanelFromType("top");
@@ -415,7 +415,7 @@ var BABYLON;
                         pixel: MaterialBuilder._PixelShaderString,
                         config: JSON.stringify({
                             samplers: [{
-                                    "textureName": "empty.jpg",
+                                    "textureName": "albedo.png",
                                     "uniformName": "myTexture"
                                 }],
                             uniforms: [{

@@ -60,8 +60,19 @@ var BABYLON;
             * Send an event to the event receivers
             */
             EditorCore.prototype.sendEvent = function (event) {
-                for (var i = 0; i < this.eventReceivers.length; i++)
-                    this.eventReceivers[i].onEvent(event);
+                for (var i = 0; i < this.eventReceivers.length; i++) {
+                    if (this.eventReceivers[i].onEvent)
+                        this.eventReceivers[i].onEvent(event);
+                }
+            };
+            /**
+             * Emits an event to the event emitters
+             */
+            EditorCore.prototype.emitEvent = function (event) {
+                for (var i = 0; i < this.eventReceivers.length; i++) {
+                    if (this.eventReceivers[i].on)
+                        this.eventReceivers[i].on(event);
+                }
             };
             /**
             * IDisposable

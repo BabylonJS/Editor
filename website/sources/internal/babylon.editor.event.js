@@ -147,6 +147,21 @@ var BABYLON;
             return Event;
         }());
         EDITOR.Event = Event;
+        /**
+         * Event emitter
+         */
+        var EventEmitter = (function () {
+            function EventEmitter(eventName, data) {
+                this._eventName = eventName;
+                this._data = data;
+            }
+            EventEmitter.prototype.on = function (eventName, callback) {
+                if (eventName === this._eventName)
+                    callback(this._data);
+            };
+            return EventEmitter;
+        }());
+        EDITOR.EventEmitter = EventEmitter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 

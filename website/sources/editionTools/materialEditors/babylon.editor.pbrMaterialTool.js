@@ -62,6 +62,7 @@ var BABYLON;
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
                 this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
@@ -124,6 +125,12 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
+            };
+            // Create normal map editor
+            PBRMaterialTool.prototype._createNormalMapEditor = function () {
+                if (!this.material.albedoTexture)
+                    return EDITOR.GUI.GUIWindow.CreateAlert("Please provide an albedo texture first", "Info");
+                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.material, "albedoTexture");
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {
