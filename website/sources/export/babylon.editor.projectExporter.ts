@@ -282,6 +282,7 @@
                             : node instanceof Sound ? "Sound"
                             : node instanceof Light ? "Light"
                             : node instanceof Camera ? "Camera"
+                            : node instanceof InstancedMesh ? "InstancedMesh"
                             : "Mesh",
                         animations: []
                     };
@@ -294,7 +295,20 @@
                         if (Tags.MatchesQuery(node, "added")) {
                             addNodeObj = true;
 
-                            if (node instanceof Mesh) {
+                            if (node instanceof InstancedMesh) {
+                                var serializedInstances = SceneSerializer.SerializeMesh(node.sourceMesh, false, false).meshes[0].instances;
+                                var sourceMesh = node.sourceMesh;
+
+                                for (var j = 0; j < serializedInstances.length; j++) {
+                                    if (serializedInstances[j].name === node.name) {
+                                        nodeObj.serializationObject = serializedInstances[j];
+                                        nodeObj.serializationObject.sourceMesh = sourceMesh.id;
+
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (node instanceof Mesh) {
                                 nodeObj.serializationObject = SceneSerializer.SerializeMesh(node, false, false);
 
                                 for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {

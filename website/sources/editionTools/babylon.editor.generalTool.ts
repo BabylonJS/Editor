@@ -164,7 +164,7 @@
                 for (var i = 0; i < object.instances.length; i++)
                     instances.push(object.instances[i].name);
 
-                if (this._currentInstance === "")
+                if (this._currentInstance === "" && instances.length > 0)
                     this._currentInstance = instances[0];
 
                 instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange((result: any) => {
@@ -262,8 +262,7 @@
 
         // Create a new instance
         private _createNewInstance(): void {
-            var instance = (<Mesh> this.object).createInstance("New Instance");
-            Event.sendSceneEvent(instance, SceneEventType.OBJECT_ADDED, this._editionTool.core);
+            SceneFactory.AddInstancedMesh(this._editionTool.core, <Mesh>this.object);
         }
     }
 }

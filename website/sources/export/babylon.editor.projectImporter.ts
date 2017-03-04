@@ -61,12 +61,13 @@
             // Parse the nodes
             for (var i = 0; i < project.nodes.length; i++) {
                 var node = project.nodes[i];
-                var newNode: Node | Scene | Sound = null;
+                var newNode: Node | Scene | Sound | InstancedMesh = null;
 
                 switch (node.type) {
                     case "Mesh":
                     case "Light":
                     case "Camera":
+                    case "InstancedMesh":
                         if (node.serializationObject) {
                             if (node.type === "Mesh") {
                                 var vertexDatas: any[] = node.serializationObject.geometries.vertexData;
@@ -80,6 +81,23 @@
 
                                     Tags.EnableFor(newNode);
                                     //Tags.AddTagsTo(newNode, meshes[meshIndex].tags);
+                                }
+                            }
+                            else if (node.type === "InstancedMesh") {
+                                var sourceMesh = <Mesh>core.currentScene.getMeshByID(node.serializationObject.sourceMesh);
+
+                                // The source mesh may disappear if new version of the scene
+                                if (sourceMesh) {
+                                    var instance = sourceMesh.createInstance(node.serializationObject.name);
+                                    instance.id = node.id;
+                                    instance.position = Vector3.FromArray(node.serializationObject.position);
+                                    instance.rotation = Vector3.FromArray(node.serializationObject.rotation);
+                                    instance.scaling = Vector3.FromArray(node.serializationObject.scaling);
+
+                                    Tags.EnableFor(instance);
+                                    Tags.AddTagsTo(instance, "added");
+
+                                    newNode = instance;
                                 }
                             }
                             else if (node.type === "Light") {

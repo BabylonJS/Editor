@@ -278,6 +278,13 @@ var BABYLON;
                 }
                 return water;
             };
+            // Adds a mesh instance
+            SceneFactory.AddInstancedMesh = function (core, mesh) {
+                var instance = mesh.createInstance("New Instance");
+                instance.id = this.GenerateUUID();
+                this.ConfigureObject(instance, core);
+                return instance;
+            };
             return SceneFactory;
         }());
         // Public members

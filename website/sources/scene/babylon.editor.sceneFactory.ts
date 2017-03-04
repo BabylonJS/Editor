@@ -381,5 +381,15 @@
 
             return water;
         }
+
+        // Adds a mesh instance
+        static AddInstancedMesh(core: EditorCore, mesh: Mesh): InstancedMesh {
+            var instance = mesh.createInstance("New Instance");
+            instance.id = this.GenerateUUID();
+            
+            this.ConfigureObject(instance, core);
+
+            return instance;
+        }
     }
 }

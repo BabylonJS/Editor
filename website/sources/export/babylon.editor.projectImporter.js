@@ -60,6 +60,7 @@ var BABYLON;
                         case "Mesh":
                         case "Light":
                         case "Camera":
+                        case "InstancedMesh":
                             if (node.serializationObject) {
                                 if (node.type === "Mesh") {
                                     var vertexDatas = node.serializationObject.geometries.vertexData;
@@ -70,6 +71,20 @@ var BABYLON;
                                     for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
                                         newNode = BABYLON.Mesh.Parse(meshes[meshIndex], core.currentScene, "./");
                                         BABYLON.Tags.EnableFor(newNode);
+                                    }
+                                }
+                                else if (node.type === "InstancedMesh") {
+                                    var sourceMesh = core.currentScene.getMeshByID(node.serializationObject.sourceMesh);
+                                    // The source mesh may disappear if new version of the scene
+                                    if (sourceMesh) {
+                                        var instance = sourceMesh.createInstance(node.serializationObject.name);
+                                        instance.id = node.id;
+                                        instance.position = BABYLON.Vector3.FromArray(node.serializationObject.position);
+                                        instance.rotation = BABYLON.Vector3.FromArray(node.serializationObject.rotation);
+                                        instance.scaling = BABYLON.Vector3.FromArray(node.serializationObject.scaling);
+                                        BABYLON.Tags.EnableFor(instance);
+                                        BABYLON.Tags.AddTagsTo(instance, "added");
+                                        newNode = instance;
                                     }
                                 }
                                 else if (node.type === "Light") {

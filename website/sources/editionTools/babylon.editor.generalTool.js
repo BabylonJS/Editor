@@ -144,7 +144,7 @@ var BABYLON;
                     var instances = [];
                     for (var i = 0; i < object.instances.length; i++)
                         instances.push(object.instances[i].name);
-                    if (this._currentInstance === "")
+                    if (this._currentInstance === "" && instances.length > 0)
                         this._currentInstance = instances[0];
                     instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange(function (result) {
                         var index = instances.indexOf(result);
@@ -222,8 +222,7 @@ var BABYLON;
             };
             // Create a new instance
             GeneralTool.prototype._createNewInstance = function () {
-                var instance = this.object.createInstance("New Instance");
-                EDITOR.Event.sendSceneEvent(instance, EDITOR.SceneEventType.OBJECT_ADDED, this._editionTool.core);
+                EDITOR.SceneFactory.AddInstancedMesh(this._editionTool.core, this.object);
             };
             return GeneralTool;
         }(EDITOR.AbstractDatTool));

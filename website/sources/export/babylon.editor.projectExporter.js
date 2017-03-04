@@ -228,7 +228,8 @@ var BABYLON;
                                 : node instanceof BABYLON.Sound ? "Sound"
                                     : node instanceof BABYLON.Light ? "Light"
                                         : node instanceof BABYLON.Camera ? "Camera"
-                                            : "Mesh",
+                                            : node instanceof BABYLON.InstancedMesh ? "InstancedMesh"
+                                                : "Mesh",
                             animations: []
                         };
                         var addNodeObj = false;
@@ -237,7 +238,18 @@ var BABYLON;
                                 addNodeObj = true;
                             if (BABYLON.Tags.MatchesQuery(node, "added")) {
                                 addNodeObj = true;
-                                if (node instanceof BABYLON.Mesh) {
+                                if (node instanceof BABYLON.InstancedMesh) {
+                                    var serializedInstances = BABYLON.SceneSerializer.SerializeMesh(node.sourceMesh, false, false).meshes[0].instances;
+                                    var sourceMesh = node.sourceMesh;
+                                    for (var j = 0; j < serializedInstances.length; j++) {
+                                        if (serializedInstances[j].name === node.name) {
+                                            nodeObj.serializationObject = serializedInstances[j];
+                                            nodeObj.serializationObject.sourceMesh = sourceMesh.id;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else if (node instanceof BABYLON.Mesh) {
                                     nodeObj.serializationObject = BABYLON.SceneSerializer.SerializeMesh(node, false, false);
                                     for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
                                         delete nodeObj.serializationObject.meshes[meshIndex].animations;

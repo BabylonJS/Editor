@@ -105,7 +105,6 @@ var BABYLON;
                             this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
                         }
                         else if (object instanceof BABYLON.InstancedMesh) {
-                            debugger;
                             var instancesRootNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
                             if (!instancesRootNode) {
                                 instancesRootNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", "icon-mesh", object.sourceMesh);
