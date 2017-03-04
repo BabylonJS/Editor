@@ -21,6 +21,7 @@ var BABYLON;
                 // Private members
                 _this._isActiveCamera = false;
                 _this._isActivePlayCamera = false;
+                _this._currentInstance = "";
                 // Initialize
                 _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
@@ -137,6 +138,26 @@ var BABYLON;
                         }
                     });
                 }
+                // Instances
+                if (object instanceof BABYLON.Mesh) {
+                    var instancesFolder = this._element.addFolder("Instances");
+                    var instances = [];
+                    for (var i = 0; i < object.instances.length; i++)
+                        instances.push(object.instances[i].name);
+                    if (this._currentInstance === "")
+                        this._currentInstance = instances[0];
+                    instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange(function (result) {
+                        var index = instances.indexOf(result);
+                        if (!object.instances[index])
+                            _this.update();
+                        else {
+                            _this._editionTool.isObjectSupported(object.instances[index]);
+                        }
+                    });
+                    instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(function () {
+                        _this.update();
+                    });
+                }
                 return true;
             };
             Object.defineProperty(GeneralTool.prototype, "_castShadows", {
@@ -198,6 +219,11 @@ var BABYLON;
                     }
                     this._setChildrenCastingShadows(object);
                 }
+            };
+            // Create a new instance
+            GeneralTool.prototype._createNewInstance = function () {
+                var instance = this.object.createInstance("New Instance");
+                EDITOR.Event.sendSceneEvent(instance, EDITOR.SceneEventType.OBJECT_ADDED, this._editionTool.core);
             };
             return GeneralTool;
         }(EDITOR.AbstractDatTool));

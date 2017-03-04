@@ -58,6 +58,8 @@ var BABYLON;
             MaterialTool.prototype.update = function () {
                 var _this = this;
                 var object = this._editionTool.object;
+                if (object instanceof BABYLON.InstancedMesh)
+                    object = object.sourceMesh;
                 var material = null;
                 var scene = this._editionTool.core.currentScene;
                 _super.prototype.update.call(this);
@@ -85,12 +87,12 @@ var BABYLON;
                         var newmaterial = scene.getMaterialByName(result);
                         if (_this._editionTool.object instanceof BABYLON.SubMesh) {
                             var index = _this._editionTool.object.materialIndex;
-                            var multiMaterial = _this._editionTool.object.getMesh().material;
+                            var multiMaterial = object.getMesh().material;
                             if (multiMaterial instanceof BABYLON.MultiMaterial)
                                 multiMaterial.subMaterials[index] = newmaterial;
                         }
                         else
-                            _this._editionTool.object.material = newmaterial;
+                            object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
                 });

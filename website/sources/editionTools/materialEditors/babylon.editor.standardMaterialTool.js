@@ -46,7 +46,7 @@ var BABYLON;
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-                bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
+                bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from diffuse texture...");
                 this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Specular
                 var specularFolder = this._element.addFolder("Specular");
@@ -87,9 +87,13 @@ var BABYLON;
             };
             // Create normal map editor
             StandardMaterialTool.prototype._createNormalMapEditor = function () {
-                if (!this.material.diffuseTexture)
-                    return EDITOR.GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first", "Info");
-                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.material, "diffuseTexture");
+                var _this = this;
+                if (!this.material.diffuseTexture || !(this.material.diffuseTexture instanceof BABYLON.Texture))
+                    return EDITOR.GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.material.diffuseTexture);
+                editor.onApply = function (texture) {
+                    _this.material.bumpTexture = texture;
+                };
             };
             StandardMaterialTool.prototype._convertToPBR = function () {
                 var pbr = new BABYLON.PBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);

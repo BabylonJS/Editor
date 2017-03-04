@@ -47,7 +47,7 @@
             bumpFolder.add(this.material, "useParallax").name("Use Parallax");
             bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
             bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
+            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from diffuse texture...");
             this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
 
             // Specular
@@ -98,10 +98,13 @@
 
         // Create normal map editor
         private _createNormalMapEditor(): void {
-            if (!this.material.diffuseTexture)
-                return GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first", "Info");
+            if (!this.material.diffuseTexture || !(this.material.diffuseTexture instanceof Texture))
+                return GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
 
-            var editor = new NormalMapEditor(this._editionTool.core, this.material, "diffuseTexture");
+            var editor = new NormalMapEditor(this._editionTool.core, <Texture>this.material.diffuseTexture);
+            editor.onApply = (texture) => {
+                this.material.bumpTexture = texture;
+            };
         }
 
         private _convertToPBR(): void {

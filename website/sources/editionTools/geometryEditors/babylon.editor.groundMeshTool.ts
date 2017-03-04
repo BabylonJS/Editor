@@ -28,8 +28,8 @@ module BABYLON.EDITOR {
             this._subdivisions = this.mesh.subdivisions;
 
             var geometryFolder = this._element.addFolder("Geometry");
-            geometryFolder.add(this.mesh, "_width").min(0.1).max(100).step(0.1).name("Width").onChange(() => this._propertyChanged());
-            geometryFolder.add(this, "_subdivisions").min(1).max(100).step(1).name("Subdivisions").onChange(() => this._propertyChanged());
+            geometryFolder.add(this.mesh, "_width").min(0.1).step(0.1).name("Width").onChange(() => this._propertyChanged());
+            geometryFolder.add(this, "_subdivisions").min(1).max(1000).step(1).name("Subdivisions").onChange(() => this._propertyChanged());
 
             // Finish
             return true;

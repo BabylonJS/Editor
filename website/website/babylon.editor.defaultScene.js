@@ -38,6 +38,9 @@ function createDefaultScene(core) {
     var sphereNull = BABYLON.Mesh.CreateSphere("sphereNull", 48, 30.0, scene);
     sphereNull.translate(new BABYLON.Vector3(0, 0, 1), 60);
 
+    var sphereNullInstance =sphereNull.createInstance("instance1");
+    sphereNullInstance.translate(new BABYLON.Vector4(0, 0, 1), 120);
+
     var woodPlank = BABYLON.MeshBuilder.CreateBox("plane", { width: 65, height: 1, depth: 65 }, scene);
 
     woodPlank.isPickable = true;

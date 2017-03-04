@@ -67,8 +67,17 @@ var BABYLON;
                     var textureFolder = this._element.addFolder("Texture");
                     textureFolder.add(object, "uScale").name("uScale");
                     textureFolder.add(object, "vScale").name("vScale");
+                    textureFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
                 }
                 return true;
+            };
+            // Create normal map editor
+            TextureTool.prototype._createNormalMapEditor = function () {
+                var _this = this;
+                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.object);
+                editor.onApply = function (texture) {
+                    _this._editionTool.isObjectSupported(texture);
+                };
             };
             return TextureTool;
         }(EDITOR.AbstractDatTool));

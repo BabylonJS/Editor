@@ -71,9 +71,18 @@
                 var textureFolder = this._element.addFolder("Texture");
                 textureFolder.add(object, "uScale").name("uScale");
                 textureFolder.add(object, "vScale").name("vScale");
+                textureFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
             }
 
             return true;
+        }
+
+        // Create normal map editor
+        private _createNormalMapEditor(): void {
+            var editor = new NormalMapEditor(this._editionTool.core, this.object);
+            editor.onApply = (texture) => {
+                this._editionTool.isObjectSupported(texture);
+            };
         }
     }
 }

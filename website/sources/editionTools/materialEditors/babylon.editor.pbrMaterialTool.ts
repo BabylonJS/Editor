@@ -62,7 +62,7 @@
             bumpFolder.add(this.material, "useParallax").name("Use Parallax");
             bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
             bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
-            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
+            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from albedo texture...");
             this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
 
             // Reflectivity
@@ -143,10 +143,13 @@
 
         // Create normal map editor
         private _createNormalMapEditor(): void {
-            if (!this.material.albedoTexture)
-                return GUI.GUIWindow.CreateAlert("Please provide an albedo texture first", "Info");
-            
-            var editor = new NormalMapEditor(this._editionTool.core, this.material, "albedoTexture");
+            if (!this.material.albedoTexture || !(this.material.albedoTexture instanceof Texture))
+                return GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+
+            var editor = new NormalMapEditor(this._editionTool.core, <Texture>this.material.albedoTexture);
+            editor.onApply = (texture) => {
+                this.material.bumpTexture = texture;
+            };
         }
 
         // Preset for glass

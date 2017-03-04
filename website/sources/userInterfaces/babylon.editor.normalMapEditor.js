@@ -4,14 +4,10 @@ var BABYLON;
     (function (EDITOR) {
         var NormalMapEditor = (function () {
             // Constructor
-            function NormalMapEditor(core, material, key) {
+            function NormalMapEditor(core, baseTexture) {
                 var _this = this;
-                // Texture
-                var baseTexture = material[key];
-                if (!baseTexture) {
-                    EDITOR.GUI.GUIWindow.CreateAlert("An error happened, cannot get base texture... Please report a bug", "Warning");
-                    return;
-                }
+                // Public members
+                this.onApply = null;
                 // Divs
                 var layoutID = "BABYLON-NORMAL-MAP-VIEWER";
                 var layoutDiv = EDITOR.GUI.GUIElement.CreateElement("div", layoutID);
@@ -31,7 +27,7 @@ var BABYLON;
                             window.close();
                             break;
                         case "Apply":
-                            _this._apply(core.currentScene, baseTexture, material);
+                            _this._apply(core.currentScene, baseTexture);
                             window.close();
                             break;
                     }
@@ -46,13 +42,13 @@ var BABYLON;
                 var viewport1 = this._buildViewport($("#NORMAL-MAP-LEFT")[0]);
                 var viewport2 = this._buildViewport($("#NORMAL-MAP-RIGHT")[0]);
                 // Viewport 1
-                var originalTexture = new BABYLON.Texture("file:" + baseTexture.name, viewport1.scene);
+                var originalTexture = this._getTexture(viewport1.scene, baseTexture);
                 var postProcess1 = new BABYLON.PassPostProcess("originalPostProcess", 1.0, viewport1.camera);
                 postProcess1.onApply = function (effect) {
                     effect.setTexture("textureSampler", originalTexture);
                 };
                 // Viewport 2
-                var tempTexture = new BABYLON.Texture("file:" + baseTexture.name, viewport2.scene);
+                var tempTexture = this._getTexture(viewport2.scene, baseTexture);
                 tempTexture.onLoadObservable.add(function () {
                     var bumpTexture = new BABYLON.NormalMapProceduralTexture("normalMap", Math.max(tempTexture.getSize().width, tempTexture.getSize().height), viewport2.scene);
                     bumpTexture.baseTexture = tempTexture;
@@ -62,6 +58,8 @@ var BABYLON;
                         effect.setTexture("textureSampler", bumpTexture);
                     };
                 });
+                if (tempTexture instanceof BABYLON.DynamicTexture)
+                    tempTexture.onLoadObservable.notifyObservers(false);
                 // On close
                 window.setOnCloseCallback(function () {
                     viewport1.engine.dispose();
@@ -83,14 +81,30 @@ var BABYLON;
                     camera: camera
                 };
             };
+            // Get texture
+            NormalMapEditor.prototype._getTexture = function (scene, texture) {
+                if (BABYLON.FilesInput.FilesTextures[texture.name])
+                    return new BABYLON.Texture("file:" + texture.name, scene);
+                else if (texture instanceof BABYLON.DynamicTexture) {
+                    var targetTexture = new BABYLON.DynamicTexture(texture.name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
+                    var canvas = targetTexture._canvas;
+                    canvas.remove();
+                    targetTexture._context = texture._context;
+                    targetTexture._canvas = texture._canvas;
+                    targetTexture.update(true);
+                    return targetTexture;
+                }
+                return null;
+            };
             // Applies
-            NormalMapEditor.prototype._apply = function (scene, texture, material) {
+            NormalMapEditor.prototype._apply = function (scene, texture) {
+                var _this = this;
                 // Check if texture exists
                 var finalTexture = null;
                 for (var i = 0; i < scene.textures.length; i++) {
                     if (scene.textures[i].name === "normal_map" + texture.name.toLowerCase()) {
-                        material["bumpTexture"] = scene.textures[i];
-                        return;
+                        if (this.onApply)
+                            return this.onApply(scene.textures[i]);
                     }
                 }
                 // Create procedural texture
@@ -121,7 +135,8 @@ var BABYLON;
                     // Remove procedural texture and apply final texture on material
                     scene.getEngine().unBindFramebuffer(bumpTexture._texture, false);
                     bumpTexture.dispose();
-                    material["bumpTexture"] = finalTexture;
+                    if (_this.onApply)
+                        _this.onApply(finalTexture);
                 };
             };
             return NormalMapEditor;

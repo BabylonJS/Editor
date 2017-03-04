@@ -9,6 +9,8 @@
         private _isActiveCamera: boolean = false;
         private _isActivePlayCamera: boolean = false;
 
+        private _currentInstance: string = "";
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -154,6 +156,31 @@
                 });
             }
 
+            // Instances
+            if (object instanceof Mesh) {
+                var instancesFolder = this._element.addFolder("Instances");
+                var instances: string[] = [];
+
+                for (var i = 0; i < object.instances.length; i++)
+                    instances.push(object.instances[i].name);
+
+                if (this._currentInstance === "")
+                    this._currentInstance = instances[0];
+
+                instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange((result: any) => {
+                    var index = instances.indexOf(result);
+                    if (!object.instances[index])
+                        this.update();
+                    else {
+                        this._editionTool.isObjectSupported(object.instances[index]);
+                    }
+                });
+
+                instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(() => {
+                    this.update();
+                });
+            }
+
             return true;
         }
 
@@ -231,6 +258,12 @@
 
                 this._setChildrenCastingShadows(object);
             }
+        }
+
+        // Create a new instance
+        private _createNewInstance(): void {
+            var instance = (<Mesh> this.object).createInstance("New Instance");
+            Event.sendSceneEvent(instance, SceneEventType.OBJECT_ADDED, this._editionTool.core);
         }
     }
 }

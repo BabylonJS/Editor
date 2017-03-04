@@ -191,6 +191,10 @@
         * Count of elements in it
         */
         count?: number;
+        /**
+         * If the node is hidden
+         */
+        hidden?: boolean;
     }
 
     interface IGraphMenuElement {
