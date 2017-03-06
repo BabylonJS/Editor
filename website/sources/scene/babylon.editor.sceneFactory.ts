@@ -64,7 +64,7 @@
         * Post-Processes
         */
         // Creates HDR pipeline 2
-        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline {
+        static CreateStandardRenderingPipeline(core: EditorCore, callback?: () => void): StandardRenderingPipeline {
             if (this.StandardPipeline) {
                 this.StandardPipeline.dispose();
                 this.StandardPipeline = null;
@@ -73,9 +73,18 @@
             var cameras: Camera[] = core.currentScene.cameras;
 
             var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-            Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => standard.lensTexture = standard.lensFlareDirtTexture = texture);
-            Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, (texture) => standard.lensStarTexture = texture);
-            Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, (texture) => standard.lensColorTexture = texture);
+            Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => {
+                standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, (texture) => {
+                standard.lensStarTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, (texture) => {
+                standard.lensColorTexture = texture;
+                callback();
+            });
 
             this.StandardPipeline = standard;
 
@@ -346,6 +355,15 @@
             this.ConfigureObject(rt, core);
 
             return rt;
+        }
+
+        // Adds a reflection texture
+        static AddMirrorTexture(core: EditorCore): MirrorTexture {
+            var mirror = new MirrorTexture("New Mirror Texture", 512, core.currentScene, false);
+            
+            this.ConfigureObject(mirror, core);
+
+            return mirror;
         }
 
         // Adds a skynode

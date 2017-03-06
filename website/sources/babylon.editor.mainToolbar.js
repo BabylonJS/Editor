@@ -35,6 +35,7 @@ var BABYLON;
                 this._addLensFlare = "ADD-LENS-FLARE";
                 this._addReflectionProbe = "ADD-REFLECTION-PROBE";
                 this._addRenderTarget = "ADD-RENDER-TARGET";
+                this._addMirrorTexture = "ADD-REFLECTION-TEXTURE";
                 this._addParticleSystem = "ADD-PARTICLE-SYSTEM";
                 this._particlesMain = "PARTICLES-MAIN";
                 this._particlesCopy = "PARTICLES-COPY";
@@ -134,6 +135,9 @@ var BABYLON;
                         else if (selected.selected === this._addRenderTarget) {
                             EDITOR.SceneFactory.AddRenderTargetTexture(this.core);
                         }
+                        else if (selected.selected === this._addMirrorTexture) {
+                            EDITOR.SceneFactory.AddMirrorTexture(this.core);
+                        }
                         return true;
                     }
                     // Particles
@@ -208,6 +212,7 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
                 this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
+                this.toolbar.createMenuItem(menu, "button", this._addMirrorTexture, "Add Mirror Texture", "icon-reflection");
                 //...
                 this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");
                 this.toolbar.createMenuItem(menu, "button", this._addParticleSystem, "Add Particle System", "icon-particles");

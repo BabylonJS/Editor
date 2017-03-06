@@ -112,6 +112,19 @@ var BABYLON;
                     };
                     config.push(obj);
                 }
+                // Mirror textures
+                for (index = 0; index < core.currentScene.textures.length; index++) {
+                    var tex = core.currentScene.textures[index];
+                    if (!BABYLON.Tags.HasTags(tex) || !BABYLON.Tags.MatchesQuery(tex, "added"))
+                        continue;
+                    if (tex instanceof BABYLON.MirrorTexture) {
+                        var obj = {
+                            isProbe: false,
+                            serializationObject: tex.serialize()
+                        };
+                        config.push(obj);
+                    }
+                }
                 return config;
             };
             // Serialize lens flares

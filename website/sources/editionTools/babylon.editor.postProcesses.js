@@ -53,7 +53,7 @@ var BABYLON;
                 var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
                 standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange(function (result) {
                     if (result === true)
-                        EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core);
+                        EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core, function () { return _this.update(); });
                     else {
                         EDITOR.SceneFactory.StandardPipeline.dispose();
                         EDITOR.SceneFactory.StandardPipeline = null;

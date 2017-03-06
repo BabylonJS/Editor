@@ -55,7 +55,7 @@
             var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
             standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
                 if (result === true)
-                    SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core);
+                    SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core, () => this.update());
                 else {
                     SceneFactory.StandardPipeline.dispose();
                     SceneFactory.StandardPipeline = null;

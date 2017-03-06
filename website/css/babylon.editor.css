@@ -237,3 +237,7 @@ html, body {
 .w2ui-icon.icon-soft-body {
     background: url("images/soft_body.png");
 }
+
+.w2ui-icon.icon-reflection {
+    background: url("images/reflection.png");
+}

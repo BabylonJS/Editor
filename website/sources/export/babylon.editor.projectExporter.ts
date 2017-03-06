@@ -136,6 +136,23 @@
                 config.push(obj);
             }
 
+            // Mirror textures
+            for (index = 0; index < core.currentScene.textures.length; index++) {
+                var tex = core.currentScene.textures[index];
+                
+                if (!Tags.HasTags(tex) || !Tags.MatchesQuery(tex, "added"))
+                    continue;
+
+                if (tex instanceof MirrorTexture) {
+                    var obj: INTERNAL.IRenderTarget = {
+                        isProbe: false,
+                        serializationObject: tex.serialize()
+                    };
+
+                    config.push(obj);
+                }
+            }
+
             return config;
         }
 

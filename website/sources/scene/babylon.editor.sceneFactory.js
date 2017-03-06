@@ -37,16 +37,25 @@ var BABYLON;
             * Post-Processes
             */
             // Creates HDR pipeline 2
-            SceneFactory.CreateStandardRenderingPipeline = function (core) {
+            SceneFactory.CreateStandardRenderingPipeline = function (core, callback) {
                 if (this.StandardPipeline) {
                     this.StandardPipeline.dispose();
                     this.StandardPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) { return standard.lensTexture = standard.lensFlareDirtTexture = texture; });
-                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, function (texture) { return standard.lensStarTexture = texture; });
-                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, function (texture) { return standard.lensColorTexture = texture; });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) {
+                    standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                    callback();
+                });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, function (texture) {
+                    standard.lensStarTexture = texture;
+                    callback();
+                });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, function (texture) {
+                    standard.lensColorTexture = texture;
+                    callback();
+                });
                 this.StandardPipeline = standard;
                 return standard;
             };
@@ -253,6 +262,12 @@ var BABYLON;
                 core.currentScene.customRenderTargets.push(rt);
                 this.ConfigureObject(rt, core);
                 return rt;
+            };
+            // Adds a reflection texture
+            SceneFactory.AddMirrorTexture = function (core) {
+                var mirror = new BABYLON.MirrorTexture("New Mirror Texture", 512, core.currentScene, false);
+                this.ConfigureObject(mirror, core);
+                return mirror;
             };
             // Adds a skynode
             SceneFactory.AddSkyMesh = function (core) {
