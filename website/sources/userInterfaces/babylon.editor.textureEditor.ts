@@ -42,6 +42,8 @@
 
         private _texturesList: GUI.GUIGrid<ITextureRow> = null;
         
+        private _allowCubes: boolean;
+
         private _engine: Engine = null;
         private _scene: Scene = null;
 
@@ -51,7 +53,7 @@
         * @param object: the object to edit
         * @param propertyPath: the path to the texture property of the object
         */
-        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string) {
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string, allowCubes?: boolean) {
             // Initialize
             this._core = core;
             this._core.eventReceivers.push(this);
@@ -69,6 +71,8 @@
                     this._targetObject = null;
                 }
             }
+
+            this._allowCubes = allowCubes === undefined ? true : allowCubes;
 
             // Finish
             this._createUI();
@@ -163,7 +167,8 @@
                 var selectedTexture: BaseTexture = this._core.currentScene.textures[selected[0]];
 
                 // Send event texture has been selected
-                Event.sendSceneEvent(selectedTexture, SceneEventType.OBJECT_PICKED, this._core);
+                if (!this.propertyPath)
+                    Event.sendSceneEvent(selectedTexture, SceneEventType.OBJECT_PICKED, this._core);
 
                 // Configure texture to preview
                 if (this._targetTexture) {
@@ -219,7 +224,7 @@
                     }
                 }
                 
-                if (this.object) {
+                if (this.object && (this._allowCubes || selectedTexture.isCube === false)) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
                 

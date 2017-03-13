@@ -20,7 +20,7 @@ var BABYLON;
             * @param object: the object to edit
             * @param propertyPath: the path to the texture property of the object
             */
-            function GUITextureEditor(core, objectName, object, propertyPath) {
+            function GUITextureEditor(core, objectName, object, propertyPath, allowCubes) {
                 this._targetTexture = null;
                 this._selectedTexture = null;
                 this._currentRenderTarget = null;
@@ -43,6 +43,7 @@ var BABYLON;
                         this._targetObject = null;
                     }
                 }
+                this._allowCubes = allowCubes === undefined ? true : allowCubes;
                 // Finish
                 this._createUI();
             }
@@ -116,7 +117,8 @@ var BABYLON;
                         _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
                     // Send event texture has been selected
-                    EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
+                    if (!_this.propertyPath)
+                        EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
                     // Configure texture to preview
                     if (_this._targetTexture) {
                         _this._targetTexture.dispose();
@@ -163,7 +165,7 @@ var BABYLON;
                                 _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
                     }
-                    if (_this.object) {
+                    if (_this.object && (_this._allowCubes || selectedTexture.isCube === false)) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
                     if (selectedTexture) {
