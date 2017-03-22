@@ -135,19 +135,20 @@ module BABYLON.EDITOR {
             bumpTexture.onGenerated = () => {
                 scene.getEngine().bindFramebuffer(bumpTexture._texture);
 
-                var array = scene.getEngine().readPixels(0, 0, bumpTexture.getBaseSize().width, bumpTexture.getBaseSize().height);
+                var array = scene.getEngine().readPixels(0, 0, bumpTexture.getRenderSize(), bumpTexture.getRenderSize());
                 
                 // Render texture in a canvas and then create a file
                 var canvas = document.createElement("canvas");
                 var context = canvas.getContext("2d");
 
                 if (context) {
-                    var imageData = new ImageData(bumpTexture.getBaseSize().width, bumpTexture.getBaseSize().height);
+                    var imageData = new ImageData(bumpTexture.getRenderSize(), bumpTexture.getRenderSize());
                     
-                    for (var i = 0; i < array.length; i += 3) {
+                    for (var i = 0; i < array.length; i += 4) {
                         imageData.data[i] = array[i];
                         imageData.data[i + 1] = array[i + 1];
                         imageData.data[i + 2] = array[i + 2];
+                        imageData.data[i + 3] = array[i + 3];
                     }
 
                     context.putImageData(imageData, 0, 0);
