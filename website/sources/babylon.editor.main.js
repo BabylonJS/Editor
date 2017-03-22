@@ -142,6 +142,16 @@ var BABYLON;
             * Simply update the scenes and updates
             */
             EditorMain.prototype.update = function () {
+                // Show we are loading some things
+                if (this.core.currentScene.getWaitingItemsCount() > 0) {
+                    if (!this.statusBar.hasElement("WAITING-ITEMS-COUNT-STATUS")) {
+                        this.statusBar.addElement("WAITING-ITEMS-COUNT-STATUS", "0", null);
+                        this.statusBar.showSpinner("WAITING-ITEMS-COUNT-STATUS");
+                    }
+                    this.statusBar.setText("WAITING-ITEMS-COUNT-STATUS", "Loading " + this.core.currentScene.getWaitingItemsCount() + " items...");
+                }
+                else
+                    this.statusBar.removeElement("WAITING-ITEMS-COUNT-STATUS");
                 // Pre update
                 this.core.onPreUpdate();
                 // Scenes

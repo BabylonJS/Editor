@@ -103,6 +103,7 @@ function createDefaultScene(core) {
     //wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
     woodPlank.material = wood;
 
+    scene._addPendingData("website/Tests/textures/environment.babylon.hdr");
     BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/environment.babylon.hdr", function (file) {
         var texture = new BABYLON.HDRCubeTexture("file:environment.babylon.hdr", scene);
 
@@ -118,14 +119,23 @@ function createDefaultScene(core) {
         texture.name = texture.url = "environment.babylon.hdr";
         hdrSkyboxMaterial.reflectionTexture.name = hdrSkyboxMaterial.reflectionTexture.url = "environment.babylon.hdr";
 
+        scene._removePendingData("website/Tests/textures/environment.babylon.hdr");
     }, false);
+
+    scene._addPendingData("website/Tests/textures/albedo.png");
     BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/albedo.png", function (file) {
         wood.albedoTexture = new BABYLON.Texture("file:albedo.png", scene);
         wood.albedoTexture.name = wood.albedoTexture.url = "albedo.png";
+
+        scene._removePendingData("website/Tests/textures/albedo.png");
     }, true);
+
+    scene._addPendingData("website/Tests/textures/reflectivity.png");
     BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/reflectivity.png", function (file) {
         wood.reflectivityTexture = new BABYLON.Texture("file:reflectivity.png", scene);
         wood.reflectivityTexture.name = wood.reflectivityTexture.url = "reflectivity.png";
+
+        scene._removePendingData("website/Tests/textures/reflectivity.png");
     }, true);
 
     //editorMain._handleSceneLoaded()(null, scene);

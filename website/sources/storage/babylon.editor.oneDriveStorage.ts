@@ -17,7 +17,7 @@
             this._editor = core.editor;
 
             // OAuth
-            //var cliendID= "000000004C18353E"; // editor.babylonjs.com
+            //var clientID = "000000004C18353E"; // editor.babylonjs.com
             var clientID = "0000000048182B1B";
             OAuthManager._URI = "https://login.live.com/oauth20_authorize.srf"
                     + "?client_id=" + clientID

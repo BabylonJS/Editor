@@ -46,6 +46,16 @@
             });
         }
 
+        // Returns if has the element with the given id
+        public hasElement(id: string): boolean {
+            for (var i = 0; i < this._elements.length; i++) {
+                if (this._elements[i].id === id)
+                    return true;
+            }
+
+            return false;
+        }
+
         // Remove an existing element from the status bar
         public removeElement(id: string): boolean {
             for (var i = 0; i < this._elements.length; i++) {
