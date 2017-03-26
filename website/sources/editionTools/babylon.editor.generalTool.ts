@@ -167,18 +167,20 @@
                 if (this._currentInstance === "" && instances.length > 0)
                     this._currentInstance = instances[0];
 
-                instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange((result: any) => {
-                    var index = instances.indexOf(result);
-                    if (!object.instances[index])
-                        this.update();
-                    else {
-                        this._editionTool.isObjectSupported(object.instances[index]);
-                    }
-                });
+                if (instances.length > 0) {
+                    instancesFolder.add(this, "_currentInstance", instances).name("Instance").onFinishChange((result: any) => {
+                        var index = instances.indexOf(result);
+                        if (!object.instances[index])
+                            this.update();
+                        else {
+                            this._editionTool.isObjectSupported(object.instances[index]);
+                        }
+                    });
 
-                instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(() => {
-                    this.update();
-                });
+                    instancesFolder.add(this, "_removeInstance").name("Remove instance...").onFinishChange(() => this.update());
+                }
+
+                instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(() => this.update());
             }
 
             return true;
@@ -263,6 +265,22 @@
         // Create a new instance
         private _createNewInstance(): void {
             SceneFactory.AddInstancedMesh(this._editionTool.core, <Mesh>this.object);
+        }
+
+        // Removes instances
+        private _removeInstance(): void {
+            debugger;
+            if (this._currentInstance === "")
+                return;
+
+            var object = <Mesh> this.object;
+
+            for (var i = 0; i < object.instances.length; i++) {
+                if (object.instances[i].name === this._currentInstance) {
+                    object.instances[i].dispose(false);
+                    break;
+                }
+            }
         }
     }
 }

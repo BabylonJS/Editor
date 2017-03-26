@@ -146,17 +146,18 @@ var BABYLON;
                         instances.push(object.instances[i].name);
                     if (this._currentInstance === "" && instances.length > 0)
                         this._currentInstance = instances[0];
-                    instancesFolder.add(this, "_currentInstance", instances, "Instance").onFinishChange(function (result) {
-                        var index = instances.indexOf(result);
-                        if (!object.instances[index])
-                            _this.update();
-                        else {
-                            _this._editionTool.isObjectSupported(object.instances[index]);
-                        }
-                    });
-                    instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(function () {
-                        _this.update();
-                    });
+                    if (instances.length > 0) {
+                        instancesFolder.add(this, "_currentInstance", instances).name("Instance").onFinishChange(function (result) {
+                            var index = instances.indexOf(result);
+                            if (!object.instances[index])
+                                _this.update();
+                            else {
+                                _this._editionTool.isObjectSupported(object.instances[index]);
+                            }
+                        });
+                        instancesFolder.add(this, "_removeInstance").name("Remove instance...").onFinishChange(function () { return _this.update(); });
+                    }
+                    instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(function () { return _this.update(); });
                 }
                 return true;
             };
@@ -223,6 +224,19 @@ var BABYLON;
             // Create a new instance
             GeneralTool.prototype._createNewInstance = function () {
                 EDITOR.SceneFactory.AddInstancedMesh(this._editionTool.core, this.object);
+            };
+            // Removes instances
+            GeneralTool.prototype._removeInstance = function () {
+                debugger;
+                if (this._currentInstance === "")
+                    return;
+                var object = this.object;
+                for (var i = 0; i < object.instances.length; i++) {
+                    if (object.instances[i].name === this._currentInstance) {
+                        object.instances[i].dispose(false);
+                        break;
+                    }
+                }
             };
             return GeneralTool;
         }(EDITOR.AbstractDatTool));

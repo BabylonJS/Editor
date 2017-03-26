@@ -155,11 +155,11 @@
                 if (newNode instanceof AbstractMesh) {
                     // Physics
                     if (node.physics) {
-                        newNode.setPhysicsState(node.physics.physicsImpostor, {
+                        newNode.physicsImpostor = new PhysicsImpostor(newNode, node.physics.physicsImpostor, {
                             mass: node.physics.physicsMass,
                             friction: node.physics.physicsFriction,
                             restitution: node.physics.physicsRestitution
-                        });
+                        }, core.currentScene);
                     }
 
                     // Actions

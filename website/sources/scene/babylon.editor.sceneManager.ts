@@ -78,10 +78,14 @@
 
                 mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, (evt: ActionEvent) => {
                     if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
-                        Event.sendSceneEvent(mesh, SceneEventType.OBJECT_PICKED, core);
+                        var pickedPoint = core.currentScene.pick(mouseX, mouseY);
+                        Event.sendSceneEvent(mesh.subMeshes.length > 1 ? mesh.subMeshes[pickedPoint.subMeshId] : mesh, SceneEventType.OBJECT_PICKED, core);
                         core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
-                        //core.editor.sceneToolbar.setFocusOnObject(mesh);
                     }
+                }));
+
+                mesh.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, (evt: ActionEvent) => {
+                    core.editor.sceneToolbar.setFocusOnObject(mesh);
                 }));
 
                 if (parentNode && !mesh.parent) {

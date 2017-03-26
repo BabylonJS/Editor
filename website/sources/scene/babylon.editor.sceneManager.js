@@ -53,9 +53,13 @@ var BABYLON;
                     }));
                     mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, function (evt) {
                         if (scene.pointerX === mouseX && scene.pointerY === mouseY) {
-                            EDITOR.Event.sendSceneEvent(mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
+                            var pickedPoint = core.currentScene.pick(mouseX, mouseY);
+                            EDITOR.Event.sendSceneEvent(mesh.subMeshes.length > 1 ? mesh.subMeshes[pickedPoint.subMeshId] : mesh, EDITOR.SceneEventType.OBJECT_PICKED, core);
                             core.editor.sceneGraphTool.sidebar.setSelected(mesh.id);
                         }
+                    }));
+                    mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (evt) {
+                        core.editor.sceneToolbar.setFocusOnObject(mesh);
                     }));
                     if (parentNode && !mesh.parent) {
                         mesh.parent = parentNode;

@@ -135,11 +135,11 @@ var BABYLON;
                     if (newNode instanceof BABYLON.AbstractMesh) {
                         // Physics
                         if (node.physics) {
-                            newNode.setPhysicsState(node.physics.physicsImpostor, {
+                            newNode.physicsImpostor = new BABYLON.PhysicsImpostor(newNode, node.physics.physicsImpostor, {
                                 mass: node.physics.physicsMass,
                                 friction: node.physics.physicsFriction,
                                 restitution: node.physics.physicsRestitution
-                            });
+                            }, core.currentScene);
                         }
                         // Actions
                         var oldActionManager = newNode.actionManager;

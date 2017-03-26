@@ -107,7 +107,7 @@
                     }
 
                     if (value !== realStates[0]) { // If not NoImpostor
-                        physicsObject.setPhysicsState(PhysicsEngine[value], { mass: 0 });
+                        physicsObject.physicsImpostor = new PhysicsImpostor(physicsObject, PhysicsImpostor[value], { mass: 0 }, this._editionTool.core.currentScene);
                         physicsObject.getPhysicsImpostor().sleep();
 
                         Tags.AddTagsTo(physicsObject.getPhysicsImpostor(), "added");
@@ -117,9 +117,9 @@
                 });
 
                 if (physicsObject.getPhysicsImpostor()) {
-                    this._mass = physicsObject.getPhysicsMass();
-                    this._friction = physicsObject.getPhysicsFriction();
-                    this._restitution = physicsObject.getPhysicsRestitution();
+                    this._mass = physicsObject.physicsImpostor.getParam("mass");
+                    this._friction = physicsObject.physicsImpostor.getParam("friction");
+                    this._restitution = physicsObject.physicsImpostor.getParam("restitution");
 
                     physicsFolder.add(this, "_mass").name("Mass").min(0).step(0.01).onChange((value: number) => physicsObject.getPhysicsImpostor().setMass(value));
                     physicsFolder.add(this, "_friction").name("Friction").min(0).step(0.01).onChange((value: number) => physicsObject.getPhysicsImpostor().setParam("friction", value));

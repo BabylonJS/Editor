@@ -397,10 +397,10 @@
                             addNodeObj = true;
 
                             nodeObj.physics = {
-                                physicsMass: node.getPhysicsMass(),
-                                physicsFriction: node.getPhysicsFriction(),
-                                physicsRestitution: node.getPhysicsRestitution(),
-                                physicsImpostor: node.getPhysicsImpostor().type
+                                physicsMass: node.physicsImpostor.getParam("mass"),
+                                physicsFriction: node.physicsImpostor.getParam("friction"),
+                                physicsRestitution: node.physicsImpostor.getParam("restitution"),
+                                physicsImpostor: node.physicsImpostor.type
                             }
                         }
 

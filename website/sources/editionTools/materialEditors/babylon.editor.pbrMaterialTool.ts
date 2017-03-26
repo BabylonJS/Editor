@@ -47,7 +47,7 @@
             pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
             pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
             pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
-            pbrFolder.add(this.material, "usePhysicalLightFalloff").name("use Physical Light Fall Off");
+            pbrFolder.add(this.material, "usePhysicalLightFalloff").name("Use Physical Light Fall Off");
             
             // Albedo
             var albedoFolder = this._element.addFolder("Albedo");

@@ -178,7 +178,7 @@ var BABYLON;
                 this._camera.setTarget(BABYLON.Vector3.Zero());
                 this._camera.attachControl(this._engine.getRenderingCanvas());
                 this._scene.enablePhysics(this._scene.gravity, new BABYLON.CannonJSPlugin());
-                this._plane.setPhysicsState(BABYLON.PhysicsEngine.BoxImpostor, { mass: 0 });
+                this._plane.physicsImpostor = new BABYLON.PhysicsImpostor(this._plane, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0 }, this._scene);
                 this._sphere.position.y = -4;
                 this._sphere.isVisible = false;
                 // Extension
@@ -203,7 +203,7 @@ var BABYLON;
                 var freeFallFolder = this._editTool.addFolder("Free Fall");
                 freeFallFolder.add(this, "_useFreeFallSphere").name("Use Sphere Impostor").onFinishChange(function (value) {
                     if (value) {
-                        _this._sphere.setPhysicsState(BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0 });
+                        _this._sphere.physicsImpostor = new BABYLON.PhysicsImpostor(_this._sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0 }, _this._scene);
                     }
                     else if (_this._sphere.getPhysicsImpostor()) {
                         _this._sphere.getPhysicsImpostor().dispose();

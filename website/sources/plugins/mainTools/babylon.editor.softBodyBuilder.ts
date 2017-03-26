@@ -229,7 +229,7 @@ module BABYLON.EDITOR {
 
             this._scene.enablePhysics(this._scene.gravity, new CannonJSPlugin());
 
-            this._plane.setPhysicsState(PhysicsEngine.BoxImpostor, { mass: 0 });
+            this._plane.physicsImpostor = new PhysicsImpostor(this._plane, PhysicsImpostor.BoxImpostor, { mass: 0 }, this._scene);
 
             this._sphere.position.y = -4;
             this._sphere.isVisible = false;
@@ -260,7 +260,7 @@ module BABYLON.EDITOR {
             var freeFallFolder = this._editTool.addFolder("Free Fall");
             freeFallFolder.add(this, "_useFreeFallSphere").name("Use Sphere Impostor").onFinishChange((value: boolean) => {
                 if (value) {
-                    this._sphere.setPhysicsState(PhysicsImpostor.SphereImpostor, { mass: 0 });
+                    this._sphere.physicsImpostor = new PhysicsImpostor(this._sphere, PhysicsImpostor.SphereImpostor, { mass: 0 }, this._scene);
                 }
                 else if (this._sphere.getPhysicsImpostor()) {
                     this._sphere.getPhysicsImpostor().dispose();
