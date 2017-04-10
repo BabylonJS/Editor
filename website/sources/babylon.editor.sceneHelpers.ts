@@ -77,6 +77,10 @@
             if (this._planeMaterial.isReady(this._helperPlane)) {
                 this._subMesh = this._helperPlane.subMeshes[0];
                 var effect = this._planeMaterial.getEffect();
+
+                if (!effect)
+                    return;
+                
                 this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
 
                 engine.enableEffect(effect);

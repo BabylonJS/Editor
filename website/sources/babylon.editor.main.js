@@ -125,7 +125,6 @@ var BABYLON;
             */
             EditorMain.prototype.createNewProject = function () {
                 BABYLON.FilesInput.FilesToLoad = [];
-                BABYLON.FilesInput.FilesTextures = [];
                 this.core.currentScene.dispose();
                 this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
             };

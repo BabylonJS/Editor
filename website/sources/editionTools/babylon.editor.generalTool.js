@@ -227,7 +227,6 @@ var BABYLON;
             };
             // Removes instances
             GeneralTool.prototype._removeInstance = function () {
-                debugger;
                 if (this._currentInstance === "")
                     return;
                 var object = this.object;

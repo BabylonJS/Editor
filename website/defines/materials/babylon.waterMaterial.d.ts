@@ -1,11 +1,15 @@
+
 declare module BABYLON {
-    class WaterMaterial extends Material {
+    class WaterMaterial extends PushMaterial {
         renderTargetSize: Vector2;
+        private _bumpTexture;
         bumpTexture: BaseTexture;
         diffuseColor: Color3;
         specularColor: Color3;
         specularPower: number;
+        private _disableLighting;
         disableLighting: boolean;
+        private _maxSimultaneousLights;
         maxSimultaneousLights: number;
         /**
         * @param {number}: Represents the wind force
@@ -26,14 +30,17 @@ declare module BABYLON {
         /**
          * @param {boolean}: Add a smaller moving bump to less steady waves.
          */
+        private _bumpSuperimpose;
         bumpSuperimpose: boolean;
         /**
          * @param {boolean}: Color refraction and reflection differently with .waterColor2 and .colorBlendFactor2. Non-linear (physically correct) fresnel.
          */
+        private _fresnelSeparate;
         fresnelSeparate: boolean;
         /**
          * @param {boolean}: bump Waves modify the reflection.
          */
+        private _bumpAffectsReflection;
         bumpAffectsReflection: boolean;
         /**
         * @param {number}: The water color blended with the refraction (near)
@@ -66,27 +73,23 @@ declare module BABYLON {
         private _reflectionTransform;
         private _lastTime;
         private _renderId;
-        private _defines;
-        private _cachedDefines;
         private _useLogarithmicDepth;
         /**
         * Constructor
         */
         constructor(name: string, scene: Scene, renderTargetSize?: Vector2);
         useLogarithmicDepth: boolean;
-        refractionTexture: RenderTargetTexture;
-        reflectionTexture: RenderTargetTexture;
+        readonly refractionTexture: RenderTargetTexture;
+        readonly reflectionTexture: RenderTargetTexture;
         addToRenderList(node: any): void;
         enableRenderTargets(enable: boolean): void;
         getRenderList(): AbstractMesh[];
-        renderTargetsEnabled: boolean;
+        readonly renderTargetsEnabled: boolean;
         needAlphaBlending(): boolean;
         needAlphaTesting(): boolean;
         getAlphaTestTexture(): BaseTexture;
-        private _checkCache(scene, mesh?, useInstances?);
-        isReady(mesh?: AbstractMesh, useInstances?: boolean): boolean;
-        bindOnlyWorldMatrix(world: Matrix): void;
-        bind(world: Matrix, mesh?: Mesh): void;
+        isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean;
+        bindForSubMesh(world: Matrix, mesh: Mesh, subMesh: SubMesh): void;
         private _createRenderTargets(scene, renderTargetSize);
         getAnimatables(): IAnimatable[];
         dispose(forceDisposeEffect?: boolean): void;

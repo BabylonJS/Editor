@@ -134,7 +134,7 @@ module BABYLON.EDITOR {
                     var name = settings.samplers[i].textureName;
                     var texture: BaseTexture = null;
 
-                    if (BABYLON.FilesInput.FilesTextures[name]) {
+                    if (BABYLON.FilesInput.FilesToLoad[name]) {
                         texture = new Texture("file:" + name, this._scene);
                     }
                 }

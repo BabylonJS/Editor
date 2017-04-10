@@ -102,7 +102,7 @@ var BABYLON;
                     for (var i = 0; i < settings.samplers.length; i++) {
                         var name = settings.samplers[i].textureName;
                         var texture = null;
-                        if (BABYLON.FilesInput.FilesTextures[name]) {
+                        if (BABYLON.FilesInput.FilesToLoad[name]) {
                             texture = new BABYLON.Texture("file:" + name, this._scene);
                         }
                     }

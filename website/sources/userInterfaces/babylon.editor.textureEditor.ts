@@ -203,7 +203,7 @@
                             serializationObject.base64String = (<any>selectedTexture)._buffer;
                         }
                         else {
-                            var file: File = BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()];
+                            var file: File = BABYLON.FilesInput.FilesToLoad[selectedTexture.name.toLowerCase()];
                             if (file) {
                                 serializationObject.name = (<Texture>selectedTexture).url;
                             }
@@ -270,7 +270,7 @@
                             });
                         }
                         else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
-                            BABYLON.FilesInput.FilesTextures[lowerName] = data.target.files[i];
+                            BABYLON.FilesInput.FilesToLoad[lowerName] = data.target.files[i];
                             BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(lowerName), null);
                         }
                         else {

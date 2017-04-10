@@ -83,7 +83,7 @@ var BABYLON;
             };
             // Get texture
             NormalMapEditor.prototype._getTexture = function (scene, texture) {
-                if (BABYLON.FilesInput.FilesTextures[texture.name])
+                if (BABYLON.FilesInput.FilesToLoad[texture.name])
                     return new BABYLON.Texture("file:" + texture.name, scene);
                 else if (texture instanceof BABYLON.DynamicTexture) {
                     var targetTexture = new BABYLON.DynamicTexture(texture.name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
@@ -129,7 +129,7 @@ var BABYLON;
                         var base64 = canvas.toDataURL();
                         var finalArray = EDITOR.Tools.ConvertBase64StringToArrayBuffer(base64);
                         var file = EDITOR.Tools.CreateFile(finalArray, bumpTexture.name);
-                        BABYLON.FilesInput.FilesTextures[bumpTexture.name.toLowerCase()] = file;
+                        BABYLON.FilesInput.FilesToLoad[bumpTexture.name.toLowerCase()] = file;
                         finalTexture = new BABYLON.Texture("file:" + bumpTexture.name.toLowerCase(), scene, texture.noMipmap, texture._invertY, texture._samplingMode, null, null, base64, false);
                         finalTexture.name = finalTexture.url = finalTexture.name.replace("file:", "");
                     }

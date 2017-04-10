@@ -269,7 +269,6 @@
 
         // Removes instances
         private _removeInstance(): void {
-            debugger;
             if (this._currentInstance === "")
                 return;
 

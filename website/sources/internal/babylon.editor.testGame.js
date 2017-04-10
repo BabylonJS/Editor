@@ -12,10 +12,6 @@ var BABYLON;
                     var filesInput = popup.BABYLON.FilesInput;
                     var projectContent = EDITOR.ProjectExporter.ExportProject(core, true);
                     var project = JSON.parse(projectContent);
-                    // Copy textures
-                    for (var thing in BABYLON.FilesInput.FilesTextures) {
-                        popup.BABYLON.FilesInput.FilesTextures[thing] = BABYLON.FilesInput.FilesTextures[thing];
-                    }
                     // Copy files to load
                     for (var thing in BABYLON.FilesInput.FilesToLoad) {
                         popup.BABYLON.FilesInput.FilesToLoad[thing] = BABYLON.FilesInput.FilesToLoad[thing];

@@ -97,7 +97,7 @@ module BABYLON.EDITOR {
 
         // Get texture
         private _getTexture(scene: Scene, texture: Texture): Texture {
-            if (BABYLON.FilesInput.FilesTextures[texture.name])
+            if (BABYLON.FilesInput.FilesToLoad[texture.name])
                 return new Texture("file:" + texture.name, scene);
             else if (texture instanceof DynamicTexture) {
                 var targetTexture = new DynamicTexture(texture.name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
@@ -157,7 +157,7 @@ module BABYLON.EDITOR {
                     var finalArray = Tools.ConvertBase64StringToArrayBuffer(base64);
 
                     var file = Tools.CreateFile(finalArray, bumpTexture.name);
-                    BABYLON.FilesInput.FilesTextures[bumpTexture.name.toLowerCase()] = file;
+                    BABYLON.FilesInput.FilesToLoad[bumpTexture.name.toLowerCase()] = file;
                     
                     finalTexture = new Texture("file:" + bumpTexture.name.toLowerCase(), scene, texture.noMipmap, texture._invertY, texture._samplingMode, null, null, base64, false);
                     finalTexture.name = finalTexture.url = finalTexture.name.replace("file:", "");

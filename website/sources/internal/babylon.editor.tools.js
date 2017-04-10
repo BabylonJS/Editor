@@ -215,8 +215,8 @@ var BABYLON;
                 if (isTexture === void 0) { isTexture = false; }
                 var filename = BABYLON.Tools.GetFilename(url);
                 var filenameLower = filename.toLowerCase();
-                if (isTexture && EDITOR.FilesInput.FilesTextures[filenameLower]) {
-                    callback(EDITOR.FilesInput.FilesTextures[filenameLower]);
+                if (isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesToLoad[filenameLower]);
                     return;
                 }
                 else if (!isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
@@ -226,7 +226,7 @@ var BABYLON;
                 BABYLON.Tools.LoadFile(url, function (data) {
                     var file = Tools.CreateFile(new Uint8Array(data), filename);
                     if (isTexture)
-                        BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                        BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                     else
                         BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                     if (callback)
@@ -258,7 +258,7 @@ var BABYLON;
                     var texture = BABYLON.Texture.CreateFromBase64String(base64, filename, scene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
                     texture.url = texture.url.replace("data:", "");
-                    BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(data), filename);
+                    BABYLON.FilesInput.FilesToLoad[filename] = Tools.CreateFile(new Uint8Array(data), filename);
                     callback(texture);
                 }, null, null, true);
             };

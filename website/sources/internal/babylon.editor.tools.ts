@@ -244,8 +244,8 @@
             var filename = BABYLON.Tools.GetFilename(url);
             var filenameLower = filename.toLowerCase();
 
-            if (isTexture && FilesInput.FilesTextures[filenameLower]) {
-                callback(FilesInput.FilesTextures[filenameLower]);
+            if (isTexture && FilesInput.FilesToLoad[filenameLower]) {
+                callback(FilesInput.FilesToLoad[filenameLower]);
                 return;
             }
             else if (!isTexture && FilesInput.FilesToLoad[filenameLower]) {
@@ -256,7 +256,7 @@
             BABYLON.Tools.LoadFile(url, (data: ArrayBuffer) => {
                 var file = Tools.CreateFile(new Uint8Array(data), filename);
                 if (isTexture)
-                    BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                    BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                 else
                     BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
 
@@ -295,7 +295,7 @@
                 texture.name = texture.name.replace("data:", "");
                 texture.url = texture.url.replace("data:", "");
 
-                BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), filename);
+                BABYLON.FilesInput.FilesToLoad[filename] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), filename);
 
                 callback(texture);
             }, null, null, true);

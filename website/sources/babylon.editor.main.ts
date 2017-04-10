@@ -182,7 +182,6 @@
         */
         public createNewProject(): void {
             BABYLON.FilesInput.FilesToLoad = [];
-            BABYLON.FilesInput.FilesTextures = [];
 
             this.core.currentScene.dispose();
             this._handleSceneLoaded()(null, new Scene(this.core.engine));
