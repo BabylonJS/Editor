@@ -255,18 +255,18 @@
             }
 
             // Post processes
+            /*
             for (var i = 0; i < project.postProcesses.length; i++) {
                 var pp = project.postProcesses[i];
-                
-                if (SceneFactory["Create" + pp.name]) {
-                    var newPp = SceneFactory["Create" + pp.name](core, pp.serializationObject);
 
-                    if (pp.attach !== undefined && !pp.attach) {
-                        (<PostProcessRenderPipeline>newPp)._detachCameras(core.currentScene.cameras);
-                    }
+                if (pp.serializationObject.customType) {
+                    pp.serializationObject._ratio = 1.0 / devicePixelRatio;
+                    var pipeline = <PostProcessRenderPipeline> BABYLON[pp.serializationObject.customType].Parse(pp.serializationObject, core.currentScene, "./");
+                    core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pp.serializationObject._name, core.currentScene.cameras);
                 }
             }
-
+            */
+            
             // Render tagets, fill waiting renderlists
             for (var i = 0; i < project.renderTargets.length; i++) {
                 var rt = project.renderTargets[i];

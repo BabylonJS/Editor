@@ -89,8 +89,8 @@ var BABYLON;
                 var shadowsFolder = this._element.addFolder("Shadows");
                 var shadows = object.getShadowGenerator();
                 if (shadows) {
-                    shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
-                    shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
+                    shadowsFolder.add(shadows, "useBlurExponentialShadowMap").name("Use Blur Exponential Shadows Map").listen();
+                    shadowsFolder.add(shadows, "useExponentialShadowMap").name("Use Exponential Shadow Map").listen();
                     shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
                     if (shadows.forceBackFacesOnly !== undefined)
                         shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");

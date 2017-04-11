@@ -183,26 +183,11 @@
         private static _SerializePostProcesses(): INTERNAL.IPostProcess[] {
             var config: INTERNAL.IPostProcess[] = [];
 
-            var serialize = (object: any): any => {
-                var obj = {};
-                
-                for (var thing in object) {
-                    if (thing[0] === "_")
-                        continue;
-
-                    if (typeof object[thing] === "number")
-                        obj[thing] = object[thing];
-
-                    if (object[thing] instanceof Texture) {
-                        obj[thing] = {
-                            base64Name: (<Texture>object[thing]).name,
-                            base64Buffer: object[thing]._buffer
-                        };
-                    }
-                }
-
-                return obj;
-            };
+            if (SceneFactory.StandardPipeline) {
+                config.push({
+                    serializationObject: SceneFactory.StandardPipeline.serialize()
+                });
+            }
 
             return config;
         }

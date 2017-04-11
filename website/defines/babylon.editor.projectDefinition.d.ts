@@ -84,10 +84,7 @@ declare module BABYLON.EDITOR.INTERNAL {
     * Post-processes
     */
     interface IPostProcess {
-        name: string;
         serializationObject: any;
-        attach?: boolean;
-        cameraName?: string;
     }
     /**
     * Lens Flares

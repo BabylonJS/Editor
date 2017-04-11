@@ -64,7 +64,7 @@ module BABYLON.EDITOR.EXTENSIONS {
         @serialize("maxSimultaneousLights")
         private _maxSimultaneousLights = 4;
         @expandToProperty("_markAllSubMeshesAsLightsDirty")
-        public maxSimultaneousLights: number;         
+        public maxSimultaneousLights: number;
 
         private _useLogarithmicDepth: boolean;
         
@@ -123,6 +123,8 @@ module BABYLON.EDITOR.EXTENSIONS {
             // Textures
             if (defines._areTexturesDirty) {
                 defines._needUVs = false;
+                defines.TEXTURE = false;
+
                 if (scene.texturesEnabled) {
                     if (this.settings.samplers.length > 0) {
                         for (var i = 0; i < this.settings.samplers.length; i++) {

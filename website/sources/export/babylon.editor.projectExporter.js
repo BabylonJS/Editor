@@ -148,22 +148,11 @@ var BABYLON;
             // Serialize  post-processes
             ProjectExporter._SerializePostProcesses = function () {
                 var config = [];
-                var serialize = function (object) {
-                    var obj = {};
-                    for (var thing in object) {
-                        if (thing[0] === "_")
-                            continue;
-                        if (typeof object[thing] === "number")
-                            obj[thing] = object[thing];
-                        if (object[thing] instanceof BABYLON.Texture) {
-                            obj[thing] = {
-                                base64Name: object[thing].name,
-                                base64Buffer: object[thing]._buffer
-                            };
-                        }
-                    }
-                    return obj;
-                };
+                if (EDITOR.SceneFactory.StandardPipeline) {
+                    config.push({
+                        serializationObject: EDITOR.SceneFactory.StandardPipeline.serialize()
+                    });
+                }
                 return config;
             };
             // Traverses nodes

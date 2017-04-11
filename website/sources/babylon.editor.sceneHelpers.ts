@@ -74,9 +74,10 @@
             var engine = this._scene.getEngine();
             engine.setAlphaTesting(true);
 
-            if (this._planeMaterial.isReady(this._helperPlane)) {
-                this._subMesh = this._helperPlane.subMeshes[0];
-                var effect = this._planeMaterial.getEffect();
+            this._subMesh = this._helperPlane.subMeshes[0];
+
+            if (this._planeMaterial.isReadyForSubMesh(this._helperPlane, this._subMesh, true)) {
+                var effect = this._subMesh.effect;
 
                 if (!effect)
                     return;
@@ -128,7 +129,7 @@
 
         // Render planes
         private _renderHelperPlane(array: any[], onConfigure: (obj: any) => boolean): void {
-            var effect = this._planeMaterial.getEffect();
+            var effect = this._subMesh.effect;
 
             for (var i = 0; i < array.length; i++) {
                 var obj = array[i];
@@ -141,7 +142,8 @@
                 this._helperPlane.computeWorldMatrix(true);
 
                 this._scene._cachedMaterial = null;
-                this._planeMaterial.bind(this._helperPlane.getWorldMatrix(), this._helperPlane);
+                this._planeMaterial._preBind(effect);
+                this._planeMaterial.bindForSubMesh(this._helperPlane.getWorldMatrix(), this._helperPlane, this._subMesh);
 
                 this._helperPlane._processRendering(this._subMesh, effect, Material.TriangleFillMode, this._batch, false, (isInstance, world) => {
                     effect.setMatrix("world", world);
