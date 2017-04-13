@@ -241,9 +241,14 @@ var BABYLON;
             Tools.CreateFile = function (array, filename) {
                 if (array === null)
                     return null;
+                /*
                 var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
                     type: Tools.GetFileType(Tools.GetFileExtension(filename))
                 });
+                */
+                // Fix for Edge, only work with "Blob" instead of "File""
+                var file = new Blob([array], { type: Tools.GetFileType(Tools.GetFileExtension(filename)) });
+                file.name = BABYLON.Tools.GetFilename(filename);
                 return file;
             };
             /**

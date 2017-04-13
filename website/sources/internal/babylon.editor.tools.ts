@@ -275,11 +275,17 @@
             if (array === null)
                 return null;
 
+            /*
             var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
                 type: Tools.GetFileType(Tools.GetFileExtension(filename))
             });
+            */
 
-            return file;
+            // Fix for Edge, only work with "Blob" instead of "File""
+            var file = new Blob([array], { type: Tools.GetFileType(Tools.GetFileExtension(filename)) });
+            (<any> file).name = BABYLON.Tools.GetFilename(filename);
+
+            return <File>file;
         }
 
         /**

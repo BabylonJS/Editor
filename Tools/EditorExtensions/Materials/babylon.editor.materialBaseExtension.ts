@@ -112,7 +112,7 @@ module BABYLON.EDITOR.EXTENSIONS {
             var defines = <MaterialBuilderDefines>subMesh._materialDefines;
             var scene = this.getScene();
 
-            if (!this.checkReadyOnEveryCall) {
+            if (!this.checkReadyOnEveryCall && subMesh.effect) {
                 if (this._renderId === scene.getRenderId()) {
                     return true;
                 }
