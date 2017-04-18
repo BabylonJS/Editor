@@ -40,6 +40,16 @@ html, body {
     width: 16px;
 }
 
+.w2ui-toolbar table.w2ui-button .w2ui-tb-image {
+    width: 16px;
+    height: 16px;
+}
+
+.w2ui-overlay table.w2ui-drop-menu td.menu-icon > span {
+    width: 16px;
+    height: 16px;
+}
+
 #BABYLON-EDITOR-TOP-TOOLBAR-PANEL {
     overflow: hidden;
 }

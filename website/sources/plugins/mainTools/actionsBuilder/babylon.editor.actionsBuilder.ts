@@ -366,7 +366,7 @@
         private _configureUI(): void {
             // Triggers
             for (var i = ActionManager.NothingTrigger; i <= ActionManager.OnKeyUpTrigger; i++) {
-                this._triggersList.addRecord(<IElementItem>{ recid: i, name: ActionManager.GetTriggerName(i), style: "background-color: rgb(133, 154, 185)" });
+                this._triggersList.addRecord(<IElementItem>{ recid: i, name: ActionManager.GetTriggerName(i), w2ui: { style: "background-color: rgb(133, 154, 185)" } });
             }
 
             this._triggersList.refresh();
@@ -374,7 +374,7 @@
             // Actions
             this._actionsClasses = this._getClasses(this._babylonModule, "BABYLON.Action");
             for (var i = 0; i < this._actionsClasses.length; i++) {
-                this._actionsList.addRecord(<IElementItem>{ recid: i, name: this._actionsClasses[i].name, style: "background-color: rgb(182, 185, 132)" });
+                this._actionsList.addRecord(<IElementItem>{ recid: i, name: this._actionsClasses[i].name, w2ui: { style: "background-color: rgb(182, 185, 132)" } });
             }
 
             this._actionsList.refresh();
@@ -382,7 +382,7 @@
             // Controls
             this._controlsClasses = this._getClasses(this._babylonModule, "BABYLON.Condition");
             for (var i = 0; i < this._controlsClasses.length; i++) {
-                this._controlsList.addRecord({ recid: i, name: this._controlsClasses[i].name, style: "background-color: rgb(185, 132, 140)" });
+                this._controlsList.addRecord({ recid: i, name: this._controlsClasses[i].name, w2ui: { style: "background-color: rgb(185, 132, 140)" } });
             }
 
             this._controlsList.refresh();

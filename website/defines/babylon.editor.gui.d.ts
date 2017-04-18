@@ -396,7 +396,9 @@
         /**
         * The row style
         */
-        style?: string;
+        w2ui?: {
+            style?: string;
+        }
     }
 
     interface IGridColumnEditable extends W2UI.IGridColumnEditable

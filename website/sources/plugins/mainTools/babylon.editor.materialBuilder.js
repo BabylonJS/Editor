@@ -40,6 +40,8 @@ var BABYLON;
                 this._mainExtension = null;
                 this._currentMetadata = null;
                 this._currentSettings = null;
+                this._ppExtension = null;
+                this._ppMainExtension = null;
                 this._sceneConfig = {
                     pointLight: true,
                     hemisphericLight: false,
@@ -402,11 +404,10 @@ var BABYLON;
                 grid.showAdd = true;
                 grid.showDelete = true;
                 grid.createColumn("name", "Name", "100%");
-                grid.buildElement("MATERIALS-GRID");
                 var datas = this._getMetadatas();
                 for (var i = 0; i < datas.length; i++)
                     grid.addRecord({ recid: i, name: datas[i].name });
-                grid.refresh();
+                grid.buildElement("MATERIALS-GRID");
                 // Events
                 grid.onAdd = function () {
                     var newMaterial = {

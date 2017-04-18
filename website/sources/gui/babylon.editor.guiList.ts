@@ -57,7 +57,6 @@
                 },
 
                 compare: (item, search) => {
-                    debugger;
                     return item.text.indexOf(search) !== -1;
                 }
             });

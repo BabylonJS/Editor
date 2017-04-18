@@ -22,6 +22,7 @@
         public menus: W2UI.IGridMenu[] = [];
         public autoMergeChanges: boolean = true;
         public multiSelect: boolean = true;
+        public reorderRows: boolean = false;
 
         public onClick: (selected: number[]) => void;
         public onMenuClick: (id: number) => void;
@@ -83,7 +84,8 @@
         // Adds a record without refreshing the grid
         public addRecord(data: T): void {
             if (!this.element) {
-                data.recid = this.records.length;
+                if (data.recid === undefined)
+                    data.recid = this.records.length;
                 this.records.push(data);
             }
             else {   
@@ -223,6 +225,7 @@
                 records: this.records,
 
                 multiSelect: this.multiSelect,
+                reorderRows: this.reorderRows,
 
                 onClick: (event: any) => {
                     event.onComplete = () => {

@@ -56,7 +56,6 @@ var BABYLON;
                             return item.text;
                         },
                         compare: function (item, search) {
-                            debugger;
                             return item.text.indexOf(search) !== -1;
                         }
                     });

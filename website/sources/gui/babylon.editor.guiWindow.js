@@ -101,7 +101,7 @@ var BABYLON;
                     var buttonID = "WindowButton";
                     var buttons = "";
                     for (var i = 0; i < this.buttons.length; i++) {
-                        buttons += "<button class=\"btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
+                        buttons += "<button class=\"w2ui-btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
                     }
                     // Create window
                     this.element = w2popup.open({

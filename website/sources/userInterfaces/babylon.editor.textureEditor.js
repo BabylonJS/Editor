@@ -281,10 +281,10 @@ var BABYLON;
                         recid: i
                     };
                     if (texture.isCube) {
-                        row.style = "background-color: #FBFEC0";
+                        row.w2ui = { style: "background-color: #FBFEC0" };
                     }
                     else if (texture.isRenderTarget) {
-                        row.style = "background-color: #C2F5B4";
+                        row.w2ui = { style: "background-color: #C2F5B4" };
                     }
                     this._texturesList.addRecord(row);
                 }

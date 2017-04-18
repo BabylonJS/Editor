@@ -49,6 +49,9 @@ module BABYLON.EDITOR {
         private _currentMetadata: EXTENSIONS.IMaterialExtensionData = null;
         private _currentSettings: EXTENSIONS.IMaterialBuilderSettings = null;
 
+        private _ppExtension: EXTENSIONS.PostProcessBuilderExtension = null;
+        private _ppMainExtension: EXTENSIONS.PostProcessBuilderExtension = null;
+
         private _sceneConfig = {
             pointLight: true,
             hemisphericLight: false,
@@ -477,13 +480,12 @@ module BABYLON.EDITOR {
             grid.showAdd = true;
             grid.showDelete = true;
             grid.createColumn("name", "Name", "100%");
-            grid.buildElement("MATERIALS-GRID");
 
             var datas = this._getMetadatas();
             for (var i = 0; i < datas.length; i++)
                 grid.addRecord({ recid: i, name: datas[i].name });
-
-            grid.refresh();
+            
+            grid.buildElement("MATERIALS-GRID");
 
             // Events
             grid.onAdd = () => {

@@ -39,6 +39,7 @@ var BABYLON;
                     _this.menus = [];
                     _this.autoMergeChanges = true;
                     _this.multiSelect = true;
+                    _this.reorderRows = false;
                     _this.hasSubGrid = false;
                     return _this;
                 }
@@ -70,7 +71,8 @@ var BABYLON;
                 // Adds a record without refreshing the grid
                 GUIGrid.prototype.addRecord = function (data) {
                     if (!this.element) {
-                        data.recid = this.records.length;
+                        if (data.recid === undefined)
+                            data.recid = this.records.length;
                         this.records.push(data);
                     }
                     else {
@@ -184,6 +186,7 @@ var BABYLON;
                         columns: this.columns,
                         records: this.records,
                         multiSelect: this.multiSelect,
+                        reorderRows: this.reorderRows,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();

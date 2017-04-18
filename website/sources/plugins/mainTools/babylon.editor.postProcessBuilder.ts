@@ -25,6 +25,7 @@
         private _tab: GUI.IGUITab = null;
 
         private _layouts: GUI.GUILayout = null;
+        private _editLayouts: GUI.GUILayout = null;
         private _mainPanel: GUI.GUIPanel = null;
         private _postProcessesList: GUI.GUIGrid<IPostProcessGridItem> = null;
         private _toolbar: GUI.GUIToolbar = null;
@@ -101,6 +102,7 @@
             this._postProcessesList.destroy();
             this._editor.destroy();
             this._console.destroy();
+            this._editLayouts.destroy();
             this._layouts.destroy();
 
             this._engine.dispose();
@@ -138,12 +140,14 @@
             this._tab = this._core.editor.createTab("Post-Process Builder", this._containerID, this, true);
             this._containerElement = $("#" + this._containerID);
 
+            var canvasID = SceneFactory.GenerateUUID();
+
             // Layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
             this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
-            this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+            this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 100%;", null, true));
             this._layouts.buildElement(this._containerID);
 
             this._layouts.on("resize", (event) => {
@@ -158,9 +162,13 @@
             this._mainPanel.createTab({ caption: "Configuration", closable: false, id: this._configurationTabId });
             this._mainPanel.onTabChanged = (id) => this._onTabChanged(id);
 
-            // GUI
+            // Edit layouts
             var container = $("#POST-PROCESS-BUILDER-EDIT");
-            container.append(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+
+            this._editLayouts = new GUI.GUILayout("POST-PROCESS-BUILDER-EDIT", this._core);
+            this._editLayouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST"));
+            this._editLayouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", container.height() - 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+            this._editLayouts.buildElement("POST-PROCESS-BUILDER-EDIT");
 
             // Toolbar
             this._toolbar = new GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
@@ -177,7 +185,8 @@
             this._postProcessesList.multiSelect = false;
             this._postProcessesList.showAdd = true;
             this._postProcessesList.showDelete = true;
-            this._postProcessesList.showOptions = false;
+            this._postProcessesList.showOptions = true;
+            this._postProcessesList.reorderRows = true;
             this._postProcessesList.onClick = (selected) => this._onPostProcessSelected(selected);
             this._postProcessesList.onAdd = () => this._onPostProcessAdd();
             this._postProcessesList.onDelete = (selected) => this._onPostProcessRemove(selected);
@@ -193,9 +202,6 @@
             container.append("<br />");
             container.append("<hr>");
             container.append(GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%;", "Preview:", false));
-
-            var canvasID = SceneFactory.GenerateUUID();
-            container.append(GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 300px", null, true));
 
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0]);
             this._scene = new Scene(this._engine);

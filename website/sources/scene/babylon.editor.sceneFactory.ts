@@ -384,7 +384,10 @@
         static AddWaterMesh(core: EditorCore): Mesh {
             var waterMaterial = new WaterMaterial("waterMaterail", core.currentScene);
 
-            Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, (texture) => waterMaterial.bumpTexture = texture);
+            Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, (texture) => {
+                waterMaterial.bumpTexture = texture;
+                waterMaterial.markAsDirty(Material.TextureDirtyFlag);
+            });
 
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
             water.id = this.GenerateUUID();
