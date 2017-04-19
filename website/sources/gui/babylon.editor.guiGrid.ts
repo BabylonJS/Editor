@@ -31,6 +31,8 @@
         public onEdit: (selected: number[]) => void;
         public onReload: () => void;
         public onEditField: (recid: number, value: any) => void;
+        public onChange: (recid: number, value: any) => void;
+        public onReorder: (recid: number, moveAfter: number) => void;
 
         public onMouseDown: () => void;
         public onMouseUp: () => void;
@@ -325,11 +327,11 @@
                 },
                 
                 onChange: (event) => {
-                    if (!event.recid)
+                    if (event.recid === undefined || event.recid === null)
                         return;
                     
-                    if (this.onEditField)
-                        event.onComplete = () => this.onEditField(event.recid, event.value_new);
+                    if (this.onChange)
+                        event.onComplete = () => this.onChange(event.recid, event.value_new);
                     
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
@@ -343,17 +345,33 @@
                 onEditField: (event) => {
                     if (!event.recid)
                         return;
-                        
+
                     if (this.onEditField)
                         event.onComplete = () => this.onEditField(parseInt(event.recid), event.value);
-                        
+                    
                     var ev = new Event();
                     ev.eventType = EventType.GUI_EVENT;
                     ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_CHANGED, { recid: parseInt(event.recid), value: event.value });
                     this.core.sendEvent(ev);
-                    
+
                     if (this.autoMergeChanges)
                         this.element.mergeChanges();
+                }
+            });
+
+            this.element.on({ type: "reorderRow", execute: "after" }, (target, eventData) => {
+                if (eventData.recid !== undefined && eventData.moveAfter !== undefined) {
+                    var recid = parseInt(eventData.recid);
+                    var moveAfter = parseInt(eventData.moveAfter);
+
+                    var previousRecord = this.element.records[recid];
+                    var nextRecord = this.element.records[moveAfter];
+
+                    this.element.records[moveAfter] = nextRecord;
+                    this.element.records[recid] = previousRecord;
+
+                    if (this.onReorder)
+                        this.onReorder(recid, moveAfter);
                 }
             });
         }

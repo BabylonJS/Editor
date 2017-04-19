@@ -386,7 +386,7 @@
 
             Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, (texture) => {
                 waterMaterial.bumpTexture = texture;
-                waterMaterial.markAsDirty(Material.TextureDirtyFlag);
+                waterMaterial.markAsDirty(Material.AttributesDirtyFlag);
             });
 
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);

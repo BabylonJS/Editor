@@ -263,10 +263,10 @@ var BABYLON;
                             }, 300);
                         },
                         onChange: function (event) {
-                            if (!event.recid)
+                            if (event.recid === undefined || event.recid === null)
                                 return;
-                            if (_this.onEditField)
-                                event.onComplete = function () { return _this.onEditField(event.recid, event.value_new); };
+                            if (_this.onChange)
+                                event.onComplete = function () { return _this.onChange(event.recid, event.value_new); };
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: event.recid, value: event.value_new });
@@ -285,6 +285,18 @@ var BABYLON;
                             _this.core.sendEvent(ev);
                             if (_this.autoMergeChanges)
                                 _this.element.mergeChanges();
+                        }
+                    });
+                    this.element.on({ type: "reorderRow", execute: "after" }, function (target, eventData) {
+                        if (eventData.recid !== undefined && eventData.moveAfter !== undefined) {
+                            var recid = parseInt(eventData.recid);
+                            var moveAfter = parseInt(eventData.moveAfter);
+                            var previousRecord = _this.element.records[recid];
+                            var nextRecord = _this.element.records[moveAfter];
+                            _this.element.records[moveAfter] = nextRecord;
+                            _this.element.records[recid] = previousRecord;
+                            if (_this.onReorder)
+                                _this.onReorder(recid, moveAfter);
                         }
                     });
                 };

@@ -284,7 +284,7 @@ var BABYLON;
                 var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
                 EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, function (texture) {
                     waterMaterial.bumpTexture = texture;
-                    waterMaterial.markAsDirty(BABYLON.Material.TextureDirtyFlag);
+                    waterMaterial.markAsDirty(BABYLON.Material.AttributesDirtyFlag);
                 });
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();

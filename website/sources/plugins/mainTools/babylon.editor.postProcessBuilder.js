@@ -47,7 +47,6 @@ var BABYLON;
                     _this._onPostProcessSelected([0]);
                     // Extensions
                     _this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._scene);
-                    _this._extension.placeHolderTexture = _this._texture;
                     _this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._core.currentScene);
                 });
             }
@@ -114,6 +113,7 @@ var BABYLON;
                 this._layouts.buildElement(this._containerID);
                 this._layouts.on("resize", function (event) {
                     _this._editor.resize(true);
+                    _this._engine.resize();
                 });
                 this._glslTabId = this._currentTabId = EDITOR.SceneFactory.GenerateUUID();
                 this._configurationTabId = EDITOR.SceneFactory.GenerateUUID();
@@ -145,7 +145,8 @@ var BABYLON;
                 this._postProcessesList.onClick = function (selected) { return _this._onPostProcessSelected(selected); };
                 this._postProcessesList.onAdd = function () { return _this._onPostProcessAdd(); };
                 this._postProcessesList.onDelete = function (selected) { return _this._onPostProcessRemove(selected); };
-                this._postProcessesList.onEditField = function (recid, value) { return _this._onPostProcessEditField(recid, value); };
+                this._postProcessesList.onChange = function (recid, value) { return _this._onPostProcessEditField(recid, value); };
+                this._postProcessesList.onReorder = function (recid, moveAfter) { return _this._onReorder(recid, moveAfter); };
                 this._postProcessesList.buildElement("POST-PROCESS-BUILDER-EDIT-LIST");
                 for (var i = 0; i < this._datas.length; i++)
                     this._postProcessesList.addRecord({ name: this._datas[i].name, recid: i });
@@ -154,10 +155,27 @@ var BABYLON;
                 container.append("<br />");
                 container.append("<hr>");
                 container.append(EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%;", "Preview:", false));
+                // Engine and scene
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0]);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._camera = new BABYLON.Camera("PostProcessCamera", BABYLON.Vector3.Zero(), this._scene);
                 this._texture = new BABYLON.Texture("website/Tests/textures/no_smoke.png", this._scene);
+                this._camera = new BABYLON.ArcRotateCamera("PostProcessCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
+                this._camera.attachControl(this._engine.getRenderingCanvas());
+                var pointLight = new BABYLON.PointLight("PostProcessLight", new BABYLON.Vector3(25, 25, 25), this._scene);
+                var box = BABYLON.Mesh.CreateBox("box", 10, this._scene);
+                var ground = BABYLON.Mesh.CreateGround("PostProcessGround", 200, 200, 64, this._scene);
+                ground.receiveShadows = true;
+                ground.position.y = -5;
+                var groundMaterial = new BABYLON.StandardMaterial("PostProcessGroundMaterial", this._scene);
+                EDITOR.Tools.CreateFileFromURL("website/textures/empty.jpg", function (file) {
+                    var diffuseTexture = new BABYLON.Texture("file:empty.jpg", _this._scene);
+                    diffuseTexture.name = "groundEmpty.jpg";
+                    diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                    groundMaterial.diffuseTexture = diffuseTexture;
+                }, true);
+                ground.material = groundMaterial;
+                var skybox = BABYLON.Mesh.CreateBox("PostProcessSkyBox", 1000, this._scene, false, BABYLON.Mesh._BACKSIDE);
+                (skybox.material = new BABYLON.SkyMaterial("PostProcessSkyMaterial", this._scene)).inclination = 0;
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
                 // Editor
                 this._editor = ace.edit("POST-PROCESS-BUILDER-PROGRAM");
@@ -188,6 +206,13 @@ var BABYLON;
                     return;
                 this._currentSelected = selected[0];
                 this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
+            };
+            // When the user reorders the post-processes list
+            PostProcessBuilder.prototype._onReorder = function (recid, moveAfter) {
+                var previousData = this._datas[recid];
+                var nextData = this._datas[moveAfter];
+                this._datas[recid] = nextData;
+                this._datas[moveAfter] = previousData;
             };
             // When the user adds a new post-process
             PostProcessBuilder.prototype._onPostProcessAdd = function () {
@@ -234,7 +259,10 @@ var BABYLON;
             };
             // When the user edits a row
             PostProcessBuilder.prototype._onPostProcessEditField = function (recid, value) {
-                debugger;
+                if (value !== "") {
+                    this._datas[recid].name = value;
+                    this._postProcessesList.refresh();
+                }
             };
             // When the user modifies a post-process
             PostProcessBuilder.prototype._onEditorChanged = function () {

@@ -52,6 +52,15 @@ var BABYLON;
                                 return false;
                             if (id === this._menuDeleteId) {
                                 if (object && object.dispose && object !== this._core.camera) {
+                                    for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+                                        var m = this._core.currentScene.materials[i];
+                                        m.markDirty();
+                                        m.markAsDirty(BABYLON.Material.AttributesDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.LightDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.TextureDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.FresnelDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.MiscDirtyFlag);
+                                    }
                                     object.dispose();
                                     this._ensureObjectDispose(object);
                                     var node = this.sidebar.getNode(this.sidebar.getSelected());

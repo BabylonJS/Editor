@@ -72,8 +72,6 @@
 
                 // Extensions
                 this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._scene);
-                this._extension.placeHolderTexture = this._texture;
-
                 this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._core.currentScene);
             });
         }
@@ -152,6 +150,7 @@
 
             this._layouts.on("resize", (event) => {
                 this._editor.resize(true);
+                this._engine.resize();
             });
 
             this._glslTabId = this._currentTabId = SceneFactory.GenerateUUID();
@@ -190,7 +189,8 @@
             this._postProcessesList.onClick = (selected) => this._onPostProcessSelected(selected);
             this._postProcessesList.onAdd = () => this._onPostProcessAdd();
             this._postProcessesList.onDelete = (selected) => this._onPostProcessRemove(selected);
-            this._postProcessesList.onEditField = (recid, value) => this._onPostProcessEditField(recid, value);
+            this._postProcessesList.onChange = (recid, value) => this._onPostProcessEditField(recid, value);
+            this._postProcessesList.onReorder = (recid, moveAfter) => this._onReorder(recid, moveAfter);
             this._postProcessesList.buildElement("POST-PROCESS-BUILDER-EDIT-LIST");
 
             for (var i = 0; i < this._datas.length; i++)
@@ -203,10 +203,35 @@
             container.append("<hr>");
             container.append(GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%;", "Preview:", false));
 
+            // Engine and scene
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0]);
             this._scene = new Scene(this._engine);
-            this._camera = new Camera("PostProcessCamera", Vector3.Zero(), this._scene);
             this._texture = new Texture("website/Tests/textures/no_smoke.png", this._scene);
+
+            this._camera = new ArcRotateCamera("PostProcessCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, Vector3.Zero(), this._scene);
+            this._camera.attachControl(this._engine.getRenderingCanvas());
+
+            var pointLight = new PointLight("PostProcessLight", new Vector3(25, 25, 25), this._scene);
+            var box = Mesh.CreateBox("box", 10, this._scene);
+
+            var ground = Mesh.CreateGround("PostProcessGround", 200, 200, 64, this._scene);
+            ground.receiveShadows = true;
+            ground.position.y = -5;
+
+            var groundMaterial = new StandardMaterial("PostProcessGroundMaterial", this._scene);
+
+            Tools.CreateFileFromURL("website/textures/empty.jpg", (file) => {
+                var diffuseTexture = new Texture("file:empty.jpg", this._scene);
+                diffuseTexture.name = "groundEmpty.jpg";
+                diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                groundMaterial.diffuseTexture = diffuseTexture;
+            }, true);
+
+            ground.material = groundMaterial;
+
+            var skybox = Mesh.CreateBox("PostProcessSkyBox", 1000, this._scene, false, Mesh._BACKSIDE);
+            (skybox.material = new SkyMaterial("PostProcessSkyMaterial", this._scene)).inclination = 0;
+
             this._engine.runRenderLoop(() => this._scene.render());
 
             // Editor
@@ -244,6 +269,15 @@
 
             this._currentSelected = selected[0];
             this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
+        }
+
+        // When the user reorders the post-processes list
+        private _onReorder(recid: number, moveAfter: number): void {
+            var previousData = this._datas[recid];
+            var nextData = this._datas[moveAfter];
+
+            this._datas[recid] = nextData;
+            this._datas[moveAfter] = previousData;
         }
 
         // When the user adds a new post-process
@@ -301,8 +335,11 @@
         }
 
         // When the user edits a row
-        private _onPostProcessEditField(recid: number, value: any): void {
-            debugger;
+        private _onPostProcessEditField(recid: number, value: string): void {
+            if (value !== "") {
+                this._datas[recid].name = value;
+                this._postProcessesList.refresh();
+            }
         }
 
         // When the user modifies a post-process

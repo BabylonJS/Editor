@@ -66,6 +66,17 @@
 
                         if (id === this._menuDeleteId) {
                             if (object && object.dispose && object !== this._core.camera) {
+                                for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+                                    var m = this._core.currentScene.materials[i];
+
+                                    m.markDirty();
+                                    m.markAsDirty(Material.AttributesDirtyFlag);
+                                    m.markAsDirty(Material.LightDirtyFlag);
+                                    m.markAsDirty(Material.TextureDirtyFlag);
+                                    m.markAsDirty(Material.FresnelDirtyFlag);
+                                    m.markAsDirty(Material.MiscDirtyFlag);
+                                }
+
                                 object.dispose();
                                 this._ensureObjectDispose(object);
 
