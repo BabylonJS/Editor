@@ -34,6 +34,7 @@
                     return true;
             }
             */
+
             if (object instanceof AbstractMesh) {
                 if (object.material && (object.material instanceof MultiMaterial))
                     return false;
@@ -55,6 +56,9 @@
         // Update
         public update(): boolean {
             var object: any = this._editionTool.object;
+            if (object instanceof InstancedMesh)
+                object = object.sourceMesh;
+            
             var material: Material = null;
             var scene = this._editionTool.core.currentScene;
 
@@ -89,12 +93,12 @@
                     var newmaterial = scene.getMaterialByName(result);
                     if (this._editionTool.object instanceof SubMesh) {
                         var index = this._editionTool.object.materialIndex;
-                        var multiMaterial = this._editionTool.object.getMesh().material;
+                        var multiMaterial = object.getMesh().material;
                         if (multiMaterial instanceof MultiMaterial)
-                            this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                            multiMaterial.subMaterials[index] = newmaterial;
                     }
                     else
-                        this._editionTool.object.material = newmaterial;
+                        object.material = newmaterial;
                 }
                 this._editionTool.updateEditionTool();
             });
@@ -159,6 +163,8 @@
         private _applyMaterial(): void {
             var material = new BABYLON[this._libraryDummyProperty]("New Material " + SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
 
+            Tags.AddTagsTo(material, "added");
+
             if (this.object instanceof AbstractMesh)
                 this.object.material = material;
             else if (this.object instanceof SubMesh) {
@@ -171,7 +177,7 @@
                 subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
             }
 
-            if (material instanceof FurMaterial && this.object instanceof AbstractMesh) {
+            if (material instanceof FurMaterial && this.object instanceof Mesh) {
                 var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                 (<FurMaterial>material).furTexture = furTexture;
                 

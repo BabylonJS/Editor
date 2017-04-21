@@ -136,6 +136,23 @@
                 config.push(obj);
             }
 
+            // Mirror textures
+            for (index = 0; index < core.currentScene.textures.length; index++) {
+                var tex = core.currentScene.textures[index];
+                
+                if (!Tags.HasTags(tex) || !Tags.MatchesQuery(tex, "added"))
+                    continue;
+
+                if (tex instanceof MirrorTexture) {
+                    var obj: INTERNAL.IRenderTarget = {
+                        isProbe: false,
+                        serializationObject: tex.serialize()
+                    };
+
+                    config.push(obj);
+                }
+            }
+
             return config;
         }
 
@@ -166,56 +183,9 @@
         private static _SerializePostProcesses(): INTERNAL.IPostProcess[] {
             var config: INTERNAL.IPostProcess[] = [];
 
-            var serialize = (object: any): any => {
-                var obj = {};
-                
-                for (var thing in object) {
-                    if (thing[0] === "_")
-                        continue;
-
-                    if (typeof object[thing] === "number")
-                        obj[thing] = object[thing];
-
-                    if (object[thing] instanceof Texture) {
-                        obj[thing] = {
-                            base64Name: (<Texture>object[thing]).name,
-                            base64Buffer: object[thing]._buffer
-                        };
-                    }
-                }
-
-                return obj;
-            };
-
-            if (SceneFactory.SSAOPipeline) {
-                /*
+            if (SceneFactory.StandardPipeline) {
                 config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: serialize(SceneFactory.SSAOPipeline)
-                });
-                */
-                
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                    name: "SSAOPipeline",
-                    serializationObject: this._ConfigureBase64Texture(SceneFactory.SSAOPipeline, SceneFactory.SSAOPipeline.serialize())
-                });
-                
-            }
-            if (SceneFactory.HDRPipeline) {
-                /*
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                    name: "HDRPipeline",
-                    serializationObject: serialize(SceneFactory.HDRPipeline)
-                });
-                */
-
-                config.push({
-                    attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                    name: "HDRPipeline",
-                    serializationObject: this._ConfigureBase64Texture(SceneFactory.HDRPipeline, SceneFactory.HDRPipeline.serialize())
+                    serializationObject: SceneFactory.StandardPipeline.serialize()
                 });
             }
 
@@ -263,7 +233,7 @@
                     }
 
                     // Check materials
-                    if (node instanceof AbstractMesh && node.material && !(node.material instanceof StandardMaterial)) {
+                    if (node instanceof AbstractMesh && node.material && (!(node.material instanceof StandardMaterial) || Tags.MatchesQuery(node.material, "added"))) {
                         var material = node.material;
 
                         if (!Tags.HasTags(material) || !Tags.MatchesQuery(material, "furShellMaterial")) {
@@ -314,6 +284,7 @@
                             : node instanceof Sound ? "Sound"
                             : node instanceof Light ? "Light"
                             : node instanceof Camera ? "Camera"
+                            : node instanceof InstancedMesh ? "InstancedMesh"
                             : "Mesh",
                         animations: []
                     };
@@ -326,7 +297,20 @@
                         if (Tags.MatchesQuery(node, "added")) {
                             addNodeObj = true;
 
-                            if (node instanceof Mesh) {
+                            if (node instanceof InstancedMesh) {
+                                var serializedInstances = SceneSerializer.SerializeMesh(node.sourceMesh, false, false).meshes[0].instances;
+                                var sourceMesh = node.sourceMesh;
+
+                                for (var j = 0; j < serializedInstances.length; j++) {
+                                    if (serializedInstances[j].name === node.name) {
+                                        nodeObj.serializationObject = serializedInstances[j];
+                                        nodeObj.serializationObject.sourceMesh = sourceMesh.id;
+
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (node instanceof Mesh) {
                                 nodeObj.serializationObject = SceneSerializer.SerializeMesh(node, false, false);
 
                                 for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
@@ -398,10 +382,10 @@
                             addNodeObj = true;
 
                             nodeObj.physics = {
-                                physicsMass: node.getPhysicsMass(),
-                                physicsFriction: node.getPhysicsFriction(),
-                                physicsRestitution: node.getPhysicsRestitution(),
-                                physicsImpostor: node.getPhysicsImpostor().type
+                                physicsMass: node.physicsImpostor.getParam("mass"),
+                                physicsFriction: node.physicsImpostor.getParam("friction"),
+                                physicsRestitution: node.physicsImpostor.getParam("restitution"),
+                                physicsImpostor: node.physicsImpostor.type
                             }
                         }
 

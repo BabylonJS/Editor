@@ -36,6 +36,10 @@
             return "OneDriveStorage";
         }
 
+        public static get DropBoxStorage(): string {
+            return "DropBoxStorage";
+        }
+
         /**
         * Constructor
         */
@@ -114,7 +118,8 @@
                     this._storage.createFolders(folders, folder, () => {
                         this._createTemplate(config);
                     }, () => {
-                        this.core.editor.statusBar.removeElement(this._statusBarId);
+                        //this.core.editor.statusBar.removeElement(this._statusBarId);
+                        this.core.editor.statusBar.setText(this._statusBarId, "Errors, see console log...");
                     });
                 }
             });
@@ -211,8 +216,10 @@
                     files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: this.getFolder("code").file });
                 }
 
-                if (!config.vscodeFolderExists)
+                if (!config.vscodeFolderExists) {
                     files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: this.getFolder(".vscode").file });
+                    files.push({ name: "launch.json", url: url + "templates/launchTemplate.json", content: null, parentFolder: this.getFolder(".vscode").file });
+                }
 
                 files.push({ name: "run.bat", url: url + "templates/run.bat", content: null });
                 files.push({ name: "run.sh", url: url + "templates/run.bat", content: null });
@@ -252,7 +259,8 @@
                             this._storage.createFiles(files, StorageExporter._ProjectFolder, () => {
                                 this.core.editor.statusBar.removeElement(this._statusBarId);
                             }, (message: string) => {
-                                this.core.editor.statusBar.removeElement(this._statusBarId);
+                                // this.core.editor.statusBar.removeElement(this._statusBarId);
+                                this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length + " (width errors...");
                             }, (count: number) => {
                                 this.core.editor.statusBar.setText(this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                             });
@@ -277,11 +285,6 @@
                     }
 
                     // Files from FilesInput
-                    for (var textureName in BABYLON.FilesInput.FilesTextures) {
-                        files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
-                        BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
-                    }
-                    
                     for (var fileName in BABYLON.FilesInput.FilesToLoad) {
                         files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
                         BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);

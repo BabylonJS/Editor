@@ -9,6 +9,8 @@
         private _isActiveCamera: boolean = false;
         private _isActivePlayCamera: boolean = false;
 
+        private _currentInstance: string = "";
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -100,7 +102,7 @@
                 cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                 cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
 
-                if (object.speed)
+                if (object["speed"] !== undefined)
                     cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
 
                 if (object.fov)
@@ -152,6 +154,33 @@
                         dialog.buildElement(null);
                     }
                 });
+            }
+
+            // Instances
+            if (object instanceof Mesh) {
+                var instancesFolder = this._element.addFolder("Instances");
+                var instances: string[] = [];
+
+                for (var i = 0; i < object.instances.length; i++)
+                    instances.push(object.instances[i].name);
+
+                if (this._currentInstance === "" && instances.length > 0)
+                    this._currentInstance = instances[0];
+
+                if (instances.length > 0) {
+                    instancesFolder.add(this, "_currentInstance", instances).name("Instance").onFinishChange((result: any) => {
+                        var index = instances.indexOf(result);
+                        if (!object.instances[index])
+                            this.update();
+                        else {
+                            this._editionTool.isObjectSupported(object.instances[index]);
+                        }
+                    });
+
+                    instancesFolder.add(this, "_removeInstance").name("Remove instance...").onFinishChange(() => this.update());
+                }
+
+                instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(() => this.update());
             }
 
             return true;
@@ -230,6 +259,26 @@
                 }
 
                 this._setChildrenCastingShadows(object);
+            }
+        }
+
+        // Create a new instance
+        private _createNewInstance(): void {
+            SceneFactory.AddInstancedMesh(this._editionTool.core, <Mesh>this.object);
+        }
+
+        // Removes instances
+        private _removeInstance(): void {
+            if (this._currentInstance === "")
+                return;
+
+            var object = <Mesh> this.object;
+
+            for (var i = 0; i < object.instances.length; i++) {
+                if (object.instances[i].name === this._currentInstance) {
+                    object.instances[i].dispose(false);
+                    break;
+                }
             }
         }
     }

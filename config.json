@@ -63,6 +63,9 @@
       "sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.fireMaterialTool.js",
 
+      "sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js",
+      "sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js",
+
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",
       "sources/babylon.editor.editPanel.js",
@@ -80,7 +83,9 @@
       "sources/scene/babylon.editor.sceneManager.js",
 
       "sources/storage/babylon.editor.storage.js",
+      "sources/storage/babylon.editor.oauthManager.js",
       "sources/storage/babylon.editor.oneDriveStorage.js",
+      "sources/storage/babylon.editor.dropBoxStorage.js",
 
       "sources/export/babylon.editor.exporter.js",
       "sources/export/babylon.editor.projectExporter.js",
@@ -94,8 +99,11 @@
       "sources/userInterfaces/babylon.editor.particleSystemEditor.js",
       "sources/userInterfaces/babylon.editor.textureEditor.js",
       "sources/userInterfaces/babylon.editor.actionsBuilder.js",
+      "sources/userInterfaces/babylon.editor.normalMapEditor.js",
 
-      "sources/babylon.editor.pluginManager.js"
+      "sources/babylon.editor.pluginManager.js",
+
+      "sources/electron/babylon.editor.electronHelper.js"
     ]
   },
   "plugins": {
@@ -106,11 +114,13 @@
       "sources/plugins/babylon.editor.soundsMenu.js",
 
       "sources/plugins/mainTools/babylon.editor.toolsMenu.js",
-      "sources/plugins/mainTools/babylon.editor.actionsBuilder.js",
-      "sources/plugins/mainTools/babylon.editor.actionsBuilderGraph.js",
-      "sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js",
+      "sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilder.js",
+      "sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilderGraph.js",
+      "sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilderParametersEditor.js",
 
       "sources/plugins/mainTools/babylon.editor.postProcessBuilder.js",
+      "sources/plugins/mainTools/babylon.editor.softBodyBuilder.js",
+      "sources/plugins/mainTools/babylon.editor.materialBuilder.js",
 
       "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
     ]
@@ -121,12 +131,11 @@
       "!website/electron/**/*.d.ts",
       "website/defines/electron/*.d.ts"
     ],
+    "typescriptOutDir": "website/electron/",
     "files": [
       "electron/main.js"
     ],
     "editorFiles": [
-      "sources/electron/babylon.editor.electronHelper.js",
-
       "sources/electron/plugins/babylon.editor.electronPhotoshopPlugin.js",
       "sources/electron/babylon.editor.electronPlugin.js",
       "sources/electron/babylon.editor.localExporter.js"
@@ -137,9 +146,13 @@
     "declarationFilename": "babylon.editor.extensions.d.ts",
     "outputDeclarionFilename": "Tools/EditorExtensions",
     "files": [
-      "Tools/EditorExtensions/babylon.editor.editorExtensions.js",
-      "Tools/EditorExtensions/babylon.editor.postProcessExtension.js",
+      "Tools/EditorExtensions/babylon.editor.editorExtensions.ts",
+      "Tools/EditorExtensions/babylon.editor.postProcessExtension.ts",
       "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
+      "Tools/EditorExtensions/babylon.editor.softBodyExtension.ts",
+
+      "Tools/EditorExtensions/Materials/babylon.editor.materialBaseExtension.ts",
+      "Tools/EditorExtensions/Materials/babylon.editor.materialExtension.ts",
 
       "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
 

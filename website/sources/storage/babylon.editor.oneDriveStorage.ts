@@ -5,83 +5,29 @@
         // Private members
         private _editor: EditorMain;
 
-        //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
-        private static _ClientID = "0000000048182B1B";
-        private static _TOKEN = "";
-        private static _TOKEN_EXPIRES_IN = 0;
-        private static _TOKEN_EXPIRES_NOW = 0;
-        private static _POPUP: Window = null;
-
-        // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
-        private static _OnAuthentificated(): void {
-            // Get token from URL
-            var token = "";
-            var expires = "";
-
-            if (window.location.hash) {
-                var response = window.location.hash.substring(1);
-                var authInfo = JSON.parse("{\"" + response.replace(/&/g, '","').replace(/=/g, '":"') + "\"}", function (key, value) { return key === "" ? value : decodeURIComponent(value); });
-
-                token = authInfo.access_token;
-                expires = authInfo.expires_in;
-            }
-
-            // Close popup
-            (<any>window).opener.BABYLON.EDITOR.OneDriveStorage._ClosePopup(token, expires, window);
-        }
-
-        // Closes the login popup
-        private static _ClosePopup(token: string, expires: string, window: any): void {
-            OneDriveStorage._TOKEN = token;
-
-            if (token === "") {
-                GUI.GUIWindow.CreateAlert("Cannot connect to OneDrive or get token...");
-            }
-            else {
-                OneDriveStorage._TOKEN_EXPIRES_IN = parseInt(expires);
-                OneDriveStorage._TOKEN_EXPIRES_NOW = Date.now();
-            }
-
-            if (window.OneDriveStorageCallback) {
-                window.OneDriveStorageCallback();
-            }
-
-            window.close();
-        }
-
-        // Login into OneDrive
-        private static _Login(core: EditorCore, success: () => void): void {
-            // OneDrive
-            var now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
-            
-            if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
-                var uri = "https://login.live.com/oauth20_authorize.srf"
-                    + "?client_id=" + OneDriveStorage._ClientID
-                    + "&redirect_uri=" + Tools.GetBaseURL() + "redirect.html"
-                    + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
-
-                var popup = Tools.OpenWindowPopup(uri, 512, 512);
-                popup.OneDriveStorageCallback = success;
-            }
-            else {
-                success();
-            }
-        }
-
         /**
         * Constructor
         * @param core: the editor core instance
         */
         constructor(core: EditorCore)
         {
+            // Initialize
             super(core);
 
             this._editor = core.editor;
+
+            // OAuth
+            //var clientID = "000000004C18353E"; // editor.babylonjs.com
+            var clientID = "0000000048182B1B";
+            OAuthManager._URI = "https://login.live.com/oauth20_authorize.srf"
+                    + "?client_id=" + clientID
+                    + "&redirect_uri=" + Tools.GetBaseURL() + "redirect.html"
+                    + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
         }
 
         // Creates folders
         public createFolders(folders: string[], parentFolder: IStorageFile, success?: () => void, failed?: (message: string) => void) {
-            OneDriveStorage._Login(this.core, () => {
+            OAuthManager._Login(this.core, () => {
                 var count = 0;
                 var error = "";
 
@@ -108,7 +54,7 @@
                         }),
 
                         headers: {
-                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                            "Authorization": "Bearer " + OAuthManager._TOKEN
                         },
 
                         success: () => {
@@ -126,7 +72,7 @@
 
         // Creates files
         public createFiles(files: IStorageUploadFile[], folder: IStorageFile, success?: () => void, failed?: (message: string) => void, progress?: (count: number) => void): void {
-            OneDriveStorage._Login(this.core, () => {
+            OAuthManager._Login(this.core, () => {
                 var count = 0;
                 var error = "";
 
@@ -152,7 +98,7 @@
                         type: "PUT",
 
                         headers: {
-                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                            "Authorization": "Bearer " + OAuthManager._TOKEN
                         },
 
                         success: () => {
@@ -170,13 +116,13 @@
 
         // Gets the children files of a folder
         public getFiles(folder: IStorageFile, success?: (children: IStorageFile[]) => void, failed?: (message: string) => void): void {
-            OneDriveStorage._Login(this.core, () => {
+            OAuthManager._Login(this.core, () => {
                 $.ajax({
                     url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
                     type: "GET",
 
                     headers: {
-                        "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                        "Authorization": "Bearer " + OAuthManager._TOKEN
                     },
 
                     success: (response: OneDrive.IChildrenResult) => {

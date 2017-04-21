@@ -18,11 +18,12 @@ var BABYLON;
                 */
                 function GUIForm(name, header, core) {
                     if (header === void 0) { header = ""; }
-                    _super.call(this, name, core);
-                    this.fields = [];
-                    this.toolbarFields = [];
+                    var _this = _super.call(this, name, core) || this;
+                    _this.fields = [];
+                    _this.toolbarFields = [];
                     // Initialize
-                    this.header = header;
+                    _this.header = header;
+                    return _this;
                 }
                 // Create a field
                 GUIForm.prototype.createField = function (name, type, caption, span, text, options) {

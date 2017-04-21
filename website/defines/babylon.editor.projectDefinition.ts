@@ -100,11 +100,7 @@ declare module BABYLON.EDITOR.INTERNAL {
     * Post-processes
     */
     interface IPostProcess {
-        name: string;
         serializationObject: any;
-
-        attach?: boolean; // If pipeline
-        cameraName?: string;
     }
 
     /**

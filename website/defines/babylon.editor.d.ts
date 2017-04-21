@@ -57,10 +57,24 @@ declare module BABYLON.EDITOR {
     }
 
     /**
+     * IEventEmitter interface
+     */
+    interface IEventEmitter {
+        /**
+         * Famous "on" method :)
+         */
+        on<T>(eventName: string, callback: (data: T) => void): void;
+    }
+
+    /**
     * Event Receiver interface
     */
     interface IEventReceiver {
-        onEvent(event: IEvent): boolean;
+        // Classic event callback with IEvent structure
+        onEvent?(event: IEvent): boolean;
+
+        // on event
+        on?(emitter: IEventEmitter): void;
     }
 
     /**
@@ -124,8 +138,14 @@ declare module BABYLON.EDITOR {
     */
     interface ITabApplication extends IDisposable {
         /**
-        * Empty for instance...
+        * Called when tab application is focused back
         */
+        onFocus?(): void;
+
+        /**
+        * If the application has focus
+        */
+        hasFocus?: boolean;
     }
 }
 

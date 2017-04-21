@@ -37,58 +37,27 @@ var BABYLON;
             * Post-Processes
             */
             // Creates HDR pipeline 2
-            SceneFactory.CreateStandardRenderingPipeline = function (core) {
+            SceneFactory.CreateStandardRenderingPipeline = function (core, callback) {
                 if (this.StandardPipeline) {
                     this.StandardPipeline.dispose();
                     this.StandardPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-                standard.lensTexture = standard.lensFlareDirtTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
-                standard.lensStarTexture = new BABYLON.Texture("website/textures/lensstar.png", core.currentScene);
-                standard.lensColorTexture = new BABYLON.Texture("website/textures/lenscolor.png", core.currentScene);
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) {
+                    standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                    callback();
+                });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, function (texture) {
+                    standard.lensStarTexture = texture;
+                    callback();
+                });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, function (texture) {
+                    standard.lensColorTexture = texture;
+                    callback();
+                });
                 this.StandardPipeline = standard;
                 return standard;
-            };
-            // Creates HDR pipeline
-            SceneFactory.CreateHDRPipeline = function (core, serializationObject) {
-                if (serializationObject === void 0) { serializationObject = {}; }
-                if (this.HDRPipeline) {
-                    this.HDRPipeline.dispose();
-                    this.HDRPipeline = null;
-                }
-                var cameras = core.currentScene.cameras;
-                var ratio = {
-                    finalRatio: 1.0,
-                    blurRatio: 0.25 / devicePixelRatio
-                };
-                var lensTexture;
-                if (serializationObject.lensTexture && serializationObject.lensTexture.name) {
-                    lensTexture = BABYLON.Texture.Parse(serializationObject.lensTexture, core.currentScene, "./");
-                }
-                else {
-                    if (serializationObject.lensTexture && serializationObject.lensTexture.base64Name) {
-                        var b64LensTexutre = serializationObject.lensTexture.base64Buffer;
-                        lensTexture = BABYLON.Texture.CreateFromBase64String(b64LensTexutre, "lensdirt.jpg", core.currentScene);
-                    }
-                    else {
-                        lensTexture = new BABYLON.Texture("website/textures/lensdirt.jpg", core.currentScene);
-                    }
-                }
-                lensTexture.name = lensTexture.name.replace("data:", "");
-                var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras, lensTexture);
-                hdr.brightThreshold = serializationObject.brightThreshold || 1.0;
-                hdr.gaussCoeff = serializationObject.gaussCoeff || 0.4;
-                hdr.gaussMean = serializationObject.gaussMean || 0.0;
-                hdr.gaussStandDev = serializationObject.gaussStandDev || 9.0;
-                hdr.minimumLuminance = serializationObject.minimumLuminance || 0.5;
-                hdr.luminanceDecreaseRate = serializationObject.luminanceDecreaseRate || 0.5;
-                hdr.luminanceIncreaserate = serializationObject.luminanceIncreaserate || 0.5;
-                hdr.exposure = serializationObject.exposure || 1;
-                hdr.gaussMultiplier = serializationObject.gaussMultiplier || 4;
-                hdr.exposureAdjustment = serializationObject.exposureAdjustment || hdr.exposureAdjustment;
-                this.HDRPipeline = hdr;
-                return hdr;
             };
             // Creates SSAO pipeline
             SceneFactory.CreateSSAOPipeline = function (core, serializationObject) {
@@ -166,6 +135,13 @@ var BABYLON;
                 this.ConfigureObject(sphere, core);
                 return sphere;
             };
+            // Adds a tube
+            SceneFactory.AddCylinderMesh = function (core) {
+                var tube = BABYLON.Mesh.CreateCylinder("New Cylinder", 5, 2, 2, 32, 32, core.currentScene);
+                tube.id = this.GenerateUUID();
+                this.ConfigureObject(tube, core);
+                return tube;
+            };
             // Adds a plane
             SceneFactory.AddPlaneMesh = function (core) {
                 var plane = BABYLON.Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
@@ -176,7 +152,7 @@ var BABYLON;
             };
             // Adds a ground
             SceneFactory.AddGroundMesh = function (core) {
-                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+                var ground = BABYLON.Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, true);
                 ground.id = this.GenerateUUID();
                 this.ConfigureObject(ground, core);
                 return ground;
@@ -287,6 +263,12 @@ var BABYLON;
                 this.ConfigureObject(rt, core);
                 return rt;
             };
+            // Adds a reflection texture
+            SceneFactory.AddMirrorTexture = function (core) {
+                var mirror = new BABYLON.MirrorTexture("New Mirror Texture", 512, core.currentScene, false);
+                this.ConfigureObject(mirror, core);
+                return mirror;
+            };
             // Adds a skynode
             SceneFactory.AddSkyMesh = function (core) {
                 var skyboxMaterial = new BABYLON.SkyMaterial("skyMaterial", core.currentScene);
@@ -300,7 +282,10 @@ var BABYLON;
             // Adds a water mesh (with water material)
             SceneFactory.AddWaterMesh = function (core) {
                 var waterMaterial = new BABYLON.WaterMaterial("waterMaterail", core.currentScene);
-                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, function (texture) { return waterMaterial.bumpTexture = texture; });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, function (texture) {
+                    waterMaterial.bumpTexture = texture;
+                    waterMaterial.markAsDirty(BABYLON.Material.AttributesDirtyFlag);
+                });
                 var water = BABYLON.WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
                 water.id = this.GenerateUUID();
                 water.material = waterMaterial;
@@ -311,25 +296,30 @@ var BABYLON;
                 }
                 return water;
             };
-            // Public members
-            SceneFactory.HDRPipeline = null;
-            SceneFactory.StandardPipeline = null;
-            SceneFactory.SSAOPipeline = null;
-            SceneFactory.VLSPostProcess = null;
-            SceneFactory.EnabledPostProcesses = {
-                hdr: false,
-                attachHDR: true,
-                ssao: false,
-                ssaoOnly: false,
-                attachSSAO: true,
-                standard: false,
-                attachStandard: true,
-                vls: false
+            // Adds a mesh instance
+            SceneFactory.AddInstancedMesh = function (core, mesh) {
+                var instance = mesh.createInstance("New Instance");
+                instance.id = this.GenerateUUID();
+                this.ConfigureObject(instance, core);
+                return instance;
             };
-            SceneFactory.NodesToStart = [];
-            SceneFactory.AnimationSpeed = 1.0;
             return SceneFactory;
         }());
+        // Public members
+        SceneFactory.HDRPipeline = null;
+        SceneFactory.StandardPipeline = null;
+        SceneFactory.SSAOPipeline = null;
+        SceneFactory.VLSPostProcess = null;
+        SceneFactory.EnabledPostProcesses = {
+            ssao: false,
+            ssaoOnly: false,
+            attachSSAO: true,
+            standard: false,
+            attachStandard: true,
+            vls: false
+        };
+        SceneFactory.NodesToStart = [];
+        SceneFactory.AnimationSpeed = 1.0;
         EDITOR.SceneFactory = SceneFactory;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

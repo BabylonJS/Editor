@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function GradientMaterialTool(editionTool) {
-                _super.call(this, editionTool, "GRADIENT-MATERIAL", "GRADIENT", "Gradient");
+                var _this = _super.call(this, editionTool, "GRADIENT-MATERIAL", "GRADIENT", "Gradient") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.GradientMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.GradientMaterial; };
+                return _this;
             }
             // Update
             GradientMaterialTool.prototype.update = function () {

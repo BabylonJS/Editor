@@ -44,9 +44,10 @@
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 var filePath = (file.parentFolder ? file.parentFolder.id + "/" : path) + file.name;
-                var data: string | ArrayBuffer = null;
+                var data: any = null;
+                var content: any = file.content;
 
-                if (file.content instanceof ArrayBuffer || file.content instanceof Uint8Array)
+                if (content instanceof ArrayBuffer || content instanceof Uint8Array)
                     data = new global.Buffer(<Uint8Array>file.content);
                 else
                     data = file.content;

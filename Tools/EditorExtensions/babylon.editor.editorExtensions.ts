@@ -8,6 +8,9 @@
 
         // Apply event without data
         applyEvenIfDataIsNull: boolean;
+
+        // Called when extension is serialized
+        onSerialize?(data: T): void;
     }
 
     export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<T>;
@@ -23,6 +26,7 @@
 
         // The extensions plugins
         private static _Extensions: _EditorExtensionConstructor[] = [];
+        private static _InstancedExtensions: IEditorExtension<any>[] = [];
 
         // Loads the extensions file and parses it
         public static LoadExtensionsFile(url: string, callback?: () => void): void {
@@ -40,14 +44,26 @@
             return EditorExtension._ExtensionsDatas[key];
         }
 
+        // Returns the extension giving its name
+        public static GetExtensionByName<T>(name: string): IEditorExtension<T> {
+            for (var i = 0; i < this._InstancedExtensions.length; i++) {
+                if (this._InstancedExtensions[i].extensionKey === name)
+                    return this._InstancedExtensions[i];
+            }
+
+            return null;
+        }
+
         // Applies all the extensions
         public static ApplyExtensions(scene: Scene): void {
             for (var i = 0; i < EditorExtension._Extensions.length; i++) {
                 var extension = new EditorExtension._Extensions[i] <IEditorExtension<any>>(scene);
                 var data = EditorExtension.GetExtensionData<any>(extension.extensionKey);
 
-                if (data || (!data && extension.applyEvenIfDataIsNull))
+                if (data || extension.applyEvenIfDataIsNull) {
                     extension.apply(data);
+                    this._InstancedExtensions.push(extension);
+                }
             }
         }
 

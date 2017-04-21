@@ -46,24 +46,33 @@ var BABYLON;
             * On pre update
             */
             EditorCore.prototype.onPreUpdate = function () {
-                for (var i = 0; i < this.updates.length; i++) {
+                for (var i = 0; i < this.updates.length; i++)
                     this.updates[i].onPreUpdate();
-                }
             };
             /**
             * On post update
             */
             EditorCore.prototype.onPostUpdate = function () {
-                for (var i = 0; i < this.updates.length; i++) {
+                for (var i = 0; i < this.updates.length; i++)
                     this.updates[i].onPostUpdate();
-                }
             };
             /**
             * Send an event to the event receivers
             */
             EditorCore.prototype.sendEvent = function (event) {
-                for (var i = 0; i < this.eventReceivers.length; i++)
-                    this.eventReceivers[i].onEvent(event);
+                for (var i = 0; i < this.eventReceivers.length; i++) {
+                    if (this.eventReceivers[i].onEvent)
+                        this.eventReceivers[i].onEvent(event);
+                }
+            };
+            /**
+             * Emits an event to the event emitters
+             */
+            EditorCore.prototype.emitEvent = function (event) {
+                for (var i = 0; i < this.eventReceivers.length; i++) {
+                    if (this.eventReceivers[i].on)
+                        this.eventReceivers[i].on(event);
+                }
             };
             /**
             * IDisposable

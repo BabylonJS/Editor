@@ -18,11 +18,12 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function GUIList(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.items = [];
-                    this.renderDrop = false;
-                    this.selected = "";
+                    _this.items = [];
+                    _this.renderDrop = false;
+                    _this.selected = "";
+                    return _this;
                 }
                 // Creates a new item
                 GUIList.prototype.addItem = function (name) {
@@ -55,7 +56,6 @@ var BABYLON;
                             return item.text;
                         },
                         compare: function (item, search) {
-                            debugger;
                             return item.text.indexOf(search) !== -1;
                         }
                     });

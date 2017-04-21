@@ -9,6 +9,8 @@ var BABYLON;
             */
             function PostProcessBuilder(core) {
                 var _this = this;
+                // Public members
+                this.hasFocus = true;
                 this._engine = null;
                 this._scene = null;
                 this._camera = null;
@@ -18,6 +20,7 @@ var BABYLON;
                 this._containerID = null;
                 this._tab = null;
                 this._layouts = null;
+                this._editLayouts = null;
                 this._mainPanel = null;
                 this._postProcessesList = null;
                 this._toolbar = null;
@@ -44,7 +47,6 @@ var BABYLON;
                     _this._onPostProcessSelected([0]);
                     // Extensions
                     _this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._scene);
-                    _this._extension.placeHolderTexture = _this._texture;
                     _this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(_this._core.currentScene);
                 });
             }
@@ -68,13 +70,25 @@ var BABYLON;
                 this._postProcessesList.destroy();
                 this._editor.destroy();
                 this._console.destroy();
+                this._editLayouts.destroy();
                 this._layouts.destroy();
                 this._engine.dispose();
+            };
+            /**
+            * On Focus
+            */
+            PostProcessBuilder.prototype.onFocus = function () {
+                var _this = this;
+                BABYLON.Tools.Error = function (entry) {
+                    _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry);
+                };
             };
             /**
             * On event
             */
             PostProcessBuilder.prototype.onEvent = function (event) {
+                if (!this.hasFocus)
+                    return false;
                 if (event.eventType === EDITOR.EventType.KEY_EVENT) {
                     if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
                         this._onApplyPostProcessChain(false);
@@ -89,15 +103,17 @@ var BABYLON;
                 this._containerID = this._core.editor.createContainer();
                 this._tab = this._core.editor.createTab("Post-Process Builder", this._containerID, this, true);
                 this._containerElement = $("#" + this._containerID);
+                var canvasID = EDITOR.SceneFactory.GenerateUUID();
                 // Layout
                 this._layouts = new EDITOR.GUI.GUILayout(this._containerID, this._core);
                 this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
                 this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
-                this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+                this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(EDITOR.GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 100%;", null, true));
                 this._layouts.buildElement(this._containerID);
                 this._layouts.on("resize", function (event) {
                     _this._editor.resize(true);
+                    _this._engine.resize();
                 });
                 this._glslTabId = this._currentTabId = EDITOR.SceneFactory.GenerateUUID();
                 this._configurationTabId = EDITOR.SceneFactory.GenerateUUID();
@@ -105,9 +121,12 @@ var BABYLON;
                 this._mainPanel.createTab({ caption: "GLSL", closable: false, id: this._glslTabId });
                 this._mainPanel.createTab({ caption: "Configuration", closable: false, id: this._configurationTabId });
                 this._mainPanel.onTabChanged = function (id) { return _this._onTabChanged(id); };
-                // GUI
+                // Edit layouts
                 var container = $("#POST-PROCESS-BUILDER-EDIT");
-                container.append(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+                this._editLayouts = new EDITOR.GUI.GUILayout("POST-PROCESS-BUILDER-EDIT", this._core);
+                this._editLayouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST"));
+                this._editLayouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", container.height() - 300, false).setContent(EDITOR.GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+                this._editLayouts.buildElement("POST-PROCESS-BUILDER-EDIT");
                 // Toolbar
                 this._toolbar = new EDITOR.GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
                 this._toolbar.createMenu("button", "BUILD-CHAIN", "Apply Chain (CTRL + B)", "icon-play-game", false, "Builds post-processes and applies chain");
@@ -121,11 +140,13 @@ var BABYLON;
                 this._postProcessesList.multiSelect = false;
                 this._postProcessesList.showAdd = true;
                 this._postProcessesList.showDelete = true;
-                this._postProcessesList.showOptions = false;
+                this._postProcessesList.showOptions = true;
+                this._postProcessesList.reorderRows = true;
                 this._postProcessesList.onClick = function (selected) { return _this._onPostProcessSelected(selected); };
                 this._postProcessesList.onAdd = function () { return _this._onPostProcessAdd(); };
                 this._postProcessesList.onDelete = function (selected) { return _this._onPostProcessRemove(selected); };
-                this._postProcessesList.onEditField = function (recid, value) { return _this._onPostProcessEditField(recid, value); };
+                this._postProcessesList.onChange = function (recid, value) { return _this._onPostProcessEditField(recid, value); };
+                this._postProcessesList.onReorder = function (recid, moveAfter) { return _this._onReorder(recid, moveAfter); };
                 this._postProcessesList.buildElement("POST-PROCESS-BUILDER-EDIT-LIST");
                 for (var i = 0; i < this._datas.length; i++)
                     this._postProcessesList.addRecord({ name: this._datas[i].name, recid: i });
@@ -134,12 +155,27 @@ var BABYLON;
                 container.append("<br />");
                 container.append("<hr>");
                 container.append(EDITOR.GUI.GUIElement.CreateElement("p", EDITOR.SceneFactory.GenerateUUID(), "width: 100%;", "Preview:", false));
-                var canvasID = EDITOR.SceneFactory.GenerateUUID();
-                container.append(EDITOR.GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 300px", null, true));
+                // Engine and scene
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0]);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._camera = new BABYLON.Camera("PostProcessCamera", BABYLON.Vector3.Zero(), this._scene);
                 this._texture = new BABYLON.Texture("website/Tests/textures/no_smoke.png", this._scene);
+                this._camera = new BABYLON.ArcRotateCamera("PostProcessCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, BABYLON.Vector3.Zero(), this._scene);
+                this._camera.attachControl(this._engine.getRenderingCanvas());
+                var pointLight = new BABYLON.PointLight("PostProcessLight", new BABYLON.Vector3(25, 25, 25), this._scene);
+                var box = BABYLON.Mesh.CreateBox("box", 10, this._scene);
+                var ground = BABYLON.Mesh.CreateGround("PostProcessGround", 200, 200, 64, this._scene);
+                ground.receiveShadows = true;
+                ground.position.y = -5;
+                var groundMaterial = new BABYLON.StandardMaterial("PostProcessGroundMaterial", this._scene);
+                EDITOR.Tools.CreateFileFromURL("website/textures/empty.jpg", function (file) {
+                    var diffuseTexture = new BABYLON.Texture("file:empty.jpg", _this._scene);
+                    diffuseTexture.name = "groundEmpty.jpg";
+                    diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                    groundMaterial.diffuseTexture = diffuseTexture;
+                }, true);
+                ground.material = groundMaterial;
+                var skybox = BABYLON.Mesh.CreateBox("PostProcessSkyBox", 1000, this._scene, false, BABYLON.Mesh._BACKSIDE);
+                (skybox.material = new BABYLON.SkyMaterial("PostProcessSkyMaterial", this._scene)).inclination = 0;
                 this._engine.runRenderLoop(function () { return _this._scene.render(); });
                 // Editor
                 this._editor = ace.edit("POST-PROCESS-BUILDER-PROGRAM");
@@ -150,9 +186,7 @@ var BABYLON;
                 // Console
                 this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
                 this._console.getSession().setValue("Ready.");
-                BABYLON.Tools.Error = function (entry) {
-                    _this._console.getSession().setValue(_this._console.getSession().getValue() + "\n" + entry);
-                };
+                this.onFocus();
             };
             // On tab changed
             PostProcessBuilder.prototype._onTabChanged = function (id) {
@@ -172,6 +206,13 @@ var BABYLON;
                     return;
                 this._currentSelected = selected[0];
                 this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
+            };
+            // When the user reorders the post-processes list
+            PostProcessBuilder.prototype._onReorder = function (recid, moveAfter) {
+                var previousData = this._datas[recid];
+                var nextData = this._datas[moveAfter];
+                this._datas[recid] = nextData;
+                this._datas[moveAfter] = previousData;
             };
             // When the user adds a new post-process
             PostProcessBuilder.prototype._onPostProcessAdd = function () {
@@ -218,7 +259,10 @@ var BABYLON;
             };
             // When the user edits a row
             PostProcessBuilder.prototype._onPostProcessEditField = function (recid, value) {
-                debugger;
+                if (value !== "") {
+                    this._datas[recid].name = value;
+                    this._postProcessesList.refresh();
+                }
             };
             // When the user modifies a post-process
             PostProcessBuilder.prototype._onEditorChanged = function () {
@@ -283,10 +327,10 @@ var BABYLON;
                 else
                     callback();
             };
-            // Static members
-            PostProcessBuilder._ConfigurationFileContent = null;
             return PostProcessBuilder;
         }());
+        // Static members
+        PostProcessBuilder._ConfigurationFileContent = null;
         EDITOR.PostProcessBuilder = PostProcessBuilder;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

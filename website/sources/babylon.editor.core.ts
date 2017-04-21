@@ -47,6 +47,7 @@
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -54,26 +55,36 @@
         * On pre update
         */
         public onPreUpdate(): void {
-            for (var i = 0; i < this.updates.length; i++) {
+            for (var i = 0; i < this.updates.length; i++)
                 this.updates[i].onPreUpdate();
-            }
         }
 
         /**
         * On post update
         */
         public onPostUpdate(): void {
-            for (var i = 0; i < this.updates.length; i++) {
+            for (var i = 0; i < this.updates.length; i++)
                 this.updates[i].onPostUpdate();
-            }
         }
 
         /**
         * Send an event to the event receivers
         */
-        public sendEvent(event: IEvent) {
-            for (var i = 0; i < this.eventReceivers.length; i++)
-                this.eventReceivers[i].onEvent(event);
+        public sendEvent(event: IEvent): void {
+            for (var i = 0; i < this.eventReceivers.length; i++) {
+                if (this.eventReceivers[i].onEvent)
+                    this.eventReceivers[i].onEvent(event);
+            }
+        }
+
+        /**
+         * Emits an event to the event emitters
+         */
+        public emitEvent<T>(event: EventEmitter<T>): void {
+            for (var i = 0; i < this.eventReceivers.length; i++) {
+                if (this.eventReceivers[i].on)
+                    this.eventReceivers[i].on(event);
+            }
         }
 
         /**

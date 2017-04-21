@@ -16,31 +16,31 @@ var BABYLON;
                 * @param name: the form name
                 */
                 function GUIWindow(name, core, title, body, size, buttons) {
-                    var _this = this;
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.title = "";
-                    this.body = "";
-                    this.size = new BABYLON.Vector2(800, 600);
-                    this.buttons = [];
-                    this.modal = true;
-                    this.showClose = true;
-                    this.showMax = true;
+                    _this.title = "";
+                    _this.body = "";
+                    _this.size = new BABYLON.Vector2(800, 600);
+                    _this.buttons = [];
+                    _this.modal = true;
+                    _this.showClose = true;
+                    _this.showMax = true;
                     // Private members
-                    this._onCloseCallbacks = [];
+                    _this._onCloseCallbacks = [];
                     // Initialize
-                    this.title = title;
-                    this.body = body;
+                    _this.title = title;
+                    _this.body = body;
                     if (size)
-                        this.size = size;
+                        _this.size = size;
                     if (buttons)
-                        this.buttons = buttons;
-                    this._onCloseCallback = function () {
+                        _this.buttons = buttons;
+                    _this._onCloseCallback = function () {
                         _this.core.editor.renderMainScene = true;
                         for (var i = 0; i < _this._onCloseCallbacks.length; i++) {
                             _this._onCloseCallbacks[i]();
                         }
                     };
+                    return _this;
                 }
                 // Destroy the element (W2UI)
                 GUIWindow.prototype.destroy = function () {
@@ -101,7 +101,7 @@ var BABYLON;
                     var buttonID = "WindowButton";
                     var buttons = "";
                     for (var i = 0; i < this.buttons.length; i++) {
-                        buttons += "<button class=\"btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
+                        buttons += "<button class=\"w2ui-btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
                     }
                     // Create window
                     this.element = w2popup.open({

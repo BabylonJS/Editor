@@ -14,57 +14,22 @@ var BABYLON;
             * @param core: the editor core instance
             */
             function OneDriveStorage(core) {
-                _super.call(this, core);
-                this._editor = core.editor;
+                var _this = 
+                // Initialize
+                _super.call(this, core) || this;
+                _this._editor = core.editor;
+                // OAuth
+                //var clientID = "000000004C18353E"; // editor.babylonjs.com
+                var clientID = "0000000048182B1B";
+                EDITOR.OAuthManager._URI = "https://login.live.com/oauth20_authorize.srf"
+                    + "?client_id=" + clientID
+                    + "&redirect_uri=" + EDITOR.Tools.GetBaseURL() + "redirect.html"
+                    + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
+                return _this;
             }
-            // When user authentificated using the popup window (and accepted BabylonJSEditor to access files)
-            OneDriveStorage._OnAuthentificated = function () {
-                // Get token from URL
-                var token = "";
-                var expires = "";
-                if (window.location.hash) {
-                    var response = window.location.hash.substring(1);
-                    var authInfo = JSON.parse("{\"" + response.replace(/&/g, '","').replace(/=/g, '":"') + "\"}", function (key, value) { return key === "" ? value : decodeURIComponent(value); });
-                    token = authInfo.access_token;
-                    expires = authInfo.expires_in;
-                }
-                // Close popup
-                window.opener.BABYLON.EDITOR.OneDriveStorage._ClosePopup(token, expires, window);
-            };
-            // Closes the login popup
-            OneDriveStorage._ClosePopup = function (token, expires, window) {
-                OneDriveStorage._TOKEN = token;
-                if (token === "") {
-                    EDITOR.GUI.GUIWindow.CreateAlert("Cannot connect to OneDrive or get token...");
-                }
-                else {
-                    OneDriveStorage._TOKEN_EXPIRES_IN = parseInt(expires);
-                    OneDriveStorage._TOKEN_EXPIRES_NOW = Date.now();
-                }
-                if (window.OneDriveStorageCallback) {
-                    window.OneDriveStorageCallback();
-                }
-                window.close();
-            };
-            // Login into OneDrive
-            OneDriveStorage._Login = function (core, success) {
-                // OneDrive
-                var now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
-                if (OneDriveStorage._TOKEN === "" || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
-                    var uri = "https://login.live.com/oauth20_authorize.srf"
-                        + "?client_id=" + OneDriveStorage._ClientID
-                        + "&redirect_uri=" + EDITOR.Tools.GetBaseURL() + "redirect.html"
-                        + "&response_type=token&nonce=7a16fa03-c29d-4e6a-aff7-c021b06a9b27&scope=wl.basic onedrive.readwrite wl.offline_access";
-                    var popup = EDITOR.Tools.OpenWindowPopup(uri, 512, 512);
-                    popup.OneDriveStorageCallback = success;
-                }
-                else {
-                    success();
-                }
-            };
             // Creates folders
             OneDriveStorage.prototype.createFolders = function (folders, parentFolder, success, failed) {
-                OneDriveStorage._Login(this.core, function () {
+                EDITOR.OAuthManager._Login(this.core, function () {
                     var count = 0;
                     var error = "";
                     var callback = function () {
@@ -87,7 +52,7 @@ var BABYLON;
                                 "@name.conflictBehavior": "rename"
                             }),
                             headers: {
-                                "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                                "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
                             },
                             success: function () {
                                 callback();
@@ -103,7 +68,7 @@ var BABYLON;
             };
             // Creates files
             OneDriveStorage.prototype.createFiles = function (files, folder, success, failed, progress) {
-                OneDriveStorage._Login(this.core, function () {
+                EDITOR.OAuthManager._Login(this.core, function () {
                     var count = 0;
                     var error = "";
                     var callback = function () {
@@ -124,7 +89,7 @@ var BABYLON;
                             data: files[i].content,
                             type: "PUT",
                             headers: {
-                                "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                                "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
                             },
                             success: function () {
                                 callback();
@@ -140,12 +105,12 @@ var BABYLON;
             };
             // Gets the children files of a folder
             OneDriveStorage.prototype.getFiles = function (folder, success, failed) {
-                OneDriveStorage._Login(this.core, function () {
+                EDITOR.OAuthManager._Login(this.core, function () {
                     $.ajax({
                         url: "https://Api.Onedrive.com/v1.0/drive/" + (folder ? "items/" + folder.file.id : "root") + "/children",
                         type: "GET",
                         headers: {
-                            "Authorization": "Bearer " + OneDriveStorage._TOKEN
+                            "Authorization": "Bearer " + EDITOR.OAuthManager._TOKEN
                         },
                         success: function (response) {
                             var children = [];
@@ -163,12 +128,6 @@ var BABYLON;
                     });
                 });
             };
-            //private static _ClientID = "000000004C18353E"; // editor.babylonjs.com
-            OneDriveStorage._ClientID = "0000000048182B1B";
-            OneDriveStorage._TOKEN = "";
-            OneDriveStorage._TOKEN_EXPIRES_IN = 0;
-            OneDriveStorage._TOKEN_EXPIRES_NOW = 0;
-            OneDriveStorage._POPUP = null;
             return OneDriveStorage;
         }(EDITOR.Storage));
         EDITOR.OneDriveStorage = OneDriveStorage;

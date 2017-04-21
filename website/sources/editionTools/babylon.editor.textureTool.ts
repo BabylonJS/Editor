@@ -71,9 +71,27 @@
                 var textureFolder = this._element.addFolder("Texture");
                 textureFolder.add(object, "uScale").name("uScale");
                 textureFolder.add(object, "vScale").name("vScale");
+                textureFolder.add(this, "_createNormalMapEditor").name("Create normal map...");
+            }
+
+            // Mirror texture
+            if (object instanceof MirrorTexture) {
+                var mirror = this._element.addFolder("Mirror");
+                mirror.add(object.mirrorPlane, "d").step(0.01).name("d");
+                mirror.add(object.mirrorPlane.normal, "x").min(-1).max(1).step(0.01).name("Normal X");
+                mirror.add(object.mirrorPlane.normal, "y").min(-1).max(1).step(0.01).name("Normal Y");
+                mirror.add(object.mirrorPlane.normal, "z").min(-1).max(1).step(0.01).name("Normal Z");
             }
 
             return true;
+        }
+
+        // Create normal map editor
+        private _createNormalMapEditor(): void {
+            var editor = new NormalMapEditor(this._editionTool.core, this.object);
+            editor.onApply = (texture) => {
+                this._editionTool.isObjectSupported(texture);
+            };
         }
     }
 }

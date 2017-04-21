@@ -30,6 +30,14 @@ var BABYLON;
                     class: img
                 });
             };
+            // Returns if has the element with the given id
+            StatusBar.prototype.hasElement = function (id) {
+                for (var i = 0; i < this._elements.length; i++) {
+                    if (this._elements[i].id === id)
+                        return true;
+                }
+                return false;
+            };
             // Remove an existing element from the status bar
             StatusBar.prototype.removeElement = function (id) {
                 for (var i = 0; i < this._elements.length; i++) {

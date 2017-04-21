@@ -102,5 +102,19 @@
                 callback(filename);
             });
         }
+
+        /**
+        * Creates a new window 
+        */
+        public static CreateNewWindow(url: string, width: number, height: number, loadedDataCallback?: { name: string, callback: () => void }): any {
+            var electron = require("electron");
+
+            // Create window
+            var window = new electron.remote.BrowserWindow({ width: width, height: height });
+            window.loadURL("file://" + __dirname + "/" + url);
+            window.webContents.openDevTools();
+
+            return window;
+        }
     }
 }

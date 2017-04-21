@@ -10,8 +10,9 @@ var BABYLON;
         var FilesInput = (function (_super) {
             __extends(FilesInput, _super);
             function FilesInput(core, sceneLoadedCallback, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, startingProcessingFilesCallback) {
-                _super.call(this, core.engine, core.currentScene, core.canvas, null, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core));
-                this._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, this);
+                var _this = _super.call(this, core.engine, core.currentScene, core.canvas, null, progressCallback, additionnalRenderLoopLogicCallback, textureLoadingCallback, FilesInput._callbackStart(core)) || this;
+                _this._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, _this);
+                return _this;
             }
             FilesInput._callbackStart = function (core) {
                 return function () {

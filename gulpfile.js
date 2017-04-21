@@ -31,12 +31,12 @@ for (var i = 0; i < config.plugins.files.length; i++) {
     files.push("website/" + config.plugins.files[i].replace(".js", ".ts"));
 }
 
-for (var i = 0; i < config.electron.editorFiles.length; i++) {
-    files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
-}
-
 // If electron, add electron files
 if (args._[0] === "electron" || args._[0] === "electron-watch") {
+    for (var i = 0; i < config.electron.editorFiles.length; i++) {
+        files.push("website/" + config.electron.editorFiles[i].replace(".js", ".ts"));
+    }
+
     for (var i = 0; i < config.electron.files.length; i++) {
         files.push("website/" + config.electron.files[i].replace(".js", ".ts"));
     }
@@ -58,7 +58,6 @@ gulp.task("typescript-compile", function () {
     var result = gulp.src(config.core.typescriptBuild)
         .pipe(sourcemaps.init())
         .pipe(typescript({
-            noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: false
@@ -73,7 +72,7 @@ gulp.task("typescript-compile", function () {
             {
                 includeContent: false, 
                 sourceRoot: (filePath) => {
-                    return "";
+                    return "./";
                 }
             }))
             .pipe(gulp.dest(config.build.srcOutputDirectory))
@@ -88,16 +87,18 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
     // Typescript parser
     var filenames = ["website/defines/babylon.d.ts", "website/libs/preview release/babylon.editor.extensions.d.ts"];
     typescriptParser.ParseTypescriptFiles(filenames, "website/website/resources/classes.min.json", false);
-
+    
     // Build editor
     var result = gulp.src(files)
         .pipe(typescript({
             target: "ES5",
+            module: "amd",
             declarationFiles: false,
             experimentalDecorators: false,
             out: config.build.filename
         }));
     
+    // Return js
 	return result.js.pipe(gulp.dest(config.build.outputDirectory))
         .pipe(concat(config.build.filename))
         .pipe(cleants())
@@ -115,7 +116,7 @@ gulp.task("build-extensions", function () {
         .pipe(typescript({
             target: "ES5",
             declarationFiles: true,
-            experimentalDecorators: false,
+            experimentalDecorators: true,
             out: config.editorExtensions.filename
         }));
 
@@ -125,7 +126,7 @@ gulp.task("build-extensions", function () {
             {
                 includeContent: false, 
                 sourceRoot: (filePath) => {
-                    return ""; 
+                    return "./"; 
                 }
             }))
             .pipe(concat(config.editorExtensions.filename))
@@ -145,20 +146,33 @@ gulp.task("build-extensions", function () {
 */
 gulp.task("watch", function() {
 	gulp.watch(files, ["build-extensions", "typescript-compile"]);
+    gulp.watch(extensionFiles, ["build-extensions", "typescript-compile"]);
 });
 
 /**
  * Web server task to serve a local test page
  */
 gulp.task("webserver", function() {
-  gulp.src("./website/")
+    gulp.src("./website/")
     .pipe(webserver({
-      livereload: false,
-      open: "http://localhost:1338/index-debug.html",
-      port: 1338,
-      fallback: "index-debug.html"
+        livereload: false,
+        open: "http://localhost:1338/index-debug.html",
+        port: 1338,
+        fallback: "index-debug.html"
     }));
 });
+
+/**
+ * Runs gulp with tasks webserver and watch
+ */
+gulp.task("run", ["watch"], function() {
+    gulp.src("./website/")
+        .pipe(webserver({
+            livereload: false,
+            port: 1338,
+            fallback: "index-debug.html"
+        }));
+})
 
 /*
 * Automatically call the "electron" task when a TS file changes
@@ -172,13 +186,14 @@ gulp.task("electron-watch", function () {
  */
 gulp.task("electron", ["build"], function () {
     // TypeScript files
-    var result = gulp.src(config.electron.typescriptBuild)
+    var result = gulp.src(config.electron.typescriptBuild.concat(config.electron.files))
         .pipe(typescript({
-            noExternalResolve: true,
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: false
         }));
+
+    result.js.pipe(gulp.dest(config.electron.typescriptOutDir));
 
     // OS X
     // gulp electron --osx --arch=x64 --platform=darwin
@@ -209,7 +224,8 @@ gulp.task("electron", ["build"], function () {
         dir: "./website/",
         platform: args.platform ? args.platform : "darwin",
         out: "electronPackages/",
-        overwrite: true
+        overwrite: true,
+        prune: false
     };
     
     if (args.osx || args.mas) {
@@ -223,6 +239,13 @@ gulp.task("electron", ["build"], function () {
     }
 
     electronPackager(options, function (err, appPath) {
+        if (err !== null) {
+            console.log(err);
+            return;
+        }
+        else
+            console.log("No errors");
+        
         console.log(appPath);
         console.log("Copying package.json into the package...");
         gulp.src("package.json")

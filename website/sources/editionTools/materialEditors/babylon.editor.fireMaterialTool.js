@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function FireMaterialTool(editionTool) {
-                _super.call(this, editionTool, "FIRE-MATERIAL", "FIRE", "Fire");
+                var _this = _super.call(this, editionTool, "FIRE-MATERIAL", "FIRE", "Fire") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.FireMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.FireMaterial; };
+                return _this;
             }
             // Update
             FireMaterialTool.prototype.update = function () {

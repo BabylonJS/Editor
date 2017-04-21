@@ -15,12 +15,13 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function PBRMaterialTool(editionTool) {
-                _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR");
+                var _this = _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR") || this;
                 // Public members
                 // Private members
-                this._dummyPreset = "";
+                _this._dummyPreset = "";
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.PBRMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.PBRMaterial; };
+                return _this;
             }
             // Update
             PBRMaterialTool.prototype.update = function () {
@@ -48,7 +49,7 @@ var BABYLON;
                 pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
                 pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
                 pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
-                pbrFolder.add(this.material, "usePhysicalLightFalloff").name("use Physical Light Fall Off");
+                pbrFolder.add(this.material, "usePhysicalLightFalloff").name("Use Physical Light Fall Off");
                 // Albedo
                 var albedoFolder = this._element.addFolder("Albedo");
                 this.addColorFolder(this.material.albedoColor, "Albedo Color", true, albedoFolder);
@@ -61,6 +62,7 @@ var BABYLON;
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from albedo texture...");
                 this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Reflectivity
                 var reflectivityFolder = this._element.addFolder("Reflectivity");
@@ -123,6 +125,16 @@ var BABYLON;
                 emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
+            };
+            // Create normal map editor
+            PBRMaterialTool.prototype._createNormalMapEditor = function () {
+                var _this = this;
+                if (!this.material.albedoTexture || !(this.material.albedoTexture instanceof BABYLON.Texture))
+                    return EDITOR.GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.material.albedoTexture);
+                editor.onApply = function (texture) {
+                    _this.material.bumpTexture = texture;
+                };
             };
             // Preset for glass
             PBRMaterialTool.prototype._createPresetGlass = function () {

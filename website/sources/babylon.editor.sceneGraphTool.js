@@ -52,6 +52,15 @@ var BABYLON;
                                 return false;
                             if (id === this._menuDeleteId) {
                                 if (object && object.dispose && object !== this._core.camera) {
+                                    for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+                                        var m = this._core.currentScene.materials[i];
+                                        m.markDirty();
+                                        m.markAsDirty(BABYLON.Material.AttributesDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.LightDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.TextureDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.FresnelDirtyFlag);
+                                        m.markAsDirty(BABYLON.Material.MiscDirtyFlag);
+                                    }
                                     object.dispose();
                                     this._ensureObjectDispose(object);
                                     var node = this.sidebar.getNode(this.sidebar.getSelected());
@@ -103,6 +112,18 @@ var BABYLON;
                         else if (object instanceof BABYLON.RenderTargetTexture) {
                             var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.customRenderTargets.length, object.name, "icon-camera", object);
                             this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
+                        }
+                        else if (object instanceof BABYLON.InstancedMesh) {
+                            var instancesRootNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
+                            if (!instancesRootNode) {
+                                instancesRootNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", "icon-mesh", object.sourceMesh);
+                                instancesRootNode.count = 1;
+                                this.sidebar.addNodes(instancesRootNode, object.sourceMesh.id);
+                            }
+                            else
+                                instancesRootNode.count++;
+                            var instanceNode = this.sidebar.createNode(object.id, object.name, "icon-mesh", object);
+                            this.sidebar.addNodes(instanceNode, instancesRootNode.id);
                         }
                         else {
                             var parentNode = null;
@@ -216,10 +237,25 @@ var BABYLON;
                         var object = children[i];
                         var childrenLength = object.getDescendants().length;
                         var icon = this._getObjectIcon(object);
-                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-                        if (childrenLength > 0)
-                            childNode.count = childrenLength;
-                        this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                        if (object instanceof BABYLON.InstancedMesh) {
+                            var parentNode = this.sidebar.getNode(object.sourceMesh.id);
+                            var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
+                            if (!instancesNode) {
+                                instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
+                                instancesNode.count = 1;
+                                this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                            }
+                            else
+                                instancesNode.count++;
+                            var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                            this.sidebar.addNodes(childNode, instancesNode.id, false);
+                        }
+                        else {
+                            var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                            if (childrenLength > 0)
+                                childNode.count = childrenLength;
+                            this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                        }
                         this.fillGraph(object, object.id);
                     }
                 }

@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function GridMaterialTool(editionTool) {
-                _super.call(this, editionTool, "GRID-MATERIAL", "GRID", "Grid");
+                var _this = _super.call(this, editionTool, "GRID-MATERIAL", "GRID", "Grid") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.GridMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.GridMaterial; };
+                return _this;
             }
             // Update
             GridMaterialTool.prototype.update = function () {

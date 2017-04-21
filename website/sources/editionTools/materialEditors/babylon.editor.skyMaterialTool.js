@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function SkyMaterialTool(editionTool) {
-                _super.call(this, editionTool, "SKY-MATERIAL", "SKY", "Sky");
+                var _this = _super.call(this, editionTool, "SKY-MATERIAL", "SKY", "Sky") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.SkyMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.SkyMaterial; };
+                return _this;
             }
             // Update
             SkyMaterialTool.prototype.update = function () {

@@ -85,12 +85,23 @@ var BABYLON;
                 });
             };
             /**
-            * Scene file
+            * Creates a new window
             */
-            ElectronHelper.ReloadSceneOnFileChanged = false;
-            ElectronHelper.SceneFilename = "";
+            ElectronHelper.CreateNewWindow = function (url, width, height, loadedDataCallback) {
+                var electron = require("electron");
+                // Create window
+                var window = new electron.remote.BrowserWindow({ width: width, height: height });
+                window.loadURL("file://" + __dirname + "/" + url);
+                window.webContents.openDevTools();
+                return window;
+            };
             return ElectronHelper;
         }());
+        /**
+        * Scene file
+        */
+        ElectronHelper.ReloadSceneOnFileChanged = false;
+        ElectronHelper.SceneFilename = "";
         EDITOR.ElectronHelper = ElectronHelper;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

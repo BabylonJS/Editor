@@ -31,14 +31,12 @@
         }
 
         // Pre update
-        public onPreUpdate(): void {
-
-        }
+        public onPreUpdate(): void
+        { }
         
         // Post update
-        public onPostUpdate(): void {
-
-        }
+        public onPostUpdate(): void
+        { }
 
         // Event
         public onEvent(event: Event): boolean {
@@ -164,6 +162,8 @@
             this.addTool(new TriPlanarMaterialTool(this));
             this.addTool(new GridMaterialTool(this));
             this.addTool(new FireMaterialTool(this));
+
+            this.addTool(new GroundMeshTool(this));
             
             for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
                 this.addTool(new PluginManager.EditionToolPlugins[i](this));

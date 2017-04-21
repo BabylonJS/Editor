@@ -14,17 +14,19 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function GeneralTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.object = null;
-                this.tab = "GENERAL.TAB";
+                _this.object = null;
+                _this.tab = "GENERAL.TAB";
                 // Private members
-                this._isActiveCamera = false;
-                this._isActivePlayCamera = false;
+                _this._isActiveCamera = false;
+                _this._isActivePlayCamera = false;
+                _this._currentInstance = "";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-GENERAL"
                 ];
+                return _this;
             }
             // Object supported
             GeneralTool.prototype.isObjectSupported = function (object) {
@@ -90,7 +92,7 @@ var BABYLON;
                     });
                     cameraFolder.add(this.object, "maxZ").min(0).step(0.1).name("Far Value");
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
-                    if (object.speed)
+                    if (object["speed"] !== undefined)
                         cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
                     if (object.fov)
                         cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");
@@ -135,6 +137,27 @@ var BABYLON;
                             dialog.buildElement(null);
                         }
                     });
+                }
+                // Instances
+                if (object instanceof BABYLON.Mesh) {
+                    var instancesFolder = this._element.addFolder("Instances");
+                    var instances = [];
+                    for (var i = 0; i < object.instances.length; i++)
+                        instances.push(object.instances[i].name);
+                    if (this._currentInstance === "" && instances.length > 0)
+                        this._currentInstance = instances[0];
+                    if (instances.length > 0) {
+                        instancesFolder.add(this, "_currentInstance", instances).name("Instance").onFinishChange(function (result) {
+                            var index = instances.indexOf(result);
+                            if (!object.instances[index])
+                                _this.update();
+                            else {
+                                _this._editionTool.isObjectSupported(object.instances[index]);
+                            }
+                        });
+                        instancesFolder.add(this, "_removeInstance").name("Remove instance...").onFinishChange(function () { return _this.update(); });
+                    }
+                    instancesFolder.add(this, "_createNewInstance").name("Create new instance...").onChange(function () { return _this.update(); });
                 }
                 return true;
             };
@@ -196,6 +219,22 @@ var BABYLON;
                             shadowMap.renderList.push(object);
                     }
                     this._setChildrenCastingShadows(object);
+                }
+            };
+            // Create a new instance
+            GeneralTool.prototype._createNewInstance = function () {
+                EDITOR.SceneFactory.AddInstancedMesh(this._editionTool.core, this.object);
+            };
+            // Removes instances
+            GeneralTool.prototype._removeInstance = function () {
+                if (this._currentInstance === "")
+                    return;
+                var object = this.object;
+                for (var i = 0; i < object.instances.length; i++) {
+                    if (object.instances[i].name === this._currentInstance) {
+                        object.instances[i].dispose(false);
+                        break;
+                    }
                 }
             };
             return GeneralTool;

@@ -21,25 +21,27 @@ var BABYLON;
                 * @param core: the editor core
                 */
                 function GUIGrid(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.columns = [];
-                    this.records = [];
-                    this.header = "";
-                    this.fixedBody = true;
-                    this.showToolbar = true;
-                    this.showFooter = false;
-                    this.showDelete = false;
-                    this.showAdd = false;
-                    this.showEdit = false;
-                    this.showOptions = true;
-                    this.showRefresh = true;
-                    this.showSearch = true;
-                    this.showColumnHeaders = true;
-                    this.menus = [];
-                    this.autoMergeChanges = true;
-                    this.multiSelect = true;
-                    this.hasSubGrid = false;
+                    _this.columns = [];
+                    _this.records = [];
+                    _this.header = "";
+                    _this.fixedBody = true;
+                    _this.showToolbar = true;
+                    _this.showFooter = false;
+                    _this.showDelete = false;
+                    _this.showAdd = false;
+                    _this.showEdit = false;
+                    _this.showOptions = true;
+                    _this.showRefresh = true;
+                    _this.showSearch = true;
+                    _this.showColumnHeaders = true;
+                    _this.menus = [];
+                    _this.autoMergeChanges = true;
+                    _this.multiSelect = true;
+                    _this.reorderRows = false;
+                    _this.hasSubGrid = false;
+                    return _this;
                 }
                 // Adds a menu
                 GUIGrid.prototype.addMenu = function (id, text, icon) {
@@ -69,7 +71,8 @@ var BABYLON;
                 // Adds a record without refreshing the grid
                 GUIGrid.prototype.addRecord = function (data) {
                     if (!this.element) {
-                        data.recid = this.records.length;
+                        if (data.recid === undefined)
+                            data.recid = this.records.length;
                         this.records.push(data);
                     }
                     else {
@@ -183,6 +186,7 @@ var BABYLON;
                         columns: this.columns,
                         records: this.records,
                         multiSelect: this.multiSelect,
+                        reorderRows: this.reorderRows,
                         onClick: function (event) {
                             event.onComplete = function () {
                                 var selected = _this.getSelectedRows();
@@ -259,10 +263,10 @@ var BABYLON;
                             }, 300);
                         },
                         onChange: function (event) {
-                            if (!event.recid)
+                            if (event.recid === undefined || event.recid === null)
                                 return;
-                            if (_this.onEditField)
-                                event.onComplete = function () { return _this.onEditField(event.recid, event.value_new); };
+                            if (_this.onChange)
+                                event.onComplete = function () { return _this.onChange(event.recid, event.value_new); };
                             var ev = new EDITOR.Event();
                             ev.eventType = EDITOR.EventType.GUI_EVENT;
                             ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_CHANGED, { recid: event.recid, value: event.value_new });
@@ -281,6 +285,18 @@ var BABYLON;
                             _this.core.sendEvent(ev);
                             if (_this.autoMergeChanges)
                                 _this.element.mergeChanges();
+                        }
+                    });
+                    this.element.on({ type: "reorderRow", execute: "after" }, function (target, eventData) {
+                        if (eventData.recid !== undefined && eventData.moveAfter !== undefined) {
+                            var recid = parseInt(eventData.recid);
+                            var moveAfter = parseInt(eventData.moveAfter);
+                            var previousRecord = _this.element.records[recid];
+                            var nextRecord = _this.element.records[moveAfter];
+                            _this.element.records[moveAfter] = nextRecord;
+                            _this.element.records[recid] = previousRecord;
+                            if (_this.onReorder)
+                                _this.onReorder(recid, moveAfter);
                         }
                     });
                 };

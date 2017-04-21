@@ -112,6 +112,19 @@ var BABYLON;
                     };
                     config.push(obj);
                 }
+                // Mirror textures
+                for (index = 0; index < core.currentScene.textures.length; index++) {
+                    var tex = core.currentScene.textures[index];
+                    if (!BABYLON.Tags.HasTags(tex) || !BABYLON.Tags.MatchesQuery(tex, "added"))
+                        continue;
+                    if (tex instanceof BABYLON.MirrorTexture) {
+                        var obj = {
+                            isProbe: false,
+                            serializationObject: tex.serialize()
+                        };
+                        config.push(obj);
+                    }
+                }
                 return config;
             };
             // Serialize lens flares
@@ -135,48 +148,9 @@ var BABYLON;
             // Serialize  post-processes
             ProjectExporter._SerializePostProcesses = function () {
                 var config = [];
-                var serialize = function (object) {
-                    var obj = {};
-                    for (var thing in object) {
-                        if (thing[0] === "_")
-                            continue;
-                        if (typeof object[thing] === "number")
-                            obj[thing] = object[thing];
-                        if (object[thing] instanceof BABYLON.Texture) {
-                            obj[thing] = {
-                                base64Name: object[thing].name,
-                                base64Buffer: object[thing]._buffer
-                            };
-                        }
-                    }
-                    return obj;
-                };
-                if (EDITOR.SceneFactory.SSAOPipeline) {
-                    /*
+                if (EDITOR.SceneFactory.StandardPipeline) {
                     config.push({
-                        attach: SceneFactory.EnabledPostProcesses.attachSSAO,
-                        name: "SSAOPipeline",
-                        serializationObject: serialize(SceneFactory.SSAOPipeline)
-                    });
-                    */
-                    config.push({
-                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachSSAO,
-                        name: "SSAOPipeline",
-                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.SSAOPipeline, EDITOR.SceneFactory.SSAOPipeline.serialize())
-                    });
-                }
-                if (EDITOR.SceneFactory.HDRPipeline) {
-                    /*
-                    config.push({
-                        attach: SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: serialize(SceneFactory.HDRPipeline)
-                    });
-                    */
-                    config.push({
-                        attach: EDITOR.SceneFactory.EnabledPostProcesses.attachHDR,
-                        name: "HDRPipeline",
-                        serializationObject: this._ConfigureBase64Texture(EDITOR.SceneFactory.HDRPipeline, EDITOR.SceneFactory.HDRPipeline.serialize())
+                        serializationObject: EDITOR.SceneFactory.StandardPipeline.serialize()
                     });
                 }
                 return config;
@@ -214,7 +188,7 @@ var BABYLON;
                             }
                         }
                         // Check materials
-                        if (node instanceof BABYLON.AbstractMesh && node.material && !(node.material instanceof BABYLON.StandardMaterial)) {
+                        if (node instanceof BABYLON.AbstractMesh && node.material && (!(node.material instanceof BABYLON.StandardMaterial) || BABYLON.Tags.MatchesQuery(node.material, "added"))) {
                             var material = node.material;
                             if (!BABYLON.Tags.HasTags(material) || !BABYLON.Tags.MatchesQuery(material, "furShellMaterial")) {
                                 if (material instanceof BABYLON.MultiMaterial) {
@@ -256,7 +230,8 @@ var BABYLON;
                                 : node instanceof BABYLON.Sound ? "Sound"
                                     : node instanceof BABYLON.Light ? "Light"
                                         : node instanceof BABYLON.Camera ? "Camera"
-                                            : "Mesh",
+                                            : node instanceof BABYLON.InstancedMesh ? "InstancedMesh"
+                                                : "Mesh",
                             animations: []
                         };
                         var addNodeObj = false;
@@ -265,7 +240,18 @@ var BABYLON;
                                 addNodeObj = true;
                             if (BABYLON.Tags.MatchesQuery(node, "added")) {
                                 addNodeObj = true;
-                                if (node instanceof BABYLON.Mesh) {
+                                if (node instanceof BABYLON.InstancedMesh) {
+                                    var serializedInstances = BABYLON.SceneSerializer.SerializeMesh(node.sourceMesh, false, false).meshes[0].instances;
+                                    var sourceMesh = node.sourceMesh;
+                                    for (var j = 0; j < serializedInstances.length; j++) {
+                                        if (serializedInstances[j].name === node.name) {
+                                            nodeObj.serializationObject = serializedInstances[j];
+                                            nodeObj.serializationObject.sourceMesh = sourceMesh.id;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else if (node instanceof BABYLON.Mesh) {
                                     nodeObj.serializationObject = BABYLON.SceneSerializer.SerializeMesh(node, false, false);
                                     for (var meshIndex = 0; meshIndex < nodeObj.serializationObject.meshes.length; meshIndex++) {
                                         delete nodeObj.serializationObject.meshes[meshIndex].animations;
@@ -326,10 +312,10 @@ var BABYLON;
                             if (physicsImpostor && BABYLON.Tags.HasTags(physicsImpostor) && BABYLON.Tags.MatchesQuery(physicsImpostor, "added")) {
                                 addNodeObj = true;
                                 nodeObj.physics = {
-                                    physicsMass: node.getPhysicsMass(),
-                                    physicsFriction: node.getPhysicsFriction(),
-                                    physicsRestitution: node.getPhysicsRestitution(),
-                                    physicsImpostor: node.getPhysicsImpostor().type
+                                    physicsMass: node.physicsImpostor.getParam("mass"),
+                                    physicsFriction: node.physicsImpostor.getParam("friction"),
+                                    physicsRestitution: node.physicsImpostor.getParam("restitution"),
+                                    physicsImpostor: node.physicsImpostor.type
                                 };
                             }
                             // Actions

@@ -23,8 +23,6 @@ var BABYLON;
             */
             Tools.OpenWindowPopup = function (url, width, height) {
                 var popup = null;
-                if (Tools.CheckIfElectron())
-                    url = "file://" + __dirname + "/" + url;
                 var features = [
                     "width=" + width,
                     "height=" + height,
@@ -34,7 +32,8 @@ var BABYLON;
                     "resizable=yes",
                     "toolbar=no",
                     "menubar=no",
-                    "scrollbars=yes"];
+                    "scrollbars=yes"
+                ];
                 popup = window.open(url, "Dumped Frame Buffer", features.join(","));
                 popup.focus();
                 return popup;
@@ -216,8 +215,8 @@ var BABYLON;
                 if (isTexture === void 0) { isTexture = false; }
                 var filename = BABYLON.Tools.GetFilename(url);
                 var filenameLower = filename.toLowerCase();
-                if (isTexture && EDITOR.FilesInput.FilesTextures[filenameLower]) {
-                    callback(EDITOR.FilesInput.FilesTextures[filenameLower]);
+                if (isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
+                    callback(EDITOR.FilesInput.FilesToLoad[filenameLower]);
                     return;
                 }
                 else if (!isTexture && EDITOR.FilesInput.FilesToLoad[filenameLower]) {
@@ -227,7 +226,7 @@ var BABYLON;
                 BABYLON.Tools.LoadFile(url, function (data) {
                     var file = Tools.CreateFile(new Uint8Array(data), filename);
                     if (isTexture)
-                        BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                        BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                     else
                         BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                     if (callback)
@@ -242,9 +241,14 @@ var BABYLON;
             Tools.CreateFile = function (array, filename) {
                 if (array === null)
                     return null;
+                /*
                 var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
                     type: Tools.GetFileType(Tools.GetFileExtension(filename))
                 });
+                */
+                // Fix for Edge, only work with "Blob" instead of "File""
+                var file = new Blob([array], { type: Tools.GetFileType(Tools.GetFileExtension(filename)) });
+                file.name = BABYLON.Tools.GetFilename(filename);
                 return file;
             };
             /**
@@ -259,7 +263,7 @@ var BABYLON;
                     var texture = BABYLON.Texture.CreateFromBase64String(base64, filename, scene, false, false, BABYLON.Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = texture.name.replace("data:", "");
                     texture.url = texture.url.replace("data:", "");
-                    BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(data), filename);
+                    BABYLON.FilesInput.FilesToLoad[filename] = Tools.CreateFile(new Uint8Array(data), filename);
                     callback(texture);
                 }, null, null, true);
             };

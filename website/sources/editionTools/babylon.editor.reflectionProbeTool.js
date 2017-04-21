@@ -14,19 +14,20 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function ReflectionProbeTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "REFLECTION.PROBE.TAB";
+                _this.tab = "REFLECTION.PROBE.TAB";
                 // Private members
-                this._window = null;
-                this._excludedMeshesList = null;
-                this._includedMeshesList = null;
-                this._layouts = null;
+                _this._window = null;
+                _this._excludedMeshesList = null;
+                _this._includedMeshesList = null;
+                _this._layouts = null;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-RENDER-TARGET"
                 ];
-                this._editionTool.core.eventReceivers.push(this);
+                _this._editionTool.core.eventReceivers.push(_this);
+                return _this;
             }
             // On event
             ReflectionProbeTool.prototype.onEvent = function (event) {

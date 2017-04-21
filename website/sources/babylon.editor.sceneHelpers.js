@@ -63,9 +63,11 @@ var BABYLON;
                     return;
                 var engine = this._scene.getEngine();
                 engine.setAlphaTesting(true);
-                if (this._planeMaterial.isReady(this._helperPlane)) {
-                    this._subMesh = this._helperPlane.subMeshes[0];
-                    var effect = this._planeMaterial.getEffect();
+                this._subMesh = this._helperPlane.subMeshes[0];
+                if (this._planeMaterial.isReadyForSubMesh(this._helperPlane, this._subMesh, true)) {
+                    var effect = this._subMesh.effect;
+                    if (!effect)
+                        return;
                     this._batch = this._helperPlane._getInstancesRenderList(this._subMesh._id);
                     engine.enableEffect(effect);
                     this._helperPlane._bind(this._subMesh, effect, BABYLON.Material.TriangleFillMode);
@@ -104,7 +106,7 @@ var BABYLON;
             };
             // Render planes
             SceneHelpers.prototype._renderHelperPlane = function (array, onConfigure) {
-                var effect = this._planeMaterial.getEffect();
+                var effect = this._subMesh.effect;
                 for (var i = 0; i < array.length; i++) {
                     var obj = array[i];
                     if (!onConfigure(obj))
@@ -113,7 +115,8 @@ var BABYLON;
                     this._helperPlane.scaling = new BABYLON.Vector3(distance, distance, distance),
                         this._helperPlane.computeWorldMatrix(true);
                     this._scene._cachedMaterial = null;
-                    this._planeMaterial.bind(this._helperPlane.getWorldMatrix(), this._helperPlane);
+                    this._planeMaterial._preBind(effect);
+                    this._planeMaterial.bindForSubMesh(this._helperPlane.getWorldMatrix(), this._helperPlane, this._subMesh);
                     this._helperPlane._processRendering(this._subMesh, effect, BABYLON.Material.TriangleFillMode, this._batch, false, function (isInstance, world) {
                         effect.setMatrix("world", world);
                     });

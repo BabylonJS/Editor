@@ -61,7 +61,7 @@
             this._scene = scene;
 
             // Load JSON
-            // this._loadBotDatas((data) => this.apply(null));
+            //this._loadBotDatas((data) => this.apply(null));
         }
 
         // Applies the extension

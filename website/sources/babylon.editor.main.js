@@ -88,7 +88,13 @@ var BABYLON;
                         EDITOR.GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", function () {
                             _this.layouts.resize();
                             _this.playLayouts.resize();
+                            if (newMainPanelTab.application && newMainPanelTab.application.onFocus)
+                                newMainPanelTab.application.onFocus();
                         });
+                        if (newMainPanelTab.application)
+                            newMainPanelTab.application.hasFocus = true;
+                        if (this._currentTab.application)
+                            this._currentTab.application.hasFocus = false;
                         this._lastTabUsed = this._currentTab;
                         this._currentTab = newMainPanelTab;
                         this.renderMainScene = this._currentTab.tab === this._mainPanelSceneTab.tab;
@@ -119,7 +125,6 @@ var BABYLON;
             */
             EditorMain.prototype.createNewProject = function () {
                 BABYLON.FilesInput.FilesToLoad = [];
-                BABYLON.FilesInput.FilesTextures = [];
                 this.core.currentScene.dispose();
                 this._handleSceneLoaded()(null, new BABYLON.Scene(this.core.engine));
             };
@@ -136,6 +141,16 @@ var BABYLON;
             * Simply update the scenes and updates
             */
             EditorMain.prototype.update = function () {
+                // Show we are loading some things
+                if (this.core.currentScene.getWaitingItemsCount() > 0) {
+                    if (!this.statusBar.hasElement("WAITING-ITEMS-COUNT-STATUS")) {
+                        this.statusBar.addElement("WAITING-ITEMS-COUNT-STATUS", "0", null);
+                        this.statusBar.showSpinner("WAITING-ITEMS-COUNT-STATUS");
+                    }
+                    this.statusBar.setText("WAITING-ITEMS-COUNT-STATUS", "Loading " + this.core.currentScene.getWaitingItemsCount() + " items...");
+                }
+                else
+                    this.statusBar.removeElement("WAITING-ITEMS-COUNT-STATUS");
                 // Pre update
                 this.core.onPreUpdate();
                 // Scenes
@@ -231,7 +246,7 @@ var BABYLON;
                 this.playLayouts = new EDITOR.GUI.GUILayout(this.mainContainer, this.core);
                 var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent("<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
                     "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
-                    "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                    //"<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                     "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                     "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "</div>" +
@@ -359,10 +374,10 @@ var BABYLON;
                     EDITOR.Event.sendKeyEvent(event.key, event.ctrlKey, event.shiftKey, false, _this.core, event);
                 });
             };
-            // Statics
-            EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
             return EditorMain;
         }());
+        // Statics
+        EditorMain._PlayLayoutContainerID = "BABYLON-EDITOR-MAIN-MAIN-PANEL-CONTAINER";
         EDITOR.EditorMain = EditorMain;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

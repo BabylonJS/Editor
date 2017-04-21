@@ -15,13 +15,14 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function ParticleSystemTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "PARTICLE.SYSTEM.TAB";
+                _this.tab = "PARTICLE.SYSTEM.TAB";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-PARTICLE-SYSTEM"
                 ];
+                return _this;
             }
             // Object supported
             ParticleSystemTool.prototype.isObjectSupported = function (object) {

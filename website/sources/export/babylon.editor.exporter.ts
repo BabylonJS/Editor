@@ -99,7 +99,7 @@
                     result += this._exportColor3(value);
                 }
                 else if (value instanceof Texture) {
-                    result += "BABYLON.Texture.CreateFromBase64String(\"" + value._buffer + "\", \"" + value.name + "\", scene)";
+                    result += "BABYLON.Texture.CreateFromBase64String(\"" + value["_buffer"] + "\", \"" + value.name + "\", scene)";
                 }
                 else
                     continue;

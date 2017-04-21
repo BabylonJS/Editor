@@ -14,15 +14,16 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function LightTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "LIGHT.TAB";
+                _this.tab = "LIGHT.TAB";
                 // Private members
-                this._customShadowsGeneratorSize = 512;
+                _this._customShadowsGeneratorSize = 512;
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-LIGHT"
                 ];
+                return _this;
             }
             // Object supported
             LightTool.prototype.isObjectSupported = function (object) {
@@ -88,8 +89,8 @@ var BABYLON;
                 var shadowsFolder = this._element.addFolder("Shadows");
                 var shadows = object.getShadowGenerator();
                 if (shadows) {
-                    shadowsFolder.add(shadows, "useBlurVarianceShadowMap").name("Use Blur Variance Shadows Map").listen();
-                    shadowsFolder.add(shadows, "useVarianceShadowMap").name("Use Variance Shadow Map").listen();
+                    shadowsFolder.add(shadows, "useBlurExponentialShadowMap").name("Use Blur Exponential Shadows Map").listen();
+                    shadowsFolder.add(shadows, "useExponentialShadowMap").name("Use Exponential Shadow Map").listen();
                     shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
                     if (shadows.forceBackFacesOnly !== undefined)
                         shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");

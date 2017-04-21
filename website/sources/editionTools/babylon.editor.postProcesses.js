@@ -14,15 +14,16 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function PostProcessesTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "POSTPROCESSES.TAB";
+                _this.tab = "POSTPROCESSES.TAB";
                 // Private members
-                this._renderEffects = {};
+                _this._renderEffects = {};
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
                 ];
+                return _this;
             }
             // Object supported
             PostProcessesTool.prototype.isObjectSupported = function (object) {
@@ -49,10 +50,10 @@ var BABYLON;
                 EDITOR.SceneFactory.EnabledPostProcesses.standard = EDITOR.SceneFactory.StandardPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
                 // Standard
-                var standardFolder = this._element.addFolder("HDR2");
+                var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
                 standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange(function (result) {
                     if (result === true)
-                        EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core);
+                        EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core, function () { return _this.update(); });
                     else {
                         EDITOR.SceneFactory.StandardPipeline.dispose();
                         EDITOR.SceneFactory.StandardPipeline = null;
@@ -69,6 +70,7 @@ var BABYLON;
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
@@ -79,9 +81,16 @@ var BABYLON;
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(500).step(0.1).name("Distortion Strength");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
                     lensFolder.open();
+                    var hdrFolder = standardFolder.addFolder("HDR");
+                    hdrFolder.add(EDITOR.SceneFactory.StandardPipeline, "HDREnabled").name("HDR Enabled");
+                    hdrFolder.add(EDITOR.SceneFactory.StandardPipeline, "hdrMinimumLuminance").min(0).max(2).name("Minimum Luminance");
+                    hdrFolder.add(EDITOR.SceneFactory.StandardPipeline, "hdrDecreaseRate").min(0).max(2).name("Decrease Rate");
+                    hdrFolder.add(EDITOR.SceneFactory.StandardPipeline, "hdrIncreaseRate").min(0).max(2).name("Increase Rate");
+                    hdrFolder.open();
                     var dofFolder = standardFolder.addFolder("Depth Of Field");
                     dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
                     dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
                     dofFolder.open();
                     var debugFolder = standardFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);

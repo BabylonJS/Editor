@@ -20,7 +20,7 @@
         * Constructor
         * @param name: the form name
         */
-        constructor(name: string, core: EditorCore, title: string, body: string, size?: Vector2, buttons?: Array<string>) {
+        constructor(name: string, core: EditorCore, title: string, body?: string, size?: Vector2, buttons?: Array<string>) {
             super(name, core);
 
             // Initialize
@@ -107,7 +107,7 @@
             var buttonID = "WindowButton";
             var buttons = "";
             for (var i = 0; i < this.buttons.length; i++) {
-                buttons += "<button class=\"btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
+                buttons += "<button class=\"w2ui-btn\" id=\"" + buttonID + this.buttons[i] + "\">" + this.buttons[i] + "</button>\n";
             }
 
             // Create window

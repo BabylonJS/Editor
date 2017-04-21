@@ -108,13 +108,13 @@ var BABYLON;
                     this._Instance.disconnect();
                 this._Instance = null;
             };
-            ElectronPhotoshopPlugin._Textures = {};
-            /*
-            * Static methods
-            */
-            ElectronPhotoshopPlugin._Instance = null;
             return ElectronPhotoshopPlugin;
         }());
+        ElectronPhotoshopPlugin._Textures = {};
+        /*
+        * Static methods
+        */
+        ElectronPhotoshopPlugin._Instance = null;
         EDITOR.ElectronPhotoshopPlugin = ElectronPhotoshopPlugin;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

@@ -88,7 +88,7 @@
             }
 
             this[functionName] = () => {
-                var textureEditor = new GUITextureEditor(this._editionTool.core, name, object, property);
+                var textureEditor = new GUITextureEditor(this._editionTool.core, name, object, property, acceptCubes);
             };
             this[stringName] = (object[property] && object[property] instanceof BaseTexture) ? object[property].name : textures[0];
 

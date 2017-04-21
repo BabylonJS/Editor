@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function StandardMaterialTool(editionTool) {
-                _super.call(this, editionTool, "STANDARD-MATERIAL", "STANDARD", "Std Material");
+                var _this = _super.call(this, editionTool, "STANDARD-MATERIAL", "STANDARD", "Std Material") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.StandardMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.StandardMaterial; };
+                return _this;
             }
             // Update
             StandardMaterialTool.prototype.update = function () {
@@ -45,6 +46,7 @@ var BABYLON;
                 bumpFolder.add(this.material, "useParallax").name("Use Parallax");
                 bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
                 bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+                bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from diffuse texture...");
                 this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
                 // Specular
                 var specularFolder = this._element.addFolder("Specular");
@@ -83,6 +85,16 @@ var BABYLON;
                 // Finish
                 return true;
             };
+            // Create normal map editor
+            StandardMaterialTool.prototype._createNormalMapEditor = function () {
+                var _this = this;
+                if (!this.material.diffuseTexture || !(this.material.diffuseTexture instanceof BABYLON.Texture))
+                    return EDITOR.GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+                var editor = new EDITOR.NormalMapEditor(this._editionTool.core, this.material.diffuseTexture);
+                editor.onApply = function (texture) {
+                    _this.material.bumpTexture = texture;
+                };
+            };
             StandardMaterialTool.prototype._convertToPBR = function () {
                 var pbr = new BABYLON.PBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
                 pbr.albedoColor = this.material.diffuseColor;
@@ -113,7 +125,7 @@ var BABYLON;
                     var index = this.object.materialIndex;
                     var multiMaterial = this.object.getMesh().material;
                     if (multiMaterial instanceof BABYLON.MultiMaterial)
-                        this.object.getMesh().material.subMaterials[index] = pbr;
+                        multiMaterial.subMaterials[index] = pbr;
                 }
                 else
                     this.object.material = pbr;

@@ -20,7 +20,7 @@ var BABYLON;
             * @param object: the object to edit
             * @param propertyPath: the path to the texture property of the object
             */
-            function GUITextureEditor(core, objectName, object, propertyPath) {
+            function GUITextureEditor(core, objectName, object, propertyPath, allowCubes) {
                 this._targetTexture = null;
                 this._selectedTexture = null;
                 this._currentRenderTarget = null;
@@ -43,6 +43,7 @@ var BABYLON;
                         this._targetObject = null;
                     }
                 }
+                this._allowCubes = allowCubes === undefined ? true : allowCubes;
                 // Finish
                 this._createUI();
             }
@@ -79,7 +80,7 @@ var BABYLON;
                 // Texture canvas
                 this._engine = new BABYLON.Engine($("#" + canvasID)[0], true);
                 this._scene = new BABYLON.Scene(this._engine);
-                this._scene.clearColor = new BABYLON.Color3(0, 0, 0);
+                this._scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
                 var camera = new BABYLON.ArcRotateCamera("TextureEditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this._scene);
                 camera.attachControl(this._engine.getRenderingCanvas());
                 var material = new BABYLON.StandardMaterial("TextureEditorSphereMaterial", this._scene);
@@ -116,7 +117,8 @@ var BABYLON;
                         _this._restorRenderTarget();
                     var selectedTexture = _this._core.currentScene.textures[selected[0]];
                     // Send event texture has been selected
-                    EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
+                    if (!_this.propertyPath)
+                        EDITOR.Event.sendSceneEvent(selectedTexture, EDITOR.SceneEventType.OBJECT_PICKED, _this._core);
                     // Configure texture to preview
                     if (_this._targetTexture) {
                         _this._targetTexture.dispose();
@@ -137,13 +139,16 @@ var BABYLON;
                             _this._targetTexture._canvas = selectedTexture._canvas;
                             _this._targetTexture.update(true);
                         }
+                        else if (selectedTexture.name.indexOf("/") !== -1) {
+                            _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
+                        }
                         else {
                             // Guess texture
                             if (selectedTexture._buffer) {
                                 serializationObject.base64String = selectedTexture._buffer;
                             }
                             else {
-                                var file = BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()];
+                                var file = BABYLON.FilesInput.FilesToLoad[selectedTexture.name.toLowerCase()];
                                 if (file) {
                                     serializationObject.name = selectedTexture.url;
                                 }
@@ -160,7 +165,7 @@ var BABYLON;
                                 _this._targetTexture = BABYLON.Texture.Parse(serializationObject, _this._scene, "");
                         }
                     }
-                    if (_this.object) {
+                    if (_this.object && (_this._allowCubes || selectedTexture.isCube === false)) {
                         _this.object[_this.propertyPath] = selectedTexture;
                     }
                     if (selectedTexture) {
@@ -200,8 +205,8 @@ var BABYLON;
                                 });
                             }
                             else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
-                                BABYLON.FilesInput.FilesTextures[name] = data.target.files[i];
-                                BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(name), null);
+                                BABYLON.FilesInput.FilesToLoad[lowerName] = data.target.files[i];
+                                BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(lowerName), null);
                             }
                             else {
                                 EDITOR.GUI.GUIWindow.CreateAlert("Texture format not supported", "Textre Format Error");
@@ -276,10 +281,10 @@ var BABYLON;
                         recid: i
                     };
                     if (texture.isCube) {
-                        row.style = "background-color: #FBFEC0";
+                        row.w2ui = { style: "background-color: #FBFEC0" };
                     }
                     else if (texture.isRenderTarget) {
-                        row.style = "background-color: #C2F5B4";
+                        row.w2ui = { style: "background-color: #C2F5B4" };
                     }
                     this._texturesList.addRecord(row);
                 }

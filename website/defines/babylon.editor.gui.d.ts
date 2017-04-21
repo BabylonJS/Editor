@@ -191,6 +191,10 @@
         * Count of elements in it
         */
         count?: number;
+        /**
+         * If the node is hidden
+         */
+        hidden?: boolean;
     }
 
     interface IGraphMenuElement {
@@ -392,7 +396,9 @@
         /**
         * The row style
         */
-        style?: string;
+        w2ui?: {
+            style?: string;
+        }
     }
 
     interface IGridColumnEditable extends W2UI.IGridColumnEditable

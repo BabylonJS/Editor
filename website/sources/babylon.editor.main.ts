@@ -52,7 +52,7 @@
         /**
         * Constructor
         */
-        constructor(containerID: string, antialias: boolean = false, options: any = null) {
+        constructor(containerID: string, antialias: boolean = false, options: EngineOptions = null) {
             // Initialize
             this.core = new EditorCore();
             this.core.editor = this;
@@ -131,7 +131,16 @@
                     GUI.GUIElement.CreateTransition(this._currentTab.container, newMainPanelTab.container, "flit-right", () => {
                         this.layouts.resize();
                         this.playLayouts.resize();
+
+                        if (newMainPanelTab.application && newMainPanelTab.application.onFocus)
+                            newMainPanelTab.application.onFocus();
                     });
+
+                    if (newMainPanelTab.application)
+                            newMainPanelTab.application.hasFocus = true;
+
+                    if (this._currentTab.application)
+                        this._currentTab.application.hasFocus = false;
 
                     this._lastTabUsed = this._currentTab;
                     this._currentTab = newMainPanelTab;
@@ -173,7 +182,6 @@
         */
         public createNewProject(): void {
             BABYLON.FilesInput.FilesToLoad = [];
-            BABYLON.FilesInput.FilesTextures = [];
 
             this.core.currentScene.dispose();
             this._handleSceneLoaded()(null, new Scene(this.core.engine));
@@ -192,6 +200,18 @@
         * Simply update the scenes and updates
         */
         public update(): void {
+            // Show we are loading some things
+            if (this.core.currentScene.getWaitingItemsCount() > 0) {
+                if (!this.statusBar.hasElement("WAITING-ITEMS-COUNT-STATUS")) {
+                    this.statusBar.addElement("WAITING-ITEMS-COUNT-STATUS", "0", null);
+                    this.statusBar.showSpinner("WAITING-ITEMS-COUNT-STATUS");
+                }
+
+                this.statusBar.setText("WAITING-ITEMS-COUNT-STATUS", "Loading " + this.core.currentScene.getWaitingItemsCount() + " items...");
+            }
+            else
+                this.statusBar.removeElement("WAITING-ITEMS-COUNT-STATUS");
+
             // Pre update
             this.core.onPreUpdate();
 
@@ -314,7 +334,7 @@
             var mainPanel = this.playLayouts.createPanel("BABYLON-EDITOR-MAIN-MAIN-PANEL", "main", undefined, undefined).setContent(
                 "<div id=\"" + EditorMain._PlayLayoutContainerID + "\" style=\"width: 100%; height: 100%;\">" +
                     "<div id=\"BABYLON-EDITOR-BOTTOM-PANEL-PREVIEW\">" +
-                        "<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
+                        //"<div id=\"BABYLON-EDITOR-MAIN-DEBUG-LAYER\"></div>" +
                         "<canvas id=\"BABYLON-EDITOR-MAIN-CANVAS\"></canvas>" +
                         "<div id=\"BABYLON-EDITOR-SCENE-TOOLBAR\"></div>" +
                     "</div>" +
@@ -429,7 +449,7 @@
         * Creates the editor camera
         */
         private _createBabylonCamera(): void {
-            var cameraPosition = new Vector3(0, 0, 10)
+            var cameraPosition = new Vector3(0, 0, 10);
             var cameraTarget = Vector3.Zero();
             var cameraRadius = 10;
             

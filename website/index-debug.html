@@ -15,6 +15,7 @@
 
     <!-- LIBS -->
     <script src="libs/preview bjs/babylon.max.js" type="text/javascript"></script>
+    <script src="libs/preview bjs/babylon.inspector.bundle.js" type="text/javascript"></script>
     <script src="libs/cannon.js" type="text/javascript"></script>
     <script src="libs/ManipulationHelpers.js" type="text/javascript"></script>
     <script src="libs/jquery.min.js" type="text/javascript"></script>
@@ -75,7 +76,9 @@
 
     <!-- STORAGE -->
     <script src="sources/storage/babylon.editor.storage.js" type="text/javascript"></script>
+    <script src="sources/storage/babylon.editor.oauthManager.js" type="text/javascript"></script>
     <script src="sources/storage/babylon.editor.oneDriveStorage.js" type="text/javascript"></script>
+    <script src="sources/storage/babylon.editor.dropBoxStorage.js" type="text/javascript"></script>
 
     <!-- EDITION TOOLS -->
     <script src="sources/babylon.editor.editionTool.js" type="text/javascript"></script>
@@ -106,6 +109,9 @@
     <script src="sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/materialEditors/babylon.editor.fireMaterialTool.js" type="text/javascript"></script>
 
+    <script src="sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js" type="text/javascript"></script>
+    <script src="sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js" type="text/javascript"></script>
+
     <!-- USER INTERFACES -->
     <script src="../sources/userInterfaces/babylon.editor.particleSystemEditor.js" type="text/javascript"></script>
     <script src="../sources/userInterfaces/babylon.editor.objectPicker.js" type="text/javascript"></script>
@@ -114,6 +120,7 @@
     <script src="../sources/userInterfaces/babylon.editor.babylonExporter.js" type="text/javascript"></script>
     <script src="../sources/userInterfaces/babylon.editor.textureEditor.js" type="text/javascript"></script>
     <script src="../sources/userInterfaces/babylon.editor.actionsBuilder.js" type="text/javascript"></script>
+    <script src="../sources/userInterfaces/babylon.editor.normalMapEditor.js" type="text/javascript"></script>
 
     <!-- PLUGINS MANAGEMENT -->
     <script src="../sources/babylon.editor.pluginManager.js" type="text/javascript"></script>
@@ -131,6 +138,9 @@
     <script src="libs/materials/babylon.triPlanarMaterial.js" type="text/javascript"></script>
     <script src="libs/materials/babylon.waterMaterial.js" type="text/javascript"></script>
 
+    <!-- PROCEDURAL TEXTURES -->
+    <script src="libs/proceduralTextures/babylon.normalMapProceduralTexture.js" type="text/javascript"></script>
+
     <!-- PLUGINS -->
     <script src="sources/plugins/babylon.editor.simpleMaterialTool.js" type="text/javascript"></script>
 
@@ -139,11 +149,15 @@
     <script src="sources/plugins/babylon.editor.soundsMenu.js" type="text/javascript"></script>
 
     <script src="sources/plugins/mainTools/babylon.editor.toolsMenu.js" type="text/javascript"></script>
-    <script src="sources/plugins/mainTools/babylon.editor.actionsBuilder.js" type="text/javascript"></script>
-    <script src="sources/plugins/mainTools/babylon.editor.actionsBuilderGraph.js" type="text/javascript"></script>
-    <script src="sources/plugins/mainTools/babylon.editor.actionsBuilderParametersEditor.js" type="text/javascript"></script>
+
+    <script src="sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilder.js" type="text/javascript"></script>
+    <script src="sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilderGraph.js" type="text/javascript"></script>
+    <script src="sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilderParametersEditor.js" type="text/javascript"></script>
 
     <script src="sources/plugins/mainTools/babylon.editor.postProcessBuilder.js" type="text/javascript"></script>
+    <script src="sources/plugins/mainTools/babylon.editor.materialBuilder.js" type="text/javascript"></script>
+
+    <script src="sources/plugins/mainTools/babylon.editor.softBodyBuilder.js" type="text/javascript"></script>
 
     <script src="sources/plugins/mainTools/babylon.editor.cosmosEditor.js" type="text/javascript"></script>
 
@@ -167,7 +181,7 @@
 
     <script type="text/javascript">
         
-        var editorMain = new BABYLON.EDITOR.EditorMain("BABYLON-EDITOR-MAIN");
+        var editorMain = new BABYLON.EDITOR.EditorMain("BABYLON-EDITOR-MAIN", true, { disableWebGL2Support: true });
         var core = editorMain.core;
         editorMain.createRenderLoop();
 

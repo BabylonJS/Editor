@@ -1772,6 +1772,35 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class AbstractMeshTool<T extends Mesh> extends AbstractDatTool {
+        private _tabName;
+        protected onObjectSupported: (mesh: Mesh) => boolean;
+        protected mesh: T;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool, containerID: string, tabID: string, tabName: string);
+        isObjectSupported(object: any): boolean;
+        createUI(): void;
+        update(): boolean;
+    }
+}
+
+declare module BABYLON.EDITOR {
+    class GroundMeshTool extends AbstractMeshTool<GroundMesh> {
+        private _subdivisions;
+        /**
+        * Constructor
+        * @param editionTool: edition tool instance
+        */
+        constructor(editionTool: EditionTool);
+        update(): boolean;
+        private _propertyChanged();
+    }
+}
+
+declare module BABYLON.EDITOR {
     class AbstractMaterialTool<T extends Material> extends AbstractDatTool {
         private _tabName;
         protected onObjectSupported: (material: Material) => boolean;
@@ -2150,11 +2179,49 @@ declare module BABYLON.EDITOR {
 }
 
 declare module BABYLON.EDITOR {
+    class SoftBodyBuilder implements ITabApplication, IEventReceiver {
+        private _core;
+        private _engine;
+        private _scene;
+        private _camera;
+        private _light;
+        private _selectedMesh;
+        private _baseMesh;
+        private _containerElement;
+        private _containerID;
+        private _tab;
+        private _layouts;
+        private _toolbar;
+        private _extension;
+        private _metadatas;
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
+        constructor(core: EditorCore);
+        /**
+        * Disposes the application
+        */
+        dispose(): void;
+        /**
+        * On event
+        */
+        onEvent(event: Event): boolean;
+        private _previewMesh();
+        private _configureMesh(mesh);
+        private _drawSpheres(draw);
+        private _createUI();
+        private _storeMetadatas();
+    }
+}
+
+declare module BABYLON.EDITOR {
     class ToolsMenu implements ICustomToolbarMenu {
         menuID: string;
         private _core;
         private _openActionsBuilder;
         private _openPostProcessBuilder;
+        private _openSoftBodyBuilder;
         private _openCosmos;
         /**
         * Constructor

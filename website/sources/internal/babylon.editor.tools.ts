@@ -20,10 +20,6 @@
         */
         public static OpenWindowPopup(url: string, width: number, height: number): any {
             var popup: any = null;
-
-            if (Tools.CheckIfElectron())
-                url = "file://" + __dirname + "/" + url;
-
             var features = [
                 "width=" + width,
                 "height=" + height,
@@ -36,7 +32,6 @@
                 "scrollbars=yes"];
 
             popup = window.open(url, "Dumped Frame Buffer", features.join(","));
-
             popup.focus();
 
             return popup;
@@ -249,8 +244,8 @@
             var filename = BABYLON.Tools.GetFilename(url);
             var filenameLower = filename.toLowerCase();
 
-            if (isTexture && FilesInput.FilesTextures[filenameLower]) {
-                callback(FilesInput.FilesTextures[filenameLower]);
+            if (isTexture && FilesInput.FilesToLoad[filenameLower]) {
+                callback(FilesInput.FilesToLoad[filenameLower]);
                 return;
             }
             else if (!isTexture && FilesInput.FilesToLoad[filenameLower]) {
@@ -261,7 +256,7 @@
             BABYLON.Tools.LoadFile(url, (data: ArrayBuffer) => {
                 var file = Tools.CreateFile(new Uint8Array(data), filename);
                 if (isTexture)
-                    BABYLON.FilesInput.FilesTextures[filename.toLowerCase()] = file;
+                    BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
                 else
                     BABYLON.FilesInput.FilesToLoad[filename.toLowerCase()] = file;
 
@@ -280,11 +275,17 @@
             if (array === null)
                 return null;
 
+            /*
             var file = new File([new Blob([array])], BABYLON.Tools.GetFilename(filename), {
                 type: Tools.GetFileType(Tools.GetFileExtension(filename))
             });
+            */
 
-            return file;
+            // Fix for Edge, only work with "Blob" instead of "File""
+            var file = new Blob([array], { type: Tools.GetFileType(Tools.GetFileExtension(filename)) });
+            (<any> file).name = BABYLON.Tools.GetFilename(filename);
+
+            return <File>file;
         }
 
         /**
@@ -300,7 +301,7 @@
                 texture.name = texture.name.replace("data:", "");
                 texture.url = texture.url.replace("data:", "");
 
-                BABYLON.FilesInput.FilesTextures[filename] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), filename);
+                BABYLON.FilesInput.FilesToLoad[filename] = Tools.CreateFile(new Uint8Array(<ArrayBuffer>data), filename);
 
                 callback(texture);
             }, null, null, true);

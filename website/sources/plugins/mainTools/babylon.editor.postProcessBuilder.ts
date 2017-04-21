@@ -9,6 +9,7 @@
 
     export class PostProcessBuilder implements ITabApplication, IEventReceiver {
         // Public members
+        public hasFocus: boolean = true;
 
         // Private members
         private _core: EditorCore;
@@ -24,6 +25,7 @@
         private _tab: GUI.IGUITab = null;
 
         private _layouts: GUI.GUILayout = null;
+        private _editLayouts: GUI.GUILayout = null;
         private _mainPanel: GUI.GUIPanel = null;
         private _postProcessesList: GUI.GUIGrid<IPostProcessGridItem> = null;
         private _toolbar: GUI.GUIToolbar = null;
@@ -70,8 +72,6 @@
 
                 // Extensions
                 this._extension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._scene);
-                this._extension.placeHolderTexture = this._texture;
-
                 this._mainExtension = new EDITOR.EXTENSIONS.PostProcessBuilderExtension(this._core.currentScene);
             });
         }
@@ -100,15 +100,28 @@
             this._postProcessesList.destroy();
             this._editor.destroy();
             this._console.destroy();
+            this._editLayouts.destroy();
             this._layouts.destroy();
 
             this._engine.dispose();
         }
 
         /**
+        * On Focus
+        */
+        public onFocus(): void {
+            BABYLON.Tools.Error = (entry: string) => {
+                this._console.getSession().setValue(this._console.getSession().getValue() + "\n" + entry);
+            };
+        }
+
+        /**
         * On event
         */
         public onEvent(event: Event): boolean {
+            if (!this.hasFocus)
+                return false;
+            
             if (event.eventType === EventType.KEY_EVENT) {
                 if (event.keyEvent.control && event.keyEvent.key === "b" && !event.keyEvent.isDown) {
                     this._onApplyPostProcessChain(false);
@@ -125,16 +138,19 @@
             this._tab = this._core.editor.createTab("Post-Process Builder", this._containerID, this, true);
             this._containerElement = $("#" + this._containerID);
 
+            var canvasID = SceneFactory.GenerateUUID();
+
             // Layout
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
             this._layouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 45, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-TOOLBAR"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-LEFT-PANEL", "left", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT", "width: 100%; height: 100%;"));
             this._layouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", 0, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-PROGRAM"));
-            this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+            this._layouts.createPanel("POST-PROCESS-BUILDER-PREVIEW-PANEL", "preview", 150, true).setContent(GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 100%;", null, true));
             this._layouts.buildElement(this._containerID);
 
             this._layouts.on("resize", (event) => {
                 this._editor.resize(true);
+                this._engine.resize();
             });
 
             this._glslTabId = this._currentTabId = SceneFactory.GenerateUUID();
@@ -145,9 +161,13 @@
             this._mainPanel.createTab({ caption: "Configuration", closable: false, id: this._configurationTabId });
             this._mainPanel.onTabChanged = (id) => this._onTabChanged(id);
 
-            // GUI
+            // Edit layouts
             var container = $("#POST-PROCESS-BUILDER-EDIT");
-            container.append(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST", "width: 100%; height: 200px;"));
+
+            this._editLayouts = new GUI.GUILayout("POST-PROCESS-BUILDER-EDIT", this._core);
+            this._editLayouts.createPanel("POST-PROCESS-BUILDER-TOP-PANEL", "top", 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-EDIT-LIST"));
+            this._editLayouts.createPanel("POST-PROCESS-BUILDER-MAIN-PANEL", "main", container.height() - 300, false).setContent(GUI.GUIElement.CreateElement("div", "POST-PROCESS-BUILDER-CONSOLE"));
+            this._editLayouts.buildElement("POST-PROCESS-BUILDER-EDIT");
 
             // Toolbar
             this._toolbar = new GUI.GUIToolbar("POST-PROCESS-BUILDER-TOOLBAR", this._core);
@@ -164,11 +184,13 @@
             this._postProcessesList.multiSelect = false;
             this._postProcessesList.showAdd = true;
             this._postProcessesList.showDelete = true;
-            this._postProcessesList.showOptions = false;
+            this._postProcessesList.showOptions = true;
+            this._postProcessesList.reorderRows = true;
             this._postProcessesList.onClick = (selected) => this._onPostProcessSelected(selected);
             this._postProcessesList.onAdd = () => this._onPostProcessAdd();
             this._postProcessesList.onDelete = (selected) => this._onPostProcessRemove(selected);
-            this._postProcessesList.onEditField = (recid, value) => this._onPostProcessEditField(recid, value);
+            this._postProcessesList.onChange = (recid, value) => this._onPostProcessEditField(recid, value);
+            this._postProcessesList.onReorder = (recid, moveAfter) => this._onReorder(recid, moveAfter);
             this._postProcessesList.buildElement("POST-PROCESS-BUILDER-EDIT-LIST");
 
             for (var i = 0; i < this._datas.length; i++)
@@ -181,13 +203,35 @@
             container.append("<hr>");
             container.append(GUI.GUIElement.CreateElement("p", SceneFactory.GenerateUUID(), "width: 100%;", "Preview:", false));
 
-            var canvasID = SceneFactory.GenerateUUID();
-            container.append(GUI.GUIElement.CreateElement("canvas", canvasID, "width: 100%; height: 300px", null, true));
-
+            // Engine and scene
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0]);
             this._scene = new Scene(this._engine);
-            this._camera = new Camera("PostProcessCamera", Vector3.Zero(), this._scene);
             this._texture = new Texture("website/Tests/textures/no_smoke.png", this._scene);
+
+            this._camera = new ArcRotateCamera("PostProcessCamera", 3 * Math.PI / 2, -3 * Math.PI / 2, 20, Vector3.Zero(), this._scene);
+            this._camera.attachControl(this._engine.getRenderingCanvas());
+
+            var pointLight = new PointLight("PostProcessLight", new Vector3(25, 25, 25), this._scene);
+            var box = Mesh.CreateBox("box", 10, this._scene);
+
+            var ground = Mesh.CreateGround("PostProcessGround", 200, 200, 64, this._scene);
+            ground.receiveShadows = true;
+            ground.position.y = -5;
+
+            var groundMaterial = new StandardMaterial("PostProcessGroundMaterial", this._scene);
+
+            Tools.CreateFileFromURL("website/textures/empty.jpg", (file) => {
+                var diffuseTexture = new Texture("file:empty.jpg", this._scene);
+                diffuseTexture.name = "groundEmpty.jpg";
+                diffuseTexture.uScale = diffuseTexture.vScale = 10;
+                groundMaterial.diffuseTexture = diffuseTexture;
+            }, true);
+
+            ground.material = groundMaterial;
+
+            var skybox = Mesh.CreateBox("PostProcessSkyBox", 1000, this._scene, false, Mesh._BACKSIDE);
+            (skybox.material = new SkyMaterial("PostProcessSkyMaterial", this._scene)).inclination = 0;
+
             this._engine.runRenderLoop(() => this._scene.render());
 
             // Editor
@@ -200,10 +244,8 @@
             // Console
             this._console = ace.edit("POST-PROCESS-BUILDER-CONSOLE");
             this._console.getSession().setValue("Ready.");
-            
-            BABYLON.Tools.Error = (entry: string) => {
-                this._console.getSession().setValue(this._console.getSession().getValue() + "\n" + entry);
-            };
+
+            this.onFocus();
         }
 
         // On tab changed
@@ -227,6 +269,15 @@
 
             this._currentSelected = selected[0];
             this._editor.getSession().setValue(this._currentTabId === this._glslTabId ? this._datas[selected[0]].program : this._datas[selected[0]].configuration);
+        }
+
+        // When the user reorders the post-processes list
+        private _onReorder(recid: number, moveAfter: number): void {
+            var previousData = this._datas[recid];
+            var nextData = this._datas[moveAfter];
+
+            this._datas[recid] = nextData;
+            this._datas[moveAfter] = previousData;
         }
 
         // When the user adds a new post-process
@@ -284,8 +335,11 @@
         }
 
         // When the user edits a row
-        private _onPostProcessEditField(recid: number, value: any): void {
-            debugger;
+        private _onPostProcessEditField(recid: number, value: string): void {
+            if (value !== "") {
+                this._datas[recid].name = value;
+                this._postProcessesList.refresh();
+            }
         }
 
         // When the user modifies a post-process

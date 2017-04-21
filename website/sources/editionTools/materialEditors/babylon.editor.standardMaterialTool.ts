@@ -47,6 +47,7 @@
             bumpFolder.add(this.material, "useParallax").name("Use Parallax");
             bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
             bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from diffuse texture...");
             this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
 
             // Specular
@@ -95,6 +96,17 @@
             return true;
         }
 
+        // Create normal map editor
+        private _createNormalMapEditor(): void {
+            if (!this.material.diffuseTexture || !(this.material.diffuseTexture instanceof Texture))
+                return GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+
+            var editor = new NormalMapEditor(this._editionTool.core, <Texture>this.material.diffuseTexture);
+            editor.onApply = (texture) => {
+                this.material.bumpTexture = texture;
+            };
+        }
+
         private _convertToPBR(): void {
             var pbr = new PBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
             
@@ -135,7 +147,7 @@
                 var index = this.object.materialIndex;
                 var multiMaterial = this.object.getMesh().material;
                 if (multiMaterial instanceof MultiMaterial)
-                    this.object.getMesh().material.subMaterials[index] = pbr;
+                    multiMaterial.subMaterials[index] = pbr;
             }
             else
                 this.object.material = pbr;

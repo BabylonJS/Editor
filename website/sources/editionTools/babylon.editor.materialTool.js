@@ -14,16 +14,17 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function MaterialTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "MATERIAL.TAB";
+                _this.tab = "MATERIAL.TAB";
                 // Private members
-                this._dummyProperty = "";
-                this._libraryDummyProperty = "";
+                _this._dummyProperty = "";
+                _this._libraryDummyProperty = "";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-MATERIAL"
                 ];
+                return _this;
             }
             // Object supported
             MaterialTool.prototype.isObjectSupported = function (object) {
@@ -57,6 +58,8 @@ var BABYLON;
             MaterialTool.prototype.update = function () {
                 var _this = this;
                 var object = this._editionTool.object;
+                if (object instanceof BABYLON.InstancedMesh)
+                    object = object.sourceMesh;
                 var material = null;
                 var scene = this._editionTool.core.currentScene;
                 _super.prototype.update.call(this);
@@ -84,12 +87,12 @@ var BABYLON;
                         var newmaterial = scene.getMaterialByName(result);
                         if (_this._editionTool.object instanceof BABYLON.SubMesh) {
                             var index = _this._editionTool.object.materialIndex;
-                            var multiMaterial = _this._editionTool.object.getMesh().material;
+                            var multiMaterial = object.getMesh().material;
                             if (multiMaterial instanceof BABYLON.MultiMaterial)
-                                _this._editionTool.object.getMesh().material.subMaterials[index] = newmaterial;
+                                multiMaterial.subMaterials[index] = newmaterial;
                         }
                         else
-                            _this._editionTool.object.material = newmaterial;
+                            object.material = newmaterial;
                     }
                     _this._editionTool.updateEditionTool();
                 });
@@ -141,6 +144,7 @@ var BABYLON;
             // Apply the selected material
             MaterialTool.prototype._applyMaterial = function () {
                 var material = new BABYLON[this._libraryDummyProperty]("New Material " + EDITOR.SceneFactory.GenerateUUID(), this._editionTool.core.currentScene);
+                BABYLON.Tags.AddTagsTo(material, "added");
                 if (this.object instanceof BABYLON.AbstractMesh)
                     this.object.material = material;
                 else if (this.object instanceof BABYLON.SubMesh) {
@@ -150,7 +154,7 @@ var BABYLON;
                         return;
                     subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
                 }
-                if (material instanceof BABYLON.FurMaterial && this.object instanceof BABYLON.AbstractMesh) {
+                if (material instanceof BABYLON.FurMaterial && this.object instanceof BABYLON.Mesh) {
                     var furTexture = BABYLON.FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                     material.furTexture = furTexture;
                     var meshes = BABYLON.FurMaterial.FurifyMesh(this.object, 30);

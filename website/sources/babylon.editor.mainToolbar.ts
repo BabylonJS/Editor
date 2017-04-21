@@ -35,6 +35,7 @@
         private _addLensFlare: string = "ADD-LENS-FLARE";
         private _addReflectionProbe: string = "ADD-REFLECTION-PROBE";
         private _addRenderTarget: string = "ADD-RENDER-TARGET";
+        private _addMirrorTexture: string = "ADD-REFLECTION-TEXTURE";
 
         private _addParticleSystem: string = "ADD-PARTICLE-SYSTEM";
         private _particlesMain: string = "PARTICLES-MAIN";
@@ -160,6 +161,9 @@
                     else if (selected.selected === this._addRenderTarget) {
                         SceneFactory.AddRenderTargetTexture(this.core);
                     }
+                    else if (selected.selected === this._addMirrorTexture) {
+                        SceneFactory.AddMirrorTexture(this.core);
+                    }
 
                     return true;
                 }
@@ -252,6 +256,7 @@
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._addReflectionProbe, "Add Reflection Probe", "icon-effects");
             this.toolbar.createMenuItem(menu, "button", this._addRenderTarget, "Add Render Target Texture", "icon-camera");
+            this.toolbar.createMenuItem(menu, "button", this._addMirrorTexture, "Add Mirror Texture", "icon-reflection");
             //...
 
             this.particleSystemMenu = menu = this.toolbar.createMenu("menu", this._particlesMain, "Particles", "icon-particles");

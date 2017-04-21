@@ -66,6 +66,17 @@
 
                         if (id === this._menuDeleteId) {
                             if (object && object.dispose && object !== this._core.camera) {
+                                for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+                                    var m = this._core.currentScene.materials[i];
+
+                                    m.markDirty();
+                                    m.markAsDirty(Material.AttributesDirtyFlag);
+                                    m.markAsDirty(Material.LightDirtyFlag);
+                                    m.markAsDirty(Material.TextureDirtyFlag);
+                                    m.markAsDirty(Material.FresnelDirtyFlag);
+                                    m.markAsDirty(Material.MiscDirtyFlag);
+                                }
+
                                 object.dispose();
                                 this._ensureObjectDispose(object);
 
@@ -129,6 +140,20 @@
                     else if (object instanceof RenderTargetTexture) {
                         var rpNode = this.sidebar.createNode(object.name + this._core.currentScene.customRenderTargets.length, object.name, "icon-camera", object);
                         this.sidebar.addNodes(rpNode, this._graphRootName + "TARGETS");
+                    }
+                    else if (object instanceof InstancedMesh) {
+                        var instancesRootNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
+                        if (!instancesRootNode) {
+                            instancesRootNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", "icon-mesh", object.sourceMesh);
+                            instancesRootNode.count = 1;
+
+                            this.sidebar.addNodes(instancesRootNode, object.sourceMesh.id);
+                        }
+                        else
+                            instancesRootNode.count++;
+
+                        var instanceNode = this.sidebar.createNode(object.id, object.name, "icon-mesh", object);
+                        this.sidebar.addNodes(instanceNode, instancesRootNode.id);
                     }
                     else {
                         var parentNode: Node | string = null;
@@ -269,13 +294,31 @@
                     var childrenLength = object.getDescendants().length;
                     var icon = this._getObjectIcon(object);
 
-                    var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                    if (object instanceof InstancedMesh) {
+                        var parentNode = this.sidebar.getNode(object.sourceMesh.id);
+                        var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
 
-                    if (childrenLength > 0)
-                        childNode.count = childrenLength;
+                        if (!instancesNode) {
+                            instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
+                            instancesNode.count = 1;
 
-                    this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                            this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                        }
+                        else
+                            instancesNode.count++;
 
+                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                        this.sidebar.addNodes(childNode, instancesNode.id, false);
+                    }
+                    else {
+                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+
+                        if (childrenLength > 0)
+                            childNode.count = childrenLength;
+
+                        this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                    }
+                
                     this.fillGraph(object, object.id);
                 }
             }

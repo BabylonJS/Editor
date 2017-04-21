@@ -47,7 +47,7 @@
             pbrFolder.add(this.material, "cameraContrast").step(0.01).name("Camera Contrast");
             pbrFolder.add(this.material, "cameraExposure").step(0.01).name("Camera Exposure");
             pbrFolder.add(this.material, "microSurface").min(0).step(0.01).name("Micro Surface");
-            pbrFolder.add(this.material, "usePhysicalLightFalloff").name("use Physical Light Fall Off");
+            pbrFolder.add(this.material, "usePhysicalLightFalloff").name("Use Physical Light Fall Off");
             
             // Albedo
             var albedoFolder = this._element.addFolder("Albedo");
@@ -62,6 +62,7 @@
             bumpFolder.add(this.material, "useParallax").name("Use Parallax");
             bumpFolder.add(this.material, "useParallaxOcclusion").name("Use Parallax Occlusion");
             bumpFolder.add(this.material, "parallaxScaleBias").step(0.001).name("Bias");
+            bumpFolder.add(this, "_createNormalMapEditor").name("Create normal map from albedo texture...");
             this.addTextureButton("Bump Texture", "bumpTexture", bumpFolder);
 
             // Reflectivity
@@ -138,6 +139,17 @@
 
             // Finish
             return true;
+        }
+
+        // Create normal map editor
+        private _createNormalMapEditor(): void {
+            if (!this.material.albedoTexture || !(this.material.albedoTexture instanceof Texture))
+                return GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
+
+            var editor = new NormalMapEditor(this._editionTool.core, <Texture>this.material.albedoTexture);
+            editor.onApply = (texture) => {
+                this.material.bumpTexture = texture;
+            };
         }
 
         // Preset for glass

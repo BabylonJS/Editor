@@ -16,7 +16,7 @@ var BABYLON;
                 * @param name: the form name
                 */
                 function GUIEditForm(name, core) {
-                    _super.call(this, name, core);
+                    return _super.call(this, name, core) || this;
                 }
                 // Removes the element
                 GUIEditForm.prototype.remove = function () {
@@ -45,6 +45,22 @@ var BABYLON;
                             BABYLON.Tags.AddTagsTo(object, property);
                         }
                     });
+                };
+                // Updates the given property value
+                GUIEditForm.prototype.updatePropertyValue = function (property, value, folder, startElement) {
+                    if (!startElement)
+                        startElement = this._datElement;
+                    for (var i = 0; i < startElement.__controllers.length; i++) {
+                        var controller = startElement.__controllers[i];
+                        if (controller.property === property) {
+                            controller.setValue(value);
+                            break;
+                        }
+                    }
+                    if (folder) {
+                        for (var folder in startElement.__folders)
+                            this.updatePropertyValue(property, value, folder, startElement.__folders[folder]);
+                    }
                 };
                 Object.defineProperty(GUIEditForm.prototype, "width", {
                     get: function () {
@@ -80,6 +96,17 @@ var BABYLON;
                     });
                     this._datElement.width = parentElement.width();
                     this.element = parentElement[0].appendChild(this._datElement.domElement);
+                };
+                /**
+                 * Overrides
+                 */
+                // Destroy the element (W2UI)
+                GUIEditForm.prototype.destroy = function () { };
+                // Refresh the element (W2UI)
+                GUIEditForm.prototype.refresh = function () { };
+                // Resize the element (W2UI)
+                GUIEditForm.prototype.resize = function (width) {
+                    this._datElement.width = width;
                 };
                 return GUIEditForm;
             }(GUI.GUIElement));

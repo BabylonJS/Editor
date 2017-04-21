@@ -1,8 +1,5 @@
 ﻿module BABYLON.EDITOR {
     export interface IEnabledPostProcesses {
-        hdr: boolean;
-        attachHDR: boolean;
-
         ssao: boolean;
         ssaoOnly: boolean;
         attachSSAO: boolean;
@@ -50,9 +47,6 @@
         public static SSAOPipeline: SSAORenderingPipeline = null;
         public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
-            hdr: false,
-            attachHDR: true,
-
             ssao: false,
             ssaoOnly: false,
             attachSSAO: true,
@@ -70,7 +64,7 @@
         * Post-Processes
         */
         // Creates HDR pipeline 2
-        static CreateStandardRenderingPipeline(core: EditorCore): StandardRenderingPipeline {
+        static CreateStandardRenderingPipeline(core: EditorCore, callback?: () => void): StandardRenderingPipeline {
             if (this.StandardPipeline) {
                 this.StandardPipeline.dispose();
                 this.StandardPipeline = null;
@@ -79,59 +73,22 @@
             var cameras: Camera[] = core.currentScene.cameras;
 
             var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
-            standard.lensTexture = standard.lensFlareDirtTexture = new Texture("website/textures/lensdirt.jpg", core.currentScene);
-            standard.lensStarTexture = new Texture("website/textures/lensstar.png", core.currentScene);
-            standard.lensColorTexture = new Texture("website/textures/lenscolor.png", core.currentScene);
+            Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => {
+                standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, (texture) => {
+                standard.lensStarTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lenscolor.png", core.currentScene, (texture) => {
+                standard.lensColorTexture = texture;
+                callback();
+            });
 
             this.StandardPipeline = standard;
 
             return standard;
-        }
-
-        // Creates HDR pipeline
-        static CreateHDRPipeline(core: EditorCore, serializationObject: any = { }): HDRRenderingPipeline {
-            if (this.HDRPipeline) {
-                this.HDRPipeline.dispose();
-                this.HDRPipeline = null;
-            }
-
-            var cameras: Camera[] = core.currentScene.cameras;
-
-            var ratio: any = {
-                finalRatio: 1.0,
-                blurRatio: 0.25 / devicePixelRatio
-            };
-
-            var lensTexture: Texture;
-            if (serializationObject.lensTexture && serializationObject.lensTexture.name) {
-                lensTexture = <Texture>Texture.Parse(serializationObject.lensTexture, core.currentScene, "./");
-            }
-            else {
-                if (serializationObject.lensTexture && serializationObject.lensTexture.base64Name) {
-                    var b64LensTexutre = serializationObject.lensTexture.base64Buffer;
-                    lensTexture = Texture.CreateFromBase64String(b64LensTexutre, "lensdirt.jpg", core.currentScene);
-                }
-                else {
-                    lensTexture = new Texture("website/textures/lensdirt.jpg", core.currentScene);
-                }
-            }
-
-            lensTexture.name = lensTexture.name.replace("data:", "");
-
-            var hdr = new BABYLON.HDRRenderingPipeline("hdr", core.currentScene, ratio, null, cameras, lensTexture);
-            hdr.brightThreshold = serializationObject.brightThreshold || 1.0;
-            hdr.gaussCoeff = serializationObject.gaussCoeff || 0.4;
-            hdr.gaussMean = serializationObject.gaussMean || 0.0;
-            hdr.gaussStandDev = serializationObject.gaussStandDev || 9.0;
-            hdr.minimumLuminance = serializationObject.minimumLuminance || 0.5;
-            hdr.luminanceDecreaseRate = serializationObject.luminanceDecreaseRate || 0.5;
-            hdr.luminanceIncreaserate = serializationObject.luminanceIncreaserate || 0.5;
-            hdr.exposure = serializationObject.exposure || 1;
-            hdr.gaussMultiplier = serializationObject.gaussMultiplier || 4;
-            hdr.exposureAdjustment = serializationObject.exposureAdjustment || hdr.exposureAdjustment;
-
-            this.HDRPipeline = hdr;
-            return hdr;
         }
 
         // Creates SSAO pipeline
@@ -234,6 +191,16 @@
             return sphere;
         }
 
+        // Adds a tube
+        static AddCylinderMesh(core: EditorCore): Mesh {
+            var tube = Mesh.CreateCylinder("New Cylinder", 5, 2, 2, 32, 32, core.currentScene);
+            tube.id = this.GenerateUUID();
+
+            this.ConfigureObject(tube, core);
+
+            return tube;
+        }
+
         // Adds a plane
         static AddPlaneMesh(core: EditorCore): Mesh {
             var plane = Mesh.CreatePlane("New Plane", 1, core.currentScene, false);
@@ -247,7 +214,7 @@
         
         // Adds a ground
         static AddGroundMesh(core: EditorCore): Mesh {
-            var ground = Mesh.CreateGround("New Ground", 10, 10, 32, core.currentScene, false);
+            var ground = Mesh.CreateGround("New Ground", 10, 10, 10, core.currentScene, true);
             ground.id = this.GenerateUUID();
             
             this.ConfigureObject(ground, core);
@@ -390,6 +357,15 @@
             return rt;
         }
 
+        // Adds a reflection texture
+        static AddMirrorTexture(core: EditorCore): MirrorTexture {
+            var mirror = new MirrorTexture("New Mirror Texture", 512, core.currentScene, false);
+            
+            this.ConfigureObject(mirror, core);
+
+            return mirror;
+        }
+
         // Adds a skynode
         static AddSkyMesh(core: EditorCore): Mesh {
             var skyboxMaterial = new SkyMaterial("skyMaterial", core.currentScene);
@@ -408,7 +384,10 @@
         static AddWaterMesh(core: EditorCore): Mesh {
             var waterMaterial = new WaterMaterial("waterMaterail", core.currentScene);
 
-            Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, (texture) => waterMaterial.bumpTexture = texture);
+            Tools.LoadAndCreateBase64Texture("website/textures/normal.png", core.currentScene, (texture) => {
+                waterMaterial.bumpTexture = texture;
+                waterMaterial.markAsDirty(Material.AttributesDirtyFlag);
+            });
 
             var water = WaterMaterial.CreateDefaultMesh("waterMesh", core.currentScene);
             water.id = this.GenerateUUID();
@@ -422,6 +401,16 @@
             }
 
             return water;
+        }
+
+        // Adds a mesh instance
+        static AddInstancedMesh(core: EditorCore, mesh: Mesh): InstancedMesh {
+            var instance = mesh.createInstance("New Instance");
+            instance.id = this.GenerateUUID();
+            
+            this.ConfigureObject(instance, core);
+
+            return instance;
         }
     }
 }

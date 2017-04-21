@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function LavaMaterialTool(editionTool) {
-                _super.call(this, editionTool, "LAVA-MATERIAL", "LAVA", "Lava");
+                var _this = _super.call(this, editionTool, "LAVA-MATERIAL", "LAVA", "Lava") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.LavaMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.LavaMaterial; };
+                return _this;
             }
             // Update
             LavaMaterialTool.prototype.update = function () {

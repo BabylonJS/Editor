@@ -1,6 +1,6 @@
 {
-  "name": "Photoshop-Electron-Babylonjs-Editor",
-  "version": "0.9.0",
+  "name": "bjs-editor-photoshop-plugin",
+  "version": "1.0.0",
   "description": "Photoshop plugin allowing live texturing with the Babylon.js Editor",
   "main": "main.js",
   "generator-core-version": "3.4.0",

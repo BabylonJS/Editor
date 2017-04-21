@@ -31,7 +31,7 @@ var serializeSymbol = function (symbol) {
     return {
         name: symbol.getName(),
         documentation: ts.displayPartsToString(symbol.getDocumentationComment()),
-        type: checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration))
+        type: symbol.valueDeclaration ? checker.typeToString(checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration)) : ""
     };
 };
 var serializeClass = function (symbol) {

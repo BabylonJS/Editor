@@ -4,22 +4,21 @@ var app = electron.app;
 var BrowserWindow = electron.BrowserWindow;
 var mainWindow;
 var createWindow = function () {
-    // Create windo
+    // Create window
     mainWindow = new BrowserWindow({ width: 800, height: 600 });
     mainWindow.loadURL("file://" + __dirname + "/../index.html");
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
-    mainWindow.on('closed', function () {
-        mainWindow = null;
+    mainWindow.on("closed", function () {
+        app.quit();
     });
 };
-app.on('ready', createWindow);
-app.on('window-all-closed', function () {
-    if (process.platform !== 'darwin')
+app.on("ready", createWindow);
+app.on("window-all-closed", function () {
+    if (process.platform !== "darwin")
         app.quit();
 });
-app.on('activate', function () {
+app.on("activate", function () {
     if (mainWindow === null)
         createWindow();
 });
-//# sourceMappingURL=main.js.map

@@ -27,8 +27,8 @@ module BABYLON.EDITOR {
             toolbar.createMenuItem(menu, "button", this._addSoundtrack, "Add Soundtracks", "icon-sound");
             toolbar.createMenuItem(menu, "button", this._add3DSound, "Add 3D Sound", "icon-sound");
             toolbar.addBreak(menu);
-            toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-play-game");
-            toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-error");
+            toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-error");
+            toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-game");
             // Etc.
         }
         
@@ -95,7 +95,7 @@ module BABYLON.EDITOR {
                         case "audio/x-mpeg-3":
                         case "audio/ogg":
                             BABYLON.Tools.ReadFile(file, this._onReadFileCallback(file.name, callback), null, true);
-                            BABYLON.FilesInput.FilesToLoad[name.toLowerCase()] = file;
+                            BABYLON.FilesInput.FilesToLoad[file.name.toLowerCase()] = file;
                         break;
                     }
                 }

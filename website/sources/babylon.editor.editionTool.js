@@ -22,11 +22,9 @@ var BABYLON;
                 this.core.eventReceivers.push(this);
             }
             // Pre update
-            EditionTool.prototype.onPreUpdate = function () {
-            };
+            EditionTool.prototype.onPreUpdate = function () { };
             // Post update
-            EditionTool.prototype.onPostUpdate = function () {
-            };
+            EditionTool.prototype.onPostUpdate = function () { };
             // Event
             EditionTool.prototype.onEvent = function (event) {
                 // GUI Event
@@ -133,6 +131,7 @@ var BABYLON;
                 this.addTool(new EDITOR.TriPlanarMaterialTool(this));
                 this.addTool(new EDITOR.GridMaterialTool(this));
                 this.addTool(new EDITOR.FireMaterialTool(this));
+                this.addTool(new EDITOR.GroundMeshTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };

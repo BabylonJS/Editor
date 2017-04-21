@@ -15,7 +15,7 @@ var BABYLON;
             */
             function AbstractDatTool(editionTool) {
                 // Initialize
-                _super.call(this, editionTool);
+                return _super.call(this, editionTool) || this;
             }
             // Update
             AbstractDatTool.prototype.update = function () {
@@ -81,7 +81,7 @@ var BABYLON;
                     textures.push(scene.textures[i].name);
                 }
                 this[functionName] = function () {
-                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, name, object, property);
+                    var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, name, object, property, acceptCubes);
                 };
                 this[stringName] = (object[property] && object[property] instanceof BABYLON.BaseTexture) ? object[property].name : textures[0];
                 var folder = this._element.addFolder(name, parentFolder);

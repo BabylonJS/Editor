@@ -40,6 +40,16 @@ html, body {
     width: 16px;
 }
 
+.w2ui-toolbar table.w2ui-button .w2ui-tb-image {
+    width: 16px;
+    height: 16px;
+}
+
+.w2ui-overlay table.w2ui-drop-menu td.menu-icon > span {
+    width: 16px;
+    height: 16px;
+}
+
 #BABYLON-EDITOR-TOP-TOOLBAR-PANEL {
     overflow: hidden;
 }
@@ -220,4 +230,24 @@ html, body {
 
 .w2ui-icon.icon-play-game-windowed {
     background: url("images/play_game_windowed.png");
+}
+
+.w2ui-icon.icon-cylinder {
+    background: url("images/cylinder.png");
+}
+
+.w2ui-icon.icon-ground {
+    background: url("images/ground.png");
+}
+
+.w2ui-icon.icon-plane {
+    background: url("images/plane.png");
+}
+
+.w2ui-icon.icon-soft-body {
+    background: url("images/soft_body.png");
+}
+
+.w2ui-icon.icon-reflection {
+    background: url("images/reflection.png");
 }

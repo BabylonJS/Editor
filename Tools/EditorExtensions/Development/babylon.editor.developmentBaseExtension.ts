@@ -63,7 +63,7 @@
         /**
         * Static functions
         */
-        // 
+        // Sends an event to all listening the given namespace
         public static SendEvent<T>(namespace: string, eventData: IDevelopentBaseExtensionEventData<T>): void {
             if (eventData.eventName === "*") {
                 for (var thing in this._EventReceivers) {

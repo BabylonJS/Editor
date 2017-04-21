@@ -55,28 +55,20 @@
 
         private _postProcesses: PostProcess[] = [];
 
+        private _scenePassData: IPostProcessExtensionData = null;
+
         /**
         * Constructor
-        * @param core: the editor core
+        * @param scene: the babylon.js scene
         */
         constructor(scene: Scene) {
             // Initialize
             this._scene = scene;
-
-            // Scene pass post-process
-            var data: IPostProcessExtensionData = {
-                name: "PassPostProcessExtension",
-                id: "PostProcessEditorExtensionPassPostProcess",
-                program: Effect.ShadersStore["editorTemplatePixelShader"],
-                configuration: JSON.stringify(<IPostProcessExtensionConfiguration>{ ratio: 1.0, defines: [], uniforms: [{ name: "exposure", value: 1.0 }], samplers: [] })
-            };
-
-            this.applyPostProcess(data);
-            this._scenePassPostProcess = data.postProcess;
         }
 
         // Applies the extension
         public apply(data: IPostProcessExtensionData[]): void {
+            // Apply
             for (var i = 0; i < data.length; i++)
                 this.applyPostProcess(data[i]);
         }
@@ -95,6 +87,20 @@
 
         // When the user applies the post-process chain
         public applyPostProcess(data: IPostProcessExtensionData) {
+            // Scene pass post-process
+            if (!this._scenePassData) {
+                this._scenePassData = {
+                    name: "PassPostProcessExtension",
+                    id: "PostProcessEditorExtensionPassPostProcess",
+                    program: Effect.ShadersStore["editorTemplatePixelShader"],
+                    configuration: JSON.stringify(<IPostProcessExtensionConfiguration>{ ratio: 1.0, defines: [], uniforms: [{ name: "exposure", value: 1.0 }], samplers: [] })
+                };
+
+                this.applyPostProcess(this._scenePassData);
+                this._scenePassPostProcess = this._scenePassData.postProcess;
+            }
+
+            // Apply post-process
             var id = data.name + "_" + data.id;
             Effect.ShadersStore[id + "PixelShader"] = data.program;
 

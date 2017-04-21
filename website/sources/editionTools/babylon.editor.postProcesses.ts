@@ -52,10 +52,10 @@
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
             // Standard
-            var standardFolder = this._element.addFolder("HDR2");
+            var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
             standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
                 if (result === true)
-                    SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core);
+                    SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core, () => this.update());
                 else {
                     SceneFactory.StandardPipeline.dispose();
                     SceneFactory.StandardPipeline = null;
@@ -75,6 +75,7 @@
                 highLightFolder.add(SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
                 highLightFolder.add(SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
                 highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                highLightFolder.add(SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                 this.addTextureFolder(SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                 highLightFolder.open();
 
@@ -87,9 +88,17 @@
                 this.addTextureFolder(SceneFactory.StandardPipeline, "Lens Flare Dirt Texture", "lensFlareDirtTexture", lensFolder).open();
                 lensFolder.open();
 
+                var hdrFolder = standardFolder.addFolder("HDR");
+                hdrFolder.add(SceneFactory.StandardPipeline, "HDREnabled").name("HDR Enabled");
+                hdrFolder.add(SceneFactory.StandardPipeline, "hdrMinimumLuminance").min(0).max(2).name("Minimum Luminance");
+                hdrFolder.add(SceneFactory.StandardPipeline, "hdrDecreaseRate").min(0).max(2).name("Decrease Rate");
+                hdrFolder.add(SceneFactory.StandardPipeline, "hdrIncreaseRate").min(0).max(2).name("Increase Rate");
+                hdrFolder.open();
+
                 var dofFolder = standardFolder.addFolder("Depth Of Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
                 dofFolder.open();
 
                 var debugFolder = standardFolder.addFolder("Debug");

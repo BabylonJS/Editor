@@ -28,6 +28,13 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(StorageExporter, "DropBoxStorage", {
+                get: function () {
+                    return "DropBoxStorage";
+                },
+                enumerable: true,
+                configurable: true
+            });
             // On event received
             StorageExporter.prototype.onEvent = function (event) {
                 var _this = this;
@@ -84,7 +91,8 @@ var BABYLON;
                         _this._storage.createFolders(folders, folder, function () {
                             _this._createTemplate(config);
                         }, function () {
-                            _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                            //this.core.editor.statusBar.removeElement(this._statusBarId);
+                            _this.core.editor.statusBar.setText(_this._statusBarId, "Errors, see console log...");
                         });
                     }
                 });
@@ -166,8 +174,10 @@ var BABYLON;
                         files.push({ name: "game.ts", url: url + "templates/game.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                         files.push({ name: "development.ts", url: url + "templates/development.ts.template", content: null, parentFolder: _this.getFolder("code").file });
                     }
-                    if (!config.vscodeFolderExists)
+                    if (!config.vscodeFolderExists) {
                         files.push({ name: "tasks.json", url: url + "templates/tasksTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                        files.push({ name: "launch.json", url: url + "templates/launchTemplate.json", content: null, parentFolder: _this.getFolder(".vscode").file });
+                    }
                     files.push({ name: "run.bat", url: url + "templates/run.bat", content: null });
                     files.push({ name: "run.sh", url: url + "templates/run.bat", content: null });
                     files.push({ name: "server.js", url: url + "templates/server.js", content: null });
@@ -198,7 +208,8 @@ var BABYLON;
                                 _this._storage.createFiles(files, StorageExporter._ProjectFolder, function () {
                                     _this.core.editor.statusBar.removeElement(_this._statusBarId);
                                 }, function (message) {
-                                    _this.core.editor.statusBar.removeElement(_this._statusBarId);
+                                    // this.core.editor.statusBar.removeElement(this._statusBarId);
+                                    _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length + " (width errors...");
                                 }, function (count) {
                                     _this.core.editor.statusBar.setText(_this._statusBarId, "Exporting Template... " + count + " / " + files.length);
                                 });
@@ -219,10 +230,6 @@ var BABYLON;
                                 BABYLON.Tools.LoadFile(files[i].url, loadCallback(i), null, null, files[i].type === "arraybuffer");
                         }
                         // Files from FilesInput
-                        for (var textureName in BABYLON.FilesInput.FilesTextures) {
-                            files.push({ name: textureName, content: null, parentFolder: sceneFolder.file });
-                            BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesTextures[textureName], loadCallback(files.length - 1), null, true);
-                        }
                         for (var fileName in BABYLON.FilesInput.FilesToLoad) {
                             files.push({ name: fileName, content: null, parentFolder: sceneFolder.file });
                             BABYLON.Tools.ReadFile(BABYLON.FilesInput.FilesToLoad[fileName], loadCallback(files.length - 1), null, true);
@@ -338,12 +345,12 @@ var BABYLON;
             StorageExporter.prototype.getFile = function (name) {
                 return this._getFileFolder(name, "file", StorageExporter._ProjectFolderChildren);
             };
-            // Static members
-            StorageExporter._ProjectFolder = null;
-            StorageExporter._ProjectFolderChildren = null;
-            StorageExporter._IsWindowOpened = false;
             return StorageExporter;
         }());
+        // Static members
+        StorageExporter._ProjectFolder = null;
+        StorageExporter._ProjectFolderChildren = null;
+        StorageExporter._IsWindowOpened = false;
         EDITOR.StorageExporter = StorageExporter;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));

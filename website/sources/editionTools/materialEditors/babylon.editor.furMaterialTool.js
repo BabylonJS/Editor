@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function FurMaterialTool(editionTool) {
-                _super.call(this, editionTool, "FUR-MATERIAL", "FUR", "Fur");
+                var _this = _super.call(this, editionTool, "FUR-MATERIAL", "FUR", "Fur") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.FurMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.FurMaterial; };
+                return _this;
             }
             // Update
             FurMaterialTool.prototype.update = function () {

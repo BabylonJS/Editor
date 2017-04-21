@@ -38,11 +38,11 @@ var BABYLON;
                 // Etc.
                 for (var i = 0; i < project.materials.length; i++) {
                     var material = project.materials[i];
-                    // For now, continue
-                    // If no customType, the changes can be done in the modeler (3ds Max, Blender, Unity3D, etc.)
+                    var materialType = null;
                     if (!material.newInstance || !material.serializedValues.customType)
-                        continue;
-                    var materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
+                        materialType = BABYLON.Tools.Instantiate("BABYLON.StandardMaterial");
+                    else
+                        materialType = BABYLON.Tools.Instantiate(material.serializedValues.customType);
                     material._babylonMaterial = materialType.Parse(material.serializedValues, core.currentScene, "file:");
                 }
                 // Sounds
@@ -60,6 +60,7 @@ var BABYLON;
                         case "Mesh":
                         case "Light":
                         case "Camera":
+                        case "InstancedMesh":
                             if (node.serializationObject) {
                                 if (node.type === "Mesh") {
                                     var vertexDatas = node.serializationObject.geometries.vertexData;
@@ -70,6 +71,20 @@ var BABYLON;
                                     for (var meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
                                         newNode = BABYLON.Mesh.Parse(meshes[meshIndex], core.currentScene, "./");
                                         BABYLON.Tags.EnableFor(newNode);
+                                    }
+                                }
+                                else if (node.type === "InstancedMesh") {
+                                    var sourceMesh = core.currentScene.getMeshByID(node.serializationObject.sourceMesh);
+                                    // The source mesh may disappear if new version of the scene
+                                    if (sourceMesh) {
+                                        var instance = sourceMesh.createInstance(node.serializationObject.name);
+                                        instance.id = node.id;
+                                        instance.position = BABYLON.Vector3.FromArray(node.serializationObject.position);
+                                        instance.rotation = BABYLON.Vector3.FromArray(node.serializationObject.rotation);
+                                        instance.scaling = BABYLON.Vector3.FromArray(node.serializationObject.scaling);
+                                        BABYLON.Tags.EnableFor(instance);
+                                        BABYLON.Tags.AddTagsTo(instance, "added");
+                                        newNode = instance;
                                     }
                                 }
                                 else if (node.type === "Light") {
@@ -120,12 +135,11 @@ var BABYLON;
                     if (newNode instanceof BABYLON.AbstractMesh) {
                         // Physics
                         if (node.physics) {
-                            debugger;
-                            newNode.setPhysicsState(node.physics.physicsImpostor, {
+                            newNode.physicsImpostor = new BABYLON.PhysicsImpostor(newNode, node.physics.physicsImpostor, {
                                 mass: node.physics.physicsMass,
                                 friction: node.physics.physicsFriction,
                                 restitution: node.physics.physicsRestitution
-                            });
+                            }, core.currentScene);
                         }
                         // Actions
                         var oldActionManager = newNode.actionManager;
@@ -207,15 +221,17 @@ var BABYLON;
                     }
                 }
                 // Post processes
+                /*
                 for (var i = 0; i < project.postProcesses.length; i++) {
                     var pp = project.postProcesses[i];
-                    if (EDITOR.SceneFactory["Create" + pp.name]) {
-                        var newPp = EDITOR.SceneFactory["Create" + pp.name](core, pp.serializationObject);
-                        if (pp.attach !== undefined && !pp.attach) {
-                            newPp._detachCameras(core.currentScene.cameras);
-                        }
+    
+                    if (pp.serializationObject.customType) {
+                        pp.serializationObject._ratio = 1.0 / devicePixelRatio;
+                        var pipeline = <PostProcessRenderPipeline> BABYLON[pp.serializationObject.customType].Parse(pp.serializationObject, core.currentScene, "./");
+                        core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pp.serializationObject._name, core.currentScene.cameras);
                     }
                 }
+                */
                 // Render tagets, fill waiting renderlists
                 for (var i = 0; i < project.renderTargets.length; i++) {
                     var rt = project.renderTargets[i];

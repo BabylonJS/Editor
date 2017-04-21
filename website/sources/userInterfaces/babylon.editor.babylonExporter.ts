@@ -119,7 +119,7 @@
         }
 
         // Generates the final .babylon file
-        public static GenerateFinalBabylonFile(core: EditorCore): any {
+        public static GenerateFinalBabylonFile(core: EditorCore, autoAnimateFrom: number = 0): any {
             // Set action managers, serialize and reset action managers
             if (!core.isPlaying)
                 SceneManager.SwitchActionManager();
@@ -151,7 +151,7 @@
                             continue;
                         
                         objects[i].autoAnimate = true;
-                        objects[i].autoAnimateFrom = 0;
+                        objects[i].autoAnimateFrom = autoAnimateFrom;
                         objects[i].autoAnimateTo = maxFrame;
                         objects[i].autoAnimateLoop = false;
                         objects[i].autoAnimateSpeed = SceneFactory.AnimationSpeed;
@@ -162,7 +162,7 @@
             // Scene autoplay
             if (SceneFactory.NodesToStart.some((value: IAnimatable, index: number, array: IAnimatable[]) => { return value instanceof Scene })) {
                 obj.autoAnimate = true;
-                obj.autoAnimateFrom = 0;
+                obj.autoAnimateFrom = autoAnimateFrom;
                 obj.autoAnimateTo = maxFrame;
                 obj.autoAnimateLoop = false;
                 obj.autoAnimateSpeed = SceneFactory.AnimationSpeed;

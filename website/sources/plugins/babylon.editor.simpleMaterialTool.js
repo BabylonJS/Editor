@@ -17,9 +17,10 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function SimpleMaterialTool(editionTool) {
-                _super.call(this, editionTool, "SIMPLE-MATERIAL", "SIMPLE", "Simple");
+                var _this = _super.call(this, editionTool, "SIMPLE-MATERIAL", "SIMPLE", "Simple") || this;
                 // Initialize
-                this.onObjectSupported = function (material) { return material instanceof BABYLON.SimpleMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.SimpleMaterial; };
+                return _this;
             }
             // Update
             SimpleMaterialTool.prototype.update = function () {

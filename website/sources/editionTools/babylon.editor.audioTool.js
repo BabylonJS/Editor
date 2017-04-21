@@ -14,13 +14,14 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function AudioTool(editionTool) {
-                _super.call(this, editionTool);
+                var _this = _super.call(this, editionTool) || this;
                 // Public members
-                this.tab = "SOUND.TAB";
+                _this.tab = "SOUND.TAB";
                 // Initialize
-                this.containers = [
+                _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-SOUND"
                 ];
+                return _this;
             }
             // Object supported
             AudioTool.prototype.isObjectSupported = function (object) {

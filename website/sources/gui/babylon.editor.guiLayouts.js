@@ -16,9 +16,10 @@ var BABYLON;
                 * @param name: layouts name
                 */
                 function GUILayout(name, core) {
-                    _super.call(this, name, core);
+                    var _this = _super.call(this, name, core) || this;
                     // Public members
-                    this.panels = [];
+                    _this.panels = [];
+                    return _this;
                 }
                 GUILayout.prototype.createPanel = function (name, type, size, resizable) {
                     if (resizable === void 0) { resizable = true; }

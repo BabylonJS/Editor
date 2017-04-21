@@ -42,6 +42,8 @@
 
         private _texturesList: GUI.GUIGrid<ITextureRow> = null;
         
+        private _allowCubes: boolean;
+
         private _engine: Engine = null;
         private _scene: Scene = null;
 
@@ -51,7 +53,7 @@
         * @param object: the object to edit
         * @param propertyPath: the path to the texture property of the object
         */
-        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string) {
+        constructor(core: EditorCore, objectName?: string, object?: Object, propertyPath?: string, allowCubes?: boolean) {
             // Initialize
             this._core = core;
             this._core.eventReceivers.push(this);
@@ -69,6 +71,8 @@
                     this._targetObject = null;
                 }
             }
+
+            this._allowCubes = allowCubes === undefined ? true : allowCubes;
 
             // Finish
             this._createUI();
@@ -114,7 +118,7 @@
             // Texture canvas
             this._engine = new Engine(<HTMLCanvasElement>$("#" + canvasID)[0], true);
             this._scene = new Scene(this._engine);
-            this._scene.clearColor = new Color3(0, 0, 0);
+            this._scene.clearColor = new Color4(0, 0, 0, 1);
 
             var camera = new ArcRotateCamera("TextureEditorCamera", 0, 0, 10, Vector3.Zero(), this._scene);
             camera.attachControl(this._engine.getRenderingCanvas());
@@ -163,7 +167,8 @@
                 var selectedTexture: BaseTexture = this._core.currentScene.textures[selected[0]];
 
                 // Send event texture has been selected
-                Event.sendSceneEvent(selectedTexture, SceneEventType.OBJECT_PICKED, this._core);
+                if (!this.propertyPath)
+                    Event.sendSceneEvent(selectedTexture, SceneEventType.OBJECT_PICKED, this._core);
 
                 // Configure texture to preview
                 if (this._targetTexture) {
@@ -189,13 +194,16 @@
                         (<any>this._targetTexture)._canvas = (<any>selectedTexture)._canvas;
                         (<DynamicTexture>this._targetTexture).update(true);
                     }
+                    else if (selectedTexture.name.indexOf("/") !== -1) {
+                        this._targetTexture = Texture.Parse(serializationObject, this._scene, "");
+                    }
                     else {
                         // Guess texture
                         if ((<any>selectedTexture)._buffer) {
                             serializationObject.base64String = (<any>selectedTexture)._buffer;
                         }
                         else {
-                            var file: File = BABYLON.FilesInput.FilesTextures[selectedTexture.name.toLowerCase()];
+                            var file: File = BABYLON.FilesInput.FilesToLoad[selectedTexture.name.toLowerCase()];
                             if (file) {
                                 serializationObject.name = (<Texture>selectedTexture).url;
                             }
@@ -216,7 +224,7 @@
                     }
                 }
                 
-                if (this.object) {
+                if (this.object && (this._allowCubes || selectedTexture.isCube === false)) {
                     this.object[this.propertyPath] = selectedTexture;
                 }
                 
@@ -262,8 +270,8 @@
                             });
                         }
                         else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
-                            BABYLON.FilesInput.FilesTextures[name] = data.target.files[i];
-                            BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(name), null);
+                            BABYLON.FilesInput.FilesToLoad[lowerName] = data.target.files[i];
+                            BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], this._onReadFileCallback(lowerName), null);
                         }
                         else {
                             GUI.GUIWindow.CreateAlert("Texture format not supported", "Textre Format Error");
@@ -361,10 +369,10 @@
                 };
                 
                 if (texture.isCube) {
-                    row.style = "background-color: #FBFEC0";
+                    row.w2ui = { style: "background-color: #FBFEC0" };
                 }
                 else if (texture.isRenderTarget) {
-                    row.style = "background-color: #C2F5B4";
+                    row.w2ui = { style: "background-color: #C2F5B4" };
                 }
                 
                 this._texturesList.addRecord(row);
@@ -385,7 +393,7 @@
         }
 
         // On readed texture file callback
-        private _onReadFileCallback(name: string): (data: string) => void {
+        private _onReadFileCallback(name: string): (data: string | ArrayBuffer) => void {
             return (data: string | ArrayBuffer) => {
                 var texture: BaseTexture = null;
 

@@ -22,8 +22,8 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._addSoundtrack, "Add Soundtracks", "icon-sound");
                 toolbar.createMenuItem(menu, "button", this._add3DSound, "Add 3D Sound", "icon-sound");
                 toolbar.addBreak(menu);
-                toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-play-game");
-                toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-error");
+                toolbar.createMenuItem(menu, "button", this._stopAllSounds, "Stop All Sounds", "icon-error");
+                toolbar.createMenuItem(menu, "button", this._playAllSounds, "Play All Sounds", "icon-play-game");
                 // Etc.
             }
             // When an item has been selected
@@ -84,7 +84,7 @@ var BABYLON;
                             case "audio/x-mpeg-3":
                             case "audio/ogg":
                                 BABYLON.Tools.ReadFile(file, _this._onReadFileCallback(file.name, callback), null, true);
-                                BABYLON.FilesInput.FilesToLoad[name.toLowerCase()] = file;
+                                BABYLON.FilesInput.FilesToLoad[file.name.toLowerCase()] = file;
                                 break;
                         }
                     }
