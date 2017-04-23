@@ -236,6 +236,10 @@
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                     }
                 }
+
+                // 2d
+                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder");
+                this.sidebar.addNodes(node2d, this._graphRootName, false);
             }
 
             if (!node) {
@@ -271,6 +275,11 @@
                         this.sidebar.addNodes(lfNode, node.id, false);
                     }
                 }
+            }
+
+            // If 2D
+            if (node instanceof Container2D) {
+                // TODO
             }
 
             // If submeshes

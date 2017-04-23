@@ -188,6 +188,9 @@ var BABYLON;
                             this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                         }
                     }
+                    // 2d
+                    var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder");
+                    this.sidebar.addNodes(node2d, this._graphRootName, false);
                 }
                 if (!node) {
                     children = [];
@@ -218,6 +221,9 @@ var BABYLON;
                             this.sidebar.addNodes(lfNode, node.id, false);
                         }
                     }
+                }
+                // If 2D
+                if (node instanceof BABYLON.Container2D) {
                 }
                 // If submeshes
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {

@@ -160,7 +160,13 @@
       "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts",
       "Tools/EditorExtensions/Actions/babylon.physicsAction.ts",
       "Tools/EditorExtensions/Actions/babylon.timerCondition.ts",
-      "Tools/EditorExtensions/Actions/babylon.distanceToCameraCondition.ts"
+      "Tools/EditorExtensions/Actions/babylon.distanceToCameraCondition.ts",
+
+      "Tools/EditorExtensions/2d/babylon.dock2d.ts",
+      "Tools/EditorExtensions/2d/babylon.resize2d.ts",
+      "Tools/EditorExtensions/2d/babylon.container2d.ts",
+      "Tools/EditorExtensions/2d/babylon.sprite2d.ts",
+      "Tools/EditorExtensions/2d/babylon.shader2d.ts"
     ]
   }
 }

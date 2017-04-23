@@ -295,8 +295,13 @@ var BABYLON;
                             var nextRecord = _this.element.records[moveAfter];
                             _this.element.records[moveAfter] = nextRecord;
                             _this.element.records[recid] = previousRecord;
+                            // Reset recids
+                            for (var i = 0; i < _this.element.records.length; i++) {
+                                _this.element.records[i].recid = i;
+                            }
                             if (_this.onReorder)
                                 _this.onReorder(recid, moveAfter);
+                            _this.refresh();
                         }
                     });
                 };

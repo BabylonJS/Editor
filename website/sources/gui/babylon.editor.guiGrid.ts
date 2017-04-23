@@ -370,8 +370,15 @@
                     this.element.records[moveAfter] = nextRecord;
                     this.element.records[recid] = previousRecord;
 
+                    // Reset recids
+                    for (var i = 0; i < this.element.records.length; i++) {
+                        this.element.records[i].recid = i;
+                    }
+
                     if (this.onReorder)
                         this.onReorder(recid, moveAfter);
+
+                    this.refresh();
                 }
             });
         }

@@ -172,7 +172,7 @@ gulp.task("run", ["watch"], function() {
             port: 1338,
             fallback: "index-debug.html"
         }));
-})
+});
 
 /*
 * Automatically call the "electron" task when a TS file changes
