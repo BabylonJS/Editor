@@ -43,9 +43,7 @@ module BABYLON {
             this.textureIndex = 0;
 
             // Set new positions in vertex data
-            this.textures[0].onLoadObservable.add(() => {
-                this._updateBuffers(this.textures[0]);
-            });
+            this.textures[0].onLoadObservable.add(() => this._updateBuffers(this.textures[0]));
         }
 
         // Returns the width of the sprite

@@ -8,7 +8,11 @@ module BABYLON {
 
         "void main(void)",
         "{",
-        "    gl_FragColor = texture2D(textureSampler, vUV);",
+        "    vec4 color = texture2D(textureSampler, vUV);",
+        "    if (color.a < 0.4)",
+        "       discard;",
+
+        "    gl_FragColor = color;",
         "}"
     ].join("\n");
 
