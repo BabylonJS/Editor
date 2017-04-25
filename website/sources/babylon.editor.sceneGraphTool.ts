@@ -167,6 +167,9 @@
                         else if (event.sceneEvent.object instanceof Sound) {
                             parentNode = this._mainSoundTrackName;
                         }
+                        else if (event.sceneEvent.object instanceof Container2D) {
+                            parentNode = this._graphRootName + "2D";
+                        }
 
                         this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
                     }
@@ -184,10 +187,10 @@
         }
 
         // Fills the graph of nodes (meshes, lights, cameras, etc.)
-        public fillGraph(node?: Node, graphNodeID?: string): void {
+        public fillGraph(node?: Node, graphNodeID?: string, scene?: Scene): void {
             var children: Node[] = null;
-            var root: string = null;
-            var scene = this._core.currentScene;
+            var root: string = graphNodeID;
+            var scene = scene || this._core.currentScene;
 
             if (!graphNodeID) {
                 this.sidebar.clear();
@@ -240,13 +243,15 @@
                 // 2d
                 var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder");
                 this.sidebar.addNodes(node2d, this._graphRootName, false);
+
+                this.fillGraph(null, node2d.id, this._core.scene2d);
             }
 
             if (!node) {
                 children = [];
-                this._getRootNodes(children, "cameras");
-                this._getRootNodes(children, "lights");
-                this._getRootNodes(children, "meshes");
+                this._getRootNodes(children, "cameras", scene);
+                this._getRootNodes(children, "lights", scene);
+                this._getRootNodes(children, "meshes", scene);
                 // Other here
             }
             else
@@ -275,11 +280,6 @@
                         this.sidebar.addNodes(lfNode, node.id, false);
                     }
                 }
-            }
-
-            // If 2D
-            if (node instanceof Container2D) {
-                // TODO
             }
 
             // If submeshes
@@ -319,6 +319,14 @@
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                         this.sidebar.addNodes(childNode, instancesNode.id, false);
                     }
+                    else if (object instanceof Container2D) {
+                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+
+                        if (childrenLength > 0)
+                            childNode.count = childrenLength;
+
+                        this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                    }
                     else {
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
 
@@ -354,8 +362,8 @@
         }
 
         // Fills the result array of nodes when the node hasn't any parent
-        private _getRootNodes(result: Node[], entities: string): void {
-            var elements: Node[] = this._core.currentScene[entities];
+        private _getRootNodes(result: Node[], entities: string, scene: Scene): void {
+            var elements: Node[] = scene[entities];
 
             for (var i = 0; i < elements.length; i++) {
                 if (!elements[i].parent) {

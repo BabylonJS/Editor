@@ -132,6 +132,7 @@ var BABYLON;
                 this.addTool(new EDITOR.GridMaterialTool(this));
                 this.addTool(new EDITOR.FireMaterialTool(this));
                 this.addTool(new EDITOR.GroundMeshTool(this));
+                this.addTool(new EDITOR.Container2DTool(this));
                 for (var i = 0; i < EDITOR.PluginManager.EditionToolPlugins.length; i++)
                     this.addTool(new EDITOR.PluginManager.EditionToolPlugins[i](this));
             };

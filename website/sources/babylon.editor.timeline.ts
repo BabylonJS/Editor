@@ -89,7 +89,7 @@
 
         // Reset the timeline
         public reset(): void {
-            this._maxFrame = GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene);
+            this._maxFrame = Math.max(GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene), GUIAnimationEditor.GetSceneFrameCount(this._core.scene2d));
             this._currentTime = 0;
             this._selectorRect.attr("x", 0);
             this.setFramesOfAnimation(null);

@@ -21,6 +21,7 @@ var BABYLON;
                 // Private members
                 _this._isActiveCamera = false;
                 _this._isActivePlayCamera = false;
+                _this._currentParentName = "";
                 _this._currentInstance = "";
                 // Initialize
                 _this.containers = [
@@ -47,7 +48,7 @@ var BABYLON;
             GeneralTool.prototype.update = function () {
                 var _this = this;
                 var object = this.object = this._editionTool.object;
-                var scene = this._editionTool.core.currentScene;
+                var scene = object instanceof BABYLON.Container2D ? this._editionTool.core.scene2d : this._editionTool.core.currentScene;
                 var core = this._editionTool.core;
                 _super.prototype.update.call(this);
                 if (!object)
@@ -64,6 +65,22 @@ var BABYLON;
                         element.text = result;
                         sidebar.refresh();
                     }
+                });
+                // Parenting
+                var meshesNames = ["Scene"];
+                for (var i = 0; i < scene.meshes.length; i++) {
+                    if (scene.meshes[i] !== object)
+                        meshesNames.push(scene.meshes[i].name);
+                }
+                var parentingFolder = this._element.addFolder("Parenting");
+                this._currentParentName = object.parent ? object.parent.name : meshesNames[0];
+                parentingFolder.add(this, "_currentParentName", meshesNames).name("Parent").onFinishChange(function (result) {
+                    if (result === "Scene")
+                        object.parent = null;
+                    else
+                        object.parent = scene.getMeshByName(result);
+                    _this._editionTool.core.editor.sceneGraphTool.fillGraph();
+                    _this._editionTool.core.editor.sceneGraphTool.sidebar.setSelected(object.id);
                 });
                 // Camera
                 if (object instanceof BABYLON.Camera) {
@@ -101,21 +118,38 @@ var BABYLON;
                 var transformFolder = this._element.addFolder("Transforms");
                 if (object.position) {
                     var positionFolder = this._element.addFolder("Position", transformFolder);
-                    positionFolder.add(object.position, "x").step(0.1).name("x");
-                    positionFolder.add(object.position, "y").step(0.1).name("y");
-                    positionFolder.add(object.position, "z").step(0.1).name("z");
+                    if (!(object instanceof BABYLON.Container2D)) {
+                        positionFolder.add(object.position, "x").step(0.1).name("x");
+                        positionFolder.add(object.position, "y").step(0.1).name("y");
+                        positionFolder.add(object.position, "z").step(0.1).name("z");
+                    }
+                    else {
+                        positionFolder.add(object, "x").step(0.1).name("x");
+                        positionFolder.add(object, "y").step(0.1).name("y");
+                    }
                 }
                 if (object.rotation) {
                     var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                    rotationFolder.add(object.rotation, "x").name("x").step(0.1);
-                    rotationFolder.add(object.rotation, "y").name("y").step(0.1);
-                    rotationFolder.add(object.rotation, "z").name("z").step(0.1);
+                    if (!(object instanceof BABYLON.Container2D)) {
+                        rotationFolder.add(object.rotation, "x").name("x").step(0.1);
+                        rotationFolder.add(object.rotation, "y").name("y").step(0.1);
+                        rotationFolder.add(object.rotation, "z").name("z").step(0.1);
+                    }
+                    else {
+                        rotationFolder.add(object, "rotationZ").name("z").step(0.1);
+                    }
                 }
                 if (object.scaling) {
                     var scalingFolder = this._element.addFolder("Scaling", transformFolder);
-                    scalingFolder.add(object.scaling, "x").name("x").step(0.1);
-                    scalingFolder.add(object.scaling, "y").name("y").step(0.1);
-                    scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+                    if (!(object instanceof BABYLON.Container2D)) {
+                        scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+                        scalingFolder.add(object.scaling, "x").name("x").step(0.1);
+                        scalingFolder.add(object.scaling, "y").name("y").step(0.1);
+                    }
+                    else {
+                        scalingFolder.add(object, "scaleX").name("x").step(0.1);
+                        scalingFolder.add(object, "scaleY").name("y").step(0.1);
+                    }
                 }
                 // Rendering
                 if (object instanceof BABYLON.AbstractMesh) {

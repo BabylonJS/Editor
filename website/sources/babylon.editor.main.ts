@@ -387,6 +387,10 @@
                 this.core.currentScene.activeCamera = this.core.camera;
                 this.core.playCamera = camera;
 
+                // Set 2D scene
+                this.core.removeScene(this.core.scene2d);
+                this.core.scenes.push({ scene: this.core.scene2d, render: true });
+
                 // Create render loop
                 this.core.engine.stopRenderLoop();
                 this.createRenderLoop();
@@ -430,12 +434,22 @@
             this.core.engine = new Engine(this.core.canvas, this.antialias, this.options);
             this.core.engine.setHardwareScalingLevel(1.0 / devicePixelRatio);
 
+            // Main scene
             this.core.currentScene = new Scene(this.core.engine);
             (<any>this.core.currentScene).animations = [];
             this.core.scenes.push({ render: true, scene: this.core.currentScene });
 
             this._createBabylonCamera();
 
+            // Create 2D scene
+            this.core.scene2d = new Scene(this.core.engine);
+            this.core.scene2d.activeCamera = this.core.camera;
+            this.core.scene2d.autoClear = false;
+            this.core.scene2d.clearColor = new Color4(0, 0, 0, 0);
+
+            this.core.scenes.push({ render: true, scene: this.core.scene2d });
+
+            // Events
             window.addEventListener("resize", (ev: UIEvent) => {
                 if (this.core.isPlaying) {
                     this.core.isPlaying = false;

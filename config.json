@@ -66,6 +66,8 @@
       "sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js",
       "sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js",
 
+      "sources/editionTools/2d/babylon.editor.container2dTool.js",
+
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",
       "sources/babylon.editor.editPanel.js",
@@ -80,6 +82,7 @@
 
       "sources/scene/babylon.editor.filesInput.js",
       "sources/scene/babylon.editor.sceneFactory.js",
+      "sources/scene/babylon.editor.sceneFactory2d.js",
       "sources/scene/babylon.editor.sceneManager.js",
 
       "sources/storage/babylon.editor.storage.js",

@@ -10,7 +10,7 @@ module BABYLON {
         private _indexBuffer: VertexBuffer = null;
 
         // Constructor
-        constructor(name: string, scene: Scene, parent: Node) {
+        constructor(name: string, scene: Scene, parent?: Node) {
             super(name, scene, parent);
 
             // Initialize
@@ -43,7 +43,8 @@ module BABYLON {
             this.textureIndex = 0;
 
             // Set new positions in vertex data
-            this.textures[0].onLoadObservable.add(() => this._updateBuffers(this.textures[0]));
+            if (this.textures[0])
+                this.textures[0].onLoadObservable.add(() => this._updateBuffers(this.textures[0]));
         }
 
         // Returns the width of the sprite
@@ -134,7 +135,7 @@ module BABYLON {
 
             var options = {
                 attributes: ["position", "uv"],
-                uniforms: ["world"],
+                uniforms: ["world", "alpha"],
                 samplers: ["textureSampler"]
             };
 
@@ -156,6 +157,9 @@ module BABYLON {
 
             // Set world matrix
             material.setMatrix("world", mesh.getWorldMatrix());
+
+            // Set misc
+            material.setFloat("alpha", material.alpha);
         }
 
         // Returns the material as ShaderMaterial

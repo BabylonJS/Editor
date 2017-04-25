@@ -11,6 +11,7 @@
 
         public scenes: Array<ICustomScene> = new Array<ICustomScene>();
         public currentScene: Scene;
+        public scene2d: Scene;
 
         public updates: Array<ICustomUpdate> = new Array<ICustomUpdate>();
         public eventReceivers: Array<IEventReceiver> = new Array<IEventReceiver>();

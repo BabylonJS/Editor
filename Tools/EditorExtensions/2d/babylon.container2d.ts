@@ -9,7 +9,7 @@ module BABYLON {
         private _lastRenderHeight: number = -1;
 
         // Protected members
-        protected _pivot: Vector2 = Vector2.Zero();
+        protected _pivot: Vector3 = Vector3.Zero();
         protected _isBufferDirty: boolean = false;
 
         protected _x: number = 0;
@@ -22,7 +22,7 @@ module BABYLON {
         protected _height: number = 0;
 
         // Constructor
-        constructor(name: string, scene: Scene, parent: Node) {
+        constructor(name: string, scene: Scene, parent?: Node) {
             super(name, scene, parent);
         }
 
@@ -54,7 +54,7 @@ module BABYLON {
                     var ratio = Math.max(Container2D.RenderWidth * 2.0 / this.width, Container2D.RenderHeight * 2.0 / this.height);
                     this.scaling.x = this.scaling.y = ratio;
                 }
-                else if (this.resize === Resize.CONTAIN) {
+                else if (this.resize === Resize.CONTAIN || this.resize === Resize.FIT) {
                     var ratio = Math.min(Container2D.RenderWidth * 2.0 / this.width, Container2D.RenderHeight * 2.0 / this.height);
                     this.scaling.x = this.scaling.y = ratio;
                 }
@@ -62,27 +62,35 @@ module BABYLON {
                     this.scaling.x = this._scalex;
                     this.scaling.y = this._scaley;
                 }
-            }
 
-            if (this.dock) {
-                if (this.dock & Dock.CENTER_HORIZONTAL) {
-                    this.position.x = ((Container2D.RenderWidth / 2.0) + this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
-                }
-                else if (this.dock & Dock.RIGHT) {
-                    this.position.x = (Container2D.RenderWidth - this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
-                }
-                else {
-                    this.position.x = this._x / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                if (this.dock) {
+                    if (this.dock & Dock.CENTER_HORIZONTAL) {
+                        this.position.x = ((Container2D.RenderWidth / 2.0) + this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                    }
+                    else if (this.dock & Dock.RIGHT) {
+                        this.position.x = (Container2D.RenderWidth - this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                    }
+                    else {
+                        this.position.x = this._x / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                    }
+
+                    if (this.dock & Dock.CENTER_VERTICAL) {
+                        this.position.y = ((Container2D.RenderHeight / 2.0) + this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                    }
+                    else if (this.dock & Dock.TOP) {
+                        this.position.y = (Container2D.RenderHeight - this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                    }
+                    else {
+                        this.position.y = this._y / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                    }
                 }
 
-                if (this.dock & Dock.CENTER_VERTICAL) {
-                    this.position.y = ((Container2D.RenderHeight / 2.0) + this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
-                }
-                else if (this.dock & Dock.TOP) {
-                    this.position.y = (Container2D.RenderHeight - this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
-                }
-                else {
-                    this.position.y = this._y / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                // Adjust fit
+                if (this.resize === Resize.FIT) {
+                    if (this.dock && this.dock & Dock.RIGHT)
+                        this.position.x -= this.scaling.x - 1.0;
+                    else
+                        this.position.x += this.scaling.x - 1.0;
                 }
             }
         
@@ -98,6 +106,10 @@ module BABYLON {
             this._isBufferDirty = true;
 
             return this;
+        }
+
+        public getPivotPoint(): Vector3 {
+            return this._pivot;
         }
 
         public get x() { return this._x; }

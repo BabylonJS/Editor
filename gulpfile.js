@@ -126,7 +126,7 @@ gulp.task("build-extensions", function () {
             {
                 includeContent: false, 
                 sourceRoot: (filePath) => {
-                    return "./"; 
+                    return "./";
                 }
             }))
             .pipe(concat(config.editorExtensions.filename))

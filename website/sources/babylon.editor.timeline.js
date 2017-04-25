@@ -70,7 +70,7 @@ var BABYLON;
             });
             // Reset the timeline
             Timeline.prototype.reset = function () {
-                this._maxFrame = EDITOR.GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene);
+                this._maxFrame = Math.max(EDITOR.GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene), EDITOR.GUIAnimationEditor.GetSceneFrameCount(this._core.scene2d));
                 this._currentTime = 0;
                 this._selectorRect.attr("x", 0);
                 this.setFramesOfAnimation(null);

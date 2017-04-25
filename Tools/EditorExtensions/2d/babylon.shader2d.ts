@@ -3,6 +3,7 @@ module BABYLON {
         "precision highp float;",
 
         "uniform sampler2D textureSampler;",
+        "uniform float alpha;",
 
         "varying vec2 vUV;",
 
@@ -12,6 +13,7 @@ module BABYLON {
         "    if (color.a < 0.4)",
         "       discard;",
 
+        "    color.a = alpha;",
         "    gl_FragColor = color;",
         "}"
     ].join("\n");

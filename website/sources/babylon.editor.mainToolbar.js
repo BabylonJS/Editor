@@ -42,6 +42,9 @@ var BABYLON;
                 this._particlesPaste = "PARTICLES-PASTE";
                 this._particlesPlay = "PARTICLES-PLAY";
                 this._particlesStop = "PARTICLES-STOP";
+                this._main2dAdd = "MAIN-2D-ADD";
+                this._addContainer2d = "ADD-CONTAINER-2D";
+                this._addSprite2d = "ADD-SPRITE-2D";
                 // Initialize
                 this._editor = core.editor;
                 this.core = core;
@@ -167,6 +170,16 @@ var BABYLON;
                         }
                         return true;
                     }
+                    // 2D
+                    if (selected.parent === this._main2dAdd) {
+                        if (selected.selected === this._addContainer2d) {
+                            EDITOR.SceneFactory2D.AddContainer2D(this.core);
+                        }
+                        else if (selected.selected === this._addSprite2d) {
+                            EDITOR.SceneFactory2D.AddSprite2D(this.core);
+                        }
+                        return true;
+                    }
                     for (var i = 0; i < this._plugins.length; i++) {
                         if (selected.parent === this._plugins[i].menuID) {
                             this._plugins[i].onMenuItemSelected(selected.selected);
@@ -222,6 +235,10 @@ var BABYLON;
                 this.toolbar.addBreak(menu);
                 this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
                 this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
+                //...
+                menu = this.toolbar.createMenu("menu", this._main2dAdd, "2D", "icon-plane");
+                this.toolbar.createMenuItem(menu, "button", this._addContainer2d, "Add Container", "icon-plane");
+                this.toolbar.createMenuItem(menu, "button", this._addSprite2d, "Add Sprite", "icon-plane");
                 //...
                 for (var i = 0; i < EDITOR.PluginManager.MainToolbarPlugins.length; i++)
                     this._plugins.push(new EDITOR.PluginManager.MainToolbarPlugins[i](this));

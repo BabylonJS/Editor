@@ -31,11 +31,6 @@ var BABYLON;
             }
             // Create helpers
             SceneHelpers.prototype.createHelpers = function (core) {
-                this._planeMaterial = new BABYLON.StandardMaterial("HelperPlaneMaterial", this._scene);
-                this._planeMaterial.emissiveColor = BABYLON.Color3.White();
-                this._planeMaterial.useAlphaFromDiffuseTexture = true;
-                this._planeMaterial.disableDepthWrite = false;
-                this._scene.materials.pop();
                 this._cameraTexture = new BABYLON.Texture("css/images/camera.png", this._scene);
                 this._cameraTexture.hasAlpha = true;
                 this._scene.textures.pop();
@@ -45,6 +40,13 @@ var BABYLON;
                 this._lightTexture = new BABYLON.Texture("css/images/light.png", this._scene);
                 this._lightTexture.hasAlpha = true;
                 this._scene.textures.pop();
+                this._planeMaterial = new BABYLON.StandardMaterial("HelperPlaneMaterial", this._scene);
+                this._planeMaterial.diffuseTexture = this._cameraTexture;
+                this._planeMaterial.emissiveColor = BABYLON.Color3.White();
+                this._planeMaterial.useAlphaFromDiffuseTexture = true;
+                this._planeMaterial.disableDepthWrite = false;
+                this._planeMaterial.disableLighting = true;
+                this._scene.materials.pop();
                 this._helperPlane = BABYLON.Mesh.CreatePlane("HelperPlane", 1, this._scene, false);
                 this._helperPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                 this._scene.meshes.pop();
@@ -64,7 +66,7 @@ var BABYLON;
                 var engine = this._scene.getEngine();
                 engine.setAlphaTesting(true);
                 this._subMesh = this._helperPlane.subMeshes[0];
-                if (this._planeMaterial.isReadyForSubMesh(this._helperPlane, this._subMesh, true)) {
+                if (this._planeMaterial.isReadyForSubMesh(this._helperPlane, this._subMesh, false)) {
                     var effect = this._subMesh.effect;
                     if (!effect)
                         return;

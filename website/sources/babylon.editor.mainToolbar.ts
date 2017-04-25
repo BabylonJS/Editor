@@ -44,6 +44,10 @@
         private _particlesPlay: string = "PARTICLES-PLAY";
         private _particlesStop: string = "PARTICLES-STOP";
 
+        private _main2dAdd: string = "MAIN-2D-ADD";
+        private _addContainer2d: string = "ADD-CONTAINER-2D";
+        private _addSprite2d: string = "ADD-SPRITE-2D";
+
         /**
         * Constructor
         * @param core: the editor core instance
@@ -203,6 +207,18 @@
                     return true;
                 }
 
+                // 2D
+                if (selected.parent === this._main2dAdd) {
+                    if (selected.selected === this._addContainer2d) {
+                        SceneFactory2D.AddContainer2D(this.core);
+                    }
+                    else if (selected.selected === this._addSprite2d) {
+                        SceneFactory2D.AddSprite2D(this.core);
+                    }
+
+                    return true;
+                }
+
                 for (var i = 0; i < this._plugins.length; i++) {
                     if (selected.parent === this._plugins[i].menuID) {
                         this._plugins[i].onMenuItemSelected(selected.selected);
@@ -267,6 +283,11 @@
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._particlesPlay, "Start All Particles", "icon-play-game");
             this.toolbar.createMenuItem(menu, "button", this._particlesStop, "Stop All Particles", "icon-error");
+            //...
+
+            menu = this.toolbar.createMenu("menu", this._main2dAdd, "2D", "icon-plane");
+            this.toolbar.createMenuItem(menu, "button", this._addContainer2d, "Add Container", "icon-plane");
+            this.toolbar.createMenuItem(menu, "button", this._addSprite2d, "Add Sprite", "icon-plane");
             //...
 
             for (var i = 0; i < PluginManager.MainToolbarPlugins.length; i++)

@@ -136,6 +136,9 @@ var BABYLON;
                             else if (event.sceneEvent.object instanceof BABYLON.Sound) {
                                 parentNode = this._mainSoundTrackName;
                             }
+                            else if (event.sceneEvent.object instanceof BABYLON.Container2D) {
+                                parentNode = this._graphRootName + "2D";
+                            }
                             this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : EDITOR.SceneFactory.GenerateUUID());
                         }
                         return false;
@@ -149,10 +152,10 @@ var BABYLON;
                 return false;
             };
             // Fills the graph of nodes (meshes, lights, cameras, etc.)
-            SceneGraphTool.prototype.fillGraph = function (node, graphNodeID) {
+            SceneGraphTool.prototype.fillGraph = function (node, graphNodeID, scene) {
                 var children = null;
-                var root = null;
-                var scene = this._core.currentScene;
+                var root = graphNodeID;
+                var scene = scene || this._core.currentScene;
                 if (!graphNodeID) {
                     this.sidebar.clear();
                     // Add root
@@ -191,12 +194,13 @@ var BABYLON;
                     // 2d
                     var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder");
                     this.sidebar.addNodes(node2d, this._graphRootName, false);
+                    this.fillGraph(null, node2d.id, this._core.scene2d);
                 }
                 if (!node) {
                     children = [];
-                    this._getRootNodes(children, "cameras");
-                    this._getRootNodes(children, "lights");
-                    this._getRootNodes(children, "meshes");
+                    this._getRootNodes(children, "cameras", scene);
+                    this._getRootNodes(children, "lights", scene);
+                    this._getRootNodes(children, "meshes", scene);
                 }
                 else
                     children = node.getDescendants ? node.getDescendants() : [];
@@ -221,9 +225,6 @@ var BABYLON;
                             this.sidebar.addNodes(lfNode, node.id, false);
                         }
                     }
-                }
-                // If 2D
-                if (node instanceof BABYLON.Container2D) {
                 }
                 // If submeshes
                 if (node instanceof BABYLON.AbstractMesh && node.subMeshes && node.subMeshes.length > 1) {
@@ -256,6 +257,12 @@ var BABYLON;
                             var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                             this.sidebar.addNodes(childNode, instancesNode.id, false);
                         }
+                        else if (object instanceof BABYLON.Container2D) {
+                            var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                            if (childrenLength > 0)
+                                childNode.count = childrenLength;
+                            this.sidebar.addNodes(childNode, root ? root : node.id, false);
+                        }
                         else {
                             var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                             if (childrenLength > 0)
@@ -281,8 +288,8 @@ var BABYLON;
                 this.sidebar.addNodes(node);
             };
             // Fills the result array of nodes when the node hasn't any parent
-            SceneGraphTool.prototype._getRootNodes = function (result, entities) {
-                var elements = this._core.currentScene[entities];
+            SceneGraphTool.prototype._getRootNodes = function (result, entities, scene) {
+                var elements = scene[entities];
                 for (var i = 0; i < elements.length; i++) {
                     if (!elements[i].parent) {
                         result.push(elements[i]);

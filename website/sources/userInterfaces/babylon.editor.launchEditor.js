@@ -18,6 +18,7 @@ var BABYLON;
                 picker.objectLists.push(core.currentScene.meshes);
                 picker.objectLists.push(core.currentScene.particleSystems);
                 picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
+                picker.objectLists.push(core.scene2d.meshes);
                 picker.selectedObjects = EDITOR.SceneFactory.NodesToStart;
                 picker.minSelectCount = 0;
                 picker.includePostProcesses = true;
@@ -36,6 +37,9 @@ var BABYLON;
                         if (!node) {
                             // Sound ?
                             node = core.currentScene.getSoundByName(names[i]);
+                        }
+                        if (!node) {
+                            node = core.scene2d.getMeshByName(names[i]);
                         }
                         if (!node && EDITOR.SceneFactory.StandardPipeline && names[i] === EDITOR.SceneFactory.StandardPipeline._name)
                             node = EDITOR.SceneFactory.StandardPipeline;

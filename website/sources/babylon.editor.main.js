@@ -289,6 +289,9 @@ var BABYLON;
                     }
                     _this.core.currentScene.activeCamera = _this.core.camera;
                     _this.core.playCamera = camera;
+                    // Set 2D scene
+                    _this.core.removeScene(_this.core.scene2d);
+                    _this.core.scenes.push({ scene: _this.core.scene2d, render: true });
                     // Create render loop
                     _this.core.engine.stopRenderLoop();
                     _this.createRenderLoop();
@@ -323,10 +326,18 @@ var BABYLON;
                 this.core.canvas = document.getElementById("BABYLON-EDITOR-MAIN-CANVAS");
                 this.core.engine = new BABYLON.Engine(this.core.canvas, this.antialias, this.options);
                 this.core.engine.setHardwareScalingLevel(1.0 / devicePixelRatio);
+                // Main scene
                 this.core.currentScene = new BABYLON.Scene(this.core.engine);
                 this.core.currentScene.animations = [];
                 this.core.scenes.push({ render: true, scene: this.core.currentScene });
                 this._createBabylonCamera();
+                // Create 2D scene
+                this.core.scene2d = new BABYLON.Scene(this.core.engine);
+                this.core.scene2d.activeCamera = this.core.camera;
+                this.core.scene2d.autoClear = false;
+                this.core.scene2d.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+                this.core.scenes.push({ render: true, scene: this.core.scene2d });
+                // Events
                 window.addEventListener("resize", function (ev) {
                     if (_this.core.isPlaying) {
                         _this.core.isPlaying = false;
