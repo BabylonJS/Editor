@@ -30,6 +30,8 @@
         private _uiCreated: boolean;
         private _particleSystemCapacity: string = "";
 
+        private _blendMode: string = "";
+
         /**
         * Constructor
         * @param core: the editor core
@@ -248,7 +250,12 @@
             // Texture
             commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
 
-            commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
+            if (ps.blendMode === ParticleSystem.BLENDMODE_ONEONE)
+                this._blendMode = "ONEONE";
+            else
+                this._blendMode = "STANDARD";
+            
+            commonFolder.add(this, "_blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
                 switch (result) {
                     case "ONEONE": ps.blendMode = ParticleSystem.BLENDMODE_ONEONE; break;
                     case "STANDARD": ps.blendMode = ParticleSystem.BLENDMODE_STANDARD; break;

@@ -11,6 +11,9 @@ module BABYLON.EDITOR {
 
         private _currentTexture: Texture = null;
 
+        private _clipPlayDelay: number = 100;
+        private _clipCount: number = 1;
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -89,7 +92,12 @@ module BABYLON.EDITOR {
 
             displayFolder.add(this, "_resizeType", resizeType).name("Resize type").onFinishChange((result: string) => {
                 object.resize = Resize[result];
+                this.update();
             });
+
+            if (object.resize === Resize.FIT) {
+                displayFolder.add(object, "fitCoefficient").min(0).step(0.01).name("Fit coefficient");
+            }
 
             // Pivot
             var pivotFolder = this._element.addFolder("Pivot");
@@ -98,16 +106,42 @@ module BABYLON.EDITOR {
             pivotFolder.add(pivot, "x").min(0).max(1).step(0.01).name("x").onChange(() => object.setPivotPoint(pivot));
             pivotFolder.add(pivot, "y").min(0).max(1).step(0.01).name("y").onChange(() => object.setPivotPoint(pivot));
 
+            // If clip
+            if (object instanceof Clip2D) {
+                var clipFolder = this._element.addFolder("Clip");
+                clipFolder.open();
+
+                clipFolder.add(this, "_clipPlayDelay").min(0).step(1).name("Clip delay").onChange(() => this._postClipAnimation());
+                clipFolder.add(this, "_clipCount").min(0).step(1).name("Clip count").onChange(() => this._postClipAnimation());
+
+                clipFolder.add(this, "_playClip").name("Play clip");
+                clipFolder.add(this, "_pauseClip").name("Pause clip");
+                clipFolder.add(this, "_stopClip").name("Stop clip");
+            }
+
             // If sprite
             if (object instanceof Sprite2D) {
                 this._currentTexture = object.textures[object.textureIndex];
 
+                // Sprite
                 var spriteFolder = this._element.addFolder("Sprite");
                 this.addTextureFolder(this, "Texture", "_currentTexture", spriteFolder, false, () => {
                     (<Sprite2D>object).setTextures(this._currentTexture);
                 }).open();
+
+                if (!(object instanceof Clip2D)) {
+                    this.addVectorFolder(object.textureOffset, "Texture offset", true, spriteFolder);
+                    this.addVectorFolder(object.textureScale, "Texture zoom", true, spriteFolder);
+                }
+            
+                // Drawing
+                var drawingFolder = spriteFolder.addFolder("Drawing");
+                drawingFolder.open();
+
+                drawingFolder.add(object, "invertY").name("Invert Y");
             }
-            else {
+
+            if (object instanceof Container2D && !(object instanceof Sprite2D)) {
                 var dimensionsFolder = this._element.addFolder("Dimensions");
                 dimensionsFolder.open();
 
@@ -116,6 +150,31 @@ module BABYLON.EDITOR {
             }
 
             return true;
+        }
+
+        // Plays the clip
+        private _playClip(): void {
+            var object = <Clip2D>this.object;
+            object.play(this._clipPlayDelay, this._clipCount);
+        }
+
+        // Pauses the clip
+        private _pauseClip(): void {
+            var object = <Clip2D>this.object;
+            object.pause();
+        }
+
+        // Stops the clip
+        private _stopClip(): void {
+            var object = <Clip2D>this.object;
+            object.stop();
+        }
+
+        // On post configure clip animation
+        private _postClipAnimation(): void {
+            var object = <Clip2D>this.object;
+            if (object.isPlaying)
+                object.play(this._clipPlayDelay, this._clipCount);
         }
     }
 }

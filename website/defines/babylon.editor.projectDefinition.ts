@@ -144,6 +144,8 @@ declare module BABYLON.EDITOR.INTERNAL {
         actions: any;
         physicsEnabled: boolean;
 
+        scene2d: INode[];
+
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;
     }

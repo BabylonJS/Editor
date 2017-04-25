@@ -80,6 +80,7 @@ var BABYLON;
                     else
                         object.parent = scene.getMeshByName(result);
                     _this._editionTool.core.editor.sceneGraphTool.fillGraph();
+                    _this._editionTool.core.editor.sceneGraphTool.sidebar.refresh();
                     _this._editionTool.core.editor.sceneGraphTool.sidebar.setSelected(object.id);
                 });
                 // Camera

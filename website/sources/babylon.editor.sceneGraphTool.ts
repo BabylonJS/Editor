@@ -241,7 +241,7 @@
                 }
 
                 // 2d
-                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder");
+                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder", this._core.currentScene);
                 this.sidebar.addNodes(node2d, this._graphRootName, false);
 
                 this.fillGraph(null, node2d.id, this._core.scene2d);
@@ -318,14 +318,6 @@
 
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
                         this.sidebar.addNodes(childNode, instancesNode.id, false);
-                    }
-                    else if (object instanceof Container2D) {
-                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-
-                        if (childrenLength > 0)
-                            childNode.count = childrenLength;
-
-                        this.sidebar.addNodes(childNode, root ? root : node.id, false);
                     }
                     else {
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);

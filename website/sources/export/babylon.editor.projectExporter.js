@@ -27,6 +27,7 @@ var BABYLON;
                     actions: this._SerializeActionManager(core.currentScene),
                     physicsEnabled: core.currentScene.isPhysicsEnabled(),
                     sounds: this._SerializeSounds(core),
+                    scene2d: this._Serialize2d(core),
                     requestedMaterials: requestMaterials ? [] : undefined,
                     customMetadatas: this._SerializeCustomMetadatas()
                 };
@@ -351,6 +352,25 @@ var BABYLON;
                     dict[thing] = EDITOR.SceneManager._CustomMetadatas[thing];
                 }
                 return dict;
+            };
+            // Serializes the scene 2d
+            ProjectExporter._Serialize2d = function (core) {
+                var nodes = [];
+                debugger;
+                for (var i = 0; i < core.scene2d.meshes.length; i++) {
+                    var mesh = core.scene2d.meshes[i];
+                    if (!(mesh instanceof BABYLON.Container2D))
+                        continue;
+                    console.log(mesh.name);
+                    nodes.push({
+                        id: mesh.id,
+                        animations: [],
+                        name: mesh.name,
+                        type: "Mesh",
+                        serializationObject: mesh.serialize()
+                    });
+                }
+                return nodes;
             };
             // Setups the requested materials (to be uploaded in template or release)
             ProjectExporter._RequestMaterial = function (core, project, material) {

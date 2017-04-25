@@ -87,6 +87,7 @@
                     object.parent = scene.getMeshByName(result);
 
                 this._editionTool.core.editor.sceneGraphTool.fillGraph();
+                this._editionTool.core.editor.sceneGraphTool.sidebar.refresh();
                 this._editionTool.core.editor.sceneGraphTool.sidebar.setSelected(object.id);
             });
 

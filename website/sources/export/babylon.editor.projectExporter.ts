@@ -26,6 +26,8 @@
                 physicsEnabled: core.currentScene.isPhysicsEnabled(),
                 sounds: this._SerializeSounds(core),
 
+                scene2d: this._Serialize2d(core),
+
                 requestedMaterials: requestMaterials ? [] : undefined,
                 customMetadatas: this._SerializeCustomMetadatas()
             };
@@ -429,6 +431,29 @@
             }
 
             return dict;
+        }
+
+        // Serializes the scene 2d
+        private static _Serialize2d(core: EditorCore): INTERNAL.INode[] {
+            var nodes: INTERNAL.INode[] = [];
+
+            debugger;
+            for (var i = 0; i < core.scene2d.meshes.length; i++) {
+                var mesh = core.scene2d.meshes[i];
+                if (!(mesh instanceof Container2D))
+                    continue;
+
+                console.log(mesh.name);
+                nodes.push({
+                    id: mesh.id,
+                    animations: [],
+                    name: mesh.name,
+                    type: "Mesh",
+                    serializationObject: mesh.serialize()
+                });
+            }
+
+            return nodes;
         }
 
         // Setups the requested materials (to be uploaded in template or release)

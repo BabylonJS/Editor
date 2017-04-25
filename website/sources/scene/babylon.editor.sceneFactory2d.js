@@ -19,6 +19,14 @@ var BABYLON;
                 EDITOR.SceneFactory.ConfigureObject(sprite, core);
                 return sprite;
             };
+            // Adds a new clip2d
+            SceneFactory2D.AddClip2D = function (core) {
+                var clip = new BABYLON.Clip2D("New clip", core.scene2d);
+                clip.id = EDITOR.SceneFactory.GenerateUUID();
+                clip.play(200, 45);
+                EDITOR.SceneFactory.ConfigureObject(clip, core);
+                return clip;
+            };
             return SceneFactory2D;
         }());
         EDITOR.SceneFactory2D = SceneFactory2D;

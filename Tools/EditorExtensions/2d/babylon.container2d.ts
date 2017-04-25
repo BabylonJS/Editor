@@ -1,14 +1,20 @@
 module BABYLON {
     export class Container2D extends Mesh {
         // Public members
+        @serialize()
         public dock: number = Dock.LEFT | Dock.BOTTOM;
+        @serialize()
         public resize: number = Resize.NONE;
+
+        @serialize()
+        public fitCoefficient: number = 1;
 
         // Private members
         private _lastRenderWidth: number = -1;
         private _lastRenderHeight: number = -1;
 
         // Protected members
+        @serializeAsVector2()
         protected _pivot: Vector3 = Vector3.Zero();
         protected _isBufferDirty: boolean = false;
 
@@ -18,8 +24,8 @@ module BABYLON {
         protected _scalex: number = 1;
         protected _scaley: number = 1;
 
-        protected _width: number = 0;
-        protected _height: number = 0;
+        protected _width: number = 1;
+        protected _height: number = 1;
 
         // Constructor
         constructor(name: string, scene: Scene, parent?: Node) {
@@ -50,13 +56,20 @@ module BABYLON {
 
         public getWorldMatrix(): Matrix {
             if ((this.resize || this.dock) && this.isReady()) {
+                var parentWidth = this.parent ? (<Container2D>this.parent).width : Container2D.RenderWidth;
+                var parentHeight = this.parent ? (<Container2D>this.parent).height : Container2D.RenderHeight;
+
                 if (this.resize === Resize.COVER) {
-                    var ratio = Math.max(Container2D.RenderWidth * 2.0 / this.width, Container2D.RenderHeight * 2.0 / this.height);
+                    var ratio = Math.max(parentWidth * 2.0 / this.width, parentHeight * 2.0 / this.height);
                     this.scaling.x = this.scaling.y = ratio;
                 }
-                else if (this.resize === Resize.CONTAIN || this.resize === Resize.FIT) {
-                    var ratio = Math.min(Container2D.RenderWidth * 2.0 / this.width, Container2D.RenderHeight * 2.0 / this.height);
+                else if (this.resize === Resize.CONTAIN) {
+                    var ratio = Math.min(parentWidth * 2.0 / this.width, parentHeight * 2.0 / this.height);
                     this.scaling.x = this.scaling.y = ratio;
+                }
+                else if (this.resize === Resize.FIT) {
+                    var ratio = Math.min(parentWidth * 2.0 / this.width, parentHeight * 2.0 / this.height);
+                    this.scaling.x = this.scaling.y = ratio * this.fitCoefficient;
                 }
                 else {
                     this.scaling.x = this._scalex;
@@ -65,23 +78,23 @@ module BABYLON {
 
                 if (this.dock) {
                     if (this.dock & Dock.CENTER_HORIZONTAL) {
-                        this.position.x = ((Container2D.RenderWidth / 2.0) + this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                        this.position.x = ((parentWidth / 2.0) + this._x) / parentWidth * 2.0 * this.scaling.x;
                     }
                     else if (this.dock & Dock.RIGHT) {
-                        this.position.x = (Container2D.RenderWidth - this._x) / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                        this.position.x = (parentWidth - this._x) / parentWidth * 2.0 * this.scaling.x;
                     }
                     else {
-                        this.position.x = this._x / Container2D.RenderWidth * 2.0 * this.scaling.x;
+                        this.position.x = this._x / parentWidth * 2.0 * this.scaling.x;
                     }
 
                     if (this.dock & Dock.CENTER_VERTICAL) {
-                        this.position.y = ((Container2D.RenderHeight / 2.0) + this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                        this.position.y = ((parentHeight / 2.0) + this._y) / parentHeight * 2.0 * this.scaling.y;
                     }
                     else if (this.dock & Dock.TOP) {
-                        this.position.y = (Container2D.RenderHeight - this._y) / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                        this.position.y = (parentHeight - this._y) / parentHeight * 2.0 * this.scaling.y;
                     }
                     else {
-                        this.position.y = this._y / Container2D.RenderHeight * 2.0 * this.scaling.y;
+                        this.position.y = this._y / parentHeight * 2.0 * this.scaling.y;
                     }
                 }
 
@@ -112,30 +125,52 @@ module BABYLON {
             return this._pivot;
         }
 
+        @serialize()
         public get x() { return this._x; }
         public set x(x: number) { this._x = x; }
 
+        @serialize()
         public get y() { return this._y; }
         public set y(y: number) { this._y = y; }
 
+        @serialize()
         public get rotationZ() { return this.rotation.z; }
         public set rotationZ(rotation: number) { this.rotation.z = rotation; }
 
         public set scaleXY(xy: number) { this._scalex = this._scaley = xy; }
+        public get scaleXY() { return Math.max(this._scalex, this._scaley); }
 
+        @serialize()
         public get scaleX() { return this._scalex; }
         public set scaleX(scalex: number) { this._scalex = scalex; }
 
+        @serialize()
         public get scaleY() { return this._scaley; }
         public set scaleY(scaley: number) { this._scaley = scaley; }
 
+        @serialize()
         public get width(): number { return this._width; }
-        public set width(width: number) { this._width = width; }
+        public set width(width: number) { this._width = Math.max(width, 1); }
 
+        @serialize()
         public get height(): number { return this._height; }
-        public set height(height: number) { this._height = height; }
+        public set height(height: number) { this._height = Math.max(height, 1); }
 
         public static RenderWidth: number = 0;
         public static RenderHeight: number = 0;
+
+        // Serializes the container
+        public serialize(): any {
+            var serializationObject = SerializationHelper.Serialize(this);
+            serializationObject.customType = "Container2D";
+            serializationObject.parentName = this.parent ? this.parent.name : null;
+            return serializationObject;
+        }
+
+        // Parses the container
+        public static Parse(serializationObject: any, scene: Scene, rootUrl: string): Container2D {
+            var container = SerializationHelper.Parse(() => new Container2D(serializationObject.name, scene), serializationObject, scene, rootUrl);
+            return container;
+        }
     } 
 }

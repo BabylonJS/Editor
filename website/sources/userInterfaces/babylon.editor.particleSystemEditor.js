@@ -30,6 +30,7 @@ var BABYLON;
                 this._particleSystem = null;
                 this._particleSystemToEdit = null;
                 this._particleSystemCapacity = "";
+                this._blendMode = "";
                 // Initialize
                 this.core = core;
                 this._uiCreated = createUI;
@@ -205,7 +206,11 @@ var BABYLON;
                 });
                 // Texture
                 commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
-                commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange(function (result) {
+                if (ps.blendMode === BABYLON.ParticleSystem.BLENDMODE_ONEONE)
+                    this._blendMode = "ONEONE";
+                else
+                    this._blendMode = "STANDARD";
+                commonFolder.add(this, "_blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange(function (result) {
                     switch (result) {
                         case "ONEONE":
                             ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;

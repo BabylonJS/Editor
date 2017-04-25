@@ -4,12 +4,15 @@ module BABYLON {
 
         "uniform sampler2D textureSampler;",
         "uniform float alpha;",
+        "uniform vec2 uvOffset;",
+        "uniform vec2 uvScale;",
+        "uniform float invertY;",
 
         "varying vec2 vUV;",
 
         "void main(void)",
         "{",
-        "    vec4 color = texture2D(textureSampler, vUV);",
+        "    vec4 color = texture2D(textureSampler, vec2(vUV.x, vUV.y * invertY) * uvScale + uvOffset);",
         "    if (color.a < 0.4)",
         "       discard;",
 

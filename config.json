@@ -115,6 +115,7 @@
       "sources/plugins/babylon.editor.geometriesMenu.js",
       "sources/plugins/babylon.editor.lightsMenu.js",
       "sources/plugins/babylon.editor.soundsMenu.js",
+      "sources/plugins/babylon.editor.scene2dMenu.js",
 
       "sources/plugins/mainTools/babylon.editor.toolsMenu.js",
       "sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilder.js",
@@ -169,6 +170,7 @@
       "Tools/EditorExtensions/2d/babylon.resize2d.ts",
       "Tools/EditorExtensions/2d/babylon.container2d.ts",
       "Tools/EditorExtensions/2d/babylon.sprite2d.ts",
+      "Tools/EditorExtensions/2d/babylon.clip2d.ts",
       "Tools/EditorExtensions/2d/babylon.shader2d.ts"
     ]
   }

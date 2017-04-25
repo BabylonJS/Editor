@@ -23,6 +23,8 @@ var BABYLON;
                 _this._currentDockY = "";
                 _this._resizeType = "";
                 _this._currentTexture = null;
+                _this._clipPlayDelay = 100;
+                _this._clipCount = 1;
                 // Initialize
                 _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-CONTAINER-2D"
@@ -81,27 +83,71 @@ var BABYLON;
                 this._resizeType = resizeType[this.object.resize];
                 displayFolder.add(this, "_resizeType", resizeType).name("Resize type").onFinishChange(function (result) {
                     object.resize = BABYLON.Resize[result];
+                    _this.update();
                 });
+                if (object.resize === BABYLON.Resize.FIT) {
+                    displayFolder.add(object, "fitCoefficient").min(0).step(0.01).name("Fit coefficient");
+                }
                 // Pivot
                 var pivotFolder = this._element.addFolder("Pivot");
                 var pivot = object.getPivotPoint();
                 pivotFolder.add(pivot, "x").min(0).max(1).step(0.01).name("x").onChange(function () { return object.setPivotPoint(pivot); });
                 pivotFolder.add(pivot, "y").min(0).max(1).step(0.01).name("y").onChange(function () { return object.setPivotPoint(pivot); });
+                // If clip
+                if (object instanceof BABYLON.Clip2D) {
+                    var clipFolder = this._element.addFolder("Clip");
+                    clipFolder.open();
+                    clipFolder.add(this, "_clipPlayDelay").min(0).step(1).name("Clip delay").onChange(function () { return _this._postClipAnimation(); });
+                    clipFolder.add(this, "_clipCount").min(0).step(1).name("Clip count").onChange(function () { return _this._postClipAnimation(); });
+                    clipFolder.add(this, "_playClip").name("Play clip");
+                    clipFolder.add(this, "_pauseClip").name("Pause clip");
+                    clipFolder.add(this, "_stopClip").name("Stop clip");
+                }
                 // If sprite
                 if (object instanceof BABYLON.Sprite2D) {
                     this._currentTexture = object.textures[object.textureIndex];
+                    // Sprite
                     var spriteFolder = this._element.addFolder("Sprite");
                     this.addTextureFolder(this, "Texture", "_currentTexture", spriteFolder, false, function () {
                         object.setTextures(_this._currentTexture);
                     }).open();
+                    if (!(object instanceof BABYLON.Clip2D)) {
+                        this.addVectorFolder(object.textureOffset, "Texture offset", true, spriteFolder);
+                        this.addVectorFolder(object.textureScale, "Texture zoom", true, spriteFolder);
+                    }
+                    // Drawing
+                    var drawingFolder = spriteFolder.addFolder("Drawing");
+                    drawingFolder.open();
+                    drawingFolder.add(object, "invertY").name("Invert Y");
                 }
-                else {
+                if (object instanceof BABYLON.Container2D && !(object instanceof BABYLON.Sprite2D)) {
                     var dimensionsFolder = this._element.addFolder("Dimensions");
                     dimensionsFolder.open();
                     dimensionsFolder.add(object, "width").min(0).step(0.01).name("Width");
                     dimensionsFolder.add(object, "height").min(0).step(0.01).name("Height");
                 }
                 return true;
+            };
+            // Plays the clip
+            Container2DTool.prototype._playClip = function () {
+                var object = this.object;
+                object.play(this._clipPlayDelay, this._clipCount);
+            };
+            // Pauses the clip
+            Container2DTool.prototype._pauseClip = function () {
+                var object = this.object;
+                object.pause();
+            };
+            // Stops the clip
+            Container2DTool.prototype._stopClip = function () {
+                var object = this.object;
+                object.stop();
+            };
+            // On post configure clip animation
+            Container2DTool.prototype._postClipAnimation = function () {
+                var object = this.object;
+                if (object.isPlaying)
+                    object.play(this._clipPlayDelay, this._clipCount);
             };
             return Container2DTool;
         }(EDITOR.AbstractDatTool));

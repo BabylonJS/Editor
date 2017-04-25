@@ -20,5 +20,16 @@ module BABYLON.EDITOR {
 
             return sprite;
         }
+
+        // Adds a new clip2d
+        static AddClip2D(core: EditorCore): Sprite2D {
+            var clip = new Clip2D("New clip", core.scene2d);
+            clip.id = SceneFactory.GenerateUUID();
+            clip.play(200, 45);
+
+            SceneFactory.ConfigureObject(clip, core);
+
+            return clip;
+        }
     }
 }
