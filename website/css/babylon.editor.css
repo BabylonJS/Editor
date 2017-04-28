@@ -251,3 +251,7 @@ html, body {
 .w2ui-icon.icon-reflection {
     background: url("images/reflection.png");
 }
+
+.w2ui-icon.icon-dynamic-texture {
+    background: url("images/dynamic_texture.png");
+}

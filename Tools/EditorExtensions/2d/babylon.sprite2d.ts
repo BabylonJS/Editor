@@ -54,8 +54,12 @@ module BABYLON {
             this.textures = Array.isArray(textures) ? textures : [textures];
 
             // Set new positions in vertex data
-            if (this.textures[this._textureIndex])
-                this.textures[this._textureIndex].onLoadObservable.add(() => this._updateBuffers(this.textures[0]));
+            if (this.textures[this._textureIndex]) {
+                if (this.textures[this._textureIndex].isReady())
+                    this._updateBuffers(this.textures[this._textureIndex]);
+                else
+                    this.textures[this._textureIndex].onLoadObservable.add(() => this._updateBuffers(this.textures[this._textureIndex]));
+            }
         }
 
         // Sets the frame coordinates (x, y, width, height)
@@ -73,7 +77,7 @@ module BABYLON {
             if (!texture)
                 return 0;
 
-            return texture.getBaseSize().width * this.scaleX;
+            return texture.getBaseSize().width; // * this.scaleX;
         }
 
         // Returns the height of the sprite
@@ -142,7 +146,9 @@ module BABYLON {
             data[9] = 0 - 1.0 - this._pivot.x * width;
             data[10] = height - 1.0 - this._pivot.y * height;
 
+            // Update
             vertexBuffer.update(data);
+            this.refreshBoundingInfo();
         }
 
         // Prepares the buffers for sprite

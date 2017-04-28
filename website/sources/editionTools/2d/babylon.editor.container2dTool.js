@@ -120,7 +120,7 @@ var BABYLON;
                     drawingFolder.open();
                     drawingFolder.add(object, "invertY").name("Invert Y");
                 }
-                if (object instanceof BABYLON.Container2D && !(object instanceof BABYLON.Sprite2D)) {
+                if ((object instanceof BABYLON.Container2D && !(object instanceof BABYLON.Sprite2D)) || object instanceof BABYLON.Clip2D) {
                     var dimensionsFolder = this._element.addFolder("Dimensions");
                     dimensionsFolder.open();
                     dimensionsFolder.add(object, "width").min(0).step(0.01).name("Width");

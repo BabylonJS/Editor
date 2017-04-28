@@ -18,6 +18,25 @@
             "webRoot": "${workspaceRoot}/website/",
             "sourceMaps": false,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+        },
+        {
+            "name": "Debug electron",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/electronPackages/BabylonJSEditor-darwin-x64/BabylonJSEditor.app/Contents/Resources/app/electron/main.js",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}/electronPackages/BabylonJSEditor-darwin-x64/BabylonJSEditor.app/Contents/Resources/app/",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "runtimeArgs": [
+                ".",
+                "--enable-logging"
+            ],
+            "env": { },
+            "sourceMaps": true,
+            "outFiles": [
+                
+            ]
         }
     ]
 }

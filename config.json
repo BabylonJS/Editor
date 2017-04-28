@@ -126,6 +126,8 @@
       "sources/plugins/mainTools/babylon.editor.softBodyBuilder.js",
       "sources/plugins/mainTools/babylon.editor.materialBuilder.js",
 
+      "sources/plugins/mainTools/babylon.editor.dynamicTextureBuilder.js",
+
       "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
     ]
   },
@@ -154,7 +156,8 @@
       "Tools/EditorExtensions/babylon.editor.postProcessExtension.ts",
       "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
       "Tools/EditorExtensions/babylon.editor.softBodyExtension.ts",
-
+      "Tools/EditorExtensions/babylon.editor.dynamicTextureExtension.ts",
+      
       "Tools/EditorExtensions/Materials/babylon.editor.materialBaseExtension.ts",
       "Tools/EditorExtensions/Materials/babylon.editor.materialExtension.ts",
 

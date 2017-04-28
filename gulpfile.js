@@ -99,7 +99,15 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
         }));
     
     // Return js
-	return result.js.pipe(gulp.dest(config.build.outputDirectory))
+	return result.js
+        .pipe(sourcemaps.write("./", 
+        {
+            includeContent: false, 
+            sourceRoot: (filePath) => {
+                return "./";
+            }
+        }))
+        .pipe(gulp.dest(config.build.outputDirectory))
         .pipe(concat(config.build.filename))
         .pipe(cleants())
         .pipe(gulp.dest(config.build.outputDirectory))
@@ -121,7 +129,7 @@ gulp.task("build-extensions", function () {
         }));
 
     return merge2([
-        result.js.pipe(gulp.dest(config.build.outputDirectory))
+        result.js
             .pipe(sourcemaps.write("./", 
             {
                 includeContent: false, 
@@ -129,6 +137,7 @@ gulp.task("build-extensions", function () {
                     return "./";
                 }
             }))
+            .pipe(gulp.dest(config.build.outputDirectory))
             .pipe(concat(config.editorExtensions.filename))
             .pipe(cleants())
             .pipe(gulp.dest(config.build.outputDirectory))
@@ -193,7 +202,15 @@ gulp.task("electron", ["build"], function () {
             experimentalDecorators: false
         }));
 
-    result.js.pipe(gulp.dest(config.electron.typescriptOutDir));
+    result.js
+        .pipe(sourcemaps.write("./", 
+        {
+            includeContent: false, 
+            sourceRoot: (filePath) => {
+                return "./";
+            }
+        }))
+        .pipe(gulp.dest(config.electron.typescriptOutDir));
 
     // OS X
     // gulp electron --osx --arch=x64 --platform=darwin

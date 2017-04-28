@@ -14,6 +14,7 @@ var BABYLON;
                 this._openPostProcessBuilder = "OPEN-POST-PROCESS-BUILDER";
                 this._openMaterialBuilder = "OPEN-MATERIAL-BUILDER";
                 this._openSoftBodyBuilder = "OPEN-SOFT-BODY-BUILDER";
+                this._openDynamicTextureBuilder = "OPEN-DYNAMIC-TEXTURE-BUILDER";
                 this._openCosmos = "OPEN-COSMOS";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
@@ -26,6 +27,8 @@ var BABYLON;
                 toolbar.createMenuItem(menu, "button", this._openMaterialBuilder, "Open Material Builder", "icon-shaders");
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openSoftBodyBuilder, "Open Soft Body Builder", "icon-soft-body");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._openDynamicTextureBuilder, "Dynamic Texture Builder", "icon-dynamic-texture");
                 //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);
@@ -50,6 +53,9 @@ var BABYLON;
                         break;
                     case this._openCosmos:
                         new EDITOR.CosmosEditor(this._core);
+                        break;
+                    case this._openDynamicTextureBuilder:
+                        new EDITOR.DynamicTextureBuilder(this._core);
                         break;
                     default: break;
                 }

@@ -141,7 +141,7 @@ module BABYLON.EDITOR {
                 drawingFolder.add(object, "invertY").name("Invert Y");
             }
 
-            if (object instanceof Container2D && !(object instanceof Sprite2D)) {
+            if ((object instanceof Container2D && !(object instanceof Sprite2D)) || object instanceof Clip2D) {
                 var dimensionsFolder = this._element.addFolder("Dimensions");
                 dimensionsFolder.open();
 

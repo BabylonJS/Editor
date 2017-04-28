@@ -3,8 +3,8 @@ module BABYLON {
         // Public members
         
         // Private members
-        private _spriteWidth: number = 1;
-        private _spriteHeight: number = 1;
+        private _spriteWidth: number = 64;
+        private _spriteHeight: number = 64;
 
         private _animated: boolean = false;
 

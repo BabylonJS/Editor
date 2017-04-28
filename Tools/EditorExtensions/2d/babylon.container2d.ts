@@ -99,8 +99,8 @@ module BABYLON {
                 }
 
                 // Adjust fit
-                if (this.resize === Resize.FIT) {
-                    if (this.dock && this.dock & Dock.RIGHT)
+                if (this.resize === Resize.FIT && this.dock) {
+                    if (this.dock & Dock.RIGHT)
                         this.position.x -= this.scaling.x - 1.0;
                     else
                         this.position.x += this.scaling.x - 1.0;
