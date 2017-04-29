@@ -29,7 +29,7 @@ var BABYLON;
                     sounds: this._SerializeSounds(core),
                     scene2d: this._Serialize2d(core),
                     requestedMaterials: requestMaterials ? [] : undefined,
-                    customMetadatas: this._SerializeCustomMetadatas()
+                    customMetadatas: this._SerializeCustomMetadatas(core)
                 };
                 this._TraverseNodes(core, null, project);
                 if (!core.isPlaying)
@@ -346,17 +346,25 @@ var BABYLON;
             };
             // Serializes the custom metadatas, largely used by plugins like post-process builder
             // plugin.
-            ProjectExporter._SerializeCustomMetadatas = function () {
+            ProjectExporter._SerializeCustomMetadatas = function (core) {
                 var dict = {};
                 for (var thing in EDITOR.SceneManager._CustomMetadatas) {
                     dict[thing] = EDITOR.SceneManager._CustomMetadatas[thing];
+                    for (var i = 0; i < EDITOR.EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                        var extension = EDITOR.EXTENSIONS.EditorExtension._Extensions[i];
+                        if (!extension.prototype.onSerialize)
+                            continue;
+                        var instance = new extension(core.currentScene);
+                        if (instance.extensionKey !== thing)
+                            continue;
+                        instance.onSerialize(dict[thing]);
+                    }
                 }
                 return dict;
             };
             // Serializes the scene 2d
             ProjectExporter._Serialize2d = function (core) {
                 var nodes = [];
-                debugger;
                 for (var i = 0; i < core.scene2d.meshes.length; i++) {
                     var mesh = core.scene2d.meshes[i];
                     if (!(mesh instanceof BABYLON.Container2D))

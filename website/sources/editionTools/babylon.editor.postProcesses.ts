@@ -81,7 +81,7 @@
 
                 var lensFolder = standardFolder.addFolder("Lens Flare");
                 lensFolder.add(SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
-                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
+                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(100).step(0.01).name("Strength");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(500).step(0.1).name("Distortion Strength");

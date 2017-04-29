@@ -24,6 +24,9 @@ module BABYLON.EDITOR {
 
         private _currentTexture: string = "";
 
+        private _textureObject?: DynamicTexture;
+        private _sceneTextureObject?: DynamicTexture;
+
         // Constructor
         constructor(core: EditorCore) {
             // Initialize
@@ -34,9 +37,7 @@ module BABYLON.EDITOR {
 
             // Create extensions and scene
             this._createScene();
-
             this._extension = new EXTENSIONS.DynamicTextureBuilderExtension(this._scene);
-            this._currentMetadatas = this._getMetadatas();
 
             // Create form
             this._createEditForm();
@@ -58,6 +59,8 @@ module BABYLON.EDITOR {
             this._editForm = new GUI.GUIEditForm("DYNAMIC-TEXTURE-BUILDER-EDIT", this._core);
             this._editForm.buildElement("DYNAMIC-TEXTURE-BUILDER-EDIT");
 
+            this._currentMetadatas = this._getMetadatas();
+
             // Fill
             var textures: string[] = [];
             for (var i = 0; i < this._currentMetadatas.length; i++)
@@ -65,7 +68,7 @@ module BABYLON.EDITOR {
 
             if (this._currentTexture === "") {
                 this._currentTexture = textures[0];
-                this._material.emissiveTexture = this._material.diffuseTexture = this._currentMetadatas[0].textureObject;
+                this._material.emissiveTexture = this._material.diffuseTexture = this._textureObject;
             }
 
             var mainFolder = this._editForm.addFolder("Main");
@@ -85,21 +88,22 @@ module BABYLON.EDITOR {
             var editFolder = this._editForm.addFolder("Edit");
             editFolder.add(this._currentMetadata, "name").name("Name").onFinishChange((result: string) => {
                 this._currentTexture = result;
+                this._createTextureInMainScene();
                 this._createEditForm();
             });
-            editFolder.add(this._currentMetadata, "clearColor").name("Clear color").onChange(() => this._onDynamicTextureChange());
-            editFolder.add(this._currentMetadata, "hasAlpha").name("Has alpha").onChange(() => this._onDynamicTextureChange());
+            editFolder.add(this._currentMetadata, "clearColor").name("Clear color").onChange(() => this._createTextureInMainScene());
+            editFolder.add(this._currentMetadata, "hasAlpha").name("Has alpha").onChange(() => this._createTextureInMainScene());
 
-            editFolder.add(this._currentMetadata, "width").min(0).max(this._engine.getCaps().maxTextureSize / 2).step(1).name("Width").onChange(() => this._onDynamicTextureChange());
-            editFolder.add(this._currentMetadata, "height").min(0).max(this._engine.getCaps().maxTextureSize / 2).step(1).name("height").onChange(() => this._onDynamicTextureChange());
+            editFolder.add(this._currentMetadata, "width").min(0).max(this._engine.getCaps().maxTextureSize / 2).step(1).name("Width").onChange(() => this._createTextureInMainScene());
+            editFolder.add(this._currentMetadata, "height").min(0).max(this._engine.getCaps().maxTextureSize / 2).step(1).name("height").onChange(() => this._createTextureInMainScene());
 
             // Edit texture
             var editText = this._editForm.addFolder("Edit text");
-            editText.add(this._currentMetadata, "text").name("Text").onChange(() => this._onDynamicTextureChange());
-            editText.add(this._currentMetadata, "textx").step(1).name("x").onChange(() => this._onDynamicTextureChange());
-            editText.add(this._currentMetadata, "texty").step(1).name("y").onChange(() => this._onDynamicTextureChange());
-            editText.add(this._currentMetadata, "textColor").name("Text color").onChange(() => this._onDynamicTextureChange());
-            editText.add(this._currentMetadata, "textFont").name("Text font").onChange(() => this._onDynamicTextureChange());
+            editText.add(this._currentMetadata, "text").name("Text").onChange(() => this._createTextureInMainScene());
+            editText.add(this._currentMetadata, "textx").step(1).name("x").onChange(() => this._createTextureInMainScene());
+            editText.add(this._currentMetadata, "texty").step(1).name("y").onChange(() => this._createTextureInMainScene());
+            editText.add(this._currentMetadata, "textColor").name("Text color").onChange(() => this._createTextureInMainScene());
+            editText.add(this._currentMetadata, "textFont").name("Text font").onChange(() => this._createTextureInMainScene());
         }
 
         // When the dynamic texture has to be changed
@@ -107,17 +111,24 @@ module BABYLON.EDITOR {
             if (!scene)
                 scene = this._scene;
             
-            var texture = this._currentMetadata.textureObject;
-            texture.dispose();
+            var texture: DynamicTexture;
+            
+            if (scene === this._scene)
+                texture = this._textureObject;
+            else
+                texture = this._sceneTextureObject;
+            
+            if (texture)
+                texture.dispose();
 
-            texture = this._currentMetadata.textureObject = new DynamicTexture(this._currentMetadata.name, { width: this._currentMetadata.width, height: this._currentMetadata.height }, scene, false);
-            this._material.emissiveTexture = this._material.diffuseTexture = texture;
+            texture = EXTENSIONS.DynamicTextureBuilderExtension.SetupDynamicTexture(this._currentMetadata, scene);
 
-            texture.clear();
-            texture.drawText(this._currentMetadata.text, this._currentMetadata.textx, this._currentMetadata.texty, this._currentMetadata.textFont, this._currentMetadata.textColor, this._currentMetadata.clearColor);
-            texture.update(true);
-
-            texture.hasAlpha = this._currentMetadata.hasAlpha;
+            if (scene === this._scene) {
+                this._textureObject = texture;
+                this._material.emissiveTexture = this._material.diffuseTexture = texture;
+            }
+            else
+                this._sceneTextureObject = texture;
 
             this._material.markAsDirty(Material.TextureDirtyFlag);
             this._material.markDirty();
@@ -126,7 +137,7 @@ module BABYLON.EDITOR {
         }
 
         // Creates the texture in main scene
-        private _createTextureInMainScene(): void {
+        private _createTextureInMainScene(storeMetadatas: boolean = true): void {
             var texture = this._onDynamicTextureChange(this._core.currentScene);
 
             for (var i = 0; i < this._core.currentScene.materials.length; i++) {
@@ -136,16 +147,16 @@ module BABYLON.EDITOR {
                     if (!(material[thing] instanceof DynamicTexture))
                         continue;
 
-                    (<DynamicTexture>material[thing]).dispose();
                     material[thing] = texture;
                 }
             }
 
-            // GUI.GUIWindow.CreateAlert("Texture now available in main scene", "Information");
-            this._layouts.lockPanel("main", "Texture now available", false);
-            setTimeout(() => {
-                this._layouts.unlockPanel("main");
-            }, 1000);
+            // Rebuild local
+            this._onDynamicTextureChange();
+
+            // Store metadatas
+            if (storeMetadatas)
+                this._storeMetadatas();
         }
 
         // Gets the matadatas
@@ -165,24 +176,30 @@ module BABYLON.EDITOR {
                     texty: 256,
                     text: "Hello world",
                     textColor: "white",
-                    textFont: "bold 30px verdana",
-
-                    textureObject: new DynamicTexture("New dymanic texture", { width: 512, height: 512 }, this._scene, false)
+                    textFont: "bold 30px verdana"
                 });
-
-                metadatas[0].textureObject.drawText(metadatas[0].text, metadatas[0].textx, metadatas[0].texty, metadatas[0].textFont, "white", "black");
-                metadatas[0].textureObject.update(true);
-
-                this._currentMetadata = metadatas[0];
             }
 
+            if (!this._currentMetadata) {
+                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                    var texture = this._core.currentScene.textures[i];
+                    if (texture instanceof DynamicTexture && texture.name === metadatas[0].name) {
+                        this._sceneTextureObject = texture;
+                        break;
+                    }
+                }
+
+                this._currentMetadata = metadatas[0];
+                this._createTextureInMainScene(false);
+            }
+        
             SceneManager.AddCustomMetadata("DynamicTextureBuilder", metadatas);
 
             return metadatas;
         }
 
         // Stores the metadatas
-        private _storeMetadatas(data: EXTENSIONS.IDynamicTextureExtension[]): void {
+        private _storeMetadatas(): void {
             var datas = this._getMetadatas();
             SceneManager.AddCustomMetadata("DynamicTextureBuilder", datas);
         }

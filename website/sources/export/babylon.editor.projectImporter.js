@@ -259,6 +259,15 @@ var BABYLON;
                 // Custom metadatas
                 for (var thing in project.customMetadatas) {
                     EDITOR.SceneManager.AddCustomMetadata(thing, project.customMetadatas[thing]);
+                    for (var i = 0; i < EDITOR.EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                        var extension = EDITOR.EXTENSIONS.EditorExtension._Extensions[i];
+                        if (!extension.prototype.onLoad)
+                            continue;
+                        var extensionInstance = new extension(core.currentScene);
+                        if (extensionInstance.extensionKey !== thing)
+                            continue;
+                        extensionInstance.onLoad(project.customMetadatas[thing]);
+                    }
                 }
                 // Scene 2d
                 for (var i = 0; i < project.scene2d.length; i++) {

@@ -11,6 +11,10 @@
 
         // Called when extension is serialized
         onSerialize?(data: T): void;
+
+        // Caled when the extension should be loaded in order
+        // to apply itself on editor scene
+        onLoad?(data: T): void;
     }
 
     export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<T>;
@@ -25,7 +29,7 @@
         public static _ExtensionsDatas: { [name: string]: any };
 
         // The extensions plugins
-        private static _Extensions: _EditorExtensionConstructor[] = [];
+        public static _Extensions: _EditorExtensionConstructor[] = [];
         private static _InstancedExtensions: IEditorExtension<any>[] = [];
 
         // Loads the extensions file and parses it

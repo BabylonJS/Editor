@@ -301,6 +301,19 @@
             // Custom metadatas
             for (var thing in project.customMetadatas) {
                 SceneManager.AddCustomMetadata(thing, project.customMetadatas[thing]);
+
+                for (var i = 0; i < EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                    var extension = EXTENSIONS.EditorExtension._Extensions[i];
+
+                    if (!extension.prototype.onLoad)
+                        continue;
+                    
+                    var extensionInstance = new extension(core.currentScene);
+                    if (extensionInstance.extensionKey !== thing)
+                        continue;
+
+                    extensionInstance.onLoad(project.customMetadatas[thing]);
+                }
             }
 
             // Scene 2d

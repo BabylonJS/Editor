@@ -29,7 +29,7 @@
                 scene2d: this._Serialize2d(core),
 
                 requestedMaterials: requestMaterials ? [] : undefined,
-                customMetadatas: this._SerializeCustomMetadatas()
+                customMetadatas: this._SerializeCustomMetadatas(core)
             };
 
             this._TraverseNodes(core, null, project);
@@ -423,11 +423,24 @@
 
         // Serializes the custom metadatas, largely used by plugins like post-process builder
         // plugin.
-        private static _SerializeCustomMetadatas(): IStringDictionary<any> {
+        private static _SerializeCustomMetadatas(core: EditorCore): IStringDictionary<any> {
             var dict: IStringDictionary<any> = {};
 
             for (var thing in SceneManager._CustomMetadatas) {
                 dict[thing] = SceneManager._CustomMetadatas[thing];
+
+                for (var i = 0; i < EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                    var extension = EXTENSIONS.EditorExtension._Extensions[i];
+
+                    if (!extension.prototype.onSerialize)
+                        continue;
+                    
+                    var instance = new extension(core.currentScene);
+                    if (instance.extensionKey !== thing)
+                        continue;
+
+                    instance.onSerialize(dict[thing]);
+                }
             }
 
             return dict;
@@ -437,7 +450,6 @@
         private static _Serialize2d(core: EditorCore): INTERNAL.INode[] {
             var nodes: INTERNAL.INode[] = [];
 
-            debugger;
             for (var i = 0; i < core.scene2d.meshes.length; i++) {
                 var mesh = core.scene2d.meshes[i];
                 if (!(mesh instanceof Container2D))
