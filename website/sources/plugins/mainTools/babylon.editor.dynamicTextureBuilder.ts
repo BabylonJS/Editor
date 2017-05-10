@@ -27,7 +27,10 @@ module BABYLON.EDITOR {
         private _textureObject?: DynamicTexture;
         private _sceneTextureObject?: DynamicTexture;
 
-        // Constructor
+        /**
+        * Constructor
+        * @param core: the editor core
+        */
         constructor(core: EditorCore) {
             // Initialize
             this._core = core;
@@ -48,6 +51,7 @@ module BABYLON.EDITOR {
         */
         public dispose(): void {
             this._engine.dispose();
+            this._editForm.remove();
             this._layouts.destroy();
         }
 
@@ -59,9 +63,9 @@ module BABYLON.EDITOR {
             this._editForm = new GUI.GUIEditForm("DYNAMIC-TEXTURE-BUILDER-EDIT", this._core);
             this._editForm.buildElement("DYNAMIC-TEXTURE-BUILDER-EDIT");
 
+            // Fill
             this._currentMetadatas = this._getMetadatas();
 
-            // Fill
             var textures: string[] = [];
             for (var i = 0; i < this._currentMetadatas.length; i++)
                 textures.push(this._currentMetadatas[i].name);
@@ -71,18 +75,22 @@ module BABYLON.EDITOR {
                 this._material.emissiveTexture = this._material.diffuseTexture = this._textureObject;
             }
 
+            // Main
             var mainFolder = this._editForm.addFolder("Main");
             mainFolder.add(this, "_currentTexture", textures).name("Current texture").onFinishChange((result: string) => {
                 for (var i = 0; i < this._currentMetadatas.length; i++) {
                     if (this._currentMetadatas[i].name === result) {
                         this._currentMetadata = this._currentMetadatas[i];
+                        this._getMainSceneTexture(this._currentMetadata.name);
+                        this._onDynamicTextureChange();
                         break;
                     }
                 }
 
                 this._createEditForm();
             });
-            mainFolder.add(this, "_createTextureInMainScene").name("Apply on scene...");
+            mainFolder.add(this, "_createNewDynamicTexture").name("Create new...");
+            mainFolder.add(this, "_removeDynamicTexture").name("Remove...");
 
             // Edit texture
             var editFolder = this._editForm.addFolder("Edit");
@@ -159,43 +167,91 @@ module BABYLON.EDITOR {
                 this._storeMetadatas();
         }
 
+        // Creates a new dynamic texture
+        private _createNewDynamicTexture(setAsNew: boolean = true): void {
+            var metadatas = SceneManager.GetCustomMetadata<EXTENSIONS.IDynamicTextureExtension[]>("DynamicTextureBuilder");
+            metadatas.push({
+                name: "New dynamic texture " + SceneFactory.GenerateUUID(),
+                width: 512,
+                height: 512,
+
+                clearColor: "black",
+                hasAlpha: false,
+
+                textx: 256,
+                texty: 256,
+                text: "Hello world",
+                textColor: "white",
+                textFont: "bold 30px verdana"
+            });
+
+            if (setAsNew) {
+                this._currentMetadata = metadatas[metadatas.length - 1];
+                this._currentTexture = this._currentMetadata.name;
+                this._sceneTextureObject = null;
+                this._createTextureInMainScene(false);
+                this._createEditForm();
+            }
+        }
+
+        // Removes the selected dynamic texture
+        private _removeDynamicTexture(): void {
+            this._getMainSceneTexture(this._currentMetadata.name);
+            this._sceneTextureObject.dispose();
+
+            // for each material remove texture
+            for (var i = 0; i < this._core.currentScene.materials.length; i++) {
+                var material = this._core.currentScene.materials[i];
+
+                for (var thing in material) {
+                    if (material[thing] instanceof DynamicTexture && material[thing] === this._sceneTextureObject) {
+                        material[thing] = null;
+                    }
+                }
+            }
+
+            // Remove from metadatas
+            var metadatas = this._getMetadatas();
+            for (var i = 0; i < metadatas.length; i++) {
+                if (metadatas[i] === this._currentMetadata) {
+                    metadatas.splice(i, 1);
+                    break;
+                }
+            }
+
+            // Finish
+            this._currentTexture = "";
+            this._currentMetadata = null;
+            this._createEditForm();
+        }
+
         // Gets the matadatas
         private _getMetadatas(): EXTENSIONS.IDynamicTextureExtension[] {
             var metadatas = SceneManager.GetCustomMetadata<EXTENSIONS.IDynamicTextureExtension[]>("DynamicTextureBuilder") || [];
+            SceneManager.AddCustomMetadata("DynamicTextureBuilder", metadatas);
 
             if (metadatas.length === 0) {
-                metadatas.push({
-                    name: "New dynamic texture",
-                    width: 512,
-                    height: 512,
-
-                    clearColor: "black",
-                    hasAlpha: false,
-
-                    textx: 256,
-                    texty: 256,
-                    text: "Hello world",
-                    textColor: "white",
-                    textFont: "bold 30px verdana"
-                });
+                this._createNewDynamicTexture(false);
             }
 
             if (!this._currentMetadata) {
-                for (var i = 0; i < this._core.currentScene.textures.length; i++) {
-                    var texture = this._core.currentScene.textures[i];
-                    if (texture instanceof DynamicTexture && texture.name === metadatas[0].name) {
-                        this._sceneTextureObject = texture;
-                        break;
-                    }
-                }
-
+                this._getMainSceneTexture(metadatas[0].name);
                 this._currentMetadata = metadatas[0];
                 this._createTextureInMainScene(false);
             }
-        
-            SceneManager.AddCustomMetadata("DynamicTextureBuilder", metadatas);
 
             return metadatas;
+        }
+
+        // Gets the texture of the main scene
+        private _getMainSceneTexture(name: string): void {
+            for (var i = 0; i < this._core.currentScene.textures.length; i++) {
+                var texture = this._core.currentScene.textures[i];
+                if (texture instanceof DynamicTexture && texture.name === name) {
+                    this._sceneTextureObject = texture;
+                    break;
+                }
+            }
         }
 
         // Stores the metadatas
@@ -233,7 +289,7 @@ module BABYLON.EDITOR {
 
             // Layouts
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
-            this._layouts.createPanel("DYNAMIC-TEXTURE-BUILDER-LEFT-PANEL", "left", 330, true).setContent(GUI.GUIElement.CreateElement("div", "DYNAMIC-TEXTURE-BUILDER-EDIT"));
+            this._layouts.createPanel("DYNAMIC-TEXTURE-BUILDER-LEFT-PANEL", "left", 330, false).setContent(GUI.GUIElement.CreateElement("div", "DYNAMIC-TEXTURE-BUILDER-EDIT"));
             this._layouts.createPanel("DYNAMIC-TEXTURE-BUILDER-RIGHT-PANEL", "main", 300, true).setContent(GUI.GUIElement.CreateElement("canvas", "DYNAMIC-TEXTURE-BUILDER-CANVAS", "width: 100%; height: 100%;"));
             this._layouts.buildElement(this._containerID);
 

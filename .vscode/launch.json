@@ -21,22 +21,16 @@
         },
         {
             "name": "Debug electron",
-            "type": "node",
+            "type": "chrome",
             "request": "launch",
-            "program": "${workspaceRoot}/electronPackages/BabylonJSEditor-darwin-x64/BabylonJSEditor.app/Contents/Resources/app/electron/main.js",
-            "stopOnEntry": false,
-            "args": [],
-            "cwd": "${workspaceRoot}/electronPackages/BabylonJSEditor-darwin-x64/BabylonJSEditor.app/Contents/Resources/app/",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
             "runtimeArgs": [
-                ".",
-                "--enable-logging"
+                "http://localhost:1338/",
+                "--remote-debugging-port=9222"
             ],
-            "env": { },
+            "webRoot": "${workspaceRoot}/website/",
             "sourceMaps": true,
-            "outFiles": [
-                
-            ]
+            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         }
     ]
 }

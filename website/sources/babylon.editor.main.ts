@@ -444,6 +444,7 @@
             // Create 2D scene
             this.core.scene2d = new Scene(this.core.engine);
             this.core.scene2d.activeCamera = new Camera("Camera2D", Vector3.Zero(), this.core.scene2d);
+            this.core.scene2d.activeCamera.fov = 0;
             this.core.scene2d.autoClear = false;
             this.core.scene2d.clearColor = new Color4(0, 0, 0, 0);
 

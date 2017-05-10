@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <TypeScriptToolsVersion>2.1.4</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.2</TypeScriptToolsVersion>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort>33404</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
@@ -33,8 +33,10 @@
     <Content Include="website\css\images\console.png" />
     <Content Include="website\css\images\copy.png" />
     <Content Include="website\css\images\cube.png" />
+    <Content Include="website\css\images\cylinder.png" />
     <Content Include="website\css\images\diffuse_color.png" />
     <Content Include="website\css\images\directional_light.png" />
+    <Content Include="website\css\images\dynamic_texture.png" />
     <Content Include="website\css\images\edit.png" />
     <Content Include="website\css\images\effects.png" />
     <Content Include="website\css\images\electron_icon.png" />
@@ -42,6 +44,7 @@
     <Content Include="website\css\images\export.png" />
     <Content Include="website\css\images\focus.png" />
     <Content Include="website\css\images\graph.png" />
+    <Content Include="website\css\images\ground.png" />
     <Content Include="website\css\images\helpers.png" />
     <Content Include="website\css\images\hill_plane.png" />
     <Content Include="website\css\images\lens_flare.png" />
@@ -51,11 +54,14 @@
     <Content Include="website\css\images\particles.png" />
     <Content Include="website\css\images\photoshop_icon_connect.png" />
     <Content Include="website\css\images\photoshop_icon_disconnect.png" />
+    <Content Include="website\css\images\plane.png" />
     <Content Include="website\css\images\play_game.png" />
+    <Content Include="website\css\images\play_game_windowed.png" />
     <Content Include="website\css\images\play_sound.png" />
     <Content Include="website\css\images\pointcloud.png" />
     <Content Include="website\css\images\position.png" />
     <Content Include="website\css\images\primitives.png" />
+    <Content Include="website\css\images\reflection.png" />
     <Content Include="website\css\images\render.png" />
     <Content Include="website\css\images\rotation.png" />
     <Content Include="website\css\images\save.png" />
@@ -63,6 +69,7 @@
     <Content Include="website\css\images\scenario.png" />
     <Content Include="website\css\images\scene.png" />
     <Content Include="website\css\images\shaders.png" />
+    <Content Include="website\css\images\soft_body.png" />
     <Content Include="website\css\images\sound.png" />
     <Content Include="website\css\images\sphere.png" />
     <Content Include="website\css\images\stop_sound.png" />
@@ -94,12 +101,14 @@
     <Content Include="website\libs\loaders\babylon.stlFileLoader.js" />
     <Content Include="website\libs\ManipulationHelpers.js" />
     <Content Include="website\libs\ManipulationHelpers.min.js" />
+    <Content Include="website\libs\materials\babylon.customMaterial.js" />
     <Content Include="website\libs\materials\babylon.fireMaterial.js" />
     <Content Include="website\libs\materials\babylon.furMaterial.js" />
     <Content Include="website\libs\materials\babylon.gradientMaterial.js" />
     <Content Include="website\libs\materials\babylon.gridMaterial.js" />
     <Content Include="website\libs\materials\babylon.lavaMaterial.js" />
     <Content Include="website\libs\materials\babylon.normalMaterial.js" />
+    <Content Include="website\libs\materials\babylon.shadowOnlyMaterial.js" />
     <Content Include="website\libs\materials\babylon.simpleMaterial.js" />
     <Content Include="website\libs\materials\babylon.skyMaterial.js" />
     <Content Include="website\libs\materials\babylon.terrainMaterial.js" />
@@ -107,12 +116,20 @@
     <Content Include="website\libs\materials\babylon.waterMaterial.js" />
     <Content Include="website\libs\preview bjs\babylon.inspector.bundle.js" />
     <Content Include="website\libs\preview bjs\babylon.max.js" />
-    <Content Include="website\libs\preview release\babylon.editor.extensions.js" />
-    <Content Include="website\libs\preview release\babylon.editor.max.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.brickProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.cloudProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.fireProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.grassProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.marbleProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.normalMapProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.roadProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.starfieldProceduralTexture.js" />
+    <Content Include="website\libs\proceduralTextures\babylon.woodProceduralTexture.js" />
     <Content Include="website\libs\raphael.js" />
     <Content Include="website\libs\w2ui-1.4.1.js" />
     <Content Include="website\redirect.html" />
     <Content Include="website\run-game.html" />
+    <Content Include="website\sources\editionTools\2d\babylon.editor.container2dTool.js" />
     <Content Include="website\templates\index.html" />
     <Content Include="website\index-debug.html" />
     <Content Include="website\index.html" />
@@ -175,9 +192,16 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.clip2d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.container2d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.dock2d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.resize2d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.shader2d.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\2d\babylon.sprite2d.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.distanceToCameraCondition.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.physicsAction.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Actions\babylon.timerCondition.ts" />
+    <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.dynamicTextureExtension.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\babylon.editor.softBodyExtension.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Materials\babylon.editor.materialBaseExtension.ts" />
     <TypeScriptCompile Include="Tools\EditorExtensions\Materials\babylon.editor.materialExtension.ts" />
@@ -193,18 +217,29 @@
     <TypeScriptCompile Include="website\defines\electron\node.extensions.d.ts" />
     <TypeScriptCompile Include="website\defines\jQuery.d.ts" />
     <TypeScriptCompile Include="website\defines\ManipulationHelpers.d.ts" />
+    <TypeScriptCompile Include="website\defines\materials\babylon.customMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.fireMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.furMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.gradientMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.gridMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.lavaMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.normalMaterial.d.ts" />
+    <TypeScriptCompile Include="website\defines\materials\babylon.shadowOnlyMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.simpleMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.skyMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.terrainMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.triPlanarMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\materials\babylon.waterMaterial.d.ts" />
     <TypeScriptCompile Include="website\defines\oneDrive.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.brickProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.cloudProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.fireProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.grassProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.marbleProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.normalMapProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.roadProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.starfieldProceduralTexture.d.ts" />
+    <TypeScriptCompile Include="website\defines\proceduralTextures\babylon.woodProceduralTexture.d.ts" />
     <TypeScriptCompile Include="website\defines\raphaeljs.d.ts" />
     <TypeScriptCompile Include="website\defines\w2ui.d.ts" />
     <TypeScriptCompile Include="website\defines\ace\ace.d.ts" />
@@ -219,6 +254,7 @@
     <TypeScriptCompile Include="Tools\TypeScriptParser\test.file.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.sceneHelpers.ts" />
     <TypeScriptCompile Include="website\sources\babylon.editor.statusBar.ts" />
+    <TypeScriptCompile Include="website\sources\editionTools\2d\babylon.editor.container2dTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\babylon.editor.textureTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\geometryEditors\babylon.editor.abstractMeshTool.ts" />
     <TypeScriptCompile Include="website\sources\editionTools\geometryEditors\babylon.editor.groundMeshTool.ts" />
@@ -284,10 +320,11 @@
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.lightsMenu.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.simpleMaterialTool.ts" />
     <TypeScriptCompile Include="website\sources\plugins\babylon.editor.soundsMenu.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderGraph.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilder.ts" />
-    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.actionsBuilderParametersEditor.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\actionsBuilder\babylon.editor.actionsBuilder.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\actionsBuilder\babylon.editor.actionsBuilderGraph.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\actionsBuilder\babylon.editor.actionsBuilderParametersEditor.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.cosmosEditor.ts" />
+    <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.dynamicTextureBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.materialBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.postProcessBuilder.ts" />
     <TypeScriptCompile Include="website\sources\plugins\mainTools\babylon.editor.softBodyBuilder.ts" />
@@ -302,10 +339,12 @@
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.actionsBuilder.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.babylonExporter.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.launchEditor.ts" />
+    <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.normalMapEditor.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.particleSystemEditor.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.animationEditor.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.objectPicker.ts" />
     <TypeScriptCompile Include="website\sources\userInterfaces\babylon.editor.textureEditor.ts" />
+    <Content Include="website\sources\editionTools\2d\babylon.editor.container2dTool.js.map" />
     <None Include="website\templates\game.ts.template" />
     <None Include="website\templates\development.ts.template" />
   </ItemGroup>
@@ -321,7 +360,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>33404</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
@@ -338,6 +377,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptRemoveComments>false</TypeScriptRemoveComments>
     <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptExperimentalDecorators>True</TypeScriptExperimentalDecorators>
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <DefineConstants>DEBUG</DefineConstants>
     <TypeScriptTarget>ES5</TypeScriptTarget>
@@ -354,6 +394,7 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TypeScriptRemoveComments>true</TypeScriptRemoveComments>
     <TypeScriptSourceMap>false</TypeScriptSourceMap>
+    <TypeScriptExperimentalDecorators>True</TypeScriptExperimentalDecorators>
     <TypeScriptTarget>ES5</TypeScriptTarget>
     <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>

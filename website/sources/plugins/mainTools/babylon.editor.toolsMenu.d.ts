@@ -6,6 +6,7 @@ declare module BABYLON.EDITOR {
         private _openPostProcessBuilder;
         private _openMaterialBuilder;
         private _openSoftBodyBuilder;
+        private _openDynamicTextureBuilder;
         private _openCosmos;
         /**
         * Constructor

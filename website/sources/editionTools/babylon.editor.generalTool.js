@@ -112,7 +112,7 @@ var BABYLON;
                     cameraFolder.add(this.object, "minZ").min(0).step(0.1).name("Near Value");
                     if (object["speed"] !== undefined)
                         cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
-                    if (object.fov)
+                    if (object.fov !== undefined)
                         cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");
                 }
                 // Transforms

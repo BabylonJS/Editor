@@ -334,6 +334,7 @@ var BABYLON;
                 // Create 2D scene
                 this.core.scene2d = new BABYLON.Scene(this.core.engine);
                 this.core.scene2d.activeCamera = new BABYLON.Camera("Camera2D", BABYLON.Vector3.Zero(), this.core.scene2d);
+                this.core.scene2d.activeCamera.fov = 0;
                 this.core.scene2d.autoClear = false;
                 this.core.scene2d.clearColor = new BABYLON.Color4(0, 0, 0, 0);
                 this.core.scenes.push({ render: true, scene: this.core.scene2d });

@@ -51,7 +51,7 @@ var BABYLON;
                             if (!object)
                                 return false;
                             if (id === this._menuDeleteId) {
-                                if (object && object.dispose && object !== this._core.camera) {
+                                if (!(object instanceof BABYLON.Scene) && object.dispose && object !== this._core.camera) {
                                     for (var i = 0; i < this._core.currentScene.materials.length; i++) {
                                         var m = this._core.currentScene.materials[i];
                                         m.markDirty();
