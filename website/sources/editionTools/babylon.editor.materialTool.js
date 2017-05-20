@@ -134,6 +134,7 @@ var BABYLON;
                     "TerrainMaterial",
                     "TriPlanarMaterial",
                     "WaterMaterial",
+                    "CellMaterial",
                     "SimpleMaterial"
                 ];
                 var ctr = EDITOR.Tools.GetConstructorName(this.object.material);

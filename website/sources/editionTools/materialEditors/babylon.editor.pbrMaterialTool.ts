@@ -79,6 +79,12 @@
             reflectionFolder.add(this.material, "environmentIntensity").step(0.01).name("Environment Intensity");
             this.addTextureButton("Reflection Texture", "reflectionTexture", reflectionFolder, true);
 
+            // Metallic
+            var metallicFolder = this._element.addFolder("Metallic");
+            this.addTextureButton("Metallic Texture", "metallicTexture", metallicFolder, false);
+            metallicFolder.add(this.material, "useRoughnessFromMetallicTextureAlpha").name("Use Roughness From Metallic Texture Alpha");
+            metallicFolder.add(this.material, "useRoughnessFromMetallicTextureGreen").name("Use Roughness From Metallic Texture Green");
+
             // Emissive
             var emissiveFolder = this._element.addFolder("Emissive");
             this.addColorFolder(this.material.emissiveColor, "Emissive Color", true, emissiveFolder);

@@ -162,6 +162,7 @@
             this.addTool(new TriPlanarMaterialTool(this));
             this.addTool(new GridMaterialTool(this));
             this.addTool(new FireMaterialTool(this));
+            this.addTool(new CellMaterialTool(this));
 
             this.addTool(new GroundMeshTool(this));
             

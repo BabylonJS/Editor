@@ -62,6 +62,7 @@
       "sources/editionTools/materialEditors/babylon.editor.triPlanarMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.fireMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.cellMaterialTool.js",
 
       "sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js",
       "sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js",

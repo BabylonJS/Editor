@@ -148,6 +148,7 @@
                 "TerrainMaterial",
                 "TriPlanarMaterial",
                 "WaterMaterial",
+                "CellMaterial",
 
                 "SimpleMaterial"
             ];

@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var electron = require("electron");
 var app = electron.app;
 var BrowserWindow = electron.BrowserWindow;
@@ -23,4 +22,3 @@ app.on("activate", function () {
     if (mainWindow === null)
         createWindow();
 });
-//# sourceMappingURL=main.js.map
