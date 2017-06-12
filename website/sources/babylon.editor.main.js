@@ -279,6 +279,10 @@ var BABYLON;
                     _this.core.removeScene(_this.core.currentScene);
                     _this.core.scenes.push({ scene: scene, render: true });
                     _this.core.currentScene = scene;
+                    // Attach control to cameras
+                    for (var i = 0; i < scene.cameras.length; i++) {
+                        scene.cameras[i].attachControl(_this.core.canvas, true);
+                    }
                     // Set active camera
                     var camera = scene.activeCamera;
                     _this._createBabylonCamera();

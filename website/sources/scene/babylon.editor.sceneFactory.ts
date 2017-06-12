@@ -4,6 +4,9 @@
         ssaoOnly: boolean;
         attachSSAO: boolean;
 
+        ssao2: boolean;
+        attachSSAO2: boolean;
+
         standard: boolean;
         attachStandard: boolean;
 
@@ -45,11 +48,15 @@
         public static HDRPipeline: HDRRenderingPipeline = null;
         public static StandardPipeline: StandardRenderingPipeline = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
+        public static SSAOPipeline2: SSAO2RenderingPipeline = null;
         public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
             ssao: false,
             ssaoOnly: false,
             attachSSAO: true,
+
+            ssao2: false,
+            attachSSAO2: false,
 
             standard: false,
             attachStandard: true,
@@ -74,7 +81,11 @@
 
             var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
             Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => {
-                standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                standard.lensTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lensflaredirt.png", core.currentScene, (texture) => {
+                standard.lensFlareDirtTexture = texture;
                 callback();
             });
             Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, (texture) => {
@@ -85,6 +96,9 @@
                 standard.lensColorTexture = texture;
                 callback();
             });
+
+            standard.lensFlareHaloWidth = 0.4;
+            standard.lensFlareGhostDispersal = 0.1;
 
             this.StandardPipeline = standard;
 
@@ -108,6 +122,32 @@
             ssao.base = serializationObject.base || ssao.base;
 
             this.SSAOPipeline = ssao;
+
+            return ssao;
+        }
+
+        // Creates SSAO 2 pipeline
+        static CreateSSAO2Pipeline(core: EditorCore, serializationObject: any = { }): SSAO2RenderingPipeline {
+            if (this.SSAOPipeline2) {
+                this.SSAOPipeline2.dispose();
+                this.SSAOPipeline2 = null;
+            }
+
+            var cameras: Camera[] = core.currentScene.cameras;
+
+            var ssaoRatio = {
+                ssaoRatio: 0.5 / devicePixelRatio,
+                blurRatio: 0.5 / devicePixelRatio
+            };
+
+            var ssao = new BABYLON.SSAO2RenderingPipeline("ssao", core.currentScene, ssaoRatio, cameras);
+            ssao.radius = 3.5;
+            ssao.totalStrength = 1.3;
+            ssao.expensiveBlur = true;
+            ssao.samples = 16;
+            ssao.maxZ = 1000;
+
+            this.SSAOPipeline2 = ssao;
 
             return ssao;
         }

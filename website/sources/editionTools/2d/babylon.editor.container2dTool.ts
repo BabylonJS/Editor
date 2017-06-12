@@ -14,6 +14,8 @@ module BABYLON.EDITOR {
         private _clipPlayDelay: number = 100;
         private _clipCount: number = 1;
 
+        private _drawBefore: string = "";
+
         /**
         * Constructor
         * @param editionTool: edition tool instance
@@ -54,6 +56,18 @@ module BABYLON.EDITOR {
             this._element.remember(object);
 
             var displayFolder = this._element.addFolder("Display");
+
+            // Draw order
+            var friends: string[] = [];
+            for (var i = 0; i < scene.meshes.length; i++) {
+                var mesh = scene.meshes[i];
+                if (mesh.parent === object.parent)
+                    friends.push(mesh.parent.name);
+            }
+
+            this._element.add(this, "_drawBefore", friends).name("Draw before").onFinishChange((result: string) => {
+                debugger;
+            });
 
             // Docking
             if (!object.dock)

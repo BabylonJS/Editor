@@ -50,5 +50,5 @@ module BABYLON.EDITOR {
     }
 
     // Register plugin
-    //PluginManager.RegisterMainToolbarPlugin(Scene2dMenuPlugin);
+    PluginManager.RegisterMainToolbarPlugin(Scene2dMenuPlugin);
 }

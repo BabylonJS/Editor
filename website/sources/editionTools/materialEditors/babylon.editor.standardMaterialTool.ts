@@ -108,7 +108,7 @@
         }
 
         private _convertToPBR(): void {
-            var pbr = new PBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
+            var pbr = new LegacyPBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
             
             pbr.albedoColor = this.material.diffuseColor;
             pbr.albedoTexture = this.material.diffuseTexture;

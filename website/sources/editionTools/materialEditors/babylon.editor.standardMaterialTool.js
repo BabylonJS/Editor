@@ -96,7 +96,7 @@ var BABYLON;
                 };
             };
             StandardMaterialTool.prototype._convertToPBR = function () {
-                var pbr = new BABYLON.PBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
+                var pbr = new BABYLON.LegacyPBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
                 pbr.albedoColor = this.material.diffuseColor;
                 pbr.albedoTexture = this.material.diffuseTexture;
                 pbr.useAlphaFromAlbedoTexture = this.material.useAlphaFromDiffuseTexture;

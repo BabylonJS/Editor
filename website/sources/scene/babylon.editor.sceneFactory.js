@@ -45,7 +45,11 @@ var BABYLON;
                 var cameras = core.currentScene.cameras;
                 var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
                 EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) {
-                    standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                    standard.lensTexture = texture;
+                    callback();
+                });
+                EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensflaredirt.png", core.currentScene, function (texture) {
+                    standard.lensFlareDirtTexture = texture;
                     callback();
                 });
                 EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, function (texture) {
@@ -56,6 +60,8 @@ var BABYLON;
                     standard.lensColorTexture = texture;
                     callback();
                 });
+                standard.lensFlareHaloWidth = 0.4;
+                standard.lensFlareGhostDispersal = 0.1;
                 this.StandardPipeline = standard;
                 return standard;
             };
@@ -74,6 +80,27 @@ var BABYLON;
                 ssao.totalStrength = serializationObject.totalStrength || ssao.totalStrength;
                 ssao.base = serializationObject.base || ssao.base;
                 this.SSAOPipeline = ssao;
+                return ssao;
+            };
+            // Creates SSAO 2 pipeline
+            SceneFactory.CreateSSAO2Pipeline = function (core, serializationObject) {
+                if (serializationObject === void 0) { serializationObject = {}; }
+                if (this.SSAOPipeline2) {
+                    this.SSAOPipeline2.dispose();
+                    this.SSAOPipeline2 = null;
+                }
+                var cameras = core.currentScene.cameras;
+                var ssaoRatio = {
+                    ssaoRatio: 0.5 / devicePixelRatio,
+                    blurRatio: 0.5 / devicePixelRatio
+                };
+                var ssao = new BABYLON.SSAO2RenderingPipeline("ssao", core.currentScene, ssaoRatio, cameras);
+                ssao.radius = 3.5;
+                ssao.totalStrength = 1.3;
+                ssao.expensiveBlur = true;
+                ssao.samples = 16;
+                ssao.maxZ = 1000;
+                this.SSAOPipeline2 = ssao;
                 return ssao;
             };
             // Creates a Volumetric Light Scattering post-process
@@ -309,11 +336,14 @@ var BABYLON;
         SceneFactory.HDRPipeline = null;
         SceneFactory.StandardPipeline = null;
         SceneFactory.SSAOPipeline = null;
+        SceneFactory.SSAOPipeline2 = null;
         SceneFactory.VLSPostProcess = null;
         SceneFactory.EnabledPostProcesses = {
             ssao: false,
             ssaoOnly: false,
             attachSSAO: true,
+            ssao2: false,
+            attachSSAO2: false,
             standard: false,
             attachStandard: true,
             vls: false

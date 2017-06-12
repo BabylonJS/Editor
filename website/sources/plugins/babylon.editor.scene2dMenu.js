@@ -45,7 +45,7 @@ var BABYLON;
         }());
         EDITOR.Scene2dMenuPlugin = Scene2dMenuPlugin;
         // Register plugin
-        //PluginManager.RegisterMainToolbarPlugin(Scene2dMenuPlugin);
+        EDITOR.PluginManager.RegisterMainToolbarPlugin(Scene2dMenuPlugin);
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 

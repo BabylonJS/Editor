@@ -136,15 +136,19 @@ module BABYLON {
 
             data[0] = -1.0 - this._pivot.x * width;
             data[1] = -1.0 - this._pivot.y * height;
+            data[2] = 0.0;
 
             data[3] = width - 1.0 - this._pivot.x * width;
             data[4] = -1.0 - this._pivot.y * height;
+            data[5] = 0.0;
 
             data[6] = width - 1.0 - this._pivot.x * width;
             data[7] = height - 1.0 - this._pivot.y * height;
+            data[8] = 0.0;
 
             data[9] = 0 - 1.0 - this._pivot.x * width;
             data[10] = height - 1.0 - this._pivot.y * height;
+            data[11] = 0.0;
 
             // Update
             vertexBuffer.update(data);

@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR {
-    export class PBRMaterialTool extends AbstractMaterialTool<PBRMaterial> {
+    export class LegacyPBRMaterialTool extends AbstractMaterialTool<LegacyPBRMaterial> {
         // Public members
 
         // Private members
@@ -25,6 +25,7 @@
                 return false;
 
             this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+            this.material.linkEmissiveWithAlbedo = this.material.linkEmissiveWithAlbedo || false;
 
             // Presets
             this._dummyPreset = "None";
@@ -112,36 +113,6 @@
             var optionsFolder = this._element.addFolder("Options");
             optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
             optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
-
-            // Debug
-            var debugFolder = this._element.addFolder("Debug");
-            debugFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
-            debugFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
-
-            // Debug albedo
-            albedoFolder = debugFolder.addFolder("Albedo Debug");
-            this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", true, albedoFolder);
-            albedoFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
-
-            // Debug reflectivity
-            reflectivityFolder = debugFolder.addFolder("Reflectivity Debug");
-            this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", true, reflectivityFolder);
-            reflectivityFolder.add(this.material, "overloadedReflectivityIntensity").min(0).step(0.01).name("Reflectivity Intensity");
-
-            // Debug reflection
-            reflectionFolder = debugFolder.addFolder("Reflection Debug");
-            this.addColorFolder(this.material.overloadedReflection, "Reflection Color", true, reflectionFolder);
-            reflectionFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
-
-            // Debug ambient
-            ambientFolder = debugFolder.addFolder("Ambient Debug");
-            this.addColorFolder(this.material.overloadedAmbient, "Reflection Color", true, ambientFolder);
-            ambientFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
-
-            // Debug emissive
-            emissiveFolder = debugFolder.addFolder("Emissive Debug");
-            this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", true, emissiveFolder);
-            emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
 
             // Finish
             return true;

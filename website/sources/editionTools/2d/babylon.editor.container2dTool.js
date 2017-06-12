@@ -25,6 +25,7 @@ var BABYLON;
                 _this._currentTexture = null;
                 _this._clipPlayDelay = 100;
                 _this._clipCount = 1;
+                _this._drawBefore = "";
                 // Initialize
                 _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-CONTAINER-2D"
@@ -53,6 +54,16 @@ var BABYLON;
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
                 var displayFolder = this._element.addFolder("Display");
+                // Draw order
+                var friends = [];
+                for (var i = 0; i < scene.meshes.length; i++) {
+                    var mesh = scene.meshes[i];
+                    if (mesh.parent === object.parent)
+                        friends.push(mesh.parent.name);
+                }
+                this._element.add(this, "_drawBefore", friends).name("Draw before").onFinishChange(function (result) {
+                    debugger;
+                });
                 // Docking
                 if (!object.dock)
                     object.dock = BABYLON.Dock.LEFT | BABYLON.Dock.BOTTOM;

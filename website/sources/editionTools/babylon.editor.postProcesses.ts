@@ -101,6 +101,12 @@
                 dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
                 dofFolder.open();
 
+                var motionBlurFolder = standardFolder.addFolder("Motion Blur");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "MotionBlurEnabled").name("Enable Motion Blur");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "motionBlurSamples").min(1).max(64).step(1).name("Samples Count");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "motionStrength").min(0).step(0.01).name("Strength");
+                motionBlurFolder.open();
+
                 var debugFolder = standardFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.StandardPipeline);
             }
@@ -118,10 +124,6 @@
             });
 
             if (SceneFactory.SSAOPipeline) {
-                ssaoFolder.add(SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange((result: any) => {
-                    this._attachDetachPipeline(result, "ssao");
-                });
-
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
@@ -130,6 +132,31 @@
                 
                 var debugFolder = ssaoFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
+            }
+
+            // SSAO2
+            var ssao2Folder = this._element.addFolder("SSAO 2");
+            ssao2Folder.add(SceneFactory.EnabledPostProcesses, "ssao2").name("Enable SSAO 2").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.SSAOPipeline2 = SceneFactory.CreateSSAO2Pipeline(this._editionTool.core);
+                else {
+                    SceneFactory.SSAOPipeline2.dispose();
+                    SceneFactory.SSAOPipeline2 = null;
+                }
+                this.update();
+            });
+
+            if (SceneFactory.SSAOPipeline2) {
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "radius").min(0).max(10).step(0.01).name("Radius");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "base").min(0).max(10).step(0.001).name("Base");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "samples").min(1).max(64).step(1).name("Samples");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "expensiveBlur").name("Expensive Blur");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "minZAspect").min(0).step(0.01).name("Min Z Aspect");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "maxZ").min(0).step(0.01).name("Max Z");
+                
+                var debugFolder = ssao2Folder.addFolder("Debug");
+                this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline2);
             }
             
             // VLS
@@ -218,43 +245,12 @@
             }
         }
 
-        // Attach/detach pipeline
-        private _attachDetachPipeline(attach: boolean, pipeline: string): void {
-            if (attach)
-                this._editionTool.core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pipeline, this._getPipelineCameras());
-            else
-                this._editionTool.core.currentScene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(pipeline, this._getPipelineCameras());
-        }
-
         private _getPipelineCameras(): Camera[] {
             var cameras: Camera[] = [this._editionTool.core.camera];
             if (this._editionTool.core.playCamera)
                 cameras.push(this._editionTool.core.playCamera);
 
             return cameras;
-        }
-
-        // Creates a function to change texture of a flare
-        private _loadHDRLensDirtTexture(): void {
-            var input = Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
-
-            input.change((data: any) => {
-                var files: File[] = data.target.files || data.currentTarget.files;
-
-                if (files.length < 1)
-                    return;
-
-                var file = files[0];
-                BABYLON.Tools.ReadFileAsDataURL(file, (result: string) => {
-                    var texture = Texture.CreateFromBase64String(result, file.name, this._editionTool.core.currentScene);
-                    texture.name = texture.name.replace("data:", "");
-
-                    SceneFactory.HDRPipeline.lensTexture = texture;
-                    input.remove();
-                }, null);
-            });
-
-            input.click();
         }
 
         // Loads the animations tool

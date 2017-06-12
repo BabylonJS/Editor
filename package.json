@@ -1,6 +1,6 @@
 {
-  "name": "BabylonJSEditor",
-  "version": "0.8.0",
+  "name": "babylonjs-editor",
+  "version": "1.1.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "electron/main.js",
   "repository": {

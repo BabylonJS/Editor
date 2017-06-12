@@ -153,7 +153,7 @@
             this.addTool(new MaterialTool(this));
             this.addTool(new StandardMaterialTool(this));
             this.addTool(new SkyMaterialTool(this));
-            this.addTool(new PBRMaterialTool(this));
+            this.addTool(new LegacyPBRMaterialTool(this));
             this.addTool(new WaterMaterialTool(this));
             this.addTool(new LavaMaterialTool(this));
             this.addTool(new FurMaterialTool(this));

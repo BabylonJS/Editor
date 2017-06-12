@@ -92,6 +92,11 @@ var BABYLON;
                     dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
                     dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
                     dofFolder.open();
+                    var motionBlurFolder = standardFolder.addFolder("Motion Blur");
+                    motionBlurFolder.add(EDITOR.SceneFactory.StandardPipeline, "MotionBlurEnabled").name("Enable Motion Blur");
+                    motionBlurFolder.add(EDITOR.SceneFactory.StandardPipeline, "motionBlurSamples").min(1).max(64).step(1).name("Samples Count");
+                    motionBlurFolder.add(EDITOR.SceneFactory.StandardPipeline, "motionStrength").min(0).step(0.01).name("Strength");
+                    motionBlurFolder.open();
                     var debugFolder = standardFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.StandardPipeline);
                 }
@@ -107,9 +112,6 @@ var BABYLON;
                     _this.update();
                 });
                 if (EDITOR.SceneFactory.SSAOPipeline) {
-                    ssaoFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange(function (result) {
-                        _this._attachDetachPipeline(result, "ssao");
-                    });
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
@@ -117,6 +119,28 @@ var BABYLON;
                     ssaoFolder.add(EDITOR.SceneFactory.SSAOPipeline, "base").min(0).max(10).step(0.001).name("Base");
                     var debugFolder = ssaoFolder.addFolder("Debug");
                     this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline);
+                }
+                // SSAO2
+                var ssao2Folder = this._element.addFolder("SSAO 2");
+                ssao2Folder.add(EDITOR.SceneFactory.EnabledPostProcesses, "ssao2").name("Enable SSAO 2").onChange(function (result) {
+                    if (result === true)
+                        EDITOR.SceneFactory.SSAOPipeline2 = EDITOR.SceneFactory.CreateSSAO2Pipeline(_this._editionTool.core);
+                    else {
+                        EDITOR.SceneFactory.SSAOPipeline2.dispose();
+                        EDITOR.SceneFactory.SSAOPipeline2 = null;
+                    }
+                    _this.update();
+                });
+                if (EDITOR.SceneFactory.SSAOPipeline2) {
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "radius").min(0).max(10).step(0.01).name("Radius");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "base").min(0).max(10).step(0.001).name("Base");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "samples").min(1).max(64).step(1).name("Samples");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "expensiveBlur").name("Expensive Blur");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "minZAspect").min(0).step(0.01).name("Min Z Aspect");
+                    ssao2Folder.add(EDITOR.SceneFactory.SSAOPipeline2, "maxZ").min(0).step(0.01).name("Max Z");
+                    var debugFolder = ssao2Folder.addFolder("Debug");
+                    this._setupDebugPipeline(debugFolder, EDITOR.SceneFactory.SSAOPipeline2);
                 }
                 // VLS
                 var vlsFolder = this._element.addFolder("Volumetric Light Scattering");
@@ -191,36 +215,11 @@ var BABYLON;
                     });
                 }
             };
-            // Attach/detach pipeline
-            PostProcessesTool.prototype._attachDetachPipeline = function (attach, pipeline) {
-                if (attach)
-                    this._editionTool.core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pipeline, this._getPipelineCameras());
-                else
-                    this._editionTool.core.currentScene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(pipeline, this._getPipelineCameras());
-            };
             PostProcessesTool.prototype._getPipelineCameras = function () {
                 var cameras = [this._editionTool.core.camera];
                 if (this._editionTool.core.playCamera)
                     cameras.push(this._editionTool.core.playCamera);
                 return cameras;
-            };
-            // Creates a function to change texture of a flare
-            PostProcessesTool.prototype._loadHDRLensDirtTexture = function () {
-                var _this = this;
-                var input = EDITOR.Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
-                input.change(function (data) {
-                    var files = data.target.files || data.currentTarget.files;
-                    if (files.length < 1)
-                        return;
-                    var file = files[0];
-                    BABYLON.Tools.ReadFileAsDataURL(file, function (result) {
-                        var texture = BABYLON.Texture.CreateFromBase64String(result, file.name, _this._editionTool.core.currentScene);
-                        texture.name = texture.name.replace("data:", "");
-                        EDITOR.SceneFactory.HDRPipeline.lensTexture = texture;
-                        input.remove();
-                    }, null);
-                });
-                input.click();
             };
             // Loads the animations tool
             PostProcessesTool.prototype._editAnimations = function () {

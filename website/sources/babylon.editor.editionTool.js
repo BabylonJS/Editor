@@ -122,7 +122,7 @@ var BABYLON;
                 this.addTool(new EDITOR.MaterialTool(this));
                 this.addTool(new EDITOR.StandardMaterialTool(this));
                 this.addTool(new EDITOR.SkyMaterialTool(this));
-                this.addTool(new EDITOR.PBRMaterialTool(this));
+                this.addTool(new EDITOR.LegacyPBRMaterialTool(this));
                 this.addTool(new EDITOR.WaterMaterialTool(this));
                 this.addTool(new EDITOR.LavaMaterialTool(this));
                 this.addTool(new EDITOR.FurMaterialTool(this));

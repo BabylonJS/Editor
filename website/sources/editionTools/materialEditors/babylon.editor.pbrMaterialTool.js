@@ -7,14 +7,14 @@ var BABYLON;
 (function (BABYLON) {
     var EDITOR;
     (function (EDITOR) {
-        var PBRMaterialTool = (function (_super) {
-            __extends(PBRMaterialTool, _super);
+        var LegacyPBRMaterialTool = (function (_super) {
+            __extends(LegacyPBRMaterialTool, _super);
             // Protected members
             /**
             * Constructor
             * @param editionTool: edition tool instance
             */
-            function PBRMaterialTool(editionTool) {
+            function LegacyPBRMaterialTool(editionTool) {
                 var _this = _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR") || this;
                 // Public members
                 // Private members
@@ -24,11 +24,12 @@ var BABYLON;
                 return _this;
             }
             // Update
-            PBRMaterialTool.prototype.update = function () {
+            LegacyPBRMaterialTool.prototype.update = function () {
                 var _this = this;
                 if (!_super.prototype.update.call(this))
                     return false;
                 this.material.useLogarithmicDepth = this.material.useLogarithmicDepth || false;
+                this.material.linkEmissiveWithAlbedo = this.material.linkEmissiveWithAlbedo || false;
                 // Presets
                 this._dummyPreset = "None";
                 var presets = [
@@ -104,35 +105,11 @@ var BABYLON;
                 var optionsFolder = this._element.addFolder("Options");
                 optionsFolder.add(this.material, "useLightmapAsShadowmap").name("Use Lightmap As Shadowmap");
                 optionsFolder.add(this.material, "useLogarithmicDepth").name("Use Logarithmic Depth");
-                // Debug
-                var debugFolder = this._element.addFolder("Debug");
-                debugFolder.add(this.material, "overloadedShadowIntensity").min(0).step(0.01).name("Shadow Intensity");
-                debugFolder.add(this.material, "overloadedShadeIntensity").min(0).step(0.01).name("Shade Intensity");
-                // Debug albedo
-                albedoFolder = debugFolder.addFolder("Albedo Debug");
-                this.addColorFolder(this.material.overloadedAlbedo, "Albedo Color", true, albedoFolder);
-                albedoFolder.add(this.material, "overloadedAlbedoIntensity").min(0).step(0.01).name("Albedo Intensity");
-                // Debug reflectivity
-                reflectivityFolder = debugFolder.addFolder("Reflectivity Debug");
-                this.addColorFolder(this.material.overloadedReflectivity, "Reflectivity Color", true, reflectivityFolder);
-                reflectivityFolder.add(this.material, "overloadedReflectivityIntensity").min(0).step(0.01).name("Reflectivity Intensity");
-                // Debug reflection
-                reflectionFolder = debugFolder.addFolder("Reflection Debug");
-                this.addColorFolder(this.material.overloadedReflection, "Reflection Color", true, reflectionFolder);
-                reflectionFolder.add(this.material, "overloadedReflectionIntensity").min(0).step(0.01).name("Reflection Intensity");
-                // Debug ambient
-                ambientFolder = debugFolder.addFolder("Ambient Debug");
-                this.addColorFolder(this.material.overloadedAmbient, "Reflection Color", true, ambientFolder);
-                ambientFolder.add(this.material, "overloadedAmbientIntensity").min(0).step(0.01).name("Ambient Intensity");
-                // Debug emissive
-                emissiveFolder = debugFolder.addFolder("Emissive Debug");
-                this.addColorFolder(this.material.overloadedEmissive, "Emissive Color", true, emissiveFolder);
-                emissiveFolder.add(this.material, "overloadedEmissiveIntensity").min(0).step(0.01).name("Emissive Intensity");
                 // Finish
                 return true;
             };
             // Create normal map editor
-            PBRMaterialTool.prototype._createNormalMapEditor = function () {
+            LegacyPBRMaterialTool.prototype._createNormalMapEditor = function () {
                 var _this = this;
                 if (!this.material.albedoTexture || !(this.material.albedoTexture instanceof BABYLON.Texture))
                     return EDITOR.GUI.GUIWindow.CreateAlert("Please provide a diffuse texture first and/or use only basic texture", "Info");
@@ -142,7 +119,7 @@ var BABYLON;
                 };
             };
             // Preset for glass
-            PBRMaterialTool.prototype._createPresetGlass = function () {
+            LegacyPBRMaterialTool.prototype._createPresetGlass = function () {
                 this.material.linkRefractionWithTransparency = true;
                 this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
                 this.material.indexOfRefraction = 0.52;
@@ -154,7 +131,7 @@ var BABYLON;
                 this.material.microSurface = 1;
             };
             // Preset for metal
-            PBRMaterialTool.prototype._createPresetMetal = function () {
+            LegacyPBRMaterialTool.prototype._createPresetMetal = function () {
                 this.material.linkRefractionWithTransparency = false;
                 this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
                 this.material.directIntensity = 0.3;
@@ -164,7 +141,7 @@ var BABYLON;
                 this.material.microSurface = 0.96;
             };
             // Preset for Plastic
-            PBRMaterialTool.prototype._createPresetPlastic = function () {
+            LegacyPBRMaterialTool.prototype._createPresetPlastic = function () {
                 this.material.linkRefractionWithTransparency = false;
                 this.material.useMicroSurfaceFromReflectivityMapAlpha = false;
                 this.material.directIntensity = 0.6;
@@ -174,7 +151,7 @@ var BABYLON;
                 this.material.microSurface = 0.96;
             };
             // Preset for Wood
-            PBRMaterialTool.prototype._createPresetWood = function () {
+            LegacyPBRMaterialTool.prototype._createPresetWood = function () {
                 this.material.linkRefractionWithTransparency = false;
                 this.material.directIntensity = 1.5;
                 this.material.environmentIntensity = 0.5;
@@ -183,9 +160,9 @@ var BABYLON;
                 this.material.cameraContrast = 1.6;
                 this.material.useMicroSurfaceFromReflectivityMapAlpha = true;
             };
-            return PBRMaterialTool;
+            return LegacyPBRMaterialTool;
         }(EDITOR.AbstractMaterialTool));
-        EDITOR.PBRMaterialTool = PBRMaterialTool;
+        EDITOR.LegacyPBRMaterialTool = LegacyPBRMaterialTool;
     })(EDITOR = BABYLON.EDITOR || (BABYLON.EDITOR = {}));
 })(BABYLON || (BABYLON = {}));
 

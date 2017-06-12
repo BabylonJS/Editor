@@ -194,6 +194,7 @@ var BABYLON;
                     // 2d
                     var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder", this._core.currentScene);
                     this.sidebar.addNodes(node2d, this._graphRootName, false);
+                    this._core.scene2d.forceShowBoundingBoxes = true;
                     this.fillGraph(null, node2d.id, this._core.scene2d);
                 }
                 if (!node) {
