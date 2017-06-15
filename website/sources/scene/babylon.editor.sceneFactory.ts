@@ -1,15 +1,9 @@
 ﻿module BABYLON.EDITOR {
     export interface IEnabledPostProcesses {
         ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-
         ssao2: boolean;
-        attachSSAO2: boolean;
-
         standard: boolean;
-        attachStandard: boolean;
-
+        default: boolean;
         vls: boolean;
     }
 
@@ -49,18 +43,13 @@
         public static StandardPipeline: StandardRenderingPipeline = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
         public static SSAOPipeline2: SSAO2RenderingPipeline = null;
+        public static DefaultPipeline: DefaultRenderingPipeline = null;
         public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
             ssao: false,
-            ssaoOnly: false,
-            attachSSAO: true,
-
             ssao2: false,
-            attachSSAO2: false,
-
             standard: false,
-            attachStandard: true,
-
+            default: false,
             vls: false
         }
 
@@ -150,6 +139,21 @@
             this.SSAOPipeline2 = ssao;
 
             return ssao;
+        }
+
+        // Creates Default rendering pipeline
+        static CreateDefaultPipeline(core: EditorCore): DefaultRenderingPipeline {
+            if (this.DefaultPipeline) {
+                this.DefaultPipeline.dispose();
+                this.DefaultPipeline = null;
+            }
+
+            var cameras: Camera[] = core.currentScene.cameras;
+
+            var defaultPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, core.currentScene, cameras);
+            this.DefaultPipeline = defaultPipeline;
+
+            return defaultPipeline;
         }
 
         // Creates a Volumetric Light Scattering post-process

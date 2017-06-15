@@ -103,6 +103,17 @@ var BABYLON;
                 this.SSAOPipeline2 = ssao;
                 return ssao;
             };
+            // Creates Default rendering pipeline
+            SceneFactory.CreateDefaultPipeline = function (core) {
+                if (this.DefaultPipeline) {
+                    this.DefaultPipeline.dispose();
+                    this.DefaultPipeline = null;
+                }
+                var cameras = core.currentScene.cameras;
+                var defaultPipeline = new BABYLON.DefaultRenderingPipeline("DefaultRenderingPipeline", true, core.currentScene, cameras);
+                this.DefaultPipeline = defaultPipeline;
+                return defaultPipeline;
+            };
             // Creates a Volumetric Light Scattering post-process
             SceneFactory.CreateVLSPostProcess = function (core, mesh, serializationObject) {
                 if (mesh === void 0) { mesh = null; }
@@ -337,15 +348,13 @@ var BABYLON;
         SceneFactory.StandardPipeline = null;
         SceneFactory.SSAOPipeline = null;
         SceneFactory.SSAOPipeline2 = null;
+        SceneFactory.DefaultPipeline = null;
         SceneFactory.VLSPostProcess = null;
         SceneFactory.EnabledPostProcesses = {
             ssao: false,
-            ssaoOnly: false,
-            attachSSAO: true,
             ssao2: false,
-            attachSSAO2: false,
             standard: false,
-            attachStandard: true,
+            default: false,
             vls: false
         };
         SceneFactory.NodesToStart = [];

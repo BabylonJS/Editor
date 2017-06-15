@@ -137,7 +137,7 @@
                 "None",
                 
                 "StandardMaterial",
-                "PBRMaterial",
+                "LegacyPBRMaterial",
                 "FireMaterial",
                 "GradientMaterial",
                 "FurMaterial",

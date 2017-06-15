@@ -19,6 +19,7 @@ var BABYLON;
                 _this.tab = "POSTPROCESSES.TAB";
                 // Private members
                 _this._renderEffects = {};
+                _this._defaultVignetteMultiply = false;
                 // Initialize
                 _this.containers = [
                     "BABYLON-EDITOR-EDITION-TOOL-POSTPROCESSES"
@@ -49,9 +50,45 @@ var BABYLON;
                 // Ckeck checkboxes
                 EDITOR.SceneFactory.EnabledPostProcesses.standard = EDITOR.SceneFactory.StandardPipeline !== null;
                 EDITOR.SceneFactory.EnabledPostProcesses.ssao = EDITOR.SceneFactory.SSAOPipeline !== null;
+                // Default
+                var defaultFolder = this._element.addFolder("Default Rendering Pipeline");
+                defaultFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "default").name("Enable Default Rendering Pipeline").onChange(function (result) {
+                    if (result === true)
+                        EDITOR.SceneFactory.CreateDefaultPipeline(_this._editionTool.core);
+                    else {
+                        EDITOR.SceneFactory.DefaultPipeline.dispose();
+                        EDITOR.SceneFactory.DefaultPipeline = null;
+                    }
+                    _this.update();
+                });
+                if (EDITOR.SceneFactory.DefaultPipeline) {
+                    var bloomFolder = defaultFolder.addFolder("Bloom");
+                    bloomFolder.open();
+                    bloomFolder.add(EDITOR.SceneFactory.DefaultPipeline, "bloomEnabled").name("Enable Bloom");
+                    bloomFolder.add(EDITOR.SceneFactory.DefaultPipeline, "bloomWeight").min(0).max(1).step(0.01).name("Bloom Weight").onChange(function () { return _this.update(); });
+                    bloomFolder.add(EDITOR.SceneFactory.DefaultPipeline, "bloomKernel").min(0).step(1).name("Bloom Kernel");
+                    var imgProcessingFolder = defaultFolder.addFolder("Image Processing");
+                    imgProcessingFolder.open();
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline, "imageProcessingEnabled").name("Enable Image Processing");
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "cameraToneMappingEnabled").name("Camera Tone Mapping");
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "vignetteEnabled").name("Vignette");
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "colorCurvesEnabled").name("Color Curves");
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "cameraContrast").min(0).max(10).step(0.01).name("Camera Constrast");
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "cameraExposure").min(0).max(10).step(0.01).name("Camera Exposure");
+                    this._defaultVignetteMultiply = EDITOR.SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode === BABYLON.ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY;
+                    imgProcessingFolder.add(this, "_defaultVignetteMultiply").name("Vignette Multiply").onChange(function (result) {
+                        var blendMode = result ? BABYLON.ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY : BABYLON.ImageProcessingPostProcess.VIGNETTEMODE_OPAQUE;
+                        EDITOR.SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode = blendMode;
+                    });
+                    this.addColorFolder(EDITOR.SceneFactory.DefaultPipeline.imageProcessing.vignetteColor, "Vignette Color", true, imgProcessingFolder);
+                    imgProcessingFolder.add(EDITOR.SceneFactory.DefaultPipeline.imageProcessing, "vignetteWeight").min(0).max(10).step(0.01).name("Vignette Weight");
+                    var fxaaFolder = defaultFolder.addFolder("FXAA");
+                    fxaaFolder.open();
+                    fxaaFolder.add(EDITOR.SceneFactory.DefaultPipeline, "fxaaEnabled").name("Enable FXAA");
+                }
                 // Standard
                 var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
-                standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange(function (result) {
+                standardFolder.add(EDITOR.SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard Rendering Pipeline").onChange(function (result) {
                     if (result === true)
                         EDITOR.SceneFactory.CreateStandardRenderingPipeline(_this._editionTool.core, function () { return _this.update(); });
                     else {

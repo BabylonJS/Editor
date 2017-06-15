@@ -12,10 +12,10 @@
         * @param editionTool: edition tool instance
         */
         constructor(editionTool: EditionTool) {
-            super(editionTool, "PBR-MATERIAL", "PBR", "PBR");
+            super(editionTool, "LEGACY-PBR-MATERIAL", "LEGACY-PBR", "Legacy PBR");
 
             // Initialize
-            this.onObjectSupported = (material: Material) => { return material instanceof PBRMaterial };
+            this.onObjectSupported = (material: Material) => { return material instanceof LegacyPBRMaterial };
         }
 
         // Update

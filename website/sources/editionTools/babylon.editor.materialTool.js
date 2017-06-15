@@ -123,7 +123,7 @@ var BABYLON;
                 var items = [
                     "None",
                     "StandardMaterial",
-                    "PBRMaterial",
+                    "LegacyPBRMaterial",
                     "FireMaterial",
                     "GradientMaterial",
                     "FurMaterial",

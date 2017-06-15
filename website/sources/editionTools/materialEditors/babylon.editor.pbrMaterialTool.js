@@ -15,12 +15,12 @@ var BABYLON;
             * @param editionTool: edition tool instance
             */
             function LegacyPBRMaterialTool(editionTool) {
-                var _this = _super.call(this, editionTool, "PBR-MATERIAL", "PBR", "PBR") || this;
+                var _this = _super.call(this, editionTool, "LEGACY-PBR-MATERIAL", "LEGACY-PBR", "Legacy PBR") || this;
                 // Public members
                 // Private members
                 _this._dummyPreset = "";
                 // Initialize
-                _this.onObjectSupported = function (material) { return material instanceof BABYLON.PBRMaterial; };
+                _this.onObjectSupported = function (material) { return material instanceof BABYLON.LegacyPBRMaterial; };
                 return _this;
             }
             // Update

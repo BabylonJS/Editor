@@ -6,6 +6,7 @@
 
         // Private members
         private _renderEffects: { } = { };
+        private _defaultVignetteMultiply: boolean = false;
 
         /**
         * Constructor
@@ -51,9 +52,52 @@
             SceneFactory.EnabledPostProcesses.standard = SceneFactory.StandardPipeline !== null;
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
+            // Default
+            var defaultFolder = this._element.addFolder("Default Rendering Pipeline");
+            defaultFolder.add(SceneFactory.EnabledPostProcesses, "default").name("Enable Default Rendering Pipeline").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.CreateDefaultPipeline(this._editionTool.core);
+                else {
+                    SceneFactory.DefaultPipeline.dispose();
+                    SceneFactory.DefaultPipeline = null;
+                }
+
+                this.update();
+            });
+
+            if (SceneFactory.DefaultPipeline) {
+                var bloomFolder = defaultFolder.addFolder("Bloom");
+                bloomFolder.open();
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomEnabled").name("Enable Bloom");
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomWeight").min(0).max(1).step(0.01).name("Bloom Weight").onChange(() => this.update());
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomKernel").min(0).step(1).name("Bloom Kernel");
+
+                var imgProcessingFolder = defaultFolder.addFolder("Image Processing");
+                imgProcessingFolder.open();
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline, "imageProcessingEnabled").name("Enable Image Processing");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraToneMappingEnabled").name("Camera Tone Mapping");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteEnabled").name("Vignette");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "colorCurvesEnabled").name("Color Curves");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraContrast").min(0).max(10).step(0.01).name("Camera Constrast");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraExposure").min(0).max(10).step(0.01).name("Camera Exposure");
+                
+                this._defaultVignetteMultiply = SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode === ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY;
+                imgProcessingFolder.add(this, "_defaultVignetteMultiply").name("Vignette Multiply").onChange((result: boolean) => {
+                    var blendMode = result ? ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY : ImageProcessingPostProcess.VIGNETTEMODE_OPAQUE;
+                    SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode = blendMode;
+                });
+
+                this.addColorFolder(SceneFactory.DefaultPipeline.imageProcessing.vignetteColor, "Vignette Color", true, imgProcessingFolder);
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteWeight").min(0).max(10).step(0.01).name("Vignette Weight");
+
+                var fxaaFolder = defaultFolder.addFolder("FXAA");
+                fxaaFolder.open();
+                fxaaFolder.add(SceneFactory.DefaultPipeline, "fxaaEnabled").name("Enable FXAA");
+            }
+
             // Standard
             var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
-            standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
+            standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard Rendering Pipeline").onChange((result: any) => {
                 if (result === true)
                     SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core, () => this.update());
                 else {
