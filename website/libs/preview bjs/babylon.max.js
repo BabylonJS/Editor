@@ -47600,7 +47600,7 @@ var BABYLON;
 var BABYLON;
 (function (BABYLON) {
     var Gamepads = (function () {
-        function Gamepads(ongamedpadconnected) {
+        function Gamepads(ongamedpadconnected, ongamedpaddisconnected) {
             var _this = this;
             this.babylonGamepads = [];
             this.oneGamepadConnected = false;
@@ -47609,6 +47609,7 @@ var BABYLON;
             this.gamepadSupport = (navigator.getGamepads ||
                 navigator.webkitGetGamepads || navigator.msGetGamepads || navigator.webkitGamepads);
             this._callbackGamepadConnected = ongamedpadconnected;
+            this._callbackGamepadDisconnected = ongamedpaddisconnected;
             if (this.gamepadSupport) {
                 //first add already-connected gamepads
                 this._updateGamepadObjects();
@@ -47621,7 +47622,7 @@ var BABYLON;
                         _this._onGamepadConnected(evt.gamepad);
                     };
                     this._onGamepadDisonnectedEvent = function (evt) {
-                        _this._onGamepadDisconnected(evt);
+                        _this._onGamepadDisconnected(evt.gamepad);
                     };
                     window.addEventListener('gamepadconnected', this._onGamepadConnectedEvent, false);
                     window.addEventListener('gamepaddisconnected', this._onGamepadDisonnectedEvent, false);
@@ -47638,8 +47639,16 @@ var BABYLON;
                 this._onGamepadConnectedEvent = null;
                 this._onGamepadDisonnectedEvent = null;
             }
+            this.oneGamepadConnected = false;
+            this._stopMonitoringGamepads();
+            this.babylonGamepads = [];
         };
         Gamepads.prototype._onGamepadConnected = function (gamepad) {
+            // Protection code for Chrome which has a very buggy gamepad implementation...
+            // And raises a connected event on disconnection for instance
+            if (gamepad.index in this.babylonGamepads) {
+                return;
+            }
             var newGamepad = this._addNewGamepad(gamepad);
             if (this._callbackGamepadConnected)
                 this._callbackGamepadConnected(newGamepad);
@@ -47663,10 +47672,10 @@ var BABYLON;
             this.babylonGamepads.push(newGamepad);
             return newGamepad;
         };
-        Gamepads.prototype._onGamepadDisconnected = function (evt) {
+        Gamepads.prototype._onGamepadDisconnected = function (gamepad) {
             // Remove the gamepad from the list of gamepads to monitor.
             for (var i in this.babylonGamepads) {
-                if (this.babylonGamepads[i].index == evt.gamepad.index) {
+                if (this.babylonGamepads[i].index == gamepad.index) {
                     this.babylonGamepads.splice(+i, 1);
                     break;
                 }
@@ -47674,7 +47683,10 @@ var BABYLON;
             // If no gamepads are left, stop the polling loop.
             if (this.babylonGamepads.length == 0) {
                 this._stopMonitoringGamepads();
+                this.oneGamepadConnected = false;
             }
+            if (this._callbackGamepadDisconnected)
+                this._callbackGamepadDisconnected(gamepad);
         };
         Gamepads.prototype._startMonitoringGamepads = function () {
             if (!this.isMonitoring) {
@@ -47687,7 +47699,7 @@ var BABYLON;
         };
         Gamepads.prototype._checkGamepadsStatus = function () {
             var _this = this;
-            // updating gamepad objects
+            // Hack to be compatible Chrome
             this._updateGamepadObjects();
             for (var i in this.babylonGamepads) {
                 this.babylonGamepads[i].update();
@@ -47704,9 +47716,8 @@ var BABYLON;
                 }
             }
         };
-        // This function is called only on Chrome, which does not yet support
-        // connection/disconnection events, but requires you to monitor
-        // an array for changes.
+        // This function is called only on Chrome, which does not properly support
+        // connection/disconnection events and forces you to recopy again the gamepad object
         Gamepads.prototype._updateGamepadObjects = function () {
             var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
             for (var i = 0; i < gamepads.length; i++) {
@@ -47718,6 +47729,7 @@ var BABYLON;
                         }
                     }
                     else {
+                        // Forced to copy again this object for Chrome for unknown reason
                         this.babylonGamepads[i].browserGamepad = gamepads[i];
                     }
                 }
@@ -47804,13 +47816,10 @@ var BABYLON;
     BABYLON.Gamepad = Gamepad;
     var GenericPad = (function (_super) {
         __extends(GenericPad, _super);
-        function GenericPad(id, index, gamepad) {
-            var _this = _super.call(this, id, index, gamepad) || this;
-            _this.id = id;
-            _this.index = index;
-            _this.gamepad = gamepad;
+        function GenericPad(id, index, browserGamepad) {
+            var _this = _super.call(this, id, index, browserGamepad) || this;
             _this.type = Gamepad.GENERIC;
-            _this._buttons = new Array(gamepad.buttons.length);
+            _this._buttons = new Array(browserGamepad.buttons.length);
             return _this;
         }
         GenericPad.prototype.onbuttondown = function (callback) {
@@ -47833,7 +47842,7 @@ var BABYLON;
         GenericPad.prototype.update = function () {
             _super.prototype.update.call(this);
             for (var index = 0; index < this._buttons.length; index++) {
-                this._buttons[index] = this._setButtonValue(this.gamepad.buttons[index].value, this._buttons[index], index);
+                this._buttons[index] = this._setButtonValue(this.browserGamepad.buttons[index].value, this._buttons[index], index);
             }
         };
         return GenericPad;
@@ -50148,7 +50157,6 @@ var BABYLON;
 
 //# sourceMappingURL=babylon.lensRenderingPipeline.js.map
 
-/// <reference path="RenderPipeline\babylon.postProcessRenderPipeline.ts" />
 
 
 
@@ -50215,6 +50223,7 @@ var BABYLON;
             _this._hdrCurrentLuminance = 1.0;
             _this._motionBlurSamples = 64;
             // Getters and setters
+            _this._bloomEnabled = true;
             _this._depthOfFieldEnabled = true;
             _this._lensFlareEnabled = true;
             _this._hdrEnabled = true;
@@ -50276,6 +50285,34 @@ var BABYLON;
             _this.MotionBlurEnabled = false;
             return _this;
         }
+        Object.defineProperty(StandardRenderingPipeline.prototype, "BloomEnabled", {
+            get: function () {
+                return this._bloomEnabled;
+            },
+            set: function (enabled) {
+                if (enabled && !this._bloomEnabled) {
+                    this._scene.postProcessRenderPipelineManager.enableEffectInPipeline(this._name, "HDRDownSampleX4", this._cameras);
+                    this._scene.postProcessRenderPipelineManager.enableEffectInPipeline(this._name, "HDRBrightPass", this._cameras);
+                    for (var i = 0; i < this.gaussianBlurHPostProcesses.length - 1; i++) {
+                        this._scene.postProcessRenderPipelineManager.enableEffectInPipeline(this._name, "HDRGaussianBlurH" + i, this._cameras);
+                        this._scene.postProcessRenderPipelineManager.enableEffectInPipeline(this._name, "HDRGaussianBlurV" + i, this._cameras);
+                    }
+                    this._scene.postProcessRenderPipelineManager.enableEffectInPipeline(this._name, "HDRTextureAdder", this._cameras);
+                }
+                else if (!enabled && this._bloomEnabled) {
+                    this._scene.postProcessRenderPipelineManager.disableEffectInPipeline(this._name, "HDRDownSampleX4", this._cameras);
+                    this._scene.postProcessRenderPipelineManager.disableEffectInPipeline(this._name, "HDRBrightPass", this._cameras);
+                    for (var i = 0; i < this.gaussianBlurHPostProcesses.length - 1; i++) {
+                        this._scene.postProcessRenderPipelineManager.disableEffectInPipeline(this._name, "HDRGaussianBlurH" + i, this._cameras);
+                        this._scene.postProcessRenderPipelineManager.disableEffectInPipeline(this._name, "HDRGaussianBlurV" + i, this._cameras);
+                    }
+                    this._scene.postProcessRenderPipelineManager.disableEffectInPipeline(this._name, "HDRTextureAdder", this._cameras);
+                }
+                this._bloomEnabled = enabled;
+            },
+            enumerable: true,
+            configurable: true
+        });
         Object.defineProperty(StandardRenderingPipeline.prototype, "DepthOfFieldEnabled", {
             get: function () {
                 return this._depthOfFieldEnabled;
@@ -50555,7 +50592,7 @@ var BABYLON;
             var time = 0;
             var lastTime = 0;
             this.hdrPostProcess.onApply = function (effect) {
-                effect.setTextureFromPostProcess("textureAdderSampler", _this._currentHDRSource);
+                effect.setTextureFromPostProcess("textureAdderSampler", _this._bloomEnabled ? _this._currentHDRSource : _this.originalPostProcess);
                 time += scene.getEngine().getDeltaTime();
                 if (outputLiminance < 0) {
                     outputLiminance = _this._hdrCurrentLuminance;
@@ -50590,7 +50627,7 @@ var BABYLON;
             var resolution = new BABYLON.Vector2(0, 0);
             // Lens flare
             this.lensFlarePostProcess.onApply = function (effect) {
-                effect.setTextureFromPostProcess("textureSampler", _this.gaussianBlurHPostProcesses[0]);
+                effect.setTextureFromPostProcess("textureSampler", _this._bloomEnabled ? _this.gaussianBlurHPostProcesses[0] : _this.originalPostProcess);
                 effect.setTexture("lensColorSampler", _this.lensColorTexture);
                 effect.setFloat("strength", _this.lensFlareStrength);
                 effect.setFloat("ghostDispersal", _this.lensFlareGhostDispersal);
@@ -50757,6 +50794,9 @@ var BABYLON;
     __decorate([
         BABYLON.serialize()
     ], StandardRenderingPipeline.prototype, "motionStrength", void 0);
+    __decorate([
+        BABYLON.serialize()
+    ], StandardRenderingPipeline.prototype, "BloomEnabled", null);
     __decorate([
         BABYLON.serialize()
     ], StandardRenderingPipeline.prototype, "DepthOfFieldEnabled", null);

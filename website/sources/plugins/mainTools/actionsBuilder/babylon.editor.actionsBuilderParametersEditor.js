@@ -293,6 +293,7 @@ var BABYLON;
                             properties.push(path + thing);
                         }
                         else if (allowedClasses.indexOf(EDITOR.Tools.GetConstructorName(value)) !== -1) {
+                            properties.push(path + thing);
                             fillProperties(value, path + thing + ".");
                         }
                     }

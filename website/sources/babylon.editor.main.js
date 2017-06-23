@@ -365,6 +365,7 @@ var BABYLON;
                 var camera = new BABYLON.ArcRotateCamera("EditorCamera", 0, 0, 10, BABYLON.Vector3.Zero(), this.core.currentScene);
                 camera.panningSensibility = 50;
                 camera.attachControl(this.core.canvas, false, false);
+                camera.setPosition(new BABYLON.Vector3(100, 100, 100));
                 this.core.camera = camera;
                 if (this._saveCameraState) {
                     camera.setPosition(cameraPosition);

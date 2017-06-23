@@ -482,6 +482,7 @@
             var camera = new ArcRotateCamera("EditorCamera", 0, 0, 10, Vector3.Zero(), this.core.currentScene);
             camera.panningSensibility = 50;
             camera.attachControl(this.core.canvas, false, false);
+            camera.setPosition(new Vector3(100, 100, 100));
 
             this.core.camera = camera;
 
