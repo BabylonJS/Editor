@@ -100,16 +100,25 @@ var BABYLON;
                 if (EDITOR.SceneFactory.StandardPipeline) {
                     var animationsFolder = standardFolder.addFolder("Animations");
                     animationsFolder.add(this, "_editAnimations").name("Edit Animations");
-                    var highLightFolder = standardFolder.addFolder("Highlighting");
+                    var highLightFolder = standardFolder.addFolder("Bloom");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "BloomEnabled").name("Bloom Enabled");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                    highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "blurWidth").min(0).max(512).step(0.01).name("Blur Width");
                     highLightFolder.add(EDITOR.SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                     this.addTextureFolder(EDITOR.SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                     highLightFolder.open();
+                    var vlsFolder = standardFolder.addFolder("Volumetric Lights");
+                    vlsFolder.add(EDITOR.SceneFactory.StandardPipeline, "VLSEnabled").name("VLS Enabled").onChange(function (result) {
+                        if (result)
+                            _this._setVLSAttachedSourceLight();
+                        else
+                            EDITOR.SceneFactory.StandardPipeline.VLSEnabled = result;
+                    });
+                    vlsFolder.add(EDITOR.SceneFactory.StandardPipeline, "volumetricLightCoefficient").min(0).max(1).step(0.01).name("Scattering Coefficient");
+                    vlsFolder.add(EDITOR.SceneFactory.StandardPipeline, "volumetricLightPower").min(0).max(10).step(0.01).name("Scattering Power");
+                    vlsFolder.add(EDITOR.SceneFactory.StandardPipeline, "volumetricLightBlurScale").min(0).max(64).step(1).name("Blur scale");
+                    vlsFolder.open();
                     var lensFolder = standardFolder.addFolder("Lens Flare");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
                     lensFolder.add(EDITOR.SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(100).step(0.01).name("Strength");
@@ -126,8 +135,8 @@ var BABYLON;
                     hdrFolder.open();
                     var dofFolder = standardFolder.addFolder("Depth Of Field");
                     dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
-                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
-                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(1).step(0.01).name("DOF Distance");
+                    dofFolder.add(EDITOR.SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(64).name("Blur Width");
                     dofFolder.open();
                     var motionBlurFolder = standardFolder.addFolder("Motion Blur");
                     motionBlurFolder.add(EDITOR.SceneFactory.StandardPipeline, "MotionBlurEnabled").name("Enable Motion Blur");
@@ -228,6 +237,27 @@ var BABYLON;
                     if (names.length > 0)
                         node = _this._editionTool.core.currentScene.getNodeByName(names[0]);
                     EDITOR.SceneFactory.VLSPostProcess.attachedNode = node;
+                };
+                picker.open();
+            };
+            // Set up attached standard source light
+            PostProcessesTool.prototype._setVLSAttachedSourceLight = function () {
+                var _this = this;
+                var scene = this._editionTool.core.currentScene;
+                var objects = [];
+                for (var i = 0; i < scene.lights.length; i++) {
+                    var light = scene.lights[i];
+                    if ((light instanceof BABYLON.SpotLight || light instanceof BABYLON.DirectionalLight) && light.getShadowGenerator())
+                        objects.push(light);
+                }
+                var picker = new EDITOR.ObjectPicker(this._editionTool.core);
+                picker.objectLists.push(objects);
+                picker.minSelectCount = 0;
+                picker.onObjectPicked = function (names) {
+                    var node = null;
+                    if (names.length > 0)
+                        node = _this._editionTool.core.currentScene.getNodeByName(names[0]);
+                    EDITOR.SceneFactory.StandardPipeline.sourceLight = node;
                 };
                 picker.open();
             };

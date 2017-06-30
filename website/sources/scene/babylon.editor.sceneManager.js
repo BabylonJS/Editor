@@ -92,8 +92,6 @@ var BABYLON;
                             statesObject[thing] = value;
                         }
                         else if (value instanceof BABYLON.Material) {
-                            statesObject[thing] = {};
-                            recursivelySaveStates(value, statesObject[thing]);
                         }
                     }
                 };
@@ -121,7 +119,6 @@ var BABYLON;
                     for (var thing in statesObject) {
                         var value = statesObject[thing];
                         if (thing === "material") {
-                            recursivelyRestoreStates(object[thing], statesObject[thing]);
                         }
                         else {
                             object[thing] = statesObject[thing];

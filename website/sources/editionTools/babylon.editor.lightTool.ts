@@ -63,6 +63,7 @@
             // Spot light
             if (object instanceof SpotLight) {
                 var spotFolder = this._element.addFolder("Spot Light");
+                this.addVectorFolder(object.direction, "Direction", true, spotFolder);
                 spotFolder.add(object, "exponent").min(0.0).name("Exponent");
                 spotFolder.add(object, "angle").min(0.0).name("Angle");
             }

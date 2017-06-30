@@ -372,6 +372,7 @@
             
             fillProperties(node, "");
 
+            Tools.SortAlphabetically(properties);
             return properties;
         }
 

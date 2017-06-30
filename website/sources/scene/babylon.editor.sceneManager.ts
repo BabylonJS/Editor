@@ -128,8 +128,8 @@
                         statesObject[thing] = value;
                     }
                     else if (value instanceof Material) {
-                        statesObject[thing] = { };
-                        recursivelySaveStates(value, statesObject[thing]);
+                        //statesObject[thing] = { };
+                        //recursivelySaveStates(value, statesObject[thing]);
                     }
                 }
             };
@@ -163,7 +163,7 @@
                     var value = statesObject[thing];
 
                     if (thing === "material") {
-                        recursivelyRestoreStates(object[thing], statesObject[thing]);
+                        //recursivelyRestoreStates(object[thing], statesObject[thing]);
                     }
                     else {
                         object[thing] = statesObject[thing];

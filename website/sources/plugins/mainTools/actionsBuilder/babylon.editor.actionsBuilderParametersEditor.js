@@ -299,6 +299,7 @@ var BABYLON;
                     }
                 };
                 fillProperties(node, "");
+                EDITOR.Tools.SortAlphabetically(properties);
                 return properties;
             };
             // Creates an array of sounds names

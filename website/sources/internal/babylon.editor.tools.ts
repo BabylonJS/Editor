@@ -112,6 +112,17 @@
         }
 
         /**
+         * Sorts the given string array alphabetically
+         */
+        public static SortAlphabetically(arr: string[]): void {
+            arr.sort((a, b) => {
+                a = a.toUpperCase();
+                b = b.toUpperCase();
+                return (a < b) ? -1 : (a > b) ? 1 : 0;
+            });
+        }
+
+        /**
         * Returns the base URL of the window
         */
         public static GetBaseURL(): string {

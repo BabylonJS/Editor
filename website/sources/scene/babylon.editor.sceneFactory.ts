@@ -88,6 +88,7 @@
 
             standard.lensFlareHaloWidth = 0.4;
             standard.lensFlareGhostDispersal = 0.1;
+            standard.depthOfFieldDistance = 1;
 
             this.StandardPipeline = standard;
 

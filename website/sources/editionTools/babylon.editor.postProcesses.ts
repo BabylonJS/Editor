@@ -112,16 +112,26 @@
                 var animationsFolder = standardFolder.addFolder("Animations");
                 animationsFolder.add(this, "_editAnimations").name("Edit Animations");
 
-                var highLightFolder = standardFolder.addFolder("Highlighting");
+                var highLightFolder = standardFolder.addFolder("Bloom");
+                highLightFolder.add(SceneFactory.StandardPipeline, "BloomEnabled").name("Bloom Enabled");
                 highLightFolder.add(SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
                 highLightFolder.add(SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(512).step(0.01).name("Blur Width");
                 highLightFolder.add(SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                 this.addTextureFolder(SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                 highLightFolder.open();
+
+                var vlsFolder = standardFolder.addFolder("Volumetric Lights");
+                vlsFolder.add(SceneFactory.StandardPipeline, "VLSEnabled").name("VLS Enabled").onChange((result: boolean) => {
+                    if (result)
+                        this._setVLSAttachedSourceLight();
+                    else
+                        SceneFactory.StandardPipeline.VLSEnabled = result;
+                });
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightCoefficient").min(0).max(1).step(0.01).name("Scattering Coefficient");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightPower").min(0).max(10).step(0.01).name("Scattering Power");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightBlurScale").min(0).max(64).step(1).name("Blur scale");
+                vlsFolder.open();
 
                 var lensFolder = standardFolder.addFolder("Lens Flare");
                 lensFolder.add(SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
@@ -141,8 +151,8 @@
 
                 var dofFolder = standardFolder.addFolder("Depth Of Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
-                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
-                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(1).step(0.01).name("DOF Distance");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(64).name("Blur Width");
                 dofFolder.open();
 
                 var motionBlurFolder = standardFolder.addFolder("Motion Blur");
@@ -259,6 +269,32 @@
                     node = this._editionTool.core.currentScene.getNodeByName(names[0]);
 
                 SceneFactory.VLSPostProcess.attachedNode = node;
+            };
+
+            picker.open();
+        }
+
+        // Set up attached standard source light
+        private _setVLSAttachedSourceLight(): void {
+            var scene = this._editionTool.core.currentScene;
+            var objects: Node[] = [];
+            
+            for (var i = 0; i < scene.lights.length; i++) {
+                var light = scene.lights[i];
+                if ((light instanceof SpotLight || light instanceof DirectionalLight) && light.getShadowGenerator())
+                    objects.push(light);
+            }
+
+            var picker = new ObjectPicker(this._editionTool.core);
+            picker.objectLists.push(objects);
+            picker.minSelectCount = 0;
+
+            picker.onObjectPicked = (names: string[]) => {
+                var node: any = null;
+                if (names.length > 0)
+                    node = this._editionTool.core.currentScene.getNodeByName(names[0]);
+
+                SceneFactory.StandardPipeline.sourceLight = node;
             };
 
             picker.open();

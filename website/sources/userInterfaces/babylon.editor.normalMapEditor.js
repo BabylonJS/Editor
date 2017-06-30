@@ -59,7 +59,7 @@ var BABYLON;
                     };
                 });
                 if (tempTexture instanceof BABYLON.DynamicTexture)
-                    tempTexture.onLoadObservable.notifyObservers(false);
+                    tempTexture.onLoadObservable.notifyObservers(tempTexture);
                 // On close
                 window.setOnCloseCallback(function () {
                     viewport1.engine.dispose();

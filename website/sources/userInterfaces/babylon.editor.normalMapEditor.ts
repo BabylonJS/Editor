@@ -65,7 +65,7 @@ module BABYLON.EDITOR {
             });
 
             if (tempTexture instanceof DynamicTexture)
-                tempTexture.onLoadObservable.notifyObservers(false);
+                tempTexture.onLoadObservable.notifyObservers(tempTexture);
 
             // On close
             window.setOnCloseCallback(() => {
