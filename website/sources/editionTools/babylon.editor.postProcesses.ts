@@ -75,15 +75,20 @@
                 var imgProcessingFolder = defaultFolder.addFolder("Image Processing");
                 imgProcessingFolder.open();
                 imgProcessingFolder.add(SceneFactory.DefaultPipeline, "imageProcessingEnabled").name("Enable Image Processing");
-                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraToneMappingEnabled").name("Camera Tone Mapping");
                 imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteEnabled").name("Vignette");
+
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCameraFov").name("Vignette Camera Fov");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCentreX").min(-10).max(10).step(0.01).name("Vignette Centre X");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCentreY").min(-10).max(10).step(0.01).name("Vignette Centre Y");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteStretch").step(0.01).name("Vignette Stretch");
+
                 imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "colorCurvesEnabled").name("Color Curves");
-                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraContrast").min(0).max(10).step(0.01).name("Camera Constrast");
-                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "cameraExposure").min(0).max(10).step(0.01).name("Camera Exposure");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "contrast").name("Contrast");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "exposure").name("Exposure");
                 
-                this._defaultVignetteMultiply = SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode === ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY;
+                this._defaultVignetteMultiply = SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode === ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
                 imgProcessingFolder.add(this, "_defaultVignetteMultiply").name("Vignette Multiply").onChange((result: boolean) => {
-                    var blendMode = result ? ImageProcessingPostProcess.VIGNETTEMODE_MULTIPLY : ImageProcessingPostProcess.VIGNETTEMODE_OPAQUE;
+                    var blendMode = result ? ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY : ImageProcessingConfiguration.VIGNETTEMODE_OPAQUE;
                     SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode = blendMode;
                 });
 
@@ -131,6 +136,8 @@
                 vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightCoefficient").min(0).max(1).step(0.01).name("Scattering Coefficient");
                 vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightPower").min(0).max(10).step(0.01).name("Scattering Power");
                 vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightBlurScale").min(0).max(64).step(1).name("Blur scale");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightStepsCount").min(0).max(100).step(1).name("Steps count");
+
                 vlsFolder.open();
 
                 var lensFolder = standardFolder.addFolder("Lens Flare");
@@ -152,7 +159,7 @@
                 var dofFolder = standardFolder.addFolder("Depth Of Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(1).step(0.01).name("DOF Distance");
-                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(64).name("Blur Width");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(512).name("Blur Width");
                 dofFolder.open();
 
                 var motionBlurFolder = standardFolder.addFolder("Motion Blur");

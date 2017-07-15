@@ -28,8 +28,10 @@
         // Object supported
         public isObjectSupported(object: any): boolean {
             if (object instanceof AbstractMesh) {
-                if (object.material && !(object.material instanceof MultiMaterial) && this.onObjectSupported(object.material))
-                    return true;
+                if (object.material && object.material instanceof MultiMaterial && object.material.subMaterials.length === 1)
+                    return this.onObjectSupported(object.material.subMaterials[0]);
+                
+                return this.onObjectSupported(object.material);
             }
             else if (object instanceof SubMesh) {
                 var subMesh = <SubMesh>object;
@@ -55,7 +57,10 @@
             super.update();
 
             if (object instanceof AbstractMesh) {
-                this.material = <T>object.material;
+                if (object.material instanceof MultiMaterial)
+                    this.material = <T>object.material.subMaterials[0];
+                else
+                    this.material = <T>object.material;
             }
             else if (object instanceof SubMesh) {
                 this.material = <T>object.getMaterial();

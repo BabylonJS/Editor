@@ -6,6 +6,10 @@
 function createDefaultScene(core) {
     var scene = core.currentScene;
 
+    scene.imageProcessingConfiguration.contrast = 1.6;
+	scene.imageProcessingConfiguration.exposure = 0.6;
+	scene.imageProcessingConfiguration.toneMappingEnabled = true;
+
     // Light
     new BABYLON.PointLight("point", new BABYLON.Vector3(0, 40, 0), scene);
 
@@ -103,9 +107,10 @@ function createDefaultScene(core) {
     //wood.albedoTexture = new BABYLON.Texture("website/Tests/textures/albedo.png", scene);
     woodPlank.material = wood;
 
-    scene._addPendingData("website/Tests/textures/environment.babylon.hdr");
-    BABYLON.EDITOR.Tools.CreateFileFromURL("website/Tests/textures/environment.babylon.hdr", function (file) {
-        var texture = new BABYLON.HDRCubeTexture("file:environment.babylon.hdr", scene);
+    scene._addPendingData("website/textures/environment.dds");
+    BABYLON.EDITOR.Tools.CreateFileFromURL("website/textures/environment.dds", function (file) {
+        var texture = BABYLON.CubeTexture.CreateFromPrefilteredData("file:environment.dds", scene);
+        texture.gammaSpace = false;
 
         hdrSkyboxMaterial.reflectionTexture = texture.clone();
         hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
@@ -116,10 +121,10 @@ function createDefaultScene(core) {
         plastic.reflectionTexture = texture;
         wood.reflectionTexture = texture;
 
-        texture.name = texture.url = "environment.babylon.hdr";
-        hdrSkyboxMaterial.reflectionTexture.name = hdrSkyboxMaterial.reflectionTexture.url = "environment.babylon.hdr";
+        texture.name = texture.url = "environment.dds";
+        hdrSkyboxMaterial.reflectionTexture.name = hdrSkyboxMaterial.reflectionTexture.url = "environment.dds";
 
-        scene._removePendingData("website/Tests/textures/environment.babylon.hdr");
+        scene._removePendingData("website/textures/environment.dds");
     }, false);
 
     scene._addPendingData("website/Tests/textures/albedo.png");

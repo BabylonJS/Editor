@@ -195,17 +195,6 @@
                     }
                 }
 
-                // Textures
-                if (SceneFactory.HDRPipeline && SceneFactory.HDRPipeline.lensTexture) {
-                    var lensTextureName = SceneFactory.HDRPipeline.lensTexture.name;
-                    //files.push({ name: lensTextureName, url: url + "Textures/" + lensTextureName, content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
-                    files.push({
-                        name: lensTextureName,
-                        content: Tools.ConvertBase64StringToArrayBuffer((<any>SceneFactory.HDRPipeline.lensTexture)._buffer),
-                        parentFolder: this.getFolder("textures").file
-                    });
-                }
-
                 // Files to load
                 var count = files.length;
                 

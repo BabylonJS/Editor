@@ -43,12 +43,12 @@ var BABYLON;
                     this.StandardPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
-                var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
+                var standard = new BABYLON.StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0, null, cameras);
                 EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, function (texture) {
-                    standard.lensTexture = texture;
                     callback();
                 });
                 EDITOR.Tools.LoadAndCreateBase64Texture("website/textures/lensflaredirt.png", core.currentScene, function (texture) {
+                    standard.lensTexture = texture;
                     standard.lensFlareDirtTexture = texture;
                     callback();
                 });
@@ -74,7 +74,7 @@ var BABYLON;
                     this.SSAOPipeline = null;
                 }
                 var cameras = core.currentScene.cameras;
-                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25 / devicePixelRatio, combineRatio: 1.0 }, cameras);
+                var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25, combineRatio: 1.0 }, cameras);
                 ssao.fallOff = serializationObject.fallOff || ssao.fallOff;
                 ssao.area = serializationObject.area || ssao.area;
                 ssao.radius = serializationObject.radius || ssao.radius;
@@ -345,7 +345,6 @@ var BABYLON;
             return SceneFactory;
         }());
         // Public members
-        SceneFactory.HDRPipeline = null;
         SceneFactory.StandardPipeline = null;
         SceneFactory.SSAOPipeline = null;
         SceneFactory.SSAOPipeline2 = null;

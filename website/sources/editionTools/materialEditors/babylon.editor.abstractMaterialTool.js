@@ -30,8 +30,9 @@ var BABYLON;
             // Object supported
             AbstractMaterialTool.prototype.isObjectSupported = function (object) {
                 if (object instanceof BABYLON.AbstractMesh) {
-                    if (object.material && !(object.material instanceof BABYLON.MultiMaterial) && this.onObjectSupported(object.material))
-                        return true;
+                    if (object.material && object.material instanceof BABYLON.MultiMaterial && object.material.subMaterials.length === 1)
+                        return this.onObjectSupported(object.material.subMaterials[0]);
+                    return this.onObjectSupported(object.material);
                 }
                 else if (object instanceof BABYLON.SubMesh) {
                     var subMesh = object;
@@ -52,7 +53,10 @@ var BABYLON;
                 var scene = this._editionTool.core.currentScene;
                 _super.prototype.update.call(this);
                 if (object instanceof BABYLON.AbstractMesh) {
-                    this.material = object.material;
+                    if (object.material instanceof BABYLON.MultiMaterial)
+                        this.material = object.material.subMaterials[0];
+                    else
+                        this.material = object.material;
                 }
                 else if (object instanceof BABYLON.SubMesh) {
                     this.material = object.getMaterial();

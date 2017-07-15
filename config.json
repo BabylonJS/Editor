@@ -51,6 +51,7 @@
       "sources/editionTools/babylon.editor.textureTool.js",
 
       "sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.legacyPBRMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js",

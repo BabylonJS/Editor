@@ -84,13 +84,13 @@
                 if (!acceptCubes && scene.textures[i].isCube)
                     continue;
                 
-                textures.push(scene.textures[i].name);
+                textures.push(scene.textures[i].name || (<any>scene.textures[i]).url);
             }
 
             this[functionName] = () => {
                 var textureEditor = new GUITextureEditor(this._editionTool.core, name, object, property, acceptCubes);
             };
-            this[stringName] = (object[property] && object[property] instanceof BaseTexture) ? object[property].name : textures[0];
+            this[stringName] = (object[property] && object[property] instanceof BaseTexture) ? object[property].name || object[property].url : textures[0];
 
             var folder = this._element.addFolder(name, parentFolder);
             folder.close();

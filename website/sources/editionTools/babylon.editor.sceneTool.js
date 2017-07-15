@@ -67,6 +67,11 @@ var BABYLON;
                 gravityFolder.add(object.gravity, "x");
                 gravityFolder.add(object.gravity, "y");
                 gravityFolder.add(object.gravity, "z");
+                // Image processing
+                var imgProcessingFolder = this._element.addFolder("Image Processing");
+                imgProcessingFolder.add(object.imageProcessingConfiguration, "contrast").min(0).max(10).step(0.01).name("Contrast");
+                imgProcessingFolder.add(object.imageProcessingConfiguration, "exposure").min(0).max(10).step(0.01).name("Exposure");
+                imgProcessingFolder.add(object.imageProcessingConfiguration, "toneMappingEnabled").name("Enable Tone Mapping");
                 // Physics
                 var physicsFolder = this._element.addFolder("Physics");
                 this._physicsEnabled = object.isPhysicsEnabled();

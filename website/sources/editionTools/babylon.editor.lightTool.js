@@ -90,13 +90,15 @@ var BABYLON;
                 var shadowsFolder = this._element.addFolder("Shadows");
                 var shadows = object.getShadowGenerator();
                 if (shadows) {
-                    shadowsFolder.add(shadows, "useBlurExponentialShadowMap").name("Use Blur Exponential Shadows Map").listen();
-                    shadowsFolder.add(shadows, "useExponentialShadowMap").name("Use Exponential Shadow Map").listen();
-                    shadowsFolder.add(shadows, "usePoissonSampling").name("Use Poisson Sampling").listen();
+                    shadowsFolder.add(shadows, "useExponentialShadowMap").name("Exponential Shadow Map").listen();
+                    shadowsFolder.add(shadows, "useCloseExponentialShadowMap").name("Close Exponential Shadow Map").listen();
+                    shadowsFolder.add(shadows, "useBlurExponentialShadowMap").name("Blur Exponential Shadows Map").listen();
+                    shadowsFolder.add(shadows, "usePoissonSampling").name("Poisson Sampling").listen();
                     if (shadows.forceBackFacesOnly !== undefined)
                         shadowsFolder.add(shadows, "forceBackFacesOnly").name("Force back faces only");
                     shadowsFolder.add(shadows, "_darkness").min(0.0).max(1.0).step(0.01).name("Darkness");
                     shadowsFolder.add(shadows, "bias").name("Bias");
+                    shadowsFolder.add(shadows, "useKernelBlur").name("Use Kernel Blur");
                     shadowsFolder.add(shadows, "blurBoxOffset").min(0.0).max(10.0).step(1.0).name("Blur Box Offset");
                     shadowsFolder.add(shadows, "blurScale").min(0.0).max(10.0).name("Blur Scale");
                     shadowsFolder.add(this, "_removeShadowGenerator").name("Remove Shadows Generator");

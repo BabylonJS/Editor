@@ -157,16 +157,6 @@ var BABYLON;
                             });
                         }
                     }
-                    // Textures
-                    if (EDITOR.SceneFactory.HDRPipeline && EDITOR.SceneFactory.HDRPipeline.lensTexture) {
-                        var lensTextureName = EDITOR.SceneFactory.HDRPipeline.lensTexture.name;
-                        //files.push({ name: lensTextureName, url: url + "Textures/" + lensTextureName, content: null, parentFolder: this.getFolder("Textures").file, type: "arraybuffer" });
-                        files.push({
-                            name: lensTextureName,
-                            content: EDITOR.Tools.ConvertBase64StringToArrayBuffer(EDITOR.SceneFactory.HDRPipeline.lensTexture._buffer),
-                            parentFolder: _this.getFolder("textures").file
-                        });
-                    }
                     // Files to load
                     var count = files.length;
                     files.push({ name: "index.html", url: url + "templates/index.html", content: null });

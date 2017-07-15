@@ -137,6 +137,9 @@
                 "None",
                 
                 "StandardMaterial",
+                "PBRMaterial",
+                "PBRMetallicRoughnessMaterial",
+                "PBRSpecularGlossinessMaterial",
                 "LegacyPBRMaterial",
                 "FireMaterial",
                 "GradientMaterial",

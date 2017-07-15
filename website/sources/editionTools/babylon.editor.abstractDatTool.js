@@ -78,12 +78,12 @@ var BABYLON;
                 for (var i = 0; i < scene.textures.length; i++) {
                     if (!acceptCubes && scene.textures[i].isCube)
                         continue;
-                    textures.push(scene.textures[i].name);
+                    textures.push(scene.textures[i].name || scene.textures[i].url);
                 }
                 this[functionName] = function () {
                     var textureEditor = new EDITOR.GUITextureEditor(_this._editionTool.core, name, object, property, acceptCubes);
                 };
-                this[stringName] = (object[property] && object[property] instanceof BABYLON.BaseTexture) ? object[property].name : textures[0];
+                this[stringName] = (object[property] && object[property] instanceof BABYLON.BaseTexture) ? object[property].name || object[property].url : textures[0];
                 var folder = this._element.addFolder(name, parentFolder);
                 folder.close();
                 folder.add(this, functionName).name("Browse...");

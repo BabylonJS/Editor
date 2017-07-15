@@ -130,6 +130,8 @@ var BABYLON;
                         _this._configureRenderTarget();
                     }
                     else {
+                        if (!selectedTexture.name)
+                            selectedTexture.name = selectedTexture.url;
                         var serializationObject = selectedTexture.serialize();
                         if (selectedTexture instanceof BABYLON.DynamicTexture) {
                             _this._targetTexture = new BABYLON.DynamicTexture(selectedTexture.name, { width: selectedTexture.getBaseSize().width, height: selectedTexture.getBaseSize().height }, _this._scene, selectedTexture.noMipmap);
@@ -204,6 +206,9 @@ var BABYLON;
                                     EDITOR.GUI.GUIWindow.CreateAlert("An error occured when converting HDR Texture", "HR Error");
                                 });
                             }
+                            else if (name.indexOf(".dds") !== -1) {
+                                BABYLON.Tools.ReadFile(data.target.files[i], _this._onReadFileCallback(name), null, true);
+                            }
                             else if (lowerName.indexOf(".png") !== -1 || lowerName.indexOf(".jpg") !== -1) {
                                 BABYLON.FilesInput.FilesToLoad[lowerName] = data.target.files[i];
                                 BABYLON.Tools.ReadFileAsDataURL(data.target.files[i], _this._onReadFileCallback(lowerName), null);
@@ -275,7 +280,7 @@ var BABYLON;
                 for (var i = 0; i < this._core.currentScene.textures.length; i++) {
                     var texture = this._core.currentScene.textures[i];
                     var row = {
-                        name: texture.name,
+                        name: texture.name || texture.url,
                         width: texture.getBaseSize() ? texture.getBaseSize().width : 0,
                         height: texture.getBaseSize() ? texture.getBaseSize().height : 0,
                         recid: i
@@ -314,6 +319,16 @@ var BABYLON;
                         }
                         catch (e) {
                             EDITOR.GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");
+                        }
+                    }
+                    else if (name.indexOf(".dds") !== -1) {
+                        try {
+                            texture = BABYLON.CubeTexture.CreateFromPrefilteredData("file:" + name, _this._core.currentScene);
+                            texture.name = name;
+                            texture.gammaSpace = false;
+                        }
+                        catch (e) {
+                            EDITOR.GUI.GUIWindow.CreateAlert("Cannot load DDS texture...", "DDS Texture Error");
                         }
                     }
                     else {

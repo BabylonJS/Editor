@@ -39,7 +39,6 @@
         }
 
         // Public members
-        public static HDRPipeline: HDRRenderingPipeline = null;
         public static StandardPipeline: StandardRenderingPipeline = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
         public static SSAOPipeline2: SSAO2RenderingPipeline = null;
@@ -68,12 +67,12 @@
 
             var cameras: Camera[] = core.currentScene.cameras;
 
-            var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
+            var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0, null, cameras);
             Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => {
-                standard.lensTexture = texture;
                 callback();
             });
             Tools.LoadAndCreateBase64Texture("website/textures/lensflaredirt.png", core.currentScene, (texture) => {
+                standard.lensTexture = texture;
                 standard.lensFlareDirtTexture = texture;
                 callback();
             });
@@ -104,7 +103,7 @@
 
             var cameras: Camera[] = core.currentScene.cameras;
 
-            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25 / devicePixelRatio, combineRatio: 1.0 }, cameras);
+            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25, combineRatio: 1.0 }, cameras);
             ssao.fallOff = serializationObject.fallOff || ssao.fallOff;
             ssao.area = serializationObject.area || ssao.area;
             ssao.radius = serializationObject.radius || ssao.radius;
