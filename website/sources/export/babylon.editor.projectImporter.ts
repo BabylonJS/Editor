@@ -193,9 +193,7 @@
                 newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
 
                 if (!ps.hasEmitter && ps.emitterPosition)
-                    newPs.emitter.position = Vector3.FromArray(ps.emitterPosition);
-
-                newPs.emitter.attachedParticleSystem = newPs;
+                    (<AbstractMesh>newPs.emitter).position = Vector3.FromArray(ps.emitterPosition);
             }
 
             // Lens flares

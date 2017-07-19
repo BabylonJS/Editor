@@ -64,7 +64,7 @@
         }
 
         public _exportParticleSystem(particleSystem: ParticleSystem): string {
-            var node = particleSystem.emitter;
+            var node = <Mesh> particleSystem.emitter;
 
             var finalString = "";
 

@@ -86,11 +86,14 @@ var BABYLON;
                                     this.sidebar.setSelected(emitter.id);
                                     var buffer = null;
                                     for (var i = 0; i < scene.particleSystems.length; i++) {
+                                        var system = scene.particleSystems[i];
                                         if (scene.particleSystems[i].emitter === object) {
-                                            buffer = scene.particleSystems[i].particleTexture._buffer;
+                                            if (system instanceof BABYLON.ParticleSystem)
+                                                buffer = system.particleTexture._buffer;
                                         }
                                         else if (scene.particleSystems[i].emitter === emitter) {
-                                            scene.particleSystems[i].particleTexture = BABYLON.Texture.CreateFromBase64String(buffer, scene.particleSystems[i].particleTexture.name + "Cloned", scene);
+                                            if (system instanceof BABYLON.ParticleSystem)
+                                                system.particleTexture = BABYLON.Texture.CreateFromBase64String(buffer, system.particleTexture.name + "Cloned", scene);
                                             break;
                                         }
                                     }

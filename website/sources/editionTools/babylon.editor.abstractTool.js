@@ -13,6 +13,7 @@ var BABYLON;
                 this.tab = "";
                 // Initialize
                 this._editionTool = editionTool;
+                this._core = editionTool.core;
             }
             // Object supported
             AbstractTool.prototype.isObjectSupported = function (object) {

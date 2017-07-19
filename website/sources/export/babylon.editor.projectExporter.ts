@@ -226,8 +226,11 @@
                                 psObj.emitterPosition = ps.emitter.position.asArray();
 
                             // Patch texture base64 string
-                            psObj.serializationObject.base64TextureName = ps.particleTexture.name;
-                            psObj.serializationObject.base64Texture = (<any>ps.particleTexture)._buffer;
+                            if (ps instanceof ParticleSystem) {
+                                psObj.serializationObject.base64TextureName = ps.particleTexture.name;
+                                psObj.serializationObject.base64Texture = (<any>ps.particleTexture)._buffer;
+                            }
+                            
                             delete psObj.serializationObject.textureName;
 
                             project.particleSystems.push(psObj);

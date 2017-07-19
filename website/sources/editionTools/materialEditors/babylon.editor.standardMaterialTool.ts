@@ -90,7 +90,6 @@
 
             // Functions
             var functionsFolder = this._element.addFolder("Functions");
-            functionsFolder.add(this, "_convertToPBR").name("Convert to PBR Material");
 
             // Finish
             return true;
@@ -105,54 +104,6 @@
             editor.onApply = (texture) => {
                 this.material.bumpTexture = texture;
             };
-        }
-
-        private _convertToPBR(): void {
-            var pbr = new LegacyPBRMaterial(this.material.name + "_PBR", this._editionTool.core.currentScene);
-            
-            pbr.albedoColor = this.material.diffuseColor;
-            pbr.albedoTexture = this.material.diffuseTexture;
-            pbr.useAlphaFromAlbedoTexture = this.material.useAlphaFromDiffuseTexture;
-            pbr.linkEmissiveWithAlbedo = this.material.linkEmissiveWithDiffuse;
-
-            pbr.bumpTexture = this.material.bumpTexture;
-
-            pbr.parallaxScaleBias = this.material.parallaxScaleBias;
-            pbr.useParallax = this.material.useParallax;
-            pbr.useParallaxOcclusion = this.material.useParallaxOcclusion;
-
-            pbr.specularIntensity = this.material.specularPower;
-            pbr.reflectivityColor = this.material.specularColor;
-            pbr.reflectivityTexture = this.material.specularTexture;
-            pbr.useSpecularOverAlpha = this.material.useSpecularOverAlpha;
-
-            pbr.emissiveColor = this.material.emissiveColor;
-            pbr.emissiveTexture = this.material.emissiveTexture;
-            pbr.useEmissiveAsIllumination = this.material.useEmissiveAsIllumination;
-            pbr.emissiveFresnelParameters = this.material.emissiveFresnelParameters;
-
-            pbr.indexOfRefraction = this.material.indexOfRefraction;
-            pbr.invertRefractionY = this.material.invertRefractionY;
-            pbr.refractionTexture = this.material.refractionTexture;
-
-            pbr.reflectionTexture = this.material.reflectionTexture;
-            
-            pbr.opacityFresnelParameters = this.material.opacityFresnelParameters;
-            pbr.opacityTexture = this.material.opacityTexture;
-
-            pbr.ambientColor = this.material.ambientColor;
-            pbr.ambientTexture = this.material.ambientTexture;
-
-            if (this.object instanceof SubMesh) {
-                var index = this.object.materialIndex;
-                var multiMaterial = this.object.getMesh().material;
-                if (multiMaterial instanceof MultiMaterial)
-                    multiMaterial.subMaterials[index] = pbr;
-            }
-            else
-                this.object.material = pbr;
-            
-            this._editionTool.updateEditionTool();
         }
     }
 }

@@ -220,7 +220,7 @@
         public static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem {
             for (var i = 0; i < scene.particleSystems.length; i++) {
                 if (scene.particleSystems[i].name === name)
-                    return scene.particleSystems[i];
+                    return <ParticleSystem> scene.particleSystems[i];
             }
 
             return null;

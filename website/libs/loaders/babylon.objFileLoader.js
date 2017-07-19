@@ -58,7 +58,7 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set tghe color into the material
-                        material.diffuseColor = BABYLON.Color3.FromArray(color);
+                        material.diffuseColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
                     }
                     else if (key === "ka") {
                         // Ambient color (color under shadow) using RGB values
@@ -66,7 +66,7 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set tghe color into the material
-                        material.ambientColor = BABYLON.Color3.FromArray(color);
+                        material.ambientColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
                     }
                     else if (key === "ks") {
                         // Specular color (color when light is reflected from shiny surface) using RGB values
@@ -74,15 +74,15 @@ var BABYLON;
                         color = value.split(delimiter_pattern, 3);
                         //color = [r,g,b]
                         //Set the color into the material
-                        material.specularColor = BABYLON.Color3.FromArray(color);
+                        material.specularColor = BABYLON.Color3.FromArray([parseFloat(color[0]), parseFloat(color[1]), parseFloat(color[2])]);
                     }
                     else if (key === "ns") {
                         //value = "Integer"
-                        material.specularPower = value;
+                        material.specularPower = parseFloat(value);
                     }
                     else if (key === "d") {
                         //d is dissolve for current material. It mean alpha for BABYLON
-                        material.alpha = value;
+                        material.alpha = parseFloat(value);
                         //Texture
                         //This part can be improved by adding the possible options of texture
                     }

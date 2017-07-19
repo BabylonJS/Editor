@@ -110,11 +110,15 @@
                                 var buffer = null;
 
                                 for (var i = 0; i < scene.particleSystems.length; i++) {
+                                    var system = scene.particleSystems[i];
+
                                     if (scene.particleSystems[i].emitter === object) {
-                                        buffer = (<any>scene.particleSystems[i].particleTexture)._buffer;
+                                        if (system instanceof ParticleSystem)
+                                            buffer = (<any>system.particleTexture)._buffer;
                                     }
                                     else if (scene.particleSystems[i].emitter === emitter) {
-                                        scene.particleSystems[i].particleTexture = Texture.CreateFromBase64String(buffer, scene.particleSystems[i].particleTexture.name + "Cloned", scene);
+                                        if (system instanceof ParticleSystem)
+                                            system.particleTexture = Texture.CreateFromBase64String(buffer, system.particleTexture.name + "Cloned", scene);
                                         break;
                                     }
 
@@ -159,7 +163,7 @@
                         var parentNode: Node | string = null;
 
                         if (event.sceneEvent.object instanceof ParticleSystem) {
-                            parentNode = event.sceneEvent.object.emitter;
+                            parentNode = <AbstractMesh> event.sceneEvent.object.emitter;
                         }
                         else if (event.sceneEvent.object instanceof LensFlareSystem) {
                             parentNode = (<LensFlareSystem>event.sceneEvent.object).getEmitter();

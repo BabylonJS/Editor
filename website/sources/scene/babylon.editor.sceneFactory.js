@@ -236,8 +236,6 @@ var BABYLON;
                             EDITOR.Event.sendSceneEvent(ps.emitter, EDITOR.SceneEventType.OBJECT_ADDED, core);
                             EDITOR.Event.sendSceneEvent(ps, EDITOR.SceneEventType.OBJECT_ADDED, core);
                         }
-                        // To remove later, today particle systems can handle animations
-                        ps.emitter.attachedParticleSystem = ps;
                     };
                     picker.onClosedPicker = function () {
                     };

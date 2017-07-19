@@ -234,7 +234,7 @@
                 var scene = this._uiCreated ? this._scene : this.core.currentScene;
 
                 this._particleSystem.emitter = null;
-                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, this._particleSystem, emitter);
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, this._particleSystem, <AbstractMesh> emitter);
                 this._particleSystem.dispose();
                 this._particleSystem = newParticleSystem;
 
@@ -343,7 +343,7 @@
                 var emitter = this._particleSystemToEdit.emitter;
                 this._particleSystemToEdit.emitter = null;
 
-                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, emitter);
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, <AbstractMesh> emitter);
                 this._particleSystemToEdit.dispose();
                 this._particleSystemToEdit = newParticleSystem;
 
@@ -437,10 +437,14 @@
         // Plays all particle systems
         public static PlayStopAllParticleSystems(scene: Scene, play: boolean): void {
             for (var i = 0; i < scene.particleSystems.length; i++) {
-                if (play)
-                    scene.particleSystems[i].start();
-                else
-                    scene.particleSystems[i].stop();
+                var system = scene.particleSystems[i];
+
+                if (system instanceof ParticleSystem) {
+                    if (play)
+                        system.start();
+                    else
+                        system.stop();
+                }
             }
         }
 
@@ -469,7 +473,7 @@
 
             ps.name = particleSystem.name || ps.name;
             ps.id = SceneFactory.GenerateUUID();
-            ps.emitter = dummy;
+            ps.emitter = <AbstractMesh> dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
             ps.maxEmitBox = particleSystem.maxEmitBox || new Vector3(1, 0, 0);
 

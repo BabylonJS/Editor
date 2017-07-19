@@ -70,6 +70,7 @@ var BABYLON;
                     material = object.getMaterial();
                 }
                 this.object = object;
+                this._material = material;
                 this._element = new EDITOR.GUI.GUIEditForm(this.containers[0], this._editionTool.core);
                 this._element.buildElement(this.containers[0]);
                 this._element.remember(object);
@@ -97,8 +98,11 @@ var BABYLON;
                     _this._editionTool.updateEditionTool();
                 });
                 materialFolder.add(this, "_removeMaterial").name("Remove Material");
+                if (material)
+                    materialFolder.add(this, "_applyMultiple").name("Apply Same Material On...");
                 // Common
                 if (material) {
+                    material.alpha = typeof material.alpha === "string" ? parseFloat(material.alpha) : material.alpha;
                     var generalFolder = this._element.addFolder("Common");
                     generalFolder.add(material, "id").name("Id");
                     generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
@@ -182,6 +186,37 @@ var BABYLON;
                     material.subMaterials[subMesh.materialIndex] = undefined;
                 }
                 this._editionTool.updateEditionTool();
+            };
+            // Apply the current material to...
+            MaterialTool.prototype._applyMultiple = function () {
+                var _this = this;
+                var picker = new EDITOR.ObjectPicker(this._core);
+                picker.objectLists.push(this._core.currentScene.meshes);
+                picker.selectedObjects = [this.object];
+                picker.minSelectCount = 0;
+                picker.windowName = "Select the meshes to apply the current material";
+                picker.open();
+                picker.onObjectPicked = function (names) {
+                    debugger;
+                    for (var i = 0; i < names.length; i++) {
+                        var mesh = _this._core.currentScene.getMeshByName(names[i]);
+                        if (!mesh)
+                            continue;
+                        if (mesh.getDescendants().length > 0)
+                            debugger;
+                        if (!mesh.material && mesh.subMeshes.length > 1) {
+                            var multiMat = new BABYLON.MultiMaterial("MultiMat" + EDITOR.SceneFactory.GenerateUUID(), _this._core.currentScene);
+                            multiMat.subMaterials = new Array(mesh.subMeshes.length);
+                            mesh.material = multiMat;
+                        }
+                        if (mesh.subMeshes.length > 1) {
+                            for (var j = 0; j < mesh.subMeshes.length; j++)
+                                mesh.material.subMaterials[j] = _this._material;
+                        }
+                        else
+                            mesh.material = _this._material;
+                    }
+                };
             };
             // Set material from materials library
             MaterialTool.prototype._setMaterialsLibrary = function () {

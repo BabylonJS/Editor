@@ -354,10 +354,13 @@ var BABYLON;
             // Plays all particle systems
             GUIParticleSystemEditor.PlayStopAllParticleSystems = function (scene, play) {
                 for (var i = 0; i < scene.particleSystems.length; i++) {
-                    if (play)
-                        scene.particleSystems[i].start();
-                    else
-                        scene.particleSystems[i].stop();
+                    var system = scene.particleSystems[i];
+                    if (system instanceof BABYLON.ParticleSystem) {
+                        if (play)
+                            system.start();
+                        else
+                            system.stop();
+                    }
                 }
             };
             // Creates a new particle system

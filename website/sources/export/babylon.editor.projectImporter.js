@@ -166,7 +166,6 @@ var BABYLON;
                     newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
                     if (!ps.hasEmitter && ps.emitterPosition)
                         newPs.emitter.position = BABYLON.Vector3.FromArray(ps.emitterPosition);
-                    newPs.emitter.attachedParticleSystem = newPs;
                 }
                 // Lens flares
                 for (var i = 0; i < project.lensFlares.length; i++) {

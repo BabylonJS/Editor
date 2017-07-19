@@ -83,10 +83,13 @@ var BABYLON;
             };
             // Get texture
             NormalMapEditor.prototype._getTexture = function (scene, texture) {
-                if (BABYLON.FilesInput.FilesToLoad[texture.name])
-                    return new BABYLON.Texture("file:" + texture.name, scene);
+                var name = texture.name.replace("file:", "").replace("data:", "");
+                if (BABYLON.FilesInput.FilesToLoad[name])
+                    return new BABYLON.Texture("file:" + name, scene);
+                else if (typeof texture._buffer === "string")
+                    return BABYLON.Texture.CreateFromBase64String(texture._buffer, name, scene);
                 else if (texture instanceof BABYLON.DynamicTexture) {
-                    var targetTexture = new BABYLON.DynamicTexture(texture.name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
+                    var targetTexture = new BABYLON.DynamicTexture(name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
                     var canvas = targetTexture._canvas;
                     canvas.remove();
                     targetTexture._context = texture._context;

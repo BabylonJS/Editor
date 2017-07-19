@@ -68,7 +68,9 @@ var BABYLON;
                         return true;
                     }
                     else if (id === this._renderDebugLayerID) {
-                        scene.debugLayer.show(true);
+                        scene.debugLayer.show({
+                            popup: false
+                        });
                         return true;
                     }
                 }
