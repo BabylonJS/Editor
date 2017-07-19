@@ -24,8 +24,11 @@
             "type": "chrome",
             "request": "launch",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
             "runtimeArgs": [
-                "http://localhost:1338/",
+                "${workspaceRoot}/website/electron/main.js",
                 "--remote-debugging-port=9222"
             ],
             "webRoot": "${workspaceRoot}/website/",
