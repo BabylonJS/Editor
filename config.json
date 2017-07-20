@@ -10,12 +10,14 @@
     "defines": [
       "!sources/**/*.d.ts",
       "website/libs/preview release/babylon.editor.extensions.d.ts",
-      "website/defines/**/*.d.ts"
+      "website/defines/**/*.d.ts",
+      "website/node_modules/**/*.d.ts"
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
       "!website/sources/**/*.d.ts",
       "website/defines/**/*.d.ts",
+      "website/node_modules/**/*.d.ts",
       "website/libs/preview release/babylon.editor.extensions.d.ts"
     ],
     "files": [
@@ -35,6 +37,7 @@
       "sources/gui/babylon.editor.guiPanel.js",
       "sources/gui/babylon.editor.guiToolbar.js",
       "sources/gui/babylon.editor.guiWindow.js",
+      "sources/gui/babylon.editor.guiCodeEditor.js",
 
       "sources/editionTools/babylon.editor.abstractTool.js",
       "sources/editionTools/babylon.editor.abstractDatTool.js",
@@ -130,7 +133,9 @@
 
       "sources/plugins/mainTools/babylon.editor.dynamicTextureBuilder.js",
 
-      "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
+      "sources/plugins/mainTools/babylon.editor.cosmosEditor.js",
+
+      "sources/plugins/mainTools/babylon.editor.behaviorEditor.js"
     ]
   },
   "electron": {
@@ -164,6 +169,7 @@
       "Tools/EditorExtensions/Materials/babylon.editor.materialExtension.ts",
 
       "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
+      "Tools/EditorExtensions/Development/babylon.editor.behaviorExtension.ts",
 
       "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts",
       "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts",

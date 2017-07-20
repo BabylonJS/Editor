@@ -12,6 +12,7 @@
         private _openSoftBodyBuilder = "OPEN-SOFT-BODY-BUILDER";
         private _openDynamicTextureBuilder = "OPEN-DYNAMIC-TEXTURE-BUILDER";
         private _openCosmos = "OPEN-COSMOS";
+        private _openBehaviorEditor = "OPEN-BEHAVIOR-EDITOR";
 
         /**
         * Constructor
@@ -36,11 +37,15 @@
             
             //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
 
+            toolbar.addBreak(menu);
+            toolbar.createMenuItem(menu, "button", this._openBehaviorEditor, "Behavior Editor", "icon-behavior-editor");
+
             // Test
             // ActionsBuilder.GetInstance(this._core);
             // new PostProcessBuilder(this._core);
             // new CosmosEditor(this._core);
             // new SoftBodyBuilder(this._core);
+            // new BehaviorEditor(this._core);
         }
         
         // Called when a menu item is selected by the user
@@ -52,6 +57,7 @@
                 case this._openSoftBodyBuilder: new SoftBodyBuilder(this._core); break;
                 case this._openCosmos: new CosmosEditor(this._core); break;
                 case this._openDynamicTextureBuilder: new DynamicTextureBuilder(this._core); break;
+                case this._openBehaviorEditor: new BehaviorEditor(this._core); break;
                 default: break;
             }
         }

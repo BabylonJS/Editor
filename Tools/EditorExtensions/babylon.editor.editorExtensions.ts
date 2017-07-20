@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.EXTENSIONS {
     export interface IEditorExtension<T> {
         // The name of the extension's data
-        extensionKey: string;
+        extensionKey?: string;
 
         // Applies the extension giving it's data
         apply(data: T): void;

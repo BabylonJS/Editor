@@ -15,8 +15,11 @@ varying vec3 vNormalW;
 varying vec4 vColor;
 #endif
 
+// Helper functions
+#include<helperFunctions>
+
 // Lights
-#include<lightFragmentDeclaration>[0..maxSimultaneousLights]
+#include<__decl__lightFragment>[0..maxSimultaneousLights]
 
 #include<lightsFragmentFunctions>
 #include<shadowsFragmentFunctions>
@@ -72,11 +75,14 @@ void main(void) {
 
 	// Lighting
 	vec3 diffuseBase = vec3(0., 0., 0.);
-	vec3 specularBase = vec3(0., 0., 0.);
     lightingInfo info;
 	float shadow = 1.;
     float glossiness = 0.;
     
+	#ifdef SPECULARTERM
+		vec3 specularBase = vec3(0., 0., 0.);
+	#endif
+
 	#include<lightFragment>[0..maxSimultaneousLights]
 
 	#ifdef VERTEXALPHA

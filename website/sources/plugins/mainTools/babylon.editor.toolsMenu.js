@@ -16,6 +16,7 @@ var BABYLON;
                 this._openSoftBodyBuilder = "OPEN-SOFT-BODY-BUILDER";
                 this._openDynamicTextureBuilder = "OPEN-DYNAMIC-TEXTURE-BUILDER";
                 this._openCosmos = "OPEN-COSMOS";
+                this._openBehaviorEditor = "OPEN-BEHAVIOR-EDITOR";
                 var toolbar = mainToolbar.toolbar;
                 this._core = mainToolbar.core;
                 // Create menu
@@ -30,11 +31,14 @@ var BABYLON;
                 toolbar.addBreak(menu);
                 toolbar.createMenuItem(menu, "button", this._openDynamicTextureBuilder, "Dynamic Texture Builder", "icon-dynamic-texture");
                 //toolbar.createMenuItem(menu, "button", this._openCosmos, "Open Cosmos Editor", "icon-shaders");
+                toolbar.addBreak(menu);
+                toolbar.createMenuItem(menu, "button", this._openBehaviorEditor, "Behavior Editor", "icon-behavior-editor");
                 // Test
                 // ActionsBuilder.GetInstance(this._core);
                 // new PostProcessBuilder(this._core);
                 // new CosmosEditor(this._core);
                 // new SoftBodyBuilder(this._core);
+                // new BehaviorEditor(this._core);
             }
             // Called when a menu item is selected by the user
             ToolsMenu.prototype.onMenuItemSelected = function (selected) {
@@ -56,6 +60,9 @@ var BABYLON;
                         break;
                     case this._openDynamicTextureBuilder:
                         new EDITOR.DynamicTextureBuilder(this._core);
+                        break;
+                    case this._openBehaviorEditor:
+                        new EDITOR.BehaviorEditor(this._core);
                         break;
                     default: break;
                 }

@@ -1,5 +1,5 @@
 ﻿module BABYLON.EDITOR.GUI {
-    export class GUIElement<T extends W2UI.IElement> implements IGUIElement {
+    export class GUIElement<T extends W2UI.IElement | any> implements IGUIElement {
         // Public members
         public element: T = null;
 

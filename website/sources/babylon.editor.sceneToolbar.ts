@@ -91,7 +91,8 @@
                 }
                 else if (id === this._renderDebugLayerID) {
                     scene.debugLayer.show({
-                        popup: false
+                        popup: false,
+                        initialTab: 1
                     });
                     return true;
                 }
