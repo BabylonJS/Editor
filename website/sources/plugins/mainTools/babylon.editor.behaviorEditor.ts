@@ -1,8 +1,6 @@
 module BABYLON.EDITOR {
-    export interface IBehaviorCode {
-        code: string;
+    interface IBehaviorItem extends GUI.IGridRowData {
         name: string;
-        active: boolean;
     }
 
     export class BehaviorEditor implements ITabApplication, IEventReceiver {
@@ -15,11 +13,11 @@ module BABYLON.EDITOR {
 
         private _layouts: GUI.GUILayout = null;
         private _editor: GUI.GUICodeEditor = null;
-        private _edit: GUI.GUIEditForm = null;
+        private _list: GUI.GUIGrid<IBehaviorItem> = null;
         
-        private _currentNode: Node = null;
+        private _currentNode: Node | Scene = null;
 
-        private _currentScript: IBehaviorCode = null;
+        private _currentScript: EXTENSIONS.IBehaviorCode = null;
         private _scripts: string[] = [];
 
         // Statics
@@ -32,6 +30,10 @@ module BABYLON.EDITOR {
         constructor(core: EditorCore) {
             // Initialize
             this._core = core;
+
+            // Metadatas
+            var metadatas = SceneManager.GetCustomMetadata("BehaviorExtension") || [];
+            SceneManager.AddCustomMetadata("BehaviorExtension", metadatas);
 
             // Finish
             if (!BehaviorEditor._Template) {
@@ -49,6 +51,7 @@ module BABYLON.EDITOR {
         */
         public dispose(): void {
             this._layouts.destroy();
+            this._list.destroy();
             this._editor.destroy();
 
             this._core.removeEventReceiver(this);
@@ -60,30 +63,19 @@ module BABYLON.EDITOR {
         public onEvent(event: IEvent): boolean {
             if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
                 var object = event.sceneEvent.object;
-                if (object instanceof Node) {
+                if (object instanceof Node || object instanceof Scene) {
                     object.metadata = object.metadata || { };
 
-                    // ctor
-                    var ctor = Tools.GetConstructorName(object).toLowerCase();
-                    var code = BehaviorEditor._Template;
+                    // Reset editor
+                    this._currentNode = null;
+                    this._editor.element.setValue("");
 
-                    while (code.indexOf("{{type}}") !== -1)
-                        code = code.replace("{{type}}", ctor);
-
-                    // Register metadata
-                    object.metadata["behavior"] = object.metadata["behavior"] || <IBehaviorCode[]> [{
-                        code: code,
-                        name: "scripts",
-                        active: true
-                    }];
-
+                    // Register metadata and set current node
+                    object.metadata["behavior"] = object.metadata["behavior"] || [];
                     this._currentNode = object;
 
-                    // Edit form
-                    this._configureEditForm();
-
-                    // Set code
-                    this._editor.element.setValue(object.metadata["behavior"][0].code);
+                    // Scripts lits
+                    this._configureList();
                 }
             }
 
@@ -98,9 +90,20 @@ module BABYLON.EDITOR {
 
             // Layouts
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
-            this._layouts.createPanel("BEHAVIOR-EDITOR-LEFT-PANEL", "left", 250, false).setContent(GUI.GUIElement.CreateElement("div", "BEHAVIOR-EDITOR-EDIT"));
+            this._layouts.createPanel("BEHAVIOR-EDITOR-LEFT-PANEL", "left", 350, false).setContent(GUI.GUIElement.CreateElement("div", "BEHAVIOR-EDITOR-EDIT"));
             this._layouts.createPanel("BEHAVIOR-EDITOR-RIGHT-PANEL", "main", undefined, true).setContent(GUI.GUIElement.CreateDivElement("BEHAVIOR-EDITOR-CODE", "width: 100%; height: 100%;"));
             this._layouts.buildElement(this._containerID);
+
+            // List
+            this._list = new GUI.GUIGrid<IBehaviorItem>("BehaviorList", this._core);
+            this._list.showAdd = true;
+            this._list.showDelete = true;
+            this._list.onAdd = () => this._addScript();
+            this._list.onDelete = (selected) => this._deleteScript(selected);
+            this._list.onClick = () => this._selectScript();
+            this._list.onChange = (recid, value) => this._changeScript(recid, value);
+            this._list.createEditableColumn("name", "Name", { type: "string" }, "100%");
+            this._list.buildElement("BEHAVIOR-EDITOR-EDIT");
 
             // Editor
             this._layouts.lockPanel("main", "Loading...", true);
@@ -115,31 +118,88 @@ module BABYLON.EDITOR {
             this._editor.buildElement("BEHAVIOR-EDITOR-CODE");
         }
 
-        // Configures the edit form
-        private _configureEditForm(): void {
-            if (this._edit)
-                this._edit.remove();
-            
-            this._edit = new GUI.GUIEditForm("Edit Behavior", this._core);
-            this._edit.buildElement("BEHAVIOR-EDITOR-EDIT");
+        // Adds a new script
+        private _addScript(): void {
+            // ctor
+            var ctor = Tools.GetConstructorName(this._currentNode).toLowerCase();
+            var code = BehaviorEditor._Template;
 
-            // Scripts
-            this._scripts = [];
-            var datas = <IBehaviorCode[]> this._currentNode.metadata["behavior"];
+            while (code.indexOf("{{type}}") !== -1)
+                code = code.replace("{{type}}", ctor);
 
-            for (var i = 0; i < datas.length; i++)
-                this._scripts.push(datas[i].name);
+            // Register metadata
+            var data = <EXTENSIONS.IBehaviorCode> {
+                code: code,
+                name: "scripts " + SceneFactory.GenerateUUID(),
+                active: true
+            };
 
-            this._currentScript = datas[0];
-            this._edit.add(this._currentScript, "name", this._scripts).name("Script");
-            this._edit.add(this._currentScript, "active").name("Active");
+            this._currentNode.metadata["behavior"].push(data);
+            this._configureList();
+
+            // Set code
+            this._currentScript = data;
+            this._editor.element.setValue(this._currentScript.code);
+        }
+
+        // Select current script
+        private _selectScript(): void {
+            var rows = this._list.getSelectedRows();
+            if (rows.length < 1)
+                return;
+
+            this._currentScript = this._currentNode.metadata["behavior"][rows[0]];
+            this._editor.element.setValue(this._currentScript.code);
+        }
+
+        // Change script
+        private _changeScript(recid: number, value: string): void {
+            if (!this._currentNode)
+                return;
+
+            var metadatas = <EXTENSIONS.IBehaviorCode[]> this._currentNode.metadata["behavior"];
+            if (recid > metadatas.length)
+                return;
+
+            metadatas[recid].name = value;
+            this._list.refresh();
+        }
+
+        // Delete script
+        private _deleteScript(recid: number[]): void {
+            if (!this._currentNode || recid.length < 1)
+                return;
+
+            var metadatas = <EXTENSIONS.IBehaviorCode[]> this._currentNode.metadata["behavior"];
+            if (recid[0] > metadatas.length)
+                return;
+
+            metadatas.splice(recid[0], 1);
+            this._currentScript = null;
+
+            if (this._currentScript)
+                this._editor.element.setValue("");
+        }
+
+        // Configures the list
+        private _configureList(): void {
+            var metadatas = <EXTENSIONS.IBehaviorCode[]> this._currentNode.metadata["behavior"];
+            this._list.clear();
+
+            for (var i = 0; i < metadatas.length; i++) {
+                this._list.addRecord({
+                    name: metadatas[i].name,
+                    recid: i
+                });
+            }
+
+            this._list.refresh();
         }
 
         // Bind the events
         private _bindEvents(): void {
             this._editor.element.onDidChangeModelContent(() => {
-                if (this._currentNode) {
-                    debugger;
+                if (this._currentNode && this._currentScript) {
                     this._currentScript.code = this._editor.element.getValue();
 
                     //var ext = new EXTENSIONS.BehaviorExtension(this._core.currentScene);

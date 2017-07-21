@@ -1,14 +1,26 @@
 module BABYLON.EDITOR.EXTENSIONS {
     interface IFunctionScope {
         fn: Function;
-        node: Node;
+        node: Node | Scene;
 
         start: () => void;
         update: () => void;
     }
 
-    export class BehaviorExtension implements IEditorExtension<{ }> {
+    export interface IBehaviorCode {
+        code: string;
+        name: string;
+        active: boolean;
+    }
+
+    export interface IBehaviorMetadata {
+        node: string;
+        metadatas: IBehaviorCode[];
+    }
+
+    export class BehaviorExtension implements IEditorExtension<IBehaviorMetadata[]> {
         // Public members
+        public extensionKey: string = "BehaviorExtension";
         public applyEvenIfDataIsNull: boolean = true;
 
         // Protected members
@@ -36,7 +48,7 @@ module BABYLON.EDITOR.EXTENSIONS {
                     }
                     catch (e) {
                         this._scopes.splice(i, 1);
-                        BABYLON.Tools.Log(e.message);
+                        BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
                     }
                 }
 
@@ -52,51 +64,107 @@ module BABYLON.EDITOR.EXTENSIONS {
                     var scope = this._scopes[i];
 
                     try {
-                        if (scope)
+                        if (scope.update)
                             scope.update();
                     }
                     catch (e) {
                         this._scopes.splice(i, 1);
-                        BABYLON.Tools.Log(e.message);
+                        BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
                     }
                 }
             });
         }
 
         // Applies the extension
-        public apply(data: IDynamicTextureExtension[]): void {
+        public apply(data: IBehaviorMetadata[]): void {
+            this._applyCode([this.scene]);
             this._applyCode(this.scene.meshes);
             this._applyCode(this.scene.lights);
             this._applyCode(this.scene.cameras);
         }
 
+        // Called when extension is serialized
+        public onSerialize(data: IBehaviorMetadata[]): void {
+            data.splice(0, data.length);
+            
+            this._serialize([this.scene], data);
+            this._serialize(this.scene.meshes, data);
+            this._serialize(this.scene.lights, data);
+            this._serialize(this.scene.cameras, data);
+        }
+
+        // Caled when the extension should be loaded in order
+        // to apply itself on editor scene
+        public onLoad(data: IBehaviorMetadata[]): void {
+            for (var i = 0; i < data.length; i++) {
+                var n = this.scene;
+
+                if (data[i].node !== "Scene")
+                    this.scene.getNodeByName(data[i].node);
+
+                if (!n)
+                    continue;
+
+                n.metadata = n.metadata || { };
+                n.metadata["behavior"] = data[i].metadatas;
+            }
+        }
+
+        // Serializes a group of nodes
+        private _serialize(nodes: Node[] | Scene[], data: IBehaviorMetadata[]): void {
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                var metadatas: IBehaviorCode[] = n.metadata ? n.metadata["behavior"] : null;
+
+                if (!metadatas)
+                    continue;
+
+                data.push({
+                    node: n instanceof Scene ? "Scene" : n.name,
+                    metadatas: metadatas
+                });
+            }
+        }
+
         // Applies the code to the mesh
-        private _applyCode(nodes: Node[]): void {
+        private _applyCode(nodes: Node[] | Scene[]): void {
             for (var i = 0; i < nodes.length; i++) {
                 var node = nodes[i];
                 
                 if (!node.metadata)
                     continue;
 
-                var datas = node.metadata["behavior"];
-                if (!datas || !datas[0].active)
+                var datas = <IBehaviorCode[]> node.metadata["behavior"];
+                if (!datas)
                     continue;
 
-                var code = datas[0].code;
-                var scope: IFunctionScope = {
-                    fn: null,
-                    node: node,
-                    start: null,
-                    update: null
-                };
+                for (var j = 0; j < datas.length; j++) {
+                    var code = datas[j].code;
+                    var scope: IFunctionScope = {
+                        fn: null,
+                        node: node,
+                        start: null,
+                        update: null
+                    };
 
-                var fn = new Function("scene", this._getConstructorName(node).toLowerCase(), code);
-                fn.apply(scope, [this.scene, node]);
-
-                scope.fn = fn;
-
-                this._scopes.push(scope);
+                    this._addTag(datas[j], node, scope);
+                }
             }
+        }
+
+        private _addTag(data: IBehaviorCode, node: Node | Scene, scope: IFunctionScope): void {
+            var url = window.location.href;
+            url = url.replace(BABYLON.Tools.GetFilename(url), "") + "behaviors/" + (node instanceof Scene ? "scene/" : node.name + "/") + data.name + ".js";
+
+            var tag = document.createElement("script");
+            tag.type = "text/javascript";
+            tag.text = "function " + data.name + "(scene, " + this._getConstructorName(node).toLowerCase() + ") {\n" + data.code + "}\n//# sourceURL=" + url + "\n";
+            document.head.appendChild(tag);
+
+            var instance = new window[data.name](this.scene, node);
+            scope.start = instance.start;
+            scope.update = instance.update;
+            this._scopes.push(scope);
         }
 
         // Returns the name of the "obj" constructor

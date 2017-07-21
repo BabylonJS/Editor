@@ -263,6 +263,9 @@
                         if (this.onDelete)
                             this.onDelete(data);
 
+                        for (var i = 0; i < this.element.records.length; i++)
+                            this.element.records[i].recid = i;
+
                         var ev = new Event();
                         ev.eventType = EventType.GUI_EVENT;
                         ev.guiEvent = new GUIEvent(this, GUIEventType.GRID_ROW_REMOVED, data);

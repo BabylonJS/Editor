@@ -214,6 +214,8 @@ var BABYLON;
                                 var data = _this.getSelectedRows();
                                 if (_this.onDelete)
                                     _this.onDelete(data);
+                                for (var i = 0; i < _this.element.records.length; i++)
+                                    _this.element.records[i].recid = i;
                                 var ev = new EDITOR.Event();
                                 ev.eventType = EDITOR.EventType.GUI_EVENT;
                                 ev.guiEvent = new EDITOR.GUIEvent(_this, EDITOR.GUIEventType.GRID_ROW_REMOVED, data);
