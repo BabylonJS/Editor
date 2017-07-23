@@ -45,13 +45,14 @@ module BABYLON.EDITOR.EXTENSIONS {
                 for (var i = 0; i < this._scopes.length; i++) {
                     var scope = this._scopes[i];
 
-                    try {
-                        if (scope.start)
+                    if (scope.start) {
+                        try {
                             scope.start();
-                    }
-                    catch (e) {
-                        this._scopes.splice(i, 1);
-                        BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                        }
+                        catch (e) {
+                            this._scopes.splice(i, 1);
+                            BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                        }
                     }
                 }
 
@@ -66,13 +67,14 @@ module BABYLON.EDITOR.EXTENSIONS {
                 for (var i = 0; i < this._scopes.length; i++) {
                     var scope = this._scopes[i];
 
-                    try {
-                        if (scope.update)
+                    if (scope.update) {
+                        try {
                             scope.update();
-                    }
-                    catch (e) {
-                        this._scopes.splice(i, 1);
-                        BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                        }
+                        catch (e) {
+                            this._scopes.splice(i, 1);
+                            BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                        }
                     }
                 }
             });

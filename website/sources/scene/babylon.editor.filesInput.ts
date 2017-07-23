@@ -20,7 +20,18 @@
         private static _callback(callback: (file: File, scene: Scene) => void, core: EditorCore, filesInput: FilesInput): (file: File, scene: Scene) => void {
             var readFileCallback = (scene: Scene, jsFile: File) => {
                 return (result: string) => {
+                    // Set all meshes child of a global parent
+                    var parent = new Mesh("Objects", core.currentScene);
+                    for (var i = 0; i < core.currentScene.meshes.length; i++) {
+                        var m = core.currentScene.meshes[i];
+                        if (m !== parent && !m.parent)
+                            m.parent = parent;
+                    }
 
+                    if (parent.getDescendants().length < 1)
+                        parent.dispose();
+
+                    // Load project
                     ProjectImporter.ImportProject(core, result);
                     core.editor.sceneGraphTool.createUI();
                     core.editor.sceneGraphTool.fillGraph();
