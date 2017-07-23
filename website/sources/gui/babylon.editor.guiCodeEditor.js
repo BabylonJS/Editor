@@ -46,7 +46,9 @@ var BABYLON;
                             BABYLON.Tools.LoadFile("defines/babylon.d.ts", function (data) {
                                 GUICodeEditor._Defines = data + "\n" +
                                     "declare var scene: BABYLON.Scene;\n" +
-                                    "declare var mesh: BABYLON.Mesh;\n";
+                                    "declare var mesh: BABYLON.Mesh;\n" +
+                                    "declare var pointlight: BABYLON.PointLight;\n" +
+                                    "declare var universalcamera: BABYLON.UniversalCamera;\n";
                                 _this._resetExtraLib();
                             });
                         }

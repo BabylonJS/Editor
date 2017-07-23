@@ -98,7 +98,7 @@ var BABYLON;
                         }
                         if (value !== realStates[0]) {
                             physicsObject.physicsImpostor = new BABYLON.PhysicsImpostor(physicsObject, BABYLON.PhysicsImpostor[value], { mass: 0 }, _this._editionTool.core.currentScene);
-                            physicsObject.getPhysicsImpostor().sleep();
+                            physicsObject.physicsImpostor.sleep();
                             BABYLON.Tags.AddTagsTo(physicsObject.getPhysicsImpostor(), "added");
                         }
                         _this._editionTool.updateEditionTool();

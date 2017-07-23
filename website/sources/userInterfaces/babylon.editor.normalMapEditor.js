@@ -83,7 +83,7 @@ var BABYLON;
             };
             // Get texture
             NormalMapEditor.prototype._getTexture = function (scene, texture) {
-                var name = texture.name.replace("file:", "").replace("data:", "");
+                var name = texture.name.replace("file:", "").replace("data:", "").toLowerCase();
                 if (BABYLON.FilesInput.FilesToLoad[name])
                     return new BABYLON.Texture("file:" + name, scene);
                 else if (typeof texture._buffer === "string")

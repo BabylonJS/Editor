@@ -315,7 +315,7 @@ var BABYLON;
                         try {
                             texture = new BABYLON.HDRCubeTexture(hdrUrl, _this._core.currentScene);
                             texture.name = name;
-                            BABYLON.FilesInput.FilesToLoad[name] = EDITOR.Tools.CreateFile(new Uint8Array(data), name);
+                            BABYLON.FilesInput.FilesToLoad[name.toLocaleLowerCase()] = EDITOR.Tools.CreateFile(new Uint8Array(data), name);
                         }
                         catch (e) {
                             EDITOR.GUI.GUIWindow.CreateAlert("Cannot load HDR texture...", "HDR Texture Error");
@@ -323,6 +323,7 @@ var BABYLON;
                     }
                     else if (name.indexOf(".dds") !== -1) {
                         try {
+                            BABYLON.FilesInput.FilesToLoad[name.toLocaleLowerCase()] = EDITOR.Tools.CreateFile(new Uint8Array(data), name);
                             texture = BABYLON.CubeTexture.CreateFromPrefilteredData("file:" + name, _this._core.currentScene);
                             texture.name = name;
                             texture.gammaSpace = false;

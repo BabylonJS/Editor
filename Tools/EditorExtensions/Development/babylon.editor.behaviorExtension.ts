@@ -29,6 +29,9 @@ module BABYLON.EDITOR.EXTENSIONS {
         // Private members
         private _scopes: IFunctionScope[] = [];
 
+        // Static members
+        public static Constructors = { };
+
         /**
         * Constructor
         * @param scene: the Babylon.js scene
@@ -97,10 +100,10 @@ module BABYLON.EDITOR.EXTENSIONS {
         // to apply itself on editor scene
         public onLoad(data: IBehaviorMetadata[]): void {
             for (var i = 0; i < data.length; i++) {
-                var n = this.scene;
+                var n : Node | Scene = this.scene;
 
                 if (data[i].node !== "Scene")
-                    this.scene.getNodeByName(data[i].node);
+                    n = this.scene.getNodeByName(data[i].node);
 
                 if (!n)
                     continue;
@@ -152,16 +155,20 @@ module BABYLON.EDITOR.EXTENSIONS {
             }
         }
 
+        // Add script tag in order to debug
         private _addTag(data: IBehaviorCode, node: Node | Scene, scope: IFunctionScope): void {
             var url = window.location.href;
-            url = url.replace(BABYLON.Tools.GetFilename(url), "") + "behaviors/" + (node instanceof Scene ? "scene/" : node.name + "/") + data.name + ".js";
+            url = url.replace(BABYLON.Tools.GetFilename(url), "") + "behaviors/" + (node instanceof Scene ? "scene/" : this._removeSpaces(node.name) + "/") + this._removeSpaces(data.name) + ".js";
+
+            var fnName = (node instanceof Scene ? "scene" : node.name) + "_" + this._removeSpaces(data.name);
+            BABYLON.Tools.Log("Loading " + fnName + " script");
 
             var tag = document.createElement("script");
             tag.type = "text/javascript";
-            tag.text = "function " + data.name + "(scene, " + this._getConstructorName(node).toLowerCase() + ") {\n" + data.code + "}\n//# sourceURL=" + url + "\n";
+            tag.text = "BABYLON.EDITOR.EXTENSIONS.BehaviorExtension.Constructors[\"" + fnName + "\"] = function (scene, " + this._getConstructorName(node).toLowerCase() + ") {\n" + data.code + "}\n//# sourceURL=" + url + "\n";
             document.head.appendChild(tag);
 
-            var instance = new window[data.name](this.scene, node);
+            var instance = new BehaviorExtension.Constructors[fnName](this.scene, node);
             scope.start = instance.start;
             scope.update = instance.update;
             this._scopes.push(scope);
@@ -176,6 +183,13 @@ module BABYLON.EDITOR.EXTENSIONS {
             }
             
             return ctrName;
+        }
+
+        private _removeSpaces(str: string): string {
+            while (str.indexOf(" ") !== -1)
+                str = str.replace(" ", "");
+
+            return str;
         }
     }
 

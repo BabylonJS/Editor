@@ -128,3 +128,6 @@ electronPackages
 
 # For chrome debugging
 .tempChromeProfileForDebug
+
+# JS generated files
+website/sources/**/*.js

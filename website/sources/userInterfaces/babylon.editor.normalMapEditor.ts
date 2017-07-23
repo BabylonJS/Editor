@@ -97,7 +97,7 @@ module BABYLON.EDITOR {
 
         // Get texture
         private _getTexture(scene: Scene, texture: Texture): Texture {
-            var name = texture.name.replace("file:", "").replace("data:", "");
+            var name = texture.name.replace("file:", "").replace("data:", "").toLowerCase();
 
             if (BABYLON.FilesInput.FilesToLoad[name])
                 return new Texture("file:" + name, scene);
