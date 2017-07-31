@@ -17,7 +17,7 @@
         onLoad?(data: T): void;
     }
 
-    export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<T>;
+    export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<any>;
 
     export class EditorExtension {
         // Public members

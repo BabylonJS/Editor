@@ -122,6 +122,11 @@ module BABYLON.EDITOR {
         private _addScript(): void {
             // ctor
             var ctor = Tools.GetConstructorName(this._currentNode).toLowerCase();
+            if (this._currentNode instanceof DirectionalLight)
+                ctor = "dirlight";
+            else if (this._currentNode instanceof HemisphericLight)
+                ctor = "hemlight";
+
             var code = BehaviorEditor._Template;
 
             while (code.indexOf("{{type}}") !== -1)

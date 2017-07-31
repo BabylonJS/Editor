@@ -23,7 +23,7 @@
         public container: string;
         public mainContainer: string;
         public antialias: boolean;
-        public options: any;
+        public options: EngineOptions;
 
         public layouts: GUI.GUILayout = null;
         public playLayouts: GUI.GUILayout = null;

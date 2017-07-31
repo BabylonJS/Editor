@@ -407,9 +407,11 @@
                 }
 
                 if (node instanceof Node) {
+                    /*
                     for (var i = 0; i < node.getDescendants().length; i++) {
                         this._TraverseNodes(core, node.getDescendants()[i], project);
                     }
+                    */
                 }
             }
         }
@@ -528,7 +530,7 @@
             var nodes: Node[] = scene[propertyPath];
 
             for (var i = 0; i < nodes.length; i++) {
-                if (!nodes[i].parent)
+                //if (!nodes[i].parent)
                     data.push(nodes[i]);
             }
         }

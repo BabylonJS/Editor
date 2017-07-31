@@ -28,6 +28,13 @@
                             m.parent = parent;
                     }
 
+                    // New max simultaneous light
+                    for (var i = 0; i < core.currentScene.materials.length; i++) {
+                        var mat = core.currentScene.materials[i];
+                        if ((<any> mat).maxSimultaneousLights)
+                            (<any> mat).maxSimultaneousLights = 100;
+                    }
+
                     if (parent.getDescendants().length < 1)
                         parent.dispose();
 

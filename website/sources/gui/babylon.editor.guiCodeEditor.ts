@@ -49,7 +49,11 @@ module BABYLON.EDITOR.GUI {
                             "declare var scene: BABYLON.Scene;\n" +
                             "declare var mesh: BABYLON.Mesh;\n" +
                             "declare var pointlight: BABYLON.PointLight;\n" +
-                            "declare var universalcamera: BABYLON.UniversalCamera;\n";
+                            "declare var universalcamera: BABYLON.UniversalCamera;\n" +
+                            "declare var spotlight: BABYLON.SpotLight;\n" +
+                            "declare var dirlight: BABYLON.DirectionalLight;\n" +
+                            "declare var hemlight: BABYLON.HemisphericLight;\n" +
+                            "declare var groundmesh: BABYLON.GroundMesh;\n";
                         this._resetExtraLib();
                     });
                 }

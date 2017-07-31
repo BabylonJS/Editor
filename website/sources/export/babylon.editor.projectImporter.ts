@@ -183,6 +183,10 @@
                 }
             }
 
+            // Parenting
+            this._SetParenting(core.currentScene, core.currentScene.meshes);
+            this._SetParenting(core.currentScene, core.currentScene.lights);
+
             // Particle systems
             for (var i = 0; i < project.particleSystems.length; i++) {
                 var ps = project.particleSystems[i];
@@ -331,6 +335,17 @@
 
                     if (child)
                         child.parent = parent;
+                }
+            }
+        }
+
+        // Sets parenting using _waitingParentId
+        private static _SetParenting(scene: Scene, nodes: Node[]): void {
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                if (n._waitingParentId) {
+                    n.parent = scene.getNodeByID(n._waitingParentId);
+                    n._waitingParentId = undefined;
                 }
             }
         }

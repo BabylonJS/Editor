@@ -51,7 +51,7 @@ module BABYLON.EDITOR.EXTENSIONS {
                         }
                         catch (e) {
                             this._scopes.splice(i, 1);
-                            BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                            BABYLON.Tools.Error((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
                         }
                     }
                 }
@@ -73,7 +73,7 @@ module BABYLON.EDITOR.EXTENSIONS {
                         }
                         catch (e) {
                             this._scopes.splice(i, 1);
-                            BABYLON.Tools.Log((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
+                            BABYLON.Tools.Error((scope.node instanceof Scene ? "Scene" : scope.node.name) + " -- " + e.message);
                         }
                     }
                 }
@@ -144,7 +144,6 @@ module BABYLON.EDITOR.EXTENSIONS {
                     continue;
 
                 for (var j = 0; j < datas.length; j++) {
-                    var code = datas[j].code;
                     var scope: IFunctionScope = {
                         fn: null,
                         node: node,
@@ -178,6 +177,12 @@ module BABYLON.EDITOR.EXTENSIONS {
 
         // Returns the name of the "obj" constructor
         private _getConstructorName(obj: Object): string {
+            if (obj instanceof DirectionalLight)
+                return "dirlight";
+
+            if (obj instanceof HemisphericLight)
+                return "hemlight";
+
             var ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : "";
             
             if (ctrName === "") {
