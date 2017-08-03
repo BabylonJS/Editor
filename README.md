@@ -1,4 +1,4 @@
-Babylon.js Editor v1.0
+Babylon.js Editor v1.2.0
 ======
 
 Getting started with the Babylon.js Editor?
@@ -7,6 +7,10 @@ Check out the introduction with demos here: https://medium.com/babylon-js/welcom
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
 The editor is available online at http://editor.babylonjs.com/
+
+The Documentation is available here: http://doc.babylonjs.com/extensions
+
+Some more articles/tutorials are available here: https://medium.com/babylon-js
 
 Features
 ======
@@ -25,8 +29,11 @@ Features
 * Scene graph view
 * Create and edit post-process
 * Create and edit render targets (soon exported in final .babylon scenes)
-* Create post-processes using "Post-Process Builder"
-* Create actions using Actions Builder
+* Create post-processes using the Post-Process Builder
+* Create actions using the Actions Builder
+* Create and edit custom materials using the Materials Builder
+* Create and edit soft bodies (physics) using the Soft Body Editor
+* Attach scripts to your objects using the Behavior Editor
 * Live test your scenes
 
 **Additional features with Electron**
@@ -95,10 +102,13 @@ And "--arch" the architecture (optional):
 Example:
 * gulp electron --win32
 
-Roadmap for v1.1
+Roadmap for v1.3.0
 ======
-* Introduce Shader Material Creator
-* Introduce physics tools
+* Create custom materials/post-processes and write custom JavaScript in order to go further in effects design
+
+Roadmap for future :)
+======
+* Add collaborative features
 
 Licence
 ======
