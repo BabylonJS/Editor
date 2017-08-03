@@ -30,6 +30,8 @@
         private _uiCreated: boolean;
         private _particleSystemCapacity: string = "";
 
+        private _blendMode: string = "";
+
         /**
         * Constructor
         * @param core: the editor core
@@ -232,7 +234,7 @@
                 var scene = this._uiCreated ? this._scene : this.core.currentScene;
 
                 this._particleSystem.emitter = null;
-                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, this._particleSystem, emitter);
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(scene, result, this._particleSystem, <AbstractMesh> emitter);
                 this._particleSystem.dispose();
                 this._particleSystem = newParticleSystem;
 
@@ -248,7 +250,12 @@
             // Texture
             commonFolder.add(this, "_setParticleTexture").name("Choose Texture...");
 
-            commonFolder.add(ps, "blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
+            if (ps.blendMode === ParticleSystem.BLENDMODE_ONEONE)
+                this._blendMode = "ONEONE";
+            else
+                this._blendMode = "STANDARD";
+            
+            commonFolder.add(this, "_blendMode", ["ONEONE", "STANDARD"]).name("Blend Mode: ").onFinishChange((result: any) => {
                 switch (result) {
                     case "ONEONE": ps.blendMode = ParticleSystem.BLENDMODE_ONEONE; break;
                     case "STANDARD": ps.blendMode = ParticleSystem.BLENDMODE_STANDARD; break;
@@ -336,7 +343,7 @@
                 var emitter = this._particleSystemToEdit.emitter;
                 this._particleSystemToEdit.emitter = null;
 
-                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, emitter);
+                var newParticleSystem = GUIParticleSystemEditor.CreateParticleSystem(this.core.currentScene, this._particleSystem.getCapacity(), this._particleSystem, <AbstractMesh> emitter);
                 this._particleSystemToEdit.dispose();
                 this._particleSystemToEdit = newParticleSystem;
 
@@ -430,10 +437,14 @@
         // Plays all particle systems
         public static PlayStopAllParticleSystems(scene: Scene, play: boolean): void {
             for (var i = 0; i < scene.particleSystems.length; i++) {
-                if (play)
-                    scene.particleSystems[i].start();
-                else
-                    scene.particleSystems[i].stop();
+                var system = scene.particleSystems[i];
+
+                if (system instanceof ParticleSystem) {
+                    if (play)
+                        system.start();
+                    else
+                        system.stop();
+                }
             }
         }
 
@@ -462,7 +473,7 @@
 
             ps.name = particleSystem.name || ps.name;
             ps.id = SceneFactory.GenerateUUID();
-            ps.emitter = dummy;
+            ps.emitter = <AbstractMesh> dummy;
             ps.minEmitBox = particleSystem.minEmitBox || new Vector3(-1, 0, 0);
             ps.maxEmitBox = particleSystem.maxEmitBox || new Vector3(1, 0, 0);
 

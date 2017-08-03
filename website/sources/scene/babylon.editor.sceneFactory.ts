@@ -1,12 +1,9 @@
 ﻿module BABYLON.EDITOR {
     export interface IEnabledPostProcesses {
         ssao: boolean;
-        ssaoOnly: boolean;
-        attachSSAO: boolean;
-
+        ssao2: boolean;
         standard: boolean;
-        attachStandard: boolean;
-
+        default: boolean;
         vls: boolean;
     }
 
@@ -42,18 +39,16 @@
         }
 
         // Public members
-        public static HDRPipeline: HDRRenderingPipeline = null;
         public static StandardPipeline: StandardRenderingPipeline = null;
         public static SSAOPipeline: SSAORenderingPipeline = null;
+        public static SSAOPipeline2: SSAO2RenderingPipeline = null;
+        public static DefaultPipeline: DefaultRenderingPipeline = null;
         public static VLSPostProcess: VolumetricLightScatteringPostProcess = null;
         public static EnabledPostProcesses: IEnabledPostProcesses = {
             ssao: false,
-            ssaoOnly: false,
-            attachSSAO: true,
-
+            ssao2: false,
             standard: false,
-            attachStandard: true,
-
+            default: false,
             vls: false
         }
 
@@ -72,9 +67,13 @@
 
             var cameras: Camera[] = core.currentScene.cameras;
 
-            var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0 / devicePixelRatio, null, cameras);
+            var standard = new StandardRenderingPipeline("StandardRenderingPipeline", core.currentScene, 1.0, null, cameras);
             Tools.LoadAndCreateBase64Texture("website/textures/lensdirt.jpg", core.currentScene, (texture) => {
-                standard.lensTexture = standard.lensFlareDirtTexture = texture;
+                callback();
+            });
+            Tools.LoadAndCreateBase64Texture("website/textures/lensflaredirt.png", core.currentScene, (texture) => {
+                standard.lensTexture = texture;
+                standard.lensFlareDirtTexture = texture;
                 callback();
             });
             Tools.LoadAndCreateBase64Texture("website/textures/lensstar.png", core.currentScene, (texture) => {
@@ -85,6 +84,10 @@
                 standard.lensColorTexture = texture;
                 callback();
             });
+
+            standard.lensFlareHaloWidth = 0.4;
+            standard.lensFlareGhostDispersal = 0.1;
+            standard.depthOfFieldDistance = 1;
 
             this.StandardPipeline = standard;
 
@@ -100,7 +103,7 @@
 
             var cameras: Camera[] = core.currentScene.cameras;
 
-            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25 / devicePixelRatio, combineRatio: 1.0 }, cameras);
+            var ssao = new BABYLON.SSAORenderingPipeline("ssao", core.currentScene, { ssaoRatio: 0.25, combineRatio: 1.0 }, cameras);
             ssao.fallOff = serializationObject.fallOff || ssao.fallOff;
             ssao.area = serializationObject.area || ssao.area;
             ssao.radius = serializationObject.radius || ssao.radius;
@@ -110,6 +113,47 @@
             this.SSAOPipeline = ssao;
 
             return ssao;
+        }
+
+        // Creates SSAO 2 pipeline
+        static CreateSSAO2Pipeline(core: EditorCore, serializationObject: any = { }): SSAO2RenderingPipeline {
+            if (this.SSAOPipeline2) {
+                this.SSAOPipeline2.dispose();
+                this.SSAOPipeline2 = null;
+            }
+
+            var cameras: Camera[] = core.currentScene.cameras;
+
+            var ssaoRatio = {
+                ssaoRatio: 0.5 / devicePixelRatio,
+                blurRatio: 0.5 / devicePixelRatio
+            };
+
+            var ssao = new BABYLON.SSAO2RenderingPipeline("ssao", core.currentScene, ssaoRatio, cameras);
+            ssao.radius = 3.5;
+            ssao.totalStrength = 1.3;
+            ssao.expensiveBlur = true;
+            ssao.samples = 16;
+            ssao.maxZ = 1000;
+
+            this.SSAOPipeline2 = ssao;
+
+            return ssao;
+        }
+
+        // Creates Default rendering pipeline
+        static CreateDefaultPipeline(core: EditorCore): DefaultRenderingPipeline {
+            if (this.DefaultPipeline) {
+                this.DefaultPipeline.dispose();
+                this.DefaultPipeline = null;
+            }
+
+            var cameras: Camera[] = core.currentScene.cameras;
+
+            var defaultPipeline = new DefaultRenderingPipeline("DefaultRenderingPipeline", true, core.currentScene, cameras);
+            this.DefaultPipeline = defaultPipeline;
+
+            return defaultPipeline;
         }
 
         // Creates a Volumetric Light Scattering post-process
@@ -255,23 +299,20 @@
 
                     var ps = GUIParticleSystemEditor.CreateParticleSystem(core.currentScene, 1000);
                     core.currentScene.meshes.pop();
-                    ps.emitter.id = this.GenerateUUID();
+                    (<AbstractMesh>ps.emitter).id = this.GenerateUUID();
 
                     if (names.length > 0) {
-                        var emitter = ps.emitter;
+                        var emitter = <AbstractMesh> ps.emitter;
                         emitter.dispose(true);
 
-                        ps.emitter = core.currentScene.getNodeByName(names[0]);
+                        ps.emitter = <AbstractMesh> core.currentScene.getNodeByName(names[0]);
                         Event.sendSceneEvent(ps, SceneEventType.OBJECT_ADDED, core);
                     }
                     else {
-                        core.currentScene.meshes.push(ps.emitter);
+                        core.currentScene.meshes.push(<AbstractMesh> ps.emitter);
                         Event.sendSceneEvent(ps.emitter, SceneEventType.OBJECT_ADDED, core);
                         Event.sendSceneEvent(ps, SceneEventType.OBJECT_ADDED, core);
                     }
-
-                    // To remove later, today particle systems can handle animations
-                    ps.emitter.attachedParticleSystem = ps;
                 };
 
                 picker.onClosedPicker = () => {

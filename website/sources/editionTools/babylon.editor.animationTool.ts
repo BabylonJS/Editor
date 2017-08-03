@@ -108,7 +108,7 @@
 
                     if (value !== realStates[0]) { // If not NoImpostor
                         physicsObject.physicsImpostor = new PhysicsImpostor(physicsObject, PhysicsImpostor[value], { mass: 0 }, this._editionTool.core.currentScene);
-                        physicsObject.getPhysicsImpostor().sleep();
+                        physicsObject.physicsImpostor.sleep();
 
                         Tags.AddTagsTo(physicsObject.getPhysicsImpostor(), "added");
                     }

@@ -6,6 +6,7 @@
 
         // Private members
         private _renderEffects: { } = { };
+        private _defaultVignetteMultiply: boolean = false;
 
         /**
         * Constructor
@@ -51,9 +52,57 @@
             SceneFactory.EnabledPostProcesses.standard = SceneFactory.StandardPipeline !== null;
             SceneFactory.EnabledPostProcesses.ssao = SceneFactory.SSAOPipeline !== null;
 
+            // Default
+            var defaultFolder = this._element.addFolder("Default Rendering Pipeline");
+            defaultFolder.add(SceneFactory.EnabledPostProcesses, "default").name("Enable Default Rendering Pipeline").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.CreateDefaultPipeline(this._editionTool.core);
+                else {
+                    SceneFactory.DefaultPipeline.dispose();
+                    SceneFactory.DefaultPipeline = null;
+                }
+
+                this.update();
+            });
+
+            if (SceneFactory.DefaultPipeline) {
+                var bloomFolder = defaultFolder.addFolder("Bloom");
+                bloomFolder.open();
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomEnabled").name("Enable Bloom");
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomWeight").min(0).max(1).step(0.01).name("Bloom Weight").onChange(() => this.update());
+                bloomFolder.add(SceneFactory.DefaultPipeline, "bloomKernel").min(0).step(1).name("Bloom Kernel");
+
+                var imgProcessingFolder = defaultFolder.addFolder("Image Processing");
+                imgProcessingFolder.open();
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline, "imageProcessingEnabled").name("Enable Image Processing");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteEnabled").name("Vignette");
+
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCameraFov").name("Vignette Camera Fov");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCentreX").min(-10).max(10).step(0.01).name("Vignette Centre X");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteCentreY").min(-10).max(10).step(0.01).name("Vignette Centre Y");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteStretch").step(0.01).name("Vignette Stretch");
+
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "colorCurvesEnabled").name("Color Curves");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "contrast").name("Contrast");
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "exposure").name("Exposure");
+                
+                this._defaultVignetteMultiply = SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode === ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
+                imgProcessingFolder.add(this, "_defaultVignetteMultiply").name("Vignette Multiply").onChange((result: boolean) => {
+                    var blendMode = result ? ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY : ImageProcessingConfiguration.VIGNETTEMODE_OPAQUE;
+                    SceneFactory.DefaultPipeline.imageProcessing.vignetteBlendMode = blendMode;
+                });
+
+                this.addColorFolder(SceneFactory.DefaultPipeline.imageProcessing.vignetteColor, "Vignette Color", true, imgProcessingFolder);
+                imgProcessingFolder.add(SceneFactory.DefaultPipeline.imageProcessing, "vignetteWeight").min(0).max(10).step(0.01).name("Vignette Weight");
+
+                var fxaaFolder = defaultFolder.addFolder("FXAA");
+                fxaaFolder.open();
+                fxaaFolder.add(SceneFactory.DefaultPipeline, "fxaaEnabled").name("Enable FXAA");
+            }
+
             // Standard
             var standardFolder = this._element.addFolder("Standard Rendering Pipeline");
-            standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard").onChange((result: any) => {
+            standardFolder.add(SceneFactory.EnabledPostProcesses, "standard").name("Enabled Standard Rendering Pipeline").onChange((result: any) => {
                 if (result === true)
                     SceneFactory.CreateStandardRenderingPipeline(this._editionTool.core, () => this.update());
                 else {
@@ -68,20 +117,32 @@
                 var animationsFolder = standardFolder.addFolder("Animations");
                 animationsFolder.add(this, "_editAnimations").name("Edit Animations");
 
-                var highLightFolder = standardFolder.addFolder("Highlighting");
+                var highLightFolder = standardFolder.addFolder("Bloom");
+                highLightFolder.add(SceneFactory.StandardPipeline, "BloomEnabled").name("Bloom Enabled");
                 highLightFolder.add(SceneFactory.StandardPipeline, "exposure").min(0).max(10).step(0.01).name("Exposure");
                 highLightFolder.add(SceneFactory.StandardPipeline, "brightThreshold").min(0).max(10).step(0.01).name("Bright Threshold");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianCoefficient").min(0).max(10).step(0.01).name("Gaussian Coefficient");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianMean").min(0).max(30).step(0.01).name("Gaussian Mean");
-                highLightFolder.add(SceneFactory.StandardPipeline, "gaussianStandardDeviation").min(0).max(30).step(0.01).name("Gaussian Standard Deviation");
-                highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(5).step(0.01).name("Blur Width");
+                highLightFolder.add(SceneFactory.StandardPipeline, "blurWidth").min(0).max(512).step(0.01).name("Blur Width");
                 highLightFolder.add(SceneFactory.StandardPipeline, "horizontalBlur").name("Horizontal Blur");
                 this.addTextureFolder(SceneFactory.StandardPipeline, "Lens Dirt Texture", "lensTexture", highLightFolder).open();
                 highLightFolder.open();
 
+                var vlsFolder = standardFolder.addFolder("Volumetric Lights");
+                vlsFolder.add(SceneFactory.StandardPipeline, "VLSEnabled").name("VLS Enabled").onChange((result: boolean) => {
+                    if (result)
+                        this._setVLSAttachedSourceLight();
+                    else
+                        SceneFactory.StandardPipeline.VLSEnabled = result;
+                });
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightCoefficient").min(0).max(1).step(0.01).name("Scattering Coefficient");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightPower").min(0).max(10).step(0.01).name("Scattering Power");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightBlurScale").min(0).max(64).step(1).name("Blur scale");
+                vlsFolder.add(SceneFactory.StandardPipeline, "volumetricLightStepsCount").min(0).max(100).step(1).name("Steps count");
+
+                vlsFolder.open();
+
                 var lensFolder = standardFolder.addFolder("Lens Flare");
                 lensFolder.add(SceneFactory.StandardPipeline, "LensFlareEnabled").name("Lens Flare Enabled");
-                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(50).step(0.01).name("Strength");
+                lensFolder.add(SceneFactory.StandardPipeline, "lensFlareStrength").min(0).max(100).step(0.01).name("Strength");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareHaloWidth").min(0).max(2).step(0.01).name("Halo Width");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareGhostDispersal").min(0).max(10).step(0.1).name("Ghost Dispersal");
                 lensFolder.add(SceneFactory.StandardPipeline, "lensFlareDistortionStrength").min(0).max(500).step(0.1).name("Distortion Strength");
@@ -97,9 +158,15 @@
 
                 var dofFolder = standardFolder.addFolder("Depth Of Field");
                 dofFolder.add(SceneFactory.StandardPipeline, "DepthOfFieldEnabled").name("Enable Depth-Of-Field");
-                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(this._editionTool.core.currentScene.activeCamera.maxZ).name("DOF Distance");
-                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(5).name("Blur Width");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldDistance").min(0).max(1).step(0.01).name("DOF Distance");
+                dofFolder.add(SceneFactory.StandardPipeline, "depthOfFieldBlurWidth").min(0).max(512).name("Blur Width");
                 dofFolder.open();
+
+                var motionBlurFolder = standardFolder.addFolder("Motion Blur");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "MotionBlurEnabled").name("Enable Motion Blur");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "motionBlurSamples").min(1).max(64).step(1).name("Samples Count");
+                motionBlurFolder.add(SceneFactory.StandardPipeline, "motionStrength").min(0).step(0.01).name("Strength");
+                motionBlurFolder.open();
 
                 var debugFolder = standardFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.StandardPipeline);
@@ -118,10 +185,6 @@
             });
 
             if (SceneFactory.SSAOPipeline) {
-                ssaoFolder.add(SceneFactory.EnabledPostProcesses, "attachSSAO").name("Attach SSAO").onChange((result: any) => {
-                    this._attachDetachPipeline(result, "ssao");
-                });
-
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "totalStrength").min(0).max(10).step(0.001).name("Strength");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "area").min(0).max(1).step(0.0001).name("Area");
                 ssaoFolder.add(SceneFactory.SSAOPipeline, "radius").min(0).max(1).step(0.00001).name("Radius");
@@ -130,6 +193,31 @@
                 
                 var debugFolder = ssaoFolder.addFolder("Debug");
                 this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline);
+            }
+
+            // SSAO2
+            var ssao2Folder = this._element.addFolder("SSAO 2");
+            ssao2Folder.add(SceneFactory.EnabledPostProcesses, "ssao2").name("Enable SSAO 2").onChange((result: any) => {
+                if (result === true)
+                    SceneFactory.SSAOPipeline2 = SceneFactory.CreateSSAO2Pipeline(this._editionTool.core);
+                else {
+                    SceneFactory.SSAOPipeline2.dispose();
+                    SceneFactory.SSAOPipeline2 = null;
+                }
+                this.update();
+            });
+
+            if (SceneFactory.SSAOPipeline2) {
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "totalStrength").min(0).max(10).step(0.001).name("Strength");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "radius").min(0).max(10).step(0.01).name("Radius");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "base").min(0).max(10).step(0.001).name("Base");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "samples").min(1).max(64).step(1).name("Samples");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "expensiveBlur").name("Expensive Blur");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "minZAspect").min(0).step(0.01).name("Min Z Aspect");
+                ssao2Folder.add(SceneFactory.SSAOPipeline2, "maxZ").min(0).step(0.01).name("Max Z");
+                
+                var debugFolder = ssao2Folder.addFolder("Debug");
+                this._setupDebugPipeline(debugFolder, SceneFactory.SSAOPipeline2);
             }
             
             // VLS
@@ -193,6 +281,32 @@
             picker.open();
         }
 
+        // Set up attached standard source light
+        private _setVLSAttachedSourceLight(): void {
+            var scene = this._editionTool.core.currentScene;
+            var objects: Node[] = [];
+            
+            for (var i = 0; i < scene.lights.length; i++) {
+                var light = scene.lights[i];
+                if ((light instanceof SpotLight || light instanceof DirectionalLight) && light.getShadowGenerator())
+                    objects.push(light);
+            }
+
+            var picker = new ObjectPicker(this._editionTool.core);
+            picker.objectLists.push(objects);
+            picker.minSelectCount = 0;
+
+            picker.onObjectPicked = (names: string[]) => {
+                var node: any = null;
+                if (names.length > 0)
+                    node = this._editionTool.core.currentScene.getNodeByName(names[0]);
+
+                SceneFactory.StandardPipeline.sourceLight = node;
+            };
+
+            picker.open();
+        }
+
         // Set up debug mode
         private _setupDebugPipeline(folder: dat.IFolderElement, pipeline: PostProcessRenderPipeline): void {
             var renderEffects = (<any>pipeline)._renderEffects;
@@ -218,43 +332,12 @@
             }
         }
 
-        // Attach/detach pipeline
-        private _attachDetachPipeline(attach: boolean, pipeline: string): void {
-            if (attach)
-                this._editionTool.core.currentScene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline(pipeline, this._getPipelineCameras());
-            else
-                this._editionTool.core.currentScene.postProcessRenderPipelineManager.detachCamerasFromRenderPipeline(pipeline, this._getPipelineCameras());
-        }
-
         private _getPipelineCameras(): Camera[] {
             var cameras: Camera[] = [this._editionTool.core.camera];
             if (this._editionTool.core.playCamera)
                 cameras.push(this._editionTool.core.playCamera);
 
             return cameras;
-        }
-
-        // Creates a function to change texture of a flare
-        private _loadHDRLensDirtTexture(): void {
-            var input = Tools.CreateFileInpuElement("HDR-LENS-DIRT-LOAD-TEXTURE");
-
-            input.change((data: any) => {
-                var files: File[] = data.target.files || data.currentTarget.files;
-
-                if (files.length < 1)
-                    return;
-
-                var file = files[0];
-                BABYLON.Tools.ReadFileAsDataURL(file, (result: string) => {
-                    var texture = Texture.CreateFromBase64String(result, file.name, this._editionTool.core.currentScene);
-                    texture.name = texture.name.replace("data:", "");
-
-                    SceneFactory.HDRPipeline.lensTexture = texture;
-                    input.remove();
-                }, null);
-            });
-
-            input.click();
         }
 
         // Loads the animations tool

@@ -183,6 +183,10 @@
                 }
             }
 
+            // Parenting
+            this._SetParenting(core.currentScene, core.currentScene.meshes);
+            this._SetParenting(core.currentScene, core.currentScene.lights);
+
             // Particle systems
             for (var i = 0; i < project.particleSystems.length; i++) {
                 var ps = project.particleSystems[i];
@@ -193,9 +197,7 @@
                 newPs.particleTexture.name = newPs.particleTexture.name.replace("data:", "");
 
                 if (!ps.hasEmitter && ps.emitterPosition)
-                    newPs.emitter.position = Vector3.FromArray(ps.emitterPosition);
-
-                newPs.emitter.attachedParticleSystem = newPs;
+                    (<AbstractMesh>newPs.emitter).position = Vector3.FromArray(ps.emitterPosition);
             }
 
             // Lens flares
@@ -301,6 +303,50 @@
             // Custom metadatas
             for (var thing in project.customMetadatas) {
                 SceneManager.AddCustomMetadata(thing, project.customMetadatas[thing]);
+
+                for (var i = 0; i < EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                    var extension = EXTENSIONS.EditorExtension._Extensions[i];
+
+                    if (!extension.prototype.onLoad)
+                        continue;
+                    
+                    var extensionInstance = new extension(core.currentScene);
+                    if (extensionInstance.extensionKey !== thing)
+                        continue;
+
+                    extensionInstance.onLoad(project.customMetadatas[thing]);
+                }
+            }
+
+            // Scene 2d
+            for (var i = 0; i < project.scene2d.length; i++) {
+                var containerNode = project.scene2d[i];
+                if(!(containerNode.serializationObject.customType))
+                    continue;
+
+                var container = BABYLON[containerNode.serializationObject.customType].Parse(containerNode.serializationObject, core.scene2d, "file:");
+            }
+
+            for (var i = 0; i < project.scene2d.length; i++) {
+                var containerNode = project.scene2d[i];
+                if (containerNode.serializationObject.parentName) {
+                    var parent = core.scene2d.getMeshByName(containerNode.serializationObject.parentName);
+                    var child = core.scene2d.getMeshByName(containerNode.serializationObject.name);
+
+                    if (child)
+                        child.parent = parent;
+                }
+            }
+        }
+
+        // Sets parenting using _waitingParentId
+        private static _SetParenting(scene: Scene, nodes: Node[]): void {
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                if (n._waitingParentId) {
+                    n.parent = scene.getNodeByID(n._waitingParentId);
+                    n._waitingParentId = undefined;
+                }
             }
         }
     }

@@ -9,6 +9,7 @@
         private _isActiveCamera: boolean = false;
         private _isActivePlayCamera: boolean = false;
 
+        private _currentParentName: string = "";
         private _currentInstance: string = "";
 
         /**
@@ -46,7 +47,7 @@
         // Update
         public update(): boolean {
             var object = this.object = this._editionTool.object;
-            var scene = this._editionTool.core.currentScene;
+            var scene = object instanceof Container2D ? this._editionTool.core.scene2d : this._editionTool.core.currentScene;
             var core = this._editionTool.core;
 
             super.update();
@@ -68,6 +69,26 @@
                     element.text = result;
                     sidebar.refresh();
                 }
+            });
+
+            // Parenting
+            var meshesNames: string[] = ["Scene"];
+            for (var i = 0; i < scene.meshes.length; i++) {
+                if (scene.meshes[i] !== object)
+                    meshesNames.push(scene.meshes[i].name);
+            }
+
+            var parentingFolder = this._element.addFolder("Parenting");
+            this._currentParentName = object.parent ? object.parent.name : meshesNames[0];
+            parentingFolder.add(this, "_currentParentName", meshesNames).name("Parent").onFinishChange((result: string) => {
+                if (result === "Scene")
+                    object.parent = null;
+                else
+                    object.parent = scene.getMeshByName(result);
+
+                this._editionTool.core.editor.sceneGraphTool.fillGraph();
+                this._editionTool.core.editor.sceneGraphTool.sidebar.refresh();
+                this._editionTool.core.editor.sceneGraphTool.sidebar.setSelected(object.id);
             });
 
             // Camera
@@ -105,7 +126,7 @@
                 if (object["speed"] !== undefined)
                     cameraFolder.add(this.object, "speed").min(0).step(0.001).name("Speed");
 
-                if (object.fov)
+                if (object.fov !== undefined)
                     cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");
             }
 
@@ -114,23 +135,42 @@
 
             if (object.position) {
                 var positionFolder = this._element.addFolder("Position", transformFolder);
-                positionFolder.add(object.position, "x").step(0.1).name("x");
-                positionFolder.add(object.position, "y").step(0.1).name("y");
-                positionFolder.add(object.position, "z").step(0.1).name("z");
+
+                if (!(object instanceof Container2D)) {
+                    positionFolder.add(object.position, "x").step(0.1).name("x");
+                    positionFolder.add(object.position, "y").step(0.1).name("y");
+                    positionFolder.add(object.position, "z").step(0.1).name("z");
+                }
+                else {
+                    positionFolder.add(object, "x").step(0.1).name("x");
+                    positionFolder.add(object, "y").step(0.1).name("y");
+                }
             }
 
             if (object.rotation) {
                 var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                rotationFolder.add(object.rotation, "x").name("x").step(0.1);
-                rotationFolder.add(object.rotation, "y").name("y").step(0.1);
-                rotationFolder.add(object.rotation, "z").name("z").step(0.1);
+                if (!(object instanceof Container2D)) {
+                    rotationFolder.add(object.rotation, "x").name("x").step(0.1);
+                    rotationFolder.add(object.rotation, "y").name("y").step(0.1);
+                    rotationFolder.add(object.rotation, "z").name("z").step(0.1);
+                }
+                else {
+                    rotationFolder.add(object, "rotationZ").name("z").step(0.1);
+                }
             }
 
             if (object.scaling) {
                 var scalingFolder = this._element.addFolder("Scaling", transformFolder);
-                scalingFolder.add(object.scaling, "x").name("x").step(0.1);
-                scalingFolder.add(object.scaling, "y").name("y").step(0.1);
-                scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+
+                if (!(object instanceof Container2D)) {
+                    scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+                    scalingFolder.add(object.scaling, "x").name("x").step(0.1);
+                    scalingFolder.add(object.scaling, "y").name("y").step(0.1);
+                }
+                else {
+                    scalingFolder.add(object, "scaleX").name("x").step(0.1);
+                    scalingFolder.add(object, "scaleY").name("y").step(0.1);
+                }
             }
 
             // Rendering

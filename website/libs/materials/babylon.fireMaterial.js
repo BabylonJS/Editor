@@ -121,17 +121,26 @@ var BABYLON;
                 // Legacy browser patch
                 var shaderName = "fire";
                 var join = defines.toString();
-                subMesh.setEffect(scene.getEngine().createEffect(shaderName, attribs, ["world", "view", "viewProjection", "vEyePosition",
-                    "vFogInfos", "vFogColor", "pointSize",
-                    "vDiffuseInfos",
-                    "mBones",
-                    "vClipPlane", "diffuseMatrix",
-                    // Fire
-                    "time", "speed"
-                ], ["diffuseSampler",
-                    // Fire
-                    "distortionSampler", "opacitySampler"
-                ], join, fallbacks, this.onCompiled, this.onError), defines);
+                subMesh.setEffect(scene.getEngine().createEffect(shaderName, {
+                    attributes: attribs,
+                    uniformsNames: ["world", "view", "viewProjection", "vEyePosition",
+                        "vFogInfos", "vFogColor", "pointSize",
+                        "vDiffuseInfos",
+                        "mBones",
+                        "vClipPlane", "diffuseMatrix",
+                        // Fire
+                        "time", "speed"
+                    ],
+                    uniformBuffersNames: [],
+                    samplers: ["diffuseSampler",
+                        // Fire
+                        "distortionSampler", "opacitySampler"
+                    ],
+                    defines: join,
+                    fallbacks: fallbacks,
+                    onCompiled: this.onCompiled,
+                    onError: this.onError
+                }, engine), defines);
             }
             if (!subMesh.effect.isReady()) {
                 return false;
@@ -199,6 +208,34 @@ var BABYLON;
                 results.push(this._opacityTexture);
             }
             return results;
+        };
+        FireMaterial.prototype.getActiveTextures = function () {
+            var activeTextures = _super.prototype.getActiveTextures.call(this);
+            if (this._diffuseTexture) {
+                activeTextures.push(this._diffuseTexture);
+            }
+            if (this._distortionTexture) {
+                activeTextures.push(this._distortionTexture);
+            }
+            if (this._opacityTexture) {
+                activeTextures.push(this._opacityTexture);
+            }
+            return activeTextures;
+        };
+        FireMaterial.prototype.hasTexture = function (texture) {
+            if (_super.prototype.hasTexture.call(this, texture)) {
+                return true;
+            }
+            if (this._diffuseTexture === texture) {
+                return true;
+            }
+            if (this._distortionTexture === texture) {
+                return true;
+            }
+            if (this._opacityTexture === texture) {
+                return true;
+            }
+            return false;
         };
         FireMaterial.prototype.dispose = function (forceDisposeEffect) {
             if (this._diffuseTexture) {

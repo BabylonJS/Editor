@@ -89,7 +89,7 @@
 
         // Reset the timeline
         public reset(): void {
-            this._maxFrame = GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene);
+            this._maxFrame = Math.max(GUIAnimationEditor.GetSceneFrameCount(this._core.currentScene), GUIAnimationEditor.GetSceneFrameCount(this._core.scene2d));
             this._currentTime = 0;
             this._selectorRect.attr("x", 0);
             this.setFramesOfAnimation(null);
@@ -141,8 +141,8 @@
 
             // Events
             var click = (event: MouseEvent) => {
-                this._mousex = MathTools.Clamp(event.pageX - this._paper.canvas.getBoundingClientRect().left, 0, this._paper.width);
-                this._mousey = MathTools.Clamp(event.pageY - this._paper.canvas.getBoundingClientRect().top, 0, this._paper.height);
+                this._mousex = Scalar.Clamp(event.pageX - this._paper.canvas.getBoundingClientRect().left, 0, this._paper.width);
+                this._mousey = Scalar.Clamp(event.pageY - this._paper.canvas.getBoundingClientRect().top, 0, this._paper.height);
 
                 this._currentTime = this._getFrame();
                 this._selectorRect.attr("x", this._mousex);
@@ -223,7 +223,7 @@
             if (pos)
                 return (pos * this._maxFrame) / width;
 
-            return MathTools.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
+            return Scalar.Clamp((this._mousex * this._maxFrame) / width, 0, this._maxFrame - 1);
         }
 
         // Get a position from a frame

@@ -1,0 +1,9 @@
+// Called once starting the scripts
+this.start = function () {
+    scene.clearColor = BABYLON.Color3.Black();
+}
+
+// Called on each update
+this.update = function () {
+    console.log({{type}});
+}

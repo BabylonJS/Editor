@@ -8,6 +8,7 @@
 
         // Private members
         protected _editionTool: EditionTool;
+        protected _core: EditorCore;
 
         /**
         * Constructor
@@ -16,6 +17,7 @@
         constructor(editionTool: EditionTool) {
             // Initialize
             this._editionTool = editionTool;
+            this._core = editionTool.core;
         }
 
         // Object supported

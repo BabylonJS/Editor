@@ -26,8 +26,10 @@
                 physicsEnabled: core.currentScene.isPhysicsEnabled(),
                 sounds: this._SerializeSounds(core),
 
+                scene2d: this._Serialize2d(core),
+
                 requestedMaterials: requestMaterials ? [] : undefined,
-                customMetadatas: this._SerializeCustomMetadatas()
+                customMetadatas: this._SerializeCustomMetadatas(core)
             };
 
             this._TraverseNodes(core, null, project);
@@ -224,8 +226,11 @@
                                 psObj.emitterPosition = ps.emitter.position.asArray();
 
                             // Patch texture base64 string
-                            psObj.serializationObject.base64TextureName = ps.particleTexture.name;
-                            psObj.serializationObject.base64Texture = (<any>ps.particleTexture)._buffer;
+                            if (ps instanceof ParticleSystem) {
+                                psObj.serializationObject.base64TextureName = ps.particleTexture.name;
+                                psObj.serializationObject.base64Texture = (<any>ps.particleTexture)._buffer;
+                            }
+                            
                             delete psObj.serializationObject.textureName;
 
                             project.particleSystems.push(psObj);
@@ -402,9 +407,11 @@
                 }
 
                 if (node instanceof Node) {
+                    /*
                     for (var i = 0; i < node.getDescendants().length; i++) {
                         this._TraverseNodes(core, node.getDescendants()[i], project);
                     }
+                    */
                 }
             }
         }
@@ -421,14 +428,49 @@
 
         // Serializes the custom metadatas, largely used by plugins like post-process builder
         // plugin.
-        private static _SerializeCustomMetadatas(): IStringDictionary<any> {
+        private static _SerializeCustomMetadatas(core: EditorCore): IStringDictionary<any> {
             var dict: IStringDictionary<any> = {};
 
             for (var thing in SceneManager._CustomMetadatas) {
                 dict[thing] = SceneManager._CustomMetadatas[thing];
+
+                for (var i = 0; i < EXTENSIONS.EditorExtension._Extensions.length; i++) {
+                    var extension = EXTENSIONS.EditorExtension._Extensions[i];
+
+                    if (!extension.prototype.onSerialize)
+                        continue;
+                    
+                    var instance = new extension(core.currentScene);
+                    if (instance.extensionKey !== thing)
+                        continue;
+
+                    instance.onSerialize(dict[thing]);
+                }
             }
 
             return dict;
+        }
+
+        // Serializes the scene 2d
+        private static _Serialize2d(core: EditorCore): INTERNAL.INode[] {
+            var nodes: INTERNAL.INode[] = [];
+
+            for (var i = 0; i < core.scene2d.meshes.length; i++) {
+                var mesh = core.scene2d.meshes[i];
+                if (!(mesh instanceof Container2D))
+                    continue;
+
+                console.log(mesh.name);
+                nodes.push({
+                    id: mesh.id,
+                    animations: [],
+                    name: mesh.name,
+                    type: "Mesh",
+                    serializationObject: mesh.serialize()
+                });
+            }
+
+            return nodes;
         }
 
         // Setups the requested materials (to be uploaded in template or release)
@@ -488,7 +530,7 @@
             var nodes: Node[] = scene[propertyPath];
 
             for (var i = 0; i < nodes.length; i++) {
-                if (!nodes[i].parent)
+                //if (!nodes[i].parent)
                     data.push(nodes[i]);
             }
         }

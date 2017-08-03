@@ -869,7 +869,7 @@
             getTotal(scene.meshes);
             getTotal(scene.lights);
             getTotal(scene.cameras);
-            getTotal(scene.particleSystems);
+            getTotal(<ParticleSystem[]> scene.particleSystems);
 
             // Skeletons
             for (var skeletonIndex = 0; skeletonIndex < scene.skeletons.length; skeletonIndex++) {

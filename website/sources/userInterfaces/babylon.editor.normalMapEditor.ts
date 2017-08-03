@@ -65,7 +65,7 @@ module BABYLON.EDITOR {
             });
 
             if (tempTexture instanceof DynamicTexture)
-                tempTexture.onLoadObservable.notifyObservers(false);
+                tempTexture.onLoadObservable.notifyObservers(tempTexture);
 
             // On close
             window.setOnCloseCallback(() => {
@@ -97,10 +97,14 @@ module BABYLON.EDITOR {
 
         // Get texture
         private _getTexture(scene: Scene, texture: Texture): Texture {
-            if (BABYLON.FilesInput.FilesToLoad[texture.name])
-                return new Texture("file:" + texture.name, scene);
+            var name = texture.name.replace("file:", "").replace("data:", "").toLowerCase();
+
+            if (BABYLON.FilesInput.FilesToLoad[name])
+                return new Texture("file:" + name, scene);
+            else if (typeof (<any>texture)._buffer === "string")
+                return Texture.CreateFromBase64String((<any>texture)._buffer, name, scene);
             else if (texture instanceof DynamicTexture) {
-                var targetTexture = new DynamicTexture(texture.name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
+                var targetTexture = new DynamicTexture(name, { width: texture.getBaseSize().width, height: texture.getBaseSize().height }, scene, texture.noMipmap);
 
                 var canvas: HTMLCanvasElement = (<any>targetTexture)._canvas;
                 canvas.remove();

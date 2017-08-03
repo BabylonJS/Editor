@@ -23,7 +23,7 @@
         public container: string;
         public mainContainer: string;
         public antialias: boolean;
-        public options: any;
+        public options: EngineOptions;
 
         public layouts: GUI.GUILayout = null;
         public playLayouts: GUI.GUILayout = null;
@@ -374,6 +374,11 @@
                 this.core.scenes.push({ scene: scene, render: true });
                 this.core.currentScene = scene;
 
+                // Attach control to cameras
+                for (var i = 0; i < scene.cameras.length; i++) {
+                    scene.cameras[i].attachControl(this.core.canvas, true);
+                }
+
                 // Set active camera
                 var camera: any = scene.activeCamera;
                 this._createBabylonCamera();
@@ -386,6 +391,10 @@
                 
                 this.core.currentScene.activeCamera = this.core.camera;
                 this.core.playCamera = camera;
+
+                // Set 2D scene
+                this.core.removeScene(this.core.scene2d);
+                this.core.scenes.push({ scene: this.core.scene2d, render: true });
 
                 // Create render loop
                 this.core.engine.stopRenderLoop();
@@ -430,12 +439,23 @@
             this.core.engine = new Engine(this.core.canvas, this.antialias, this.options);
             this.core.engine.setHardwareScalingLevel(1.0 / devicePixelRatio);
 
+            // Main scene
             this.core.currentScene = new Scene(this.core.engine);
             (<any>this.core.currentScene).animations = [];
             this.core.scenes.push({ render: true, scene: this.core.currentScene });
 
             this._createBabylonCamera();
 
+            // Create 2D scene
+            this.core.scene2d = new Scene(this.core.engine);
+            this.core.scene2d.activeCamera = new Camera("Camera2D", Vector3.Zero(), this.core.scene2d);
+            this.core.scene2d.activeCamera.fov = 0;
+            this.core.scene2d.autoClear = false;
+            this.core.scene2d.clearColor = new Color4(0, 0, 0, 0);
+
+            this.core.scenes.push({ render: true, scene: this.core.scene2d });
+
+            // Events
             window.addEventListener("resize", (ev: UIEvent) => {
                 if (this.core.isPlaying) {
                     this.core.isPlaying = false;
@@ -462,6 +482,7 @@
             var camera = new ArcRotateCamera("EditorCamera", 0, 0, 10, Vector3.Zero(), this.core.currentScene);
             camera.panningSensibility = 50;
             camera.attachControl(this.core.canvas, false, false);
+            camera.setPosition(new Vector3(100, 100, 100));
 
             this.core.camera = camera;
 

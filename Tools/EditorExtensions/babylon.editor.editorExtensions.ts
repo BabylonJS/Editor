@@ -1,7 +1,7 @@
 ﻿module BABYLON.EDITOR.EXTENSIONS {
     export interface IEditorExtension<T> {
         // The name of the extension's data
-        extensionKey: string;
+        extensionKey?: string;
 
         // Applies the extension giving it's data
         apply(data: T): void;
@@ -11,9 +11,13 @@
 
         // Called when extension is serialized
         onSerialize?(data: T): void;
+
+        // Caled when the extension should be loaded in order
+        // to apply itself on editor scene
+        onLoad?(data: T): void;
     }
 
-    export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<T>;
+    export type _EditorExtensionConstructor = new <T>(scene: Scene) => IEditorExtension<any>;
 
     export class EditorExtension {
         // Public members
@@ -25,7 +29,7 @@
         public static _ExtensionsDatas: { [name: string]: any };
 
         // The extensions plugins
-        private static _Extensions: _EditorExtensionConstructor[] = [];
+        public static _Extensions: _EditorExtensionConstructor[] = [];
         private static _InstancedExtensions: IEditorExtension<any>[] = [];
 
         // Loads the extensions file and parses it

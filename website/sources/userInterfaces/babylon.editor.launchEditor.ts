@@ -25,6 +25,8 @@
             picker.objectLists.push(core.currentScene.particleSystems);
             picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
 
+            picker.objectLists.push(core.scene2d.meshes);
+
             picker.selectedObjects = SceneFactory.NodesToStart;
             picker.minSelectCount = 0;
 
@@ -50,6 +52,10 @@
                     if (!node) {
                         // Sound ?
                         node = <any>core.currentScene.getSoundByName(names[i]);
+                    }
+
+                    if (!node) {
+                        node = core.scene2d.getMeshByName(names[i]);
                     }
 
                     if (!node && SceneFactory.StandardPipeline && names[i] === SceneFactory.StandardPipeline._name)

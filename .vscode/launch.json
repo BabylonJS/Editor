@@ -18,6 +18,22 @@
             "webRoot": "${workspaceRoot}/website/",
             "sourceMaps": false,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+        },
+        {
+            "name": "Debug electron",
+            "type": "chrome",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
+            "runtimeArgs": [
+                "${workspaceRoot}/website/electron/main.js",
+                "--remote-debugging-port=9222"
+            ],
+            "webRoot": "${workspaceRoot}/website/",
+            "sourceMaps": true,
+            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         }
     ]
 }

@@ -152,8 +152,9 @@
 
             this.addTool(new MaterialTool(this));
             this.addTool(new StandardMaterialTool(this));
-            this.addTool(new SkyMaterialTool(this));
             this.addTool(new PBRMaterialTool(this));
+            this.addTool(new SkyMaterialTool(this));
+            this.addTool(new LegacyPBRMaterialTool(this));
             this.addTool(new WaterMaterialTool(this));
             this.addTool(new LavaMaterialTool(this));
             this.addTool(new FurMaterialTool(this));
@@ -162,9 +163,12 @@
             this.addTool(new TriPlanarMaterialTool(this));
             this.addTool(new GridMaterialTool(this));
             this.addTool(new FireMaterialTool(this));
+            this.addTool(new CellMaterialTool(this));
 
             this.addTool(new GroundMeshTool(this));
             
+            this.addTool(new Container2DTool(this));
+
             for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
                 this.addTool(new PluginManager.EditionToolPlugins[i](this));
         }

@@ -11,6 +11,7 @@
 
         public scenes: Array<ICustomScene> = new Array<ICustomScene>();
         public currentScene: Scene;
+        public scene2d: Scene;
 
         public updates: Array<ICustomUpdate> = new Array<ICustomUpdate>();
         public eventReceivers: Array<IEventReceiver> = new Array<IEventReceiver>();
@@ -83,7 +84,7 @@
         public emitEvent<T>(event: EventEmitter<T>): void {
             for (var i = 0; i < this.eventReceivers.length; i++) {
                 if (this.eventReceivers[i].on)
-                    this.eventReceivers[i].on(event);
+                    this.eventReceivers[i].on(<any> event);
             }
         }
 

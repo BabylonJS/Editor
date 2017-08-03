@@ -10,12 +10,14 @@
     "defines": [
       "!sources/**/*.d.ts",
       "website/libs/preview release/babylon.editor.extensions.d.ts",
-      "website/defines/**/*.d.ts"
+      "website/defines/**/*.d.ts",
+      "website/node_modules/**/*.d.ts"
     ],
     "typescriptBuild": [
       "website/sources/**/*.ts",
       "!website/sources/**/*.d.ts",
       "website/defines/**/*.d.ts",
+      "website/node_modules/**/*.d.ts",
       "website/libs/preview release/babylon.editor.extensions.d.ts"
     ],
     "files": [
@@ -35,6 +37,7 @@
       "sources/gui/babylon.editor.guiPanel.js",
       "sources/gui/babylon.editor.guiToolbar.js",
       "sources/gui/babylon.editor.guiWindow.js",
+      "sources/gui/babylon.editor.guiCodeEditor.js",
 
       "sources/editionTools/babylon.editor.abstractTool.js",
       "sources/editionTools/babylon.editor.abstractDatTool.js",
@@ -51,6 +54,7 @@
       "sources/editionTools/babylon.editor.textureTool.js",
 
       "sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.legacyPBRMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.pbrMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.skyMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.standardMaterialTool.js",
@@ -62,9 +66,12 @@
       "sources/editionTools/materialEditors/babylon.editor.triPlanarMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.gridMaterialTool.js",
       "sources/editionTools/materialEditors/babylon.editor.fireMaterialTool.js",
+      "sources/editionTools/materialEditors/babylon.editor.cellMaterialTool.js",
 
       "sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js",
       "sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js",
+
+      "sources/editionTools/2d/babylon.editor.container2dTool.js",
 
       "sources/babylon.editor.core.js",
       "sources/babylon.editor.editionTool.js",
@@ -80,6 +87,7 @@
 
       "sources/scene/babylon.editor.filesInput.js",
       "sources/scene/babylon.editor.sceneFactory.js",
+      "sources/scene/babylon.editor.sceneFactory2d.js",
       "sources/scene/babylon.editor.sceneManager.js",
 
       "sources/storage/babylon.editor.storage.js",
@@ -112,6 +120,7 @@
       "sources/plugins/babylon.editor.geometriesMenu.js",
       "sources/plugins/babylon.editor.lightsMenu.js",
       "sources/plugins/babylon.editor.soundsMenu.js",
+      "sources/plugins/babylon.editor.scene2dMenu.js",
 
       "sources/plugins/mainTools/babylon.editor.toolsMenu.js",
       "sources/plugins/mainTools/actionsBuilder/babylon.editor.actionsBuilder.js",
@@ -122,7 +131,11 @@
       "sources/plugins/mainTools/babylon.editor.softBodyBuilder.js",
       "sources/plugins/mainTools/babylon.editor.materialBuilder.js",
 
-      "sources/plugins/mainTools/babylon.editor.cosmosEditor.js"
+      "sources/plugins/mainTools/babylon.editor.dynamicTextureBuilder.js",
+
+      "sources/plugins/mainTools/babylon.editor.cosmosEditor.js",
+
+      "sources/plugins/mainTools/babylon.editor.behaviorEditor.js"
     ]
   },
   "electron": {
@@ -150,17 +163,26 @@
       "Tools/EditorExtensions/babylon.editor.postProcessExtension.ts",
       "Tools/EditorExtensions/babylon.editor.cosmosExtension.ts",
       "Tools/EditorExtensions/babylon.editor.softBodyExtension.ts",
-
+      "Tools/EditorExtensions/babylon.editor.dynamicTextureExtension.ts",
+      
       "Tools/EditorExtensions/Materials/babylon.editor.materialBaseExtension.ts",
       "Tools/EditorExtensions/Materials/babylon.editor.materialExtension.ts",
 
       "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
+      "Tools/EditorExtensions/Development/babylon.editor.behaviorExtension.ts",
 
       "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts",
       "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts",
       "Tools/EditorExtensions/Actions/babylon.physicsAction.ts",
       "Tools/EditorExtensions/Actions/babylon.timerCondition.ts",
-      "Tools/EditorExtensions/Actions/babylon.distanceToCameraCondition.ts"
+      "Tools/EditorExtensions/Actions/babylon.distanceToCameraCondition.ts",
+
+      "Tools/EditorExtensions/2d/babylon.dock2d.ts",
+      "Tools/EditorExtensions/2d/babylon.resize2d.ts",
+      "Tools/EditorExtensions/2d/babylon.container2d.ts",
+      "Tools/EditorExtensions/2d/babylon.sprite2d.ts",
+      "Tools/EditorExtensions/2d/babylon.clip2d.ts",
+      "Tools/EditorExtensions/2d/babylon.shader2d.ts"
     ]
   }
 }

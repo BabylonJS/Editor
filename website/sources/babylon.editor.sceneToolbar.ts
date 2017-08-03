@@ -90,7 +90,10 @@
                     return true;
                 }
                 else if (id === this._renderDebugLayerID) {
-                    scene.debugLayer.show(true);
+                    scene.debugLayer.show({
+                        popup: false,
+                        initialTab: 1
+                    });
                     return true;
                 }
             }
@@ -183,7 +186,7 @@
             setFPS(this._core.currentScene.meshes);
             setFPS(this._core.currentScene.lights);
             setFPS(this._core.currentScene.cameras);
-            setFPS(this._core.currentScene.particleSystems);
+            setFPS(<ParticleSystem[]> this._core.currentScene.particleSystems);
 
             for (var sIndex = 0; sIndex < this._core.currentScene.skeletons.length; sIndex++)
                 setFPS(this._core.currentScene.skeletons[sIndex].bones);

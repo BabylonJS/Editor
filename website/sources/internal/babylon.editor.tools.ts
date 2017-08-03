@@ -112,6 +112,17 @@
         }
 
         /**
+         * Sorts the given string array alphabetically
+         */
+        public static SortAlphabetically(arr: string[]): void {
+            arr.sort((a, b) => {
+                a = a.toUpperCase();
+                b = b.toUpperCase();
+                return (a < b) ? -1 : (a > b) ? 1 : 0;
+            });
+        }
+
+        /**
         * Returns the base URL of the window
         */
         public static GetBaseURL(): string {
@@ -173,6 +184,7 @@
             project.sounds = project.sounds || [];
             project.customMetadatas = project.customMetadatas || {};
             project.physicsEnabled = project.physicsEnabled || false;
+            project.scene2d = project.scene2d || [];
         }
 
         /**
@@ -208,7 +220,7 @@
         public static GetParticleSystemByName(scene: Scene, name: string): ParticleSystem {
             for (var i = 0; i < scene.particleSystems.length; i++) {
                 if (scene.particleSystems[i].name === name)
-                    return scene.particleSystems[i];
+                    return <ParticleSystem> scene.particleSystems[i];
             }
 
             return null;

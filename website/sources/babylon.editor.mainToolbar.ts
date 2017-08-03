@@ -203,6 +203,7 @@
                     return true;
                 }
 
+                // Plugins
                 for (var i = 0; i < this._plugins.length; i++) {
                     if (selected.parent === this._plugins[i].menuID) {
                         this._plugins[i].onMenuItemSelected(selected.selected);

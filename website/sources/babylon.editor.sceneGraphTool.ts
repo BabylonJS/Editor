@@ -65,7 +65,7 @@
                             return false;
 
                         if (id === this._menuDeleteId) {
-                            if (object && object.dispose && object !== this._core.camera) {
+                            if (!(object instanceof Scene) && object.dispose && object !== this._core.camera) {
                                 for (var i = 0; i < this._core.currentScene.materials.length; i++) {
                                     var m = this._core.currentScene.materials[i];
 
@@ -110,11 +110,15 @@
                                 var buffer = null;
 
                                 for (var i = 0; i < scene.particleSystems.length; i++) {
+                                    var system = scene.particleSystems[i];
+
                                     if (scene.particleSystems[i].emitter === object) {
-                                        buffer = (<any>scene.particleSystems[i].particleTexture)._buffer;
+                                        if (system instanceof ParticleSystem)
+                                            buffer = (<any>system.particleTexture)._buffer;
                                     }
                                     else if (scene.particleSystems[i].emitter === emitter) {
-                                        scene.particleSystems[i].particleTexture = Texture.CreateFromBase64String(buffer, scene.particleSystems[i].particleTexture.name + "Cloned", scene);
+                                        if (system instanceof ParticleSystem)
+                                            system.particleTexture = Texture.CreateFromBase64String(buffer, system.particleTexture.name + "Cloned", scene);
                                         break;
                                     }
 
@@ -159,13 +163,16 @@
                         var parentNode: Node | string = null;
 
                         if (event.sceneEvent.object instanceof ParticleSystem) {
-                            parentNode = event.sceneEvent.object.emitter;
+                            parentNode = <AbstractMesh> event.sceneEvent.object.emitter;
                         }
                         else if (event.sceneEvent.object instanceof LensFlareSystem) {
                             parentNode = (<LensFlareSystem>event.sceneEvent.object).getEmitter();
                         }
                         else if (event.sceneEvent.object instanceof Sound) {
                             parentNode = this._mainSoundTrackName;
+                        }
+                        else if (event.sceneEvent.object instanceof Container2D) {
+                            parentNode = this._graphRootName + "2D";
                         }
 
                         this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
@@ -184,10 +191,10 @@
         }
 
         // Fills the graph of nodes (meshes, lights, cameras, etc.)
-        public fillGraph(node?: Node, graphNodeID?: string): void {
+        public fillGraph(node?: Node, graphNodeID?: string, scene?: Scene): void {
             var children: Node[] = null;
-            var root: string = null;
-            var scene = this._core.currentScene;
+            var root: string = graphNodeID;
+            var scene = scene || this._core.currentScene;
 
             if (!graphNodeID) {
                 this.sidebar.clear();
@@ -236,13 +243,22 @@
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                     }
                 }
+
+                // 2d
+                /*
+                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder", this._core.currentScene);
+                this.sidebar.addNodes(node2d, this._graphRootName, false);
+
+                this._core.scene2d.forceShowBoundingBoxes = true;
+                this.fillGraph(null, node2d.id, this._core.scene2d);
+                */
             }
 
             if (!node) {
                 children = [];
-                this._getRootNodes(children, "cameras");
-                this._getRootNodes(children, "lights");
-                this._getRootNodes(children, "meshes");
+                this._getRootNodes(children, "cameras", scene);
+                this._getRootNodes(children, "lights", scene);
+                this._getRootNodes(children, "meshes", scene);
                 // Other here
             }
             else
@@ -345,8 +361,8 @@
         }
 
         // Fills the result array of nodes when the node hasn't any parent
-        private _getRootNodes(result: Node[], entities: string): void {
-            var elements: Node[] = this._core.currentScene[entities];
+        private _getRootNodes(result: Node[], entities: string, scene: Scene): void {
+            var elements: Node[] = scene[entities];
 
             for (var i = 0; i < elements.length; i++) {
                 if (!elements[i].parent) {

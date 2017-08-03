@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var ts = require("../../node_modules/typescript");
 var fs = require("fs");
 ;

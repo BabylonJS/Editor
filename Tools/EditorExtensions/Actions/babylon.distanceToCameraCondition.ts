@@ -40,7 +40,13 @@ module BABYLON {
                name: "DistanceToCameraCondition",
                properties: [
                    Action._GetTargetProperty(this._target),
-                   { name: "value", value: this._distance }
+                   { name: "value", value: this._distance },
+                   {
+                       name: "operator",
+                       value: this._operator === ValueCondition.IsEqual ? "IsEqual" :
+                              this._operator === ValueCondition.IsDifferent ? "IsDifferent" :
+                              this._operator === ValueCondition.IsGreater ? "IsGreater" : "IsLesser"
+                   }
                 ]
             });
         }

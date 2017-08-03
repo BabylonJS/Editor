@@ -7,10 +7,13 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    touch-action: none;
+    position: fixed;
 }
 
 #BABYLON-EDITOR-MAIN-CANVAS {
     width: 100%;
+    outline: 0;
     /*height: 100%;*/
 }
 
@@ -250,4 +253,12 @@ html, body {
 
 .w2ui-icon.icon-reflection {
     background: url("images/reflection.png");
+}
+
+.w2ui-icon.icon-dynamic-texture {
+    background: url("images/dynamic_texture.png");
+}
+
+.w2ui-icon.icon-behavior-editor {
+    background: url("images/behavior_editor.png");
 }
