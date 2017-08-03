@@ -152,13 +152,18 @@ module BABYLON.EDITOR {
                         case "ground": this._ground.material = material; break;
                         default: break;
                     }
+
+                    this._engine.releaseEffects();
                 }
                 else {
                     this._mainExtension.apply([this._currentMetadata]);
+                    this._core.engine.releaseEffects();
                 }
 
                 this._currentSettings = this._currentMetadata.object;
                 delete this._currentMetadata.object;
+
+                Engine.MarkAllMaterialsAsDirty(Material.AttributesDirtyFlag);
 
                 this._buildEditForm();
             }

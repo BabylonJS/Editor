@@ -84,7 +84,7 @@
         public emitEvent<T>(event: EventEmitter<T>): void {
             for (var i = 0; i < this.eventReceivers.length; i++) {
                 if (this.eventReceivers[i].on)
-                    this.eventReceivers[i].on(event);
+                    this.eventReceivers[i].on(<any> event);
             }
         }
 

@@ -228,11 +228,28 @@ module BABYLON.EDITOR.EXTENSIONS {
                                 "vClipPlane", "depthValues"
                 ].concat(otherUniforms);
                 
-                MaterialHelper.PrepareUniformsAndSamplersList(uniforms, otherSamplers, defines, this.maxSimultaneousLights);
-                
+                var uniformBuffers = [];
+
+                MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
+                    uniformsNames: uniforms, 
+                    uniformBuffersNames: uniformBuffers,
+                    samplers: otherSamplers, 
+                    defines: defines, 
+                    maxSimultaneousLights: this.maxSimultaneousLights
+                });
+
                 subMesh.setEffect(scene.getEngine().createEffect(this.name,
-                    attribs, uniforms, otherSamplers,
-                    join, fallbacks, this.onCompiled, this.onError, {maxSimultaneousLights: this.maxSimultaneousLights}), defines);
+                    <EffectCreationOptions>{
+                        attributes: attribs,
+                        uniformsNames: uniforms,
+                        uniformBuffersNames: uniformBuffers,
+                        samplers: otherSamplers,
+                        defines: join,
+                        fallbacks: fallbacks,
+                        onCompiled: this.onCompiled,
+                        onError: this.onError,
+                        indexParameters: { maxSimultaneousLights: this.maxSimultaneousLights - 1 }
+                    }, engine), defines);
             }
             if (!subMesh.effect.isReady()) {
                 return false;
