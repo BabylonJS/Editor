@@ -5,5 +5,5 @@ this.start = function () {
 
 // Called on each update
 this.update = function () {
-    {{type}}.rotation.y += 0.01;
+    console.log({{type}});
 }
