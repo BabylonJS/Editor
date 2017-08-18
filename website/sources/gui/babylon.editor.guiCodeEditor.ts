@@ -31,8 +31,19 @@ module BABYLON.EDITOR.GUI {
             var parentElement = $("#" + parent);
             var browserRequire = <any>require;
 
+            if (Tools.CheckIfElectron()) {
+                var nodeRequire = (<any> global).require;
+                (<any> global).require = amdRequire;
+
+                browserRequire = amdRequire;
+            }
+
             browserRequire.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
             browserRequire(["vs/editor/editor.main"], () => {
+
+                if (Tools.CheckIfElectron())
+                    (<any> global).require = nodeRequire;
+
                 this.element = monaco.editor.create(parentElement[0], {
                     value: this.defaultValue,
                     language: "javascript",
@@ -44,17 +55,22 @@ module BABYLON.EDITOR.GUI {
                     this.onReady();
 
                 if (!GUICodeEditor._Defines) {
-                    BABYLON.Tools.LoadFile("defines/babylon.d.ts", (data) => {
-                        GUICodeEditor._Defines = data + "\n" +
-                            "declare var scene: BABYLON.Scene;\n" +
-                            "declare var mesh: BABYLON.Mesh;\n" +
-                            "declare var pointlight: BABYLON.PointLight;\n" +
-                            "declare var universalcamera: BABYLON.UniversalCamera;\n" +
-                            "declare var spotlight: BABYLON.SpotLight;\n" +
-                            "declare var dirlight: BABYLON.DirectionalLight;\n" +
-                            "declare var hemlight: BABYLON.HemisphericLight;\n" +
-                            "declare var groundmesh: BABYLON.GroundMesh;\n";
-                        this._resetExtraLib();
+                    BABYLON.Tools.LoadFile("defines/babylon.d.ts", (bjsData) => {
+                        BABYLON.Tools.LoadFile("libs/preview release/babylon.editor.extensions.d.ts", (extData) => {
+                            GUICodeEditor._Defines = bjsData + extData + "\n" +
+                                "declare var scene: BABYLON.Scene;\n" +
+                                "declare var mesh: BABYLON.Mesh;\n" +
+                                "declare var pointlight: BABYLON.PointLight;\n" +
+                                "declare var universalcamera: BABYLON.UniversalCamera;\n" +
+                                "declare var spotlight: BABYLON.SpotLight;\n" +
+                                "declare var dirlight: BABYLON.DirectionalLight;\n" +
+                                "declare var hemlight: BABYLON.HemisphericLight;\n" +
+                                "declare var groundmesh: BABYLON.GroundMesh;\n" +
+
+                                "declare var tools: BABYLON.EDITOR.EXTENSIONS.BehaviorTools;\n";
+
+                                this._resetExtraLib();
+                        });
                     });
                 }
             });

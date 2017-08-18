@@ -5,24 +5,30 @@
         program: string;
         configuration: string;
         postProcess?: PostProcess;
+        processedConfiguration?: IPostProcessExtensionConfiguration;
     }
 
-    interface IPostProcessExtensionSamplerDefinition {
+    export interface IPostProcessExtensionSamplerDefinition {
         uniform: string;
         source: string;
         object?: PostProcess | BaseTexture;
     }
 
-    interface IPostPRocessExtensionUniformDefinition {
+    export interface IPostPRocessExtensionUniformDefinition {
         name: string;
         value: number | number[];
     }
 
-    interface IPostProcessExtensionConfiguration {
+    export interface IPostProcessExtensionConfiguration {
         ratio: number;
         defines: string[];
         samplers: IPostProcessExtensionSamplerDefinition[];
         uniforms: IPostPRocessExtensionUniformDefinition[];
+    }
+
+    export interface IProcessedPostProcess {
+        postProcess: PostProcess;
+        config: IPostProcessExtensionConfiguration;
     }
 
     Effect.ShadersStore["editorTemplatePixelShader"] = [
@@ -56,6 +62,7 @@
         private _postProcesses: PostProcess[] = [];
 
         private _scenePassData: IPostProcessExtensionData = null;
+        private _data: IPostProcessExtensionData[] = null;
 
         /**
         * Constructor
@@ -68,6 +75,8 @@
 
         // Applies the extension
         public apply(data: IPostProcessExtensionData[]): void {
+            this._data = data;
+
             // Apply
             for (var i = 0; i < data.length; i++)
                 this.applyPostProcess(data[i]);
@@ -165,6 +174,7 @@
             }
 
             // Create post-process
+            data.processedConfiguration = config;
             data.postProcess = new PostProcess(data.name, id, uniforms, samplers, config.ratio / devicePixelRatio, null, Texture.BILINEAR_SAMPLINGMODE, this._scene.getEngine(), false, defines.join());
             data.postProcess.onApply = this._postProcessCallback(data.postProcess, config);
 
@@ -172,6 +182,22 @@
                 this._scene.cameras[i].attachPostProcess(data.postProcess);
 
             this._postProcesses.push(data.postProcess);
+        }
+
+        // Returns a postprocess
+        public getPostProcess(name: string): IProcessedPostProcess {
+            for (var i = 0; i < this._data.length; i++) {
+                var pp = this._data[i];
+
+                if (pp.name === name) {
+                    return {
+                        postProcess: pp.postProcess,
+                        config: pp.processedConfiguration
+                    }
+                }
+            }
+
+            return null;
         }
 
         // Callback post-process

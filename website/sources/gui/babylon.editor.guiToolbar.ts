@@ -1,9 +1,15 @@
 ﻿module BABYLON.EDITOR.GUI {
+    export interface IToolbarClick {
+        hasParent: boolean;
+        parent: string;
+        selected: string;
+    }
+
     export class GUIToolbar extends GUIElement<W2UI.IToolbarElement> {
         // Public members
         public menus: IToolbarMenuElement[] = [];
 
-        public onClick: (item: { hasParent: boolean, parent: string, selected: string }) => void;
+        public onClick: (item: IToolbarClick) => void;
 
         // Private members
 
@@ -192,6 +198,12 @@
             return false;
         }
 
+        // Sets a list of items enabled
+        public setItemsEnabled(items: string[], enabled: boolean, menu?: string): void {
+            for (var i = 0; i < items.length; i++)
+                this.setItemEnabled(items[i], enabled, menu);
+        }
+
         // Returns an item by its ID
         public getItemByID(id: string): IToolbarBaseElement {
             for (var i = 0; i < this.menus.length; i++) {
@@ -215,7 +227,7 @@
         }
 
         // Returns the decomposed selected menu IDs
-        public decomposeSelectedMenu(id: string): { hasParent: boolean, parent: string, selected: string } {
+        public decomposeSelectedMenu(id: string): IToolbarClick {
             var finalIDs = id.split(":");
             var item = this.getItemByID(finalIDs[finalIDs.length - 1]);
 

@@ -12,7 +12,7 @@
         <input type="file" id="BABYLON-EDITOR-LOAD-SCENE-FILE" multiple style="display: none;" />
         <input type="file" id="BABYLON-EDITOR-LOAD-TEXTURE-FILE" multiple style="display: none;" />
     </div>
-
+    
     <!-- Related to http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
     <script>
         if (typeof module === 'object') {
@@ -38,7 +38,19 @@
 
     <script src="libs/cytoscape/cytoscape.js" type="text/javascript"></script>
 
+    <!-- Monaco editor -->
+    <script>
+        if (typeof global !== "undefined" && global.require) {
+            var nodeRequire = global.require;
+        }
+    </script>
     <script src="node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
+    <script>
+        if (typeof global !== "undefined" && global.require) {
+            var amdRequire = global.require;
+            global.require = nodeRequire;
+        }
+    </script>
 
     <!-- GUI ELEMENTS -->
     <script src="sources/gui/babylon.editor.guiElement.js" type="text/javascript"></script>
@@ -196,8 +208,9 @@
 
     <!-- Related to http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
     <script>
-        if (window.module)
+        if (window.module) {
             module = window.module;
+        }
     </script>
 
     <!-- STYLE -->

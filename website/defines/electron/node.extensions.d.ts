@@ -5,3 +5,5 @@
 
 declare interface NodeJSBuffer extends Buffer
 { }
+
+declare var amdRequire: any;

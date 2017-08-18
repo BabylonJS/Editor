@@ -1,6 +1,7 @@
 // Called once starting the scripts
 this.start = function () {
     scene.clearColor = BABYLON.Color3.Black();
+    tools.getPostProcess("hello");
 }
 
 // Called on each update

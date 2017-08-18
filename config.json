@@ -170,6 +170,7 @@
 
       "Tools/EditorExtensions/Development/babylon.editor.developmentBaseExtension.ts",
       "Tools/EditorExtensions/Development/babylon.editor.behaviorExtension.ts",
+      "Tools/EditorExtensions/Development/babylon.editor.behaviorTools.ts",
 
       "Tools/EditorExtensions/Actions/babylon.particleSystemAction.ts",
       "Tools/EditorExtensions/Actions/babylon.sendDevelopmentEventAction.ts",
