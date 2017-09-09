@@ -124,7 +124,9 @@ module BABYLON.EDITOR {
                 this._toolbar.createMenuItem(samples, "button", "sample" + i, sample.name, "icon-copy");
             }
 
+            this._toolbar.createMenu("button", "import", "Import...", "icon-copy");
             this._toolbar.createMenu("check", "activate", "Activated", "icon-play-game", true);
+
             this._toolbar.onClick = (item) => this._toolbarClicked(item);
             this._toolbar.buildElement("BEHAVIOR-EDITOR-TOOLBAR");
             this._toolbar.setItemsEnabled(BehaviorEditor._ToolbarIds, false);
@@ -250,9 +252,27 @@ module BABYLON.EDITOR {
 
         // on tool bar selected
         private _toolbarClicked(item: GUI.IToolbarClick): void {
-            if (!item.hasParent && this._currentScript) {
-                if (item.parent === "activate") {
+            if (!this._currentNode)
+                return;
+
+            if (!item.hasParent) {
+                if (this._currentScript && item.parent === "activate") {
                     this._currentScript.active = !this._toolbar.isItemChecked("activate");
+                } else if (item.parent === "import") {
+                    var input = Tools.CreateFileInpuElement("IMPORT-BEHAVIOR-SCRIPT");
+                    input[0].onchange = (event: JQueryInputEventObject) => {
+                        var name = event.target["files"][0].name;
+                        var extension = Tools.GetFileExtension(name);
+
+                        BABYLON.Tools.ReadFile(event.target["files"][0], (data: string) => {
+                            if (extension === "js")
+                                this._addScript(data, name);
+                            else if (extension === "editorproject") {
+                                this._importFromProject(JSON.parse(data));
+                            }
+                        }, null, false);
+                    };
+                    input.click();
                 }
             }
             else {
@@ -277,6 +297,33 @@ module BABYLON.EDITOR {
                     //ext.apply(null);
                 }
             });
+        }
+
+        // Imports selected scripts from project
+        private _importFromProject(project: INTERNAL.IProjectRoot): void {
+            var metadatas: EXTENSIONS.IBehaviorMetadata[] = project.customMetadatas["BehaviorExtension"];
+            if (!metadatas)
+                return GUI.GUIWindow.CreateAlert("No Behavior Script found...", "Cannot import...");
+
+            var scripts: { name: string, code: string }[] = [];
+            for (var i = 0; i < metadatas.length; i++) {
+                var data = metadatas[i];
+
+                for (var j = 0; j < data.metadatas.length; j++) {
+                    scripts.push({ name: data.node + " - " + data.metadatas[j].name, code: data.metadatas[j].code });
+                }
+            }
+
+            var picker = new ObjectPicker(this._core);
+            picker.objectLists.push(scripts);
+            picker.onObjectPicked = (names, selected) => {
+                debugger;
+                for (var i = 0; i < selected.length; i++) {
+                    var script = scripts[i];
+                    this._addScript(script.code, script.name);
+                }
+            };
+            picker.open();
         }
     }
 }

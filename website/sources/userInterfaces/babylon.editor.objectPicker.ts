@@ -10,7 +10,7 @@
         public objectLists: Array<any[]> = new Array<any[]>();
         public selectedObjects: Array<any> = new Array<any>();
 
-        public onObjectPicked: (names: string[]) => void;
+        public onObjectPicked: (names: string[], selected?: number[]) => void;
         public onClosedPicker: () => void;
         public minSelectCount: number = 1;
 
@@ -63,7 +63,7 @@
                             for (var i = 0; i < selected.length; i++) {
                                 selectedNames.push(this._list.getRow(selected[i]).name);
                             }
-                            this.onObjectPicked(selectedNames);
+                            this.onObjectPicked(selectedNames, selected);
                         }
 
                         this._window.close();

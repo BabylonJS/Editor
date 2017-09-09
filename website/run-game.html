@@ -88,19 +88,18 @@
                 canvas.addEventListener("resize", function () {
                     engine.resize();
                 });
-
-                scene.debugLayer.show({
-                    popup: false,
-                    initialTab: 1
-                });
             });
         });
 
-        var loadScene = function () {
-            filesInput.reload();
-        };
+        // Copy files to load
+        for (var thing in opener.BABYLON.FilesInput.FilesToLoad) {
+            BABYLON.FilesInput.FilesToLoad[thing] = opener.BABYLON.FilesInput.FilesToLoad[thing];
+        }
 
-        window.onloadeddata();
+        filesInput._sceneFileToLoad = opener.core.editor.filesInput.__sceneFileToLoad;
+        BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = opener.core.editor.filesInput.__editorExtensions;
+
+        filesInput.reload();
     </script>
 
 </body>

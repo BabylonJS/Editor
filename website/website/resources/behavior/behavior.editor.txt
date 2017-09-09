@@ -1,10 +1,13 @@
 // Called once starting the scripts
 this.start = function () {
+    // You can access the scene everywhere
     scene.clearColor = BABYLON.Color3.Black();
-    tools.getPostProcess("hello");
+
+    // You can access the attached object everywhere
+    console.log({{type}});
 }
 
 // Called on each update
 this.update = function () {
-    console.log({{type}});
+    // Your code...
 }

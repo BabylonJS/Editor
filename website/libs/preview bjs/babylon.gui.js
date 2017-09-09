@@ -199,7 +199,7 @@ var BABYLON;
                             continue;
                         }
                         var mesh = control._linkedMesh;
-                        if (mesh.isDisposed()) {
+                        if (!mesh || mesh.isDisposed()) {
                             BABYLON.Tools.SetImmediate(function () {
                                 control.linkWithMesh(null);
                             });
@@ -238,11 +238,13 @@ var BABYLON;
                 }
                 // Render
                 context.font = "18px Arial";
+                context.strokeStyle = "white";
                 var measure = new GUI.Measure(0, 0, renderWidth, renderHeight);
                 this._rootContainer._draw(measure, context);
             };
             AdvancedDynamicTexture.prototype._doPicking = function (x, y, type) {
-                var engine = this.getScene().getEngine();
+                var scene = this.getScene();
+                var engine = scene.getEngine();
                 var textureSize = this.getSize();
                 if (this._isFullscreen) {
                     x = x * (textureSize.width / engine.getRenderWidth());
@@ -270,8 +272,13 @@ var BABYLON;
                         && pi.type !== BABYLON.PointerEventTypes.POINTERDOWN) {
                         return;
                     }
+                    var camera = scene.cameraToUseForPointers || scene.activeCamera;
+                    var engine = scene.getEngine();
+                    var viewport = camera.viewport;
+                    var x = (scene.pointerX - viewport.x * engine.getRenderWidth()) / viewport.width;
+                    var y = (scene.pointerY - viewport.y * engine.getRenderHeight()) / viewport.height;
                     _this._shouldBlockPointer = false;
-                    _this._doPicking(scene.pointerX, scene.pointerY, pi.type);
+                    _this._doPicking(x, y, pi.type);
                     pi.skipOnPointerObservable = _this._shouldBlockPointer && pi.type !== BABYLON.PointerEventTypes.POINTERUP;
                 });
                 this._attachToOnBlur(scene);
@@ -657,7 +664,7 @@ var BABYLON;
                 this._fontSize = new GUI.ValueAndUnit(18, GUI.ValueAndUnit.UNITMODE_PIXEL, false);
                 this._width = new GUI.ValueAndUnit(1, GUI.ValueAndUnit.UNITMODE_PERCENTAGE, false);
                 this._height = new GUI.ValueAndUnit(1, GUI.ValueAndUnit.UNITMODE_PERCENTAGE, false);
-                this._color = "white";
+                this._color = "";
                 this._horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
                 this._verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
                 this._isDirty = true;
@@ -2098,7 +2105,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var DOMImage = Image;
 var BABYLON;
 (function (BABYLON) {
     var GUI;
@@ -2308,7 +2314,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var DOMImage = Image;
 var BABYLON;
 (function (BABYLON) {
     var GUI;
@@ -2513,7 +2518,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var DOMImage = Image;
 var BABYLON;
 (function (BABYLON) {
     var GUI;
@@ -2639,7 +2643,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var DOMImage = Image;
 var BABYLON;
 (function (BABYLON) {
     var GUI;
@@ -3349,7 +3352,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var DOMImage = Image;
 var BABYLON;
 (function (BABYLON) {
     var GUI;

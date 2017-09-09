@@ -4,9 +4,9 @@
             additionnalRenderLoopLogicCallback, textureLoadingCallback,
             startingProcessingFilesCallback)
         {
-            super(core.engine, core.currentScene, core.canvas, null,
+            super(core.engine, core.currentScene, null,
                 progressCallback, additionnalRenderLoopLogicCallback,
-                textureLoadingCallback, FilesInput._callbackStart(core));
+                textureLoadingCallback, FilesInput._callbackStart(core), null);
 
             (<any>this)._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, this)
         }

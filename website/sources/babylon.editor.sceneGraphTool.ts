@@ -312,19 +312,21 @@
 
                     if (object instanceof InstancedMesh) {
                         var parentNode = this.sidebar.getNode(object.sourceMesh.id);
-                        var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
+                        if (parentNode) {
+                            var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
 
-                        if (!instancesNode) {
-                            instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
-                            instancesNode.count = 1;
+                            if (!instancesNode) {
+                                instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
+                                instancesNode.count = 1;
 
-                            this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                                this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                            }
+                            else
+                                instancesNode.count++;
+
+                            var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                            this.sidebar.addNodes(childNode, instancesNode.id, false);
                         }
-                        else
-                            instancesNode.count++;
-
-                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-                        this.sidebar.addNodes(childNode, instancesNode.id, false);
                     }
                     else {
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
