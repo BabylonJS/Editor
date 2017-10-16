@@ -181,7 +181,7 @@
         * Creates a new project
         */
         public createNewProject(): void {
-            BABYLON.FilesInput.FilesToLoad = [];
+            BABYLON.FilesInput.FilesToLoad = { };
 
             this.core.currentScene.dispose();
             this._handleSceneLoaded()(null, new Scene(this.core.engine));

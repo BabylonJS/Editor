@@ -317,26 +317,6 @@
                     extensionInstance.onLoad(project.customMetadatas[thing]);
                 }
             }
-
-            // Scene 2d
-            for (var i = 0; i < project.scene2d.length; i++) {
-                var containerNode = project.scene2d[i];
-                if(!(containerNode.serializationObject.customType))
-                    continue;
-
-                var container = BABYLON[containerNode.serializationObject.customType].Parse(containerNode.serializationObject, core.scene2d, "file:");
-            }
-
-            for (var i = 0; i < project.scene2d.length; i++) {
-                var containerNode = project.scene2d[i];
-                if (containerNode.serializationObject.parentName) {
-                    var parent = core.scene2d.getMeshByName(containerNode.serializationObject.parentName);
-                    var child = core.scene2d.getMeshByName(containerNode.serializationObject.name);
-
-                    if (child)
-                        child.parent = parent;
-                }
-            }
         }
 
         // Sets parenting using _waitingParentId

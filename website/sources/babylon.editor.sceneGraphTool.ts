@@ -171,9 +171,6 @@
                         else if (event.sceneEvent.object instanceof Sound) {
                             parentNode = this._mainSoundTrackName;
                         }
-                        else if (event.sceneEvent.object instanceof Container2D) {
-                            parentNode = this._graphRootName + "2D";
-                        }
 
                         this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
                     }
@@ -243,15 +240,6 @@
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                     }
                 }
-
-                // 2d
-                /*
-                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder", this._core.currentScene);
-                this.sidebar.addNodes(node2d, this._graphRootName, false);
-
-                this._core.scene2d.forceShowBoundingBoxes = true;
-                this.fillGraph(null, node2d.id, this._core.scene2d);
-                */
             }
 
             if (!node) {

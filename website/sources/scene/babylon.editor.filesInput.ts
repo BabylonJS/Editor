@@ -6,7 +6,7 @@
         {
             super(core.engine, core.currentScene, null,
                 progressCallback, additionnalRenderLoopLogicCallback,
-                textureLoadingCallback, FilesInput._callbackStart(core), null);
+                textureLoadingCallback, FilesInput._callbackStart(core), null, null);
 
             (<any>this)._sceneLoadedCallback = FilesInput._callback(sceneLoadedCallback, core, this)
         }

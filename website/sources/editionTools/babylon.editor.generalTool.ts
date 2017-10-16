@@ -47,7 +47,7 @@
         // Update
         public update(): boolean {
             var object = this.object = this._editionTool.object;
-            var scene = object instanceof Container2D ? this._editionTool.core.scene2d : this._editionTool.core.currentScene;
+            var scene = this._editionTool.core.currentScene;
             var core = this._editionTool.core;
 
             super.update();
@@ -136,41 +136,24 @@
             if (object.position) {
                 var positionFolder = this._element.addFolder("Position", transformFolder);
 
-                if (!(object instanceof Container2D)) {
-                    positionFolder.add(object.position, "x").step(0.1).name("x");
-                    positionFolder.add(object.position, "y").step(0.1).name("y");
-                    positionFolder.add(object.position, "z").step(0.1).name("z");
-                }
-                else {
-                    positionFolder.add(object, "x").step(0.1).name("x");
-                    positionFolder.add(object, "y").step(0.1).name("y");
-                }
+                positionFolder.add(object.position, "x").step(0.1).name("x");
+                positionFolder.add(object.position, "y").step(0.1).name("y");
+                positionFolder.add(object.position, "z").step(0.1).name("z");
             }
 
             if (object.rotation) {
                 var rotationFolder = this._element.addFolder("Rotation", transformFolder);
-                if (!(object instanceof Container2D)) {
-                    rotationFolder.add(object.rotation, "x").name("x").step(0.1);
-                    rotationFolder.add(object.rotation, "y").name("y").step(0.1);
-                    rotationFolder.add(object.rotation, "z").name("z").step(0.1);
-                }
-                else {
-                    rotationFolder.add(object, "rotationZ").name("z").step(0.1);
-                }
+                rotationFolder.add(object.rotation, "x").name("x").step(0.1);
+                rotationFolder.add(object.rotation, "y").name("y").step(0.1);
+                rotationFolder.add(object.rotation, "z").name("z").step(0.1);
             }
 
             if (object.scaling) {
                 var scalingFolder = this._element.addFolder("Scaling", transformFolder);
 
-                if (!(object instanceof Container2D)) {
-                    scalingFolder.add(object.scaling, "z").name("z").step(0.1);
-                    scalingFolder.add(object.scaling, "x").name("x").step(0.1);
-                    scalingFolder.add(object.scaling, "y").name("y").step(0.1);
-                }
-                else {
-                    scalingFolder.add(object, "scaleX").name("x").step(0.1);
-                    scalingFolder.add(object, "scaleY").name("y").step(0.1);
-                }
+                scalingFolder.add(object.scaling, "z").name("z").step(0.1);
+                scalingFolder.add(object.scaling, "x").name("x").step(0.1);
+                scalingFolder.add(object.scaling, "y").name("y").step(0.1);
             }
 
             // Rendering

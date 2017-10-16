@@ -166,8 +166,6 @@
             this.addTool(new CellMaterialTool(this));
 
             this.addTool(new GroundMeshTool(this));
-            
-            this.addTool(new Container2DTool(this));
 
             for (var i = 0; i < PluginManager.EditionToolPlugins.length; i++)
                 this.addTool(new PluginManager.EditionToolPlugins[i](this));
