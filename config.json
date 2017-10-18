@@ -27,6 +27,7 @@
       "sources/internal/babylon.editor.tools.js",
       "sources/internal/babylon.editor.manipulationHelpers.js",
       "sources/internal/babylon.editor.testGame.js",
+      "sources/internal/babylon.editor.settings.js",
 
       "sources/gui/babylon.editor.guiElement.js",
       "sources/gui/babylon.editor.guiDialog.js",
@@ -53,6 +54,7 @@
       "sources/editionTools/babylon.editor.postProcesses.js",
       "sources/editionTools/babylon.editor.reflectionProbeTool.js",
       "sources/editionTools/babylon.editor.sceneTool.js",
+      "sources/editionTools/babylon.editor.settingsTool.js",
       "sources/editionTools/babylon.editor.textureTool.js",
 
       "sources/editionTools/materialEditors/babylon.editor.abstractMaterialTool.js",

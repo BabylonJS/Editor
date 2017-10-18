@@ -239,6 +239,7 @@
             }
 
             // Set global animations
+            SceneFactory.Settings = project.globalConfiguration.settings;
             SceneFactory.AnimationSpeed = project.globalConfiguration.globalAnimationSpeed;
             
             GUIAnimationEditor.FramesPerSecond = project.globalConfiguration.framesPerSecond || GUIAnimationEditor.FramesPerSecond;

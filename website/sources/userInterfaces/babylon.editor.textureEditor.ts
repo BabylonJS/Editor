@@ -430,6 +430,10 @@
                 else {
                     texture = Texture.CreateFromBase64String(<string>data, name, this._core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = (<any>texture).url = texture.name.replace("data:", "");
+
+                    // Remove buffer ?
+                    if (!SceneFactory.Settings.exportTexturesContent)
+                        delete texture['_buffer'];
                 }
 
                 this._addTextureToList(texture);

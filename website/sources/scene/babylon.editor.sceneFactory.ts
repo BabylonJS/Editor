@@ -54,6 +54,7 @@
 
         public static NodesToStart: IAnimatable[] = [];
         public static AnimationSpeed: number = 1.0;
+        public static Settings: Settings = new Settings();
 
         /**
         * Post-Processes

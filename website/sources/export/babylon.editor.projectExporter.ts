@@ -43,7 +43,8 @@
             var config: INTERNAL.IAnimationConfiguration = {
                 globalAnimationSpeed: SceneFactory.AnimationSpeed,
                 framesPerSecond: GUIAnimationEditor.FramesPerSecond,
-                animatedAtLaunch: []
+                animatedAtLaunch: [],
+                settings: SceneFactory.Settings
             };
 
             for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
@@ -73,8 +74,11 @@
         // Serialize sounds
         private static _SerializeSounds(core: EditorCore): INTERNAL.ISound[] {
             var config: INTERNAL.ISound[] = [];
+            if (core.currentScene.soundTracks.length === 0)
+                return config;
+
             var index = 0;
-            
+
             for (index = 0; index < core.currentScene.soundTracks[0].soundCollection.length; index++) {
                 var sound = core.currentScene.soundTracks[0].soundCollection[index];
                 

@@ -184,6 +184,7 @@
             project.sounds = project.sounds || [];
             project.customMetadatas = project.customMetadatas || {};
             project.physicsEnabled = project.physicsEnabled || false;
+            project.globalConfiguration.settings = project.globalConfiguration.settings || SceneFactory.Settings;
         }
 
         /**

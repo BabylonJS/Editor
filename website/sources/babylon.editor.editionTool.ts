@@ -149,6 +149,7 @@
             this.addTool(new LensFlareTool(this));
             this.addTool(new AnimationTool(this));
             this.addTool(new PostProcessesTool(this));
+            this.addTool(new SettingsTool(this));
 
             this.addTool(new MaterialTool(this));
             this.addTool(new StandardMaterialTool(this));
