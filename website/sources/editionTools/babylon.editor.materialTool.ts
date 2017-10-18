@@ -116,7 +116,10 @@
                 material.alpha = typeof material.alpha === "string" ? parseFloat(material.alpha) : material.alpha;
 
                 var generalFolder = this._element.addFolder("Common");
-                generalFolder.add(material, "id").name("Id");
+                generalFolder.add(material, "name").name("Name").onFinishChange(r => {
+                    material.name = r;
+                    this.update();
+                });
                 generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
 
                 // Options
