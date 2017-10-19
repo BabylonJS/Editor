@@ -88,6 +88,10 @@
                 canvas.addEventListener("resize", function () {
                     engine.resize();
                 });
+
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
             });
         });
 
