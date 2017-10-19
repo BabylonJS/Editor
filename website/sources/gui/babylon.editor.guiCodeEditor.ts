@@ -9,6 +9,8 @@ module BABYLON.EDITOR.GUI {
         // Private members
 
         // Static members
+        public static MonacoAvailable = false;
+
         private static _Defines: string = null;
         private static _ExtraLib: monaco.IDisposable = null;
 
@@ -29,30 +31,14 @@ module BABYLON.EDITOR.GUI {
         // Build element
         public buildElement(parent: string): void {
             var parentElement = $("#" + parent);
-            var browserRequire = <any>require;
 
-            if (Tools.CheckIfElectron()) {
-                var nodeRequire = (<any> global).require;
-                (<any> global).require = amdRequire;
-
-                browserRequire = amdRequire;
-            }
-
-            browserRequire.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
-            browserRequire(["vs/editor/editor.main"], () => {
-
-                if (Tools.CheckIfElectron())
-                    (<any> global).require = nodeRequire;
-
+            if (GUICodeEditor.MonacoAvailable) {
                 this.element = monaco.editor.create(parentElement[0], {
                     value: this.defaultValue,
                     language: "javascript",
                     automaticLayout: true,
                     selectionHighlight: true
                 });
-
-                if (this.onReady)
-                    this.onReady();
 
                 if (!GUICodeEditor._Defines) {
                     BABYLON.Tools.LoadFile("defines/babylon.d.ts", (bjsData) => {
@@ -70,10 +56,13 @@ module BABYLON.EDITOR.GUI {
                                 "declare var tools: BABYLON.EDITOR.EXTENSIONS.BehaviorTools;\n";
 
                                 this._resetExtraLib();
+
+                            if (this.onReady)
+                                this.onReady();
                         });
                     });
                 }
-            });
+            }
         }
 
         // Reset extra libs

@@ -75,7 +75,7 @@ module BABYLON.EDITOR {
         }
 
         /**
-        * On event 
+        * On event
         */
         public onEvent(event: IEvent): boolean {
             if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {

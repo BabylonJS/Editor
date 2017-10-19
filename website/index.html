@@ -38,6 +38,13 @@
     <script src="libs/cytoscape/cytoscape.min.js" type="text/javascript"></script>
 
     <script src="node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
+    <script>
+        // Import monaco now
+        require.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
+        require(["vs/editor/editor.main"], function () {
+            BABYLON.EDITOR.GUI.GUICodeEditor.MonacoAvailable = true;
+        });
+    </script>
 
     <!--EDITOR -->
     <script src="libs/preview release/babylon.editor.js" type="text/javascript"></script>

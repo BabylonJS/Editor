@@ -1,4 +1,5 @@
 ﻿import electron = require("electron");
+import path = require('path');
 
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -7,8 +8,15 @@ let mainWindow: Electron.BrowserWindow;
 
 var createWindow = () => {
     // Create window
-    mainWindow = new BrowserWindow({ width: 800, height: 600 });
+    mainWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            scrollBounce: true
+        }
+    });
     mainWindow.loadURL("file://" + __dirname + "/../index-debug.html");
+    mainWindow.webContents.openDevTools();
 
     mainWindow.maximize();
     
