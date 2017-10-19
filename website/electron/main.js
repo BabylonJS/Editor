@@ -12,7 +12,7 @@ var createWindow = function () {
             scrollBounce: true
         }
     });
-    mainWindow.loadURL("file://" + __dirname + "/../index-debug.html");
+    mainWindow.loadURL("file://" + __dirname + "/../index.html");
     mainWindow.webContents.openDevTools();
     mainWindow.maximize();
     mainWindow.on("closed", function () {

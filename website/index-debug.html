@@ -42,17 +42,20 @@
     <script>
         if (typeof global !== "undefined" && global.require) {
             var nodeRequire = global.require;
-            window.module = { };
-            window.exports = { };
         }
     </script>
     <script src="node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
     <script>
         // Import monaco now
-        require.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
-        require(["vs/editor/editor.main"], function () {
-            BABYLON.EDITOR.GUI.GUICodeEditor.MonacoAvailable = true;
-        });
+        if (typeof nodeRequire === "undefined") {
+            require.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
+            require(["vs/editor/editor.main"], function () {
+                BABYLON.EDITOR.GUI.GUICodeEditor.MonacoAvailable = true;
+            });
+        }
+        else {
+            global.require = nodeRequire;
+        }
     </script>
 
     <!-- GUI ELEMENTS -->

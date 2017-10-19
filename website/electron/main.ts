@@ -15,7 +15,7 @@ var createWindow = () => {
             scrollBounce: true
         }
     });
-    mainWindow.loadURL("file://" + __dirname + "/../index-debug.html");
+    mainWindow.loadURL("file://" + __dirname + "/../index.html");
     mainWindow.webContents.openDevTools();
 
     mainWindow.maximize();
