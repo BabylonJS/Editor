@@ -48,7 +48,7 @@ module BABYLON.EDITOR {
             this._element.remember(object);
 
             // Common
-            this._element.add(SceneFactory.Settings, "exportTexturesContent").name("Export textures content").onChange(() => SceneFactory.Settings.apply(this._core));
+            this._element.add(SceneFactory.Settings, "exportTexturesContent").name("Export textures content").onChange(() => Settings.Apply(this._core));
 
             return true;
         }

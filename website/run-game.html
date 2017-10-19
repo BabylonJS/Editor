@@ -76,11 +76,11 @@
                 console.info("Physics is enabled");
             }
 
-            // Extensions
-            BABYLON.EDITOR.EXTENSIONS.EditorExtension.ApplyExtensions(scene);
-
             // Execute scene
             scene.executeWhenReady(function () {
+                // Extensions
+                BABYLON.EDITOR.EXTENSIONS.EditorExtension.ApplyExtensions(scene);
+
                 window.addEventListener("resize", function () {
                     engine.resize();
                 });

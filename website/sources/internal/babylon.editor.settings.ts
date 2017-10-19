@@ -4,9 +4,9 @@ module BABYLON.EDITOR {
         public exportTexturesContent: boolean = true;
 
         // Apply the settings
-        public apply (core: EditorCore): void {
+        public static Apply (core: EditorCore): void {
             // Textures content
-            if (!this.exportTexturesContent) {
+            if (!SceneFactory.Settings.exportTexturesContent) {
                 var textures = core.currentScene.textures;
                 for (var i = 0; i < textures.length; i++) {
                     var tex = textures[i];

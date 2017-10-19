@@ -275,6 +275,11 @@
                                     serializedValues: material.serialize()
                                 };
 
+                                // Remove BRDF environment which is automatically generated texture
+                                if (material instanceof PBRMaterial && matObj.serializedValues.environmentBRDFTexture && matObj.serializedValues.environmentBRDFTexture.url === "data:EnvironmentBRDFTexture") {
+                                    delete matObj.serializedValues.environmentBRDFTexture;
+                                }
+
                                 this._ConfigureMaterial(material, matObj);
                                 project.materials.push(matObj);
 

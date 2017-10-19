@@ -179,6 +179,21 @@
                     sound.autoplay = true;
                 }
             }
+
+            // Remove texture base64 auto-generated datas
+            var materialNames = [
+                "BABYLON.PBRMaterial"
+            ];
+
+            for (var i = 0; i < obj.materials.length; i++) {
+                var mat = obj.materials[i];
+                if (materialNames.indexOf(mat.customType) !== -1) {
+                    // Remove BRDF environment which is automatically generated texture
+                    if (mat.environmentBRDFTexture && mat.environmentBRDFTexture.url === "data:EnvironmentBRDFTexture") {
+                        delete mat.environmentBRDFTexture;
+                    }
+                }
+            }
             
             // Nodes autoplay
             setAutoPlay(obj.cameras);
