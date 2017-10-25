@@ -1,9 +1,10 @@
 import {
     Color3, Color4,
-    Vector3, Vector4
+    Vector2, Vector3, Vector4
 } from 'babylonjs';
-
 import * as dat from 'dat-gui';
+
+import Tools from '../tools/tools';
 
 export default class Edition {
     // Public member
@@ -87,6 +88,11 @@ export default class Edition {
             this.onChange(folder.__folders[f], callback);
     }
 
+    /**
+     * Returns a controller identified by its property name
+     * @param property the property used by the controller
+     * @param parent the parent folder
+     */
     public getController (property: string, parent = this.element): dat.GUIController {
         const controller = parent.__controllers.find(c => c['property'] === property);
         return controller;
@@ -106,7 +112,7 @@ export default class Edition {
 
         parent[0].appendChild(this.element.domElement);
 
-        System.import('../../../css/dat.gui.css');
+        Tools.ImportScript('../../../css/dat.gui.css');
     }
 
     /**
@@ -145,10 +151,12 @@ export default class Edition {
      * @param name the name of the folder
      * @param vector the vector reference
      */
-    public addVector(parent: dat.GUI, name: string, vector: Vector3 | Vector4): dat.GUI {
+    public addVector(parent: dat.GUI, name: string, vector: Vector2 | Vector3 | Vector4): dat.GUI {
         const folder = parent.addFolder(name);
         folder.add(vector, 'x').step(0.01);
         folder.add(vector, 'y').step(0.01);
+
+        if (vector instanceof Vector3 || vector instanceof Vector4)
         folder.add(vector, 'z').step(0.01);
 
         if (vector instanceof Color4)

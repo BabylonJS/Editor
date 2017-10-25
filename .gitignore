@@ -126,6 +126,9 @@ node_modules
 # For chrome debugging
 .tempChromeProfileForDebug
 
+# npm
+package-lock.json
+
 # Build
 .build
 .declaration
