@@ -1,34 +1,35 @@
 {
   "name": "babylonjs-editor",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "electron/main.js",
   "repository": {
     "url": "https://github.com/BabylonJS/Editor/"
   },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "webserver": "http-server -p 1338"
+  },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",
   "devDependencies": {
-    "gulp": "^3.8.11",
-    "gulp-uglify": "~1.5.3",
-    "gulp-sourcemaps": "~1.9.1",
-    "typescript": "2.1.6",
-    "gulp-typescript": "^3.1.3",
-    "gulp-util": "~3.0.4",
-    "gulp-concat": "~2.5.2",
-    "merge2": "~0.3.5",
-    "gulp-replace": "~0.5.3",
-    "gulp-rename": "~1.2.2",
-    "gulp-if": "^2.0.1",
-    "through2": "~0.6.5",
-    "run-sequence": "~1.1.0",
-    "gulp-clean-ts-extends": "~0.1.1",
-    "gulp-webserver": "^0.9.1",
-    "yargs": "^4.7.1",
+    "@types/node": "8.0.47",
+    "@types/w2ui": "1.4.31",
+    "typescript": "~2.3.3",
+    "http-server": "^0.9.0",
     "electron-prebuilt": "^1.4.13",
     "electron-packager": "^8.6.0"
   },
   "dependencies": {
+    "jquery": "3.2.1",
+    "dat-gui": "0.5.0",
+    "systemjs-plugin-css": "^0.1.35",
+    "w2ui": "1.4.3",
+    "systemjs": "0.20.19",
+    "es6-promise": "^4.1.0",
+    "babylonjs": "3.1.0-alpha3.6",
+    "babylonjs-gui": "3.1.0-alpha3.6",
     "monaco-editor": "^0.5.3"
   }
 }

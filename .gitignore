@@ -123,13 +123,9 @@ Thumbs.db
 # For node modules
 node_modules
 
-# For Electron packages
-electronPackages
-
 # For chrome debugging
 .tempChromeProfileForDebug
 
-# JS generated files
-website/sources/**/*.js
-website/libs/preview release
-website/website/resources/classes.min.json
+# Build
+.build
+.declaration

@@ -1,13 +1,25 @@
 {
     "compilerOptions": {
-        "experimentalDecorators": true,
-        "module": "system", 
-        "target": "es5"
+      "target": "es5",
+      "module": "commonjs",
+      "sourceMap": true,
+      "declaration": true,
+      "outDir": "./.build",
+      "declarationDir": "./.declaration",
+      "typeRoots" : ["node_modules/@types"],
+      "types": [
+        "es6-promise", "node", "w2ui", "jquery"
+      ],
+      "lib": [
+        "es2015.promise", "es2015", "dom"
+      ]
     },
     "exclude": [
-        "electronPackages/**/*.ts",
-        "electronPackages/**/*.d.ts",
-        "website/libs/**/**.d.ts",
-        "website/sources/**/*.d.ts"
+      "./test/",
+      "./node_modules",
+      "./.build",
+      "./.declaration",
+      "./index.d.ts"
     ]
-}
+  }
+  

@@ -24,11 +24,7 @@
         ".vs/": true,
         "obj/": true,
         "bin/": true,
-        "node_modules/": true,
-        "electronPackages/": true,
-        "BabylonJSEditor.csproj.user": true,
-
-        "website/libs/**/*.d.ts": true
+        "node_modules/": false
 	},
     
     "editor.quickSuggestionsDelay": 0,
