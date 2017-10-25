@@ -1,5 +1,5 @@
 import {
-    Scene, Node, Mesh, AbstractMesh, Light, Camera,
+    Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh
     Tools as BabylonTools
 } from 'babylonjs';
 
@@ -25,12 +25,47 @@ export default class EditorGraph {
     * @param id the id of the node
     * @param name the new name/id
     */
-    public renameNode(id: string, name: string): void {
+    public renameNode (id: string, name: string): void {
         const node = <GraphNode>this.graph.element.get(id);
         node.id = name;
         node.text = name;
 
         this.graph.element.refresh();
+    }
+
+    /**
+     * Set parent of the given node (id)
+     * @param id the id of the node
+     * @param parentId the parent id
+     */
+    public setParent (id: string, parentId: string): void {
+        const parent = <GraphNode>this.graph.element.get(parentId);
+        const node = <GraphNode>this.graph.element.get(id);
+
+        parent.count = parent.count ? parent.count++ : 1;
+
+        this.graph.element.remove(node.id);
+        this.graph.element.add(parent.id, node);
+        this.graph.element.expandParents(node.id);
+    }
+
+    /**
+     * Adds a new node
+     * @param node: the node to add
+     * @param parentId: the parent id of the node to add
+     */
+    public add (node: GraphNode, parentId: string): void {
+        this.graph.element.add(parentId, node);
+    }
+
+    /**
+     * Selects the given node id
+     * @param id the node id
+     */
+    public select (id: string): void {
+        this.graph.element.expandParents(id);
+        this.graph.element.select(id);
+        this.graph.element.scrollIntoView(id);
     }
 
     /**
@@ -64,7 +99,13 @@ export default class EditorGraph {
             if (!n.id)
                 n.id = BabylonTools.RandomId();
 
-            this.graph.element.add(root ? root.id : this.root, <GraphNode>{
+            // Instance?
+            let parent = root ? root.id : this.root;
+
+            if (n instanceof InstancedMesh)
+                parent = n.sourceMesh.id;
+            
+            this.graph.element.add(parent, <GraphNode>{
                 id: n.id,
                 text: n.name,
                 img: this.getIcon(n),
@@ -77,7 +118,7 @@ export default class EditorGraph {
     * Returns the icon related to the object type
     * @param object 
     */
-    protected getIcon(obj: Node): string {
+    public getIcon(obj: Node): string {
         if (obj instanceof AbstractMesh) {
             return 'icon-mesh';
         } else if (obj instanceof Light) {

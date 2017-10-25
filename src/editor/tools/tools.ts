@@ -1,4 +1,5 @@
 import { Tools as BabylonTools, FilesInput } from 'babylonjs';
+import { IStringDictionary } from './typings';
 
 export default class Tools {
     /**
@@ -115,5 +116,13 @@ export default class Tools {
         catch (e) {
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Imports a new script returning its exported object
+     * @param url the URL / NAME of the script
+     */
+    public static ImportScript<T> (url: string): Promise<T> {
+        return System.import(url);
     }
 }
