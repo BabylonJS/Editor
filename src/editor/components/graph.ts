@@ -21,7 +21,22 @@ export default class EditorGraph {
     }
 
     /**
+    * Rename the node with id "id"
+    * @param id the id of the node
+    * @param name the new name/id
+    */
+    public renameNode(id: string, name: string): void {
+        const node = <GraphNode>this.graph.element.get(id);
+        node.id = name;
+        node.text = name;
+
+        this.graph.element.refresh();
+    }
+
+    /**
      * Fills the graph
+     * @param scene: the root scene
+     * @param root: the root node
      */
     public fill(scene: Scene = this.editor.core.scene, root?: Node): void {
         let nodes = root ? root.getDescendants() : [];
@@ -36,6 +51,7 @@ export default class EditorGraph {
 
             this.graph.element.expand(this.root);
             this.graph.element.select(this.root);
+            this.editor.edition.setObject(scene);
 
             // Set nodes
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
