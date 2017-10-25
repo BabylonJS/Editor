@@ -56,6 +56,11 @@ export default class Editor {
             { type: 'left', size: 350, content: '<div id="EDITION" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
+        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
+        window.addEventListener('resize', () => {
+            this.layout.element.resize();
+            this.resize();
+        });
 
         // Create toolbar
         this.toolbar = new EditorToolbar(this);
@@ -91,6 +96,16 @@ export default class Editor {
         this.core.engine.runRenderLoop(() => {
             this.core.update();
         });
+    }
+
+    /**
+    * Resizes elements
+    */
+    public resize(): void {
+        const editionSize = this.layout.getPanelSize('left');
+        this.edition.resize(editionSize.width);
+
+        this.core.engine.resize();
     }
 
     // Creates a default scene

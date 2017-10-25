@@ -1,9 +1,8 @@
 import { IEditionTool } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
+import NodeTool from '../edition-tools/node-tool';
 
 import Editor from '../editor';
-
-import '../../../css/dat.gui.css';
 
 export default class EditorEditionTools {
   // Public members
@@ -22,6 +21,7 @@ export default class EditorEditionTools {
 
     // Add tools
     this.addTool(new SceneTool());
+    this.addTool(new NodeTool());
   }
 
   public resize (width: number): void {

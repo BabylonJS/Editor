@@ -25,6 +25,28 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
     // Colors
     const colors = this.tool.addFolder('Colors');
-    const ambient = colors.addFolder('Ambient');
+    colors.open();
+
+    this.tool.addColor(colors, 'Ambient', scene.ambientColor).open();
+    this.tool.addColor(colors, 'Clear', scene.clearColor).open();
+
+    // Image processing
+    scene.imageProcessingConfiguration.exposure;
+    scene.imageProcessingConfiguration.contrast;
+    scene.imageProcessingConfiguration.toneMappingEnabled;
+
+    const imageProcessing = this.tool.addFolder('Image Processing');
+    imageProcessing.add(scene.imageProcessingConfiguration, 'exposure').step(0.01).name('Exposure');
+    imageProcessing.add(scene.imageProcessingConfiguration, 'contrast').step(0.01).name('Contrast');
+    imageProcessing.add(scene.imageProcessingConfiguration, 'toneMappingEnabled').name('Tone Mapping Enabled');
+
+    // Collisions
+    const collisions = this.tool.addFolder('Collisions');
+    collisions.open();
+
+    collisions.add(scene, 'collisionsEnabled').name('Collisions Enabled');
+    this.tool.addVector(collisions, 'Gravity', scene.gravity);
+
+    // Etc.
   }
 }
