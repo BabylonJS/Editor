@@ -1,6 +1,7 @@
 import { IEditionTool } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
 import NodeTool from '../edition-tools/node-tool';
+import LightTool from '../edition-tools/light-tool';
 
 import Editor from '../editor';
 
@@ -22,6 +23,7 @@ export default class EditorEditionTools {
     // Add tools
     this.addTool(new SceneTool());
     this.addTool(new NodeTool());
+    this.addTool(new LightTool());
   }
 
   public resize (width: number): void {

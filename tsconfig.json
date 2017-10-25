@@ -8,7 +8,7 @@
       "declarationDir": "./.declaration",
       "typeRoots" : ["node_modules/@types"],
       "types": [
-        "es6-promise", "node", "w2ui", "jquery"
+        "es6-promise", "w2ui", "jquery"
       ],
       "lib": [
         "es2015.promise", "es2015", "dom"

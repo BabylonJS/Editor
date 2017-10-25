@@ -131,9 +131,6 @@ export default class Edition {
             this.getController('r', folder).setValue(value[0] / 255);
             this.getController('g', folder).setValue(value[1] / 255);
             this.getController('b', folder).setValue(value[2] / 255);
-
-            if (color instanceof Color4)
-            this.getController('a', folder).setValue(value[3] / 255);
         });
         folder.add(color, 'r').step(0.01);
         folder.add(color, 'g').step(0.01);
