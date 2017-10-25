@@ -9,6 +9,7 @@ import Layout from './gui/layout';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
+import EditorEditionTools from './components/edition';
 
 import CreateDefaultScene from './tools/default-scene';
 
@@ -21,6 +22,7 @@ export default class Editor {
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
+    public edition: EditorEditionTools;
 
     /**
      * Constructor
@@ -57,6 +59,9 @@ export default class Editor {
 
         // Create toolbar
         this.toolbar = new EditorToolbar(this);
+
+        // Create edition tools
+        this.edition = new EditorEditionTools(this);
 
         // Create graph
         this.graph = new EditorGraph(this);

@@ -36,15 +36,22 @@
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
                 "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
+                "dat-gui": "./node_modules/dat-gui/vendor/dat.gui.js",
 
                 // Bundled editor's module path
                 "babylonjs-editor": "./node_modules/babylonjs-editor/dist/babylonjs-editor.js"
             },
             packages: {
-                './.build/': {
+                './.build/editor/': {
                     defaultExtension: 'js'
                 }
-            }
+            },
+            map: {
+                css: "../node_modules/systemjs-plugin-css/css.js"
+            },
+            meta: {
+                '*.css': { loader: 'css' }
+            },
         });
 
         System.import("../.build/editor/editor.js").then(function (e) {
