@@ -1,5 +1,5 @@
 import {
-    Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh
+    Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh,
     Tools as BabylonTools
 } from 'babylonjs';
 
