@@ -62,8 +62,10 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
         physics.add(this, '_physicsEnabled').name('Physics Enabled').onFinishChange(async r => {
             if (r) {
+                this.core.layout.lockPanel('left', 'Enabling...', true);
                 const cannonjs = await Tools.ImportScript('cannonjs');
                 scene.enablePhysics(new Vector3(0, -0.91, 0), new CannonJSPlugin(true));
+                this.core.layout.unlockPanel('left');
             }
             else
                 scene.disablePhysicsEngine();
