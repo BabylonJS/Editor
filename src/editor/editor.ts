@@ -3,6 +3,8 @@ import {
     Vector3
 } from 'babylonjs';
 
+import { EditorPluginConstructor } from './typings/plugin';
+
 import Core from './core';
 import Tools from './tools/tools';
 import Layout from './gui/layout';
@@ -51,7 +53,7 @@ export default class Editor {
                 resizable: false
             },
             { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            { type: 'main', content: '<div id="CANVAS" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
+            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
             { type: 'preview', size: 200, content: '<div id="TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true },
             { type: 'left', size: 350, content: '<div id="EDITION" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] }
         ];
@@ -108,9 +110,30 @@ export default class Editor {
         this.core.engine.resize();
     }
 
+    /**
+     * Runs the given plugin URL
+     * @param url: the url of the plugin
+     */
+    public async runPlugin (url: string): Promise<void> {
+        const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
+        const instance = new plugin.default(this);
+
+        // Create DOM elements
+        instance.divElement = <HTMLDivElement> Tools.CreateElement('div', instance.name, {
+            width: '100%',
+            height: '100%'
+        });
+        $('#MAIN-LAYOUT').append(instance.divElement);
+
+        // Create plugin
+        await instance.create();
+    }
+
     // Creates a default scene
     private async _createDefaultScene(): Promise<void> {
         await CreateDefaultScene(this.core.scene);
         this.graph.fill();
+
+        // await this.runPlugin('./.build/tools/animations/editor.js');
     }
 }

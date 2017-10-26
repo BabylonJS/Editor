@@ -1,13 +1,13 @@
 import { Tools as BabylonTools, FilesInput } from 'babylonjs';
-import { IStringDictionary } from './typings';
+import { IStringDictionary } from '../typings/typings';
 
 export default class Tools {
     /**
      * Creates a div element
      * @param style: the div's style
      */
-    public static CreateElement(type: string, id: string, style?: IStringDictionary<string>): HTMLDivElement {
-        const div = document.createElement('div');
+    public static CreateElement (type: string, id: string, style?: IStringDictionary<string>): HTMLElement {
+        const div = document.createElement(type);
         div.id = id;
 
         if (style) {
