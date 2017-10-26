@@ -17,7 +17,7 @@ export default class EditorGraph {
         this.graph.build('SCENE-GRAPH');
 
         // Events
-        this.graph.onClick = (id, data) => this.editor.edition.setObject(data);
+        this.graph.onClick = (id, data) => this.editor.core.onSelectObject.notifyObservers(data);
     }
 
     /**

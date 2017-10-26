@@ -3,7 +3,8 @@ import {
     PointLight, Mesh, MeshBuilder,
     PBRMaterial, Texture, CubeTexture,
     Vector3, Color3,
-    ActionManager, StateCondition, SwitchBooleanAction
+    ActionManager, StateCondition, SwitchBooleanAction,
+    Animation
 } from 'babylonjs';
 
 import Tools from './tools';
@@ -124,4 +125,22 @@ export default async function CreateDefaultScene (scene: Scene) {
         wood.reflectivityTexture = new Texture("file:reflectivity.png", scene);
         wood.reflectivityTexture.name = wood.reflectivityTexture['url'] = "reflectivity.png";
     });
+
+    var animation = new Animation("fog start", "fogStart", 1, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, true);
+    animation.setKeys([
+        { frame: 0, value: 0 },
+        { frame: 5, value: 5 },
+        { frame: 10, value: -5 },
+        { frame: 15, value: -0 }
+    ]);
+    scene.animations.push(animation);
+
+    var animation = new Animation("fog color", "fogColor", 1, Animation.ANIMATIONTYPE_COLOR3, Animation.ANIMATIONLOOPMODE_CYCLE, true);
+    animation.setKeys([
+        { frame: 0, value: new Color3(1, 1, 1) },
+        { frame: 5, value: new Color3(0, 1, 0) },
+        { frame: 10, value: new Color3(0.25, 0, 0.5) },
+        { frame: 15, value: new Color3(1, 1, 1) }
+    ]);
+    scene.animations.push(animation);
 }

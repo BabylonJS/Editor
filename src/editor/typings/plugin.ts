@@ -8,6 +8,7 @@ export interface IEditorPlugin {
     name: string;
 
     create (): Promise<void>;
+    close (): Promise<void>;
 }
 
 /**
@@ -37,4 +38,11 @@ export abstract class EditorPlugin implements IEditorPlugin {
      * Creates the plugin
      */
     public abstract async create (): Promise<void>;
+
+    /**
+     * Closes the plugin
+     */
+    public async close (): Promise<void> {
+        this.divElement.remove();
+    }
 }

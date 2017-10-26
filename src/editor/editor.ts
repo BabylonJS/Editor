@@ -3,7 +3,8 @@ import {
     Vector3
 } from 'babylonjs';
 
-import { EditorPluginConstructor } from './typings/plugin';
+import { IStringDictionary } from './typings/typings';
+import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
 
 import Core from './core';
 import Tools from './tools/tools';
@@ -12,6 +13,7 @@ import Layout from './gui/layout';
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
 import EditorEditionTools from './components/edition';
+import EditorEditPanel from './components/edit-panel';
 
 import CreateDefaultScene from './tools/default-scene';
 
@@ -25,6 +27,9 @@ export default class Editor {
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
     public edition: EditorEditionTools;
+    public editPanel: EditorEditPanel;
+
+    public plugins: IStringDictionary<IEditorPlugin> = { };
 
     /**
      * Constructor
@@ -54,7 +59,7 @@ export default class Editor {
             },
             { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
-            { type: 'preview', size: 200, content: '<div id="TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true },
+            { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
             { type: 'left', size: 350, content: '<div id="EDITION" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
@@ -63,6 +68,9 @@ export default class Editor {
             this.layout.element.resize();
             this.resize();
         });
+
+        // Initialize core
+        this.core = new Core();
 
         // Create toolbar
         this.toolbar = new EditorToolbar(this);
@@ -73,9 +81,10 @@ export default class Editor {
         // Create graph
         this.graph = new EditorGraph(this);
 
-        // Initialize core and Babylon.js
-        this.core = new Core();
+        // Edit panel
+        this.editPanel = new EditorEditPanel(this);
 
+        // Initialize Babylon.js
         if (!scene) {
             this.core.engine = new Engine(<HTMLCanvasElement>document.getElementById('renderCanvas'));
             this.core.scene = new Scene(this.core.engine);
@@ -106,15 +115,35 @@ export default class Editor {
     public resize(): void {
         const editionSize = this.layout.getPanelSize('left');
         this.edition.resize(editionSize.width);
-
         this.core.engine.resize();
+
+        // Notify
+        this.core.onResize.notifyObservers(null);
     }
 
     /**
-     * Runs the given plugin URL
-     * @param url: the url of the plugin
+     * Adds an "edit panel" plugin
+     * @param url the URL of the plugin
      */
-    public async runPlugin (url: string): Promise<void> {
+    public async addEditPanelPlugin (url: string, name?: string): Promise<IEditorPlugin> {
+        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
+
+        if (this.plugins[url])
+            return this.plugins[url];
+
+        const plugin = await this._runPlugin(url);
+        this.plugins[url] = plugin;
+
+        // Add tab in edit panel
+        this.editPanel.addPlugin(plugin);
+
+        this.layout.unlockPanel('preview');
+
+        return plugin;
+    }
+    
+    // Runs the given plugin URL
+    private async _runPlugin (url: string): Promise<IEditorPlugin> {
         const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
         const instance = new plugin.default(this);
 
@@ -123,10 +152,11 @@ export default class Editor {
             width: '100%',
             height: '100%'
         });
-        $('#MAIN-LAYOUT').append(instance.divElement);
 
         // Create plugin
         await instance.create();
+
+        return instance;
     }
 
     // Creates a default scene
@@ -134,6 +164,6 @@ export default class Editor {
         await CreateDefaultScene(this.core.scene);
         this.graph.fill();
 
-        // await this.runPlugin('./.build/tools/animations/editor.js');
+        await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
     }
 }
