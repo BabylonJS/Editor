@@ -1,4 +1,4 @@
-import { Engine, Scene } from 'babylonjs';
+import { Engine, Scene, Observable } from 'babylonjs';
 
 export default class Core {
     // Public members
@@ -7,6 +7,9 @@ export default class Core {
     public scene: Scene;
 
     public updates: { onPreUpdate?(): void, onPostUpdate?(): void }[] = [];
+
+    public onSelectObject: Observable<any> = new Observable<any>();
+    public onResize: Observable<{ }> = new Observable<{ }>();
 
     /**
      * Constructor
