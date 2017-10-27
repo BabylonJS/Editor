@@ -11,13 +11,18 @@ export default class EditorGraph {
     public graph: Graph;
     public root: string = 'ROOT';
 
+    public currentObject: any = this.editor.core.scene;
+
     constructor(protected editor: Editor) {
         // Build graph
         this.graph = new Graph('SceneGraph');
         this.graph.build('SCENE-GRAPH');
 
         // Events
-        this.graph.onClick = (id, data) => this.editor.core.onSelectObject.notifyObservers(data);
+        this.graph.onClick = (id, data) => {
+            this.currentObject = data;
+            this.editor.core.onSelectObject.notifyObservers(data);
+        };
     }
 
     /**
