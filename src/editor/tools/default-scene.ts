@@ -143,4 +143,7 @@ export default async function CreateDefaultScene (scene: Scene) {
         { frame: 15, value: new Color3(1, 1, 1) }
     ]);
     scene.animations.push(animation);
+
+    scene.fogEnabled = true;
+    scene.fogMode = Scene.FOGMODE_LINEAR;
 }

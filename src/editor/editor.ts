@@ -95,6 +95,8 @@ export default class Editor {
             this.core.scene = scene;
         }
 
+        this.graph.currentObject = this.core.scene;
+
         // Create editor camera
         this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : Vector3.Zero(), this.core.scene);
         this.camera.attachControl(this.core.engine.getRenderingCanvas());
@@ -165,5 +167,6 @@ export default class Editor {
         this.graph.fill();
 
         await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
+        this.core.onSelectObject.notifyObservers(this.graph.currentObject);
     }
 }

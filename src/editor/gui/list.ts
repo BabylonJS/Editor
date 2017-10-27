@@ -32,6 +32,20 @@ export default class List {
     }
 
     /**
+     * Sets the selected item
+     * @param text: the item's text
+     */
+    public setSelected (text: string): void {
+        const field = (<any> this.element).data('w2field');
+        const item = field.options.items.find(i => i.text === text);
+
+        if (item) {
+            field.options.selected = item;
+            field.refresh();
+        }
+    }
+
+    /**
      * Builds the element
      * The parent HTML element
      */

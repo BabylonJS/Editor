@@ -99,5 +99,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         fog.add(this, '_fogMode', fogModes).name('Fog Mode').onFinishChange(r => {
             scene.fogMode = Scene[r];
         });
+
+        this.tool.addColor(fog, 'Color', scene.fogColor).open();
     }
 }
