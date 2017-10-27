@@ -9,6 +9,14 @@ import { EditorPlugin } from '../../editor/typings/plugin';
 
 import List from '../../editor/gui/list';
 
+export interface DragData {
+    point: RaphaelElement;
+    line: RaphaelPath;
+    keyIndex: number;
+    maxFrame: number;
+    property: string;
+}
+
 export default class AnimationEditor extends EditorPlugin {
     // Public members
     public paper: RaphaelPaper = null;
@@ -35,7 +43,10 @@ export default class AnimationEditor extends EditorPlugin {
         'number': [''],
         'Vector2': ['x', 'y'],
         'Vector3': ['x', 'y', 'z'],
-        'Color3': ['r', 'g', 'b']
+        'Vector4': ['x', 'y', 'z', 'w'],
+        'Quaternion': ['x', 'y', 'z', 'w'],
+        'Color3': ['r', 'g', 'b'],
+        'Color4': ['r', 'g', 'b', 'a']
     };
 
     /**
@@ -95,6 +106,8 @@ export default class AnimationEditor extends EditorPlugin {
 
         this.middleLine.attr('width', size.width);
         this.middleLine.attr('y', size.height / 2);
+
+        this.updateGraph(this.animation);
     }
 
     /**
@@ -131,6 +144,9 @@ export default class AnimationEditor extends EditorPlugin {
      * @param anim: the animation reference
      */
     protected updateGraph (anim: Animation): void {
+        if (!anim)
+            return;
+        
         // Remove all lines
         this.lines.forEach(l => l.remove());
         this.points.forEach(p => p.remove());
@@ -179,7 +195,13 @@ export default class AnimationEditor extends EditorPlugin {
                 point.attr('fill', Raphael.rgb(color.r, color.g, color.b));
                 point.attr('opacity', 0.3);
                 this.points.push(point);
-                this.onMoveCircle(point, line, k, p);
+                this.onMovePoint({
+                    point: point,
+                    keyIndex: keyIndex,
+                    line: line,
+                    property: p,
+                    maxFrame: maxFrame
+                });
 
                 path.push(keyIndex === 0 ? "M" : "L");
                 path.push(x.toString());
@@ -198,28 +220,39 @@ export default class AnimationEditor extends EditorPlugin {
      * On the user moves a key
      * @param key: the key to move
      */
-    protected onMoveCircle (circle: RaphaelElement, line: RaphaelPath, key: any, property: string): void {
-        // TODO
-        let startX = 0;
-        let startY = 0;
+    protected onMovePoint (data: DragData): void {
+        // TODO: update path
+        let ox = 0;
+        let oy = 0;
 
-        let width = 0;
-        let height = 0;
+        let lx = 0;
+        let ly = 0;
 
         const onStart = (x: number, y: number, ev) => {
-            circle.attr('opacity', 1);
-            startX = x;
-            startY = y;
+            data.point.attr('opacity', 1);
         };
 
         const onMove = (dx, dy, x, y, ev) => {
-            
+            lx = dx + ox;
+            ly = dy + oy;
+            data.point.transform(`t${lx},${ly}`);
+
+            // Update line path
+            const path: string[][] = data.line.attr('path');
+            const key = path[data.keyIndex];
+
+            key[1] = data.point.attr('cx') + lx;
+            key[2] = data.point.attr('cy') + ly;
+
+            data.line.attr('path', path);
         };
 
         const onEnd = (ev) => {
-            circle.attr('opacity', 0.3);
+            data.point.attr('opacity', 0.3);
+            ox = lx;
+            oy = ly;
         };
 
-        circle.drag(<any> onMove, <any> onStart, <any> onEnd);
+        data.point.drag(<any> onMove, <any> onStart, <any> onEnd);
     }
 }
