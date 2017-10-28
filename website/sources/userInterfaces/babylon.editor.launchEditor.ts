@@ -23,7 +23,9 @@
             picker.objectLists.push(core.currentScene.cameras);
             picker.objectLists.push(core.currentScene.meshes);
             picker.objectLists.push(core.currentScene.particleSystems);
-            picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
+
+            if (core.currentScene.soundTracks.length > 0)
+                picker.objectLists.push(core.currentScene.soundTracks[0].soundCollection);
 
             picker.objectLists.push(core.scene2d.meshes);
 

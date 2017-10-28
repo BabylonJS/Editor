@@ -43,7 +43,7 @@ module BABYLON.EDITOR.EXTENSIONS {
     }
 
     export class MaterialBuilder extends PushMaterial {
-        @serializeAsColor3("diffuseColor")
+        @serializeAsColor3("diffuse")
         public diffuseColor = new Color3(1, 1, 1);
 
         @serialize()
