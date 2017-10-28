@@ -14,7 +14,9 @@ export interface DragData {
     line: RaphaelPath;
     keyIndex: number;
     maxFrame: number;
+    properties: string[];
     property: string;
+    valueInterval: number;
 }
 
 export default class AnimationEditor extends EditorPlugin {
@@ -38,6 +40,9 @@ export default class AnimationEditor extends EditorPlugin {
     public animatable: IAnimatable = null;
     public animation: Animation = null;
     public animationManager: Animatable = null;
+
+    // Protected members
+    protected mouseMoveHandler: (ev: MouseEvent) => void;
 
     // Static members
     public static Colors: Color3[] = [
@@ -176,6 +181,11 @@ export default class AnimationEditor extends EditorPlugin {
         this.timelineLines.forEach(tl => tl.remove());
         this.timelineTexts.forEach(t => t.remove());
 
+        this.lines = [];
+        this.points = [];
+        this.timelineLines = [];
+        this.timelineTexts = [];
+
         if (this.cursorRect)
             this.cursorRect.remove();
 
@@ -192,8 +202,33 @@ export default class AnimationEditor extends EditorPlugin {
             return;
 
         // Values
+        const properties = AnimationEditor._Properties[Tools.GetConstructorName(keys[0].value)];
         const maxFrame = keys[keys.length - 1].frame;
         const middle = this.paper.height / 2;
+
+        let maxValue = 0;
+        let minValue = 0;
+
+        // Max value
+        properties.forEach((p, propertyIndex) => {
+            keys.forEach(k => {
+                if (p === '') {
+                    if (k.value > maxValue)
+                        maxValue = k.value;
+                    else if (k.value < minValue)
+                        minValue = k.value;
+
+                    return;
+                }
+
+                if (k.value[p] > maxValue)
+                    maxValue = k.value[p];
+                else if (k.value[p] < minValue)
+                    minValue = k.value[p];
+            });
+        });
+
+        const valueInterval = Math.abs(Math.max(maxValue, minValue));
 
         // Add timeline lines
         let linesCount = 100;
@@ -223,7 +258,9 @@ export default class AnimationEditor extends EditorPlugin {
         }
 
         // Add value lines
-        linesCount = 25;
+        linesCount = 50;
+        let currentValue = maxValue * 2;
+
         for (let i = 0; i < linesCount; i++) {
             // Line
             const y = (this.paper.height / linesCount) * i;
@@ -231,10 +268,14 @@ export default class AnimationEditor extends EditorPlugin {
             const line = this.paper.rect(0, y, 20, 1);
             line.attr('opacity', 0.05);
 
-            if (i % 5 === 0 && i > 0) {
-                const text = this.paper.text(30, y, (0).toFixed(2));
-                text.attr('opacity', 0.4);
-                this.timelineTexts.push(text);
+            if (i % 5 === 0) {
+                if (i > 0) {
+                    const text = this.paper.text(30, y, currentValue.toFixed(2));
+                    text.attr('opacity', 0.4);
+                    this.timelineTexts.push(text);
+                }
+
+                currentValue -= (maxValue / (linesCount / 10)) * 2;
             }
 
             this.timelineLines.push(line);
@@ -256,8 +297,6 @@ export default class AnimationEditor extends EditorPlugin {
         this.onMoveCursor(maxFrame);
 
         // Add all lines
-        const properties = AnimationEditor._Properties[Tools.GetConstructorName(keys[0].value)];
-        
         properties.forEach((p, propertyIndex) => {
             const color = AnimationEditor.Colors[propertyIndex];
             const path: string[] = [];
@@ -287,7 +326,9 @@ export default class AnimationEditor extends EditorPlugin {
                     keyIndex: keyIndex,
                     line: line,
                     property: p,
-                    maxFrame: maxFrame
+                    properties: properties,
+                    maxFrame: maxFrame,
+                    valueInterval: valueInterval
                 });
 
                 path.push(keyIndex === 0 ? "M" : "L");
@@ -301,6 +342,9 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.lines.push(line);
         });
+
+        // Finally, manage paper move
+        this.onPaperMove(properties);
     }
 
     /**
@@ -308,7 +352,6 @@ export default class AnimationEditor extends EditorPlugin {
      * @param key: the key to move
      */
     protected onMovePoint (data: DragData): void {
-        // TODO: update path
         let ox = 0;
         let oy = 0;
 
@@ -332,6 +375,19 @@ export default class AnimationEditor extends EditorPlugin {
             key[2] = data.point.attr('cy') + ly;
 
             data.line.attr('path', path);
+
+            // Update current animation key (frame + value)
+            const frame = Scalar.Clamp((ev.offsetX * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
+            
+            let value = 0;
+            if (ev.offsetY > this.paper.height / 2)
+                value = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
+            else
+                value = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
+
+            const keys = this.animation.getKeys();
+            keys[data.keyIndex].frame = frame;
+            keys[data.keyIndex].value = value;
         };
 
         const onEnd = (ev) => {
@@ -352,11 +408,11 @@ export default class AnimationEditor extends EditorPlugin {
         let ox = 0;
         let lx = 0;
 
-        const onStart = (x: number, y: number, ev) => {
+        const onStart = (x: number, y: number, ev: MouseEvent) => {
             this.cursorRect.attr('opacity', 0.1);
         };
 
-        const onMove = (dx, dy, x, y, ev) => {
+        const onMove = (dx: number, dy: number, x: number, y: number, ev: MouseEvent) => {
             lx = dx + ox;
             this.cursorRect.transform(`t${lx},0`);
             this.cursorLine.transform(`t${lx},0`);
@@ -367,7 +423,7 @@ export default class AnimationEditor extends EditorPlugin {
             this.animationManager.goToFrame(frame);
         };
 
-        const onEnd = (ev) => {
+        const onEnd = (ev: MouseEvent) => {
             this.cursorRect.attr('opacity', 0.5);
             ox = lx;
         };
@@ -400,7 +456,30 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * On paper mouse move
      */
-    protected onPaperMove (): void {
-        // TODO
+    protected onPaperMove (properties: string[]): void {
+        this.background.unmousemove(this.mouseMoveHandler);
+        
+        this.mouseMoveHandler = (ev: MouseEvent) => {
+            this.lines.forEach((l, index) => {
+                const length = l.getTotalLength();
+                const position = l.getPointAtLength((ev.offsetX * length) / this.paper.width);
+                const offset = length / this.paper.width;
+
+                const point = points[index];
+                point.transform(`t${position.x},${position.y}`);
+            });
+        };
+
+        const points: RaphaelElement[] = [];
+        properties.forEach((_, index) => {
+            const color = AnimationEditor.Colors[index];
+            const circle = this.paper.circle(0, 0, 6);
+            circle.attr('fill', Raphael.rgb(color.r, color.g, color.b));
+
+            points.push(circle);
+            this.points.push(circle);
+        })
+
+        this.background.mousemove(this.mouseMoveHandler);
     }
 }
