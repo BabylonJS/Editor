@@ -1,4 +1,4 @@
-import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
+import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
 import * as Raphael from 'raphael';
 
 import Editor from '../../editor/editor';
@@ -7,6 +7,8 @@ import Tools from '../../editor/tools/tools';
 import { IStringDictionary } from '../../editor/typings/typings';
 import { EditorPlugin } from '../../editor/typings/plugin';
 
+import Layout from '../../editor/gui/layout';
+import Toolbar from '../../editor/gui/toolbar';
 import List from '../../editor/gui/list';
 
 export interface DragData {
@@ -21,6 +23,11 @@ export interface DragData {
 
 export default class AnimationEditor extends EditorPlugin {
     // Public members
+    public layout: Layout = null;
+    public toolbar: Toolbar = null;
+
+    public fpsInput: JQuery = null;
+
     public paper: RaphaelPaper = null;
     public background: RaphaelElement = null;
     public middleLine: RaphaelElement = null;
@@ -35,16 +42,17 @@ export default class AnimationEditor extends EditorPlugin {
     public cursorRect: RaphaelElement = null;
     public cursorLine: RaphaelElement = null;
 
-    public list: List = null;
-
     public animatable: IAnimatable = null;
     public animation: Animation = null;
     public animationManager: Animatable = null;
 
     // Protected members
     protected mouseMoveHandler: (ev: MouseEvent) => void;
+    protected addingKeys: boolean = false;
 
     // Static members
+    public static PaperOffset: number = 30;
+
     public static Colors: Color3[] = [
         new Color3(255, 0, 0),
         new Color3(0, 255, 0),
@@ -66,19 +74,44 @@ export default class AnimationEditor extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor (public editor: Editor) {
+    constructor(public editor: Editor) {
         super('Animation Editor');
     }
 
     /**
      * Creates the plugin
      */
-    public async create (): Promise<void> {
-        this.paper = Raphael(this.divElement, 0, 0);
+    public async create(): Promise<void> {
+        // Create layout
+        this.layout = new Layout('AnimationEditorLayout');
+        this.layout.panels = [
+            { type: 'top', content: '<div id="ANIMATION-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
+            { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%;"></div>', resizable: false }
+        ]
+        this.layout.build('AnimationEditor');
 
-        // Resize
-        this.editor.core.onResize.add(_ => this.onResize());
-        
+        // Create toolbar
+        this.toolbar = new Toolbar('AnimationEditorToolbar');
+        this.toolbar.items = [
+            { type: 'check', id: 'add', text: 'Add', img: 'icon-add', checked: false },
+            { type: 'break' },
+            { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-folder', items: [] },
+            { type: 'spacer' },
+            {
+                type: 'html',
+                id: 'fps',
+                html: `
+                    <div style="padding: 3px 10px;">    
+                        FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver"/>
+                    </div>`
+            }
+        ];
+        this.toolbar.onClick = (id) => this.onToolbarClick(id);
+        this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
+
+        // Create paper
+        this.paper = Raphael($('#ANIMATION-EDITOR-PAPER')[0], 0, 0);
+
         // Create background
         this.background = this.paper.rect(0, 0, 0, 0);
         this.background.attr('fill', '#ddd');
@@ -89,11 +122,15 @@ export default class AnimationEditor extends EditorPlugin {
         this.middleLine.attr('fill', '#eee');
         this.middleLine.attr('stroke', '#eee');
 
-        // Add combo box
-        this.list = new List('Animations');
-        this.list.items = ['None'];
-        this.list.onChange = (id) => this.onChangeAnimation(id);
-        this.list.build(this.divElement, 'position: absolute; top: 0px; right: 0px;');
+        // Events
+        const input = $('#ANIMATION-EDITOR-FPS');
+        this.fpsInput = (<any> input).w2field('int', { autoFormat: true });
+        this.fpsInput.change((ev) => {
+            debugger;
+        });
+
+        // Resize
+        this.editor.core.onResize.add(_ => this.onResize());
 
         // On select object
         this.editor.core.onSelectObject.add(node => this.onObjectSelected(node));
@@ -102,7 +139,7 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * Closes the plugin
      */
-    public async close (): Promise<void> {
+    public async close(): Promise<void> {
         super.close();
         this.paper.remove();
     }
@@ -110,8 +147,10 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * Resizes the panel
      */
-    protected onResize (): void {
-        const size = this.editor.layout.getPanelSize('preview');
+    protected onResize(): void {
+        this.layout.element.resize();
+
+        const size = this.layout.getPanelSize('main');
         this.paper.setSize(size.width, size.height);
 
         this.background.attr('width', size.width);
@@ -124,23 +163,51 @@ export default class AnimationEditor extends EditorPlugin {
     }
 
     /**
+     * On the user clicked on the toolbar
+     * @param id the id of the element
+     */
+    protected onToolbarClick(id: string): void {
+        const split = id.split(':');
+        if (split.length > 1 && split[0] === 'animations') {
+            this.onChangeAnimation(split[1]);
+            return;
+        }
+
+        switch (id) {
+            case 'add': this.addingKeys = !this.addingKeys; break;
+            default: break;
+        }
+    }
+
+    /**
      * On select an object
      * @param object: the IAnimatable object
      */
-    protected onObjectSelected (object: IAnimatable): void {
+    protected onObjectSelected(object: IAnimatable): void {
         if (!object.animations)
             return;
-        
+
+        // Update animations list
         const animations = ['None'];
         object.animations.forEach(a => {
-            animations.push(a.name);    
+            animations.push(a.name);
         });
-        this.list.setItems(animations);
 
+        const menu = <any>this.toolbar.element.get('animations');
+        menu.items = [];
+        animations.forEach(a => {
+            menu.items.push({
+                id: a,
+                caption: a,
+                text: a
+            });
+        });
+        this.toolbar.element.refresh();
+
+        // Misc.
         this.animatable = object;
 
         if (object.animations.length > 0) {
-            this.list.setSelected(object.animations[0].name);
             this.onChangeAnimation(object.animations[0].name);
         }
     }
@@ -149,7 +216,7 @@ export default class AnimationEditor extends EditorPlugin {
      * On the animation selection changed
      * @param property: the animation property
      */
-    protected onChangeAnimation (property: string): void {
+    protected onChangeAnimation(property: string): void {
         if (!this.animatable)
             return;
 
@@ -164,17 +231,21 @@ export default class AnimationEditor extends EditorPlugin {
         this.animationManager = new Animatable(this.editor.core.scene, this.animatable, keys[0].frame, maxFrame, false, 1.0);
         this.animationManager.appendAnimations(this.animatable, this.animatable.animations);
 
+        // Update graph
         this.updateGraph(this.animation);
+
+        // Update FPS
+        this.fpsInput.val(this.animation.framePerSecond.toString());
     }
 
     /**
      * Updates the graph
      * @param anim: the animation reference
      */
-    protected updateGraph (anim: Animation): void {
+    protected updateGraph(anim: Animation): void {
         if (!anim)
             return;
-        
+
         // Remove all lines
         this.lines.forEach(l => l.remove());
         this.points.forEach(p => p.remove());
@@ -197,7 +268,7 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Keys
         const keys = anim.getKeys();
-        
+
         if (keys.length === 0)
             return;
 
@@ -236,7 +307,7 @@ export default class AnimationEditor extends EditorPlugin {
         for (let i = 0; i < linesCount; i++) {
             // Line
             const x = (this.paper.width / linesCount) * i;
-            
+
             const line = this.paper.rect(x, 0, 1, 20);
             line.attr('opacity', 0.05);
 
@@ -296,6 +367,9 @@ export default class AnimationEditor extends EditorPlugin {
         this.cursorRect.attr('opacity', 0.5);
         this.onMoveCursor(maxFrame);
 
+        // Manage paper move
+        this.onPaperMove(properties, maxFrame, valueInterval, keys);
+
         // Add all lines
         properties.forEach((p, propertyIndex) => {
             const color = AnimationEditor.Colors[propertyIndex];
@@ -342,16 +416,13 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.lines.push(line);
         });
-
-        // Finally, manage paper move
-        this.onPaperMove(properties);
     }
 
     /**
      * On the user moves a key
      * @param key: the key to move
      */
-    protected onMovePoint (data: DragData): void {
+    protected onMovePoint(data: DragData): void {
         let ox = 0;
         let oy = 0;
 
@@ -378,7 +449,7 @@ export default class AnimationEditor extends EditorPlugin {
 
             // Update current animation key (frame + value)
             const frame = Scalar.Clamp((ev.offsetX * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
-            
+
             let value = 0;
             if (ev.offsetY > this.paper.height / 2)
                 value = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
@@ -387,22 +458,26 @@ export default class AnimationEditor extends EditorPlugin {
 
             const keys = this.animation.getKeys();
             keys[data.keyIndex].frame = frame;
-            keys[data.keyIndex].value = value;
+
+            if (data.property === '')
+                keys[data.keyIndex].value = value;
         };
 
         const onEnd = (ev) => {
             data.point.attr('opacity', 0.3);
             ox = lx;
             oy = ly;
+
+            this.updateGraph(this.animation);
         };
 
-        data.point.drag(<any> onMove, <any> onStart, <any> onEnd);
+        data.point.drag(<any>onMove, <any>onStart, <any>onEnd);
     }
 
     /**
      * On moving cursor
      */
-    protected onMoveCursor (maxFrame: number): void {
+    protected onMoveCursor(maxFrame: number): void {
         const baseX = this.cursorLine.attr('x');
 
         let ox = 0;
@@ -428,13 +503,13 @@ export default class AnimationEditor extends EditorPlugin {
             ox = lx;
         };
 
-        this.cursorRect.drag(<any> onMove, <any> onStart, <any> onEnd);
+        this.cursorRect.drag(<any>onMove, <any>onStart, <any>onEnd);
     }
 
     /**
      * On click on the timeline
      */
-    protected onClickTimeline (maxFrame: number): void {
+    protected onClickTimeline(maxFrame: number): void {
         this.timeline.click((ev: MouseEvent) => {
             const frame = Scalar.Clamp((ev.offsetX * maxFrame) / this.paper.width, 0, maxFrame - 1);
 
@@ -456,11 +531,20 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * On paper mouse move
      */
-    protected onPaperMove (properties: string[]): void {
+    protected onPaperMove(properties: string[], maxFrame: number, valueInterval: number, keys: any[]): void {
         this.background.unmousemove(this.mouseMoveHandler);
-        
+
+        const points: RaphaelElement[] = [];
+
         this.mouseMoveHandler = (ev: MouseEvent) => {
             this.lines.forEach((l, index) => {
+                if (!this.addingKeys) {
+                    points[index].hide();
+                    return;
+                }
+
+                points[index].show();
+
                 const length = l.getTotalLength();
                 const position = l.getPointAtLength((ev.offsetX * length) / this.paper.width);
                 const offset = length / this.paper.width;
@@ -470,11 +554,37 @@ export default class AnimationEditor extends EditorPlugin {
             });
         };
 
-        const points: RaphaelElement[] = [];
         properties.forEach((_, index) => {
             const color = AnimationEditor.Colors[index];
+
             const circle = this.paper.circle(0, 0, 6);
             circle.attr('fill', Raphael.rgb(color.r, color.g, color.b));
+            circle.click((ev: MouseEvent) => {
+                const frame = Scalar.Clamp((ev.offsetX * maxFrame) / this.paper.width, 0, maxFrame - 1);
+
+                let value = 0;
+                if (ev.offsetY > this.paper.height / 2)
+                    value = -((ev.offsetY - this.paper.height / 2) * valueInterval) / (this.paper.height / 2) * 2;
+                else
+                    value = ((this.paper.height / 2 - ev.offsetY) * valueInterval) / (this.paper.height / 2) * 2;
+
+                // Add key
+                if (properties.length === 1) {
+                    let key = {
+                        frame: frame,
+                        value: value
+                    };
+
+                    for (let i = 0; i < keys.length; i++) {
+                        if (keys[i].frame > frame) {
+                            keys.splice(i, 0, key);
+                            break;
+                        }
+                    }
+
+                    this.updateGraph(this.animation);
+                }
+            });
 
             points.push(circle);
             this.points.push(circle);

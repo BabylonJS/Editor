@@ -1,7 +1,11 @@
+export interface W2Item extends W2UI.W2Item {
+    html?: string;
+}
+
 export default class Toolbar {
     // Public members
     public name: string;
-    public items: W2UI.W2Item[] = [];
+    public items: W2Item[] = [];
 
     public element: W2UI.W2Toolbar;
 
