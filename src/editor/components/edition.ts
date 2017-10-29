@@ -2,6 +2,8 @@ import { IEditionTool } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
 import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
+import PhysicsTool from '../edition-tools/physics-tool';
+import RenderTargetTool from '../edition-tools/render-target-tool';
 
 import Editor from '../editor';
 
@@ -23,7 +25,9 @@ export default class EditorEditionTools {
         // Add tools
         this.addTool(new SceneTool());
         this.addTool(new NodeTool());
+        this.addTool(new PhysicsTool());
         this.addTool(new LightTool());
+        this.addTool(new RenderTargetTool());
 
         // Events
         this.editor.core.onSelectObject.add(node => this.setObject(node));
@@ -56,7 +60,7 @@ export default class EditorEditionTools {
         });
 
         // Add & configure tool
-        tool.core = this.editor;
+        tool.editor = this.editor;
         this.tools.push(tool);
     }
 

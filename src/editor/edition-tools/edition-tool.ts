@@ -2,7 +2,7 @@ import Edition from '../gui/edition';
 import Editor from '../editor';
 
 export interface IEditionTool<T> {
-  core?: Editor;
+  editor?: Editor;
 
   divId: string;
   tabName: string;
@@ -16,7 +16,7 @@ export interface IEditionTool<T> {
 
 export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
   // Public members
-  public core: Editor = null;
+  public editor: Editor = null;
   
   public object: T = null;
   public tool: Edition = null;

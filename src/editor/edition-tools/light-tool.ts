@@ -58,13 +58,14 @@ export default class LightTool extends AbstractEditionTool<Light> {
                     const size = parseInt(this._shadowMapSize);
                     new ShadowGenerator(size, light);
                 }
-                this.update(light);
+
+                this.editor.edition.setObject(light);
             });
             
             shadows.add(light, 'shadowEnabled').name('Enable Shadows');
 
             const sizes: string[] = [];
-            const max = this.core.core.engine.getCaps().maxTextureSize;
+            const max = this.editor.core.engine.getCaps().maxTextureSize;
 
             let current = 8;
             while (current < max) {
