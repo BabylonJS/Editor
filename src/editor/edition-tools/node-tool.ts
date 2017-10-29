@@ -32,7 +32,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
-        common.add(node, 'name').name('Name').onFinishChange(r => this.core.graph.renameNode(node.id, r));
+        common.add(node, 'name').name('Name').onFinishChange(r => this.editor.graph.renameNode(node.id, r));
         common.add(this, '_enabled').name('Enabled').onFinishChange(r => node.setEnabled(r));
 
         // Parenting
@@ -47,7 +47,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         this._parentId = node.parent ? node.parent.id : parents[0];
         parenting.add(this, '_parentId', parents).name('Parent').onChange(n => {
             node.parent = scene.getNodeByName(n);
-            this.core.graph.setParent(node.id, node.parent ? node.parent.id : this.core.graph.root);
+            this.editor.graph.setParent(node.id, node.parent ? node.parent.id : this.editor.graph.root);
         });
 
         // Transforms
@@ -90,15 +90,15 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         const instance = (<Mesh>this.object).createInstance('New instance ' + Tools.RandomId());
         instance.id = Tools.RandomId();
 
-        this.core.graph.add({
+        this.editor.graph.add({
             id: instance.id,
-            img: this.core.graph.getIcon(instance),
+            img: this.editor.graph.getIcon(instance),
             text: instance.name,
             data: instance,
             count: 0
         }, this.object.id);
 
-        this.core.edition.setObject(instance);
-        this.core.graph.select(instance.id);
+        this.editor.edition.setObject(instance);
+        this.editor.graph.select(instance.id);
     }
 }

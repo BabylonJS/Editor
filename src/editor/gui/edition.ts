@@ -148,16 +148,16 @@ export default class Edition {
      * @param name the name of the folder
      * @param vector the vector reference
      */
-    public addVector(parent: dat.GUI, name: string, vector: Vector2 | Vector3 | Vector4): dat.GUI {
+    public addVector(parent: dat.GUI, name: string, vector: Vector2 | Vector3 | Vector4, callback?: () => void): dat.GUI {
         const folder = parent.addFolder(name);
-        folder.add(vector, 'x').step(0.01);
-        folder.add(vector, 'y').step(0.01);
+        folder.add(vector, 'x').step(0.01).onChange(() => callback && callback());
+        folder.add(vector, 'y').step(0.01).onChange(() => callback && callback());
 
         if (vector instanceof Vector3 || vector instanceof Vector4)
-        folder.add(vector, 'z').step(0.01);
+        folder.add(vector, 'z').step(0.01).onChange(() => callback && callback());
 
         if (vector instanceof Color4)
-            folder.add(vector, 'w').step(0.01);
+            folder.add(vector, 'w').step(0.01).onChange(() => callback && callback());
 
         return folder;
     }
