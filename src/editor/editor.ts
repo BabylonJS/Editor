@@ -1,10 +1,14 @@
 import {
-    Engine, Scene, FreeCamera,
-    Vector3
+    Engine, Scene, SceneLoader,
+    FreeCamera, Camera,
+    Vector3,
+    FilesInput
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
 import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
+
+import Dialog from './gui/dialog';
 
 import Core from './core';
 import Tools from './tools/tools';
@@ -30,6 +34,8 @@ export default class Editor {
     public editPanel: EditorEditPanel;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
+
+    public filesInput: FilesInput;
 
     /**
      * Constructor
@@ -98,8 +104,10 @@ export default class Editor {
         this.graph.currentObject = this.core.scene;
 
         // Create editor camera
-        this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : Vector3.Zero(), this.core.scene);
-        this.camera.attachControl(this.core.engine.getRenderingCanvas());
+        this.createEditorCamera();
+
+        // Create files input
+        this._createFilesInput();
     }
 
     /**
@@ -139,9 +147,25 @@ export default class Editor {
         // Add tab in edit panel
         this.editPanel.addPlugin(plugin);
 
+        // Create plugin
+        await plugin.create();
+
         this.layout.unlockPanel('preview');
 
         return plugin;
+    }
+
+    /**
+     * Creates the editor camera
+     */
+    protected createEditorCamera (): Camera {
+        this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(50, 50, 50), this.core.scene);
+        this.camera.setTarget(Vector3.Zero());
+        this.camera.attachControl(this.core.engine.getRenderingCanvas());
+
+        this.core.scene.activeCamera = this.camera;
+
+        return this.camera;
     }
     
     // Runs the given plugin URL
@@ -150,15 +174,58 @@ export default class Editor {
         const instance = new plugin.default(this);
 
         // Create DOM elements
-        instance.divElement = <HTMLDivElement> Tools.CreateElement('div', instance.name, {
+        instance.divElement = <HTMLDivElement> Tools.CreateElement('div', instance.name.replace(/ /, ''), {
             width: '100%',
             height: '100%'
         });
 
-        // Create plugin
-        await instance.create();
-
         return instance;
+    }
+
+    // Creates the files input class and handlers
+    private _createFilesInput (): void {
+        // Add files input
+        this.filesInput = new FilesInput(this.core.engine, null,
+        null,
+        () => {
+
+        },
+        null,
+        (remaining: number) => {
+            // Loading textures
+        },
+        () => {
+            // Starting process
+        },
+        (file) => {
+            Dialog.Create('Load scene', 'Append?', (result) => {
+                const callback = (scene: Scene) => {
+                    this.core.removeScene(this.core.scene);
+                    this.core.scene = scene;
+                    this.core.scenes.push(scene);
+
+                    // Graph
+                    this.graph.clear();
+                    this.graph.fill(scene);
+
+                    this.createEditorCamera();
+
+                    this.run();
+                };
+
+                // Stop render loop
+                this.core.engine.stopRenderLoop();
+
+                // Load scene
+                if (result === 'No')
+                    SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene));
+                else
+                    SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene));
+            });
+        }, () => {
+
+        });
+        this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvas'));
     }
 
     // Creates a default scene

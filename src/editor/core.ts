@@ -18,6 +18,21 @@ export default class Core {
     { }
 
     /**
+     * Removes the given scene from the registered scenes
+     * @param scene: the scene reference to remove
+     */
+    public removeScene (scene: Scene): boolean {
+        const index = this.scenes.findIndex(s => s === scene);
+        if (index !== -1) {
+            scene.dispose();
+            this.scenes.splice(index, 1);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
      * Updates the rendering + notify updaters
      */
     public update(): void {

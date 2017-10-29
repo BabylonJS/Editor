@@ -74,6 +74,13 @@ export default class EditorGraph {
     }
 
     /**
+     * Clears the graph
+     */
+    public clear (): void {
+        this.graph.clear();
+    }
+
+    /**
      * Fills the graph
      * @param scene: the root scene
      * @param root: the root node
@@ -94,9 +101,9 @@ export default class EditorGraph {
             this.editor.edition.setObject(scene);
 
             // Set nodes
-            scene.meshes.forEach(m => !m.parent && nodes.push(m));
-            scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
+            scene.lights.forEach(l => !l.parent && nodes.push(l));
+            scene.meshes.forEach(m => !m.parent && nodes.push(m));
         }
 
         nodes.forEach(n => {
