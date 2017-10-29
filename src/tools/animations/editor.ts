@@ -125,7 +125,7 @@ export default class AnimationEditor extends EditorPlugin {
         // Events
         const input = $('#ANIMATION-EDITOR-FPS');
         this.fpsInput = (<any> input).w2field('int', { autoFormat: true });
-        this.fpsInput.change((ev) => {
+        this.fpsInput[0].addEventListener('change', (ev) => {
             debugger;
         });
 
@@ -141,7 +141,10 @@ export default class AnimationEditor extends EditorPlugin {
      */
     public async close(): Promise<void> {
         super.close();
+
         this.paper.remove();
+        this.layout.element.destroy();
+        this.toolbar.element.destroy();
     }
 
     /**

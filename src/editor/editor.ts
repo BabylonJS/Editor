@@ -138,8 +138,10 @@ export default class Editor {
     public async addEditPanelPlugin (url: string, name?: string): Promise<IEditorPlugin> {
         this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
-        if (this.plugins[url])
+        if (this.plugins[url]) {
+            this.editPanel.showPlugin(this.plugins[url]);
             return this.plugins[url];
+        }
 
         const plugin = await this._runPlugin(url);
         this.plugins[url] = plugin;
@@ -156,6 +158,22 @@ export default class Editor {
     }
 
     /**
+     * Removes the given plugin
+     * @param plugin: the plugin to remove
+     */
+    public removePlugin (plugin: IEditorPlugin): void {
+        plugin.close();
+        plugin.divElement.remove();
+
+        for (const p in this.plugins) {
+            if (this.plugins[p] === plugin) {
+                delete this.plugins[p];
+                break;
+            }
+        }
+    }
+    
+    /**
      * Creates the editor camera
      */
     protected createEditorCamera (): Camera {
@@ -167,7 +185,7 @@ export default class Editor {
 
         return this.camera;
     }
-    
+
     // Runs the given plugin URL
     private async _runPlugin (url: string): Promise<IEditorPlugin> {
         const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
@@ -233,6 +251,7 @@ export default class Editor {
         await CreateDefaultScene(this.core.scene);
         this.graph.fill();
 
+        // await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
         await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
     }
