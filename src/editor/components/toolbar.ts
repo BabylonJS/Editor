@@ -1,4 +1,6 @@
 import Editor from '../editor';
+import { IEditorPlugin } from '../typings/plugin';
+
 import Toolbar from '../gui/toolbar';
 
 import Tools from '../tools/tools';
@@ -24,7 +26,8 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'edit', text: 'Edit', img: 'icon-edit', items: [
-                    { id: 'animations', caption: 'Animations...', img: 'icon-folder', text: 'Animations...' }
+                    { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
+                    { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' }
                 ]
             }
         ];
@@ -48,7 +51,10 @@ export default class EditorToolbar {
     protected async onMainClick (target: string): Promise<void> {
         switch (target) {
             case 'edit:animations':
-                const anims = await this.loadTool('.build/tools/animations/editor.js');
+                await this.loadTool('.build/tools/animations/editor.js', 'Animations Editor');
+                break;
+            case 'edit:textures':
+                await this.loadTool('.build/tools/textures/viewer.js', 'Textures Viewer');
                 break;
             default: break;
         }
@@ -69,9 +75,9 @@ export default class EditorToolbar {
      * 
      * @param url 
      */
-    protected async loadTool <T> (url: string): Promise<T> {
+    protected async loadTool (url: string, name: string): Promise<IEditorPlugin> {
         this.editor.layout.lockPanel('preview', 'Loading...', true);
-        const result = await Tools.ImportScript<T>('.build/tools/animations/editor.js');
+        const result = await this.editor.addEditPanelPlugin(url, name);
         this.editor.layout.unlockPanel('preview');
 
         return result;

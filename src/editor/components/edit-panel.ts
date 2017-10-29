@@ -24,7 +24,7 @@ export default class EditorEditPanel {
             id: plugin.name,
             caption: plugin.name,
             closable: true,
-            onClose: () => plugin.close(),
+            onClose: () => this.editor.removePlugin(plugin),
             onClick: (event) => this._onChangeTab(plugin)
         });
 
@@ -32,6 +32,15 @@ export default class EditorEditPanel {
         this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
 
         // Activate added plugin
+        this._onChangeTab(plugin);
+    }
+
+    /**
+     * Shows the given plugin
+     * @param plugin: the plugin to show
+     */
+    public showPlugin (plugin: IEditorPlugin): void {
+        this.panel.tabs.select(plugin.name);
         this._onChangeTab(plugin);
     }
 
