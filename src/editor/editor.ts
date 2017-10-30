@@ -251,8 +251,8 @@ export default class Editor {
         await CreateDefaultScene(this.core.scene);
         this.graph.fill();
 
-        // await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
-        await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
+        await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
+        //await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
     }
 }
