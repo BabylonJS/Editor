@@ -113,9 +113,6 @@ export default class EditorGraph {
 
             // Instance?
             let parent = root ? root.id : this.root;
-
-            if (n instanceof InstancedMesh)
-                parent = n.sourceMesh.id;
             
             this.graph.element.add(parent, <GraphNode>{
                 id: n.id,

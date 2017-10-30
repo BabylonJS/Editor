@@ -31,6 +31,7 @@ export default class AnimationEditor extends EditorPlugin {
     public paper: RaphaelPaper = null;
     public background: RaphaelElement = null;
     public middleLine: RaphaelElement = null;
+    public noDataText: RaphaelElement = null;
 
     public lines: RaphaelPath[] = [];
     public points: RaphaelElement[] = [];
@@ -49,6 +50,9 @@ export default class AnimationEditor extends EditorPlugin {
     // Protected members
     protected mouseMoveHandler: (ev: MouseEvent) => void;
     protected addingKeys: boolean = false;
+
+    protected onResize = () => this.resize();
+    protected onObjectSelected = (node) => this.objectSelected(node);
 
     // Static members
     public static PaperOffset: number = 30;
@@ -122,6 +126,10 @@ export default class AnimationEditor extends EditorPlugin {
         this.middleLine.attr('fill', '#eee');
         this.middleLine.attr('stroke', '#eee');
 
+        // No data text
+        this.noDataText = this.paper.text(0, 0, 'No Animation Selected');
+        this.noDataText.attr('font-size', 64);
+
         // Events
         const input = $('#ANIMATION-EDITOR-FPS');
         this.fpsInput = (<any> input).w2field('int', { autoFormat: true });
@@ -130,10 +138,10 @@ export default class AnimationEditor extends EditorPlugin {
         });
 
         // Resize
-        this.editor.core.onResize.add(_ => this.onResize());
+        this.editor.core.onResize.add(this.onResize);
 
         // On select object
-        this.editor.core.onSelectObject.add(node => this.onObjectSelected(node));
+        this.editor.core.onSelectObject.add(this.onObjectSelected);
     }
 
     /**
@@ -141,6 +149,9 @@ export default class AnimationEditor extends EditorPlugin {
      */
     public async close(): Promise<void> {
         super.close();
+        
+        this.editor.core.onResize.removeCallback(this.onResize);
+        this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
 
         this.paper.remove();
         this.layout.element.destroy();
@@ -150,7 +161,7 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * Resizes the panel
      */
-    protected onResize(): void {
+    protected resize(): void {
         this.layout.element.resize();
 
         const size = this.layout.getPanelSize('main');
@@ -161,6 +172,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         this.middleLine.attr('width', size.width);
         this.middleLine.attr('y', size.height / 2);
+
+        this.noDataText.attr('y', size.height / 2 - this.noDataText.attr('height') / 2);
+        this.noDataText.attr('x', size.width / 2 - this.noDataText.attr('width') / 2);
 
         this.updateGraph(this.animation);
     }
@@ -186,7 +200,7 @@ export default class AnimationEditor extends EditorPlugin {
      * On select an object
      * @param object: the IAnimatable object
      */
-    protected onObjectSelected(object: IAnimatable): void {
+    protected objectSelected(object: IAnimatable): void {
         if (!object.animations)
             return;
 
@@ -212,6 +226,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         if (object.animations.length > 0) {
             this.onChangeAnimation(object.animations[0].name);
+        } else {
+            this.updateGraph(null);
+            this.noDataText.show();
         }
     }
 
@@ -223,6 +240,10 @@ export default class AnimationEditor extends EditorPlugin {
         if (!this.animatable)
             return;
 
+        // Hide "no data" text
+        this.noDataText.hide();
+        
+        // Misc.
         this.animation = this.animatable.animations.find(a => a.name === property);
 
         const keys = this.animation.getKeys();
@@ -246,9 +267,6 @@ export default class AnimationEditor extends EditorPlugin {
      * @param anim: the animation reference
      */
     protected updateGraph(anim: Animation): void {
-        if (!anim)
-            return;
-
         // Remove all lines
         this.lines.forEach(l => l.remove());
         this.points.forEach(p => p.remove());
@@ -268,6 +286,10 @@ export default class AnimationEditor extends EditorPlugin {
 
         if (this.timeline)
             this.timeline.remove();
+
+        // Return if no anim
+        if (!anim)
+            return;
 
         // Keys
         const keys = anim.getKeys();

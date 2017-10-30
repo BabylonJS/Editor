@@ -1,6 +1,7 @@
 import {
     FilesInput,
-    Engine, Scene, Texture, CubeTexture, Mesh, PBRMaterial,
+    Engine, Scene, BaseTexture, Texture, CubeTexture, Mesh, PBRMaterial,
+    PassPostProcess,
     Camera, ArcRotateCamera,
     Vector3
 } from 'babylonjs';
@@ -12,6 +13,14 @@ import Tools from '../../editor/tools/tools';
 import Layout from '../../editor/gui/layout';
 import Toolbar from '../../editor/gui/toolbar';
 
+export interface PreviewScene {
+    engine: Engine;
+    scene: Scene;
+    camera: ArcRotateCamera;
+    sphere: Mesh;
+    material: PBRMaterial;
+}
+
 export default class AnimationEditor extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
@@ -20,11 +29,15 @@ export default class AnimationEditor extends EditorPlugin {
 
     public engine: Engine = null;
     public scene: Scene = null;
-    public texture: Texture = null;
+    public texture: BaseTexture = null;
+    public sphere: Mesh = null;
+    public material: PBRMaterial = null;
     public camera: Camera = null;
+    public postProcess: PassPostProcess = null;
 
     // Protected members
     protected engines: Engine[] = [];
+    protected onResizePreview = () => this.engine.resize();
 
     /**
      * Constructor
@@ -38,6 +51,13 @@ export default class AnimationEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
+        this.editor.core.onResize.removeCallback(this.onResizePreview);
+
+        this.postProcess.dispose(this.camera);
+        this.scene.dispose();
+        this.engine.dispose();
+
         this.toolbar.element.destroy();
         this.layout.element.destroy();
     }
@@ -54,7 +74,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', content: '<div id="TEXTURE-VIEWER-TOOLBAR"></div>', size: 30, resizable: false },
             { type: 'left', content: '<div id="TEXTURE-VIEWER-LIST"></div>', size: panelSize.width / 2, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<canvas id="TEXTURE-VIEWER-CANVAS" style="width: 100%; height: 100%;"></div>', resizable: true }
+            { type: 'main', content: '<canvas id="TEXTURE-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></div>', resizable: true }
         ];
         this.layout.build(div.attr('id'));
 
@@ -64,28 +84,35 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 
         // Add preview
-        this.engine = new Engine(<HTMLCanvasElement> $('#TEXTURE-VIEWER-CANVAS')[0]);
-        
-        this.scene = new Scene(this.engine);
-        this.scene.clearColor.set(0, 0, 0, 1);
+        const preview = this.createPreview(<HTMLCanvasElement> $('#TEXTURE-VIEWER-CANVAS')[0]);
+        this.engine = preview.engine;
+        this.scene = preview.scene;
+        this.camera = preview.camera;
+        this.sphere = preview.sphere;
+        this.material = preview.material;
 
-        this.camera = new Camera('TextureViewerCamera', Vector3.Zero(), this.scene);
+        this.postProcess = new PassPostProcess('TextureViewerPostProcess', 1.0, this.camera);
+        this.postProcess.onApply = (e) => this.texture && e.setTexture('textureSampler', this.texture);
 
         this.engine.runRenderLoop(() => this.scene.render());
 
         // Add existing textures in list
-        await this.createList(div);
+        this.createList();
+
+        // Events
+        this.editor.core.onResize.add(this.onResizePreview);
     }
 
     /**
      * Creates the list of textures (on the left)
      * @param div the tool's div element
      */
-    protected async createList (div: JQuery): Promise<void> {
+    protected async createList (): Promise<void> {
         this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
 
-        while (div.children.length > 0)
-            div.first().remove();
+        const div = $('#TEXTURE-VIEWER-LIST');
+        while (div[0].children.length > 0)
+            div[0].children[0].remove();
 
         // Add HTML nodes
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
@@ -105,23 +132,13 @@ export default class AnimationEditor extends EditorPlugin {
                     float: 'left',
                     margin: '10px'
                 });
+                canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext));
                 texturesList.append(canvas);
 
-                const engine = new Engine(canvas);
-                const scene = new Scene(engine);
-                scene.clearColor.set(0, 0, 0, 1);
+                const preview = this.createPreview(canvas, file);
+                preview.engine.runRenderLoop(() => preview.scene.render());
 
-                const camera = new ArcRotateCamera('TextureCubeCamera', 1, 1, 15, Vector3.Zero(), scene);
-                camera.attachControl(canvas);
-
-                const sphere = Mesh.CreateSphere('TextureCubeSphere', 32, 6, scene);
-                const material = new PBRMaterial('TextureCubeMaterial', scene);
-                material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
-                sphere.material = material;
-
-                engine.runRenderLoop(() => scene.render());
-
-                this.engines.push(engine);
+                this.engines.push(preview.engine);
             }
             else {
                 const data = await Tools.ReadFileAsBase64(file);
@@ -132,9 +149,60 @@ export default class AnimationEditor extends EditorPlugin {
                     margin: '10px'
                 });
                 img.src = data;
+                img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
 
                 texturesList.append(img);
             }
         }
+    }
+
+    /**
+     * Sets the texture in preview canvas
+     * @param name: the name of the texture
+     */
+    protected setTexture (name: string, extension: string): void {
+        this.camera.detachPostProcess(this.postProcess);
+        this.sphere.setEnabled(false);
+
+        switch (extension) {
+            case 'dds':
+                this.texture = this.material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + name, this.scene);
+                this.sphere.setEnabled(true);
+                break;
+            default:
+                this.camera.attachPostProcess(this.postProcess);
+                this.texture = new Texture('file:' + name, this.scene);
+                break;
+        }
+    }
+
+    /**
+     * Creates a scene to preview cube textures or just the preview panel
+     * @param canvas: the HTML Canvas element
+     * @param file: the Cube Texture file to add directly
+     */
+    protected createPreview (canvas: HTMLCanvasElement, file?: File): PreviewScene {
+        const engine = new Engine(canvas);
+        const scene = new Scene(engine);
+        scene.clearColor.set(0, 0, 0, 1);
+
+        const camera = new ArcRotateCamera('TextureCubeCamera', 1, 1, 15, Vector3.Zero(), scene);
+        camera.attachControl(canvas);
+
+        const sphere = Mesh.CreateSphere('TextureCubeSphere', 32, 6, scene);
+        const material = new PBRMaterial('TextureCubeMaterial', scene);
+
+        if (file)
+            material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
+        
+        sphere.material = material;
+
+        return {
+            engine: engine,
+            scene: scene,
+            camera: camera,
+            sphere: sphere,
+            material: material
+        };
     }
 }

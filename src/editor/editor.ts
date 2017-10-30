@@ -217,7 +217,14 @@ export default class Editor {
         },
         (file) => {
             Dialog.Create('Load scene', 'Append?', (result) => {
-                const callback = (scene: Scene) => {
+                const callback = async (scene: Scene) => {
+                    // Restart plugins
+                    for (const p in this.plugins) {
+                        await this.plugins[p].close();
+                        await this.plugins[p].create();
+                    }
+                    
+                    // Configure editor
                     this.core.removeScene(this.core.scene);
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
