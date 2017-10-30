@@ -1,4 +1,9 @@
-import { FilesInput, Engine, Scene, Texture, Camera, Vector3 } from 'babylonjs';
+import {
+    FilesInput,
+    Engine, Scene, Texture, CubeTexture, Mesh, PBRMaterial,
+    Camera, ArcRotateCamera,
+    Vector3
+} from 'babylonjs';
 
 import Editor from '../../editor/editor';
 import { EditorPlugin } from '../../editor/typings/plugin';
@@ -17,6 +22,9 @@ export default class AnimationEditor extends EditorPlugin {
     public scene: Scene = null;
     public texture: Texture = null;
     public camera: Camera = null;
+
+    // Protected members
+    protected engines: Engine[] = [];
 
     /**
      * Constructor
@@ -55,8 +63,32 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 
+        // Add preview
+        this.engine = new Engine(<HTMLCanvasElement> $('#TEXTURE-VIEWER-CANVAS')[0]);
+        
+        this.scene = new Scene(this.engine);
+        this.scene.clearColor.set(0, 0, 0, 1);
+
+        this.camera = new Camera('TextureViewerCamera', Vector3.Zero(), this.scene);
+
+        this.engine.runRenderLoop(() => this.scene.render());
+
         // Add existing textures in list
-        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp'];
+        await this.createList(div);
+    }
+
+    /**
+     * Creates the list of textures (on the left)
+     * @param div the tool's div element
+     */
+    protected async createList (div: JQuery): Promise<void> {
+        this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
+
+        while (div.children.length > 0)
+            div.first().remove();
+
+        // Add HTML nodes
+        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
         const texturesList = $('#TEXTURE-VIEWER-LIST');
 
         for (const filename in FilesInput.FilesToLoad) {
@@ -66,26 +98,43 @@ export default class AnimationEditor extends EditorPlugin {
             if (availableExtensions.indexOf(ext) === -1)
                 continue;
 
-            const data = await Tools.ReadFileAsBase64(file);
-            const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
-                width: '100px',
-                height: '100px',
-                float: 'left',
-                margin: '10px'
-            });
-            img.src = data;
+            if (ext === 'dds') {
+                const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
+                    width: '100px',
+                    height: '100px',
+                    float: 'left',
+                    margin: '10px'
+                });
+                texturesList.append(canvas);
 
-            texturesList.append(img);
+                const engine = new Engine(canvas);
+                const scene = new Scene(engine);
+                scene.clearColor.set(0, 0, 0, 1);
+
+                const camera = new ArcRotateCamera('TextureCubeCamera', 1, 1, 15, Vector3.Zero(), scene);
+                camera.attachControl(canvas);
+
+                const sphere = Mesh.CreateSphere('TextureCubeSphere', 32, 6, scene);
+                const material = new PBRMaterial('TextureCubeMaterial', scene);
+                material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, scene);
+                sphere.material = material;
+
+                engine.runRenderLoop(() => scene.render());
+
+                this.engines.push(engine);
+            }
+            else {
+                const data = await Tools.ReadFileAsBase64(file);
+                const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
+                    width: '100px',
+                    height: '100px',
+                    float: 'left',
+                    margin: '10px'
+                });
+                img.src = data;
+
+                texturesList.append(img);
+            }
         }
-
-        // Add preview
-        this.engine = new Engine(<HTMLCanvasElement> $('#TEXTURE-VIEWER-CANVAS')[0]);
-
-        this.scene = new Scene(this.engine);
-        this.scene.clearColor.set(0, 0, 0, 1);
-
-        this.camera = new Camera('TextureViewerCamera', Vector3.Zero(), this.scene);
-
-        this.engine.runRenderLoop(() => this.scene.render());
     }
 }
