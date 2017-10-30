@@ -61,6 +61,12 @@
         });
 
         System.import("../.build/editor/editor.js").then(function (e) {
+            // Add BABYLON in window
+            System.import("babylonjs").then(function (e) {
+                window.BABYLON = e;
+            });
+
+            // Run editor
             var editor = window.editor = new e.default();
             editor.run();
             editor._createDefaultScene();
