@@ -50,8 +50,12 @@ export default class RenderTargetTool extends AbstractEditionTool<Light | Render
     private _setRenderList (): void {
         const picker = new Picker('Render List');
         picker.addItems(this.object.getScene().meshes);
-        picker.open(() => {
-            debugger;
+        picker.addSelected(this._renderTarget.renderList);
+        picker.open((selected) => {
+            const scene = this._renderTarget.getScene();
+
+            this._renderTarget.renderList = [];
+            selected.forEach(s => this._renderTarget.renderList.push(scene.getMeshByName(s.name)));
         });
     }
 }
