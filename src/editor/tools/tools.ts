@@ -6,7 +6,7 @@ export default class Tools {
      * Creates a div element
      * @param style: the div's style
      */
-    public static CreateElement (type: string, id: string, style?: IStringDictionary<string>): HTMLElement {
+    public static CreateElement<T extends HTMLElement> (type: string, id: string, style?: IStringDictionary<string>): T {
         const div = document.createElement(type);
         div.id = id;
 
@@ -15,7 +15,7 @@ export default class Tools {
                 div.style[thing] = style[thing];
         }
 
-        return div;
+        return <T> div;
     }
 
     /**
@@ -116,6 +116,47 @@ export default class Tools {
         catch (e) {
             return Promise.reject(e);
         }
+    }
+
+    /**
+     * Reads the given file
+     * @param file the file to read
+     * @param arrayBuffer if should read as array buffer
+     */
+    public static async ReadFile<T extends string | ArrayBuffer> (file: File, arrayBuffer: boolean): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            BabylonTools.ReadFile(file, (data: T) => {
+                resolve(data);
+            }, null, arrayBuffer);
+        });
+    }
+
+    /**
+     * Reads a file as base 64
+     * @param file the file to read
+     */
+    public static async ReadFileAsBase64 (file: File): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            BabylonTools.ReadFileAsDataURL(file, (data: string) => {
+                resolve(data);
+            }, null);
+        });
+    }
+
+    /**
+     * Reads a file as text
+     * @param file the file to read
+     */
+    public static async ReadFileAsText (file: File): Promise<ArrayBuffer> {
+        return await this.ReadFile<ArrayBuffer>(file, true);
+    }
+
+    /**
+     * Reads a file as array buffer
+     * @param file the file to read
+     */
+    public static async ReadFileAsArrayBuffer (file: File): Promise<ArrayBuffer> {
+        return await this.ReadFile<ArrayBuffer>(file, true);
     }
 
     /**

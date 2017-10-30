@@ -99,7 +99,7 @@ export default async function CreateDefaultScene (scene: Scene) {
     wood.albedoColor = Color3.White();
     woodPlank.material = wood;
 
-    Tools.CreateFileFromURL("assets/textures/environment.dds").then(() => {
+    await Tools.CreateFileFromURL("assets/textures/environment.dds").then(() => {
         const texture = CubeTexture.CreateFromPrefilteredData("file:environment.dds", scene);
         texture.gammaSpace = false;
 
@@ -116,12 +116,12 @@ export default async function CreateDefaultScene (scene: Scene) {
         hdrSkyboxMaterial.reflectionTexture.name = hdrSkyboxMaterial.reflectionTexture['url'] = "environment.dds";
     });
 
-    Tools.CreateFileFromURL("assets/textures/albedo.png").then(() => {
+    await Tools.CreateFileFromURL("assets/textures/albedo.png").then(() => {
         wood.albedoTexture = new Texture("file:albedo.png", scene);
         wood.albedoTexture.name = wood.albedoTexture['url'] = "albedo.png";
     });
 
-    Tools.CreateFileFromURL("assets/textures/reflectivity.png").then(() => {
+    await Tools.CreateFileFromURL("assets/textures/reflectivity.png").then(() => {
         wood.reflectivityTexture = new Texture("file:reflectivity.png", scene);
         wood.reflectivityTexture.name = wood.reflectivityTexture['url'] = "reflectivity.png";
     });
