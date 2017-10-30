@@ -1,8 +1,25 @@
+/* Editor */
+html, body {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#renderCanvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    touch-action: none;
+    -ms-touch-action: none;
+}
+
 /* W2UI */
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
 }
-
 
 /*
 ICONS
