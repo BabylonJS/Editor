@@ -161,9 +161,11 @@ export default class Editor {
      * Removes the given plugin
      * @param plugin: the plugin to remove
      */
-    public removePlugin (plugin: IEditorPlugin): void {
-        plugin.close();
+    public async removePlugin (plugin: IEditorPlugin): Promise<void> {
+        await plugin.close();
         plugin.divElement.remove();
+
+        this.editPanel.panel.tabs.remove(plugin.name);
 
         for (const p in this.plugins) {
             if (this.plugins[p] === plugin) {
@@ -216,14 +218,8 @@ export default class Editor {
             // Starting process
         },
         (file) => {
-            Dialog.Create('Load scene', 'Append?', (result) => {
+            Dialog.Create('Load scene', 'Append to existing one?', (result) => {
                 const callback = async (scene: Scene) => {
-                    // Restart plugins
-                    for (const p in this.plugins) {
-                        await this.plugins[p].close();
-                        await this.plugins[p].create();
-                    }
-                    
                     // Configure editor
                     this.core.removeScene(this.core.scene);
                     this.core.scene = scene;
@@ -235,6 +231,14 @@ export default class Editor {
 
                     this.createEditorCamera();
 
+                    // Restart plugins
+                    for (const p in this.plugins) {
+                        const plugin = this.plugins[p];
+                        await this.removePlugin(plugin);
+                        await this.addEditPanelPlugin(p, plugin.name);
+                    }
+
+                    // Run scene
                     this.run();
                 };
 
@@ -258,7 +262,8 @@ export default class Editor {
         await CreateDefaultScene(this.core.scene);
         this.graph.fill();
 
-        await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
+        //await this.addEditPanelPlugin('./.build/tools/materials/viewer.js', 'Material Viewer');
+        //await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
         //await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
     }

@@ -156,6 +156,8 @@ export default class AnimationEditor extends EditorPlugin {
         this.paper.remove();
         this.layout.element.destroy();
         this.toolbar.element.destroy();
+
+        await super.close();
     }
 
     /**
