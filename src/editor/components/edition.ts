@@ -6,6 +6,8 @@ import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
 import PostProcessesTool from '../edition-tools/post-processes-tool';
 
+import StandardMaterialTool from '../edition-tools/materials/standard-tool';
+
 import Editor from '../editor';
 
 export default class EditorEditionTools {
@@ -30,6 +32,8 @@ export default class EditorEditionTools {
         this.addTool(new PhysicsTool());
         this.addTool(new LightTool());
         this.addTool(new RenderTargetTool());
+        
+        this.addTool(new StandardMaterialTool());
 
         // Events
         this.editor.core.onSelectObject.add(node => this.setObject(node));

@@ -225,10 +225,18 @@ export default class Editor {
         },
         () => {
             // Starting process
+            FilesInput.FilesToLoad = { };
             this.scenePicker.remove();
         },
         (file) => {
-            Dialog.Create('Load scene', 'Append to existing one?', (result) => {
+            Dialog.Create('Load scene', 'Append to existing one?', async (result) => {
+                const extension = Tools.GetFileExtension(file.name);
+                if (extension !== 'babylon') {
+                    this.layout.lockPanel('main', 'Importing Loaders...', true);
+                    await Tools.ImportScript('node_modules/babylonjs-loaders');
+                    this.layout.unlockPanel('main');
+                }
+
                 const callback = async (scene: Scene) => {
                     // Configure editor
                     this.core.removeScene(this.core.scene);

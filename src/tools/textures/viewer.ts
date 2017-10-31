@@ -51,7 +51,10 @@ export default class AnimationEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
-        this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
+        this.engines.forEach(e => {
+            e.scenes.forEach(s => s.dispose());
+            e.dispose();
+        });
         this.editor.core.onResize.removeCallback(this.onResizePreview);
 
         this.postProcess.dispose(this.camera);
@@ -83,6 +86,7 @@ export default class AnimationEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('TextureViewerToolbar');
         this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
+        this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 
         // Add preview
@@ -106,6 +110,19 @@ export default class AnimationEditor extends EditorPlugin {
     }
 
     /**
+     * When the user clicks on the toolbar
+     * @param target: the target button
+     */
+    protected toolbarClicked (target: string): void {
+        switch (target) {
+            case 'add':
+                this.createFileDialog();
+                break;
+            default: break;
+        }
+    }
+
+    /**
      * Creates the list of textures (on the left)
      * @param div the tool's div element
      */
@@ -117,48 +134,54 @@ export default class AnimationEditor extends EditorPlugin {
             div[0].children[0].remove();
 
         // Add HTML nodes
-        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
-        const texturesList = $('#TEXTURE-VIEWER-LIST');
-
-        let previewNode: HTMLElement = null;
-
         for (const filename in FilesInput.FilesToLoad) {
             const file = FilesInput.FilesToLoad[filename];
-            const ext = Tools.GetFileExtension(file.name);
+            await this.addPreviewNode(file);
+        }
+    }
 
-            if (availableExtensions.indexOf(ext) === -1)
-                continue;
+    /**
+     * Adds a preview node to the textures list
+     * @param texturesList: the textures list node
+     * @param file: the file to add
+     * @param extension: the extension of the file
+     */
+    protected async addPreviewNode (file: File): Promise<void> {
+        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
+        const ext = Tools.GetFileExtension(file.name);
 
-            if (ext === 'dds') {
-                const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
-                    width: '100px',
-                    height: '100px',
-                    float: 'left',
-                    margin: '100px'
-                });
-                canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext));
-                texturesList.append(canvas);
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
 
-                const preview = this.createPreview(canvas, file);
-                preview.engine.runRenderLoop(() => preview.scene.render());
+        if (availableExtensions.indexOf(ext) === -1)
+            return;
 
-                this.engines.push(preview.engine);
-                previewNode = canvas;
-            }
-            else {
-                const data = await Tools.ReadFileAsBase64(file);
-                const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
-                    width: '100px',
-                    height: '100px',
-                    float: 'left',
-                    margin: '10px'
-                });
-                img.src = data;
-                img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
+        if (ext === 'dds') {
+            const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
+                width: '100px',
+                height: '100px',
+                float: 'left',
+                margin: '10px'
+            });
+            canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext));
+            texturesList.append(canvas);
 
-                texturesList.append(img);
-                previewNode = img;
-            }
+            const preview = this.createPreview(canvas, file);
+            preview.engine.runRenderLoop(() => preview.scene.render());
+
+            this.engines.push(preview.engine);
+        }
+        else {
+            const data = await Tools.ReadFileAsBase64(file);
+            const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
+                width: '100px',
+                height: '100px',
+                float: 'left',
+                margin: '10px'
+            });
+            img.src = data;
+            img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
+
+            texturesList.append(img);
         }
     }
 
@@ -212,5 +235,30 @@ export default class AnimationEditor extends EditorPlugin {
             sphere: sphere,
             material: material
         };
+    }
+
+    /**
+     * Creates a file selector dialog
+     */
+    protected createFileDialog (): void {
+        const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
+        input.type = 'file';
+        input.multiple = true;
+        input.onchange = async (ev: Event) => {
+            const files = <File[]> ev.target['files'];
+            if (!files)
+                return;
+
+            this.layout.lockPanel('top', 'Loading...', true);
+            
+            for (const f of files) {
+                FilesInput.FilesToLoad[f.name.toLowerCase()] = f;
+                await this.addPreviewNode(f);
+            };
+
+            input.remove();
+            this.layout.unlockPanel('top');
+        };
+        input.click();
     }
 }

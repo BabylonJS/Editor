@@ -18,7 +18,6 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
-                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "dat-gui": "./node_modules/dat-gui/vendor/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
@@ -27,17 +26,23 @@
                 "babylonjs-editor": "./node_modules/babylonjs-editor/dist/babylonjs-editor.js"
             },
             packages: {
-                './.build/editor/': {
-                    defaultExtension: 'js'
+                "./.build/editor/": {
+                    defaultExtension: "js"
+                },
+                "./node_modules/babylonjs-loaders/": {
+                    format: "cjs",
+                    main: "babylonjs.loaders.js",
+                    format: "global"
                 }
             },
             map: {
                 css: "../node_modules/systemjs-plugin-css/css.js"
             },
             meta: {
-                '*.css': { loader: 'css' },
-                'cannonjs': { format: 'global' }
+                "*.css": { loader: "css" },
+                "cannonjs": { format: "global" }
             },
+            pluginFirst: true
         });
 
         System.import("../.build/editor/editor.js").then(function (e) {
