@@ -1,7 +1,7 @@
 import {
     Scene,
     PointLight, Mesh, MeshBuilder,
-    PBRMaterial, Texture, CubeTexture,
+    PBRMaterial, Texture, CubeTexture, StandardMaterial,
     Vector3, Color3,
     ActionManager, StateCondition, SwitchBooleanAction,
     Animation
@@ -39,6 +39,7 @@ export default async function CreateDefaultScene (scene: Scene) {
     spherePlastic.translate(new Vector3(0, 0, 1), -60);
 
     const sphereNull = Mesh.CreateSphere("sphereNull", 48, 30.0, scene);
+    sphereNull.material = new StandardMaterial("standardMaterial", scene);
     sphereNull.translate(new Vector3(0, 0, 1), 60);
 
     const sphereNullInstance =sphereNull.createInstance("instance1");

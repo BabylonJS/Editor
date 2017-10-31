@@ -27,6 +27,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
 	*/
     public update(light: Light): void {
         super.update(light);
+        super.setTabName(Tools.GetConstructorName(light).replace('Light', ''));
 
         // Common
         const common = this.tool.addFolder('Common');

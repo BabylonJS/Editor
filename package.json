@@ -15,7 +15,7 @@
   "license": "(Apache-2.0)",
   "devDependencies": {
     "@types/node": "8.0.47",
-    "@types/w2ui": "1.4.31",
+    "@types/w2ui": "1.4.32",
     "@types/dat-gui": "0.6.3",
     "@types/systemjs": "0.20.6",
     "@types/raphael": "2.1.30",
@@ -33,6 +33,7 @@
     "es6-promise": "^4.1.0",
     "babylonjs": "3.1.0-alpha3.6",
     "babylonjs-gui": "3.1.0-alpha3.6",
+    "babylonjs-loaders": "3.1.0-alpha3.6",
     "cannon": "0.6.2",
     "monaco-editor": "^0.5.3",
     "raphael": "2.2.7"

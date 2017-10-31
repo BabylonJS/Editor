@@ -25,7 +25,7 @@ export default class EditorToolbar {
             },
             { type: 'break' },
             {
-                type: 'menu', id: 'edit', text: 'Edit', img: 'icon-edit', items: [
+                type: 'menu', id: 'view', text: 'View', img: 'icon-edit', items: [
                     { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' }
@@ -51,13 +51,13 @@ export default class EditorToolbar {
      */
     protected async onMainClick (target: string): Promise<void> {
         switch (target) {
-            case 'edit:animations':
+            case 'view:animations':
                 await this.loadTool('.build/tools/animations/editor.js', 'Animations Editor');
                 break;
-            case 'edit:textures':
+            case 'view:textures':
                 await this.loadTool('.build/tools/textures/viewer.js', 'Textures Viewer');
                 break;
-            case 'edit:materials':
+            case 'view:materials':
             await this.loadTool('.build/tools/materials/viewer.js', 'Materials Viewer');
                 break;
             default: break;
