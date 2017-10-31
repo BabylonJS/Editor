@@ -114,6 +114,7 @@ export default class AnimationEditor extends EditorPlugin {
             img.addEventListener('click', (ev) => {
                 const obj = mat.serialize();
                 this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
+                this.preview.engine.resize();
             });
 
             div.append(img);
