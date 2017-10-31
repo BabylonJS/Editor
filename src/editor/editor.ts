@@ -20,6 +20,8 @@ import EditorEditionTools from './components/edition';
 import EditorEditPanel from './components/edit-panel';
 
 import ScenePicker from './scene/scene-picker';
+import SceneManager from './scene/scene-manager';
+
 import CreateDefaultScene from './tools/default-scene';
 
 export default class Editor {
@@ -114,8 +116,7 @@ export default class Editor {
         this._createFilesInput();
 
         // Create scene picker
-        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
-        this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);
+        this._createScenePicker();
     }
 
     /**
@@ -224,6 +225,7 @@ export default class Editor {
         },
         () => {
             // Starting process
+            this.scenePicker.remove();
         },
         (file) => {
             Dialog.Create('Load scene', 'Append to existing one?', (result) => {
@@ -246,6 +248,13 @@ export default class Editor {
                         await this.addEditPanelPlugin(p, plugin.name);
                     }
 
+                    // Create scene picker
+                    this._createScenePicker();
+
+                    // Toggle interactions (action manager, etc.)
+                    SceneManager.Clear();
+                    SceneManager.Toggle(this.core.scene);
+
                     // Run scene
                     this.run();
                 };
@@ -265,9 +274,24 @@ export default class Editor {
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvas'));
     }
 
+    // Creates the scene picker
+    private _createScenePicker (): void {
+        if (this.scenePicker)
+            this.scenePicker.remove();
+        
+        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
+        this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);
+    }
+
     // Creates a default scene
     private async _createDefaultScene(): Promise<void> {
+        // Create default scene
         await CreateDefaultScene(this.core.scene);
+
+        // Toggle interactions (action manager, etc.)
+        SceneManager.Toggle(this.core.scene);
+
+        // Fill graph
         this.graph.fill();
 
         //await this.addEditPanelPlugin('./.build/tools/materials/viewer.js', 'Material Viewer');

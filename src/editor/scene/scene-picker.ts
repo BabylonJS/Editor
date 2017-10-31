@@ -29,10 +29,23 @@ export default class ScenePicker {
         this.editor = editor;
 
         scene.preventDefaultOnPointerDown = false;
+        scene.cameras.forEach(c => {
+            c.detachControl(canvas);
+            c.attachControl(canvas, true);
+        });
+        scene.meshes.forEach(m => m.isPickable = true);
 
-        canvas.addEventListener('mousedown', this.onCanvasDown, false);
-        canvas.addEventListener('mouseup', this.onCanvasClick, false);
-        canvas.addEventListener('mousemove', this.onCanvasMove, false);
+        // Add events
+        this.addEvents();
+    }
+
+    /**
+     * Adds the events to the canvas
+     */
+    public addEvents (): void {
+        this.canvas.addEventListener('mousedown', this.onCanvasDown, false);
+        this.canvas.addEventListener('mouseup', this.onCanvasClick, false);
+        this.canvas.addEventListener('mousemove', this.onCanvasMove, false);
     }
 
     /**
@@ -63,7 +76,7 @@ export default class ScenePicker {
         
         const pick = this.scene.pick(ev.offsetX, ev.offsetY);
 
-        if (this.onPickedMesh && this.onPickedMesh) {
+        if (pick.pickedMesh && this.onPickedMesh) {
             this.onPickedMesh(pick.pickedMesh);
         }
     }
