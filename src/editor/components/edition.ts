@@ -4,6 +4,7 @@ import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
 import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
+import PostProcessesTool from '../edition-tools/post-processes-tool';
 
 import Editor from '../editor';
 
@@ -24,6 +25,7 @@ export default class EditorEditionTools {
 
         // Add tools
         this.addTool(new SceneTool());
+        this.addTool(new PostProcessesTool());
         this.addTool(new NodeTool());
         this.addTool(new PhysicsTool());
         this.addTool(new LightTool());

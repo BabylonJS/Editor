@@ -1,9 +1,15 @@
-import { Scene, ActionManager } from 'babylonjs';
+import {
+    Scene,
+    ActionManager,
+    StandardRenderingPipeline
+} from 'babylonjs';
+
 import { IStringDictionary } from '../typings/typings';
 
 export default class SceneManager {
     // Public members
     public static ActionManagers: IStringDictionary<ActionManager> = { };
+    public static StandardRenderingPipeline: StandardRenderingPipeline = null;
 
     /**
      * Clears the scene manager
