@@ -10,7 +10,13 @@ export default class ScenePicker {
     public onPickedMesh: (mesh: AbstractMesh) => void;
 
     // Protected members
+    protected lastMesh: AbstractMesh = null;
+    protected lastX: number = 0;
+    protected lastY: number = 0;
+    
+    protected onCanvasDown = (ev: MouseEvent) => this.canvasDown(ev);
     protected onCanvasClick = (ev: MouseEvent) => this.canvasClick(ev);
+    protected onCanvasMove = (ev: MouseEvent) => this.canvasMove(ev);
 
     /**
      * Constructor
@@ -22,23 +28,58 @@ export default class ScenePicker {
         this.scene = scene;
         this.editor = editor;
 
-        canvas.addEventListener('click', this.onCanvasClick);
+        scene.preventDefaultOnPointerDown = false;
+
+        canvas.addEventListener('mousedown', this.onCanvasDown, false);
+        canvas.addEventListener('mouseup', this.onCanvasClick, false);
+        canvas.addEventListener('mousemove', this.onCanvasMove, false);
     }
 
     /**
      * Removes the scene picker events from the canvas
      */
     public remove (): void {
-        this.canvas.removeEventListener('click', this.onCanvasClick);
+        this.canvas.removeEventListener('mousedown', this.onCanvasDown);
+        this.canvas.removeEventListener('mouseup', this.onCanvasClick);
+        this.canvas.removeEventListener('mousemove', this.onCanvasMove);
     }
 
     /**
-     * Called when canvas clicked
+     * Called when canvas mouse is down
+     * @param ev the mouse event
+     */
+    protected canvasDown(ev: MouseEvent): void {
+        this.lastX = ev.offsetX;
+        this.lastY = ev.offsetY;
+    }
+
+    /**
+     * Called when canvas mouse is up
      * @param ev the mouse event
      */
     protected canvasClick (ev: MouseEvent): void {
+        if (Math.abs(this.lastX - ev.offsetX) > 5 || Math.abs(this.lastY - ev.offsetY) > 5)
+            return;
+        
         const pick = this.scene.pick(ev.offsetX, ev.offsetY);
-        if (this.onPickedMesh && this.onPickedMesh)
+
+        if (this.onPickedMesh && this.onPickedMesh) {
             this.onPickedMesh(pick.pickedMesh);
+        }
+    }
+
+    /**
+     * Called when mouse moves on canvas
+     * @param ev the mouse event
+     */
+    protected canvasMove (ev: MouseEvent): void {
+        if (this.lastMesh)
+            this.lastMesh.showBoundingBox = false;
+
+        const pick = this.scene.pick(ev.offsetX, ev.offsetY);
+        if (pick.pickedMesh) {
+            this.lastMesh = pick.pickedMesh;
+            pick.pickedMesh.showBoundingBox = true;
+        }
     }
 }

@@ -94,7 +94,9 @@ export default class Editor {
 
         // Initialize Babylon.js
         if (!scene) {
-            this.core.engine = new Engine(<HTMLCanvasElement>document.getElementById('renderCanvas'));
+            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas')
+            
+            this.core.engine = new Engine(canvas, true);
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);
         } else {
@@ -187,7 +189,7 @@ export default class Editor {
     protected createEditorCamera (): Camera {
         this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(50, 50, 50), this.core.scene);
         this.camera.setTarget(Vector3.Zero());
-        this.camera.attachControl(this.core.engine.getRenderingCanvas());
+        this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
         this.core.scene.activeCamera = this.camera;
 
