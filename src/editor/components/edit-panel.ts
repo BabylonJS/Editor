@@ -24,7 +24,12 @@ export default class EditorEditPanel {
             id: plugin.name,
             caption: plugin.name,
             closable: true,
-            onClose: () => this.editor.removePlugin(plugin),
+            onClose: async () => {
+                await this.editor.removePlugin(plugin);
+
+                const first = Object.keys(this.editor.plugins)[0];
+                this.showPlugin(this.editor.plugins[first]);
+            },
             onClick: (event) => this._onChangeTab(plugin)
         });
 

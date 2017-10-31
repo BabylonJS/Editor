@@ -120,6 +120,8 @@ export default class AnimationEditor extends EditorPlugin {
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
         const texturesList = $('#TEXTURE-VIEWER-LIST');
 
+        let previewNode: HTMLElement = null;
+
         for (const filename in FilesInput.FilesToLoad) {
             const file = FilesInput.FilesToLoad[filename];
             const ext = Tools.GetFileExtension(file.name);
@@ -132,7 +134,7 @@ export default class AnimationEditor extends EditorPlugin {
                     width: '100px',
                     height: '100px',
                     float: 'left',
-                    margin: '10px'
+                    margin: '100px'
                 });
                 canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext));
                 texturesList.append(canvas);
@@ -141,6 +143,7 @@ export default class AnimationEditor extends EditorPlugin {
                 preview.engine.runRenderLoop(() => preview.scene.render());
 
                 this.engines.push(preview.engine);
+                previewNode = canvas;
             }
             else {
                 const data = await Tools.ReadFileAsBase64(file);
@@ -154,6 +157,7 @@ export default class AnimationEditor extends EditorPlugin {
                 img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
 
                 texturesList.append(img);
+                previewNode = img;
             }
         }
     }
@@ -176,6 +180,8 @@ export default class AnimationEditor extends EditorPlugin {
                 this.texture = new Texture('file:' + name, this.scene);
                 break;
         }
+
+        this.engine.resize();
     }
 
     /**
