@@ -19,6 +19,7 @@ import EditorGraph from './components/graph';
 import EditorEditionTools from './components/edition';
 import EditorEditPanel from './components/edit-panel';
 
+import ScenePicker from './scene/scene-picker';
 import CreateDefaultScene from './tools/default-scene';
 
 export default class Editor {
@@ -35,6 +36,7 @@ export default class Editor {
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
+    public scenePicker: ScenePicker;
     public filesInput: FilesInput;
 
     /**
@@ -108,6 +110,10 @@ export default class Editor {
 
         // Create files input
         this._createFilesInput();
+
+        // Create scene picker
+        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
+        this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);
     }
 
     /**
