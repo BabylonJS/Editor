@@ -1,6 +1,6 @@
 import {
     FilesInput, Tools as BabylonTools,
-    Engine, Scene, Mesh, Material, PointLight,
+    Engine, Scene, Mesh, Material, PointLight, InstancedMesh,
     ArcRotateCamera,
     Vector3
 } from 'babylonjs';
@@ -117,6 +117,17 @@ export default class AnimationEditor extends EditorPlugin {
                 this.preview.engine.resize();
             });
 
+            // Drag'n'drop
+            let dropListener = this.dragEnd(mat);
+
+            img.addEventListener('dragstart', () => {
+                this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener);
+            });
+
+            img.addEventListener('dragend', () => {
+                this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener);
+            });
+
             div.append(img);
         }
 
@@ -177,5 +188,24 @@ export default class AnimationEditor extends EditorPlugin {
                 }
             });
         });
+    }
+
+    /**
+     * Returns an event called when the user drops a material on the canvas
+     * @param material: the material to drop on a mesh/instanced-mesh
+     */
+    protected dragEnd (material: Material): (ev: DragEvent) => void {
+        return (ev: DragEvent) => {
+            const scene = this.editor.core.scene;
+            const pick = scene.pick(ev.offsetX, ev.offsetY);
+
+            if (!pick.pickedMesh)
+                return;
+
+            if (pick.pickedMesh instanceof InstancedMesh)
+                pick.pickedMesh.sourceMesh.material = material;
+            else if (pick.pickedMesh instanceof Mesh)
+                pick.pickedMesh.material = material;
+        };
     }
 }
