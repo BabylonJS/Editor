@@ -225,8 +225,6 @@ export default class Editor {
         },
         () => {
             // Starting process
-            FilesInput.FilesToLoad = { };
-            this.scenePicker.remove();
         },
         (file) => {
             Dialog.Create('Load scene', 'Append to existing one?', async (result) => {
