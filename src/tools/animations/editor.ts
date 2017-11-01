@@ -66,6 +66,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     private static _Properties: IStringDictionary<string[]> = {
         'number': [''],
+        'Number': [''],
         'Vector2': ['x', 'y'],
         'Vector3': ['x', 'y', 'z'],
         'Vector4': ['x', 'y', 'z', 'w'],
@@ -242,11 +243,16 @@ export default class AnimationEditor extends EditorPlugin {
         if (!this.animatable)
             return;
 
-        // Hide "no data" text
-        this.noDataText.hide();
+        // Show "no data" text
+        this.noDataText.show();
         
         // Misc.
         this.animation = this.animatable.animations.find(a => a.name === property);
+        if (!this.animation)
+            return this.updateGraph(this.animation);
+
+        // Hide "no data" text
+        this.noDataText.hide();
 
         const keys = this.animation.getKeys();
         const maxFrame = keys[keys.length - 1].frame;

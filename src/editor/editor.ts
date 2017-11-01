@@ -70,7 +70,7 @@ export default class Editor {
             { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
             { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 350, content: '<div id="EDITION" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] }
+            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
@@ -192,6 +192,13 @@ export default class Editor {
         this.camera.setTarget(Vector3.Zero());
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
+        // Define target property on FreeCamera
+        Object.defineProperty(this.camera, 'target', {
+            get: () => { return this.camera.getTarget() },
+            set: (v: Vector3) => this.camera.setTarget(v)
+        });
+
+        // Set as active camera
         this.core.scene.activeCamera = this.camera;
 
         return this.camera;
@@ -228,24 +235,34 @@ export default class Editor {
         },
         (file) => {
             Dialog.Create('Load scene', 'Append to existing one?', async (result) => {
+                // Load dependencies
                 const extension = Tools.GetFileExtension(file.name);
                 if (extension !== 'babylon') {
                     this.layout.lockPanel('main', 'Importing Loaders...', true);
                     await Tools.ImportScript('node_modules/babylonjs-loaders');
-                    this.layout.unlockPanel('main');
                 }
 
+                this.layout.lockPanel('main', 'Importing Physics...', true);
+                await Tools.ImportScript('cannonjs');
+
+                this.layout.unlockPanel('main');
+
+                // Callback
                 const callback = async (scene: Scene) => {
                     // Configure editor
                     this.core.removeScene(this.core.scene);
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
 
+                    this.createEditorCamera();
+
+                    // Default light
+                    if (scene.lights.length === 0)
+                        scene.createDefaultCameraOrLight(false, false, false);
+
                     // Graph
                     this.graph.clear();
                     this.graph.fill(scene);
-
-                    this.createEditorCamera();
 
                     // Restart plugins
                     for (const p in this.plugins) {
@@ -300,7 +317,7 @@ export default class Editor {
         // Fill graph
         this.graph.fill();
 
-        //await this.addEditPanelPlugin('./.build/tools/materials/viewer.js', 'Material Viewer');
+        await this.addEditPanelPlugin('./.build/tools/materials/viewer.js', 'Material Viewer');
         //await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
         //await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);

@@ -182,6 +182,12 @@ export default class AnimationEditor extends EditorPlugin {
             img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
 
             texturesList.append(img);
+
+            // Create texture in editor scene
+            if (!this.editor.core.scene.textures.find(t => t.name === file.name)) {
+                const texture = new Texture('file:' + file.name, this.editor.core.scene);
+                texture.name = texture.url = texture.name.replace('file:', '');
+            }
         }
     }
 
