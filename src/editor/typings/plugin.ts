@@ -42,7 +42,6 @@ export abstract class EditorPlugin implements IEditorPlugin {
     /**
      * Closes the plugin
      */
-    public async close (): Promise<void> {
-        
-    }
+    public async close (): Promise<void>
+    { }
 }

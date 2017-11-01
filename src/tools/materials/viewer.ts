@@ -115,6 +115,7 @@ export default class AnimationEditor extends EditorPlugin {
                 const obj = mat.serialize();
                 this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
                 this.preview.engine.resize();
+                this.editor.core.onSelectObject.notifyObservers(mat);
             });
 
             // Drag'n'drop

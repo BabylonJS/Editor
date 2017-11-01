@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh } from 'babylonjs';
+import { Scene, AbstractMesh, TargetCamera, Animation } from 'babylonjs';
 import Editor from '../editor';
 
 export default class ScenePicker {
@@ -17,6 +17,7 @@ export default class ScenePicker {
     protected onCanvasDown = (ev: MouseEvent) => this.canvasDown(ev);
     protected onCanvasClick = (ev: MouseEvent) => this.canvasClick(ev);
     protected onCanvasMove = (ev: MouseEvent) => this.canvasMove(ev);
+    protected onCanvasDblClick = (ev: MouseEvent) => this.canvasDblClick(ev);
 
     /**
      * Constructor
@@ -46,6 +47,7 @@ export default class ScenePicker {
         this.canvas.addEventListener('mousedown', this.onCanvasDown, false);
         this.canvas.addEventListener('mouseup', this.onCanvasClick, false);
         this.canvas.addEventListener('mousemove', this.onCanvasMove, false);
+        this.canvas.addEventListener('dblclick', this.onCanvasDblClick);
     }
 
     /**
@@ -55,6 +57,7 @@ export default class ScenePicker {
         this.canvas.removeEventListener('mousedown', this.onCanvasDown);
         this.canvas.removeEventListener('mouseup', this.onCanvasClick);
         this.canvas.removeEventListener('mousemove', this.onCanvasMove);
+        this.canvas.addEventListener('dblclick', this.onCanvasDblClick);
     }
 
     /**
@@ -93,6 +96,29 @@ export default class ScenePicker {
         if (pick.pickedMesh) {
             this.lastMesh = pick.pickedMesh;
             pick.pickedMesh.showBoundingBox = true;
+        }
+    }
+
+    /**
+     * Called when double click on the canvas
+     * @param ev: the mouse event
+     */
+    protected canvasDblClick (ev: MouseEvent): void {
+        const camera = <TargetCamera> this.scene.activeCamera;
+        if (!(camera instanceof TargetCamera))
+            return;
+
+        const pick = this.scene.pick(ev.offsetX, ev.offsetY);
+
+        if (pick.pickedMesh) {
+            const anim = new Animation('LockedTargetAnimation', 'target', 1, Animation.ANIMATIONTYPE_VECTOR3);
+            anim.setKeys([
+                { frame: 0, value: camera.getTarget() },
+                { frame: 1, value: pick.pickedMesh.getAbsolutePosition() },
+            ]);
+
+            this.scene.stopAnimation(camera);
+            this.scene.beginDirectAnimation(camera, [anim], 0, 1, false, 1.0);
         }
     }
 }

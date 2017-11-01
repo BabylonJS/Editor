@@ -1,6 +1,7 @@
 import {
     Color3, Color4,
-    Vector2, Vector3, Vector4
+    Vector2, Vector3, Vector4,
+    Scene, BaseTexture, CubeTexture
 } from 'babylonjs';
 import * as dat from 'dat-gui';
 
@@ -160,5 +161,37 @@ export default class Edition {
             folder.add(vector, 'w').step(0.01).onChange(() => callback && callback());
 
         return folder;
+    }
+
+    /**
+     * Adds a texture controller
+     * @param parent the parent folder
+     * @param scene the scene containing the textures
+     * @param property the property of the object
+     * @param object the object which has a texture
+     * @param callback: called when changed texture
+     */
+    public addTexture(parent: dat.GUI, scene: Scene, property: string, object: any, allowCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
+        const textures = ['None'];
+        scene.textures.forEach(t => {
+            if (t instanceof CubeTexture && !allowCubes)
+                return;
+
+            textures.push(t.name);
+        });
+
+        const target = {
+            active: object[property] ? object[property].name : 'None'
+        };
+
+        const controller = parent.add(target, 'active', textures);
+        controller.onFinishChange(r => {
+            const texture = scene.textures.find(t => t.name === r);
+            object[property] = texture;
+
+            callback && callback(texture);
+        });
+
+        return controller;
     }
 }

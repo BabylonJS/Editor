@@ -7,6 +7,7 @@ import RenderTargetTool from '../edition-tools/render-target-tool';
 import PostProcessesTool from '../edition-tools/post-processes-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
+import PBRTool from '../edition-tools/materials/pbr-tool';
 
 import Editor from '../editor';
 
@@ -34,6 +35,7 @@ export default class EditorEditionTools {
         this.addTool(new RenderTargetTool());
         
         this.addTool(new StandardMaterialTool());
+        this.addTool(new PBRTool());
 
         // Events
         this.editor.core.onSelectObject.add(node => this.setObject(node));
