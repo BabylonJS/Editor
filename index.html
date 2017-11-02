@@ -21,12 +21,13 @@
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "dat-gui": "./node_modules/dat-gui/vendor/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
+                "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
 
                 // Bundled editor's module path
                 "babylonjs-editor": "./node_modules/babylonjs-editor/dist/babylonjs-editor.js"
             },
             packages: {
-                "./.build/editor/": {
+                "./.build/src/editor/": {
                     defaultExtension: "js"
                 },
                 "./node_modules/babylonjs-loaders/": {
@@ -36,7 +37,7 @@
                 }
             },
             map: {
-                css: "../node_modules/systemjs-plugin-css/css.js"
+                css: "./node_modules/systemjs-plugin-css/css.js"
             },
             meta: {
                 "*.css": { loader: "css" },
@@ -45,7 +46,7 @@
             pluginFirst: true
         });
 
-        System.import("../.build/editor/editor.js").then(function (e) {
+        System.import("./.build/src/editor/editor.js").then(function (e) {
             // Add BABYLON in window
             System.import("babylonjs").then(function (e) {
                 window.BABYLON = e;

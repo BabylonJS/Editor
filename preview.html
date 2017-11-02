@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Babylon.js Editor Preview</title>
+    
+    <script src="./node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
+    <script src="./node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
+
+    <script src="./node_modules/socket.io-client/dist/socket.io.js" type="text/javascript"></script>
+
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            touch-action: none;
+            -ms-touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script type="text/javascript">
+        System.config({
+            paths: {
+                "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
+                "cannonjs": "./node_modules/cannon/build/cannon.js"
+            },
+            packages: {
+                "./.build/src/editor/": {
+                    defaultExtension: "js"
+                }
+            },
+            meta: {
+                "cannonjs": { format: "global" }
+            }
+        });
+
+        System.import("babylonjs").then(function (e) {
+            window.BABYLON = e;
+
+            var socket = io('http://localhost:1337/client');
+
+            socket.on('request-scene', (files) => {
+                // Import Editor tools
+                System.import('./.build/src/editor/tools/tools.js').then(function (t) {
+                    var sceneFile = null;
+
+                    for (var thing in files) {
+                        var file = t.default.CreateFile(files[thing], thing);
+                        BABYLON.FilesInput.FilesToLoad[thing] = file;
+
+                        if (t.default.GetFileExtension(file.name) === 'babylon') {
+                            sceneFile = file;
+                        }
+                    }
+
+                    var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
+                    BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
+                        scene.activeCamera.attachControl(engine.getRenderingCanvas());
+                        engine.runRenderLoop(function () {
+                            scene.render();
+                        });
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

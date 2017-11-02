@@ -52,13 +52,13 @@ export default class EditorToolbar {
     protected async onMainClick (target: string): Promise<void> {
         switch (target) {
             case 'view:animations':
-                await this.loadTool('.build/tools/animations/editor.js', 'Animations Editor');
+                await this.loadTool('.build/src/tools/animations/editor.js', 'Animations Editor');
                 break;
             case 'view:textures':
-                await this.loadTool('.build/tools/textures/viewer.js', 'Textures Viewer');
+                await this.loadTool('.build/src/tools/textures/viewer.js', 'Textures Viewer');
                 break;
             case 'view:materials':
-            await this.loadTool('.build/tools/materials/viewer.js', 'Materials Viewer');
+            await this.loadTool('.build/src/tools/materials/viewer.js', 'Materials Viewer');
                 break;
             default: break;
         }

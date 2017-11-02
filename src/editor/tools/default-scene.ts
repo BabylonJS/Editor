@@ -4,7 +4,8 @@ import {
     PBRMaterial, Texture, CubeTexture, StandardMaterial,
     Vector3, Color3,
     ActionManager, StateCondition, SwitchBooleanAction,
-    Animation
+    Animation,
+    SceneSerializer, FilesInput
 } from 'babylonjs';
 
 import Tools from './tools';
@@ -147,4 +148,9 @@ export default async function CreateDefaultScene (scene: Scene) {
 
     scene.fogEnabled = true;
     scene.fogMode = Scene.FOGMODE_LINEAR;
+
+    // Create babylon scene
+    const serializedScene = SceneSerializer.Serialize(scene);
+    const serializedSceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
+    FilesInput.FilesToLoad['scene.babylon'] = serializedSceneFile;
 }

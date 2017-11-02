@@ -21,6 +21,7 @@ import EditorEditPanel from './components/edit-panel';
 
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
+import ScenePreview from './scene/scene-preview';
 
 import CreateDefaultScene from './tools/default-scene';
 
@@ -290,6 +291,10 @@ export default class Editor {
                     SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene));
                 else
                     SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene));
+
+                // Delete start scene (when starting the editor) and add new scene
+                delete FilesInput.FilesToLoad['scene.babylon'];
+                FilesInput.FilesToLoad[file.name] = file;
             });
         }, () => {
 
@@ -317,9 +322,12 @@ export default class Editor {
         // Fill graph
         this.graph.fill();
 
-        await this.addEditPanelPlugin('./.build/tools/materials/viewer.js', 'Material Viewer');
-        //await this.addEditPanelPlugin('./.build/tools/textures/viewer.js', 'Texture Viewer');
-        //await this.addEditPanelPlugin('./.build/tools/animations/editor.js', 'Animations Editor');
+        await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
+        //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
+        //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
+
+        // List scene preview
+        ScenePreview.Create();
     }
 }

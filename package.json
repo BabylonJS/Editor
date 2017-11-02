@@ -2,13 +2,16 @@
   "name": "babylonjs-editor",
   "version": "2.0.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
-  "main": "electron/main.js",
+  "main": ".build/electron/main.js",
   "repository": {
     "url": "https://github.com/BabylonJS/Editor/"
   },
   "scripts": {
-    "compile": "tsc -p .",
+    "clean": "rm -rf .build && rm -rf .declaration",
+    "compile": "tsc -p . && tsc -p ./electron",
+    "build": "npm run clean && npm run compile",
     "watch": "tsc -p . --watch",
+    "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
@@ -19,8 +22,14 @@
     "@types/dat-gui": "0.6.3",
     "@types/systemjs": "0.20.6",
     "@types/raphael": "2.1.30",
+    "@types/electron": "1.6.10",
+    "@types/http-server": "0.10.0",
+    "@types/socket.io": "1.4.31",
+    "@types/socket.io-client": "1.4.31",
     "typescript": "~2.3.3",
     "http-server": "^0.9.0",
+    "socket.io": "2.0.4",
+    "electron": "1.7.9",
     "electron-prebuilt": "^1.4.13",
     "electron-packager": "^8.6.0"
   },
@@ -36,6 +45,7 @@
     "babylonjs-loaders": "3.1.0-alpha3.6",
     "cannon": "0.6.2",
     "monaco-editor": "^0.5.3",
-    "raphael": "2.2.7"
+    "raphael": "2.2.7",
+    "socket.io-client": "2.0.4"
   }
 }
