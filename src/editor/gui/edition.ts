@@ -113,7 +113,7 @@ export default class Edition {
 
         parent[0].appendChild(this.element.domElement);
 
-        Tools.ImportScript('../../../css/dat.gui.css');
+        Tools.ImportScript('./css/dat.gui.css');
     }
 
     /**

@@ -119,6 +119,20 @@ export default class Tools {
     }
 
     /**
+    * Converts a string to an UInt8Array
+    $ @param str: the string to convert
+    */
+    public static ConvertStringToUInt8Array(str: string): Uint8Array {
+        const len = str.length;
+        const array = new Uint8Array(len);
+
+        for (let i = 0; i < len; i++)
+            array[i] = str.charCodeAt(i);
+
+        return array;
+    }
+
+    /**
      * Reads the given file
      * @param file the file to read
      * @param arrayBuffer if should read as array buffer
