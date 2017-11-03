@@ -40,7 +40,7 @@ export default class EditorApp {
             });
 
             this.Window.loadURL("file://" + __dirname + "/../../index.html");
-            this.Window.webContents.openDevTools();
+            //this.Window.webContents.openDevTools();
             this.Window.webContents.once('did-finish-load', () => {
                 resolve();
             });

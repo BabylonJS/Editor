@@ -28,10 +28,13 @@
                 "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
             "runtimeArgs": [
-                "${workspaceRoot}/.build/electron/main.js",
+                "${workspaceRoot}",
+                "--enable-logging",
                 "--remote-debugging-port=9222"
             ],
+            "port": 9222,
             "webRoot": "${workspaceRoot}/",
+            "cwd": "${workspaceRoot}",
             "sourceMaps": true,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
@@ -42,9 +45,11 @@
             "cwd": "${workspaceRoot}",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
             "windows": {
-              "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
-            "args" : ["."],
+            "args": [
+                "."
+            ],
             "sourceMaps": true
         }
     ]
