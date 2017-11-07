@@ -2,8 +2,7 @@ import {
     Engine, Scene, SceneLoader,
     FreeCamera, Camera,
     Vector3,
-    FilesInput,
-    Tags
+    FilesInput
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -193,8 +192,6 @@ export default class Editor {
         this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(50, 50, 50), this.core.scene);
         this.camera.setTarget(Vector3.Zero());
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
-        
-        Tags.AddTagsTo(this.camera, 'added');
 
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {
