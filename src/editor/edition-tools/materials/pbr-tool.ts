@@ -24,7 +24,7 @@ export default class PBRTool extends MaterialTool<PBRMaterial> {
         super.update(object);
         
         // Diffuse
-        const albedo = this.tool.addFolder('Diffuse');
+        const albedo = this.tool.addFolder('Albedo');
         albedo.open();
         this.tool.addTexture(albedo, this.editor.core.scene, 'albedoTexture', this.object).name('Albedo Texture');
         this.tool.addColor(albedo, 'Color', this.object.albedoColor).open();

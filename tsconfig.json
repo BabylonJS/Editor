@@ -15,7 +15,7 @@
       ]
     },
     "exclude": [
-      "./test/",
+      "./test",
       "./node_modules",
       "./.build",
       "./.declaration",

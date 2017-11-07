@@ -5,12 +5,15 @@ import {
     Vector3, Color3,
     ActionManager, StateCondition, SwitchBooleanAction,
     Animation,
-    SceneSerializer, FilesInput
+    SceneSerializer, FilesInput,
+    Tags
 } from 'babylonjs';
 
 import Tools from './tools';
 
 export default async function CreateDefaultScene (scene: Scene) {
+    Tags.AddTagsTo(scene, 'added');
+    
     scene.imageProcessingConfiguration.contrast = 1.6;
 	scene.imageProcessingConfiguration.exposure = 0.6;
 	scene.imageProcessingConfiguration.toneMappingEnabled = true;

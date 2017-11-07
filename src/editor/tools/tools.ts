@@ -74,6 +74,21 @@ export default class Tools {
     }
 
     /**
+     * Creates an open file dialog
+     * @param callback called once the user selects files
+     */
+    public static OpenFileDialog (callback: (files: File[]) => void): void {
+        const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
+        input.type = 'file';
+        input.multiple = true;
+        input.onchange = async (ev: Event) => {
+            callback(<File[]> ev.target['files']);
+            input.remove();
+        };
+        input.click();
+    }
+
+    /**
      * Creates a new File (blob today to fix Edge compatibility)
      * @param buffer the file's buffer
      * @param filename the file's name

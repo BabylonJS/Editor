@@ -2,7 +2,8 @@ import {
     Engine, Scene, SceneLoader,
     FreeCamera, Camera,
     Vector3,
-    FilesInput
+    FilesInput,
+    Tags
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -192,6 +193,8 @@ export default class Editor {
         this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(50, 50, 50), this.core.scene);
         this.camera.setTarget(Vector3.Zero());
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
+        
+        Tags.AddTagsTo(this.camera, 'added');
 
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {
@@ -322,12 +325,12 @@ export default class Editor {
         // Fill graph
         this.graph.fill();
 
-        await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
+        //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
         //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
         //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
 
         // List scene preview
-        ScenePreview.Create();
+        //ScenePreview.Create();
     }
 }

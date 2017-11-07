@@ -16,7 +16,7 @@ export default class EditorApp {
         await this.CreateWindow();
 
         // Create web server
-        this.Server = new WebServer(1336, {
+        this.Server = new WebServer(1337, {
             cache: 0,
             root: process.cwd()
         });
@@ -62,4 +62,3 @@ app.on("window-all-closed", async () => {
 
 app.on("ready", () => EditorApp.Create());
 app.on("activate", () => EditorApp.Window || EditorApp.Create());
-

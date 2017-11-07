@@ -247,14 +247,7 @@ export default class AnimationEditor extends EditorPlugin {
      * Creates a file selector dialog
      */
     protected createFileDialog (): void {
-        const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
-        input.type = 'file';
-        input.multiple = true;
-        input.onchange = async (ev: Event) => {
-            const files = <File[]> ev.target['files'];
-            if (!files)
-                return;
-
+        Tools.OpenFileDialog(async (files) => {
             this.layout.lockPanel('top', 'Loading...', true);
             
             for (const f of files) {
@@ -262,9 +255,7 @@ export default class AnimationEditor extends EditorPlugin {
                 await this.addPreviewNode(f);
             };
 
-            input.remove();
             this.layout.unlockPanel('top');
-        };
-        input.click();
+        });
     }
 }

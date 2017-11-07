@@ -2,8 +2,9 @@ import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
 import Toolbar from '../gui/toolbar';
-
 import Tools from '../tools/tools';
+
+import ProjectExporter from '../scene/scene-exporter';
 
 export default class EditorToolbar {
     // Public members
@@ -20,7 +21,7 @@ export default class EditorToolbar {
         this.main.items = [
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
-
+                    { id: 'export', caption: 'Export...', img: 'icon-folder', text: 'Export...' }
                 ]
             },
             { type: 'break' },
@@ -51,6 +52,12 @@ export default class EditorToolbar {
      */
     protected async onMainClick (target: string): Promise<void> {
         switch (target) {
+            // Project
+            case 'project:export':
+                console.log(ProjectExporter.Export(this.editor));
+                break;
+
+            // View
             case 'view:animations':
                 await this.loadTool('.build/src/tools/animations/editor.js', 'Animations Editor');
                 break;

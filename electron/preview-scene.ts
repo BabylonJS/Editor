@@ -18,7 +18,7 @@ export default class ScenePreview {
      * @param server: the Web Server
      */
     constructor (server: WebServer) {
-        this.socket = SocketIO(1337);
+        this.socket = SocketIO(server);
         this.client = this.socket.of('/client');
 
         this.socket.on('connection', (socket) => {

@@ -14,7 +14,7 @@ export default class WebServer {
      */
     constructor (port: number, options: httpServer.Options = { }) {
         this.server = httpServer.createServer(options);
-        this.server.listen(port, 'localhost');
+        this.server.listen(port);
     }
 
     /**
