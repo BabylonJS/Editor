@@ -57,6 +57,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         if (node['position']) this.tool.addVector(transforms, 'Position', node['position']).open();
         if (node['rotation']) this.tool.addVector(transforms, 'Rotation', node['rotation']).open();
         if (node['scaling']) this.tool.addVector(transforms, 'Scaling', node['scaling']).open();
+        if (node['direction']) this.tool.addVector(transforms, 'Direction', node['direction']).open();
 
         // Abstract mesh
         if (node instanceof AbstractMesh) {

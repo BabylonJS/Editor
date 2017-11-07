@@ -10,7 +10,7 @@ export default class ScenePreview {
      * Creates a scene preview listener
      */
     public static Create (): void {
-        this.socket = SocketIO('http://localhost:1337/');
+        this.socket = SocketIO();
         this.socket.on('request-scene', () => this.CreateFiles());
     }
 
