@@ -22,6 +22,7 @@ import EditorEditPanel from './components/edit-panel';
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
+import SceneImporter from './scene/scene-importer';
 
 import CreateDefaultScene from './tools/default-scene';
 
@@ -246,6 +247,9 @@ export default class Editor {
                 this.layout.lockPanel('main', 'Importing Physics...', true);
                 await Tools.ImportScript('cannonjs');
 
+                this.layout.lockPanel('main', 'Importing Materials...', true);
+                await Tools.ImportScript('node_modules/babylonjs-materials');
+
                 this.layout.unlockPanel('main');
 
                 // Callback
@@ -256,6 +260,13 @@ export default class Editor {
                     this.core.scenes.push(scene);
 
                     this.createEditorCamera();
+
+                    // Editor project
+                    const project = FilesInput.FilesToLoad['scene.editorproject'];
+                    if (project) {
+                        const content = await Tools.ReadFileAsText(project);
+                        await SceneImporter.Import(this, JSON.parse(content));
+                    }
 
                     // Default light
                     if (scene.lights.length === 0)

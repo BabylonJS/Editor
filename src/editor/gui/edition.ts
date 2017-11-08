@@ -106,9 +106,11 @@ export default class Edition {
     public build (parentId: string): void {
         const parent = $('#' + parentId);
 
-        this.element = new dat.GUI({
-            autoPlace: false
+        this.element = new dat.GUI(<dat.GUIParams> {
+            autoPlace: false,
+            scrollable: true
         });
+        this.element.useLocalStorage = true;
         this.element.width = parent.width();
 
         parent[0].appendChild(this.element.domElement);
@@ -137,8 +139,12 @@ export default class Edition {
         folder.add(color, 'g').step(0.01);
         folder.add(color, 'b').step(0.01);
 
-        if (color instanceof Color4)
+        if (color instanceof Color4) {
+            // Sometimes, color.a is undefined
+            color.a = color.a || 0;
+
             folder.add(color, 'a').step(0.01);
+        }
 
         return folder;
     }

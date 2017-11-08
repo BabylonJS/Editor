@@ -77,11 +77,14 @@ export default class ProjectExporter {
                 return;
 
             // Add new material
+            const names: string[] = [];
+            scene.meshes.map(mesh => {
+                if (mesh.material === m)
+                    names.push(mesh.name);
+            });
+
             result.push({
-                meshesNames: scene.meshes.map(mesh => {
-                    if (mesh.material === m)
-                        return mesh.name;
-                }),
+                meshesNames: names,
                 newInstance: true,
                 serializedValues: m.serialize()
             });

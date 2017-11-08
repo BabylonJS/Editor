@@ -516,6 +516,21 @@ export default class AnimationEditor extends EditorPlugin {
         let ox = 0;
         let lx = 0;
 
+        const doAnimatables = (animatables: IAnimatable[], frame: number) => {
+            animatables.forEach(a => {
+                if (a === this.animatable)
+                    return;
+                
+                let animatable = this.editor.core.scene.getAnimatableByTarget(a);
+                if (!animatable)
+                    animatable = new Animatable(this.editor.core.scene, a, frame, maxFrame, false, 1.0);
+                
+                animatable.appendAnimations(a, a.animations);
+                animatable.stop();
+                animatable.goToFrame(frame);
+            });
+        };
+
         const onStart = (x: number, y: number, ev: MouseEvent) => {
             this.cursorRect.attr('opacity', 0.1);
         };
@@ -529,6 +544,11 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.animationManager.stop();
             this.animationManager.goToFrame(frame);
+
+            doAnimatables(this.editor.core.scene.meshes, frame);
+            doAnimatables(this.editor.core.scene.cameras, frame);
+            doAnimatables(this.editor.core.scene.lights, frame);
+            doAnimatables(<any> this.editor.core.scene.particleSystems, frame);
         };
 
         const onEnd = (ev: MouseEvent) => {
