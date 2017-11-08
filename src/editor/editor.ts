@@ -248,7 +248,7 @@ export default class Editor {
                 await Tools.ImportScript('cannonjs');
 
                 this.layout.lockPanel('main', 'Importing Materials...', true);
-                await Tools.ImportScript('node_modules/babylonjs-materials');
+                await Tools.ImportScript('node_modules/babylonjs/dist/preview release/materialsLibrary');
 
                 this.layout.unlockPanel('main');
 
