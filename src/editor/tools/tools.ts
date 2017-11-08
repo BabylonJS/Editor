@@ -176,8 +176,8 @@ export default class Tools {
      * Reads a file as text
      * @param file the file to read
      */
-    public static async ReadFileAsText (file: File): Promise<ArrayBuffer> {
-        return await this.ReadFile<ArrayBuffer>(file, true);
+    public static async ReadFileAsText (file: File): Promise<string> {
+        return await this.ReadFile<string>(file, false);
     }
 
     /**

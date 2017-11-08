@@ -1,5 +1,6 @@
 import {
     Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh,
+    ParticleSystem, GPUParticleSystem, IParticleSystem,
     Tools as BabylonTools
 } from 'babylonjs';
 
@@ -120,6 +121,18 @@ export default class EditorGraph {
                 img: this.getIcon(n),
                 data: n
             });
+
+            // Check particle systems
+            scene.particleSystems.forEach(ps => {
+                if (ps.emitter === n) {
+                    this.graph.element.add(n.id, <GraphNode>{
+                        id: ps.id,
+                        text: ps.name,
+                        img: this.getIcon(ps),
+                        data: ps
+                    });
+                }
+            });
         });
     }
 
@@ -127,13 +140,15 @@ export default class EditorGraph {
     * Returns the icon related to the object type
     * @param object 
     */
-    public getIcon(obj: Node): string {
+    public getIcon(obj: Node | IParticleSystem): string {
         if (obj instanceof AbstractMesh) {
             return 'icon-mesh';
         } else if (obj instanceof Light) {
             return 'icon-light';
         } else if (obj instanceof Camera) {
             return 'icon-camera';
+        } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
+            return 'icon-particles';
         }
 
         return null;

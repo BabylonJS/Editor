@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Mesh, Tools } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools, Camera } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
@@ -9,6 +9,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     // Private members
     private _parentId: string = '';
     private _enabled: boolean = true;
+    private _currentCamera: boolean = false;
 
     /**
      * Returns if the object is supported
@@ -81,6 +82,16 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             instances.open();
 
             instances.add(this, 'createInstance').name('Create Instance...');
+        }
+        // Camera
+        else if (node instanceof Camera) {
+            this._currentCamera = scene.activeCamera === node;
+
+            const camera = this.tool.addFolder('Camera');
+            camera.open();
+            camera.add(this, '_currentCamera').name('Active Camera').onFinishChange(r => {
+                scene.activeCamera = r ? node : this.editor.camera;
+            });
         }
     }
 

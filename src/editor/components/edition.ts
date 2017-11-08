@@ -5,6 +5,7 @@ import LightTool from '../edition-tools/light-tool';
 import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
 import PostProcessesTool from '../edition-tools/post-processes-tool';
+import ParticleSystemTool from '../edition-tools/particle-system-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRTool from '../edition-tools/materials/pbr-tool';
@@ -33,6 +34,7 @@ export default class EditorEditionTools {
         this.addTool(new PhysicsTool());
         this.addTool(new LightTool());
         this.addTool(new RenderTargetTool());
+        this.addTool(new ParticleSystemTool());
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRTool());
@@ -41,10 +43,15 @@ export default class EditorEditionTools {
         this.editor.core.onSelectObject.add(node => this.setObject(node));
     }
 
+    /**
+     * Resizes the edition tools
+     * @param width the width of the panel
+     */
     public resize(width: number): void {
         this.tools.forEach(t => {
-            if (t.tool && t.tool.element)
+            if (t.tool && t.tool.element) {
                 t.tool.element.width = width;
+            }
         });
     }
 
@@ -56,7 +63,7 @@ export default class EditorEditionTools {
         let current = this.root;
 
         // Create container
-        $('#' + current).append('<div id="' + tool.divId + '"></div>');
+        $('#' + current).append('<div id="' + tool.divId + '" style="width: 100%; height: 100%"></div>');
         $('#' + tool.divId).hide();
 
         // Add tab
