@@ -262,10 +262,13 @@ export default class Editor {
                     this.createEditorCamera();
 
                     // Editor project
-                    const project = FilesInput.FilesToLoad['scene.editorproject'];
-                    if (project) {
-                        const content = await Tools.ReadFileAsText(project);
-                        await SceneImporter.Import(this, JSON.parse(content));
+                    for (const f in FilesInput.FilesToLoad) {
+                        const file = FilesInput.FilesToLoad[f];
+                        if (Tools.GetFileExtension(file.name) === 'editorproject') {
+                            const content = await Tools.ReadFileAsText(file);
+                            await SceneImporter.Import(this, JSON.parse(content));
+                            break;
+                        }
                     }
 
                     // Default light
