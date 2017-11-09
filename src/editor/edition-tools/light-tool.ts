@@ -44,8 +44,16 @@ export default class LightTool extends AbstractEditionTool<Light> {
         this.tool.addColor(colors, 'Diffuse', light.diffuse).open();
         this.tool.addColor(colors, 'Specular', light.specular).open();
 
+        // Spot
+        if (light instanceof SpotLight) {
+            const spot = this.tool.addFolder('Spot Light');
+            spot.open();
+            spot.add(light, 'angle').step(0.01).name('Angle');
+            spot.add(light, 'exponent').step(0.01).name('Exponent');
+        }
+
+        // Shadows
         if (light instanceof DirectionalLight || light instanceof PointLight || light instanceof SpotLight) {
-            // Shadows
             const shadowGenerator = <ShadowGenerator> light.getShadowGenerator();
             shadowGenerator ? this._generatesShadows = true : this._generatesShadows = false;
 

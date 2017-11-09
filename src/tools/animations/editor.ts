@@ -419,7 +419,7 @@ export default class AnimationEditor extends EditorPlugin {
                 const value = (p === '') ? k.value : k.value[p];
 
                 if (value !== 0 && maxFrame !== 0)
-                    y += (value * middle) / (maxFrame * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1);
+                    y += ((value * middle) / (valueInterval * (value > 0 ? 1 : -1)) * (value > 0 ? -1 : 1)) / 2;
 
                 if (isNaN(x)) x = 0;
                 if (isNaN(y)) y = 0;
