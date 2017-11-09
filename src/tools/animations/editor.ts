@@ -32,6 +32,7 @@ export default class AnimationEditor extends EditorPlugin {
     public background: RaphaelElement = null;
     public middleLine: RaphaelElement = null;
     public noDataText: RaphaelElement = null;
+    public valueText: RaphaelElement = null;
 
     public lines: RaphaelPath[] = [];
     public points: RaphaelElement[] = [];
@@ -130,6 +131,11 @@ export default class AnimationEditor extends EditorPlugin {
         // No data text
         this.noDataText = this.paper.text(0, 0, 'No Animation Selected');
         this.noDataText.attr('font-size', 64);
+
+        // Value text
+        this.valueText = this.paper.text(0, 0, '0.0');
+        this.valueText.attr('font-size', 10);
+        this.valueText.hide();
 
         // Events
         const input = $('#ANIMATION-EDITOR-FPS');
@@ -332,7 +338,7 @@ export default class AnimationEditor extends EditorPlugin {
             });
         });
 
-        const valueInterval = Math.abs(Math.max(maxValue, minValue));
+        const valueInterval = Math.max(Math.abs(maxValue), Math.abs(minValue));
 
         // Add timeline lines
         let linesCount = 100;
@@ -464,6 +470,7 @@ export default class AnimationEditor extends EditorPlugin {
 
         const onStart = (x: number, y: number, ev) => {
             data.point.attr('opacity', 1);
+            this.valueText.show();
         };
 
         const onMove = (dx, dy, x, y, ev) => {
@@ -494,6 +501,18 @@ export default class AnimationEditor extends EditorPlugin {
 
             if (data.property === '')
                 keys[data.keyIndex].value = value;
+            else {
+                data.properties.forEach(p => {
+                    const key = keys[data.keyIndex];
+                    if (p === data.property)
+                        key.value[p] = value;
+                });
+            }
+
+            // Update value text
+            this.valueText.attr('x', ev.offsetX);
+            this.valueText.attr('y', ev.offsetY - 20);
+            this.valueText.attr('text', value.toFixed(4));
         };
 
         const onEnd = (ev) => {
@@ -501,6 +520,7 @@ export default class AnimationEditor extends EditorPlugin {
             ox = lx;
             oy = ly;
 
+            this.valueText.hide();
             this.updateGraph(this.animation);
         };
 
