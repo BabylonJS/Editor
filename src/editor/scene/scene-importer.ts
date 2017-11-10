@@ -12,6 +12,8 @@ import {
 import * as Export from '../typings/project';
 import Editor from '../editor';
 
+import Extensions from '../../extensions/extensions';
+
 export default class SceneImporter {
     /**
      * Imports the project
@@ -146,6 +148,14 @@ export default class SceneImporter {
         if (project.actions) {
             ActionManager.Parse(project.actions, null, scene);
             Tags.AddTagsTo(scene.actionManager, 'added');
+        }
+
+        // Metadatas
+        for (const m in project.customMetadatas) {
+            const extension = Extensions.RequestExtension(scene, m);
+
+            if (extension)
+                extension.onLoad(project.customMetadatas[m]);
         }
     }
 

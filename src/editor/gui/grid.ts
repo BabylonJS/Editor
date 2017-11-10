@@ -52,6 +52,7 @@ export default class Grid<T extends GridRow> {
      */
     constructor(name: string, options: GridOptions = {}) {
         this.name = name;
+        this.options = Object.assign(this.options, options);
     }
 
     /**

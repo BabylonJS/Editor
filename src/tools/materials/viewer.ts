@@ -66,7 +66,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout = new Layout('MaterialViewer');
         this.layout.panels = [
             { type: 'left', content: '<div id="MATERIAL-VIEWER-LIST"></div>', size: panelSize.width / 2, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<canvas id="MATERIAL-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></div>', resizable: true }
+            { type: 'main', content: '<canvas id="MATERIAL-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></canvas>', resizable: true }
         ];
         this.layout.build(div.attr('id'));
 

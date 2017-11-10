@@ -29,7 +29,8 @@ export default class EditorToolbar {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-edit', items: [
                     { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
-                    { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' }
+                    { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
+                    { id: 'code', caption: 'Code...', img: 'icon-behavior', text: 'Code...' }
                 ]
             }
         ];
@@ -65,7 +66,10 @@ export default class EditorToolbar {
                 await this.loadTool('.build/src/tools/textures/viewer.js', 'Textures Viewer');
                 break;
             case 'view:materials':
-            await this.loadTool('.build/src/tools/materials/viewer.js', 'Materials Viewer');
+                await this.loadTool('.build/src/tools/materials/viewer.js', 'Materials Viewer');
+                break;
+            case 'view:code':
+                await this.loadTool('./.build/src/tools/behavior/code.js', 'Behavior Code');
                 break;
             default: break;
         }
