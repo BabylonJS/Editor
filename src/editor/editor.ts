@@ -250,6 +250,10 @@ export default class Editor {
                 this.layout.lockPanel('main', 'Importing Materials...', true);
                 await Tools.ImportScript('node_modules/babylonjs/dist/preview release/materialsLibrary');
 
+                // Import extensions
+                this.layout.lockPanel('main', 'Importing Extensions...', true);
+                await System.import('.build/src/extensions/behavior/code');
+
                 this.layout.unlockPanel('main');
 
                 // Callback
@@ -339,6 +343,8 @@ export default class Editor {
         //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
         //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
         //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
+        //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
+
         this.core.onSelectObject.notifyObservers(this.graph.currentObject);
 
         // List scene preview

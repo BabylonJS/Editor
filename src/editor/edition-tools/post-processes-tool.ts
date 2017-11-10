@@ -1,7 +1,7 @@
 import {
     Scene, Texture,
     SpotLight, DirectionalLight,
-    StandardRenderingPipeline, SSAORenderingPipeline
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline
 } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
@@ -18,6 +18,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
     // Private members
     private _standardEnabled: boolean = false;
     private _ssaoEnabled: boolean = false;
+    private _ssao2Enabled: boolean = false;
 
 	/**
 	* Returns if the object is supported
@@ -120,14 +121,45 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
             pipeline.fallOff = 0.000001;
             pipeline.area = 1.0;
-            pipeline.radius = 0.00023;
-            pipeline.totalStrength = 1;
-            pipeline.base = 0.5;
-
-            scene.postProcessRenderPipelineManager.disableEffectInPipeline('SSAO', pipeline.SSAOCombineRenderEffect, this.editor.camera);
+            pipeline.radius = 0.0004;
+            pipeline.totalStrength = 2;
+            pipeline.base = 1.3;
 
             SceneManager.SSAORenderingPipeline = pipeline;
             this.update(scene);
         });
+
+        if (this._ssaoEnabled) {
+            ssao.add(SceneManager.SSAORenderingPipeline, 'totalStrength').min(0).step(0.0001).name('Strength');
+            ssao.add(SceneManager.SSAORenderingPipeline, 'radius').min(0).step(0.0001).name('Radius');
+            ssao.add(SceneManager.SSAORenderingPipeline, 'area').min(0).step(0.0001).name('Area');
+            ssao.add(SceneManager.SSAORenderingPipeline, 'fallOff').min(0).step(0.0001).name('Fall Off');
+            ssao.add(SceneManager.SSAORenderingPipeline, 'base').min(0).step(0.0001).name('Base');
+        }
+
+        // SSAO 2
+        const ssao2 = this.tool.addFolder('SSAO 2');
+        ssao2.open();
+
+        this._ssao2Enabled = SceneManager.SSAO2RenderingPipeline !== null;
+        ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(async r => {
+            const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);
+            pipeline.radius = 3.5;
+            pipeline.totalStrength = 1.3;
+            pipeline.expensiveBlur = true;
+            pipeline.samples = 16;
+            pipeline.maxZ = 250;
+
+            SceneManager.SSAO2RenderingPipeline = pipeline;
+            this.update(scene);
+        });
+
+        if (this._ssao2Enabled) {
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'totalStrength').min(0).step(0.0001).name('Strength');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'radius').min(0).step(0.0001).name('Radius');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'expensiveBlur').name('Expensive Blur');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(0).step(0.01).name('Max Z');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(0).max(64).step(1).name('Samples');
+        }
     }
 }

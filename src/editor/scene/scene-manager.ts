@@ -1,7 +1,7 @@
 import {
     Scene,
     ActionManager,
-    StandardRenderingPipeline, SSAORenderingPipeline
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -11,6 +11,7 @@ export default class SceneManager {
     public static ActionManagers: IStringDictionary<ActionManager> = { };
     public static StandardRenderingPipeline: StandardRenderingPipeline = null;
     public static SSAORenderingPipeline: SSAORenderingPipeline = null;
+    public static SSAO2RenderingPipeline: SSAO2RenderingPipeline = null;
 
     /**
      * Clears the scene manager
