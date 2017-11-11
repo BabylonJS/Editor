@@ -30,7 +30,7 @@ export default class EditorToolbar {
                     { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
-                    { id: 'code', caption: 'Code...', img: 'icon-behavior', text: 'Code...' }
+                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' }
                 ]
             }
         ];

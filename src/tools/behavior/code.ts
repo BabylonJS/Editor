@@ -29,7 +29,7 @@ export interface CodeGrid extends GridRow {
     name: string;
 }
 
-export default class AnimationEditor extends EditorPlugin {
+export default class BehaviorCodeEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
@@ -37,7 +37,6 @@ export default class AnimationEditor extends EditorPlugin {
 
     // Protected members
     protected code: MonacoDisposable = null;
-    protected extraLib: MonacoDisposable = null;
     protected template: string = '// Some code';
 
     protected node: Node | Scene = null;
@@ -46,6 +45,9 @@ export default class AnimationEditor extends EditorPlugin {
     protected data: BehaviorCode = null;
 
     protected onSelectObject = (node) => this.selectObject(node);
+
+    // Static members
+    protected static ExtraLib: MonacoDisposable = null;
 
     /**
      * Constructor
@@ -60,9 +62,10 @@ export default class AnimationEditor extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.toolbar.element.destroy();
+        this.grid.element.destroy();
         this.layout.element.destroy();
 
-        this.extraLib.dispose();
+        BehaviorCodeEditor.ExtraLib.dispose();
         this.code.dispose();
 
         // Events
@@ -234,7 +237,8 @@ export default class AnimationEditor extends EditorPlugin {
             selectionHighlight: true
         });
 
-        this.extraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(content, 'BehaviorEditor');
+        if (!BehaviorCodeEditor.ExtraLib)
+            BehaviorCodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(content, 'BehaviorEditor');
 
         this.code.onDidChangeModelContent(() => {
             if (this.data)

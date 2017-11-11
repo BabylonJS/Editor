@@ -23,6 +23,7 @@ import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneImporter from './scene/scene-importer';
+import SceneIcons from './scene/scene-icons';
 
 import CreateDefaultScene from './tools/default-scene';
 
@@ -41,6 +42,8 @@ export default class Editor {
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
     public scenePicker: ScenePicker;
+    public sceneIcons: SceneIcons;
+
     public filesInput: FilesInput;
 
     /**
@@ -119,6 +122,9 @@ export default class Editor {
 
         // Create scene picker
         this._createScenePicker();
+
+        // Create scene icons
+        this.sceneIcons = new SceneIcons(this);
     }
 
     /**
