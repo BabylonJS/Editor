@@ -81,14 +81,17 @@ export default class EditorToolbar {
      */
     protected onToolsClick (target: string): void {
         switch (target) {
-            
+            case 'test':
+                ProjectExporter.CreateFile(this.editor);
+                Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
+                break;
             default: break;
         }
     }
 
     /**
-     * 
-     * @param url 
+     * Loads an editor tool and add it in the edit-panel
+     * @param url the URL of the tool
      */
     protected async loadTool (url: string, name: string): Promise<IEditorPlugin> {
         this.editor.layout.lockPanel('preview', 'Loading...', true);

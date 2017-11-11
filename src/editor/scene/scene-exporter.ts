@@ -1,4 +1,5 @@
 import {
+    FilesInput, Tools as BabylonTools,
     Scene, SceneSerializer,
     Node, AbstractMesh, Light, Camera,
     IParticleSystem,
@@ -7,12 +8,31 @@ import {
     ActionManager
 } from 'babylonjs';
 
+import { IStringDictionary } from '../typings/typings';
+
 import SceneManager from './scene-manager';
+import Tools from '../tools/tools';
+import Editor from '../editor';
+import Extensions from '../../extensions/extensions';
 
 import * as Export from '../typings/project';
-import Editor from '../editor';
+
+const randomId = BabylonTools.RandomId();
 
 export default class ProjectExporter {
+    /**
+     * Creates a new file
+     * @param editor: the editor instance
+     */
+    public static CreateFile (editor: Editor): File {
+        const name = 'scene' + randomId + '.editorproject';
+        const project = this.Export(editor);
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
+
+        FilesInput.FilesToLoad[name] = file;
+
+        return file;
+    }
 
     /**
      * Exports the current editor project
@@ -23,7 +43,7 @@ export default class ProjectExporter {
 
         const project: Export.ProjectRoot = {
             actions: null,
-            customMetadatas: null,
+            customMetadatas: this._SerializeCustomMetadatas(editor),
             globalConfiguration: null,
             lensFlares: null,
             materials: this._SerializeMaterials(editor),
@@ -41,6 +61,19 @@ export default class ProjectExporter {
         SceneManager.Toggle(editor.core.scene);
 
         return project;
+    }
+
+    /**
+     * Serializes the custom metadatas
+     */
+    private static _SerializeCustomMetadatas (editor: Editor): IStringDictionary<any> {
+        const result = { };
+
+        // Instances have been 
+        for (const e in Extensions.Instances)
+            result[e] = Extensions.Instances[e].onSerialize();
+
+        return result;
     }
 
     /**

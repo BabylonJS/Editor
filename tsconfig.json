@@ -20,7 +20,8 @@
       "./.build",
       "./.declaration",
       "./index.d.ts",
-      "electron"
+      "electron",
+      "electronPackages"
     ]
   }
   

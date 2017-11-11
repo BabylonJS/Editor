@@ -53,6 +53,31 @@ export default class Tools {
     }
 
     /**
+     * Creates a window popup
+     * @param url the URL of the popup
+     * @param name: the name of the popup
+     * @param width the width of the popup
+     * @param height the height of the popup
+     */
+    public static OpenPopup(url: string, name: string, width: number, height: number): Window {
+        const features = [
+            'width=' + width,
+            'height=' + height,
+            'top=' + window.screenY + Math.max(window.outerHeight - height, 0) / 2,
+            'left=' + window.screenX + Math.max(window.outerWidth - width, 0) / 2,
+            'status=no',
+            'resizable=yes',
+            'toolbar=no',
+            'menubar=no',
+            'scrollbars=yes'];
+
+        const popup = window.open(url, name, features.join(','));
+        popup.focus();
+
+        return popup;
+    }
+
+    /**
     * Returns the file extension
     * @param filename: the file's name
     */
