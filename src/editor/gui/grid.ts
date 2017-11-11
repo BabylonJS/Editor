@@ -9,6 +9,10 @@ export interface GridColumn {
     field: string;
     caption: string;
     size: string;
+
+    editable?: {
+        type: string;
+    };
 }
 
 export interface GridOptions {
@@ -22,6 +26,7 @@ export interface GridOptions {
     toolbarReload?: boolean;
     header?: string;
     columnsHeaders?: boolean;
+    multiSelect?: boolean;
 }
 
 export default class Grid<T extends GridRow> {
@@ -39,12 +44,16 @@ export default class Grid<T extends GridRow> {
         toolbarColumns: true,
         toolbarReload: true,
         header: '',
-        columnsHeaders: true
+        columnsHeaders: true,
+        multiSelect: true
     };
 
     public columns: GridColumn[] = [];
 
     public onClick: (selected: number[]) => void;
+    public onAdd: () => void;
+    public onDelete: (ids: number[]) => void;
+    public onChange: (recid: number, value: string) => void;
 
     /**
      * Constructor
@@ -118,6 +127,8 @@ export default class Grid<T extends GridRow> {
             fixedBody: true,
             keyboard: false,
 
+            multiSelect: this.options.multiSelect,
+
             show: {
                 toolbar: this.options.toolbar,
                 footer: this.options.footer,
@@ -140,6 +151,31 @@ export default class Grid<T extends GridRow> {
                     if (this.onClick)
                         this.onClick(selected);
                 };
+            },
+
+            onAdd: () => {
+                if (this.onAdd)
+                    this.onAdd();
+            },
+
+            onDelete: (event: any) => {
+                if (event.force) {
+                    const selected = <number[]>this.element.getSelection();
+
+                    if (this.onDelete)
+                        this.onDelete(selected);
+
+                    for (let i = 0; i < this.element.records.length; i++)
+                        this.element.records[i]['recid'] = i;
+                }
+            },
+
+            onChange: (event) => {
+                if (typeof event.recid !== 'number')
+                    return;
+                
+                if (this.onChange)
+                    event.onComplete = () => this.onChange(event.recid, event.value_new);
             }
         });
     }

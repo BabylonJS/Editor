@@ -1,4 +1,4 @@
-import { Scene } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -14,6 +14,12 @@ export interface BehaviorMetadata {
     metadatas: BehaviorCode[];
 }
 
+const template = `
+BABYLON.EDITOR.Constructors['{{name}}'] = function (scene, {{node}}) {
+    {{code}}
+}
+`;
+
 export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Constructor
@@ -28,23 +34,54 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
      * On apply the extension
      */
     onApply (data: BehaviorMetadata[]): void {
-        debugger;
         this.datas = data;
+
+        // Create temporary variable
+        BABYLON['EDITOR'] = {
+            Constructors: { }
+        };
 
         // For each node
         this.datas.forEach(d => {
-            const node = this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
-            
-            node.metadata = node.metadata || { };
-            node.metadata['BehaviorExtension'] = d;
 
-            d.metadatas.forEach(async m => {
+            d.metadatas.forEach(m => {
                 if (!m.active)
                     return;
 
-                debugger;
+                let url = window.location.href;
+                url = url.replace(Tools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + m.name.replace(/ /g, '') + '.js';
+
+                const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + m.name.replace(/ /g, '');
+
+                // Create script tag
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.text = template
+                              .replace('{{name}}', fnName)
+                              .replace('{{node}}', this._getConstructorName(node))
+                              .replace('{{code}}', m.code)
+                              + '\n' + '//# sourceURL=' + url + '\n'
+                document.head.appendChild(script);
+
+                // Create instance
+                const instance = new BABYLON['EDITOR'].Constructors[fnName](this.scene, node);
+                const scope = this;
+
+                if (instance.start) {
+                    this.scene.registerBeforeRender(function () {
+                        instance.start();
+                        scope.scene.unregisterBeforeRender(this.callback);
+                    });
+                }
+
+                if (instance.update) {
+                    this.scene.registerBeforeRender(function () {
+                        instance.update();
+                    });
+                }
             });
         });
     }
@@ -52,8 +89,21 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Called by the editor when serializing the scene
      */
-    onSerialize (data: BehaviorMetadata[]): void {
-        debugger;
+    onSerialize (): BehaviorMetadata[] {
+        const result: BehaviorMetadata[] = [];
+        const add = (objects: (Scene | Node)[]) => {
+            objects.forEach(o => {
+                if (o.metadata && o.metadata['behavior'])
+                    result.push(o.metadata['behavior']);
+            });
+        };
+
+        add(this.scene.meshes);
+        add(this.scene.lights);
+        add(this.scene.cameras);
+        add([this.scene]);
+
+        return result;
     }
 
     /**
@@ -70,8 +120,25 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 return;
             
             node.metadata = node.metadata || { };
-            node.metadata['BehaviorExtension'] = d;
+            node.metadata['behavior'] = d;
         });
+    }
+
+    // Returns the name of the "obj" constructor
+    private _getConstructorName(obj: any): string {
+        if (obj instanceof DirectionalLight)
+            return "dirlight";
+
+        if (obj instanceof HemisphericLight)
+            return "hemlight";
+
+        let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : "";
+        
+        if (ctrName === "") {
+            ctrName = typeof obj;
+        }
+        
+        return ctrName.toLowerCase();
     }
 }
 

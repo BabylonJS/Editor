@@ -37,8 +37,18 @@
                 "cannonjs": "./node_modules/cannon/build/cannon.js"
             },
             packages: {
-                "./.build/src/editor/": {
+                "./.build/src/": {
                     defaultExtension: "js"
+                },
+                "./node_modules/babylonjs-loaders/": {
+                    format: "cjs",
+                    main: "babylonjs.loaders.js",
+                    format: "global"
+                },
+                "./node_modules/babylonjs/dist/preview release/materialsLibrary/": {
+                    format: "cjs",
+                    main: "babylonjs.materials.js",
+                    format: "global"
                 }
             },
             meta: {
@@ -46,31 +56,86 @@
             }
         });
 
+        // Loads the Babylon.js Scenes
+        var loadScene = function (sceneFile) {
+            var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
+            BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
+                // Run scene
+                scene.activeCamera.attachControl(engine.getRenderingCanvas());
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
+
+                // Load Extensions Manager and then all extensions
+                scene.executeWhenReady(function () {
+                    System.import('./.build/src/extensions/extensions.js').then(function (extensions) {
+                        var promises = [];
+                        var files = [
+                            "./.build/src/extensions/behavior/code.js"
+                        ];
+
+                        for (var i = 0; i < files.length; i++) {
+                            promises.push(System.import(files[i]));
+                        }
+
+                        Promise.all(promises).then(function () {
+                            // Apply
+                            getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
+                                BABYLON.Tools.ReadFile(project, function (data) {
+                                    extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        };
+
+        // Imports the tools
+        var importTools = function (callback) {
+            System.import('./.build/src/editor/tools/tools.js').then(function (tools) {
+                callback(tools);
+            });
+        }
+
+        // Returns the scene file
+        var getFileByExtension = function (files, extension, callback) {
+            importTools(function (tools) {
+                for (var thing in files) {
+                    var file = tools.default.CreateFile(files[thing], thing);
+                    if (tools.default.GetFileExtension(file.name) === extension) {
+                        callback(file);
+                        break;
+                    }
+                }
+            });
+        };
+
+        // Load Babylon.js
+        // Get scene file
+        // Run sockets
         System.import("babylonjs").then(function (e) {
             window.BABYLON = e;
 
-            var socket = io('http://localhost:1337/client');
+            if (opener) {
+                BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
+            }
 
+            getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon', function (sceneFile) {
+                loadScene(sceneFile);
+            });
+
+            var socket = io('http://localhost:1337/client');
             socket.on('request-scene', (files) => {
                 // Import Editor tools
-                System.import('./.build/src/editor/tools/tools.js').then(function (t) {
-                    var sceneFile = null;
-
+                importTools(function (tools) {
                     for (var thing in files) {
-                        var file = t.default.CreateFile(files[thing], thing);
+                        var file = tools.default.CreateFile(files[thing], thing);
                         BABYLON.FilesInput.FilesToLoad[thing] = file;
-
-                        if (t.default.GetFileExtension(file.name) === 'babylon') {
-                            sceneFile = file;
-                        }
                     }
 
-                    var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
-                    BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
-                        scene.activeCamera.attachControl(engine.getRenderingCanvas());
-                        engine.runRenderLoop(function () {
-                            scene.render();
-                        });
+                    getFileByExtension(files, 'babylon', function (sceneFile) {
+                        loadScene(sceneFile);
                     });
                 });
             });

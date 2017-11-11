@@ -252,7 +252,7 @@ export default class Editor {
 
                 // Import extensions
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
-                await System.import('.build/src/extensions/behavior/code');
+                await Tools.ImportScript('.build/src/extensions/behavior/code');
 
                 this.layout.unlockPanel('main');
 

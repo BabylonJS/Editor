@@ -10,7 +10,7 @@
     "clean": "rm -rf .build && rm -rf .declaration",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
-    "build": "npm run clean && npm run compile",
+    "build": "npm run clean && npm run compile && npm run compile-electron && npm run bundle",
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",

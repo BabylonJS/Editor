@@ -6,6 +6,8 @@ export default class Core {
     public scenes: Scene[] = [];
     public scene: Scene;
 
+    public currentSelectedObject: any = null;
+
     public updates: { onPreUpdate?(): void, onPostUpdate?(): void }[] = [];
 
     public onSelectObject: Observable<any> = new Observable<any>();
@@ -14,8 +16,10 @@ export default class Core {
     /**
      * Constructor
      */
-    constructor()
-    { }
+    constructor() {
+        // Register on events
+        this.onSelectObject.add((object) => this.currentSelectedObject = object);
+    }
 
     /**
      * Removes the given scene from the registered scenes

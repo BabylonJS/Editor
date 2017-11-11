@@ -28,33 +28,42 @@ export default class EditorEditPanel {
                 await this.editor.removePlugin(plugin);
 
                 const first = Object.keys(this.editor.plugins)[0];
-                this.showPlugin(this.editor.plugins[first]);
+                await this.showPlugin(this.editor.plugins[first]);
             },
-            onClick: (event) => this._onChangeTab(plugin)
+            onClick: (event) => this._onChangeTab(plugin, false)
         });
 
         $('#EDIT-PANEL-TOOLS').append(plugin.divElement);
         this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
 
         // Activate added plugin
-        this._onChangeTab(plugin);
+        this._onChangeTab(plugin, true);
     }
 
     /**
      * Shows the given plugin
      * @param plugin: the plugin to show
      */
-    public showPlugin (plugin: IEditorPlugin): void {
+    public async showPlugin (plugin: IEditorPlugin): Promise<void> {
+        if (!plugin)
+            return;
+        
+        if (plugin.onShow)
+            await plugin.onShow();
+
         this.panel.tabs.select(plugin.name);
-        this._onChangeTab(plugin);
+        this._onChangeTab(plugin, false);
     }
 
     // On the tab changed
-    private _onChangeTab (plugin: IEditorPlugin): void {
+    private _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): void {
         if (this.currentDiv)
             $(this.currentDiv).hide();
 
         this.currentDiv = plugin.divElement;
         $(this.currentDiv).show();
+
+        if (!firstShow && plugin.onShow)
+            plugin.onShow();
     }
 }
