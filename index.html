@@ -18,6 +18,7 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
+                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "dat-gui": "./node_modules/dat-gui/vendor/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
@@ -39,6 +40,11 @@
                     format: "cjs",
                     main: "babylonjs.materials.js",
                     format: "global"
+                },
+                "./node_modules/babylonjs-gui/": {
+                    format: "cjs",
+                    main: "babylon.gui.js",
+                    format: "global"
                 }
             },
             map: {
@@ -46,7 +52,9 @@
             },
             meta: {
                 "*.css": { loader: "css" },
-                "cannonjs": { format: "global" }
+                "cannonjs": { format: "global" },
+                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
+                "babylonjs-gui": { exports: "babylonDependency.GUI" }
             },
             pluginFirst: true
         });

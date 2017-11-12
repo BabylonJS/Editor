@@ -34,6 +34,7 @@ export default class SceneIcons {
         this.scene = new Scene(editor.core.engine);
         this.scene.autoClear = false;
         this.scene.postProcessesEnabled = false;
+        this.scene.preventDefaultOnPointerDown = false;
 
         // Create textures
         this.cameraTexture = this.createTexture('css/images/camera.png');

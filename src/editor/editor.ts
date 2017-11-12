@@ -25,7 +25,7 @@ import ScenePreview from './scene/scene-preview';
 import SceneImporter from './scene/scene-importer';
 import SceneIcons from './scene/scene-icons';
 
-import CreateDefaultScene from './tools/default-scene';
+import DefaultScene from './tools/default-scene';
 
 export default class Editor {
     // Public members
@@ -120,11 +120,11 @@ export default class Editor {
         // Create files input
         this._createFilesInput();
 
-        // Create scene picker
-        this._createScenePicker();
-
         // Create scene icons
         this.sceneIcons = new SceneIcons(this);
+
+        // Create scene picker
+        this._createScenePicker();
     }
 
     /**
@@ -196,8 +196,11 @@ export default class Editor {
      * Creates the editor camera
      */
     protected createEditorCamera (): Camera {
-        this.camera = new FreeCamera("Editor Camera", this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(50, 50, 50), this.core.scene);
-        this.camera.setTarget(Vector3.Zero());
+        // Editor camera
+        this.camera = new FreeCamera('Editor Camera', this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(0, 5, 25), this.core.scene);
+        this.camera.speed = 0.5;
+        this.camera.angularSensibility = 3000;
+        this.camera.setTarget(new Vector3(0, 5, 24));
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
         // Define target property on FreeCamera
@@ -338,10 +341,7 @@ export default class Editor {
     // Creates a default scene
     private async _createDefaultScene(): Promise<void> {
         // Create default scene
-        await CreateDefaultScene(this.core.scene);
-
-        // Toggle interactions (action manager, etc.)
-        SceneManager.Toggle(this.core.scene);
+        await DefaultScene.Create(this.core.scene);
 
         // Fill graph
         this.graph.fill();
