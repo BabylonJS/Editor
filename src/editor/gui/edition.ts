@@ -177,10 +177,15 @@ export default class Edition {
      * @param object the object which has a texture
      * @param callback: called when changed texture
      */
-    public addTexture(parent: dat.GUI, scene: Scene, property: string, object: any, allowCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
+    public addTexture(parent: dat.GUI, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
         const textures = ['None'];
         scene.textures.forEach(t => {
-            if (t instanceof CubeTexture && !allowCubes)
+            const isCube = t instanceof CubeTexture;
+
+            if (isCube && !allowCubes)
+                return;
+
+            if (!isCube && onlyCubes)
                 return;
 
             textures.push(t.name);

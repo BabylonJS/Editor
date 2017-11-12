@@ -34,9 +34,12 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         // Bump
         const bump = this.tool.addFolder('Bump');
         bump.open();
+        this.tool.addTexture(bump, this.editor.core.scene, 'bumpTexture', this.object).name('Bump Texture');
         bump.add(this.object, 'invertNormalMapX').name('Invert Normal Map X');
         bump.add(this.object, 'invertNormalMapY').name('Invert Normal Map Y');
-        this.tool.addTexture(bump, this.editor.core.scene, 'bumpTexture', this.object).name('Bump Texture');
+        bump.add(this.object, 'useParallax').name('Use Parallax');
+        bump.add(this.object, 'useParallaxOcclusion').name('Use Parallax Occlusion');
+        bump.add(this.object, 'parallaxScaleBias').step(0.001).name('Parallax Scale Bias');
 
         // Specular
         const specular = this.tool.addFolder('Specular');
