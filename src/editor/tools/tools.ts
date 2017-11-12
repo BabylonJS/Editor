@@ -90,12 +90,22 @@ export default class Tools {
 
     /**
     * Returns the filename without extension
+    * @param filename: the filename (path)
+    * @param withPath: if the return value should contain all path
     */
     public static GetFilenameWithoutExtension (filename: string, withPath?: boolean): string {
         var lastDot = filename.lastIndexOf(".");
         var lastSlash = filename.lastIndexOf("/");
 
         return filename.substring(withPath ? 0 : lastSlash + 1, lastDot);
+    }
+
+    /**
+     * Returns the filename
+     * @param filename: the complete filename with path
+     */
+    public static GetFilename (filename: string): string {
+        return this.GetFilenameWithoutExtension(filename, false) + '.' + this.GetFileExtension(filename);
     }
 
     /**
