@@ -148,6 +148,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.editor.core.onResize.add(this.onResize);
 
         // On select object
+        this.objectSelected(this.editor.core.currentSelectedObject);
         this.editor.core.onSelectObject.add(this.onObjectSelected);
     }
 

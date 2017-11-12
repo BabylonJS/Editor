@@ -104,6 +104,10 @@ export default class SceneIcons {
 
     /**
      * Render the given objects
+     * @param batch: the instances render list
+     * @param subMesh: the submesh to render
+     * @param nodes: the nodes to render
+     * @param configure: callback to know if render or not the node
      */
     protected renderPlane (batch: _InstancesBatch, subMesh: SubMesh, nodes: Node[], configure: (node: any) => boolean): void {
         const effect = subMesh.effect;
@@ -128,6 +132,7 @@ export default class SceneIcons {
 
     /**
      * Creates a new texture
+     * @param url: the url of the texture
      */
     protected createTexture (url: string): Texture {
         const texture = new Texture(url, this.scene);
