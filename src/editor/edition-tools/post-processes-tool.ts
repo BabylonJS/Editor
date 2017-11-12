@@ -36,7 +36,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         super.update(scene);
 
         // Default
-        const standardPipeline = this.tool.addFolder('Default');
+        const standardPipeline = this.tool.addFolder('Standard');
         standardPipeline.open();
 
         this._standardEnabled = SceneManager.StandardRenderingPipeline !== null;
