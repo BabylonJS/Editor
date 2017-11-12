@@ -323,8 +323,9 @@ export default class Editor {
                 delete FilesInput.FilesToLoad['scene.babylon'];
                 FilesInput.FilesToLoad[file.name] = file;
             });
-        }, () => {
-
+        }, (file, scene, message) => {
+            // Error callback
+            Dialog.Create('Error when loading scene', message, null);
         });
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvas'));
     }
@@ -341,7 +342,11 @@ export default class Editor {
     // Creates a default scene
     private async _createDefaultScene(): Promise<void> {
         // Create default scene
-        await DefaultScene.Create(this.core.scene);
+        this.layout.lockPanel('main', 'Loading Preview Scene...', true);
+        DefaultScene.Create(this.core.scene).then(() => {
+            this.graph.fill();
+            this.layout.unlockPanel('main');
+        });
 
         // Fill graph
         this.graph.fill();
