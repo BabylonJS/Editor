@@ -346,7 +346,7 @@ export default class Editor {
     private async _createDefaultScene(): Promise<void> {
         // Create default scene
         this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-        DefaultScene.Create(this.core.scene).then(() => {
+        DefaultScene.Create(this).then(() => {
             this.graph.clear();
             this.graph.fill();
             this.layout.unlockPanel('main');

@@ -9,6 +9,8 @@ import {
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
+import Picker from '../gui/picker';
+
 export default class SceneFactory {
     public static AddToGraph (editor: Editor, node: any): void {
         editor.graph.clear();
@@ -20,24 +22,20 @@ export default class SceneFactory {
      * @param editor: the editor reference
      * @param emitter: the emitter of the system
      */
-    public static CreateDefaultParticleSystem (editor: Editor, emitter?: any): ParticleSystem {
+    public static CreateDefaultParticleSystem (editor: Editor, spriteSheetEnabled: boolean, emitter?: any): ParticleSystem {
         // Misc
         const scene = editor.core.scene;
 
-        // Emitter
-        if (!emitter) {
-            emitter = new Mesh('New Particle System Emitter', scene);
-            emitter.id = BabylonTools.RandomId();
-            Tags.AddTagsTo(emitter, 'added_particlesystem');
-        }
-
         // Create system
-        const system = new ParticleSystem('New Particle System', 10000, scene);
+        const system = new ParticleSystem('New Particle System', 10000, scene, null, spriteSheetEnabled);
         system.id = BabylonTools.RandomId();
-        Tools.CreateFileFromURL('assets/textures/flare.png').then(() => {
-            system.particleTexture = new Texture('file:flare.png', scene);
-            system.particleTexture.name = system.particleTexture.url = 'flare.png';
-        });
+
+        if (!emitter) {
+            Tools.CreateFileFromURL('assets/textures/flare.png').then(() => {
+                system.particleTexture = new Texture('file:flare.png', scene);
+                system.particleTexture.name = system.particleTexture.url = 'flare.png';
+            });
+        }
         system.minAngularSpeed = -0.5;
         system.maxAngularSpeed = 0.5;
         system.minSize = 0.1;
@@ -46,7 +44,6 @@ export default class SceneFactory {
         system.maxLifeTime = 2.0;
         system.minEmitPower = 0.5;
         system.maxEmitPower = 4.0;
-        system.emitter = emitter;
         system.emitRate = 400;
         system.blendMode = ParticleSystem.BLENDMODE_ONEONE;
         system.minEmitBox = new Vector3(0, 0, 0);
@@ -58,7 +55,25 @@ export default class SceneFactory {
         system.gravity = new Vector3(0, -2.0, 0);
         system.start();
 
-        this.AddToGraph(editor, system);
+        // Emitter
+        if (emitter) {
+            system.emitter = emitter;
+            return system;
+        }
+
+        const picker = new Picker('Choose Emitter');
+        picker.addItems(scene.meshes);
+        picker.open(items => {
+            let emitter = items.length > 0 ? scene.getNodeByName(items[0].name) : null;
+            if (!emitter) {
+                emitter = new Mesh('New Particle System Emitter', scene);
+                emitter.id = BabylonTools.RandomId();
+                Tags.AddTagsTo(emitter, 'added_particlesystem');
+            }
+
+            system.emitter = <any> emitter;
+            this.AddToGraph(editor, system);
+        });
 
         return system;
     }

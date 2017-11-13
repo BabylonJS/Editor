@@ -37,7 +37,8 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'add', text: 'Add', img: 'icon-add', items: [
-                    { id: 'particle-system', caption: 'Particle System', img: 'icon-particles', text: 'Particle System' }
+                    { id: 'particle-system', caption: 'Particle System', img: 'icon-particles', text: 'Particle System' },
+                    { id: 'particle-system-animated', caption: 'Animated Particle System', img: 'icon-particles', text: 'Animated Particle System' }
                 ]
             }
         ];
@@ -81,7 +82,10 @@ export default class EditorToolbar {
 
             // Add
             case 'add:particle-system':
-                SceneFactory.CreateDefaultParticleSystem(this.editor);
+                SceneFactory.CreateDefaultParticleSystem(this.editor, false);
+                break;
+            case 'add:particle-system-animated':
+                SceneFactory.CreateDefaultParticleSystem(this.editor, true);
                 break;
             default: break;
         }

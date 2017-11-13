@@ -4,7 +4,7 @@ import {
     Texture, StandardMaterial, Material,
     Color3, Vector3,
     Effect,
-    SubMesh, _InstancesBatch
+    SubMesh, _InstancesBatch, IParticleSystem
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -15,6 +15,7 @@ export default class SceneIcons {
 
     public cameraTexture: Texture;
     public lightTexture: Texture;
+    public particleTexture: Texture;
 
     public plane: Mesh;
     public material: StandardMaterial;
@@ -39,6 +40,7 @@ export default class SceneIcons {
         // Create textures
         this.cameraTexture = this.createTexture('css/images/camera.png');
         this.lightTexture = this.createTexture('css/images/light.png');
+        this.particleTexture = this.createTexture('css/images/particles.png');
 
         // Create material
         this.material = new StandardMaterial('SceneIcons', this.scene);
@@ -101,6 +103,17 @@ export default class SceneIcons {
             this.plane.position.copyFrom(n.getAbsolutePosition());
             return true;
         });
+
+        // Particles
+        this.material.diffuseTexture = this.particleTexture;
+        this.renderPlane(batch, subMesh, scene.particleSystems, (n: IParticleSystem) => {
+            if (n.emitter instanceof Vector3)
+                this.plane.position.copyFrom(n.emitter);
+            else
+                this.plane.position.copyFrom(n.emitter.getAbsolutePosition());
+            
+            return true;
+        });
     }
 
     /**
@@ -110,7 +123,7 @@ export default class SceneIcons {
      * @param nodes: the nodes to render
      * @param configure: callback to know if render or not the node
      */
-    protected renderPlane (batch: _InstancesBatch, subMesh: SubMesh, nodes: Node[], configure: (node: any) => boolean): void {
+    protected renderPlane (batch: _InstancesBatch, subMesh: SubMesh, nodes: any[], configure: (node: any) => boolean): void {
         const effect = subMesh.effect;
 
         nodes.forEach(n => {
