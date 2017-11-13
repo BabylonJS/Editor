@@ -6,6 +6,7 @@ export default class Toolbar {
     // Public members
     public name: string;
     public items: W2Item[] = [];
+    public right: string = null;
 
     public element: W2UI.W2Toolbar;
 
@@ -30,7 +31,8 @@ export default class Toolbar {
             onClick: (event) => {
                 if (this.onClick)
                     this.onClick(event.target);
-            }
+            },
+            right: this.right
         });
     }
 }

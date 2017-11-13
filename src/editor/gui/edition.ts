@@ -126,7 +126,7 @@ export default class Edition {
      */
     public addColor (parent: dat.GUI, name: string, color: Color3 | Color4): dat.GUI {
         const target = {
-            color: color.asArray()
+            color: [color.r, color.g, color.b]
         };
 
         const folder = parent.addFolder(name);

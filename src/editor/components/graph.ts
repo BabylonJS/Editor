@@ -17,6 +17,7 @@ export default class EditorGraph {
     constructor(protected editor: Editor) {
         // Build graph
         this.graph = new Graph('SceneGraph');
+        this.graph.topContent = '<div style="background-color: #eee; padding: 10px 5px; border-bottom: 1px solid silver">Scene Content</div>'
         this.graph.build('SCENE-GRAPH');
 
         // Events

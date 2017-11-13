@@ -155,12 +155,12 @@ export default class Editor {
      * @param url the URL of the plugin
      */
     public async addEditPanelPlugin (url: string, name?: string): Promise<IEditorPlugin> {
-        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
-
         if (this.plugins[url]) {
             this.editPanel.showPlugin(this.plugins[url]);
             return this.plugins[url];
         }
+
+        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin(url);
         this.plugins[url] = plugin;
