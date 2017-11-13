@@ -108,12 +108,10 @@ export default class EditorToolbar {
     /**
      * Loads an editor tool and add it in the edit-panel
      * @param url the URL of the tool
+     * @param name: the name of the tool to draw when locking the panel
      */
     protected async loadTool (url: string, name: string): Promise<IEditorPlugin> {
-        this.editor.layout.lockPanel('preview', 'Loading...', true);
         const result = await this.editor.addEditPanelPlugin(url, name);
-        this.editor.layout.unlockPanel('preview');
-
         return result;
     }
 }

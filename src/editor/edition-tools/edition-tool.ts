@@ -43,6 +43,9 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
 
         this.tool = new Edition();
         this.tool.build(this.divId);
+
+        this.tool.element['saveToLocalStorageIfPossible']();
+        this.tool.element['onResize']();
     }
 
     /**

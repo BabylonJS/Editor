@@ -56,7 +56,7 @@ export default class EditorEditPanel {
     }
 
     // On the tab changed
-    private _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): void {
+    private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): Promise<void> {
         if (this.currentDiv)
             $(this.currentDiv).hide();
 
@@ -64,6 +64,6 @@ export default class EditorEditPanel {
         $(this.currentDiv).show();
 
         if (!firstShow && plugin.onShow)
-            plugin.onShow();
+            await plugin.onShow();
     }
 }

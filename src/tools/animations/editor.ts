@@ -99,19 +99,14 @@ export default class AnimationEditor extends EditorPlugin {
         // Create toolbar
         this.toolbar = new Toolbar('AnimationEditorToolbar');
         this.toolbar.items = [
-            { type: 'check', id: 'add', text: 'Add', img: 'icon-add', checked: false },
+            { type: 'check', id: 'add', text: 'Add Keys', img: 'icon-add', checked: false },
             { type: 'break' },
-            { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-folder', items: [] },
-            { type: 'spacer' },
-            {
-                type: 'html',
-                id: 'fps',
-                html: `
-                    <div style="padding: 3px 10px;">    
-                        FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver"/>
-                    </div>`
-            }
+            { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] }
         ];
+        this.toolbar.right = `
+        <div style="padding: 3px 10px;">    
+            FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
+        </div>`;
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
         this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
 
@@ -139,9 +134,10 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Events
         const input = $('#ANIMATION-EDITOR-FPS');
-        this.fpsInput = (<any> input).w2field('int', { autoFormat: true });
+        this.fpsInput = (<any> input).w2field('float', { autoFormat: true });
         this.fpsInput[0].addEventListener('change', (ev) => {
-            debugger;
+            if (this.animation)
+                this.animation.framePerSecond = parseFloat(<string>this.fpsInput.val());
         });
 
         // Resize
