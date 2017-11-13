@@ -40,13 +40,13 @@ export default class DefaultScene {
      * @param str: the string to draw
      * @param lines: if draw lines
      */
-    public static CreateLabel (gui: AdvancedDynamicTexture, mesh: Mesh, str: string, lines: boolean): Rectangle {
+    public static CreateLabel (gui: AdvancedDynamicTexture, mesh: Mesh, str: string, lines: boolean, width: string, height: string): Rectangle {
         // PBR GUI
         const label = new Rectangle(str);
         label.background = 'black'
-        label.height = '30px';
+        label.height = height;
         label.alpha = 0.5;
-        label.width = '300px';
+        label.width = width;
         label.cornerRadius = 20;
         label.thickness = 1;
         label.linkOffsetY = 30;
@@ -119,6 +119,9 @@ export default class DefaultScene {
         // Documentation
         const documentation = await this.LoadTexture('assets/textures/documentation.png', scene);
 
+        // Amiga
+        const amiga = await this.LoadTexture('assets/textures/amiga.jpg', scene);
+
         // Skybox
         const skyboxMaterial = new PBRMaterial('SkyboxMaterial', scene);
         skyboxMaterial.backFaceCulling = false;
@@ -134,7 +137,7 @@ export default class DefaultScene {
             skyboxMaterial.reflectionTexture = hdrTexture.clone();
             skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
     
-            hdrTexture.name = hdrTexture.url = "skybox.dds";
+            hdrTexture.name = hdrTexture.url = "environment.dds";
             skyboxMaterial.reflectionTexture.name = skyboxMaterial.reflectionTexture['url'] = "environment.dds";
         });
 
@@ -180,6 +183,26 @@ export default class DefaultScene {
         sphereStd.position.set(5, 3, 0);
         sphereStd.material = sphereMaterialStd;
 
+        // Sphere Animated
+        const sphereMaterialAnim = new StandardMaterial('SphereAnimated', scene);
+        sphereMaterialAnim.emissiveTexture = amiga;
+
+        const sphereAnimated = Mesh.CreateSphere('Sphere Animated', 32, 5, scene);
+        sphereAnimated.position.set(15, 3, 0);
+        sphereAnimated.material = sphereMaterialAnim;
+
+        const anim = new Animation('Rotation', 'rotation.y', 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, true);
+        anim.setKeys([
+            { frame: 0, value: 0 },
+            { frame: 60, value: Math.PI },
+            { frame: 120, value: 0 },
+            { frame: 180, value: -Math.PI },
+            { frame: 240, value: 0 }
+        ]);
+
+        sphereAnimated.animations.push(anim);
+        scene.beginAnimation(sphereAnimated, 0, 240, true, 1.0);
+
         // Plane
         const planeMaterial = new StandardMaterial('PlaneMaterial', scene);
         planeMaterial.emissiveTexture = documentation;
@@ -206,9 +229,10 @@ export default class DefaultScene {
         gui.layer.layerMask = 2;
 
         // Labels
-        this.CreateLabel(gui, sphereStd, 'Standard Material', false);
-        this.CreateLabel(gui, spherePBR, 'PBR Material', false);
-        this.CreateLabel(gui, plane, 'Documentation (Double Click)', false);
+        this.CreateLabel(gui, sphereAnimated, 'Animated\nView => Animations...', false, '200px', '60px');
+        this.CreateLabel(gui, sphereStd, 'Standard Material', false, '200px', '30px');
+        this.CreateLabel(gui, spherePBR, 'PBR Material', false, '150px', '30px');
+        this.CreateLabel(gui, plane, 'Documentation (Double Click)', false, '300px', '30px');
 
         // Scene file
         const serializedScene = SceneSerializer.Serialize(scene);

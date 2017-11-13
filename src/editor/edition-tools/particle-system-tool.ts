@@ -46,6 +46,11 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
                 });
             }
 
+            // Texture
+            const texture = this.tool.addFolder('Texture');
+            texture.open();
+            this.tool.addTexture(texture, scene, 'particleTexture', ps, false).name('Particle Texture');
+
             // Emit
             const emit = this.tool.addFolder('Emit');
             emit.open();
