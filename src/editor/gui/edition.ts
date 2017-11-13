@@ -3,7 +3,7 @@ import {
     Vector2, Vector3, Vector4,
     Scene, BaseTexture, CubeTexture
 } from 'babylonjs';
-import * as dat from 'dat.gui';
+import * as dat from 'dat-gui';
 
 import Tools from '../tools/tools';
 

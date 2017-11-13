@@ -81,6 +81,18 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             angular.add(ps, 'minAngularSpeed').min(0).step(0.01).name('Min Angular Speed');
             angular.add(ps, 'maxAngularSpeed').min(0).step(0.01).name('Max Angular Speed');
 
+            // Sprite
+            if (ps.isAnimationSheetEnabled) {
+                const sprite = this.tool.addFolder('Sprite');
+                sprite.open();
+                sprite.add(ps, 'startSpriteCellID').min(0).step(1).name('Start Sprite Cell ID');
+                sprite.add(ps, 'endSpriteCellID').min(0).step(1).name('End Sprite Cell ID');
+                sprite.add(ps, 'spriteCellWidth').min(0).step(1).name('Sprite Cell Width');
+                sprite.add(ps, 'spriteCellHeight').min(0).step(1).name('Sprite Cell Height');
+                sprite.add(ps, 'spriteCellLoop').name('Sprite Cell Loop').onFinishChange(r => ps.spriteCellLoop = r);
+                sprite.add(ps, 'spriteCellChangeSpeed').min(0).step(1).name('Sprite Cell Change Speed');
+            }
+
             // Gravity
             this.tool.addVector(this.tool.element, 'Gravity', ps.gravity).open();
 

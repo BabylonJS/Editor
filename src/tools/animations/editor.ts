@@ -214,6 +214,9 @@ export default class AnimationEditor extends EditorPlugin {
         if (!object.animations)
             return;
 
+        // Misc.
+        this.editor.core.scene.stopAnimation(object);
+
         // Update animations list
         const animations = ['None'];
         object.animations.forEach(a => {
