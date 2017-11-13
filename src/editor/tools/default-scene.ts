@@ -135,7 +135,7 @@ export default class DefaultScene {
 
         const groundMaterial = new PBRMaterial('GroundMaterial', scene);
         groundMaterial.usePhysicalLightFalloff = false;
-        groundMaterial.microSurface = 0.95;
+        groundMaterial.microSurface = 0.93;
         groundMaterial.albedoTexture = floor;
         groundMaterial.bumpTexture = floorBump;
         groundMaterial.ambientTexture = floorAmbient;

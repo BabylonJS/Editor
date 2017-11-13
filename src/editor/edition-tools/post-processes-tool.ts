@@ -42,6 +42,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         this._standardEnabled = SceneManager.StandardRenderingPipeline !== null;
         standardPipeline.add(this, '_standardEnabled').name('Enable').onChange(async r => {
             const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
+            pipeline.depthOfFieldDistance = 0.05;
             
             await Tools.CreateFileFromURL('assets/textures/lensflaredirt.png');
             pipeline.lensTexture = pipeline.lensFlareDirtTexture = new Texture('file:lensflaredirt.png', scene);
@@ -82,7 +83,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             const dof = standardPipeline.addFolder('Depth-Of-Field');
             dof.open();
             dof.add(SceneManager.StandardRenderingPipeline, 'DepthOfFieldEnabled').name('Depth-Of-Field Enabled');
-            dof.add(SceneManager.StandardRenderingPipeline, 'depthOfFieldDistance').min(0).max(1).step(0.01).name('DOF Distance');
+            dof.add(SceneManager.StandardRenderingPipeline, 'depthOfFieldDistance').min(0).max(1).step(0.001).name('DOF Distance');
             dof.add(SceneManager.StandardRenderingPipeline, 'depthOfFieldBlurWidth').min(0).max(512).name('Blur Width');
 
             const hdr = standardPipeline.addFolder('HDR');

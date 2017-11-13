@@ -39,6 +39,7 @@
   "dependencies": {
     "jquery": "~3.2.1",
     "dat.gui": "~0.6.1",
+    "dat-gui": "0.5.0",
     "systemjs-plugin-css": "~0.1.35",
     "w2ui": "~1.4.3",
     "systemjs": "~0.20.19",
