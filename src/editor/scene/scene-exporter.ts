@@ -24,14 +24,17 @@ export default class ProjectExporter {
      * Creates a new file
      * @param editor: the editor instance
      */
-    public static CreateFile (editor: Editor): File {
+    public static CreateFile (editor: Editor): void {
+        // Scene
+        const serializedScene = SceneSerializer.Serialize(editor.core.scene);
+        let file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
+        editor.sceneFile = file;
+
+        // Project
         const name = 'scene' + randomId + '.editorproject';
         const project = this.Export(editor);
-        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
-
-        FilesInput.FilesToLoad[name] = file;
-
-        return file;
+        file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
+        editor.projectFile = file;
     }
 
     /**

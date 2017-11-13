@@ -45,6 +45,8 @@ export default class Editor {
     public sceneIcons: SceneIcons;
 
     public filesInput: FilesInput;
+    public sceneFile: File = null;
+    public projectFile: File = null;
 
     /**
      * Constructor
@@ -201,6 +203,7 @@ export default class Editor {
         this.camera.speed = 0.5;
         this.camera.angularSensibility = 3000;
         this.camera.setTarget(new Vector3(0, 5, 24));
+        this.camera.maxZ = 10000;
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
         // Define target property on FreeCamera
@@ -344,6 +347,7 @@ export default class Editor {
         // Create default scene
         this.layout.lockPanel('main', 'Loading Preview Scene...', true);
         DefaultScene.Create(this.core.scene).then(() => {
+            this.graph.clear();
             this.graph.fill();
             this.layout.unlockPanel('main');
         });

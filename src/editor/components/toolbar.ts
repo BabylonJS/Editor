@@ -5,6 +5,7 @@ import Toolbar from '../gui/toolbar';
 import Tools from '../tools/tools';
 
 import ProjectExporter from '../scene/scene-exporter';
+import SceneFactory from '../scene/scene-factory';
 
 export default class EditorToolbar {
     // Public members
@@ -31,6 +32,12 @@ export default class EditorToolbar {
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
                     { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' }
+                ]
+            },
+            { type: 'break' },
+            {
+                type: 'menu', id: 'add', text: 'Add', img: 'icon-add', items: [
+                    { id: 'particle-system', caption: 'Particle System', img: 'icon-particles', text: 'Particle System' }
                 ]
             }
         ];
@@ -70,6 +77,11 @@ export default class EditorToolbar {
                 break;
             case 'view:code':
                 await this.loadTool('./.build/src/tools/behavior/code.js', 'Behavior Code');
+                break;
+
+            // Add
+            case 'add:particle-system':
+                SceneFactory.CreateDefaultParticleSystem(this.editor);
                 break;
             default: break;
         }
