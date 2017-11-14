@@ -26,6 +26,21 @@ export default class Window {
     }
 
     /**
+     * Locks the window
+     * @param message: the message to draw
+     */
+    public lock (message: string): void {
+        w2popup.lock(message, true);
+    }
+
+    /**
+     * Unlocks the window
+     */
+    public unlock (): void {
+        w2popup.unlock();
+    }
+
+    /**
      * Opens the window
      */
     public open (): void {

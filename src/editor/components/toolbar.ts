@@ -7,6 +7,8 @@ import Tools from '../tools/tools';
 import ProjectExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 
+import OneDriveStorage from '../storage/one-drive-storage';
+
 export default class EditorToolbar {
     // Public members
     public main: Toolbar;
@@ -63,7 +65,8 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:export':
-                console.log(ProjectExporter.Export(this.editor));
+                const storage = new OneDriveStorage(this.editor);
+                storage.openPicker('Export on OneDrive', [{ name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) }]);
                 break;
 
             // View

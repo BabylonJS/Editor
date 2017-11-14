@@ -132,3 +132,4 @@ package-lock.json
 # Build
 .build
 .declaration
+electronPackages

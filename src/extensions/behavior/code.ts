@@ -15,11 +15,20 @@ export interface BehaviorMetadata {
 }
 
 const template = `
-BABYLON.EDITOR.Constructors['{{name}}'] = function (scene, {{node}}) {
+EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}) {
     {{code}}
 }
 `;
 
+// Set EDITOR on Window
+export module EDITOR {
+    export class BehaviorCode {
+        public static Constructors = { };
+    }
+}
+window['EDITOR'] = EDITOR;
+
+// Code extension class
 export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Constructor
@@ -35,11 +44,6 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
      */
     onApply (data: BehaviorMetadata[]): void {
         this.datas = data;
-
-        // Create temporary variable
-        BABYLON['EDITOR'] = {
-            Constructors: { }
-        };
 
         // For each node
         this.datas.forEach(d => {
@@ -67,7 +71,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 document.head.appendChild(script);
 
                 // Create instance
-                const instance = new BABYLON['EDITOR'].Constructors[fnName](this.scene, node);
+                const instance = new EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
                 const scope = this;
 
                 if (instance.start) {

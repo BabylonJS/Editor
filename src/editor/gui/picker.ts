@@ -36,6 +36,16 @@ export default class Picker {
     }
 
     /**
+     * Clears the current items
+     */
+    public clear (): void {
+        this.items = [];
+
+        if (this.grid)
+            this.grid.element.clear();
+    }
+
+    /**
      * Adds the given items as selected
      * @param items: items to add
      */
@@ -87,6 +97,13 @@ export default class Picker {
         this.grid.build('PICKER-CONTAINER');
 
         // Add items to the grid
+        this.refreshGrid();
+    }
+
+    /**
+     * Adds current items to the grid
+     */
+    public refreshGrid (): void {
         this.items.forEach((i, index) => this.grid.addRecord({ name: i, recid: index }));
         this.grid.select(this.selected.map(s => this.items.indexOf(s)));
         this.grid.element.refresh();
