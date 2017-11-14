@@ -109,8 +109,10 @@ export default class SceneIcons {
         this.renderPlane(batch, subMesh, scene.particleSystems, (n: IParticleSystem) => {
             if (n.emitter instanceof Vector3)
                 this.plane.position.copyFrom(n.emitter);
-            else
+            else if (n.emitter)
                 this.plane.position.copyFrom(n.emitter.getAbsolutePosition());
+            else
+                return false;
             
             return true;
         });
