@@ -69,7 +69,8 @@ export default class Tools {
             'resizable=yes',
             'toolbar=no',
             'menubar=no',
-            'scrollbars=yes'];
+            'scrollbars=yes',
+            'nodeIntegration=no'];
 
         const popup = window.open(url, name, features.join(','));
         popup.focus();
@@ -121,6 +122,16 @@ export default class Tools {
             input.remove();
         };
         input.click();
+    }
+
+    /**
+     * Returns the base url of the window
+     */
+    public static GetBaseURL(): string {
+        let url = window.location.href;
+        url = url.replace(BabylonTools.GetFilename(url), '');
+
+        return url;
     }
 
     /**

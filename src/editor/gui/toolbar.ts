@@ -6,7 +6,7 @@ export default class Toolbar {
     // Public members
     public name: string;
     public items: W2Item[] = [];
-    public right: string = null;
+    public right: string = undefined;
 
     public element: W2UI.W2Toolbar;
 
