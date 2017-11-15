@@ -59,7 +59,8 @@
             "args": [
                 "."
             ],
-            "sourceMaps": true
+            "sourceMaps": false,
+            "protocol": "legacy"
         }
     ]
 }
