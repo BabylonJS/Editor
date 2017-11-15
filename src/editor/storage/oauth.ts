@@ -31,9 +31,8 @@ module BABYLON.EDITOR {
             if (token === '')
                 throw new Error('Cannot connect to OneDrive or get token...');
 
-            if (window['StorageCallback']) {
+            if (window['StorageCallback'])
                 window['StorageCallback'](token, parseInt(expires), Date.now());
-            }
 
             window.close();
         }
