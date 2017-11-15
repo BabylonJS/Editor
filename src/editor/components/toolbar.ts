@@ -8,6 +8,7 @@ import ProjectExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 
 import OneDriveStorage from '../storage/one-drive-storage';
+import ElectronStorage from '../storage/electron-storage';
 
 export default class EditorToolbar {
     // Public members
@@ -65,7 +66,7 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:export':
-                const storage = new OneDriveStorage(this.editor);
+                const storage = new ElectronStorage(this.editor);
                 storage.openPicker('Export on OneDrive', [{ name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) }]);
                 break;
 

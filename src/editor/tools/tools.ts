@@ -32,6 +32,13 @@ export default class Tools {
     }
 
     /**
+     * Returns if the browser is running in Electron
+     */
+    public static isElectron (): boolean {
+        return navigator.userAgent.indexOf('Electron') !== -1;
+    }
+
+    /**
     * Returns the file type for the given extension
     */
     public static GetFileType (extension: string): string {

@@ -6,7 +6,7 @@ export default class Request {
      * @param url: url of the request
      * @param headers: the request headers
      */
-    public static Get<T> (url: string, headers: IStringDictionary<any>): Promise<T> {
+    public static Get<T> (url: string, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
                 url: url,
@@ -24,7 +24,7 @@ export default class Request {
      * @param content the content to put
      * @param headers the request headers
      */
-    public static Put<T> (url: string, content: any, headers: IStringDictionary<any>): Promise<T> {
+    public static Put<T> (url: string, content: any, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
                 url: url,
@@ -45,7 +45,7 @@ export default class Request {
      * @param content the content to post
      * @param headers the request headers
      */
-    public static Post<T> (url: string, content: any, headers: IStringDictionary<any>): Promise<T> {
+    public static Post<T> (url: string, content: any, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
                 url: url,

@@ -1,6 +1,8 @@
 import Editor from '../editor';
 import Picker from '../gui/picker';
 
+import Tools from '../tools/tools';
+
 export interface CreateFiles {
     name: string;
 
@@ -55,7 +57,7 @@ export default abstract class Storage {
                 current = file;
 
                 this.picker.window.lock('Loading ' + (file ? file.name : 'Root') + '...');
-                files = (file ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(file? file.folder : null));
+                files = (!Tools.isElectron() ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(file? file.folder : null));
                 this.picker.window.unlock();
 
                 this.picker.clear();
