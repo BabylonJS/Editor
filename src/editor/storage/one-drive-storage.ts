@@ -23,7 +23,7 @@ export default class OneDriveStorage extends Storage {
      * @param folder the parent folder
      * @param names the folders names
      */
-    public async createFolders (folder: any, names: string): Promise<void> {
+    public async createFolders (folder: any, names: string[]): Promise<void> {
         for (const n of names) {
             const content = JSON.stringify({
                 "name": n,

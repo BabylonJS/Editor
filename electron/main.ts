@@ -16,10 +16,7 @@ export default class EditorApp {
         await this.CreateWindow();
 
         // Create web server
-        this.Server = new WebServer(1337, {
-            cache: 0,
-            root: process.cwd()
-        });
+        this.Server = new WebServer(1338);
 
         // Create Scene Preview
         this.ScenePreview = new ScenePreview(this.Server);
@@ -54,8 +51,6 @@ export default class EditorApp {
  * Events
  */
 app.on("window-all-closed", async () => {
-    await EditorApp.Server.stop();
-    
     if (process.platform !== "darwin")
         app.quit();
 });

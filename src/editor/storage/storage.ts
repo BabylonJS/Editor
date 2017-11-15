@@ -3,7 +3,9 @@ import Picker from '../gui/picker';
 
 export interface CreateFiles {
     name: string;
-    data: string | Uint8Array | ArrayBuffer;
+
+    data?: string | Uint8Array | ArrayBuffer;
+    folder?: CreateFiles[];
 }
 
 export interface GetFiles {
@@ -36,7 +38,7 @@ export default abstract class Storage {
         this.picker = new Picker('Export on OneDrive');
         this.picker.addItems(files);
         this.picker.open(async (items) => {
-            await this.createFiles(current.folder, filesToWrite);
+            await this.recursivelyCreateFiles(current.folder, filesToWrite);
         });
 
         this.picker.grid.onClick = async (ids) => {
@@ -64,11 +66,40 @@ export default abstract class Storage {
     }
 
     /**
+     * Recursively creates the given files (uncluding folders)
+     * @param folder: the parent folder of the files
+     * @param files files to create
+     */
+    protected async recursivelyCreateFiles (folder: any, files: CreateFiles[]): Promise<void> {
+        const folders: CreateFiles[] = [];
+        let promises: Promise<void>[] = [];
+
+        // Create files
+        for (const f of files) {
+            if (f.folder)
+                folders.push(f);
+            else
+                promises.push(this.createFiles(folder, [f]));
+        }
+
+        await Promise.all(promises);
+
+        // Create folders
+        promises = [];
+
+        for (const f of folders) {
+            promises.push(this.createFolders(folder, [f.name]));
+        }
+
+        await Promise.all(promises);
+    }
+
+    /**
      * Creates the given folders
      * @param folder the parent folder
      * @param names the folders names
      */
-    public abstract async createFolders (folder: any, names: string): Promise<void>;
+    public abstract async createFolders (folder: any, names: string[]): Promise<void>;
 
     /**
      * Creates the given files

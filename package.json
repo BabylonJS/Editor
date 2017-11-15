@@ -28,6 +28,8 @@
     "@types/http-server": "0.10.0",
     "@types/socket.io": "1.4.31",
     "@types/socket.io-client": "1.4.31",
+    "@types/koa": "~2.0.40",
+    "@types/koa-router": "~7.0.25",
     "typescript": "~2.3.3",
     "http-server": "^0.9.0",
     "socket.io": "2.0.4",
@@ -51,6 +53,8 @@
     "cannon": "~0.6.2",
     "monaco-editor": "~0.5.3",
     "raphael": "~2.2.7",
-    "socket.io-client": "~2.0.4"
+    "socket.io-client": "~2.0.4",
+    "koa": "~2.4.1",
+    "koa-router": "~7.3.0"
   }
 }
