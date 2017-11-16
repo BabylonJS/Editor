@@ -19,7 +19,11 @@ export default class ElectronStorage extends Storage {
      * @param names the folders names
      */
     public async createFolders (folder: any, names: string[]): Promise<void> {
-
+        for (const n of names) {
+            await Request.Post('http://localhost:1338/files:/folder', {
+                name: n
+            });
+        }
     }
     
     /**

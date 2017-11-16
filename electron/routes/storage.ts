@@ -64,6 +64,10 @@ export default class StorageRouter {
                 const filename = path.resolve(this.path, (ctx.query && ctx.query.name) ? ctx.query.name : '');
                 await fs.writeFile(filename, buffer);
             });
+
+            ctx.body = {
+                message: 'success'
+            };
         });
     }
 
@@ -72,8 +76,22 @@ export default class StorageRouter {
      */
     protected createFolder (): void {
         this.router.post('/files:/folder', async (ctx, next) => {
-            const folder = (ctx.body && ctx.body.name) ? ctx.body.name : '';
-            await fs.mkdir(folder);
+            const chunks = [];
+            ctx.req.on('data', (chunk) => {
+                chunks.push(chunk);
+            });
+            ctx.req.on('end', async () => {
+                const buffer = Buffer.concat(chunks);
+                const folder = buffer.toString().split('=')[1]; // name={{the-name}}
+
+                // Write file
+                const filename = path.resolve(this.path, folder);
+                await fs.mkdir(filename);
+            });
+
+            ctx.body = {
+                message: 'success'
+            };
         });
     }
 }

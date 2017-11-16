@@ -67,7 +67,10 @@ export default class EditorToolbar {
             // Project
             case 'project:export':
                 const storage = new ElectronStorage(this.editor);
-                storage.openPicker('Export on OneDrive', [{ name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) }]);
+                storage.openPicker('Export on OneDrive', [
+                    { name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) },
+                    { name: 'test', folder: [] }
+                ]);
                 break;
 
             // View
