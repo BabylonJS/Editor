@@ -1,8 +1,7 @@
 import {
     FilesInput, Tools as BabylonTools,
-    Scene, SceneSerializer,
+    SceneSerializer,
     Node, AbstractMesh, Light, Camera,
-    IParticleSystem,
     Tags,
     Vector3,
     ActionManager
@@ -21,6 +20,9 @@ import Storage, { CreateFiles } from '../storage/storage';
 const randomId = BabylonTools.RandomId();
 
 export default class ProjectExporter {
+    // Static members
+    public static ProjectPath: string = ''; // TODO: manage selected project path + CTRL+S
+
     /**
      * Creates a new file
      * @param editor: the editor instance
@@ -43,7 +45,6 @@ export default class ProjectExporter {
      * @param editor the editor reference
      */
     public static async ExportTemplate (editor: Editor): Promise<void> {
-        const exporter =  Tools.isElectron() ? await Tools.ImportScript<any>('.build/src/editor/storage/electron-storage.js') : await Tools.ImportScript<any>('.build/src/editor/storage/one-drive-storage.js');
         this.CreateFiles(editor);
 
         // Create files
@@ -55,7 +56,7 @@ export default class ProjectExporter {
             { name: 'game.ts', data: await Tools.LoadFile<string>('assets/templates/template/src/game.ts') }
         ];
 
-        const storage: Storage = new exporter.default(editor);
+        const storage = await this.GetStorage(editor);
         storage.openPicker('Create Template', [
             { name: 'Scene', folder: sceneFiles },
             { name: 'src', folder: srcFiles },
@@ -64,6 +65,18 @@ export default class ProjectExporter {
             { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
             { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
         ]);
+    }
+
+    /**
+     * Returns the appropriate storage (OneDrive, Electron, etc.)
+     * @param editor the editor reference
+     */
+    public static async GetStorage (editor: Editor): Promise<Storage> {
+        const storage = Tools.isElectron()
+            ? await Tools.ImportScript<any>('.build/src/editor/storage/electron-storage.js')
+            : await Tools.ImportScript<any>('.build/src/editor/storage/one-drive-storage.js');
+
+        return new storage.default(editor);
     }
 
     /**
