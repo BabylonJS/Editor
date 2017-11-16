@@ -272,6 +272,8 @@ export default class Editor {
                 const callback = async (scene: Scene) => {
                     // Configure editor
                     this.core.removeScene(this.core.scene);
+                    this.core.uiTextures.forEach(ui => ui.dispose());
+
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
 

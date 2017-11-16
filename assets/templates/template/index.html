@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Babylon.js Generated Template</title>
+    
+    <script src="./node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
+    <script src="./node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
+
+    <style rel="stylesheet" type="text/css">
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            touch-action: none;
+            -ms-touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+
+    <script type="text/javascript">
+        System.config({
+            paths: {
+                "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
+                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
+                "cannonjs": "./node_modules/cannon/build/cannon.js"
+            },
+            packages: {
+                "./.build/": {
+                    defaultExtension: "js"
+                },
+                "./node_modules/babylonjs-loaders/": {
+                    format: "cjs",
+                    main: "babylonjs.loaders.js",
+                    format: "global"
+                },
+                "./node_modules/babylonjs/dist/preview release/materialsLibrary/": {
+                    format: "cjs",
+                    main: "babylonjs.materials.js",
+                    format: "global"
+                },
+                "./node_modules/babylonjs-gui/": {
+                    format: "cjs",
+                    main: "babylon.gui.js",
+                    format: "global"
+                }
+            },
+            map: {
+                css: "./node_modules/systemjs-plugin-css/css.js"
+            },
+            meta: {
+                "*.css": { loader: "css" },
+                "cannonjs": { format: "global" },
+                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
+                "babylonjs-gui": { exports: "babylonDependency.GUI" }
+            },
+            pluginFirst: true
+        });
+
+        System.import("./.build/src/game.js").then(function (e) {
+            // Add BABYLON in window
+            System.import("babylonjs").then(function (e) {
+                window.BABYLON = e;
+            });
+            
+            // Run game here
+            var e = new e.default();
+            e.run();
+        });
+    </script>
+</body>
+</html>

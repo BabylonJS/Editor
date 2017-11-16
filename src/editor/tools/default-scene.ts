@@ -275,6 +275,7 @@ export default class DefaultScene {
         // GUI
         const gui = AdvancedDynamicTexture.CreateFullscreenUI('ui');
         gui.layer.layerMask = 2;
+        editor.core.uiTextures.push(gui);
 
         // Labels
         this.CreateLabel(gui, sphereAnimated, 'Animated\nView => Animations...', false, '200px', '60px');

@@ -16,6 +16,7 @@ import Editor from '../editor';
 import Extensions from '../../extensions/extensions';
 
 import * as Export from '../typings/project';
+import Storage, { CreateFiles } from '../storage/storage';
 
 const randomId = BabylonTools.RandomId();
 
@@ -24,7 +25,7 @@ export default class ProjectExporter {
      * Creates a new file
      * @param editor: the editor instance
      */
-    public static CreateFile (editor: Editor): void {
+    public static CreateFiles (editor: Editor): void {
         // Scene
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
         let file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
@@ -35,6 +36,34 @@ export default class ProjectExporter {
         const project = this.Export(editor);
         file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
         editor.projectFile = file;
+    }
+
+    /**
+     * Uploads all scene templates
+     * @param editor the editor reference
+     */
+    public static async ExportTemplate (editor: Editor): Promise<void> {
+        const exporter =  Tools.isElectron() ? await Tools.ImportScript<any>('.build/src/editor/storage/electron-storage.js') : await Tools.ImportScript<any>('.build/src/editor/storage/one-drive-storage.js');
+        this.CreateFiles(editor);
+
+        // Create files
+        const sceneFiles: CreateFiles[] = [{ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) }];
+        Object.keys(FilesInput.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInput.FilesToLoad[k]) }));
+
+        // Src files
+        const srcFiles: CreateFiles[] = [
+            { name: 'game.ts', data: await Tools.LoadFile<string>('assets/templates/template/src/game.ts') }
+        ];
+
+        const storage: Storage = new exporter.default(editor);
+        storage.openPicker('Create Template', [
+            { name: 'Scene', folder: sceneFiles },
+            { name: 'src', folder: srcFiles },
+            { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
+            { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
+            { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+            { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
+        ]);
     }
 
     /**
