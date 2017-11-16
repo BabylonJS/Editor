@@ -66,11 +66,14 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:export':
-                const storage = new ElectronStorage(this.editor);
+                /*
+                const storage = new OneDriveStorage(this.editor);
                 storage.openPicker('Export on OneDrive', [
                     { name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) },
                     { name: 'test', folder: [] }
                 ]);
+                */
+                await ProjectExporter.ExportTemplate(this.editor);
                 break;
 
             // View
@@ -105,7 +108,7 @@ export default class EditorToolbar {
     protected onToolsClick (target: string): void {
         switch (target) {
             case 'test':
-                ProjectExporter.CreateFile(this.editor);
+                ProjectExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
                 break;
             default: break;

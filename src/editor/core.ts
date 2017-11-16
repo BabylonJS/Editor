@@ -1,10 +1,14 @@
 import { Engine, Scene, Observable } from 'babylonjs';
+import { AdvancedDynamicTexture } from 'babylonjs-gui';
 
 export default class Core {
     // Public members
     public engine: Engine;
+
     public scenes: Scene[] = [];
     public scene: Scene;
+
+    public uiTextures: AdvancedDynamicTexture[] = [];
 
     public currentSelectedObject: any = null;
 
@@ -29,6 +33,21 @@ export default class Core {
         const index = this.scenes.findIndex(s => s === scene);
         if (index !== -1) {
             scene.dispose();
+            this.scenes.splice(index, 1);
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Removes the given UI (advanced texture) from the registered UIS
+     * @param ui: the ui advanced texture reference to remove
+     */
+    public removeUI (ui: AdvancedDynamicTexture): boolean {
+        const index = this.uiTextures.findIndex(u => u === ui);
+        if (index !== -1) {
+            ui.dispose();
             this.scenes.splice(index, 1);
             return true;
         }
