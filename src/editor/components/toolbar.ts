@@ -7,9 +7,6 @@ import Tools from '../tools/tools';
 import ProjectExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 
-import OneDriveStorage from '../storage/one-drive-storage';
-import ElectronStorage from '../storage/electron-storage';
-
 export default class EditorToolbar {
     // Public members
     public main: Toolbar;
@@ -34,7 +31,9 @@ export default class EditorToolbar {
                     { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
-                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' }
+                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' },
+                    { type: 'break' },
+                    { id: 'debug', caption: 'Debug', img: 'icon-animated-mesh', text: 'Debug' }
                 ]
             },
             { type: 'break' },
@@ -66,13 +65,6 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:export':
-                /*
-                const storage = new OneDriveStorage(this.editor);
-                storage.openPicker('Export on OneDrive', [
-                    { name: 'scenetest.editorproject', data: JSON.stringify(ProjectExporter.Export(this.editor)) },
-                    { name: 'test', folder: [] }
-                ]);
-                */
                 await ProjectExporter.ExportTemplate(this.editor);
                 break;
 
@@ -88,6 +80,9 @@ export default class EditorToolbar {
                 break;
             case 'view:code':
                 await this.loadTool('./.build/src/tools/behavior/code.js', 'Behavior Code');
+                break;
+            case 'view:debug':
+                await this.loadTool('./.build/src/tools/debug/spector-debug.js', 'Spector Debug');
                 break;
 
             // Add

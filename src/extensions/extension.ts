@@ -22,13 +22,8 @@ export default abstract class Extension<T> implements IExtension<T> {
     public abstract onApply (data: T): void;
 
     /**
-     * Called by the editor when serializing the scene
-     */
-    public abstract onSerialize (): T;
-
-    /**
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public abstract onLoad? (data: T): void;
+    public abstract onLoad (data: T): void;
 }
