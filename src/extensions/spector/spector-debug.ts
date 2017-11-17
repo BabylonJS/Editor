@@ -15,6 +15,9 @@ export default class SpectorDebug extends Extension<{ }> {
     constructor (scene: Scene) {
         super(scene);
 
+        // Extension
+        this.alwaysApply = true;
+
         // Spector
         this.spector = new Spector();
     }
@@ -25,7 +28,6 @@ export default class SpectorDebug extends Extension<{ }> {
     public onApply (): void {
         const canvas = this.scene.getEngine().getRenderingCanvas();
         this.spector.displayUI();
-        this.spector.captureCanvas(canvas);
     }
 
     /**

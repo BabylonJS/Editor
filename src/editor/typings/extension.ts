@@ -5,6 +5,11 @@ import { Scene } from 'babylonjs';
  */
 export interface IExtension<T> {
     /**
+     * Sets if the extensions is always applied
+     */
+    alwaysApply: boolean;
+
+    /**
      * On apply the extension
      */
     onApply (data: T): void;

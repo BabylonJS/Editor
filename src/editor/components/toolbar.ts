@@ -31,9 +31,7 @@ export default class EditorToolbar {
                     { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
                     { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
-                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' },
-                    { type: 'break' },
-                    { id: 'debug', caption: 'Debug', img: 'icon-animated-mesh', text: 'Debug' }
+                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' }
                 ]
             },
             { type: 'break' },
@@ -80,9 +78,6 @@ export default class EditorToolbar {
                 break;
             case 'view:code':
                 await this.loadTool('./.build/src/tools/behavior/code.js', 'Behavior Code');
-                break;
-            case 'view:debug':
-                await this.loadTool('./.build/src/tools/debug/spector-debug.js', 'Spector Debug');
                 break;
 
             // Add
