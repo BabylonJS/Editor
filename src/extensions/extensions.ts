@@ -47,7 +47,7 @@ export default class Extensions {
             const extension = new this.Extensions[e](scene);
             this.Instances[e] = extension;
 
-            if (metadatas[e])
+            if (extension.alwaysApply || metadatas[e])
                 extension.onApply(metadatas[e]);
         }
     }

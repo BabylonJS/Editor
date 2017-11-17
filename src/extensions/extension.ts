@@ -7,6 +7,7 @@ export default abstract class Extension<T> implements IExtension<T> {
     // Public members
     public scene: Scene;
     public datas: T;
+    public alwaysApply: boolean = false;
 
     /**
      * Constructor
