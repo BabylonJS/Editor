@@ -12,7 +12,7 @@ export interface IExtension<T> {
     /**
      * Called by the editor when serializing the scene
      */
-    onSerialize (): T;
+    onSerialize? (): T;
 
     /**
      * On load the extension (called by the editor when
