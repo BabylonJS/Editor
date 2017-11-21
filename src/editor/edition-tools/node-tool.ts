@@ -92,6 +92,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             camera.add(this, '_currentCamera').name('Active Camera').onFinishChange(r => {
                 scene.activeCamera = r ? node : this.editor.camera;
             });
+
+            if (node['speed'] !== undefined)
+                camera.add(node, 'speed').step(0.01).name('Speed');
         }
     }
 
