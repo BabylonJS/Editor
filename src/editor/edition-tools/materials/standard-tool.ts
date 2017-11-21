@@ -1,4 +1,4 @@
-import { StandardMaterial }  from 'babylonjs';
+import { StandardMaterial } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -22,7 +22,7 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
 	*/
     public update(object: any): void {
         super.update(object);
-        
+
         // Diffuse
         const diffuse = this.tool.addFolder('Diffuse');
         diffuse.open();
@@ -55,6 +55,37 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         const opacity = this.tool.addFolder('Opacity');
         opacity.open();
         this.tool.addTexture(opacity, this.editor.core.scene, 'opacityTexture', this.object).name('Opacity Texture');
+
+        // Emissive
+        const emissive = this.tool.addFolder('Emissive');
+        emissive.open();
+        this.tool.addColor(emissive, 'Emissive', this.object.emissiveColor).open();
+        emissive.add(this.object, 'useEmissiveAsIllumination').name('Use Emissive As Illumination');
+        this.tool.addTexture(emissive, this.editor.core.scene, 'emissiveTexture', this.object).name('Emissive Texture');
+
+        // Ambient
+        const ambient = this.tool.addFolder('Ambient');
+        ambient.open();
+        this.tool.addColor(ambient, 'Ambient', this.object.ambientColor).open();
+        this.tool.addTexture(ambient, this.editor.core.scene, 'ambientTexture', this.object).name('Ambient Texture');
+
+        // Light map
+        const lightmap = this.tool.addFolder('Lightmap');
+        lightmap.open();
+        lightmap.add(this.object, 'useLightmapAsShadowmap').name('Use Lightmap As Shadowmap');
+        this.tool.addTexture(lightmap, this.editor.core.scene, 'lightmapTexture', this.object).name('Lightmap Texture');
+
+        // Reflection
+        const reflection = this.tool.addFolder('Reflection');
+        reflection.open();
+        this.tool.addTexture(reflection, this.editor.core.scene, 'reflectionTexture', this.object, true).name('Reflection Texture');
+
+        // Refraction
+        const refraction = this.tool.addFolder('Refraction');
+        refraction.open();
+        refraction.add(this.object, 'indexOfRefraction').name('Index of Refraction');
+        refraction.add(this.object, 'invertRefractionY').name('Invert Y');
+        this.tool.addTexture(refraction, this.editor.core.scene, 'refractionTexture', this.object, true).name('Refraction Texture');
 
         // Options
         super.addOptions();
