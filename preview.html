@@ -34,6 +34,7 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
+                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
             },
@@ -46,6 +47,11 @@
                     main: "babylonjs.loaders.js",
                     format: "global"
                 },
+                "./node_modules/babylonjs-materials/": {
+                    format: "cjs",
+                    main: "babylonjs.materials.js",
+                    format: "global"
+                },
                 "./node_modules/babylonjs/dist/preview release/materialsLibrary/": {
                     format: "cjs",
                     main: "babylonjs.materials.js",
@@ -55,7 +61,8 @@
             meta: {
                 "cannonjs": { format: "global" },
                 "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
-                "babylonjs-gui": { exports: "babylonDependency.GUI" }
+                "babylonjs-gui": { exports: "babylonDependency.GUI" },
+                "babylonjs-materials": { exports: "babylonDependency" }
             }
         });
 
@@ -134,25 +141,27 @@
         promises.push(System.import("babylonjs"));
         promises.push(System.import("cannonjs"));
         Promise.all(promises).then(function (e) {
-            if (opener) {
-                BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
-            }
+            return System.import("babylonjs-materials").then(function () {
+                if (opener) {
+                    BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
+                }
 
-            getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon', function (sceneFile) {
-                loadScene(sceneFile);
-            });
+                getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon', function (sceneFile) {
+                    loadScene(sceneFile);
+                });
 
-            var socket = io('http://localhost:1337/client');
-            socket.on('request-scene', (files) => {
-                // Import Editor tools
-                importTools(function (tools) {
-                    for (var thing in files) {
-                        var file = tools.default.CreateFile(files[thing], thing);
-                        BABYLON.FilesInput.FilesToLoad[thing] = file;
-                    }
+                var socket = io('http://localhost:1337/client');
+                socket.on('request-scene', (files) => {
+                    // Import Editor tools
+                    importTools(function (tools) {
+                        for (var thing in files) {
+                            var file = tools.default.CreateFile(files[thing], thing);
+                            BABYLON.FilesInput.FilesToLoad[thing] = file;
+                        }
 
-                    getFileByExtension(files, 'babylon', function (sceneFile) {
-                        loadScene(sceneFile);
+                        getFileByExtension(files, 'babylon', function (sceneFile) {
+                            loadScene(sceneFile);
+                        });
                     });
                 });
             });
