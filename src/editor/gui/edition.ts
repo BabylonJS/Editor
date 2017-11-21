@@ -110,10 +110,11 @@ export default class Edition {
             autoPlace: false,
             scrollable: true
         });
-        this.element.useLocalStorage = true;
-        this.element.width = parent.width();
 
         parent[0].appendChild(this.element.domElement);
+
+        this.element.useLocalStorage = true;
+        this.element.width = parent.width();
 
         Tools.ImportScript('./css/dat.gui.css');
     }
