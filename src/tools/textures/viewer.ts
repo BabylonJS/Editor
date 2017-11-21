@@ -134,9 +134,18 @@ export default class AnimationEditor extends EditorPlugin {
             div[0].children[0].remove();
 
         // Add HTML nodes
-        for (const filename in FilesInput.FilesToLoad) {
-            const file = FilesInput.FilesToLoad[filename];
-            await this.addPreviewNode(file);
+        for (const tex of this.editor.core.scene.textures) {
+            let url = <string> tex['url'];
+            if (!url)
+                continue;
+
+            if (url.indexOf('file:') === 0)
+                url = url.replace('file:', '').toLowerCase();
+            
+            const file = FilesInput.FilesToLoad[url];
+            
+            if (file)
+                await this.addPreviewNode(file);
         }
     }
 
@@ -255,6 +264,23 @@ export default class AnimationEditor extends EditorPlugin {
             
             for (const f of files) {
                 FilesInput.FilesToLoad[f.name.toLowerCase()] = f;
+
+                // Create texture
+                const ext = Tools.GetFileExtension(f.name);
+                let texture: BaseTexture = null;
+
+                switch (ext) {
+                    case 'dds':
+                        texture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
+                        break;
+                    default:
+                        texture = new Texture('file:' + f.name, this.editor.core.scene);
+                        break;
+                }
+
+                texture.name = texture['url'] = f.name;
+
+                // Add preview node
                 await this.addPreviewNode(f);
             };
 

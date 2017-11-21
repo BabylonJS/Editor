@@ -193,6 +193,18 @@ export default class Editor {
             }
         }
     }
+
+    /**
+     * Restarts the plugins already loaded
+     */
+    public async restartPlugins (): Promise<void> {
+        // Restart plugins
+        for (const p in this.plugins) {
+            const plugin = this.plugins[p];
+            await this.removePlugin(plugin);
+            await this.addEditPanelPlugin(p, plugin.name);
+        }
+    }
     
     /**
      * Creates the editor camera
@@ -298,11 +310,7 @@ export default class Editor {
                     this.graph.fill(scene);
 
                     // Restart plugins
-                    for (const p in this.plugins) {
-                        const plugin = this.plugins[p];
-                        await this.removePlugin(plugin);
-                        await this.addEditPanelPlugin(p, plugin.name);
-                    }
+                    this.restartPlugins();
 
                     // Create scene picker
                     this._createScenePicker();

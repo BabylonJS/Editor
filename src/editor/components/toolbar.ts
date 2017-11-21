@@ -22,23 +22,26 @@ export default class EditorToolbar {
         this.main.items = [
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
-                    { id: 'export', caption: 'Export...', img: 'icon-folder', text: 'Export...' }
+                    { id: 'export', img: 'icon-folder', text: 'Export...' }
                 ]
             },
             { type: 'break' },
             {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-edit', items: [
-                    { id: 'animations', caption: 'Animations...', img: 'icon-animated-mesh', text: 'Animations...' },
-                    { id: 'textures', caption: 'Textures...', img: 'icon-copy', text: 'Textures...' },
-                    { id: 'materials', caption: 'Materials...', img: 'icon-effects', text: 'Materials...' },
-                    { id: 'code', caption: 'Code...', img: 'icon-behavior-editor', text: 'Code...' }
+                    { id: 'animations', img: 'icon-animated-mesh', text: 'Animations...' },
+                    { id: 'textures', img: 'icon-copy', text: 'Textures...' },
+                    { id: 'materials', img: 'icon-effects', text: 'Materials...' },
+                    { id: 'code', img: 'icon-behavior-editor', text: 'Code...' }
                 ]
             },
             { type: 'break' },
             {
                 type: 'menu', id: 'add', text: 'Add', img: 'icon-add', items: [
-                    { id: 'particle-system', caption: 'Particle System', img: 'icon-particles', text: 'Particle System' },
-                    { id: 'particle-system-animated', caption: 'Animated Particle System', img: 'icon-particles', text: 'Animated Particle System' }
+                    { id: 'particle-system', img: 'icon-particles', text: 'Particle System' },
+                    { id: 'particle-system-animated', img: 'icon-particles', text: 'Animated Particle System' },
+                    { type: 'break;' },
+                    { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
+                    { id: 'water', img: 'icon-water', text: 'Water Effect' },
                 ]
             }
         ];
@@ -86,6 +89,12 @@ export default class EditorToolbar {
                 break;
             case 'add:particle-system-animated':
                 SceneFactory.CreateDefaultParticleSystem(this.editor, true);
+                break;
+            case 'add:sky':
+                SceneFactory.CreateSkyEffect(this.editor);
+                break;
+            case 'add:water':
+                // TODO
                 break;
             default: break;
         }

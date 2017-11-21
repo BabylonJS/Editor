@@ -6,6 +6,8 @@ import {
     Tags, Tools as BabylonTools
 } from 'babylonjs';
 
+import { SkyMaterial } from 'babylonjs-materials';
+
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
@@ -76,5 +78,18 @@ export default class SceneFactory {
         });
 
         return system;
+    }
+
+    /**
+     * Creates a skybox with a sky effect on it (SkyMaterial)
+     * @param editor the editor reference
+     */
+    public static CreateSkyEffect (editor: Editor): Mesh {
+        const skybox = Mesh.CreateBox('SkyBox', 5000, editor.core.scene, false, Mesh.BACKSIDE);
+        skybox.material = new SkyMaterial('Sky Material ' + BabylonTools.RandomId(), editor.core.scene);
+
+        this.AddToGraph(editor, skybox);
+
+        return skybox;
     }
 }
