@@ -10,6 +10,8 @@ import ParticleSystemTool from '../edition-tools/particle-system-tool';
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRTool from '../edition-tools/materials/pbr-tool';
 
+import TextureTool from '../edition-tools/texture-tool';
+
 import Editor from '../editor';
 
 export default class EditorEditionTools {
@@ -38,6 +40,8 @@ export default class EditorEditionTools {
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRTool());
+
+        this.addTool(new TextureTool());
 
         // Events
         this.editor.core.onSelectObject.add(node => this.setObject(node));

@@ -211,6 +211,9 @@ export default class AnimationEditor extends EditorPlugin {
         }
 
         this.engine.resize();
+
+        // Send object selected
+        this.editor.core.onSelectObject.notifyObservers(this.texture);
     }
 
     /**
