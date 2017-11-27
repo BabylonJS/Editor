@@ -80,6 +80,10 @@
             imgProcessingFolder.add(object.imageProcessingConfiguration, "exposure").min(0).max(10).step(0.01).name("Exposure");
             imgProcessingFolder.add(object.imageProcessingConfiguration, "toneMappingEnabled").name("Enable Tone Mapping");
 
+            // Environment
+            var environmentFolder = this._element.addFolder("Environment");
+            this.addTextureFolder(object, "Environment Texture", "environmentTexture", environmentFolder, true).open();
+
             // Physics
             var physicsFolder = this._element.addFolder("Physics");
             this._physicsEnabled = object.isPhysicsEnabled();
