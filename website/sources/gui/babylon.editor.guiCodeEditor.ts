@@ -41,8 +41,8 @@ module BABYLON.EDITOR.GUI {
                 });
 
                 if (!GUICodeEditor._Defines) {
-                    BABYLON.Tools.LoadFile("defines/babylon.d.ts", (bjsData) => {
-                        BABYLON.Tools.LoadFile("libs/preview release/babylon.editor.extensions.d.ts", (extData) => {
+                    BABYLON.Tools.LoadFile("defines/babylon.d.ts", (bjsData: string) => {
+                        BABYLON.Tools.LoadFile("libs/preview release/babylon.editor.extensions.d.ts", (extData: string) => {
                             GUICodeEditor._Defines = bjsData + extData + "\n" +
                                 "declare var scene: BABYLON.Scene;\n" +
                                 "declare var mesh: BABYLON.Mesh;\n" +

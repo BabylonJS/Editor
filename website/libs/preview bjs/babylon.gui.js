@@ -1,4 +1,5 @@
-var babylonDependency; try { babylonDependency = BABYLON || (typeof require !== 'undefined' && require("../babylon.max")); } catch (e) { babylonDependency = BABYLON || (typeof require !== 'undefined' && require("babylonjs")); } 
+var globalObject = (typeof global !== 'undefined') ? global : ((typeof window !== 'undefined') ? window : this);
+var babylonDependency = (globalObject && globalObject.BABYLON) || BABYLON || (typeof require !== 'undefined' && require("babylonjs"));
 var BABYLON = babylonDependency;
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
 var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -39,8 +40,13 @@ var BABYLON;
                 _this._idealHeight = 0;
                 _this._renderAtIdealSize = false;
                 _this._blockNextFocusCheck = false;
-                _this._renderObserver = _this.getScene().onBeforeCameraRenderObservable.add(function (camera) { return _this._checkUpdate(camera); });
-                _this._preKeyboardObserver = _this.getScene().onPreKeyboardObservable.add(function (info) {
+                _this._renderScale = 1;
+                scene = _this.getScene();
+                if (!scene || !_this._texture) {
+                    return _this;
+                }
+                _this._renderObserver = scene.onBeforeCameraRenderObservable.add(function (camera) { return _this._checkUpdate(camera); });
+                _this._preKeyboardObserver = scene.onPreKeyboardObservable.add(function (info) {
                     if (!_this._focusedControl) {
                         return;
                     }
@@ -52,12 +58,26 @@ var BABYLON;
                 _this._rootContainer._link(null, _this);
                 _this.hasAlpha = true;
                 if (!width || !height) {
-                    _this._resizeObserver = _this.getScene().getEngine().onResizeObservable.add(function () { return _this._onResize(); });
+                    _this._resizeObserver = scene.getEngine().onResizeObservable.add(function () { return _this._onResize(); });
                     _this._onResize();
                 }
                 _this._texture.isReady = true;
                 return _this;
             }
+            Object.defineProperty(AdvancedDynamicTexture.prototype, "renderScale", {
+                get: function () {
+                    return this._renderScale;
+                },
+                set: function (value) {
+                    if (value === this._renderScale) {
+                        return;
+                    }
+                    this._renderScale = value;
+                    this._onResize();
+                },
+                enumerable: true,
+                configurable: true
+            });
             Object.defineProperty(AdvancedDynamicTexture.prototype, "background", {
                 get: function () {
                     return this._background;
@@ -149,6 +169,25 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(AdvancedDynamicTexture.prototype, "isForeground", {
+                get: function () {
+                    if (!this.layer) {
+                        return true;
+                    }
+                    return (!this.layer.isBackground);
+                },
+                set: function (value) {
+                    if (!this.layer) {
+                        return;
+                    }
+                    if (this.layer.isBackground === !value) {
+                        return;
+                    }
+                    this.layer.isBackground = !value;
+                },
+                enumerable: true,
+                configurable: true
+            });
             AdvancedDynamicTexture.prototype.executeOnAllControls = function (func, container) {
                 if (!container) {
                     container = this._rootContainer;
@@ -174,18 +213,25 @@ var BABYLON;
                 return this;
             };
             AdvancedDynamicTexture.prototype.dispose = function () {
-                this.getScene().onBeforeCameraRenderObservable.remove(this._renderObserver);
+                var scene = this.getScene();
+                if (!scene) {
+                    return;
+                }
+                scene.onBeforeCameraRenderObservable.remove(this._renderObserver);
                 if (this._resizeObserver) {
-                    this.getScene().getEngine().onResizeObservable.remove(this._resizeObserver);
+                    scene.getEngine().onResizeObservable.remove(this._resizeObserver);
                 }
                 if (this._pointerMoveObserver) {
-                    this.getScene().onPrePointerObservable.remove(this._pointerMoveObserver);
+                    scene.onPrePointerObservable.remove(this._pointerMoveObserver);
                 }
                 if (this._pointerObserver) {
-                    this.getScene().onPointerObservable.remove(this._pointerObserver);
+                    scene.onPointerObservable.remove(this._pointerObserver);
+                }
+                if (this._preKeyboardObserver) {
+                    scene.onPreKeyboardObservable.remove(this._preKeyboardObserver);
                 }
                 if (this._canvasPointerOutObserver) {
-                    this.getScene().getEngine().onCanvasPointerOutObservable.remove(this._canvasPointerOutObserver);
+                    scene.getEngine().onCanvasPointerOutObservable.remove(this._canvasPointerOutObserver);
                 }
                 if (this._layerToDispose) {
                     this._layerToDispose.texture = null;
@@ -196,11 +242,15 @@ var BABYLON;
                 _super.prototype.dispose.call(this);
             };
             AdvancedDynamicTexture.prototype._onResize = function () {
+                var scene = this.getScene();
+                if (!scene) {
+                    return;
+                }
                 // Check size
-                var engine = this.getScene().getEngine();
+                var engine = scene.getEngine();
                 var textureSize = this.getSize();
-                var renderWidth = engine.getRenderWidth();
-                var renderHeight = engine.getRenderHeight();
+                var renderWidth = engine.getRenderWidth() * this._renderScale;
+                var renderHeight = engine.getRenderHeight() * this._renderScale;
                 if (this._renderAtIdealSize) {
                     if (this._idealWidth) {
                         renderHeight = (renderHeight * this._idealWidth) / renderWidth;
@@ -231,6 +281,9 @@ var BABYLON;
                 }
                 if (this._isFullscreen && this._linkedControls.length) {
                     var scene = this.getScene();
+                    if (!scene) {
+                        return;
+                    }
                     var globalViewport = this._getGlobalViewport(scene);
                     for (var _i = 0, _a = this._linkedControls; _i < _a.length; _i++) {
                         var control = _a[_i];
@@ -282,11 +335,14 @@ var BABYLON;
             };
             AdvancedDynamicTexture.prototype._doPicking = function (x, y, type, buttonIndex) {
                 var scene = this.getScene();
+                if (!scene) {
+                    return;
+                }
                 var engine = scene.getEngine();
                 var textureSize = this.getSize();
                 if (this._isFullscreen) {
-                    x = x * (textureSize.width / engine.getRenderWidth());
-                    y = y * (textureSize.height / engine.getRenderHeight());
+                    x = x * ((textureSize.width / this._renderScale) / engine.getRenderWidth());
+                    y = y * ((textureSize.height / this._renderScale) / engine.getRenderHeight());
                 }
                 if (this._capturingControl) {
                     this._capturingControl._processObservables(type, x, y, buttonIndex);
@@ -305,13 +361,22 @@ var BABYLON;
             AdvancedDynamicTexture.prototype.attach = function () {
                 var _this = this;
                 var scene = this.getScene();
+                if (!scene) {
+                    return;
+                }
                 this._pointerMoveObserver = scene.onPrePointerObservable.add(function (pi, state) {
                     if (pi.type !== BABYLON.PointerEventTypes.POINTERMOVE
                         && pi.type !== BABYLON.PointerEventTypes.POINTERUP
                         && pi.type !== BABYLON.PointerEventTypes.POINTERDOWN) {
                         return;
                     }
+                    if (!scene) {
+                        return;
+                    }
                     var camera = scene.cameraToUseForPointers || scene.activeCamera;
+                    if (!camera) {
+                        return;
+                    }
                     var engine = scene.getEngine();
                     var viewport = camera.viewport;
                     var x = (scene.pointerX / engine.getHardwareScalingLevel() - viewport.x * engine.getRenderWidth()) / viewport.width;
@@ -326,16 +391,21 @@ var BABYLON;
                 var _this = this;
                 if (supportPointerMove === void 0) { supportPointerMove = true; }
                 var scene = this.getScene();
+                if (!scene) {
+                    return;
+                }
                 this._pointerObserver = scene.onPointerObservable.add(function (pi, state) {
                     if (pi.type !== BABYLON.PointerEventTypes.POINTERMOVE
                         && pi.type !== BABYLON.PointerEventTypes.POINTERUP
                         && pi.type !== BABYLON.PointerEventTypes.POINTERDOWN) {
                         return;
                     }
-                    if (pi.pickInfo.hit && pi.pickInfo.pickedMesh === mesh) {
+                    if (pi.pickInfo && pi.pickInfo.hit && pi.pickInfo.pickedMesh === mesh) {
                         var uv = pi.pickInfo.getTextureCoordinates();
-                        var size = _this.getSize();
-                        _this._doPicking(uv.x * size.width, (1.0 - uv.y) * size.height, pi.type, pi.event.button);
+                        if (uv) {
+                            var size = _this.getSize();
+                            _this._doPicking(uv.x * size.width, (1.0 - uv.y) * size.height, pi.type, pi.event.button);
+                        }
                     }
                     else if (pi.type === BABYLON.PointerEventTypes.POINTERUP) {
                         if (_this._lastControlDown) {
@@ -404,10 +474,11 @@ var BABYLON;
                 result.attachToMesh(mesh, supportPointerMove);
                 return result;
             };
-            AdvancedDynamicTexture.CreateFullscreenUI = function (name, foreground, scene) {
+            AdvancedDynamicTexture.CreateFullscreenUI = function (name, foreground, scene, sampling) {
                 if (foreground === void 0) { foreground = true; }
                 if (scene === void 0) { scene = null; }
-                var result = new AdvancedDynamicTexture(name, 0, 0, scene);
+                if (sampling === void 0) { sampling = BABYLON.Texture.BILINEAR_SAMPLINGMODE; }
+                var result = new AdvancedDynamicTexture(name, 0, 0, scene, false, sampling);
                 // Display
                 var layer = new BABYLON.Layer(name + "_layer", null, scene, !foreground);
                 layer.texture = result;
@@ -767,6 +838,10 @@ var BABYLON;
                 this.isHitTestVisible = true;
                 this.isPointerBlocker = false;
                 this.isFocusInvisible = false;
+                this.shadowOffsetX = 0;
+                this.shadowOffsetY = 0;
+                this.shadowBlur = 0;
+                this.shadowColor = '#000';
                 this._linkOffsetX = new GUI.ValueAndUnit(0);
                 this._linkOffsetY = new GUI.ValueAndUnit(0);
                 /**
@@ -1416,7 +1491,19 @@ var BABYLON;
             };
             Control.prototype._clip = function (context) {
                 context.beginPath();
-                context.rect(this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height);
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    var shadowOffsetX = this.shadowOffsetX;
+                    var shadowOffsetY = this.shadowOffsetY;
+                    var shadowBlur = this.shadowBlur;
+                    var leftShadowOffset = Math.min(Math.min(shadowOffsetX, 0) - shadowBlur * 2, 0);
+                    var rightShadowOffset = Math.max(Math.max(shadowOffsetX, 0) + shadowBlur * 2, 0);
+                    var topShadowOffset = Math.min(Math.min(shadowOffsetY, 0) - shadowBlur * 2, 0);
+                    var bottomShadowOffset = Math.max(Math.max(shadowOffsetY, 0) + shadowBlur * 2, 0);
+                    context.rect(this._currentMeasure.left + leftShadowOffset, this._currentMeasure.top + topShadowOffset, this._currentMeasure.width + rightShadowOffset - leftShadowOffset, this._currentMeasure.height + bottomShadowOffset - topShadowOffset);
+                }
+                else {
+                    context.rect(this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height);
+                }
             };
             Control.prototype._measure = function () {
                 // Width / Height
@@ -1738,6 +1825,10 @@ var BABYLON;
                     panel.addControl(control);
                     header.paddingRight = "5px";
                 }
+                header.shadowBlur = control.shadowBlur;
+                header.shadowColor = control.shadowColor;
+                header.shadowOffsetX = control.shadowOffsetX;
+                header.shadowOffsetY = control.shadowOffsetY;
                 return panel;
             };
             Control.drawEllipse = function (x, y, width, height, context) {
@@ -1871,8 +1962,19 @@ var BABYLON;
             };
             Container.prototype._localDraw = function (context) {
                 if (this._background) {
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     context.fillStyle = this._background;
                     context.fillRect(this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height);
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                 }
             };
             Container.prototype._link = function (root, host) {
@@ -1907,7 +2009,7 @@ var BABYLON;
                 }
             };
             Container.prototype._processPicking = function (x, y, type, buttonIndex) {
-                if (!this.isHitTestVisible || !this.isVisible || this.notRenderable) {
+                if (!this.isVisible || this.notRenderable) {
                     return false;
                 }
                 if (!_super.prototype.contains.call(this, x, y)) {
@@ -1919,6 +2021,9 @@ var BABYLON;
                     if (child._processPicking(x, y, type, buttonIndex)) {
                         return true;
                     }
+                }
+                if (!this.isHitTestVisible) {
+                    return false;
                 }
                 return this._processObservables(type, x, y, buttonIndex);
             };
@@ -2137,6 +2242,12 @@ var BABYLON;
             };
             Rectangle.prototype._localDraw = function (context) {
                 context.save();
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowColor = this.shadowColor;
+                    context.shadowBlur = this.shadowBlur;
+                    context.shadowOffsetX = this.shadowOffsetX;
+                    context.shadowOffsetY = this.shadowOffsetY;
+                }
                 if (this._background) {
                     context.fillStyle = this._background;
                     if (this._cornerRadius) {
@@ -2148,6 +2259,11 @@ var BABYLON;
                     }
                 }
                 if (this._thickness) {
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                     if (this.color) {
                         context.strokeStyle = this.color;
                     }
@@ -2235,10 +2351,21 @@ var BABYLON;
             };
             Ellipse.prototype._localDraw = function (context) {
                 context.save();
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowColor = this.shadowColor;
+                    context.shadowBlur = this.shadowBlur;
+                    context.shadowOffsetX = this.shadowOffsetX;
+                    context.shadowOffsetY = this.shadowOffsetY;
+                }
                 GUI.Control.drawEllipse(this._currentMeasure.left + this._currentMeasure.width / 2, this._currentMeasure.top + this._currentMeasure.height / 2, this._currentMeasure.width / 2 - this._thickness / 2, this._currentMeasure.height / 2 - this._thickness / 2, context);
                 if (this._background) {
                     context.fillStyle = this._background;
                     context.fill();
+                }
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowBlur = 0;
+                    context.shadowOffsetX = 0;
+                    context.shadowOffsetY = 0;
                 }
                 if (this._thickness) {
                     if (this.color) {
@@ -2433,6 +2560,12 @@ var BABYLON;
             };
             Line.prototype._draw = function (parentMeasure, context) {
                 context.save();
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowColor = this.shadowColor;
+                    context.shadowBlur = this.shadowBlur;
+                    context.shadowOffsetX = this.shadowOffsetX;
+                    context.shadowOffsetY = this.shadowOffsetY;
+                }
                 this._applyStates(context);
                 if (this._processMeasures(parentMeasure, context)) {
                     context.strokeStyle = this.color;
@@ -2486,6 +2619,7 @@ var BABYLON;
                 _this._background = "black";
                 _this._borderColor = "white";
                 _this._barOffset = new GUI.ValueAndUnit(5, GUI.ValueAndUnit.UNITMODE_PIXEL, false);
+                _this._isThumbCircle = false;
                 _this.onValueChangedObservable = new BABYLON.Observable();
                 // Events
                 _this._pointerIsDown = false;
@@ -2610,6 +2744,20 @@ var BABYLON;
                 enumerable: true,
                 configurable: true
             });
+            Object.defineProperty(Slider.prototype, "isThumbCircle", {
+                get: function () {
+                    return this._isThumbCircle;
+                },
+                set: function (value) {
+                    if (this._isThumbCircle === value) {
+                        return;
+                    }
+                    this._isThumbCircle = value;
+                    this._markAsDirty();
+                },
+                enumerable: true,
+                configurable: true
+            });
             Slider.prototype._getTypeName = function () {
                 return "Slider";
             };
@@ -2620,6 +2768,12 @@ var BABYLON;
                     // Main bar
                     var effectiveThumbWidth;
                     var effectiveBarOffset;
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     if (this._thumbWidth.isPixel) {
                         effectiveThumbWidth = Math.min(this._thumbWidth.getValue(this._host), this._currentMeasure.height);
                     }
@@ -2638,12 +2792,42 @@ var BABYLON;
                     // Bar
                     context.fillStyle = this._background;
                     context.fillRect(left, this._currentMeasure.top + effectiveBarOffset, width, this._currentMeasure.height - effectiveBarOffset * 2);
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                     context.fillStyle = this.color;
                     context.fillRect(left, this._currentMeasure.top + effectiveBarOffset, thumbPosition, this._currentMeasure.height - effectiveBarOffset * 2);
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     // Thumb
-                    context.fillRect(left + thumbPosition - effectiveThumbWidth / 2, this._currentMeasure.top, effectiveThumbWidth, this._currentMeasure.height);
-                    context.strokeStyle = this._borderColor;
-                    context.strokeRect(left + thumbPosition - effectiveThumbWidth / 2, this._currentMeasure.top, effectiveThumbWidth, this._currentMeasure.height);
+                    if (this._isThumbCircle) {
+                        context.beginPath();
+                        context.arc(left + thumbPosition, this._currentMeasure.top + this._currentMeasure.height / 2, effectiveThumbWidth / 2, 0, 2 * Math.PI);
+                        context.fill();
+                        if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                            context.shadowBlur = 0;
+                            context.shadowOffsetX = 0;
+                            context.shadowOffsetY = 0;
+                        }
+                        context.strokeStyle = this._borderColor;
+                        context.stroke();
+                    }
+                    else {
+                        context.fillRect(left + thumbPosition - effectiveThumbWidth / 2, this._currentMeasure.top, effectiveThumbWidth, this._currentMeasure.height);
+                        if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                            context.shadowBlur = 0;
+                            context.shadowOffsetX = 0;
+                            context.shadowOffsetY = 0;
+                        }
+                        context.strokeStyle = this._borderColor;
+                        context.strokeRect(left + thumbPosition - effectiveThumbWidth / 2, this._currentMeasure.top, effectiveThumbWidth, this._currentMeasure.height);
+                    }
                 }
                 context.restore();
             };
@@ -2764,8 +2948,19 @@ var BABYLON;
                 if (this._processMeasures(parentMeasure, context)) {
                     var actualWidth = this._currentMeasure.width - this._thickness;
                     var actualHeight = this._currentMeasure.height - this._thickness;
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     context.fillStyle = this._background;
                     context.fillRect(this._currentMeasure.left + this._thickness / 2, this._currentMeasure.top + this._thickness / 2, actualWidth, actualHeight);
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                     if (this._isChecked) {
                         context.fillStyle = this.color;
                         var offsetWidth = actualWidth * this._checkSizeRatio;
@@ -2792,7 +2987,7 @@ var BABYLON;
     })(GUI = BABYLON.GUI || (BABYLON.GUI = {}));
 })(BABYLON || (BABYLON = {}));
 
-//# sourceMappingURL=checkBox.js.map
+//# sourceMappingURL=checkbox.js.map
 
 /// <reference path="../../../dist/preview release/babylon.d.ts"/>
 
@@ -2897,10 +3092,21 @@ var BABYLON;
                 if (this._processMeasures(parentMeasure, context)) {
                     var actualWidth = this._currentMeasure.width - this._thickness;
                     var actualHeight = this._currentMeasure.height - this._thickness;
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     // Outer
                     GUI.Control.drawEllipse(this._currentMeasure.left + this._currentMeasure.width / 2, this._currentMeasure.top + this._currentMeasure.height / 2, this._currentMeasure.width / 2 - this._thickness / 2, this._currentMeasure.height / 2 - this._thickness / 2, context);
                     context.fillStyle = this._background;
                     context.fill();
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                     context.strokeStyle = this.color;
                     context.lineWidth = this._thickness;
                     context.stroke();
@@ -3044,6 +3250,12 @@ var BABYLON;
                         x = (width - textWidth) / 2;
                         break;
                 }
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowColor = this.shadowColor;
+                    context.shadowBlur = this.shadowBlur;
+                    context.shadowOffsetX = this.shadowOffsetX;
+                    context.shadowOffsetY = this.shadowOffsetY;
+                }
                 context.fillText(text, this._currentMeasure.left + x, y);
             };
             TextBlock.prototype._draw = function (parentMeasure, context) {
@@ -3149,6 +3361,7 @@ var BABYLON;
         var Image = /** @class */ (function (_super) {
             __extends(Image, _super);
             function Image(name, url) {
+                if (url === void 0) { url = null; }
                 var _this = _super.call(this, name) || this;
                 _this.name = name;
                 _this._loaded = false;
@@ -3158,6 +3371,9 @@ var BABYLON;
                 _this._sourceTop = 0;
                 _this._sourceWidth = 0;
                 _this._sourceHeight = 0;
+                _this._cellWidth = 0;
+                _this._cellHeight = 0;
+                _this._cellId = -1;
                 _this.source = url;
                 return _this;
             }
@@ -3288,8 +3504,40 @@ var BABYLON;
                     this._domImage.onload = function () {
                         _this._onImageLoaded();
                     };
-                    this._domImage.crossOrigin = "anonymous";
-                    this._domImage.src = value;
+                    if (value) {
+                        this._domImage.crossOrigin = "anonymous";
+                        this._domImage.src = value;
+                    }
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Image.prototype, "cellWidth", {
+                get: function () {
+                    return this._cellWidth;
+                },
+                set: function (value) {
+                    this._cellWidth = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Image.prototype, "cellHeight", {
+                get: function () {
+                    return this._cellHeight;
+                },
+                set: function (value) {
+                    this._cellHeight = value;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(Image.prototype, "cellId", {
+                get: function () {
+                    return this._cellId;
+                },
+                set: function (value) {
+                    this._cellId = value;
                 },
                 enumerable: true,
                 configurable: true
@@ -3306,10 +3554,28 @@ var BABYLON;
             };
             Image.prototype._draw = function (parentMeasure, context) {
                 context.save();
-                var x = this._sourceLeft;
-                var y = this._sourceTop;
-                var width = this._sourceWidth ? this._sourceWidth : this._imageWidth;
-                var height = this._sourceHeight ? this._sourceHeight : this._imageHeight;
+                if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                    context.shadowColor = this.shadowColor;
+                    context.shadowBlur = this.shadowBlur;
+                    context.shadowOffsetX = this.shadowOffsetX;
+                    context.shadowOffsetY = this.shadowOffsetY;
+                }
+                var x, y, width, height;
+                if (this.cellId == -1) {
+                    x = this._sourceLeft;
+                    y = this._sourceTop;
+                    width = this._sourceWidth ? this._sourceWidth : this._imageWidth;
+                    height = this._sourceHeight ? this._sourceHeight : this._imageHeight;
+                }
+                else {
+                    var rowCount = this._domImage.naturalWidth / this.cellWidth;
+                    var column = (this.cellId / rowCount) >> 0;
+                    var row = this.cellId % rowCount;
+                    x = this.cellWidth * row;
+                    y = this.cellHeight * column;
+                    width = this.cellWidth;
+                    height = this.cellHeight;
+                }
                 this._applyStates(context);
                 if (this._processMeasures(parentMeasure, context)) {
                     if (this._loaded) {
@@ -3333,8 +3599,10 @@ var BABYLON;
                                 if (this._autoScale) {
                                     this.synchronizeSizeWithContent();
                                 }
-                                this._root.width = this.width;
-                                this._root.height = this.height;
+                                if (this._root && this._root.parent) {
+                                    this._root.width = this.width;
+                                    this._root.height = this.height;
+                                }
                                 break;
                         }
                     }
@@ -3764,8 +4032,20 @@ var BABYLON;
                     if (!this._colorWheelCanvas || this._colorWheelCanvas.width != radius * 2) {
                         this._colorWheelCanvas = this._createColorWheelCanvas(radius, wheelThickness);
                     }
-                    context.drawImage(this._colorWheelCanvas, left, top);
                     this._updateSquareProps();
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                        context.fillRect(this._squareLeft, this._squareTop, this._squareSize, this._squareSize);
+                    }
+                    context.drawImage(this._colorWheelCanvas, left, top);
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
+                    }
                     this._drawGradientSquare(this._h, this._squareLeft, this._squareTop, this._squareSize, this._squareSize, context);
                     var cx = this._squareLeft + this._squareSize * this._s;
                     var cy = this._squareTop + this._squareSize * (1 - this._v);
@@ -4136,6 +4416,12 @@ var BABYLON;
                 context.save();
                 this._applyStates(context);
                 if (this._processMeasures(parentMeasure, context)) {
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowColor = this.shadowColor;
+                        context.shadowBlur = this.shadowBlur;
+                        context.shadowOffsetX = this.shadowOffsetX;
+                        context.shadowOffsetY = this.shadowOffsetY;
+                    }
                     // Background
                     if (this._isFocused) {
                         if (this._focusedBackground) {
@@ -4146,6 +4432,11 @@ var BABYLON;
                     else if (this._background) {
                         context.fillStyle = this._background;
                         context.fillRect(this._currentMeasure.left, this._currentMeasure.top, this._currentMeasure.width, this._currentMeasure.height);
+                    }
+                    if (this.shadowBlur || this.shadowOffsetX || this.shadowOffsetY) {
+                        context.shadowBlur = 0;
+                        context.shadowOffsetX = 0;
+                        context.shadowOffsetY = 0;
                     }
                     if (!this._fontOffset) {
                         this._fontOffset = GUI.Control._GetFontOffset(context.font);
@@ -4313,6 +4604,10 @@ var BABYLON;
                 button.paddingBottom = propertySet && propertySet.paddingBottom ? propertySet.paddingBottom : this.defaultButtonPaddingBottom;
                 button.thickness = 0;
                 button.isFocusInvisible = true;
+                button.shadowColor = this.shadowColor;
+                button.shadowBlur = this.shadowBlur;
+                button.shadowOffsetX = this.shadowOffsetX;
+                button.shadowOffsetY = this.shadowOffsetY;
                 button.onPointerUpObservable.add(function () {
                     _this.onKeyPressObservable.notifyObservers(key);
                 });
@@ -4350,6 +4645,9 @@ var BABYLON;
                     _this.isVisible = false;
                 });
                 this._onKeyPressObserver = this.onKeyPressObservable.add(function (key) {
+                    if (!_this._connectedInputText) {
+                        return;
+                    }
                     switch (key) {
                         case "\u2190":
                             _this._connectedInputText.processKey(8);
@@ -4388,17 +4686,19 @@ var BABYLON;
 
 
 (function universalModuleDefinition(root, factory) {
+                var f = factory();
                 if (root && root["BABYLON"]) {
                     return;
                 }
+                
     if(typeof exports === 'object' && typeof module === 'object')
-        module.exports = factory();
+        module.exports = f;
     else if(typeof define === 'function' && define.amd)
-        define([], factory);
+        define(["GUI"], factory);
     else if(typeof exports === 'object')
-        exports["GUI"] = factory();
+        exports["GUI"] = f;
     else {
-        root["BABYLON"]["GUI"] = factory();
+        root["BABYLON"]["GUI"] = f;
     }
 })(this, function() {
     return BABYLON.GUI;

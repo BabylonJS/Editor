@@ -49,7 +49,7 @@ module BABYLON.EDITOR {
 
             // Finish
             if (!BehaviorEditor._Template) {
-                BABYLON.Tools.LoadFile("website/resources/behavior/behavior.editor.txt", (data) => {
+                BABYLON.Tools.LoadFile("website/resources/behavior/behavior.editor.txt", (data: string) => {
                     BehaviorEditor._Template = data;
 
                     BABYLON.Tools.LoadFile("website/resources/behavior/samples.json", (data: string) => {
