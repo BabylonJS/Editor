@@ -95,6 +95,10 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
             if (node['speed'] !== undefined)
                 camera.add(node, 'speed').step(0.01).name('Speed');
+
+            camera.add(node, 'minZ').step(0.01).name('Min Z');
+            camera.add(node, 'maxZ').step(0.01).name('Max Z');
+            camera.add(node, 'fov').step(0.01).name('Fov');
         }
     }
 

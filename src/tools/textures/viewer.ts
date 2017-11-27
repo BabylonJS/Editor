@@ -145,7 +145,7 @@ export default class AnimationEditor extends EditorPlugin {
             const file = FilesInput.FilesToLoad[url];
             
             if (file)
-                await this.addPreviewNode(file);
+                await this.addPreviewNode(file, tex);
         }
     }
 
@@ -155,7 +155,7 @@ export default class AnimationEditor extends EditorPlugin {
      * @param file: the file to add
      * @param extension: the extension of the file
      */
-    protected async addPreviewNode (file: File): Promise<void> {
+    protected async addPreviewNode (file: File, originalTexture: BaseTexture): Promise<void> {
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
         const ext = Tools.GetFileExtension(file.name);
 
@@ -171,7 +171,7 @@ export default class AnimationEditor extends EditorPlugin {
                 float: 'left',
                 margin: '10px'
             });
-            canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext));
+            canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
             texturesList.append(canvas);
 
             const preview = this.createPreview(canvas, file);
@@ -188,7 +188,7 @@ export default class AnimationEditor extends EditorPlugin {
                 margin: '10px'
             });
             img.src = data;
-            img.addEventListener('click', (ev) => this.setTexture(file.name, ext));
+            img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
 
             texturesList.append(img);
 
@@ -204,7 +204,7 @@ export default class AnimationEditor extends EditorPlugin {
      * Sets the texture in preview canvas
      * @param name: the name of the texture
      */
-    protected setTexture (name: string, extension: string): void {
+    protected setTexture (name: string, extension: string, originalTexture: BaseTexture): void {
         this.camera.detachPostProcess(this.postProcess);
         this.sphere.setEnabled(false);
 
@@ -222,7 +222,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.engine.resize();
 
         // Send object selected
-        this.editor.core.onSelectObject.notifyObservers(this.texture);
+        this.editor.core.onSelectObject.notifyObservers(originalTexture);
     }
 
     /**
@@ -281,7 +281,7 @@ export default class AnimationEditor extends EditorPlugin {
                 texture.name = texture['url'] = f.name;
 
                 // Add preview node
-                await this.addPreviewNode(f);
+                await this.addPreviewNode(f, texture);
             };
 
             this.layout.unlockPanel('top');

@@ -6,6 +6,7 @@ import Tools from '../tools/tools';
 
 import ProjectExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
+import SceneImporter from '../scene/scene-importer';
 
 export default class EditorToolbar {
     // Public members
@@ -22,7 +23,12 @@ export default class EditorToolbar {
         this.main.items = [
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
-                    { id: 'export', img: 'icon-folder', text: 'Export...' }
+                    { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
+                    { type: 'break' },
+                    { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
+                    { type: 'break' },
+                    { id: 'export-project', img: 'icon-files', text: 'Export Project...' },
+                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
                 ]
             },
             { type: 'break' },
@@ -65,7 +71,16 @@ export default class EditorToolbar {
     protected async onMainClick (target: string): Promise<void> {
         switch (target) {
             // Project
-            case 'project:export':
+            case 'project:import-project':
+                SceneImporter.ImportProject(this.editor);
+                break;
+            case 'project:clean-project':
+                this.editor.createDefaultScene(true);
+                break;
+            case 'project:export-project':
+                await ProjectExporter.ExportProject(this.editor);
+                break;
+            case 'project:export-template':
                 await ProjectExporter.ExportTemplate(this.editor);
                 break;
 

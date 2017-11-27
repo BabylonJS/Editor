@@ -8,11 +8,11 @@ import {
 import { IStringDictionary } from './typings/typings';
 import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
 
-import Dialog from './gui/dialog';
-
 import Core from './core';
 import Tools from './tools/tools';
+
 import Layout from './gui/layout';
+import Dialog from './gui/dialog';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -205,6 +205,56 @@ export default class Editor {
             await this.addEditPanelPlugin(p, plugin.name);
         }
     }
+
+    /**
+     * Creates the default scene
+     */
+    public createDefaultScene(showNewSceneDialog: boolean = false): void {
+        const callback = () => {
+            // Create default scene
+            this.layout.lockPanel('main', 'Loading Preview Scene...', true);
+            DefaultScene.Create(this).then(() => {
+                this.graph.clear();
+                this.graph.fill();
+                this.layout.unlockPanel('main');
+            });
+
+            // Fill graph
+            this.graph.clear();
+            this.graph.fill();
+
+            //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
+            //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
+            //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
+            //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
+
+            this.core.onSelectObject.notifyObservers(this.graph.currentObject);
+
+            // List scene preview
+            if (Tools.IsElectron())
+                ScenePreview.Create();
+        }
+
+        if (!showNewSceneDialog)
+            return callback();
+
+        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
+            if (result === 'Yes') {
+                this.core.scene.dispose();
+                this.core.removeScene(this.core.scene);
+                this.core.uiTextures.forEach(ui => ui.dispose());
+
+                const scene = new Scene(this.core.engine);
+                this.core.scene = scene;
+                this.core.scenes.push(scene);
+
+                this.createEditorCamera();
+
+                // Create default scene
+                callback();
+            }
+        });
+    }
     
     /**
      * Creates the editor camera
@@ -350,29 +400,5 @@ export default class Editor {
         
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);
-    }
-
-    // Creates a default scene
-    private async _createDefaultScene(): Promise<void> {
-        // Create default scene
-        this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-        DefaultScene.Create(this).then(() => {
-            this.graph.clear();
-            this.graph.fill();
-            this.layout.unlockPanel('main');
-        });
-
-        // Fill graph
-        this.graph.fill();
-
-        //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
-        //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
-        //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
-        //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
-
-        this.core.onSelectObject.notifyObservers(this.graph.currentObject);
-
-        // List scene preview
-        //ScenePreview.Create();
     }
 }

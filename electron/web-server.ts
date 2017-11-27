@@ -12,7 +12,7 @@ export default class WebServer {
      */
     constructor (port: number) {
         this.application = new Koa();
-        this.application.listen(port);
+        this.application.listen(port, 'localhost');
 
         new StorageRouter(this.application);
     }

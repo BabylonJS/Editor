@@ -59,7 +59,11 @@
             "args": [
                 "."
             ],
-            "sourceMaps": true
+            "outFiles": [
+                ".build/electron/**/*.js"
+            ],
+            "sourceMaps": true,
+            "protocol": "legacy"
         }
     ]
 }
