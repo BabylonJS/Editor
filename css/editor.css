@@ -226,3 +226,11 @@ ICONS
 .w2ui-icon.icon-behavior-editor {
     background: url("images/behavior_editor.png");
 }
+
+.w2ui-icon.icon-files {
+    background: url("images/files.png");
+}
+
+.w2ui-icon.icon-files-project {
+    background: url("images/files_project.png");
+}

@@ -34,7 +34,7 @@ export default class Tools {
     /**
      * Returns if the browser is running in Electron
      */
-    public static isElectron (): boolean {
+    public static IsElectron (): boolean {
         return navigator.userAgent.indexOf('Electron') !== -1;
     }
 

@@ -16,7 +16,7 @@ export default class EditorApp {
         await this.CreateWindow();
 
         // Create web server
-        this.Server = new WebServer(1338);
+        this.Server = new WebServer(1337);
 
         // Create Scene Preview
         this.ScenePreview = new ScenePreview(this.Server);
@@ -32,12 +32,13 @@ export default class EditorApp {
                 height: 600,
                 webPreferences: {
                     scrollBounce: true,
-                    nodeIntegration: false
+                    nodeIntegration: false,
+                    nativeWindowOpen: true
                 }
             });
 
             this.Window.loadURL("file://" + __dirname + "/../../index.html");
-            //this.Window.webContents.openDevTools();
+            this.Window.webContents.openDevTools();
             this.Window.webContents.once('did-finish-load', () => {
                 resolve();
             });

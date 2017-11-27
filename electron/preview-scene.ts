@@ -1,5 +1,5 @@
 import WebServer from './web-server';
-import * as SocketIO from 'socket.io';
+import * as IO from 'koa-socket';
 
 interface FileData {
     [index: string]: {
@@ -10,18 +10,21 @@ interface FileData {
 
 export default class ScenePreview {
     // Public members
-    public socket: SocketIO.Server;
-    public client: SocketIO.Namespace;
+    public server: IO = null;
+    public client: IO = null;
 
     /**
      * Constructor
      * @param server: the Web Server
      */
     constructor (server: WebServer) {
-        this.socket = SocketIO(server);
-        this.client = this.socket.of('/client');
+        this.server = new IO();
+        this.server.attach(server.application);
 
-        this.socket.on('connection', (socket) => {
+        this.client = new IO('client');
+        this.client.attach(server.application);
+
+        this.server.on('connection', async (socket) => {
             // Server
             socket.on('receive-scene', (data: FileData) => {
                 this.client.emit('request-scene', data);
@@ -32,7 +35,7 @@ export default class ScenePreview {
                 this.client.removeAllListeners();
 
                 // Send files
-                this.socket.emit('request-scene');
+                this.server.emit('request-scene');
             });
         });
     }

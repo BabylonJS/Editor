@@ -12,6 +12,8 @@ import {
 import * as Export from '../typings/project';
 import Editor from '../editor';
 
+import Tools from '../tools/tools';
+
 import Extensions from '../../extensions/extensions';
 
 export default class SceneImporter {
@@ -162,11 +164,24 @@ export default class SceneImporter {
     /**
     * Cleans an editor project
     */
-    public static CleanProject(project: Export.ProjectRoot): void {
+    public static CleanProject (project: Export.ProjectRoot): void {
         project.renderTargets = project.renderTargets || [];
         project.sounds = project.sounds || [];
         project.customMetadatas = project.customMetadatas || {};
         project.physicsEnabled = project.physicsEnabled || false;
         //project.globalConfiguration.settings = project.globalConfiguration.settings || SceneFactory.Settings;
+    }
+
+    /**
+     * Imports files + project
+     */
+    public static ImportProject (editor: Editor): void {
+        Tools.OpenFileDialog((files) => {
+            editor.filesInput.loadFiles({
+                target: {
+                    files: files
+                }
+            });
+        });
     }
 }

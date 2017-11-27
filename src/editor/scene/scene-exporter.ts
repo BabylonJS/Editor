@@ -57,7 +57,7 @@ export default class ProjectExporter {
         ];
 
         const storage = await this.GetStorage(editor);
-        storage.openPicker('Create Template', [
+        storage.openPicker('Create Template...', [
             { name: 'Scene', folder: sceneFiles },
             { name: 'src', folder: srcFiles },
             { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
@@ -68,11 +68,25 @@ export default class ProjectExporter {
     }
 
     /**
+     * Exports the editor project into the storage
+     * @param editor the editor reference
+     */
+    public static async ExportProject (editor: Editor): Promise<void> {
+        // Project
+        const content = JSON.stringify(this.Export(editor));
+
+        const storage = await this.GetStorage(editor);
+        storage.openPicker('Export Editor Project...', [
+            { name: 'scene.editorproject', data: content }
+        ]);
+    }
+
+    /**
      * Returns the appropriate storage (OneDrive, Electron, etc.)
      * @param editor the editor reference
      */
     public static async GetStorage (editor: Editor): Promise<Storage> {
-        const storage = Tools.isElectron()
+        const storage = Tools.IsElectron()
             ? await Tools.ImportScript<any>('.build/src/editor/storage/electron-storage.js')
             : await Tools.ImportScript<any>('.build/src/editor/storage/one-drive-storage.js');
 
