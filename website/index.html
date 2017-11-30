@@ -109,10 +109,9 @@
         // Default scene
         createDefaultScene(core);
 
-        core.editor.sceneGraphTool.fillGraph();
-        BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);
-
         editorMain._handleSceneLoaded()(null, core.currentScene);
+        
+        BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);
     </script>
 
 </body>
