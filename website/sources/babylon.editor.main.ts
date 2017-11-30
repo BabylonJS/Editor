@@ -415,6 +415,11 @@
                 };
                 scene.actionManager = null;
 
+                // Set scale factor
+                this.core.scaleFactor = new Mesh("ScaleFactor", this.core.currentScene);
+                this.core.scaleFactor.id = SceneFactory.GenerateUUID();
+                this.core.currentScene.meshes.pop();
+
                 // Physics
                 if (scene.getPhysicsEngine())
                     scene.getPhysicsEngine().setTimeStep(0);
@@ -427,6 +432,44 @@
                 this.timeline.reset();
                 
                 Event.sendSceneEvent(this.core.currentScene, SceneEventType.NEW_SCENE_CREATED, this.core);
+
+                // Adjust speed + sensibility
+                var min = Vector3.Zero();
+                var max = Vector3.Zero();
+
+                for (var i = 0; i < this.core.currentScene.meshes.length; i++) {
+                    var m = this.core.currentScene.meshes[i];
+                    var b = m.getBoundingInfo();
+
+                    if (b.minimum.x < min.x)
+                        min.x = b.minimum.x;
+                    if (b.minimum.y < min.y)
+                        min.y = b.minimum.y;
+                    if (b.minimum.z < min.z)
+                        min.z = b.minimum.z;
+
+                    if (b.maximum.x > max.x)
+                        max.x = b.maximum.x;
+                    if (b.maximum.y > max.y)
+                        max.y = b.maximum.y;
+                    if (b.maximum.z > max.z)
+                        max.z = b.maximum.z;
+                }
+
+                var diff = Vector3.Distance(min, max);
+
+                if (diff >= 1000) {
+                    this.core.camera.panningSensibility = (1700 * 50) / diff;
+                    this.core.camera.wheelPrecision = (1700 * 3) / diff;
+                }
+                else {
+                    diff = 10000;
+                    this.core.camera.panningSensibility = (diff * 50) / 1700;
+                    this.core.camera.wheelPrecision = (diff * 3) / 1700;
+                }
+
+                // Apply settings
+                Settings.Apply(this.core);
             };
         }
 

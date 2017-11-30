@@ -194,6 +194,12 @@
             var scene = scene || this._core.currentScene;
 
             if (!graphNodeID) {
+                for (var i = 0; i < this._core.currentScene.meshes.length; i++) {
+                    var mesh = this._core.currentScene.meshes[i];
+                    if (mesh.parent === this._core.scaleFactor)
+                        mesh.parent = null;
+                }
+
                 this.sidebar.clear();
 
                 // Add root
@@ -329,6 +335,13 @@
                 }
             }
 
+            if (!graphNodeID) {
+                for (var i = 0; i < this._core.currentScene.meshes.length; i++) {
+                    var mesh = this._core.currentScene.meshes[i];
+                    if (!mesh.parent)
+                        mesh.parent = this._core.scaleFactor;
+                }
+            }
         }
 
         // Creates the UI

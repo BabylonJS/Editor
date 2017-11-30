@@ -13,6 +13,8 @@
         public currentScene: Scene;
         public scene2d: Scene;
 
+        public scaleFactor: Mesh = null;
+
         public updates: Array<ICustomUpdate> = new Array<ICustomUpdate>();
         public eventReceivers: Array<IEventReceiver> = new Array<IEventReceiver>();
 

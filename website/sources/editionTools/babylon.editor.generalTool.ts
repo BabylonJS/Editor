@@ -79,7 +79,7 @@
             }
 
             var parentingFolder = this._element.addFolder("Parenting");
-            this._currentParentName = object.parent ? object.parent.name : meshesNames[0];
+            this._currentParentName = (object.parent && object.parent !== this._core.scaleFactor) ? object.parent.name : meshesNames[0];
             parentingFolder.add(this, "_currentParentName", meshesNames).name("Parent").onFinishChange((result: string) => {
                 if (result === "Scene")
                     object.parent = null;
@@ -128,6 +128,11 @@
 
                 if (object.fov !== undefined)
                     cameraFolder.add(this.object, "fov").min(0).max(10).step(0.001).name("Fov");
+
+                if (object instanceof ArcRotateCamera) {
+                    cameraFolder.add(this.object, 'wheelPrecision').step(0.1).name('Wheel Precision').onChange(r => Settings.Apply(this._core));
+                    cameraFolder.add(this.object, 'panningSensibility').step(0.1).name('Panning Sensibility').onChange(r => Settings.Apply(this._core));
+                }
             }
 
             // Transforms

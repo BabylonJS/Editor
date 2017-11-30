@@ -50,6 +50,10 @@
             // Common
             this._element.add(SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
 
+            this._element.add(this._core.scaleFactor.scaling, 'x').step(0.01).name('Scale Factor').onChange((r: number) => {
+                this._core.scaleFactor.scaling.set(r, r, r);
+            });
+
             // Colors
             var colorsFolder = this._element.addFolder("Colors");
 
