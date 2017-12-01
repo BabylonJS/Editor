@@ -436,6 +436,9 @@
                         delete texture['_buffer'];
                 }
 
+                if (this.propertyPath)
+                    this.object[this.propertyPath] = texture;
+
                 this._addTextureToList(texture);
             };
         }

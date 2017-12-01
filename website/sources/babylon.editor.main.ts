@@ -381,7 +381,8 @@
 
                 // Set active camera
                 var camera: any = scene.activeCamera;
-                this._createBabylonCamera();
+                if (camera !== this.core.camera)
+                    this._createBabylonCamera();
 
                 if (camera) {
                     if (camera.speed) {
