@@ -386,6 +386,22 @@
 
             this.ConfigureObject(rp, core);
 
+            var picker = new ObjectPicker(core);
+            picker.objectLists.push(core.currentScene.meshes);
+            picker.windowName = "Select a mesh to attach?";
+            picker.selectButtonName = "Add";
+            picker.closeButtonName = "Close";
+            picker.minSelectCount = 0;
+
+            picker.onObjectPicked = (names: string[]) => {
+                if (names.length > 0) {
+                    var node = core.currentScene.getMeshByName(names[0]);
+                    if (node)
+                        rp.attachToMesh(node);
+                }
+            };
+            picker.open();
+
             return rp;
         }
 

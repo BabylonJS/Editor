@@ -288,6 +288,7 @@
             };
             
             this._texturesList.onReload = () => {
+                this._cleanTextures();
                 this._fillTextureList();
             };
             
@@ -441,6 +442,52 @@
 
                 this._addTextureToList(texture);
             };
+        }
+
+        // Cleans the unused textures
+        private _cleanTextures (): void {
+            var textures = this._core.currentScene.textures;
+            var materials = this._core.currentScene.materials;
+            var miscs = [SceneFactory.StandardPipeline, this._core.currentScene];
+
+            var used: BaseTexture[] = [];
+
+            var isUsed = (texture: BaseTexture) => {
+                var index = used.indexOf(texture);
+                if (index === -1)
+                    used.push(texture);
+            };
+
+            var check = (object: any) => {
+                for (var thing in object) {
+                    var value = object[thing];
+
+                    if (!(value instanceof BaseTexture) && !(value instanceof Array))
+                        continue;
+
+                    if (value instanceof Array) {
+                        for (var j = 0; j < value.length; j++)
+                            check(value[j]);
+                    }
+                    else {
+                        isUsed(value);
+                    } 
+                }
+            };
+
+            for (var i = 0; i < materials.length; i++)
+                check(materials[i]);
+
+            for (var i = 0; i < miscs.length; i++)
+                check(miscs[i]);
+
+            for (var i = 0; i < textures.length; i++) {
+                var index = used.indexOf(textures[i]);
+                if (index === -1) {
+                    textures[i].dispose();
+                    i--;
+                }
+            }
         }
     }
 }
