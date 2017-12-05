@@ -14,7 +14,7 @@
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",
-    "bundle": "node ./script/electron.js"
+    "bundle": "node ./script/bundle.js && node ./script/electron.js"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",
@@ -30,13 +30,15 @@
     "@types/koa": "~2.0.40",
     "@types/koa-router": "~7.0.25",
     "@types/fs-extra": "~4.0.5",
+    "@types/socket.io-client": "~1.4.32",
     "typescript": "^2.3.3",
     "http-server": "^0.9.0",
     "socket.io": "2.0.4",
     "electron": "1.7.9",
     "electron-prebuilt": "~1.4.13",
     "electron-packager": "~8.6.0",
-    "yargs": "10.0.3"
+    "yargs": "10.0.3",
+    "systemjs-builder": "~0.16.12"
   },
   "dependencies": {
     "jquery": "~3.2.1",
