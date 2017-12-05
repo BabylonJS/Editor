@@ -109,7 +109,7 @@ export default class EditorToolbar {
                 SceneFactory.CreateSkyEffect(this.editor);
                 break;
             case 'add:water':
-                // TODO
+                SceneFactory.CreateWaterEffect(this.editor);
                 break;
             default: break;
         }

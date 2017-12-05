@@ -6,7 +6,7 @@ import {
     Tags, Tools as BabylonTools
 } from 'babylonjs';
 
-import { SkyMaterial } from 'babylonjs-materials';
+import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -14,6 +14,11 @@ import Tools from '../tools/tools';
 import Picker from '../gui/picker';
 
 export default class SceneFactory {
+    /**
+     * Adds the given node to the scene's graph (on the right)
+     * @param editor the editor reference
+     * @param node the node to add
+     */
     public static AddToGraph (editor: Editor, node: any): void {
         editor.graph.clear();
         editor.graph.fill();
@@ -91,5 +96,29 @@ export default class SceneFactory {
         this.AddToGraph(editor, skybox);
 
         return skybox;
+    }
+
+    /**
+     * Creates a new mesh (if createGround set to true) with a water material assigned
+     * the water will reflect all the scene's meshes
+     * @param editor the editor reference
+     */
+    public static CreateWaterEffect (editor: Editor, createGround: boolean = true): WaterMaterial {
+        const material = new WaterMaterial('New Water Material', editor.core.scene);
+        editor.core.scene.meshes.forEach(m => material.addToRenderList(m));
+
+        Tools.CreateFileFromURL('assets/textures/normal.png').then(() => {
+            material.bumpTexture = new Texture('file:normal.png', editor.core.scene);
+            material.bumpTexture.name = material.bumpTexture['url'] = 'normal.png';
+        });
+
+        if (createGround) {
+            const mesh = Mesh.CreateGround('New Water Mesh', 512, 512, 32, editor.core.scene);
+            mesh.material = material;
+
+            this.AddToGraph(editor, mesh);
+        }
+
+        return material;
     }
 }
