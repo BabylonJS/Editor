@@ -133,3 +133,4 @@ package-lock.json
 .build
 .declaration
 electronPackages
+dist
