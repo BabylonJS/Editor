@@ -8,7 +8,8 @@ import PostProcessesTool from '../edition-tools/post-processes-tool';
 import ParticleSystemTool from '../edition-tools/particle-system-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
-import PBRTool from '../edition-tools/materials/pbr-tool';
+import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
+import WaterMaterialTool from '../edition-tools/materials/water-tool';
 
 import TextureTool from '../edition-tools/texture-tool';
 
@@ -39,7 +40,8 @@ export default class EditorEditionTools {
         this.addTool(new ParticleSystemTool());
         
         this.addTool(new StandardMaterialTool());
-        this.addTool(new PBRTool());
+        this.addTool(new PBRMaterialTool());
+        this.addTool(new WaterMaterialTool());
 
         this.addTool(new TextureTool());
 
@@ -67,7 +69,8 @@ export default class EditorEditionTools {
         let current = this.root;
 
         // Create container
-        $('#' + current).append('<div id="' + tool.divId + '" style="width: 100%; height: 100%"></div>');
+        //$('#' + current).append('<div id="' + tool.divId + '" style="width: 100%; height: 100%"></div>');
+        $('#' + current).append('<div id="' + tool.divId + '"></div>');
         $('#' + tool.divId).hide();
 
         // Add tab

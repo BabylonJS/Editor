@@ -3,7 +3,7 @@ import { PBRMaterial }  from 'babylonjs';
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
 
-export default class PBRTool extends MaterialTool<PBRMaterial> {
+export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
     // Public members
     public divId: string = 'PBR-TOOL';
     public tabName: string = 'PBR Material';
