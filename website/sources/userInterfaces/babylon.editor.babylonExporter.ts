@@ -11,6 +11,9 @@
         private _editor: AceAjax.Editor = null;
         private _configForm: GUI.GUIForm = null;
 
+        // Static members
+        private static _LastGeneratedFile: any = null;
+
         /**
         * Constructor
         * @param core: the editor core
@@ -35,6 +38,19 @@
 
                     obj.activeCameraID = camera ? camera.id : undefined;
                     this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
+
+                    // Create download click
+                    if (BabylonExporter._LastGeneratedFile)
+                        URL.revokeObjectURL(BabylonExporter._LastGeneratedFile);
+                    
+                    var blob = new Blob([JSON.stringify(obj)], { type: 'application/babylon' });
+                    BabylonExporter._LastGeneratedFile = URL.createObjectURL(blob);
+
+                    var link = document.createElement('a');
+                    link.download = this._core.editor.filesInput['_sceneFileToLoad'] ? this._core.editor.filesInput['_sceneFileToLoad'].name : 'scene.babylon';
+                    link.href = BabylonExporter._LastGeneratedFile;
+                    link.click();
+                    link.remove();
                 }
                 else if (button === "Close") {
                     this._window.close();
