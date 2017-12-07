@@ -44,12 +44,12 @@ export default class EditorEditPanel {
      * Shows the given plugin
      * @param plugin: the plugin to show
      */
-    public async showPlugin (plugin: IEditorPlugin): Promise<void> {
+    public async showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
         if (!plugin)
             return;
         
         if (plugin.onShow)
-            await plugin.onShow();
+            await plugin.onShow.apply(plugin, params);
 
         this.panel.tabs.select(plugin.name);
         this._onChangeTab(plugin, false);

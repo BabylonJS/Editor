@@ -39,12 +39,20 @@ export default class AnimationEditor extends EditorPlugin {
     protected engines: Engine[] = [];
     protected onResizePreview = () => this.engine.resize();
 
+    protected object: any;
+    protected property: string;
+    protected allowCubes: boolean;
+
     /**
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, object?: any, property?: string, allowCubes?: boolean) {
         super('Texture Viewer');
+
+        this.object = object;
+        this.property = property;
+        this.allowCubes = allowCubes;
     }
 
     /**
@@ -135,6 +143,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Add HTML nodes
         for (const tex of this.editor.core.scene.textures) {
+            if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
+                continue;
+            
             let url = <string> tex['url'];
             if (!url)
                 continue;
@@ -221,8 +232,13 @@ export default class AnimationEditor extends EditorPlugin {
 
         this.engine.resize();
 
-        // Send object selected
-        this.editor.core.onSelectObject.notifyObservers(originalTexture);
+        if (this.object && this.property) {
+            this.object[this.property] = originalTexture;
+        }
+        else {
+            // Send object selected
+            this.editor.core.onSelectObject.notifyObservers(originalTexture);
+        }
     }
 
     /**

@@ -17,7 +17,7 @@ export interface IEditorPlugin {
  * Represents an exported editor plugin
  */
 export type EditorPluginConstructor = {
-    default: new (editor: Editor) => IEditorPlugin;
+    default: new (editor: Editor, ...params: any[]) => IEditorPlugin;
 };
 
 /**
