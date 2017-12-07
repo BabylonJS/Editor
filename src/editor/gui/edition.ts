@@ -5,6 +5,7 @@ import {
 } from 'babylonjs';
 import * as dat from 'dat-gui';
 
+import Editor from '../editor';
 import Tools from '../tools/tools';
 
 export default class Edition {
@@ -173,12 +174,14 @@ export default class Edition {
     /**
      * Adds a texture controller
      * @param parent the parent folder
-     * @param scene the scene containing the textures
+     * @param editor the editor reference
      * @param property the property of the object
      * @param object the object which has a texture
      * @param callback: called when changed texture
      */
-    public addTexture(parent: dat.GUI, scene: Scene, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
+    public addTexture(parent: dat.GUI, editor: Editor, property: string, object: any, allowCubes: boolean = false, onlyCubes: boolean = false, callback?: (texture: BaseTexture) => void): dat.GUIController {
+        const scene = editor.core.scene;
+
         const textures = ['None'];
         scene.textures.forEach(t => {
             const isCube = t instanceof CubeTexture;
@@ -193,7 +196,8 @@ export default class Edition {
         });
 
         const target = {
-            active: object[property] ? object[property].name : 'None'
+            active: object[property] ? object[property].name : 'None',
+            browse: () => editor.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', true, 'Texture Viewer', object, property, allowCubes)
         };
 
         const controller = parent.add(target, 'active', textures);
@@ -203,6 +207,8 @@ export default class Edition {
 
             callback && callback(texture);
         });
+
+        parent.add(target, 'browse').name('Browse Texture...');
 
         return controller;
     }

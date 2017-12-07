@@ -154,15 +154,19 @@ export default class Editor {
      * Adds an "edit panel" plugin
      * @param url the URL of the plugin
      */
-    public async addEditPanelPlugin (url: string, name?: string): Promise<IEditorPlugin> {
+    public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
         if (this.plugins[url]) {
-            this.editPanel.showPlugin(this.plugins[url]);
-            return this.plugins[url];
+            if (restart)
+                this.removePlugin(this.plugins[url]);
+            else {
+                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                return this.plugins[url];
+            }
         }
 
         this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
-        const plugin = await this._runPlugin(url);
+        const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
         // Add tab in edit panel
@@ -202,7 +206,7 @@ export default class Editor {
         for (const p in this.plugins) {
             const plugin = this.plugins[p];
             await this.removePlugin(plugin);
-            await this.addEditPanelPlugin(p, plugin.name);
+            await this.addEditPanelPlugin(p, false, plugin.name);
         }
     }
 
@@ -281,9 +285,10 @@ export default class Editor {
     }
 
     // Runs the given plugin URL
-    private async _runPlugin (url: string): Promise<IEditorPlugin> {
+    private async _runPlugin (url: string, ...params: any[]): Promise<IEditorPlugin> {
         const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
-        const instance = new plugin.default(this);
+        const args = [plugin.default, this].concat(params);
+        const instance = new (Function.prototype.bind.apply(plugin.default, args));
 
         // Create DOM elements
         instance.divElement = <HTMLDivElement> Tools.CreateElement('div', instance.name.replace(/ /, ''), {

@@ -86,13 +86,13 @@ export default class EditorToolbar {
 
             // View
             case 'view:animations':
-                await this.loadTool('.build/src/tools/animations/editor.js', 'Animations Editor');
+                await this.loadTool('./.build/src/tools/animations/editor.js', 'Animations Editor');
                 break;
             case 'view:textures':
-                await this.loadTool('.build/src/tools/textures/viewer.js', 'Textures Viewer');
+                await this.loadTool('./.build/src/tools/textures/viewer.js', 'Textures Viewer');
                 break;
             case 'view:materials':
-                await this.loadTool('.build/src/tools/materials/viewer.js', 'Materials Viewer');
+                await this.loadTool('./.build/src/tools/materials/viewer.js', 'Materials Viewer');
                 break;
             case 'view:code':
                 await this.loadTool('./.build/src/tools/behavior/code.js', 'Behavior Code');
@@ -135,7 +135,7 @@ export default class EditorToolbar {
      * @param name: the name of the tool to draw when locking the panel
      */
     protected async loadTool (url: string, name: string): Promise<IEditorPlugin> {
-        const result = await this.editor.addEditPanelPlugin(url, name);
+        const result = await this.editor.addEditPanelPlugin(url, false, name);
         return result;
     }
 }
