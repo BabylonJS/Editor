@@ -134,3 +134,4 @@ package-lock.json
 .declaration
 electronPackages
 dist
+babylonjs-editor.d.ts

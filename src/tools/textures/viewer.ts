@@ -6,12 +6,14 @@ import {
     Vector3
 } from 'babylonjs';
 
-import Editor from '../../editor/editor';
-import { EditorPlugin } from '../../editor/typings/plugin';
-import Tools from '../../editor/tools/tools';
+import Editor, {
+    Tools,
 
-import Layout from '../../editor/gui/layout';
-import Toolbar from '../../editor/gui/toolbar';
+    Layout,
+    Toolbar,
+
+    EditorPlugin
+} from 'babylonjs-editor';
 
 export interface PreviewScene {
     engine: Engine;

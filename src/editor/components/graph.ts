@@ -116,7 +116,7 @@ export default class EditorGraph {
                 n.id = BabylonTools.RandomId();
 
             // Instance?
-            let parent = root ? root.id : this.root;
+            const parent = root ? root.id : this.root;
             
             this.graph.element.add(parent, <GraphNode>{
                 id: n.id,
@@ -136,6 +136,21 @@ export default class EditorGraph {
                     });
                 }
             });
+
+            // Check lens flares
+            scene.lensFlareSystems.forEach(lf => {
+                if (lf.getEmitter() === n) {
+                    this.graph.element.add(lf.id, <GraphNode> {
+                        id: lf.id,
+                        text: lf.name,
+                        img: this.getIcon(lf),
+                        data: lf
+                    });
+                }
+            });
+
+            // Descendants
+            this.fill(scene, n);
         });
     }
 
@@ -143,7 +158,7 @@ export default class EditorGraph {
     * Returns the icon related to the object type
     * @param object 
     */
-    public getIcon(obj: Node | IParticleSystem): string {
+    public getIcon(obj: any): string {
         if (obj instanceof AbstractMesh) {
             return 'icon-mesh';
         } else if (obj instanceof Light) {

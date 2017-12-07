@@ -6,13 +6,15 @@ import {
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
-import Editor from '../../editor/editor';
-import { EditorPlugin } from '../../editor/typings/plugin';
-import Tools from '../../editor/tools/tools';
+import Editor, {
+    Tools,
 
-import Layout from '../../editor/gui/layout';
-import Toolbar from '../../editor/gui/toolbar';
-import Picker from '../../editor/gui/picker';
+    Layout,
+    Toolbar,
+    Picker,
+
+    EditorPlugin
+} from 'babylonjs-editor';
 
 export interface PreviewScene {
     engine: Engine;

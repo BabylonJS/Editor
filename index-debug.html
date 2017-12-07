@@ -27,13 +27,17 @@
                 "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
 
                 // Editor's modules paths
-                "babylonjs-editor": "./dist/editor.js",
-                "animation-editor": "./dist/animations-editor.js",
-                "material-viewer": "./dist/material-viewer.js",
-                "behavior-editor": "./dist/behavior-editor.js",
-                "texture-viewer": "./dist/texture-viewer.js"
+                "babylonjs-editor": "./.build/src/index.js",
+                "babylonjs-editor-extensions": "./.build/src/extensions/index.js",
+                "animation-editor": "./.build/src/tools/animations/editor.js",
+                "material-viewer": "./.build/src/tools/materials/viewer.js",
+                "behavior-editor": "./.build/src/tools/behavior/code.js",
+                "texture-viewer": "../.build/src/tools/textures/viewer.js"
             },
             packages: {
+                "./.build/src/": {
+                    defaultExtension: "js"
+                },
                 "./node_modules/babylonjs-loaders/": {
                     format: "cjs",
                     main: "babylonjs.loaders.js",
@@ -63,22 +67,24 @@
             pluginFirst: true
         });
 
-        // Add BABYLON in window
-        System.import("babylonjs").then(function (e) {
-            System.import("babylonjs-editor").then(function (e) {
-                // Run editor
-                var editor = window.editor = new e.default();
-                editor.run();
-                editor.createDefaultScene();
+        System.import("babylonjs-editor").then(function (e) {
+            // Add BABYLON in window
+            System.import("babylonjs").then(function (e) {
+                window.BABYLON = e;
             });
+
+            // Run editor
+            var editor = window.editor = new e.default();
+            editor.run();
+            editor.createDefaultScene();
         });
     </script>
 
     <!-- REQUIRE MONACO EDITOR -->
     <script src="./node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
     <script type="text/javascript">
-        require.config({ paths: { 'vs': './node_modules/monaco-editor/min/vs' }});
-        require(['vs/editor/editor.main'], function() {
+        require.config({ paths: { "vs": "./node_modules/monaco-editor/min/vs" }});
+        require(["vs/editor/editor.main"], function() {
             // Empty
 		});
     </script>

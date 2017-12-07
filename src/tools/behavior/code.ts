@@ -4,14 +4,16 @@ import {
     Scene
 } from 'babylonjs';
 
-import Editor from '../../editor/editor';
-import { EditorPlugin } from '../../editor/typings/plugin';
-import { IDisposable } from '../../editor/typings/typings';
-import Tools from '../../editor/tools/tools';
+import Editor, {
+    Tools,
 
-import Layout from '../../editor/gui/layout';
-import Toolbar from '../../editor/gui/toolbar';
-import Grid, { GridRow } from '../../editor/gui/grid';
+    Layout,
+    Toolbar,
+    Grid, GridRow,
+
+    EditorPlugin,
+    IDisposable   
+} from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
 import { BehaviorMetadata, BehaviorCode } from '../../extensions/behavior/code';
