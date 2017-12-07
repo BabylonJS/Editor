@@ -1,15 +1,16 @@
 import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
 import * as Raphael from 'raphael';
 
-import Editor from '../../editor/editor';
-import Tools from '../../editor/tools/tools';
+import Editor, {
+    Tools,
 
-import { IStringDictionary } from '../../editor/typings/typings';
-import { EditorPlugin } from '../../editor/typings/plugin';
+    IStringDictionary,
+    EditorPlugin,
 
-import Layout from '../../editor/gui/layout';
-import Toolbar from '../../editor/gui/toolbar';
-import List from '../../editor/gui/list';
+    Layout,
+    Toolbar,
+    List
+} from 'babylonjs-editor';
 
 export interface DragData {
     point: RaphaelElement;

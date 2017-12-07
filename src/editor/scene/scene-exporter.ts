@@ -30,6 +30,9 @@ export default class ProjectExporter {
     public static CreateFiles (editor: Editor): void {
         // Scene
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
+        if (editor.playCamera)
+            serializedScene.activeCameraID = editor.playCamera.id;
+
         let file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
         editor.sceneFile = file;
 

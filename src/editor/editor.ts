@@ -31,6 +31,7 @@ export default class Editor {
     // Public members
     public core: Core;
     public camera: FreeCamera;
+    public playCamera: Camera = null;
 
     public layout: Layout;
 
@@ -343,6 +344,8 @@ export default class Editor {
 
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
+
+                    this.playCamera = scene.activeCamera;
 
                     this.createEditorCamera();
 
