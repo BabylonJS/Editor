@@ -7,6 +7,8 @@ export default class Window {
     public body: string = '';
     public buttons: string[] = [];
 
+    public showMax: boolean = true;
+
     public onButtonClick: (id: string) => void;
     public onClose: () => void;
 
@@ -58,7 +60,7 @@ export default class Window {
             width: 800,
             height: 600,
             showClose: true,
-            showMax: true,
+            showMax: this.showMax,
             modal: true
         });
 

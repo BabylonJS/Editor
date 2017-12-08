@@ -39,6 +39,15 @@ export default class Graph {
     }
 
     /**
+     * Adds the given node to the graph
+     * @param node: the node to add into the graph
+     * @param parent: the optional parent of the node
+     */
+    public add (node: GraphNode, parent?: string): void {
+        this.element.add(<string>(parent || this.element), node);
+    }
+
+    /**
      * Builds the graph
      * @param parentId the parent id
      */

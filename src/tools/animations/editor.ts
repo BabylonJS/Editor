@@ -1,6 +1,5 @@
 import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
 import * as Raphael from 'raphael';
-
 import Editor, {
     Tools,
 
@@ -11,6 +10,8 @@ import Editor, {
     Toolbar,
     List
 } from 'babylonjs-editor';
+
+import PropertyBrowser from './property-browser';
 
 export interface DragData {
     point: RaphaelElement;
@@ -100,7 +101,8 @@ export default class AnimationEditor extends EditorPlugin {
         // Create toolbar
         this.toolbar = new Toolbar('AnimationEditorToolbar');
         this.toolbar.items = [
-            { type: 'check', id: 'add', text: 'Add Keys', img: 'icon-add', checked: false },
+            { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
+            { type: 'check', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
             { type: 'break' },
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] }
         ];
@@ -198,7 +200,8 @@ export default class AnimationEditor extends EditorPlugin {
         }
 
         switch (id) {
-            case 'add': this.addingKeys = !this.addingKeys; break;
+            case 'add': new PropertyBrowser(this.animatable); break;
+            case 'add-key': this.addingKeys = !this.addingKeys; break;
             default: break;
         }
     }

@@ -6,6 +6,8 @@ import Toolbar from './editor/gui/toolbar';
 import List from './editor/gui/list';
 import Grid, { GridRow } from './editor/gui/grid';
 import Picker from './editor/gui/picker';
+import Graph, { GraphNode } from './editor/gui/graph';
+import Window from './editor/gui/window';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
@@ -24,5 +26,7 @@ export {
     Toolbar,
     List,
     Grid, GridRow,
-    Picker
+    Picker,
+    Graph, GraphNode,
+    Window
 }

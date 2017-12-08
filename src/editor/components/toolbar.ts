@@ -4,7 +4,7 @@ import { IEditorPlugin } from '../typings/plugin';
 import Toolbar from '../gui/toolbar';
 import Tools from '../tools/tools';
 
-import ProjectExporter from '../scene/scene-exporter';
+import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 import SceneImporter from '../scene/scene-importer';
 
@@ -24,6 +24,7 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
+                    { id: 'download-project', img: 'icon-export', text: 'Download Project...' },
                     { type: 'break' },
                     { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
                     { type: 'break' },
@@ -74,14 +75,17 @@ export default class EditorToolbar {
             case 'project:import-project':
                 SceneImporter.ImportProject(this.editor);
                 break;
+            case 'project:download-project':
+                SceneExporter.DownloadBabylonFile(this.editor);
+                break;
             case 'project:clean-project':
                 this.editor.createDefaultScene(true);
                 break;
             case 'project:export-project':
-                await ProjectExporter.ExportProject(this.editor);
+                await SceneExporter.ExportProject(this.editor);
                 break;
             case 'project:export-template':
-                await ProjectExporter.ExportTemplate(this.editor);
+                await SceneExporter.ExportTemplate(this.editor);
                 break;
 
             // View
@@ -122,7 +126,7 @@ export default class EditorToolbar {
     protected onToolsClick (target: string): void {
         switch (target) {
             case 'test':
-                ProjectExporter.CreateFiles(this.editor);
+                SceneExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
                 break;
             default: break;
