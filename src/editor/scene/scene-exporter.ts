@@ -19,9 +19,12 @@ import Storage, { CreateFiles } from '../storage/storage';
 
 const randomId = BabylonTools.RandomId();
 
-export default class ProjectExporter {
-    // Static members
+export default class SceneExporter {
+    // Public members
     public static ProjectPath: string = ''; // TODO: manage selected project path + CTRL+S
+
+    // Private members
+    private static _LastBabylonFileURL: string = null;
 
     /**
      * Creates a new file
@@ -41,6 +44,25 @@ export default class ProjectExporter {
         const project = this.Export(editor);
         file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
         editor.projectFile = file;
+    }
+
+    /**
+     * Creates the babylon scene and a download link for the babylon file
+     * @param editor the editor reference
+     */
+    public static DownloadBabylonFile (editor: Editor): void {
+        this.CreateFiles(editor);
+
+        if (this._LastBabylonFileURL)
+            URL.revokeObjectURL(this._LastBabylonFileURL);
+
+        this._LastBabylonFileURL = URL.createObjectURL(editor.sceneFile);
+
+        const link = document.createElement('a');
+        link.download = editor.sceneFile.name;
+        link.href = this._LastBabylonFileURL;
+        link.click();
+        link.remove();
     }
 
     /**
