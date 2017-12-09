@@ -1,14 +1,17 @@
 import {
     Vector2, Vector3, Vector4,
     Color3, Color4,
-    Quaternion
+    Quaternion,
+    Camera,
+    Material
 } from 'babylonjs';
-import { Window, Graph, Tools } from 'babylonjs-editor';
+import { Window, Graph, GraphNode, Tools } from 'babylonjs-editor';
 
 interface PropertyNode {
     id: string;
     text: string;
     img: string;
+    data?: any;
 
     children: PropertyNode[];
 }
@@ -21,22 +24,19 @@ export default class PropertyBrowser {
     private _window: Window;
     private _graph: Graph;
 
-    private _checkedProperties: any[] = [];
     private _allowedTypes: string[] = [
         'Vector2', 'Vector3', 'Vector4',
         'Color3', 'Color4',
         'Quaternion',
-        'number', 'string'
+        'Number', 'number'
     ];
-    private _forbiddenTypes: string[] = [
-        'string', 'Array'
-    ];
-    private _deepTypes: string[] = [
-        'Material', 'Camera'
+    private _deepTypes: Function[] = [
+        Material, Camera
     ];
 
     /**
      * Constructor
+     * @param object: the object to traverse
      */
     constructor (object: any) {
         // Create window
@@ -48,9 +48,19 @@ export default class PropertyBrowser {
 
         this._window.onButtonClick = (id) => {
             switch (id) {
-                case 'Select': break;
+                case 'Select':
+                    const selected = this._graph.element.selected;
+                    const node = <GraphNode> this._graph.element.get(selected);
+
+                    if (node.data === undefined)
+                        return;
+
+                    if (selected && this.onSelect)
+                        this.onSelect(selected);
+                break;
             }
 
+            this._graph.element.destroy();
             this._window.close();
         };
 
@@ -61,14 +71,30 @@ export default class PropertyBrowser {
     }
 
     // Fills the graph with the given root object
-    private _fillGraph (root: any, rootName?: string): void {
-        const nodes = this._getPropertyNodes(root, '', {
-            id: 'property-browser-root',
-            text: '',
-            img: '',
-            children: []
-        });
-        debugger;
+    private _fillGraph (root: any, node?: PropertyNode): void {
+        if (!node) {
+            node = this._getPropertyNodes(root, '', {
+                id: undefined,
+                text: '',
+                img: '',
+                children: []
+            });
+        }
+
+        // Sort nodes
+        Tools.SortAlphabetically(node.children, 'text');
+
+        // Add for each node
+        for (const n of node.children) {
+            this._graph.add({
+                id: n.id,
+                img: n.img,
+                text: n.text,
+                data: n.data
+            }, node.id);
+
+            this._fillGraph(root, n);
+        }
     }
 
     // Returns an array of property nodes
@@ -77,25 +103,23 @@ export default class PropertyBrowser {
             const value = root[thing];
             const ctor = Tools.GetConstructorName(value);
 
-            if (thing[0] === '_' || this._forbiddenTypes.indexOf(ctor) !== -1)
+            if (thing[0] === '_')
                 continue;
             
-            const id = `${rootName}.${thing}`;
+            const id = `${rootName === '' ? '' : (rootName + '.')}${thing}`;
             const allowed = this._allowedTypes.indexOf(ctor) !== -1;
-            const deep = this._deepTypes.indexOf(thing) !== -1;
+            const deep = this._deepTypes.find(dt => value instanceof dt);
+
+            if (!allowed && !deep)
+                continue;
 
             // If not allowed but ok for traverse
-            if (!allowed && deep) {
+            if (deep) {
                 // Recursively add
-                if (this._checkedProperties.indexOf(value) !== -1)
-                    continue;
-
-                this._checkedProperties.push(value);
-
                 const node = <PropertyNode> {
                     id: id,
                     text: `${thing} - (${ctor})`,
-                    img: 'icon-stop',
+                    img: 'icon-error',
                     children: []
                 };
 
@@ -107,7 +131,8 @@ export default class PropertyBrowser {
                 const node = <PropertyNode> {
                     id: id,
                     text: `${thing} - (${ctor})`,
-                    img: 'icon-edit',
+                    img: this._getIcon(value),
+                    data: value,
                     children: []
                 };
 
@@ -117,5 +142,17 @@ export default class PropertyBrowser {
         }
 
         return rootNode;
+    }
+
+    // Returns the appropriate icon
+    private _getIcon (obj: any): string {
+        if (obj instanceof Vector2 || obj instanceof Vector3 || obj instanceof Vector4 || obj instanceof Quaternion) {
+            return 'icon-position';
+        }
+        else if (obj instanceof Color3 || obj instanceof Color4) {
+            return 'icon-effects';
+        }
+
+        return 'icon-edit';
     }
 }
