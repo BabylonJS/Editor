@@ -142,6 +142,23 @@ export default class Tools {
     }
 
     /**
+     * Sorts the given string array alphabetically
+     * @param arr: the array to sort
+     * @param property: the property to take
+     */
+    public static SortAlphabetically(arr: any[], property?: string): void {
+        arr.sort((a, b) => {
+            a = property ? a[property] : a;
+            b = property ? b[property] : b;
+
+            a = a.toUpperCase();
+            b = b.toUpperCase();
+
+            return (a < b) ? -1 : (a > b) ? 1 : 0;
+        });
+    }
+
+    /**
      * Creates a new File (blob today to fix Edge compatibility)
      * @param buffer the file's buffer
      * @param filename the file's name

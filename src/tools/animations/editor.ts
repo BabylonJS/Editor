@@ -200,10 +200,31 @@ export default class AnimationEditor extends EditorPlugin {
         }
 
         switch (id) {
-            case 'add': new PropertyBrowser(this.animatable); break;
+            case 'add': this.addAnimation(); break;
             case 'add-key': this.addingKeys = !this.addingKeys; break;
             default: break;
         }
+    }
+
+    /**
+     * Adds an animation
+     */
+    protected addAnimation (): void {
+        if (!this.animatable)
+            return;
+        
+        const browser = new PropertyBrowser(this.animatable);
+        browser.onSelect = (id) => {
+            debugger;
+            const anim = new Animation(id, id, 60, 0, 0, false);
+            anim.setKeys([
+                { frame: 0, value: 0 },
+                { frame: 60, value: 0 }
+            ]);
+
+            this.animatable.animations.push(anim);
+            this.objectSelected(this.animatable);
+        };
     }
 
     /**
