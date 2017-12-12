@@ -5,6 +5,7 @@ import {
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
+import PostProcessesExtension from '../../extensions/post-process/post-processes';
 
 export default class SceneManager {
     // Public members
@@ -12,6 +13,8 @@ export default class SceneManager {
     public static StandardRenderingPipeline: StandardRenderingPipeline = null;
     public static SSAORenderingPipeline: SSAORenderingPipeline = null;
     public static SSAO2RenderingPipeline: SSAO2RenderingPipeline = null;
+
+    public static PostProcessExtension: PostProcessesExtension = null;
 
     /**
      * Clears the scene manager

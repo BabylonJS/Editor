@@ -153,7 +153,7 @@ export default class SceneExporter {
     private static _SerializeCustomMetadatas (editor: Editor): IStringDictionary<any> {
         const result = { };
 
-        // Instances have been 
+        // Instances have been
         for (const e in Extensions.Instances)
             result[e] = Extensions.Instances[e].onSerialize();
 

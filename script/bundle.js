@@ -27,7 +27,7 @@ build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extens
 });
 
 // Editor
-let externals = ['babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-materials', 'dat-gui'];
+let externals = ['babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-materials', 'dat-gui', 'extensions/extensions'];
 
 build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',

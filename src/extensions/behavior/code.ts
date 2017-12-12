@@ -42,7 +42,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     /**
      * On apply the extension
      */
-    onApply (data: BehaviorMetadata[]): void {
+    public onApply (data: BehaviorMetadata[]): void {
         this.datas = data;
 
         // For each node
@@ -93,7 +93,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Called by the editor when serializing the scene
      */
-    onSerialize (): BehaviorMetadata[] {
+    public onSerialize (): BehaviorMetadata[] {
         const result: BehaviorMetadata[] = [];
         const add = (objects: (Scene | Node)[]) => {
             objects.forEach(o => {
@@ -114,7 +114,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    onLoad (data: BehaviorMetadata[]): void {
+    public onLoad (data: BehaviorMetadata[]): void {
         this.datas = data;
         
         // For each node

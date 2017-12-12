@@ -4,8 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Babylon.js Editor</title>
     
-    <script src="./node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
-    <script src="./node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
+    <script src="./node_modules/es6-promise/dist/es6-promise.auto.min.js" type="text/javascript"></script>
+    <script src="./node_modules/systemjs/dist/system.js" type="text/javascript"></script>
 
     <script src="./node_modules/jquery/dist/jquery.min.js" type="text/javascript"></script>
     <script src="./node_modules/w2ui/w2ui.min.js" type="text/javascript"></script>
@@ -18,8 +18,9 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
-                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
-                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
+                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.min.js",
+                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.min.js",
+                "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.min.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
                 "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
@@ -31,22 +32,26 @@
                 "animation-editor": "./dist/animations-editor.js",
                 "material-viewer": "./dist/material-viewer.js",
                 "behavior-editor": "./dist/behavior-editor.js",
-                "texture-viewer": "./dist/texture-viewer.js"
+                "texture-viewer": "./dist/texture-viewer.js",
+                "extensions/extensions": "./.build/src/extensions/extensions.js"
             },
             packages: {
+                "./.build/src/": {
+                    defaultExtension: "js"
+                },
                 "./node_modules/babylonjs-loaders/": {
                     format: "cjs",
-                    main: "babylonjs.loaders.js",
+                    main: "babylonjs.loaders.min.js",
                     format: "global"
                 },
                 "./node_modules/babylonjs-materials/": {
                     format: "cjs",
-                    main: "babylonjs.materials.js",
+                    main: "babylonjs.materials.min.js",
                     format: "global"
                 },
                 "./node_modules/babylonjs-gui/": {
                     format: "cjs",
-                    main: "babylon.gui.js",
+                    main: "babylon.gui.min.js",
                     format: "global"
                 }
             },

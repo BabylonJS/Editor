@@ -321,14 +321,14 @@ export default class Editor {
                 const extension = Tools.GetFileExtension(file.name);
                 if (extension !== 'babylon') {
                     this.layout.lockPanel('main', 'Importing Loaders...', true);
-                    await Tools.ImportScript('node_modules/babylonjs-loaders');
+                    await Tools.ImportScript('babylonjs-loaders');
                 }
 
                 this.layout.lockPanel('main', 'Importing Physics...', true);
                 await Tools.ImportScript('cannonjs');
 
                 this.layout.lockPanel('main', 'Importing Materials...', true);
-                await Tools.ImportScript('node_modules/babylonjs/dist/preview release/materialsLibrary');
+                await Tools.ImportScript('babylonjs-materials');
 
                 // Import extensions
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
