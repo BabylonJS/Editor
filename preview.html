@@ -34,8 +34,8 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
-                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
-                "cannonjs": "./node_modules/cannon/build/cannon.js",
+                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.min.js",
+                "cannonjs": "./node_modules/cannon/build/cannon.min.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
             },
             packages: {
@@ -76,7 +76,8 @@
                         var promises = [];
                         var files = [
                             "./.build/src/extensions/behavior/code.js",
-                            "./.build/src/extensions/spector/spector-debug.js"
+                            "./.build/src/extensions/spector/spector-debug.js",
+                            "./.build/src/extensions/post-process/post-processes.js"
                         ];
 
                         for (var i = 0; i < files.length; i++) {

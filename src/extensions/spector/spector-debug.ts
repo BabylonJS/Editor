@@ -4,7 +4,7 @@ import { Spector } from 'spectorjs';
 import Extension from '../extension';
 import Extensions from '../extensions';
 
-export default class SpectorDebug extends Extension<{ }> {
+export default class SpectorDebugExtension extends Extension<{ }> {
     // Public members
     public spector: Spector;
 
@@ -38,4 +38,4 @@ export default class SpectorDebug extends Extension<{ }> {
     { }
 }
 
-Extensions.Register('SpectorDebug', SpectorDebug);
+Extensions.Register('SpectorDebug', SpectorDebugExtension);

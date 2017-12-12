@@ -2,12 +2,14 @@ import Extensions from './extensions';
 import Extension from './extension';
 
 import CodeExtension from './behavior/code';
-import SpectorDebug from './spector/spector-debug';
+import SpectorDebugExtension from './spector/spector-debug';
+import PostProcessExtension from './post-process/post-processes';
 
 export {
     Extensions,
     Extension,
 
     CodeExtension,
-    SpectorDebug
+    SpectorDebugExtension,
+    PostProcessExtension
 }

@@ -9,6 +9,10 @@ import Tools from '../tools/tools';
 import SceneManager from '../scene/scene-manager';
 
 import Picker from '../gui/picker';
+import SceneFactory from '../scene/scene-factory';
+
+import PostProcessesExtension from '../../extensions/post-process/post-processes';
+import Extensions from '../../extensions/extensions';
 
 export default class PostProcessesTool extends AbstractEditionTool<Scene> {
     // Public members
@@ -55,6 +59,9 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
             SceneManager.StandardRenderingPipeline = pipeline;
             this.update(scene);
+
+            // Check if extension is created
+            this._checkExtension();
         });
 
         if (this._standardEnabled) {
@@ -162,5 +169,14 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(0).step(0.01).name('Max Z');
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(0).max(64).step(1).name('Samples');
         }
+    }
+
+    // Checks if the post processes extension is created
+    private async _checkExtension (): Promise<void> {
+        await Tools.ImportScript('./.build/src/extensions/post-process/post-processes');
+        
+        SceneManager.PostProcessExtension =
+            SceneManager.PostProcessExtension ||
+            Extensions.RequestExtension<PostProcessesExtension>(this.editor.core.scene, 'PostProcess');
     }
 }
