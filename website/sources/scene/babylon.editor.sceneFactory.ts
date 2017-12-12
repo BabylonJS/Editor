@@ -470,5 +470,46 @@
 
             return instance;
         }
+
+        // Clears the unused materials (StandardMaterial) of the scene
+        static ClearUnusedMaterials(scene: Scene): number {
+            var count = 0;
+
+            // Collect materials
+            var materials: StandardMaterial[] = [];
+            for (var i = 0; i < scene.materials.length; i++) {
+                var mat = scene.materials[i];
+                if (mat instanceof StandardMaterial)
+                    materials.push(mat);
+            }
+
+            // Collect used materials
+            var used: StandardMaterial[] = [];
+            for (var i = 0; i < scene.meshes.length; i++) {
+                var mat = scene.meshes[i].material;
+                if (mat instanceof StandardMaterial) {
+                    if (used.indexOf(mat) === -1)
+                        used.push(mat);
+                }
+                else if (mat instanceof MultiMaterial) {
+                    for (var j = 0; j < mat.subMaterials.length; j++) {
+                        var subMat = mat.subMaterials[j];
+                        if (subMat instanceof StandardMaterial && used.indexOf(subMat) === -1) {
+                            used.push(subMat);
+                        }
+                    }
+                }
+            }
+
+            // Clear
+            for (var i = 0; i < materials.length; i++) {
+                if (used.indexOf(materials[i]) === -1) {
+                    materials[i].dispose(true, false);
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 }
