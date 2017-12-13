@@ -175,7 +175,7 @@ export default class Tools {
      * @param url the url of the file
      * @param arrayBuffer if should load file as arraybuffer
      */
-    public static async LoadFile<T> (url: string, arrayBuffer: boolean = false): Promise<T> {
+    public static async LoadFile<T extends string | ArrayBuffer> (url: string, arrayBuffer: boolean = false): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             BabylonTools.LoadFile(url, (data: T) => resolve(data), null, null, arrayBuffer, (r, e) => reject(e));
         });

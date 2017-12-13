@@ -23,12 +23,18 @@ export interface DragData {
     valueInterval: number;
 }
 
+export interface AnimationKey {
+    frame: number;
+    value: any;
+}
+
 export default class AnimationEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
 
     public fpsInput: JQuery = null;
+    public frameInput: JQuery = null;
 
     public paper: RaphaelPaper = null;
     public background: RaphaelElement = null;
@@ -49,6 +55,7 @@ export default class AnimationEditor extends EditorPlugin {
     public animatable: IAnimatable = null;
     public animation: Animation = null;
     public animationManager: Animatable = null;
+    public key: AnimationKey = null;
 
     // Protected members
     protected mouseMoveHandler: (ev: MouseEvent) => void;
@@ -107,7 +114,8 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] }
         ];
         this.toolbar.right = `
-        <div style="padding: 3px 10px;">    
+        <div style="padding: 3px 10px;">
+            Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
             FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
         </div>`;
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
@@ -135,12 +143,21 @@ export default class AnimationEditor extends EditorPlugin {
         this.valueText.attr('font-size', 10);
         this.valueText.hide();
 
-        // Events
-        const input = $('#ANIMATION-EDITOR-FPS');
-        this.fpsInput = (<any> input).w2field('float', { autoFormat: true });
+        // Events / inputs
+        const fps = $('#ANIMATION-EDITOR-FPS');
+        this.fpsInput = (<any> fps).w2field('float', { autoFormat: true });
         this.fpsInput[0].addEventListener('change', (ev) => {
             if (this.animation)
                 this.animation.framePerSecond = parseFloat(<string>this.fpsInput.val());
+        });
+
+        const frame = $('#ANIMATION-EDITOR-FRAME');
+        this.frameInput = (<any> frame).w2field('float', { autoFormat: true });
+        this.frameInput[0].addEventListener('change', (ev) => {
+            if (this.key) {
+                this.key.frame = parseFloat(<string>this.frameInput.val());
+                this.updateGraph(this.animation);
+            }
         });
 
         // Resize
@@ -271,6 +288,9 @@ export default class AnimationEditor extends EditorPlugin {
      * @param property: the animation property
      */
     protected onChangeAnimation(property: string): void {
+        // Clean selected elements
+        this.key = null;
+
         if (!this.animatable)
             return;
 
@@ -496,6 +516,10 @@ export default class AnimationEditor extends EditorPlugin {
         const onStart = (x: number, y: number, ev) => {
             data.point.attr('opacity', 1);
             this.valueText.show();
+
+            // Set key as selected
+            this.key = this.animation.getKeys()[data.keyIndex];
+            this.frameInput.val(this.key.frame);
         };
 
         const onMove = (dx, dy, x, y, ev) => {
@@ -533,6 +557,9 @@ export default class AnimationEditor extends EditorPlugin {
                         key.value[p] = value;
                 });
             }
+
+            // Update frame input
+            this.frameInput.val(frame);
 
             // Update value text
             this.valueText.attr('x', ev.offsetX);
