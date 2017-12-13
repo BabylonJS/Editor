@@ -22,6 +22,9 @@ export default class EditorEditionTools {
 
     public panel: W2UI.W2Panel;
 
+    // Protected members
+    protected lastTabName: string = null;
+
     /**
      * Constructor
      * @param editor: the editor's reference
@@ -84,6 +87,10 @@ export default class EditorEditionTools {
         // Add & configure tool
         tool.editor = this.editor;
         this.tools.push(tool);
+
+        // Last tab name?
+        if (!this.lastTabName)
+            this.lastTabName = tool.tabName;
     }
 
     /**
@@ -101,7 +108,9 @@ export default class EditorEditionTools {
                 this.panel.tabs.show(t.tabName);
                 t.update(object);
 
-                if (!firstTool)
+                if (t.tabName === this.lastTabName)
+                    firstTool = t;
+                else if (!firstTool)
                     firstTool = t;
             } else {
                 // Hide
@@ -122,8 +131,10 @@ export default class EditorEditionTools {
         this.tools.forEach(t => {
             const container = $('#' + t.divId);
 
-            if (t.tabName === target)
+            if (t.tabName === target) {
                 container.show();
+                this.lastTabName = target;
+            }
             else
                 container.hide();
         });
