@@ -21,6 +21,15 @@ export default class Toolbar {
     }
 
     /**
+     * Returns if the given item is checked
+     * @param id the id of the element (menu, item, etc.)
+     */
+    public isChecked (id: string, justClicked: boolean = false): boolean {
+        const result = this.element.get(id);
+        return justClicked ? !result['checked'] : result['checked'];
+    }
+
+    /**
      * Builds the graph
      * @param parentId the parent id
      */

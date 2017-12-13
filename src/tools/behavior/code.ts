@@ -230,6 +230,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             declare var dirlight: BABYLON.DirectionalLight;
             declare var hemlight: BABYLON.HemisphericLight;
             declare var groundmesh: BABYLON.GroundMesh;
+            declare var particleSystem: BABYLON.ParticleSystem;
+            declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
         `;
 
         this.code = monaco.editor.create ($('#CODE-BEHAVIOR-EDITOR')[0], {

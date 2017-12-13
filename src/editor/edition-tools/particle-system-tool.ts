@@ -8,6 +8,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
 
     // Private members
     private _currentEmitter: string = '';
+    private _currentBlendMode: string = '';
 
     /**
      * Returns if the object is supported
@@ -50,6 +51,15 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const texture = this.tool.addFolder('Texture');
             texture.open();
             this.tool.addTexture(texture, this.editor, 'particleTexture', ps, false).name('Particle Texture');
+
+            const blendModes = ['BLENDMODE_ONEONE', 'BLENDMODE_STANDARD'];
+            this._currentBlendMode = blendModes[ps.blendMode];
+            texture.add(this, '_currentBlendMode', blendModes).name('Blend Mode').onChange(r => ps.blendMode = ParticleSystem[r]);
+
+            // Actions
+            const actions = this.tool.addFolder('Actions');
+            actions.open();
+            actions.add(ps, 'rebuild').name('Rebuild');
 
             // Emit
             const emit = this.tool.addFolder('Emit');

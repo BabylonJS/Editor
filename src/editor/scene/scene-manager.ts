@@ -1,7 +1,9 @@
 import {
     Scene,
     ActionManager,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline,
+    IAnimatable,
+    ParticleSystem
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -36,5 +38,57 @@ export default class SceneManager {
             this.ActionManagers[m.id] = currentActionManager;
             m.actionManager = savedActionManager;
         });
+    }
+
+    /**
+     * Returns the animatable objects
+     * @param scene the scene containing animatables
+     */
+    public static GetAnimatables (scene: Scene): IAnimatable[] {
+        const animatables: IAnimatable[] = [scene];
+
+        if (this.StandardRenderingPipeline) animatables.push(this.StandardRenderingPipeline);
+
+        scene.meshes.forEach(m => animatables.push(m));
+        scene.lights.forEach(l => animatables.push(l));
+        scene.cameras.forEach(c => animatables.push(c));
+        scene.particleSystems.forEach(ps => animatables.push(<ParticleSystem> ps));
+
+        return animatables;
+    }
+
+    /**
+     * Returns the animation frame bounds (min frame, max frame)
+     * @param animatables the animtables to check
+     */
+    public static GetAnimationFrameBounds (animatables: IAnimatable[]): { min: number, max: number } {
+        const bounds = {
+            min: Number.MAX_VALUE,
+            max: Number.MIN_VALUE
+        };
+
+        animatables.forEach(a => {
+            a.animations.forEach(a => {
+                const keys = a.getKeys();
+                
+                keys.forEach(k => {
+                    if (k.frame < bounds.min)
+                        bounds.min = k.frame;
+                    if (k.frame > bounds.max)
+                        bounds.max = k.frame;
+                });
+            });
+        });
+
+        return bounds;
+    }
+
+    /**
+     * Plays all the animtables
+     * @param animatables the animatables to play
+     */
+    public static PlayAllAnimatables (scene: Scene, animatables: IAnimatable[]): void {
+        const bounds = SceneManager.GetAnimationFrameBounds(animatables);
+        animatables.forEach(a => scene.beginAnimation(a, bounds.min, bounds.max, false, 1.0));
     }
 }

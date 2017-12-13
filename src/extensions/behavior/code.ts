@@ -1,4 +1,4 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools, IParticleSystem } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -47,7 +47,11 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
 
         // For each node
         this.datas.forEach(d => {
-            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+
+            if (!node)
+                this.scene.particleSystems.forEach(ps => ps.name === d.node && (node = ps));
+            
             if (!node)
                 return;
 
@@ -95,10 +99,10 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
      */
     public onSerialize (): BehaviorMetadata[] {
         const result: BehaviorMetadata[] = [];
-        const add = (objects: (Scene | Node)[]) => {
+        const add = (objects: (Scene | Node | IParticleSystem)[]) => {
             objects.forEach(o => {
-                if (o.metadata && o.metadata['behavior'])
-                    result.push(o.metadata['behavior']);
+                if (o['metadata'] && o['metadata']['behavior'])
+                    result.push(o['metadata']['behavior']);
             });
         };
 
@@ -106,6 +110,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         add(this.scene.lights);
         add(this.scene.cameras);
         add([this.scene]);
+        add(this.scene.particleSystems);
 
         return result;
     }
