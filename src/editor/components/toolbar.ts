@@ -7,6 +7,7 @@ import Tools from '../tools/tools';
 import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 import SceneImporter from '../scene/scene-importer';
+import SceneManager from '../scene/scene-manager';
 
 export default class EditorToolbar {
     // Public members
@@ -58,7 +59,7 @@ export default class EditorToolbar {
         // Build toolbar
         this.tools = new Toolbar('ToolsToolBar');
         this.tools.items = [
-            { type: 'button', id: 'play', text: 'Play', img: 'icon-play-game' },
+            { type: 'check', id: 'play', text: 'Play', img: 'icon-play-game' },
             { type: 'button', id: 'test', text: 'Test...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
@@ -125,6 +126,11 @@ export default class EditorToolbar {
      */
     protected onToolsClick (target: string): void {
         switch (target) {
+            case 'play':
+                const animatables = SceneManager.GetAnimatables(this.editor.core.scene);
+                this.tools.isChecked('play', true) ? SceneManager.PlayAllAnimatables(this.editor.core.scene, animatables) : this.editor.core.scene.stopAllAnimations();
+                break;
+            
             case 'test':
                 SceneExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);

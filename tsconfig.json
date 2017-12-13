@@ -21,7 +21,7 @@
       "./.declaration",
       "./index.d.ts",
       "electron",
-      "electronPackages",
+      "electron-packages",
       "assets"
     ]
   }

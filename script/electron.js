@@ -18,7 +18,7 @@ const options = {
     arch: args.arch || 'x64',
     dir: './',
     platform: args.platform || 'all',
-    out: 'electronPackages/',
+    out: 'electron-packages/',
     overwrite: true,
     prune: false,
     icon: './css/icons/babylonjs_icon'
