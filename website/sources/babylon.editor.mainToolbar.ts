@@ -141,6 +141,7 @@
                     }
                     else if (selected.selected === this._mainClearMaterials) {
                         GUI.GUIWindow.CreateAlert('Cleared ' + SceneFactory.ClearUnusedMaterials(this.core.currentScene) + ' materials', 'Result');
+                        this.core.editor.editionTool.updateEditionTool();
                     }
 
                     return true;
