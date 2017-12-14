@@ -207,6 +207,9 @@
                         }
                         else {
                             var file: File = BABYLON.FilesInput.FilesToLoad[selectedTexture.name.toLowerCase()];
+                            if (!file)
+                                file = BABYLON.FilesInput.FilesToLoad[selectedTexture.name];
+                            
                             if (file) {
                                 serializationObject.name = (<Texture>selectedTexture).url;
                             }
