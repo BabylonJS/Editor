@@ -144,8 +144,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         if (!this.datas)
             this.datas = node.metadata['behavior'] = { node: (node instanceof Scene) ? 'Scene' : node.name, metadatas: [] }
 
-        // Clear existing rows
+        // Clear existing data
+        this.data = null;
+
         this.grid.element.clear();
+        this.code.setValue('');
 
         // Add rows
         this.datas.metadatas.forEach((d, index) => {
