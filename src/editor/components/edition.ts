@@ -14,10 +14,12 @@ import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import TextureTool from '../edition-tools/texture-tool';
 
 import Editor from '../editor';
+import UndoRedo from '../tools/undo-redo';
 
 export default class EditorEditionTools {
     // Public members
     public tools: IEditionTool<any>[] = [];
+    public currentTools: IEditionTool<any>[] = [];
     public root: string = 'EDITION';
 
     public panel: W2UI.W2Panel;
@@ -98,6 +100,7 @@ export default class EditorEditionTools {
      * @param object the object to edit
      */
     public setObject(object: any): void {
+        this.currentTools = [];
         let firstTool: IEditionTool<any> = null;
 
         this.tools.forEach(t => {
@@ -112,6 +115,13 @@ export default class EditorEditionTools {
                     firstTool = t;
                 else if (!firstTool)
                     firstTool = t;
+
+                // Manage undo / redo
+                t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
+                    UndoRedo.Push({ property: property, to: result, from: initialValue, object: object });
+                });
+
+                this.currentTools.push(t);
             } else {
                 // Hide
                 $('#' + t.divId).hide();
@@ -121,6 +131,13 @@ export default class EditorEditionTools {
 
         if (firstTool)
             this.changeTab(firstTool.tabName);
+    }
+
+    /**
+     * Updates the display of all visible edition tools
+     */
+    public updateDisplay (): void {
+        this.currentTools.forEach(t => t.tool.updateDisplay());
     }
 
     /**

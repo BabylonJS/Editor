@@ -9,7 +9,6 @@ import { IStringDictionary } from './typings/typings';
 import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
 
 import Core from './core';
-import Tools from './tools/tools';
 
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
@@ -25,7 +24,9 @@ import ScenePreview from './scene/scene-preview';
 import SceneImporter from './scene/scene-importer';
 import SceneIcons from './scene/scene-icons';
 
+import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
+import UndoRedo from './tools/undo-redo';
 
 export default class Editor {
     // Public members
@@ -128,6 +129,9 @@ export default class Editor {
 
         // Create scene picker
         this._createScenePicker();
+
+        // Handle events
+        this._handleEvents();
     }
 
     /**
@@ -245,6 +249,8 @@ export default class Editor {
 
         Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
             if (result === 'Yes') {
+                UndoRedo.Clear();
+
                 this.core.scene.dispose();
                 this.core.removeScene(this.core.scene);
                 this.core.uiTextures.forEach(ui => ui.dispose());
@@ -285,6 +291,25 @@ export default class Editor {
         return this.camera;
     }
 
+    // Handles the events of the editor
+    private _handleEvents (): void {
+        // Undo
+        document.addEventListener('keyup', (ev) => {
+            if (ev.ctrlKey && ev.key === 'z') {
+                UndoRedo.Undo();
+                this.edition.updateDisplay();
+            }
+        });
+
+        // Redo
+        document.addEventListener('keyup', (ev) => {
+            if (ev.ctrlKey && ev.key === 'y') {
+                UndoRedo.Redo();
+                this.edition.updateDisplay();
+            }
+        });
+    }
+
     // Runs the given plugin URL
     private async _runPlugin (url: string, ...params: any[]): Promise<IEditorPlugin> {
         const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
@@ -317,6 +342,9 @@ export default class Editor {
         },
         (file) => {
             Dialog.Create('Load scene', 'Append to existing one?', async (result) => {
+                // Clear undo / redo
+                UndoRedo.Clear();
+
                 // Load dependencies
                 const extension = Tools.GetFileExtension(file.name);
                 if (extension !== 'babylon') {

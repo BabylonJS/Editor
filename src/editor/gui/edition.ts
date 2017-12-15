@@ -46,11 +46,25 @@ export default class Edition {
     }
 
     /**
+     * Updates the display of all elements
+     * @param folder: the root folder
+     */
+    public updateDisplay (folder?: dat.GUI): void {
+        if (!folder)
+            folder = this.element;
+        
+        folder.__controllers.forEach(c => c.updateDisplay());
+
+        for (const f in folder.__folders)
+            this.updateDisplay(folder.__folders[f]);
+    }
+
+    /**
      * Call the given callback on each recursive onFinishChange
      * @param folder the root folder
      * @param callback the callback when a property changed
      */
-    public onFinishChange (folder: dat.GUI, callback: (property: string, result: any) => void): void {
+    public onFinishChange (folder: dat.GUI, callback: (property: string, result: any, object?: any, initialValue?: any) => void): void {
         if (!folder)
             folder = this.element;
 
@@ -60,7 +74,7 @@ export default class Edition {
                 if (existingFn)
                     existingFn(result);
 
-                callback(c['property'], result);
+                callback(c['property'], result, c['object'], c['initialValue']);
             });
         });
 
@@ -73,7 +87,7 @@ export default class Edition {
      * @param folder the root folder
      * @param callback the callback when a property changed
      */
-    public onChange (folder: dat.GUI, callback: (property: string, result: any) => void): void {
+    public onChange (folder: dat.GUI, callback: (property: string, result: any, object?: any, initialValue?: any) => void): void {
         if (!folder)
             folder = this.element;
 
@@ -82,7 +96,7 @@ export default class Edition {
             c.onChange((result) => {
                 if (existingFn)
                     existingFn(result);
-                callback(c['property'], result);
+                callback(c['property'], result, c['object'], c['initialValue']);
             });
         });
 
