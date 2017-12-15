@@ -1,6 +1,17 @@
 import { Engine, Scene, Observable } from 'babylonjs';
 import { AdvancedDynamicTexture } from 'babylonjs-gui';
 
+export interface IUpdatable {
+    /**
+     * On before render the scene
+     */
+    onPreUpdate?(): void;
+    /**
+     * On after render the scene
+     */
+    onPostUpdate?(): void;
+}
+
 export default class Core {
     // Public members
     public engine: Engine;
@@ -12,7 +23,7 @@ export default class Core {
 
     public currentSelectedObject: any = null;
 
-    public updates: { onPreUpdate?(): void, onPostUpdate?(): void }[] = [];
+    public updates: IUpdatable[] = [];
 
     public onSelectObject: Observable<any> = new Observable<any>();
     public onResize: Observable<{ }> = new Observable<{ }>();
