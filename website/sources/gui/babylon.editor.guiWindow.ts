@@ -44,6 +44,7 @@
 
         // Destroy the element (W2UI)
         public destroy(): void {
+            this.onToggle = null;
             this.element.clear();
         }
 
