@@ -41,11 +41,7 @@ export default class UndoRedo {
             return null;
         
         const element = this.Stack[this.CurrentIndex];
-
-        if (typeof element.from === 'function')
-            element.object[element.property]();
-        else
-            element.object[element.property] = element.from;
+        element.object[element.property] = element.from;
 
         if (this.CurrentIndex > 0)
             this.CurrentIndex--;
@@ -58,11 +54,7 @@ export default class UndoRedo {
      */
     public static Redo (): StackElement {
         const element = this.Stack[this.CurrentIndex];
-
-        if (typeof element.to === 'function')
-            element.object[element.property]();
-        else
-            element.object[element.property] = element.to;
+        element.object[element.property] = element.to;
 
         if (this.CurrentIndex < this.Stack.length - 1)
             this.CurrentIndex++;
