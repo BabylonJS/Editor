@@ -2,6 +2,7 @@ import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
     Tools,
+    UndoRedo,
 
     IStringDictionary,
     EditorPlugin,
@@ -147,16 +148,44 @@ export default class AnimationEditor extends EditorPlugin {
         const fps = $('#ANIMATION-EDITOR-FPS');
         this.fpsInput = (<any> fps).w2field('float', { autoFormat: true });
         this.fpsInput[0].addEventListener('change', (ev) => {
-            if (this.animation)
-                this.animation.framePerSecond = parseFloat(<string>this.fpsInput.val());
+            if (this.animation) {
+                const fromFrame = this.animation.framePerSecond;
+                const toFrame = parseFloat(<string>this.fpsInput.val());
+
+                this.animation.framePerSecond = toFrame;
+
+                // Undo / redo
+                UndoRedo.Push({ // Frame
+                    object: this.animation,
+                    property: 'framePerSecond',
+                    from: fromFrame,
+                    to: toFrame,
+                    fn: (type) => this.fpsInput.val(type === 'from' ? fromFrame : toFrame)
+                });
+            }
         });
 
         const frame = $('#ANIMATION-EDITOR-FRAME');
         this.frameInput = (<any> frame).w2field('float', { autoFormat: true });
         this.frameInput[0].addEventListener('change', (ev) => {
             if (this.key) {
-                this.key.frame = parseFloat(<string>this.frameInput.val());
+                const fromFrame = this.key.frame;
+                const toFrame =  parseFloat(<string>this.frameInput.val());
+
+                this.key.frame = toFrame;
                 this.updateGraph(this.animation);
+
+                // Undo / redo
+                UndoRedo.Push({ // Frame
+                    object: this.key,
+                    property: 'frame',
+                    from: fromFrame,
+                    to: toFrame,
+                    fn: (type) => {
+                        this.updateGraph(this.animation);
+                        this.frameInput.val(type === 'from' ? fromFrame : toFrame);
+                    }
+                });
             }
         });
 
@@ -232,7 +261,6 @@ export default class AnimationEditor extends EditorPlugin {
         
         const browser = new PropertyBrowser(this.animatable);
         browser.onSelect = (id) => {
-            debugger;
             const anim = new Animation(id, id, 60, 0, 0, false);
             anim.setKeys([
                 { frame: 0, value: 0 },
@@ -513,6 +541,12 @@ export default class AnimationEditor extends EditorPlugin {
         let lx = 0;
         let ly = 0;
 
+        let fromFrame = 0;
+        let toFrame = 0;
+
+        let fromValue = null;
+        let toValue = null;
+
         const onStart = (x: number, y: number, ev) => {
             data.point.attr('opacity', 1);
             this.valueText.show();
@@ -520,6 +554,9 @@ export default class AnimationEditor extends EditorPlugin {
             // Set key as selected
             this.key = this.animation.getKeys()[data.keyIndex];
             this.frameInput.val(this.key.frame);
+
+            fromFrame = this.key.frame;
+            fromValue = this.key.value;
         };
 
         const onMove = (dx, dy, x, y, ev) => {
@@ -545,17 +582,21 @@ export default class AnimationEditor extends EditorPlugin {
             else
                 value = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
 
-            const keys = this.animation.getKeys();
-            keys[data.keyIndex].frame = frame;
+            this.key.frame = frame;
+            toFrame = frame;
 
-            if (data.property === '')
-                keys[data.keyIndex].value = value;
+            if (data.property === '') {
+                this.key.value = value;
+                toValue = value;
+            }
             else {
                 data.properties.forEach(p => {
-                    const key = keys[data.keyIndex];
                     if (p === data.property)
-                        key.value[p] = value;
+                        this.key.value[p] = value;
                 });
+
+                if (this.key.value.clone)
+                    toValue = this.key.value.clone();
             }
 
             // Update frame input
@@ -574,6 +615,28 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.valueText.hide();
             this.updateGraph(this.animation);
+
+            // Undo / redo
+            const keys = this.animation.getKeys();
+
+            UndoRedo.Push({ // Frame
+                object: this.key,
+                property: 'frame',
+                from: fromFrame,
+                to: toFrame,
+                fn: (type) => {
+                    this.updateGraph(this.animation);
+                    this.frameInput.val(type === 'from' ? fromFrame : toFrame);
+                }
+            });
+
+            UndoRedo.Push({ // Value
+                object: this.key,
+                property: 'value',
+                from: fromValue,
+                to: toValue,
+                fn: () => this.updateGraph(this.animation)
+            });
         };
 
         data.point.drag(<any>onMove, <any>onStart, <any>onEnd);
