@@ -7,6 +7,7 @@ import * as dat from 'dat-gui';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
+import UndoRedo from '../tools/undo-redo';
 
 export default class Edition {
     // Public member
@@ -71,10 +72,9 @@ export default class Edition {
         folder.__controllers.forEach(c => {
             const existingFn = c['__onFinishChange'];
             c.onFinishChange((result) => {
+                callback(c['property'], result, c['object'], c['initialValue']);
                 if (existingFn)
                     existingFn(result);
-
-                callback(c['property'], result, c['object'], c['initialValue']);
             });
         });
 
@@ -94,9 +94,9 @@ export default class Edition {
         folder.__controllers.forEach(c => {
             const existingFn = c['__onChange'];
             c.onChange((result) => {
+                callback(c['property'], result, c['object'], c['initialValue']);
                 if (existingFn)
                     existingFn(result);
-                callback(c['property'], result, c['object'], c['initialValue']);
             });
         });
 
@@ -146,11 +146,14 @@ export default class Edition {
         };
 
         const folder = parent.addFolder(name);
+        /*
+        TODO: Fix CSS Issue with color element
         folder.addColor(target, 'color').name('Color').onChange((value: number[]) => {
             this.getController('r', folder).setValue(value[0] / 255);
             this.getController('g', folder).setValue(value[1] / 255);
             this.getController('b', folder).setValue(value[2] / 255);
         });
+        */
         folder.add(color, 'r').step(0.01);
         folder.add(color, 'g').step(0.01);
         folder.add(color, 'b').step(0.01);
@@ -216,10 +219,20 @@ export default class Edition {
 
         const controller = parent.add(target, 'active', textures);
         controller.onFinishChange(r => {
+            const currentTexture = object[property];
             const texture = scene.textures.find(t => t.name === r);
             object[property] = texture;
 
             callback && callback(texture);
+
+            // Undo/redo
+            UndoRedo.Pop();
+            UndoRedo.Push({
+                object: object,
+                from: currentTexture,
+                to: texture,
+                property: property
+            });
         });
 
         parent.add(target, 'browse').name('Browse Texture...');
