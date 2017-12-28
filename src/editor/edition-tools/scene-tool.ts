@@ -49,6 +49,11 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         imageProcessing.add(scene.imageProcessingConfiguration, 'contrast').step(0.01).name('Contrast');
         imageProcessing.add(scene.imageProcessingConfiguration, 'toneMappingEnabled').name('Tone Mapping Enabled');
 
+        // Environment texture
+        const environment = this.tool.addFolder('Environment Texture');
+        environment.open();
+        this.tool.addTexture(environment, this.editor, 'environmentTexture', scene, true, true);
+
         // Collisions
         const collisions = this.tool.addFolder('Collisions');
         collisions.open();
