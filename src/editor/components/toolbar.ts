@@ -37,9 +37,12 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-edit', items: [
                     { id: 'animations', img: 'icon-animated-mesh', text: 'Animations...' },
+                    { type: 'break' },
                     { id: 'textures', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', img: 'icon-effects', text: 'Materials...' },
-                    { id: 'code', img: 'icon-behavior-editor', text: 'Code...' }
+                    { type: 'break ' },
+                    { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
+                    { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' }
                 ]
             },
             { type: 'break' },
@@ -101,6 +104,9 @@ export default class EditorToolbar {
                 break;
             case 'view:code':
                 await this.loadTool('behavior-editor', 'Behavior Code');
+                break;
+            case 'view:material-creator':
+                await this.loadTool('material-creator', 'Material Creator');
                 break;
 
             // Add

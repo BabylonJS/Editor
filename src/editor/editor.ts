@@ -369,6 +369,7 @@ export default class Editor {
                     // Configure editor
                     this.core.removeScene(this.core.scene);
                     this.core.uiTextures.forEach(ui => ui.dispose());
+                    this.core.onSelectObject.notifyObservers(null);
 
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
