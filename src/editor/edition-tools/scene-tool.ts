@@ -52,7 +52,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         // Environment texture
         const environment = this.tool.addFolder('Environment Texture');
         environment.open();
-        this.tool.addTexture(environment, this.editor, 'environmentTexture', scene, true, true);
+        this.tool.addTexture(environment, this.editor, 'environmentTexture', scene, true, true).name('Environment Texture');
 
         // Collisions
         const collisions = this.tool.addFolder('Collisions');
