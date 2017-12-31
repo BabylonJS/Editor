@@ -10,6 +10,7 @@ import Editor, {
     Layout,
     Toolbar,
     Grid, GridRow,
+    CodeEditor,
 
     EditorPlugin,
     IDisposable   
@@ -19,13 +20,6 @@ import Extensions from '../../extensions/extensions';
 import { BehaviorMetadata, BehaviorCode } from '../../extensions/behavior/code';
 
 import '../../extensions/behavior/code';
-
-// TODO: remove this line and find a way to
-// import * as monaco from 'monaco-editor';
-export interface MonacoDisposable extends IDisposable {
-    [index: string]: any;
-}
-declare var monaco: MonacoDisposable;
 
 export interface CodeGrid extends GridRow {
     name: string;
@@ -38,7 +32,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     public grid: Grid<CodeGrid> = null;
 
     // Protected members
-    protected code: MonacoDisposable = null;
+    protected code: CodeEditor = null;
     protected template: string = '// Some code';
 
     protected node: Node | Scene = null;
@@ -47,9 +41,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected data: BehaviorCode = null;
 
     protected onSelectObject = (node) => this.selectObject(node);
-
-    // Static members
-    protected static ExtraLib: MonacoDisposable = null;
 
     /**
      * Constructor
@@ -67,8 +58,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.grid.element.destroy();
         this.layout.element.destroy();
 
-        BehaviorCodeEditor.ExtraLib.dispose();
-        this.code.dispose();
+        this.code.editor.dispose();
 
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
@@ -218,38 +208,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * Creates the code editor
      */
     protected async createEditor (): Promise<void> {
-        const libs = ['babylonjs/dist/preview release/babylon.d.ts'];
-        let content = '';
+        this.code = new CodeEditor('javascript');
+        await this.code.build('CODE-BEHAVIOR-EDITOR');
 
-        for (const l of libs)
-            content += await Tools.LoadFile('node_modules/' + l, false) + '\n';
-
-        content += `
-            declare var scene: BABYLON.Scene;
-            declare var mesh: BABYLON.Mesh;
-            declare var pointlight: BABYLON.PointLight;
-            declare var universalcamera: BABYLON.UniversalCamera;
-            declare var spotlight: BABYLON.SpotLight;
-            declare var dirlight: BABYLON.DirectionalLight;
-            declare var hemlight: BABYLON.HemisphericLight;
-            declare var groundmesh: BABYLON.GroundMesh;
-            declare var particleSystem: BABYLON.ParticleSystem;
-            declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
-        `;
-
-        this.code = monaco.editor.create ($('#CODE-BEHAVIOR-EDITOR')[0], {
-            value: '// Some code',
-            language: "javascript",
-            automaticLayout: true,
-            selectionHighlight: true
-        });
-
-        if (!BehaviorCodeEditor.ExtraLib)
-            BehaviorCodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(content, 'BehaviorEditor');
-
-        this.code.onDidChangeModelContent(() => {
+        this.code.onChange = value => {
             if (this.data)
                 this.data.code = this.code.getValue();
-        });
+        };
     }
 }
