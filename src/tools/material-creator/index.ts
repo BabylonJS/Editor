@@ -2,22 +2,25 @@ import { Engine, Scene, ArcRotateCamera, Mesh, Vector3, Color4, Color3 } from 'b
 
 import Editor, {
     IDisposable, Tools,
-    Layout, Toolbar,
+    Layout, Toolbar, Grid, GridRow,
     CodeEditor,
     EditorPlugin
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
+import { MaterialCreatorMetadata } from '../../extensions/material-creator/material-creator';
+
+import '../../extensions/material-creator/material-creator';
+
+export interface MaterialGrid extends GridRow {
+    name: string;
+}
 
 export default class MaterialCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
-
-    public engine: Engine = null;
-    public scene: Scene = null;
-    public camera: ArcRotateCamera = null;
-    public mesh: Mesh = null;
+    public grid: Grid<MaterialGrid> = null;
 
     // Protected members
     protected currentTab: string = 'MATERIAL-CREATOR-EDITOR-CODE';
@@ -25,6 +28,9 @@ export default class MaterialCreator extends EditorPlugin {
     protected code: CodeEditor = null;
     protected vertex: CodeEditor = null;
     protected pixel: CodeEditor = null;
+
+    protected datas: MaterialCreatorMetadata[] = [];
+    protected data: MaterialCreatorMetadata = null;
 
     /**
      * Constructor
@@ -43,8 +49,6 @@ export default class MaterialCreator extends EditorPlugin {
         this.vertex.editor.dispose();
         this.pixel.editor.dispose();
 
-        this.engine.dispose();
-
         await super.close();
     }
 
@@ -52,11 +56,22 @@ export default class MaterialCreator extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
+        // Metadatas
+        this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
+        this.editor.core.scene.metadata['MaterialCreator'] = this.editor.core.scene.metadata['MaterialCreator'] || [{
+            name: 'New custom material',
+            code: await Tools.LoadFile<string>('./assets/templates/material-creator/class.js'),
+            vertex: await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'),
+            pixel: await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx')
+        }];
+        this.datas = this.editor.core.scene.metadata['MaterialCreator'];
+        this.data = this.datas[0];
+
         // Create layout
         this.layout = new Layout('MaterialCreatorCode');
         this.layout.panels = [
             { type: 'top', content: '<div id="MATERIAL-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 30, resizable: false },
-            { type: 'left', content: '<canvas id="MATERIAL-CREATOR-CANVAS" style="width: 100%; height: 100%;"></canvas>', size: 300, overflow: 'auto', resizable: true },
+            { type: 'left', content: '<div id="MATERIAL-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
                 type: 'main',
                 content: `
@@ -73,7 +88,6 @@ export default class MaterialCreator extends EditorPlugin {
             }
         ];
         this.layout.build(this.divElement.id);
-        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.engine.resize());
 
         // Create toolbar
         this.toolbar = new Toolbar('MaterialCreatorToolbar');
@@ -82,11 +96,26 @@ export default class MaterialCreator extends EditorPlugin {
         ];
         this.toolbar.build('MATERIAL-CREATOR-TOOLBAR');
 
+        // Create grid
+        this.grid = new Grid<MaterialGrid>('MaterialCreatorGrid', {
+            toolbarReload: false,
+            toolbarEdit: false,
+            toolbarSearch: false
+        });
+        this.grid.columns = [{ field: 'name', caption: 'Name', size: '100%', editable: { type: 'string' } }];
+        this.grid.build('MATERIAL-CREATOR-LIST');
+        this.datas.forEach((d, index) => this.grid.addRecord({
+            name: d.name,
+            recid: index
+        }));
+        this.grid.element.refresh();
+        this.grid.select([0]);
+
         // Add code editors
         await this.createEditors();
 
-        // Add scene
-        this.createScene();
+        // Request extension
+        Extensions.RequestExtension(this.editor.core.scene, 'MaterialCreatorExtension');
     }
 
     /**
@@ -94,13 +123,13 @@ export default class MaterialCreator extends EditorPlugin {
      */
     protected async createEditors (): Promise<void> {
         // Create editors
-        this.code = new CodeEditor('javascript', await Tools.LoadFile<string>('./assets/templates/material-creator/class.js'));
+        this.code = new CodeEditor('javascript', this.data.code);
         await this.code.build('MATERIAL-CREATOR-EDITOR-CODE');
 
-        this.vertex = new CodeEditor('cpp', await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
+        this.vertex = new CodeEditor('cpp', this.data.vertex);
         await this.vertex.build('MATERIAL-CREATOR-EDITOR-VERTEX');
 
-        this.pixel = new CodeEditor('cpp', await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
+        this.pixel = new CodeEditor('cpp', this.data.pixel);
         await this.pixel.build('MATERIAL-CREATOR-EDITOR-PIXEL');
 
         // Events
@@ -109,29 +138,9 @@ export default class MaterialCreator extends EditorPlugin {
             this.currentTab = 'MATERIAL-CREATOR-EDITOR-' + ev.target.toUpperCase();
             $('#' + this.currentTab).show();
         });
-    }
 
-    /**
-     * Creates the Babylon.js preview scene
-     */
-    protected createScene (): void {
-        this.engine = new Engine(<HTMLCanvasElement>$('#MATERIAL-CREATOR-CANVAS')[0]);
-        this.scene = new Scene(this.engine);
-        this.scene.clearColor = new Color4(0, 0, 0, 1);
-
-        this.camera = new ArcRotateCamera('camera', Math.PI / 4, Math.PI / 4, 25, Vector3.Zero(), this.scene);
-        this.camera.attachControl(this.engine.getRenderingCanvas());
-
-        this.mesh = Mesh.CreateBox('box', 5, this.scene);
-
-        var helper = this.scene.createDefaultEnvironment({
-			skyboxSize: 500,
-			groundShadowLevel: 0.6,
-		});
-        helper.setMainColor(new BABYLON.Color3(.42, .41, .33));
-
-        this.engine.runRenderLoop(() => {
-            this.scene.render();
-        });
+        this.code.onChange = (value) => this.data && (this.data.code = value);
+        this.vertex.onChange = (value) => this.data && (this.data.vertex = value);
+        this.pixel.onChange = (value) => this.data && (this.data.pixel = value);
     }
 }

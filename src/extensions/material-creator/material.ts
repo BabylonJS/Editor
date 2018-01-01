@@ -7,7 +7,7 @@ import {
     BaseTexture,
     Color3, Matrix,
     AbstractMesh, SubMesh, Mesh, IAnimatable,
-    StandardMaterial,
+    StandardMaterial, Effect,
     SerializationHelper
 } from 'babylonjs';
 import { serializeAsColor4 } from 'babylonjs-materials';
@@ -15,7 +15,7 @@ import { serializeAsColor4 } from 'babylonjs-materials';
 /**
  * Custom Material class
  */
-class CustomMaterialDefines extends MaterialDefines {
+export class CustomMaterialDefines extends MaterialDefines {
     public DIFFUSE = false;
     public CLIPPLANE = false;
     public ALPHATEST = false;
@@ -43,17 +43,15 @@ class CustomMaterialDefines extends MaterialDefines {
  */
 export interface CustomMaterialCode {
     constructor: () => void;
-    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean) => boolean;
-    bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh) => void;
+    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
+    bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
     dispose: () => void;
-    serialize: (serializationObject: any) => any;
-    parse: (source: any) => void;
 }
 
 /**
  * Custom material class
  */
-export class CustomMaterial extends PushMaterial {
+export default class CustomMaterial extends PushMaterial {
     @serializeAsTexture('diffuseTexture')
     private _diffuseTexture: BaseTexture;
     @expandToProperty('_markAllSubMeshesAsTexturesDirty')
@@ -189,6 +187,8 @@ export class CustomMaterial extends PushMaterial {
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
 
+            this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines);
+
             var shaderName = this.name;
             var join = defines.toString();
             var uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vDiffuseColor',
@@ -287,6 +287,9 @@ export class CustomMaterial extends PushMaterial {
         // Fog
         MaterialHelper.BindFogParameters(scene, mesh, this._activeEffect);
 
+        // Custom
+        this._customCode.bindForSubMesh.call(this, world, mesh, subMesh, effect);
+
         this._afterBind(mesh, this._activeEffect);
     }
 
@@ -326,6 +329,8 @@ export class CustomMaterial extends PushMaterial {
         if (this._diffuseTexture) {
             this._diffuseTexture.dispose();
         }
+
+        this._customCode.dispose.call(this);
 
         super.dispose(forceDisposeEffect);
     }
