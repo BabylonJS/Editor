@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Mesh, Vector3 } from 'babylonjs';
+import { Engine, Scene, ArcRotateCamera, Mesh, Vector3, Color4, Color3 } from 'babylonjs';
 
 import Editor, {
     IDisposable, Tools,
@@ -73,6 +73,7 @@ export default class MaterialCreator extends EditorPlugin {
             }
         ];
         this.layout.build(this.divElement.id);
+        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.engine.resize());
 
         // Create toolbar
         this.toolbar = new Toolbar('MaterialCreatorToolbar');
@@ -96,10 +97,10 @@ export default class MaterialCreator extends EditorPlugin {
         this.code = new CodeEditor('javascript', await Tools.LoadFile<string>('./assets/templates/material-creator/class.js'));
         await this.code.build('MATERIAL-CREATOR-EDITOR-CODE');
 
-        this.vertex = new CodeEditor('glsl', await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
+        this.vertex = new CodeEditor('cpp', await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
         await this.vertex.build('MATERIAL-CREATOR-EDITOR-VERTEX');
 
-        this.pixel = new CodeEditor('glsl', await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
+        this.pixel = new CodeEditor('cpp', await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
         await this.pixel.build('MATERIAL-CREATOR-EDITOR-PIXEL');
 
         // Events
@@ -116,7 +117,18 @@ export default class MaterialCreator extends EditorPlugin {
     protected createScene (): void {
         this.engine = new Engine(<HTMLCanvasElement>$('#MATERIAL-CREATOR-CANVAS')[0]);
         this.scene = new Scene(this.engine);
+        this.scene.clearColor = new Color4(0, 0, 0, 1);
+
         this.camera = new ArcRotateCamera('camera', Math.PI / 4, Math.PI / 4, 25, Vector3.Zero(), this.scene);
+        this.camera.attachControl(this.engine.getRenderingCanvas());
+
+        this.mesh = Mesh.CreateBox('box', 5, this.scene);
+
+        var helper = this.scene.createDefaultEnvironment({
+			skyboxSize: 500,
+			groundShadowLevel: 0.6,
+		});
+        helper.setMainColor(new BABYLON.Color3(.42, .41, .33));
 
         this.engine.runRenderLoop(() => {
             this.scene.render();

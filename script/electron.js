@@ -26,7 +26,7 @@ const options = {
 
 packager(options, function (err, appPath) {
     if (err)
-        return console.error(err);
+        return console.warn('Cannot create electron package for ' + appPath);
 
     console.log('Package(s) now available at: ' + appPath);
 });
