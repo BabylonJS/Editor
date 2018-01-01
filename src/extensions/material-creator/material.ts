@@ -83,7 +83,7 @@ export default class CustomMaterial extends PushMaterial {
         super(name, scene);
 
         this._customCode = customCode;
-        this._customCode.constructor.call(this);
+        this._customCode && this._customCode.constructor.call(this);
     }
 
     public needAlphaBlending(): boolean {
@@ -187,7 +187,7 @@ export default class CustomMaterial extends PushMaterial {
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
 
-            this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines);
+            this._customCode && this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines);
 
             var shaderName = this.name;
             var join = defines.toString();
@@ -288,7 +288,7 @@ export default class CustomMaterial extends PushMaterial {
         MaterialHelper.BindFogParameters(scene, mesh, this._activeEffect);
 
         // Custom
-        this._customCode.bindForSubMesh.call(this, world, mesh, subMesh, effect);
+        this._customCode && this._customCode.bindForSubMesh.call(this, world, mesh, subMesh, effect);
 
         this._afterBind(mesh, this._activeEffect);
     }
@@ -330,7 +330,7 @@ export default class CustomMaterial extends PushMaterial {
             this._diffuseTexture.dispose();
         }
 
-        this._customCode.dispose.call(this);
+        this._customCode && this._customCode.dispose.call(this);
 
         super.dispose(forceDisposeEffect);
     }

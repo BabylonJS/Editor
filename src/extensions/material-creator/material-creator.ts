@@ -53,13 +53,7 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
         let url = window.location.href;
         url = url.replace(Tools.GetFilename(url), '') + 'materials/' + data.name.replace(/ /g, '') + '.js';
 
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.text = template
-                        .replace('{{name}}', name)
-                        .replace('{{code}}', data.code)
-                        + '\n' + '//# sourceURL=' + url + '\n'
-        document.head.appendChild(script);
+        Extension.AddScript(template.replace('{{name}}', name).replace('{{code}}', data.code), url);
 
         // Create material
         return new CustomMaterial(name, this.scene, new EDITOR.MaterialCreator.Constructors[name]());

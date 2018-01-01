@@ -67,3 +67,9 @@ build('./.build/src/', './.build/src/tools/materials/viewer.js', './dist/materia
     minify: true
 });
 
+build('./.build/src/', './.build/src/tools/material-creator/index.js', './dist/material-creator.js', {
+    globalName: 'MaterialCreator',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
