@@ -26,7 +26,8 @@ export module EDITOR {
         public static Constructors = { };
     }
 }
-window['EDITOR'] = EDITOR;
+window['EDITOR'] = window['EDITOR'] || { };
+window['EDITOR'].BehaviorCode = EDITOR.BehaviorCode;
 
 // Code extension class
 export default class CodeExtension extends Extension<BehaviorMetadata[]> {

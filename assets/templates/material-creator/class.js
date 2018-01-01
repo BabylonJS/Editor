@@ -4,12 +4,12 @@ this.constructor = function () {
 };
 
 // Returns if the material is ready for the given submesh
-this.isReadyForSubMesh = function (mesh, subMesh, useInstances) {
+this.isReadyForSubMesh = function (mesh, subMesh, defines) {
     return true;
 }
 
 // Bind uniforms for submesh
-this.bindForSubMesh = function (world, mesh, subMesh) {
+this.bindForSubMesh = function (world, mesh, subMesh, effect) {
 
 };
 
@@ -17,13 +17,3 @@ this.bindForSubMesh = function (world, mesh, subMesh) {
 this.dispose = function () {
 
 }
-
-// On serialize the material
-this.serialize = function (serializationObject) {
-
-};
-
-// On parse the material
-this.parse = function (source) {
-
-};
