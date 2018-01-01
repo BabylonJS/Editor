@@ -8,7 +8,7 @@
   },
   "scripts": {
     "postinstall": "node ./script/dts.js",
-    "clean": "rm -rf .build && rm -rf .declaration",
+    "clean": "rm -rf .build && rm -rf .declaration && rm -rf dist && rm -rf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build": "npm run clean && npm run compile && npm run compile-electron && npm run bundle",
