@@ -18,6 +18,7 @@ export default class CodeEditor {
     private _defaultValue: string;
 
     // Static members
+    public static ExternalLibraries: string = null;
     public static ExtraLib: MonacoDisposable;
     
     /**
@@ -48,24 +49,28 @@ export default class CodeEditor {
      * @param parentId the parent id of the editor
      */
     public async build (parentId: string): Promise<void> {
-        const libs = ['babylonjs/dist/preview release/babylon.d.ts'];
-        let content = '';
+        if (!CodeEditor.ExternalLibraries) {
+            const libs = ['babylonjs/dist/preview release/babylon.d.ts'];
+            let content = '';
 
-        for (const l of libs)
-            content += await Tools.LoadFile('node_modules/' + l, false) + '\n';
+            for (const l of libs)
+                content += await Tools.LoadFile('node_modules/' + l, false) + '\n';
 
-        content += `
-            declare var scene: BABYLON.Scene;
-            declare var mesh: BABYLON.Mesh;
-            declare var pointlight: BABYLON.PointLight;
-            declare var universalcamera: BABYLON.UniversalCamera;
-            declare var spotlight: BABYLON.SpotLight;
-            declare var dirlight: BABYLON.DirectionalLight;
-            declare var hemlight: BABYLON.HemisphericLight;
-            declare var groundmesh: BABYLON.GroundMesh;
-            declare var particleSystem: BABYLON.ParticleSystem;
-            declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
-        `;
+            content += `
+                declare var scene: BABYLON.Scene;
+                declare var mesh: BABYLON.Mesh;
+                declare var pointlight: BABYLON.PointLight;
+                declare var universalcamera: BABYLON.UniversalCamera;
+                declare var spotlight: BABYLON.SpotLight;
+                declare var dirlight: BABYLON.DirectionalLight;
+                declare var hemlight: BABYLON.HemisphericLight;
+                declare var groundmesh: BABYLON.GroundMesh;
+                declare var particleSystem: BABYLON.ParticleSystem;
+                declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
+            `;
+
+            CodeEditor.ExternalLibraries = content;
+        }
 
         this.editor = monaco.editor.create($('#' + parentId)[0], {
             value: this._defaultValue,
@@ -75,7 +80,7 @@ export default class CodeEditor {
         });
 
         if (!CodeEditor.ExtraLib)
-            CodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(content, 'BehaviorEditor');
+            CodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'BehaviorEditor');
 
         this.editor.onDidChangeModelContent(() => {
             if (this.onChange)

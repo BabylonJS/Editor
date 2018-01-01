@@ -27,4 +27,18 @@ export default abstract class Extension<T> implements IExtension<T> {
      * loading a scene)
      */
     public abstract onLoad (data: T): void;
+
+    /**
+     * Adds a script tag element to the dom including source URL
+     * @param code: the code's text
+     * @param url: the URL of the script to show in devtools
+     */
+    public static AddScript (code: string, url: string): HTMLScriptElement {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.text = code + '\n' + '//# sourceURL=' + url + '\n';
+        document.head.appendChild(script);
+
+        return script;
+    }
 }

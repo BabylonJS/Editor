@@ -45,6 +45,9 @@ export default class MaterialCreator extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.layout.element.destroy();
+        this.grid.element.destroy();
+        this.toolbar.element.destroy();
+        
         this.code.editor.dispose();
         this.vertex.editor.dispose();
         this.pixel.editor.dispose();
@@ -116,6 +119,13 @@ export default class MaterialCreator extends EditorPlugin {
 
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'MaterialCreatorExtension');
+    }
+
+    /**
+     * On the user shows the plugin
+     */
+    public onShow (): void {
+        this.grid.element.resize();
     }
 
     /**

@@ -66,14 +66,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + m.name.replace(/ /g, '');
 
                 // Create script tag
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.text = template
-                              .replace('{{name}}', fnName)
-                              .replace('{{node}}', this._getConstructorName(node))
-                              .replace('{{code}}', m.code)
-                              + '\n' + '//# sourceURL=' + url + '\n'
-                document.head.appendChild(script);
+                Extension.AddScript(template.replace('{{name}}', fnName).replace('{{node}}', this._getConstructorName(node)).replace('{{code}}', m.code), url);
 
                 // Create instance
                 const instance = new EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
