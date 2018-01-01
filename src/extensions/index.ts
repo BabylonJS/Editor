@@ -4,6 +4,7 @@ import Extension from './extension';
 import CodeExtension from './behavior/code';
 import SpectorDebugExtension from './spector/spector-debug';
 import PostProcessExtension from './post-process/post-processes';
+import MaterialCreatorExtension from './material-creator/material-creator';
 
 export {
     Extensions,
@@ -11,5 +12,6 @@ export {
 
     CodeExtension,
     SpectorDebugExtension,
-    PostProcessExtension
+    PostProcessExtension,
+    MaterialCreatorExtension
 }
