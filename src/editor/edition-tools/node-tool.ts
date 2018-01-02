@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Mesh, Tools, Camera } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
@@ -77,11 +77,13 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             rendering.add(node, 'applyFog').name('Apply Fog');
             rendering.add(node, 'isVisible').name('Is Visible');
 
-            // Instances
-            const instances = this.tool.addFolder('Instances');
-            instances.open();
+            if (!(node instanceof InstancedMesh)) {
+                // Instances
+                const instances = this.tool.addFolder('Instances');
+                instances.open();
 
-            instances.add(this, 'createInstance').name('Create Instance...');
+                instances.add(this, 'createInstance').name('Create Instance...');
+            }
         }
         // Camera
         else if (node instanceof Camera) {

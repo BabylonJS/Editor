@@ -3,9 +3,12 @@ CustomMaterial.constructor = function () {
     this.time = 0;
 };
 
-// Returns if the material is ready for the given submesh
-CustomMaterial.isReadyForSubMesh = function (mesh, subMesh, defines, uniforms, samplers) {
+CustomMaterial.setUniforms = function (uniforms, samplers) {
     uniforms.push('time');
+};
+
+// Returns if the material is ready for the given submesh
+CustomMaterial.isReadyForSubMesh = function (mesh, subMesh, defines) {
     return true;
 };
 

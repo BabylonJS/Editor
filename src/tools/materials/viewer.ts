@@ -171,6 +171,10 @@ export default class AnimationEditor extends EditorPlugin {
 
         img.addEventListener('click', (ev) => {
             const obj = material.serialize();
+
+            // Hack for CustomMaterialEdtitor class
+            obj._customCode = null;
+            
             this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
             this.preview.engine.resize();
             this.editor.core.onSelectObject.notifyObservers(material);

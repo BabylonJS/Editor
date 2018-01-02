@@ -26,7 +26,7 @@ export default class EditorGraph {
             this.editor.core.onSelectObject.notifyObservers(data);
         };
 
-        this.editor.core.onSelectObject.add((node: Node) => this.select(node.id));
+        this.editor.core.onSelectObject.add((node: Node) => node && this.select(node.id));
     }
 
     /**

@@ -63,7 +63,7 @@ export default class AnimationEditor extends EditorPlugin {
     protected addingKeys: boolean = false;
 
     protected onResize = () => this.resize();
-    protected onObjectSelected = (node) => this.objectSelected(node);
+    protected onObjectSelected = (node) => node && this.objectSelected(node);
 
     // Static members
     public static PaperOffset: number = 30;
