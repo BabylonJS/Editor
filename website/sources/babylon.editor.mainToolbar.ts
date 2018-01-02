@@ -140,6 +140,7 @@
                         var textureEditor = new GUITextureEditor(this.core, "");
                     }
                     else if (selected.selected === this._mainClearMaterials) {
+                        GUITextureEditor.CleanTextures(this.core);
                         GUI.GUIWindow.CreateAlert('Cleared ' + SceneFactory.ClearUnusedMaterials(this.core.currentScene) + ' materials', 'Result');
                         this.core.editor.editionTool.updateEditionTool();
                     }

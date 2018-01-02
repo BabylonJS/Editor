@@ -291,7 +291,7 @@
             };
             
             this._texturesList.onReload = () => {
-                this._cleanTextures();
+                GUITextureEditor.CleanTextures(this._core);
                 this._fillTextureList();
             };
             
@@ -448,10 +448,10 @@
         }
 
         // Cleans the unused textures
-        private _cleanTextures (): void {
-            var textures = this._core.currentScene.textures;
-            var materials = this._core.currentScene.materials;
-            var miscs = [SceneFactory.StandardPipeline, this._core.currentScene];
+        public static CleanTextures (core: EditorCore): void {
+            var textures = core.currentScene.textures;
+            var materials = core.currentScene.materials;
+            var miscs = [SceneFactory.StandardPipeline, core.currentScene];
 
             var used: BaseTexture[] = [];
 

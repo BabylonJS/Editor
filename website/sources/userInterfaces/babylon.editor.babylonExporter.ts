@@ -140,7 +140,10 @@
             if (!core.isPlaying)
                 SceneManager.SwitchActionManager();
 
+            // Add scale factor and export scene
+            core.currentScene.meshes.push(core.scaleFactor);
             var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+            core.currentScene.meshes.pop();
 
             if (!core.isPlaying)
                 SceneManager.SwitchActionManager();
