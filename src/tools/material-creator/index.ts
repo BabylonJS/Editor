@@ -132,6 +132,7 @@ export default class MaterialCreator extends EditorPlugin {
         this.grid.onAdd = () => this.addMaterial();
         this.grid.onClick = (selected) => this.selectMaterial(selected[0]);
         this.grid.onDelete = (selected) => this.removeMaterial(selected[0]);
+        this.grid.onChange = (id, value) => this.changeMaterial(id, value);
         this.datas.forEach((d, index) => this.grid.addRecord({
             name: d.name,
             recid: index
@@ -176,6 +177,21 @@ export default class MaterialCreator extends EditorPlugin {
             name: material.name,
             recid: this.grid.element.records.length - 1
         });
+    }
+
+    /**
+     * On change the material name
+     * @param id: the id of the material in the array
+     * @param value: the new name
+     */
+    protected changeMaterial (id: number, value: string): void {
+        const data = this.datas[id];
+        const material = this.editor.core.scene.getMaterialByName(data.name);
+
+        if (material)
+            material.name = value;
+        
+        data.name = value;
     }
 
     /**
