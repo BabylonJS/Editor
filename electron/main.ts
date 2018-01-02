@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, globalShortcut } from 'electron';
 import WebServer from './web-server';
 import ScenePreview from './preview-scene';
 
@@ -20,6 +20,9 @@ export default class EditorApp {
 
         // Create Scene Preview
         this.ScenePreview = new ScenePreview(this.Server);
+
+        // Create short cuts
+        this.CreateShortcuts();
     }
 
     /**
@@ -38,12 +41,26 @@ export default class EditorApp {
             });
 
             this.Window.loadURL("file://" + __dirname + "/../../index.html");
-            this.Window.webContents.openDevTools();
+            //this.Window.webContents.openDevTools();
             this.Window.webContents.once('did-finish-load', () => {
                 resolve();
             });
             this.Window.maximize();
             this.Window.on("closed", () => app.quit());
+        });
+    }
+
+    /**
+     * Creates the short cuts
+     */
+    public static CreateShortcuts (): void {
+        globalShortcut.register('CommandOrControl+ALT+I', () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) {
+                win.webContents.openDevTools({
+                    mode: 'detach'
+                });
+            }
         });
     }
 }

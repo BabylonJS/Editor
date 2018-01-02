@@ -264,6 +264,8 @@ export default class AnimationEditor extends EditorPlugin {
                 pick.pickedMesh.sourceMesh.material = material;
             else if (pick.pickedMesh instanceof Mesh)
                 pick.pickedMesh.material = material;
+
+            this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
         };
     }
 
