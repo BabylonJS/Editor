@@ -33,6 +33,9 @@ uniform vec2 vDiffuseInfos;
 uniform float pointSize;
 #endif
 
+// Custom
+uniform float time;
+
 // Output
 varying vec3 vPositionW;
 #ifdef NORMAL
@@ -42,7 +45,6 @@ varying vec3 vNormalW;
 #ifdef VERTEXCOLOR
 varying vec4 vColor;
 #endif
-
 
 #include<clipPlaneVertexDeclaration>
 
@@ -54,7 +56,10 @@ void main(void) {
 #include<instancesVertex>
 #include<bonesVertex>
 
-	gl_Position = viewProjection * finalWorld * vec4(position, 1.0);
+	vec3 p = position;
+	p.y += sin(time);
+
+	gl_Position = viewProjection * finalWorld * vec4(p, 1.0);
 
 	vec4 worldPos = finalWorld * vec4(position, 1.0);
 	vPositionW = vec3(worldPos);

@@ -218,11 +218,11 @@ export default class Editor {
     /**
      * Creates the default scene
      */
-    public createDefaultScene(showNewSceneDialog: boolean = false): void {
-        const callback = () => {
+    public async createDefaultScene(showNewSceneDialog: boolean = false): Promise<void> {
+        const callback = async () => {
             // Create default scene
             this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-            DefaultScene.Create(this).then(() => {
+            await DefaultScene.Create(this).then(() => {
                 this.graph.clear();
                 this.graph.fill();
                 this.layout.unlockPanel('main');
@@ -232,20 +232,20 @@ export default class Editor {
             this.graph.clear();
             this.graph.fill();
 
-            //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', 'Material Viewer');
-            //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
-            //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
-            //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
-
             this.core.onSelectObject.notifyObservers(this.graph.currentObject);
 
             // List scene preview
             if (Tools.IsElectron())
                 ScenePreview.Create();
+
+            //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer');
+            //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
+            //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
+            //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
         }
 
         if (!showNewSceneDialog)
-            return callback();
+            return await callback();
 
         Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
             if (result === 'Yes') {

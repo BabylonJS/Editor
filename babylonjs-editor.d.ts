@@ -79,7 +79,7 @@ declare module 'babylonjs-editor/editor/editor' {
             /**
                 * Creates the default scene
                 */
-            createDefaultScene(showNewSceneDialog?: boolean): void;
+            createDefaultScene(showNewSceneDialog?: boolean): Promise<void>;
             /**
                 * Creates the editor camera
                 */
