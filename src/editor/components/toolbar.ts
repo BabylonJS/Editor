@@ -83,7 +83,7 @@ export default class EditorToolbar {
                 SceneExporter.DownloadBabylonFile(this.editor);
                 break;
             case 'project:clean-project':
-                this.editor.createDefaultScene(true);
+                await this.editor.createDefaultScene(true);
                 break;
             case 'project:export-project':
                 await SceneExporter.ExportProject(this.editor);

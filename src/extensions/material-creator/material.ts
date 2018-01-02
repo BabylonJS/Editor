@@ -2,15 +2,16 @@ import {
     Scene,
     VertexBuffer,
     MaterialDefines, PushMaterial, MaterialHelper, EffectFallbacks, EffectCreationOptions,
-    serialize, serializeAsColor3, serializeAsTexture, expandToProperty,
-    Nullable,
+    serialize, serializeAsColor3, serializeAsTexture, expandToProperty, serializeAsColor4,
+    Nullable, Tools,
     BaseTexture,
     Color3, Matrix,
     AbstractMesh, SubMesh, Mesh, IAnimatable,
     StandardMaterial, Effect,
     SerializationHelper
 } from 'babylonjs';
-import { serializeAsColor4 } from 'babylonjs-materials';
+
+import Extension from '../extension';
 
 /**
  * Custom Material class
@@ -43,7 +44,7 @@ export class CustomMaterialDefines extends MaterialDefines {
  */
 export interface CustomMaterialCode {
     constructor: () => void;
-    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
+    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines, uniforms: string[], samplers: string[]) => boolean;
     bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
     dispose: () => void;
 }
@@ -51,7 +52,8 @@ export interface CustomMaterialCode {
 /**
  * Custom material class
  */
-export default class CustomMaterial extends PushMaterial {
+export default class CustomEditorMaterial extends PushMaterial {
+    // Public members
     @serializeAsTexture('diffuseTexture')
     private _diffuseTexture: BaseTexture;
     @expandToProperty('_markAllSubMeshesAsTexturesDirty')
@@ -70,9 +72,10 @@ export default class CustomMaterial extends PushMaterial {
     @expandToProperty('_markAllSubMeshesAsLightsDirty')
     public maxSimultaneousLights: number;
 
-    private _renderId: number;
+    public _customCode: CustomMaterialCode;
 
-    private _customCode: CustomMaterialCode;
+    // Private members
+    private _renderId: number;
 
     /**
      * Constructor
@@ -82,6 +85,13 @@ export default class CustomMaterial extends PushMaterial {
     constructor(name: string, scene: Scene, customCode: CustomMaterialCode) {
         super(name, scene);
 
+        this.id = name + Tools.RandomId();
+        
+        this._customCode = customCode;
+        this._customCode && this._customCode.constructor.call(this);
+    }
+
+    public setCustomCode (customCode: CustomMaterialCode): void {
         this._customCode = customCode;
         this._customCode && this._customCode.constructor.call(this);
     }
@@ -100,6 +110,9 @@ export default class CustomMaterial extends PushMaterial {
 
     // Methods
     public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
+        if (this._customCode === undefined)
+            return false;
+        
         if (this.isFrozen) {
             if (this._wasPreviouslyReady && subMesh.effect) {
                 return true;
@@ -187,8 +200,6 @@ export default class CustomMaterial extends PushMaterial {
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
 
-            this._customCode && this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines);
-
             var shaderName = this.name;
             var join = defines.toString();
             var uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vDiffuseColor',
@@ -198,7 +209,9 @@ export default class CustomMaterial extends PushMaterial {
                 'vClipPlane', 'diffuseMatrix'
             ];
             var samplers = ['diffuseSampler'];
-            var uniformBuffers = new Array<string>()
+            var uniformBuffers = new Array<string>();
+
+            this._customCode && this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines, uniforms, samplers);
 
             MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
                 uniformsNames: uniforms,
@@ -335,13 +348,13 @@ export default class CustomMaterial extends PushMaterial {
         super.dispose(forceDisposeEffect);
     }
 
-    public clone(name: string): CustomMaterial {
-        return SerializationHelper.Clone<CustomMaterial>(() => new CustomMaterial(name, this.getScene(), this._customCode), this);
+    public clone(name: string): CustomEditorMaterial {
+        return SerializationHelper.Clone<CustomEditorMaterial>(() => new CustomEditorMaterial(name, this.getScene(), this._customCode), this);
     }
 
     public serialize(): any {
         var serializationObject = SerializationHelper.Serialize(this);
-        serializationObject.customType = 'BABYLON.CustomMaterial';
+        serializationObject.customType = 'BABYLON.CustomEditorMaterial';
         return serializationObject;
     }
 
@@ -350,7 +363,9 @@ export default class CustomMaterial extends PushMaterial {
     }
 
     // Statics
-    public static Parse(source: any, scene: Scene, rootUrl: string): CustomMaterial {
-        return SerializationHelper.Parse(() => new CustomMaterial(source.name, scene, null), source, scene, rootUrl);
+    public static Parse(source: any, scene: Scene, rootUrl: string): CustomEditorMaterial {
+        return SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, undefined), source, scene, rootUrl);
     }
 }
+
+BABYLON['CustomEditorMaterial'] = CustomEditorMaterial;

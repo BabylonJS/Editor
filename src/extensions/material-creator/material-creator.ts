@@ -3,7 +3,8 @@ import { Scene, Effect, Tools } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import CustomMaterial from './material';
+import CustomEditorMaterial, { CustomMaterialCode } from './material';
+import { IStringDictionary } from 'babylonjs-editor';
 
 export interface MaterialCreatorMetadata {
     name: string;
@@ -13,7 +14,7 @@ export interface MaterialCreatorMetadata {
 }
 
 const template = `
-EDITOR.MaterialCreator.Constructors['{{name}}'] = function () {
+EDITOR.MaterialCreator.Constructors['{{name}}'] = function (CustomMaterial) {
     {{code}}
 }
 `;
@@ -43,20 +44,33 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
      * Creates a new material
      * @param data: the data containing code, vertex, etc.
      */
-    public createMaterial (data: MaterialCreatorMetadata): CustomMaterial {
-        const name = data.name + Tools.RandomId();
+    public createMaterial (data: MaterialCreatorMetadata): CustomEditorMaterial {
+        Effect.ShadersStore[data.name + 'VertexShader'] = data.vertex;
+        Effect.ShadersStore[data.name + 'PixelShader'] = data.pixel;
 
-        Effect.ShadersStore[name + 'VertexShader'] = data.vertex;
-        Effect.ShadersStore[name + 'PixelShader'] = data.pixel;
+        let code: CustomMaterialCode = null;
 
-        // Add custom code
-        let url = window.location.href;
-        url = url.replace(Tools.GetFilename(url), '') + 'materials/' + data.name.replace(/ /g, '') + '.js';
+        if (data.code) {
+            const name = data.name + Tools.RandomId();
+            
+            // Add custom code
+            let url = window.location.href;
+            url = url.replace(Tools.GetFilename(url), '') + 'materials/' + data.name.replace(/ /g, '') + '.js';
 
-        Extension.AddScript(template.replace('{{name}}', name).replace('{{code}}', data.code), url);
+            Extension.AddScript(template.replace('{{name}}', name).replace('{{code}}', data.code), url);
 
-        // Create material
-        return new CustomMaterial(name, this.scene, new EDITOR.MaterialCreator.Constructors[name]());
+            code = <any> { };
+            const instance = new EDITOR.MaterialCreator.Constructors[name](code);
+        }
+
+        // Get or create material
+        const material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
+        if (material) {
+            material.setCustomCode(code);
+            return material;
+        }
+        
+        return new CustomEditorMaterial(data.name, this.scene, code);
     }
 
     /**

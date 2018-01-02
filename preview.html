@@ -69,41 +69,43 @@
         // Loads the Babylon.js Scenes
         var loadScene = function (sceneFile) {
             var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
-            BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
-                // Load Extensions Manager and then all extensions
-                scene.executeWhenReady(function () {
+
+            // Load Extensions Manager and then all extensions
+            var promises = [];
+            var files = [
+                "./.build/src/extensions/behavior/code.js",
+                "./.build/src/extensions/spector/spector-debug.js",
+                "./.build/src/extensions/post-process/post-processes.js",
+                "./.build/src/extensions/material-creator/material-creator.js"
+            ];
+
+            for (var i = 0; i < files.length; i++) {
+                promises.push(System.import(files[i]));
+            }
+
+            Promise.all(promises).then(function () {
+                // Import scene
+                BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
                     System.import('./.build/src/extensions/extensions.js').then(function (extensions) {
-                        var promises = [];
-                        var files = [
-                            "./.build/src/extensions/behavior/code.js",
-                            "./.build/src/extensions/spector/spector-debug.js",
-                            "./.build/src/extensions/post-process/post-processes.js",
-                            "./.build/src/extensions/material-creator/material-creator.js"
-                        ];
+                        // Apply
+                        var readProject = function (project) {
+                            BABYLON.Tools.ReadFile(project, function (data) {
+                                extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
 
-                        for (var i = 0; i < files.length; i++) {
-                            promises.push(System.import(files[i]));
-                        }
-
-                        Promise.all(promises).then(function () {
-                            // Apply
-                            var readProject = function (project) {
-                                BABYLON.Tools.ReadFile(project, function (data) {
-                                    extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
+                                // Run scene
+                                scene.executeWhenReady(function () {
+                                    scene.activeCamera.attachControl(engine.getRenderingCanvas());
+                                    engine.runRenderLoop(function () {
+                                        scene.render();
+                                    });
                                 });
-                            };
-
-                            getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
-                                readProject(project);
                             });
+                        };
+
+                        getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
+                            readProject(project);
                         });
                     });
-                });
-
-                // Run scene
-                scene.activeCamera.attachControl(engine.getRenderingCanvas());
-                engine.runRenderLoop(function () {
-                    scene.render();
                 });
             });
         };

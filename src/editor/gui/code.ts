@@ -50,11 +50,14 @@ export default class CodeEditor {
      */
     public async build (parentId: string): Promise<void> {
         if (!CodeEditor.ExternalLibraries) {
-            const libs = ['babylonjs/dist/preview release/babylon.d.ts'];
+            const libs = [
+                'node_modules/babylonjs/dist/preview release/babylon.d.ts',
+                'assets/templates/material-creator/custom-material.d.ts'
+            ];
             let content = '';
 
             for (const l of libs)
-                content += await Tools.LoadFile('node_modules/' + l, false) + '\n';
+                content += await Tools.LoadFile(l, false) + '\n';
 
             content += `
                 declare var scene: BABYLON.Scene;
@@ -67,6 +70,8 @@ export default class CodeEditor {
                 declare var groundmesh: BABYLON.GroundMesh;
                 declare var particleSystem: BABYLON.ParticleSystem;
                 declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
+
+                declare var CustomMaterial: CustomMaterialInterface;
             `;
 
             CodeEditor.ExternalLibraries = content;

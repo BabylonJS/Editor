@@ -146,12 +146,25 @@ export default class AnimationEditor extends EditorPlugin {
      * @param material 
      */
     protected async createPreviewNode (div: JQuery, canvas: HTMLCanvasElement, preview: PreviewScene, material: Material): Promise<void> {
-        const img = Tools.CreateElement<HTMLImageElement>('img', material.id, {
+        const parent = Tools.CreateElement<HTMLDivElement>('div', material.id + 'div', {
             width: '100px',
             height: '100px',
             float: 'left',
             margin: '10px'
         });
+
+        const text = Tools.CreateElement<HTMLElement>('small', material.id + 'text', {
+            float: 'left',
+            position: 'relative'
+        });
+        text.innerText = material.name;
+        parent.appendChild(text);
+
+        const img = Tools.CreateElement<HTMLImageElement>('img', material.id, {
+            width: '100px',
+            height: '100px'
+        });
+        parent.appendChild(img);
 
         const base64 = await this.createMaterialPreview(canvas, preview, material);
         img.src = base64;
@@ -174,7 +187,7 @@ export default class AnimationEditor extends EditorPlugin {
             this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener);
         });
 
-        div.append(img);
+        div.append(parent);
     }
 
     /**
@@ -220,8 +233,9 @@ export default class AnimationEditor extends EditorPlugin {
 
             preview.engine.runRenderLoop(() => {
                 preview.scene.render();
-
+                
                 if (preview.scene.getWaitingItemsCount() === 0) {
+                    preview.scene.render();
                     const base64 = canvas.toDataURL('image/png');
                     preview.engine.stopRenderLoop();
                     resolve(base64);
