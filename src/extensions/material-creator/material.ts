@@ -44,7 +44,8 @@ export class CustomMaterialDefines extends MaterialDefines {
  */
 export interface CustomMaterialCode {
     constructor: () => void;
-    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines, uniforms: string[], samplers: string[]) => boolean;
+    setUniforms: (uniforms: string[], samplers: string[]) => void;
+    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
     bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
     dispose: () => void;
 }
@@ -211,7 +212,10 @@ export default class CustomEditorMaterial extends PushMaterial {
             var samplers = ['diffuseSampler'];
             var uniformBuffers = new Array<string>();
 
-            this._customCode && this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines, uniforms, samplers);
+            this._customCode && this._customCode.setUniforms(uniforms, samplers);
+            
+            if (this._customCode && !this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines))
+                return false;
 
             MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
                 uniformsNames: uniforms,
@@ -364,7 +368,7 @@ export default class CustomEditorMaterial extends PushMaterial {
 
     // Statics
     public static Parse(source: any, scene: Scene, rootUrl: string): CustomEditorMaterial {
-        return SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, undefined), source, scene, rootUrl);
+        return SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, source._customCode), source, scene, rootUrl);
     }
 }
 

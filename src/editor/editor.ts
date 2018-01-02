@@ -232,7 +232,7 @@ export default class Editor {
             this.graph.clear();
             this.graph.fill();
 
-            this.core.onSelectObject.notifyObservers(this.graph.currentObject);
+            this.core.onSelectObject.notifyObservers(this.core.scene);
 
             // List scene preview
             if (Tools.IsElectron())
@@ -369,7 +369,6 @@ export default class Editor {
                     // Configure editor
                     this.core.removeScene(this.core.scene);
                     this.core.uiTextures.forEach(ui => ui.dispose());
-                    this.core.onSelectObject.notifyObservers(null);
 
                     this.core.scene = scene;
                     this.core.scenes.push(scene);
@@ -377,6 +376,8 @@ export default class Editor {
                     this.playCamera = scene.activeCamera;
 
                     this.createEditorCamera();
+
+                    this.core.onSelectObject.notifyObservers(this.core.scene);
 
                     // Editor project
                     for (const f in FilesInput.FilesToLoad) {

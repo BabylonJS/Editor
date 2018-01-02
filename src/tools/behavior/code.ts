@@ -40,7 +40,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected datas: BehaviorMetadata = null;
     protected data: BehaviorCode = null;
 
-    protected onSelectObject = (node) => this.selectObject(node);
+    protected onSelectObject = (node) => node && this.selectObject(node);
 
     /**
      * Constructor
