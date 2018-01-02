@@ -35,9 +35,9 @@
     "typescript": "^2.3.3",
     "http-server": "^0.9.0",
     "socket.io": "2.0.4",
-    "electron": "1.7.9",
-    "electron-prebuilt": "~1.4.13",
-    "electron-packager": "~8.6.0",
+    "electron": "^1.7.9",
+    "electron-prebuilt": "^1.4.13",
+    "electron-packager": "^8.6.0",
     "yargs": "10.0.3",
     "systemjs-builder": "~0.16.12",
     "dts-bundle": "~0.7.3"
