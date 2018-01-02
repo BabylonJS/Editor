@@ -45,32 +45,33 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
      * @param data: the data containing code, vertex, etc.
      */
     public createMaterial (data: MaterialCreatorMetadata): CustomEditorMaterial {
-        Effect.ShadersStore[data.name + 'VertexShader'] = data.vertex;
-        Effect.ShadersStore[data.name + 'PixelShader'] = data.pixel;
+        const id = data.name + Tools.RandomId();
+
+        Effect.ShadersStore[id + 'VertexShader'] = data.vertex;
+        Effect.ShadersStore[id + 'PixelShader'] = data.pixel;
 
         let code: CustomMaterialCode = null;
 
         if (data.code) {
-            const name = data.name + Tools.RandomId();
-            
             // Add custom code
             let url = window.location.href;
             url = url.replace(Tools.GetFilename(url), '') + 'materials/' + data.name.replace(/ /g, '') + '.js';
 
-            Extension.AddScript(template.replace('{{name}}', name).replace('{{code}}', data.code), url);
+            Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
 
             code = <any> { };
-            const instance = new EDITOR.MaterialCreator.Constructors[name](code);
+            const instance = new EDITOR.MaterialCreator.Constructors[id](code);
         }
 
         // Get or create material
         const material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
         if (material) {
+            material._shaderName = id;
             material.setCustomCode(code);
             return material;
         }
         
-        return new CustomEditorMaterial(data.name, this.scene, code);
+        return new CustomEditorMaterial(data.name, this.scene, id, code);
     }
 
     /**

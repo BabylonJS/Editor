@@ -75,6 +75,9 @@ export default class CustomEditorMaterial extends PushMaterial {
 
     public _customCode: CustomMaterialCode;
 
+    @serialize()
+    public _shaderName: string;
+
     // Private members
     private _renderId: number;
 
@@ -83,10 +86,10 @@ export default class CustomEditorMaterial extends PushMaterial {
      * @param name: the name of the material 
      * @param scene: the scene reference
      */
-    constructor(name: string, scene: Scene, customCode: CustomMaterialCode) {
+    constructor(name: string, scene: Scene, shaderName: string, customCode: CustomMaterialCode) {
         super(name, scene);
 
-        this.id = name + Tools.RandomId();
+        this._shaderName = shaderName;
         
         this._customCode = customCode;
         this._customCode && this._customCode.constructor.call(this);
@@ -201,7 +204,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
 
-            var shaderName = this.name;
+            var shaderName = this._shaderName;
             var join = defines.toString();
             var uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vDiffuseColor',
                 'vFogInfos', 'vFogColor', 'pointSize',
@@ -353,7 +356,7 @@ export default class CustomEditorMaterial extends PushMaterial {
     }
 
     public clone(name: string): CustomEditorMaterial {
-        return SerializationHelper.Clone<CustomEditorMaterial>(() => new CustomEditorMaterial(name, this.getScene(), this._customCode), this);
+        return SerializationHelper.Clone<CustomEditorMaterial>(() => new CustomEditorMaterial(name, this.getScene(), this._shaderName, this._customCode), this);
     }
 
     public serialize(): any {
@@ -368,7 +371,7 @@ export default class CustomEditorMaterial extends PushMaterial {
 
     // Statics
     public static Parse(source: any, scene: Scene, rootUrl: string): CustomEditorMaterial {
-        return SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, source._customCode), source, scene, rootUrl);
+        return SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, source._shaderName, source._customCode), source, scene, rootUrl);
     }
 }
 
