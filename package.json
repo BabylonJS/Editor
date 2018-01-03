@@ -7,7 +7,6 @@
     "url": "https://github.com/BabylonJS/Editor/"
   },
   "scripts": {
-    "postinstall": "node ./script/dts.js",
     "clean": "rm -rf .build && rm -rf .declaration && rm -rf dist && rm -rf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",

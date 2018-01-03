@@ -10,6 +10,7 @@ import ParticleSystemTool from '../edition-tools/particle-system-tool';
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
 import WaterMaterialTool from '../edition-tools/materials/water-tool';
+import CustomMaterialTool from '../edition-tools/materials/custom-tool';
 
 import TextureTool from '../edition-tools/texture-tool';
 
@@ -47,6 +48,7 @@ export default class EditorEditionTools {
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRMaterialTool());
         this.addTool(new WaterMaterialTool());
+        this.addTool(new CustomMaterialTool());
 
         this.addTool(new TextureTool());
 

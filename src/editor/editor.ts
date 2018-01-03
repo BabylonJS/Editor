@@ -238,6 +238,9 @@ export default class Editor {
             if (Tools.IsElectron())
                 ScenePreview.Create();
 
+            // Restart plugins
+            await this.restartPlugins();
+
             //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer');
             //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
             //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
