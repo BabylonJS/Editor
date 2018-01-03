@@ -222,7 +222,7 @@ export default class Editor {
         const callback = async () => {
             // Create default scene
             this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-            await DefaultScene.Create(this).then(() => {
+            DefaultScene.Create(this).then(() => {
                 this.graph.clear();
                 this.graph.fill();
                 this.layout.unlockPanel('main');
