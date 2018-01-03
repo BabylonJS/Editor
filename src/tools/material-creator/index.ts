@@ -11,6 +11,7 @@ import Extensions from '../../extensions/extensions';
 import MaterialCreatorExtension, { MaterialCreatorMetadata } from '../../extensions/material-creator/material-creator';
 
 import '../../extensions/material-creator/material-creator';
+import CustomEditorMaterial from '../../extensions/material-creator/material';
 
 export interface MaterialGrid extends GridRow {
     name: string;
@@ -28,6 +29,7 @@ export default class MaterialCreator extends EditorPlugin {
     protected code: CodeEditor = null;
     protected vertex: CodeEditor = null;
     protected pixel: CodeEditor = null;
+    protected config: CodeEditor = null;
 
     protected datas: MaterialCreatorMetadata[] = [];
     protected data: MaterialCreatorMetadata = null;
@@ -38,6 +40,7 @@ export default class MaterialCreator extends EditorPlugin {
     public static DefaultCode: string = '';
     public static DefaultVertex: string = '';
     public static DefaultPixel: string = '';
+    public static DefaultConfig: string = '';
 
     /**
      * Constructor
@@ -58,6 +61,7 @@ export default class MaterialCreator extends EditorPlugin {
         this.code.editor.dispose();
         this.vertex.editor.dispose();
         this.pixel.editor.dispose();
+        this.config.editor.dispose();
 
         await super.close();
     }
@@ -70,6 +74,7 @@ export default class MaterialCreator extends EditorPlugin {
         MaterialCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class.js');
         MaterialCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx');
         MaterialCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx');
+        MaterialCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json');
 
         // Request extension
         this.extension = Extensions.RequestExtension<MaterialCreatorExtension>(this.editor.core.scene, 'MaterialCreatorExtension');
@@ -80,7 +85,8 @@ export default class MaterialCreator extends EditorPlugin {
             name: 'Custom material',
             code: MaterialCreator.DefaultCode,
             vertex: MaterialCreator.DefaultVertex,
-            pixel: MaterialCreator.DefaultPixel
+            pixel: MaterialCreator.DefaultPixel,
+            config: MaterialCreator.DefaultConfig
         }];
         this.datas = this.editor.core.scene.metadata['MaterialCreator'];
         this.data = this.datas[0];
@@ -89,7 +95,8 @@ export default class MaterialCreator extends EditorPlugin {
             name: this.data.name,
             code: null,
             vertex: this.data.vertex,
-            pixel: this.data.pixel
+            pixel: this.data.pixel,
+            config: this.data.config
         });
 
         // Create layout
@@ -103,12 +110,14 @@ export default class MaterialCreator extends EditorPlugin {
                     <div id="MATERIAL-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%;"></div>
                     <div id="MATERIAL-CREATOR-EDITOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>
                     <div id="MATERIAL-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
+                    <div id="MATERIAL-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; display: none;"></div>
                 `,
                 resizable: true,
                 tabs: <any>[
                     { id: 'code', caption: 'Code' },
                     { id: 'vertex', caption: 'Vertex' },
-                    { id: 'pixel', caption: 'Pixel' }
+                    { id: 'pixel', caption: 'Pixel' },
+                    { id: 'config', caption: 'Config' }
                 ]
             }
         ];
@@ -160,14 +169,16 @@ export default class MaterialCreator extends EditorPlugin {
             name: 'Custom material' + this.datas.length + 1,
             code: MaterialCreator.DefaultCode,
             vertex: MaterialCreator.DefaultVertex,
-            pixel: MaterialCreator.DefaultPixel
+            pixel: MaterialCreator.DefaultPixel,
+            config: MaterialCreator.DefaultConfig
         };
 
         const material = this.extension.createMaterial({
             name: data.name,
             code: null,
             vertex: data.vertex,
-            pixel: data.pixel
+            pixel: data.pixel,
+            config: data.config
         });
 
         // Collect and add to the list
@@ -204,6 +215,7 @@ export default class MaterialCreator extends EditorPlugin {
         this.code.setValue(this.data.code);
         this.vertex.setValue(this.data.vertex);
         this.pixel.setValue(this.data.pixel);
+        this.config.setValue(this.data.config);
     }
 
     /**
@@ -230,6 +242,9 @@ export default class MaterialCreator extends EditorPlugin {
         this.pixel = new CodeEditor('cpp', this.data.pixel);
         await this.pixel.build('MATERIAL-CREATOR-EDITOR-PIXEL');
 
+        this.config = new CodeEditor('json', this.data.config);
+        await this.config.build('MATERIAL-CREATOR-EDITOR-CONFIG');
+
         // Events
         this.layout.getPanelFromType('main').tabs.on('click', (ev) => {
             $('#' + this.currentTab).hide();
@@ -240,5 +255,19 @@ export default class MaterialCreator extends EditorPlugin {
         this.code.onChange = (value) => this.data && (this.data.code = value);
         this.vertex.onChange = (value) => this.data && (this.data.vertex = value);
         this.pixel.onChange = (value) => this.data && (this.data.pixel = value);
+        this.config.onChange = (value) => {
+            if (!this.data)
+                return;
+            
+            this.data.config = value;
+
+            const material = <CustomEditorMaterial> this.editor.core.scene.getMaterialByName(this.data.name);
+            if (material) {
+                try {
+                    const config = JSON.parse(this.data.config);
+                    material.config = config;
+                } catch (e) { /* Silently */ }
+            }
+        };
     }
 }

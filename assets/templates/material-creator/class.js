@@ -1,9 +1,11 @@
 // Called on building material
 CustomMaterial.constructor = function () {
+    // Add a custom property
     this.time = 0;
 };
 
 CustomMaterial.setUniforms = function (uniforms, samplers) {
+    // Push custom uniforms
     uniforms.push('time');
 };
 
@@ -16,6 +18,7 @@ CustomMaterial.isReadyForSubMesh = function (mesh, subMesh, defines) {
 CustomMaterial.bindForSubMesh = function (world, mesh, subMesh, effect) {
     var scene = mesh.getScene();
 
+    // Time
     this.time += scene.getEngine().getDeltaTime() * 0.01;
     effect.setFloat('time', this.time);
 };

@@ -3,7 +3,7 @@ import { Scene, Effect, Tools } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import CustomEditorMaterial, { CustomMaterialCode } from './material';
+import CustomEditorMaterial, { CustomMaterialCode, CustomMaterialConfig } from './material';
 import { IStringDictionary } from 'babylonjs-editor';
 
 export interface MaterialCreatorMetadata {
@@ -11,6 +11,7 @@ export interface MaterialCreatorMetadata {
     code: string;
     vertex: string;
     pixel: string;
+    config: string;
 }
 
 const template = `
@@ -63,15 +64,22 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
             const instance = new EDITOR.MaterialCreator.Constructors[id](code);
         }
 
+        // Custom config
+        let config: CustomMaterialConfig = null;
+        try {
+            config = JSON.parse(data.config);
+        } catch (e) { /* Silently */ }
+
         // Get or create material
         const material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
         if (material) {
+            material.config = config;
             material._shaderName = id;
             material.setCustomCode(code);
             return material;
         }
         
-        return new CustomEditorMaterial(data.name, this.scene, id, code);
+        return new CustomEditorMaterial(data.name, this.scene, id, code, config);
     }
 
     /**
