@@ -20,7 +20,6 @@ export interface MaterialGrid extends GridRow {
 export default class MaterialCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
-    public toolbar: Toolbar = null;
     public grid: Grid<MaterialGrid> = null;
 
     // Protected members
@@ -56,7 +55,6 @@ export default class MaterialCreator extends EditorPlugin {
     public async close (): Promise<void> {
         this.layout.element.destroy();
         this.grid.element.destroy();
-        this.toolbar.element.destroy();
         
         this.code.editor.dispose();
         this.vertex.editor.dispose();
@@ -71,10 +69,10 @@ export default class MaterialCreator extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        MaterialCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class.js');
-        MaterialCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx');
-        MaterialCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx');
-        MaterialCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json');
+        !MaterialCreator.DefaultCode && (MaterialCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class.js'));
+        !MaterialCreator.DefaultVertex && (MaterialCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
+        !MaterialCreator.DefaultPixel && (MaterialCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
+        !MaterialCreator.DefaultConfig && (MaterialCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json'));
 
         // Request extension
         this.extension = Extensions.RequestExtension<MaterialCreatorExtension>(this.editor.core.scene, 'MaterialCreatorExtension');
@@ -108,7 +106,6 @@ export default class MaterialCreator extends EditorPlugin {
         // Create layout
         this.layout = new Layout('MaterialCreatorCode');
         this.layout.panels = [
-            { type: 'top', content: '<div id="MATERIAL-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 30, resizable: false },
             { type: 'left', content: '<div id="MATERIAL-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
                 type: 'main',
@@ -128,13 +125,6 @@ export default class MaterialCreator extends EditorPlugin {
             }
         ];
         this.layout.build(this.divElement.id);
-
-        // Create toolbar
-        this.toolbar = new Toolbar('MaterialCreatorToolbar');
-        this.toolbar.items = [
-            
-        ];
-        this.toolbar.build('MATERIAL-CREATOR-TOOLBAR');
 
         // Create grid
         this.grid = new Grid<MaterialGrid>('MaterialCreatorGrid', {
@@ -235,6 +225,8 @@ export default class MaterialCreator extends EditorPlugin {
         const material = this.editor.core.scene.getMaterialByName(this.datas[id].name);
         if (material)
             material.dispose(true);
+
+        this.datas.splice(id, 1);
     }
 
     /**

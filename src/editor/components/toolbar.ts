@@ -42,7 +42,8 @@ export default class EditorToolbar {
                     { id: 'materials', img: 'icon-effects', text: 'Materials...' },
                     { type: 'break ' },
                     { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
-                    { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' }
+                    { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' },
+                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' }
                 ]
             },
             { type: 'break' },
@@ -107,6 +108,9 @@ export default class EditorToolbar {
                 break;
             case 'view:material-creator':
                 await this.loadTool('material-creator', 'Material Creator');
+                break;
+            case 'view:post-process-creator':
+                await this.loadTool('post-process-creator', 'Post-Process Creator');
                 break;
 
             // Add

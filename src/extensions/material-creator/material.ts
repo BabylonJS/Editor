@@ -227,7 +227,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             const samplers = ['diffuseSampler'];
             const uniformBuffers = new Array<string>();
 
-            this._customCode && this._customCode.setUniforms(uniforms, samplers);
+            this._customCode && this._customCode.setUniforms.call(this, uniforms, samplers);
             
             if (this._customCode && !this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines))
                 return false;

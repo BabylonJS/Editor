@@ -31,7 +31,6 @@ window['EDITOR'].MaterialCreator = EDITOR.MaterialCreator;
 
 // Material Creator extension class
 export default class MaterialCreatorExtension extends Extension<MaterialCreatorMetadata[]> {
-
     /**
      * Constructor
      * @param scene: the babylonjs scene
