@@ -15,6 +15,7 @@ export interface CustomPostProcessCode {
  * Custom post-process config
  */
 export interface CustomPostProcessConfig {
+    ratio: number;
     textures: string[];
 }
 
@@ -29,11 +30,13 @@ export default class PostProcessEditor extends PostProcess {
      * Constructor
      * @param name: the name of the post-process 
      * @param fragmentUrl: the url of the fragment shader
-     * @param camera: the camera to attach to
+     * @param scene: the scene to add in
+     * @param ratio: the ratio of the post-process
+     * @param customCode: the custom code from user
      */
-    constructor(name: string, fragmentUrl: string, scene: Scene, customCode: CustomPostProcessCode) {
+    constructor(name: string, fragmentUrl: string, scene: Scene, ratio: number, customCode: CustomPostProcessCode) {
         // BABYLON.PostProcess
-        super(name, fragmentUrl, [], ['textureSampler'], 1.0, scene.activeCamera);
+        super(name, fragmentUrl, [], ['textureSampler'], ratio, scene.activeCamera);
 
         // Misc.
         this.scene = scene;
