@@ -25,6 +25,8 @@ export default class EditorEditionTools {
 
     public panel: W2UI.W2Panel;
 
+    public currentObject: any = null;
+
     // Protected members
     protected lastTabName: string = null;
 
@@ -133,6 +135,9 @@ export default class EditorEditionTools {
 
         if (firstTool)
             this.changeTab(firstTool.tabName);
+
+        // Current object
+        this.currentObject = object;
     }
 
     /**

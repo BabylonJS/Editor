@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut } from 'electron';
+import { app, BrowserWindow, globalShortcut, Menu, MenuItemConstructorOptions } from 'electron';
 import WebServer from './web-server';
 import ScenePreview from './preview-scene';
 
@@ -22,7 +22,7 @@ export default class EditorApp {
         this.ScenePreview = new ScenePreview(this.Server);
 
         // Create short cuts
-        this.CreateShortcuts();
+        this.CreateShortcutsAndMenu();
     }
 
     /**
@@ -33,6 +33,7 @@ export default class EditorApp {
             this.Window = new BrowserWindow({
                 width: 800,
                 height: 600,
+                title: 'Babylon.js Editor',
                 webPreferences: {
                     scrollBounce: true,
                     nodeIntegration: false,
@@ -53,7 +54,8 @@ export default class EditorApp {
     /**
      * Creates the short cuts
      */
-    public static CreateShortcuts (): void {
+    public static CreateShortcutsAndMenu (): void {
+        // Short cuts
         globalShortcut.register('CommandOrControl+ALT+I', () => {
             const win = BrowserWindow.getFocusedWindow();
             if (win) {
@@ -62,6 +64,27 @@ export default class EditorApp {
                 });
             }
         });
+
+        // Menu
+        var template = <MenuItemConstructorOptions[]> [{
+            label: "Babylon.js Editor",
+            submenu: [
+                { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
+                { type: "separator" },
+                { label: "Quit", accelerator: "Command+Q", click: () => app.quit() }
+            ]}, {
+            label: "Edit",
+            submenu: [
+                { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+                { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+                { type: "separator" },
+                { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+                { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+                { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" }
+            ]}
+        ];
+    
+        Menu.setApplicationMenu(Menu.buildFromTemplate(template));
     }
 }
 

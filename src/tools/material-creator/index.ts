@@ -81,23 +81,29 @@ export default class MaterialCreator extends EditorPlugin {
 
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
-        this.editor.core.scene.metadata['MaterialCreator'] = this.editor.core.scene.metadata['MaterialCreator'] || [{
-            name: 'Custom material',
-            code: MaterialCreator.DefaultCode,
-            vertex: MaterialCreator.DefaultVertex,
-            pixel: MaterialCreator.DefaultPixel,
-            config: MaterialCreator.DefaultConfig
-        }];
+        if (!this.editor.core.scene.metadata['MaterialCreator']) {
+            this.datas = this.editor.core.scene.metadata['MaterialCreator'] = [{
+                name: 'Custom material',
+                code: MaterialCreator.DefaultCode,
+                vertex: MaterialCreator.DefaultVertex,
+                pixel: MaterialCreator.DefaultPixel,
+                config: MaterialCreator.DefaultConfig
+            }];
+            this.data = this.datas[0];
+
+            const material = this.extension.createMaterial({
+                name: this.data.name,
+                code: null,
+                vertex: this.data.vertex,
+                pixel: this.data.pixel,
+                config: this.data.config
+            });
+
+            this.editor.core.onAddObject.notifyObservers(material);
+        }
+
         this.datas = this.editor.core.scene.metadata['MaterialCreator'];
         this.data = this.datas[0];
-
-        this.extension.createMaterial({
-            name: this.data.name,
-            code: null,
-            vertex: this.data.vertex,
-            pixel: this.data.pixel,
-            config: this.data.config
-        });
 
         // Create layout
         this.layout = new Layout('MaterialCreatorCode');
@@ -188,6 +194,9 @@ export default class MaterialCreator extends EditorPlugin {
             name: material.name,
             recid: this.grid.element.records.length - 1
         });
+
+        // Notify
+        this.editor.core.onAddObject.notifyObservers(material);
     }
 
     /**
@@ -266,6 +275,11 @@ export default class MaterialCreator extends EditorPlugin {
                 try {
                     const config = JSON.parse(this.data.config);
                     material.config = config;
+
+                    // Update edition tool
+                    const currentObject = this.editor.edition.currentObject;
+                    if (currentObject && (currentObject === material || currentObject.material === material))
+                        this.editor.edition.setObject(material);
                 } catch (e) { /* Silently */ }
             }
         };

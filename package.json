@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": ".build/electron/main.js",
+  "productName": "Babylon.js Editor",
   "repository": {
     "url": "https://github.com/BabylonJS/Editor/"
   },

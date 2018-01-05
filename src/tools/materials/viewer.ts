@@ -39,6 +39,9 @@ export default class AnimationEditor extends EditorPlugin {
     protected engines: Engine[] = [];
     protected onResizePreview = () => this.preview.engine.resize();
 
+    protected waitingMaterials: Material[] = [];
+    protected onAddObject = (material) => this.waitingMaterials.push(material);
+
     /**
      * Constructor
      * @param name: the name of the plugin 
@@ -53,6 +56,7 @@ export default class AnimationEditor extends EditorPlugin {
     public async close (): Promise<void> {
         this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
         this.editor.core.onResize.removeCallback(this.onResizePreview);
+        this.editor.core.onAddObject.removeCallback(this.onAddObject);
 
         this.canvas.remove();
 
@@ -93,9 +97,20 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onResize.add(this.onResizePreview);
+        this.editor.core.onAddObject.add(this.onAddObject);
 
         // Add existing textures in list
         await this.createList();
+    }
+
+    /**
+     * On the user shows the plugin
+     */
+    public async onShow (): Promise<void> {
+        for (const m of this.waitingMaterials)
+            await this.addMaterialPreview(m);
+
+        this.waitingMaterials = [];
     }
 
     /**
@@ -285,11 +300,19 @@ export default class AnimationEditor extends EditorPlugin {
             const material = new ctor(items[0].name + BabylonTools.RandomId(), this.editor.core.scene);
     
             // Add preview node
-            const preview = this.createPreview(this.canvas);
-            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, preview, material);
-    
-            preview.scene.dispose();
-            preview.engine.dispose();
+            await this.addMaterialPreview(material);
         });
+    }
+
+    /**
+     * Adds a new material preview
+     * @param material: the material to preview
+     */
+    protected async addMaterialPreview (material: Material): Promise<void> {
+        const preview = this.createPreview(this.canvas);
+        await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, preview, material);
+
+        preview.scene.dispose();
+        preview.engine.dispose();
     }
 }

@@ -642,6 +642,7 @@ declare module 'babylonjs-editor/editor/core' {
             updates: IUpdatable[];
             onSelectObject: Observable<any>;
             onResize: Observable<{}>;
+            onAddObject: Observable<{}>;
             /**
                 * Constructor
                 */
@@ -755,6 +756,7 @@ declare module 'babylonjs-editor/editor/components/edition' {
             currentTools: IEditionTool<any>[];
             root: string;
             panel: W2UI.W2Panel;
+            currentObject: any;
             protected lastTabName: string;
             /**
                 * Constructor

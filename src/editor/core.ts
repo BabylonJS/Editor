@@ -27,6 +27,7 @@ export default class Core {
 
     public onSelectObject: Observable<any> = new Observable<any>();
     public onResize: Observable<{ }> = new Observable<{ }>();
+    public onAddObject: Observable<{ }> = new Observable<{ }>();
 
     /**
      * Constructor
