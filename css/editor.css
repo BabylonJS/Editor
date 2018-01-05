@@ -234,3 +234,15 @@ ICONS
 .w2ui-icon.icon-files-project {
     background: url("images/files_project.png");
 }
+
+.w2ui-icon.icon-undo {
+    background: url("images/undo.png");
+}
+
+.w2ui-icon.icon-redo {
+    background: url("images/redo.png");
+}
+
+.w2ui-icon.icon-recycle {
+    background: url("images/recycle.png");
+}

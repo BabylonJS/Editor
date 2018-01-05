@@ -2,7 +2,9 @@ import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
 import Toolbar from '../gui/toolbar';
+
 import Tools from '../tools/tools';
+import UndoRedo from '../tools/undo-redo';
 
 import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
@@ -35,7 +37,17 @@ export default class EditorToolbar {
             },
             { type: 'break' },
             {
-                type: 'menu', id: 'view', text: 'View', img: 'icon-edit', items: [
+                type: 'menu', id: 'edit', text: 'Edit', img: 'icon-edit', items: [
+                    { id: 'undo', img: 'icon-undo', text: 'Undo' },
+                    { id: 'redo', img: 'icon-redo', text: 'Redo' },
+                    { type: 'break' },
+                    { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
+                    { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' }
+                ]
+            },
+            { type: 'break' },
+            {
+                type: 'menu', id: 'view', text: 'View', img: 'icon-helpers', items: [
                     { id: 'animations', img: 'icon-animated-mesh', text: 'Animations...' },
                     { type: 'break' },
                     { id: 'textures', img: 'icon-copy', text: 'Textures...' },
@@ -91,6 +103,20 @@ export default class EditorToolbar {
                 break;
             case 'project:export-template':
                 await SceneExporter.ExportTemplate(this.editor);
+                break;
+
+            // Edit
+            case 'edit:undo':
+                UndoRedo.Undo();
+                break;
+            case 'edit:redo':
+                UndoRedo.Redo();
+                break;
+            case 'edit:clean-materials':
+                SceneManager.CleanUnusedMaterials(this.editor.core.scene);
+                break;
+            case 'edit:clean-textures':
+                SceneManager.CleanUnusedTextures(this.editor.core.scene);
                 break;
 
             // View

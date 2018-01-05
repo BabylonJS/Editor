@@ -363,7 +363,11 @@ export default class Editor {
 
                 // Import extensions
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
-                await Tools.ImportScript('.build/src/extensions/behavior/code.js');
+                await Promise.all([
+                    Tools.ImportScript('behavior-editor'),
+                    Tools.ImportScript('material-creator'),
+                    Tools.ImportScript('post-process-creator')
+                ]);
 
                 this.layout.unlockPanel('main');
 

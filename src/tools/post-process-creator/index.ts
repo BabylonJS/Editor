@@ -1,8 +1,9 @@
-import { } from 'babylonjs';
+import { Camera } from 'babylonjs';
 
 import Editor, {
     IDisposable, Tools,
-    Layout, Grid, GridRow,
+    Layout, Toolbar,
+    Grid, GridRow,
     CodeEditor,
     EditorPlugin
 } from 'babylonjs-editor';
@@ -20,6 +21,7 @@ export interface PostProcessGrid extends GridRow {
 export default class PostProcessCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
+    public toolbar: Toolbar = null;
     public grid: Grid<PostProcessGrid> = null;
 
     // Protected members
@@ -31,6 +33,8 @@ export default class PostProcessCreator extends EditorPlugin {
 
     protected datas: PostProcessCreatorMetadata[] = [];
     protected data: PostProcessCreatorMetadata = null;
+
+    protected activeCamera: Camera = this.editor.playCamera;
 
     // Static members
     public static DefaultCode: string = '';
@@ -50,6 +54,7 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.layout.element.destroy();
+        this.toolbar.element.destroy();
         this.grid.element.destroy();
         
         this.code.editor.dispose();
@@ -76,6 +81,7 @@ export default class PostProcessCreator extends EditorPlugin {
         if (!this.editor.core.scene.metadata['PostProcessCreator']) {
             this.editor.core.scene.metadata['PostProcessCreator'] = [{
                 name: 'Custom Post-Process',
+                cameraName: this.activeCamera ? this.activeCamera.name : null,
                 code: PostProcessCreator.DefaultCode,
                 pixel: PostProcessCreator.DefaultPixel,
                 config: PostProcessCreator.DefaultConfig
@@ -88,6 +94,7 @@ export default class PostProcessCreator extends EditorPlugin {
         // Create layout
         this.layout = new Layout('PostProcessCreatorCode');
         this.layout.panels = [
+            { type: 'top', content: '<div id="POST-PROCESS-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 35, overflow: 'auto', resizable: true },
             { type: 'left', content: '<div id="POST-PROCESS-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
                 type: 'main',
@@ -105,6 +112,23 @@ export default class PostProcessCreator extends EditorPlugin {
             }
         ];
         this.layout.build(this.divElement.id);
+
+        // Create toolbar
+        this.toolbar = new Toolbar('PostProcessCreatorToolbar');
+        this.toolbar.items = [
+            { id: 'cameras', type: 'menu', caption: 'Camera', img: 'icon-camera', items: [] }
+        ];
+        this.toolbar.build('POST-PROCESS-CREATOR-TOOLBAR');
+
+        // Fill toolbar menus
+        const camerasMenu = <any>this.toolbar.element.get('cameras');
+        this.editor.core.scene.cameras.forEach(c => {
+            if (c === this.editor.camera)
+                return;
+
+            camerasMenu.items.push({ id: c.id, caption: c.name, text: c.name });
+        });
+        this.toolbar.element.refresh();
 
         // Create grid
         this.grid = new Grid<PostProcessGrid>('PostProcessCreatorGrid', {
@@ -130,11 +154,19 @@ export default class PostProcessCreator extends EditorPlugin {
     }
 
     /**
+     * On the user shows the plugin
+     */
+    public onShow (): void {
+        this.grid.element.resize();
+    }
+
+    /**
      * Creates a new post-process
      */
     protected addPostProcess (): void {
         // Create data and material
         const data: PostProcessCreatorMetadata = {
+            cameraName: this.activeCamera ? this.activeCamera.name : null,
             name: 'Custom Post-Process' + this.datas.length + 1,
             code: PostProcessCreator.DefaultCode,
             pixel: PostProcessCreator.DefaultPixel,

@@ -1,5 +1,5 @@
 import {
-    Scene,
+    Scene, Material, StandardMaterial, BaseTexture, RenderTargetTexture,
     ActionManager,
     StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline,
     IAnimatable,
@@ -90,5 +90,53 @@ export default class SceneManager {
     public static PlayAllAnimatables (scene: Scene, animatables: IAnimatable[]): void {
         const bounds = SceneManager.GetAnimationFrameBounds(animatables);
         animatables.forEach(a => scene.beginAnimation(a, bounds.min, bounds.max, false, 1.0));
+    }
+
+    /**
+     * Clears all the unused materials from the scene
+     * @param scene: the scene containing the materials
+     */
+    public static CleanUnusedMaterials (scene: Scene): number {
+        let count = 0;
+
+        const used: Material[] = [];
+        scene.meshes.forEach(m => m.material && used.indexOf(m.material) === -1 && used.push(m.material));
+
+        scene.materials.forEach(m => {
+            if (m instanceof StandardMaterial && used.indexOf(m) === -1) {
+                m.dispose(true, false);
+                count++;
+            }
+        });
+        
+        return count;
+    }
+
+    /**
+     * Clears all the unused textures from the scene
+     * @param scene the scene containing the textures
+     */
+    public static CleanUnusedTextures (scene: Scene): number {
+        let count = 0;
+
+        const used: BaseTexture[] = [];
+        scene.materials
+        .concat(<any> scene.particleSystems)
+        .concat(<any> scene.postProcesses).forEach(m => {
+            for (const thing in m) {
+                const value = m[thing];
+
+                if (value instanceof BaseTexture && used.indexOf(m[thing]) === -1)
+                    used.push(m[thing]);
+            }
+        });
+        scene.textures.forEach(t => {
+            if (!(t instanceof RenderTargetTexture) && used.indexOf(t) === -1) {
+                t.dispose();
+                count++;
+            }
+        });
+
+        return count;
     }
 }
