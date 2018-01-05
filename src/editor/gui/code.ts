@@ -52,7 +52,8 @@ export default class CodeEditor {
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
                 'node_modules/babylonjs/dist/preview release/babylon.d.ts',
-                'assets/templates/material-creator/custom-material.d.ts'
+                'assets/templates/material-creator/custom-material.d.ts',
+                'assets/templates/post-process-creator/custom-post-process.d.ts'
             ];
             let content = '';
 
@@ -72,6 +73,7 @@ export default class CodeEditor {
                 declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
 
                 declare var CustomMaterial: CustomMaterialInterface;
+                declare var CustomPostProcess: CustomPostProcessInterface;
             `;
 
             CodeEditor.ExternalLibraries = content;

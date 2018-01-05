@@ -73,3 +73,10 @@ build('./.build/src/', './.build/src/tools/material-creator/index.js', './dist/m
     externals: externals,
     minify: true
 });
+
+build('./.build/src/', './.build/src/tools/post-process-creator/index.js', './dist/post-process-creator.js', {
+    globalName: 'PostProcessCreator',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
