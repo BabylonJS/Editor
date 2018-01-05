@@ -1,4 +1,4 @@
-import { PostProcess, Effect, Scene, SerializationHelper } from 'babylonjs';
+import { PostProcess, Effect, Scene, Camera, SerializationHelper } from 'babylonjs';
 
 /**
  * The custom post-process code interface which
@@ -30,16 +30,16 @@ export default class PostProcessEditor extends PostProcess {
      * Constructor
      * @param name: the name of the post-process 
      * @param fragmentUrl: the url of the fragment shader
-     * @param scene: the scene to add in
+     * @param camera: the camera to attach to
      * @param ratio: the ratio of the post-process
      * @param customCode: the custom code from user
      */
-    constructor(name: string, fragmentUrl: string, scene: Scene, ratio: number, customCode: CustomPostProcessCode) {
+    constructor(name: string, fragmentUrl: string, camera: Camera, ratio: number, customCode: CustomPostProcessCode) {
         // BABYLON.PostProcess
-        super(name, fragmentUrl, [], ['textureSampler'], ratio, scene.activeCamera);
+        super(name, fragmentUrl, [], ['textureSampler'], ratio, camera);
 
         // Misc.
-        this.scene = scene;
+        this.scene = camera.getScene();
         this._customCode = customCode;
 
         // Constructor

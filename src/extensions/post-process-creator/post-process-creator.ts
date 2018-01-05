@@ -6,6 +6,7 @@ import Extension from '../extension';
 import PostProcessEditor, { CustomPostProcessConfig } from './post-process';
 
 export interface PostProcessCreatorMetadata {
+    cameraName: string;
     name: string;
     code: string;
     pixel: string;
@@ -62,7 +63,8 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         } catch (e) { /* Silently */ }
 
         // Create post-process
-        return new PostProcessEditor(data.name, id, this.scene, config.ratio, code);
+        const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
+        return new PostProcessEditor(data.name, id, camera, config.ratio, code);
     }
 
     /**

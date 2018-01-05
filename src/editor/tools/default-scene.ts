@@ -130,8 +130,8 @@ export default class DefaultScene {
         const floorAmbient = await this.LoadTexture('assets/textures/mahogfloor_AO.jpg', scene);
         floorAmbient.uScale = floorAmbient.vScale = 45;
 
-        const floorReflectivity = await this.LoadTexture('assets/textures/mahogfloor_roughness.jpg', scene);
-        floorReflectivity.uScale = floorReflectivity.vScale = 45;
+        //const floorReflectivity = await this.LoadTexture('assets/textures/mahogfloor_roughness.jpg', scene);
+        //floorReflectivity.uScale = floorReflectivity.vScale = 45;
 
         const groundMaterial = new PBRMaterial('GroundMaterial', scene);
         groundMaterial.usePhysicalLightFalloff = false;
