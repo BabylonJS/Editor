@@ -534,6 +534,12 @@ declare module 'babylonjs-editor/editor/gui/window' {
                 * Opens the window
                 */
             open(): void;
+            /**
+                * Opens a window alert
+                * @param message: the message to show
+                * @param title: the title of the window alert
+                */
+            static CreateAlert(message: string, title?: string): void;
     }
 }
 

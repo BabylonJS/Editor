@@ -4,10 +4,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Bundle",
+            "name": "Build Electron",
             "program": "${workspaceFolder}/script/electron.js",
             "args": [
-                "--osx"
+                "--platform=darwin",
+                "--arch=x64"
             ]
         },
         {

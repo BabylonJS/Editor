@@ -1,6 +1,8 @@
 const packager = require('electron-packager');
-const yargs = require('yargs');
+const winInstaller = require('electron-winstaller');
+const macInstaller = require('electron-installer-dmg');
 
+const yargs = require('yargs');
 const args = yargs.argv;
 
 if (args.osx)
@@ -24,9 +26,38 @@ const options = {
     icon: './css/icons/babylonjs_icon'
 };
 
+// Creates an installer according to the current platform
+const createInstaller = function (appPath) {
+    if (options.platform === 'win32') {
+        winInstaller.createWindowsInstaller({
+            appDirectory: appPath,
+            outputDirectory: appPath + '/../',
+            authors: 'Babylon.js Editor v2'
+        }).then(function () {
+            console.log('Installer for Windows available at ./electron-packages');
+        });
+    }
+    else if (options.platform === 'darwin') {
+        macInstaller({
+            name: 'Babylon.js Editor v2',
+            appPath: appPath,
+            out: options.out,
+            icon: options.icon + '.icns',
+            'icon-size': 140,
+            overwrite: true
+        }, function () {
+            console.log('Installer for Mac OS X available at ./electron-packages');
+        });
+    }
+}
+
 packager(options, function (err, appPath) {
     if (err)
-        return console.warn('Cannot create electron package for ' + appPath);
+        return console.warn('Cannot create electron package: ' + err.message);
 
-    console.log('Package(s) now available at: ' + appPath);
+    // Installers
+    createInstaller(appPath[0]);
+
+    // Finish
+    console.log('Package(s) now available at: ./electron-packages');
 });
