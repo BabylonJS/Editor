@@ -1,3 +1,6 @@
+// w2alert
+declare var w2alert: (message: string, title?: string) => void;
+
 export default class Window {
     // Public members
     public name: string;
@@ -72,5 +75,14 @@ export default class Window {
 
         // On close
         this.element.on('close', () => this.onClose && this.onClose());
+    }
+
+    /**
+     * Opens a window alert
+     * @param message: the message to show
+     * @param title: the title of the window alert
+     */
+    public static CreateAlert (message: string, title: string = 'Notification'): void {
+        w2alert(message, title);
     }
 }

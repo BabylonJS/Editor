@@ -1,4 +1,7 @@
-import { IAnimatable, Animation, Animatable, Color3, Scalar } from 'babylonjs';
+import {
+    IAnimatable, Animation, Animatable, Scalar,
+    Vector2, Vector3, Quaternion, Color3
+} from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
     Tools,
@@ -261,10 +264,14 @@ export default class AnimationEditor extends EditorPlugin {
         
         const browser = new PropertyBrowser(this.animatable);
         browser.onSelect = (id) => {
-            const anim = new Animation(id, id, 60, 0, 0, false);
+            // Property infos
+            const infos = browser.getPropertyInfos(this.animatable, id);
+
+            // Create animation
+            const anim = new Animation(id, id, 60, infos.type, Animation.ANIMATIONLOOPMODE_CYCLE, false);
             anim.setKeys([
-                { frame: 0, value: 0 },
-                { frame: 60, value: 0 }
+                { frame: 0, value: infos.defaultValue },
+                { frame: 60, value: infos.defaultValue.clone ? infos.defaultValue.clone() : infos.defaultValue }
             ]);
 
             this.animatable.animations.push(anim);
@@ -411,7 +418,7 @@ export default class AnimationEditor extends EditorPlugin {
             });
         });
 
-        const valueInterval = Math.max(Math.abs(maxValue), Math.abs(minValue));
+        const valueInterval = Math.max(Math.abs(maxValue), Math.abs(minValue)) || 1;
 
         // Add timeline lines
         let linesCount = 100;

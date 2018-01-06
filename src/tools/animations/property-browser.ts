@@ -1,4 +1,5 @@
 import {
+    Animation,
     Vector2, Vector3, Vector4,
     Color3, Color4,
     Quaternion,
@@ -68,6 +69,48 @@ export default class PropertyBrowser {
         this._graph = new Graph('PropertyGraph');
         this._graph.build('ANIMATION-EDITOR-PROPERTY-BORWSER');
         this._fillGraph(object);
+    }
+
+    /**
+     * Returns the property informations (animation type + default value)
+     * @param object: the source object
+     * @param propertyPath: the path to the property to animate
+     */
+    public getPropertyInfos (object: any, propertyPath: string): { type: number; defaultValue: any } {
+        // Get property and constructor name
+        const parts = propertyPath.split('.');
+        for (const p of parts)
+            object = object[p];
+
+        const ctor = Tools.GetConstructorName(object);
+
+        // Get animation informations according to the property
+        let type = Animation.ANIMATIONTYPE_FLOAT;
+        let defaultValue: any = 0;
+
+        switch (ctor) {
+            case 'Vector2':
+                type = Animation.ANIMATIONTYPE_VECTOR2;
+                defaultValue = Vector2.Zero();
+                break;
+            case 'Vector3':
+                type = Animation.ANIMATIONTYPE_VECTOR3;
+                defaultValue = Vector3.Zero();
+                break;
+            case 'Color3':
+                type = Animation.ANIMATIONTYPE_COLOR3;
+                defaultValue = Color3.Black();
+                break;
+            case 'Quaternion':
+                type = Animation.ANIMATIONTYPE_QUATERNION;
+                defaultValue = Quaternion.Identity();
+                break;
+        }
+
+        return {
+            type: type,
+            defaultValue: defaultValue
+        };
     }
 
     // Fills the graph with the given root object

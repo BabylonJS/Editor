@@ -2,6 +2,7 @@ import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
 import Toolbar from '../gui/toolbar';
+import Window from '../gui/window';
 
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
@@ -113,10 +114,10 @@ export default class EditorToolbar {
                 UndoRedo.Redo();
                 break;
             case 'edit:clean-materials':
-                SceneManager.CleanUnusedMaterials(this.editor.core.scene);
+                Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedMaterials(this.editor.core.scene)} materials`, 'Report');
                 break;
             case 'edit:clean-textures':
-                SceneManager.CleanUnusedTextures(this.editor.core.scene);
+                Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedTextures(this.editor.core.scene)} textures`, 'Report');
                 break;
 
             // View
