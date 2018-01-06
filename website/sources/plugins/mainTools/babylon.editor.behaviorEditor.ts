@@ -3,6 +3,15 @@ module BABYLON.EDITOR {
         name: string;
     }
 
+    interface ISample {
+        samples: {
+            name: string;
+            file: string;
+            description: string;
+            icon?: string;
+        }[];
+    }
+
     export class BehaviorEditor implements ITabApplication, IEventReceiver {
         // Private members
         private _core: EditorCore;
@@ -14,6 +23,7 @@ module BABYLON.EDITOR {
         private _layouts: GUI.GUILayout = null;
         private _editor: GUI.GUICodeEditor = null;
         private _list: GUI.GUIGrid<IBehaviorItem> = null;
+        private _toolbar: GUI.GUIToolbar = null;
         
         private _currentNode: Node | Scene = null;
 
@@ -22,6 +32,8 @@ module BABYLON.EDITOR {
 
         // Statics
         private static _Template: string = null;
+        private static _Samples: ISample = null;
+        private static _ToolbarIds = ["activate"];
 
         /**
         * Constructor
@@ -37,9 +49,13 @@ module BABYLON.EDITOR {
 
             // Finish
             if (!BehaviorEditor._Template) {
-                BABYLON.Tools.LoadFile("website/resources/behavior.editor.txt", (data) => {
+                BABYLON.Tools.LoadFile("website/resources/behavior/behavior.editor.txt", (data: string) => {
                     BehaviorEditor._Template = data;
-                    this._createUI();
+
+                    BABYLON.Tools.LoadFile("website/resources/behavior/samples.json", (data: string) => {
+                        BehaviorEditor._Samples = JSON.parse(data);
+                        this._createUI();
+                    });
                 });
             }
             else
@@ -51,6 +67,7 @@ module BABYLON.EDITOR {
         */
         public dispose(): void {
             this._layouts.destroy();
+            this._toolbar.destroy();
             this._list.destroy();
             this._editor.destroy();
 
@@ -58,7 +75,7 @@ module BABYLON.EDITOR {
         }
 
         /**
-        * On event 
+        * On event
         */
         public onEvent(event: IEvent): boolean {
             if (event.eventType === EventType.SCENE_EVENT && event.sceneEvent.eventType === SceneEventType.OBJECT_PICKED) {
@@ -73,6 +90,9 @@ module BABYLON.EDITOR {
                     // Register metadata and set current node
                     object.metadata["behavior"] = object.metadata["behavior"] || [];
                     this._currentNode = object;
+
+                    // Disable toolbar
+                    this._toolbar.setItemsEnabled(BehaviorEditor._ToolbarIds, false);
 
                     // Scripts lits
                     this._configureList();
@@ -91,11 +111,28 @@ module BABYLON.EDITOR {
             // Layouts
             this._layouts = new GUI.GUILayout(this._containerID, this._core);
             this._layouts.createPanel("BEHAVIOR-EDITOR-LEFT-PANEL", "left", 350, false).setContent(GUI.GUIElement.CreateElement("div", "BEHAVIOR-EDITOR-EDIT"));
+            this._layouts.createPanel("BEHAVIOR-EDITOR-TOP-PANEL", "top", 50, false).setContent(GUI.GUIElement.CreateElement("div", "BEHAVIOR-EDITOR-TOOLBAR"));
             this._layouts.createPanel("BEHAVIOR-EDITOR-RIGHT-PANEL", "main", undefined, true).setContent(GUI.GUIElement.CreateDivElement("BEHAVIOR-EDITOR-CODE", "width: 100%; height: 100%;"));
             this._layouts.buildElement(this._containerID);
 
+            // Toolbar
+            this._toolbar = new GUI.GUIToolbar("BEHAVIOR-EDITOR-TOOLBAR", this._core);
+
+            var samples = this._toolbar.createMenu("menu", "samples", "Samples", "icon-behavior-editor");
+            for (var i = 0; i < BehaviorEditor._Samples.samples.length; i++) {
+                var sample = BehaviorEditor._Samples.samples[i];
+                this._toolbar.createMenuItem(samples, "button", "sample" + i, sample.name, "icon-copy");
+            }
+
+            this._toolbar.createMenu("button", "import", "Import...", "icon-copy");
+            this._toolbar.createMenu("check", "activate", "Activated", "icon-play-game", true);
+
+            this._toolbar.onClick = (item) => this._toolbarClicked(item);
+            this._toolbar.buildElement("BEHAVIOR-EDITOR-TOOLBAR");
+            this._toolbar.setItemsEnabled(BehaviorEditor._ToolbarIds, false);
+
             // List
-            this._list = new GUI.GUIGrid<IBehaviorItem>("BehaviorList", this._core);
+            this._list = new GUI.GUIGrid<IBehaviorItem>("BEHAVIOR-EDITOR-EDIT", this._core);
             this._list.showAdd = true;
             this._list.showDelete = true;
             this._list.onAdd = () => this._addScript();
@@ -119,23 +156,28 @@ module BABYLON.EDITOR {
         }
 
         // Adds a new script
-        private _addScript(): void {
-            // ctor
-            var ctor = Tools.GetConstructorName(this._currentNode).toLowerCase();
-            if (this._currentNode instanceof DirectionalLight)
-                ctor = "dirlight";
-            else if (this._currentNode instanceof HemisphericLight)
-                ctor = "hemlight";
+        private _addScript(content?: string, name?: string): void {
+            if (!content) {
+                // ctor
+                var ctor = Tools.GetConstructorName(this._currentNode).toLowerCase();
+                if (this._currentNode instanceof DirectionalLight)
+                    ctor = "dirlight";
+                else if (this._currentNode instanceof HemisphericLight)
+                    ctor = "hemlight";
 
-            var code = BehaviorEditor._Template;
+                var code = BehaviorEditor._Template;
 
-            while (code.indexOf("{{type}}") !== -1)
-                code = code.replace("{{type}}", ctor);
+                while (code.indexOf("{{type}}") !== -1)
+                    code = code.replace("{{type}}", ctor);
+            }
+            else {
+                code = content;
+            }
 
             // Register metadata
             var data = <EXTENSIONS.IBehaviorCode> {
                 code: code,
-                name: "scripts " + SceneFactory.GenerateUUID(),
+                name: name ? name : "scripts " + SceneFactory.GenerateUUID(),
                 active: true
             };
 
@@ -155,6 +197,13 @@ module BABYLON.EDITOR {
 
             this._currentScript = this._currentNode.metadata["behavior"][rows[0]];
             this._editor.element.setValue(this._currentScript.code);
+
+            // Enable scripts toolbar
+            this._toolbar.setItemsEnabled(BehaviorEditor._ToolbarIds, true);
+            this._toolbar.setItemChecked("activate", this._currentScript.active);
+
+            // Set options in toolbar
+            this._toolbar.setItemChecked("activate", this._currentScript.active);
         }
 
         // Change script
@@ -201,6 +250,43 @@ module BABYLON.EDITOR {
             this._list.refresh();
         }
 
+        // on tool bar selected
+        private _toolbarClicked(item: GUI.IToolbarClick): void {
+            if (!this._currentNode)
+                return;
+
+            if (!item.hasParent) {
+                if (this._currentScript && item.parent === "activate") {
+                    this._currentScript.active = !this._toolbar.isItemChecked("activate");
+                } else if (item.parent === "import") {
+                    var input = Tools.CreateFileInpuElement("IMPORT-BEHAVIOR-SCRIPT");
+                    input[0].onchange = (event: JQueryInputEventObject) => {
+                        var name = event.target["files"][0].name;
+                        var extension = Tools.GetFileExtension(name);
+
+                        BABYLON.Tools.ReadFile(event.target["files"][0], (data: string) => {
+                            if (extension === "js")
+                                this._addScript(data, name);
+                            else if (extension === "editorproject") {
+                                this._importFromProject(JSON.parse(data));
+                            }
+                        }, null, false);
+                    };
+                    input.click();
+                }
+            }
+            else {
+                if (item.selected.indexOf("sample") === 0) {
+                    var id = parseInt(item.selected.replace("sample", ""));
+                    var sample = BehaviorEditor._Samples.samples[id];
+
+                    BABYLON.Tools.LoadFile("website/resources/behavior/" + sample.file, (data: string) => {
+                        this._addScript(data, sample.name);
+                    });
+                }
+            }
+        }
+
         // Bind the events
         private _bindEvents(): void {
             this._editor.element.onDidChangeModelContent(() => {
@@ -211,6 +297,33 @@ module BABYLON.EDITOR {
                     //ext.apply(null);
                 }
             });
+        }
+
+        // Imports selected scripts from project
+        private _importFromProject(project: INTERNAL.IProjectRoot): void {
+            var metadatas: EXTENSIONS.IBehaviorMetadata[] = project.customMetadatas["BehaviorExtension"];
+            if (!metadatas)
+                return GUI.GUIWindow.CreateAlert("No Behavior Script found...", "Cannot import...");
+
+            var scripts: { name: string, code: string }[] = [];
+            for (var i = 0; i < metadatas.length; i++) {
+                var data = metadatas[i];
+
+                for (var j = 0; j < data.metadatas.length; j++) {
+                    scripts.push({ name: data.node + " - " + data.metadatas[j].name, code: data.metadatas[j].code });
+                }
+            }
+
+            var picker = new ObjectPicker(this._core);
+            picker.objectLists.push(scripts);
+            picker.onObjectPicked = (names, selected) => {
+                debugger;
+                for (var i = 0; i < selected.length; i++) {
+                    var script = scripts[i];
+                    this._addScript(script.code, script.name);
+                }
+            };
+            picker.open();
         }
     }
 }

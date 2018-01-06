@@ -135,10 +135,6 @@
                 this._layouts.setPanelSize("main", width / 2);
             };
 
-            this._window.on({ type: "open" }, () => {
-                this._window.maximize();
-            });
-
             this._window.setOnCloseCallback(() => {
                 this._window.destroy();
                 this._layouts.destroy();

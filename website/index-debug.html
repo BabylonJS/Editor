@@ -12,7 +12,7 @@
         <input type="file" id="BABYLON-EDITOR-LOAD-SCENE-FILE" multiple style="display: none;" />
         <input type="file" id="BABYLON-EDITOR-LOAD-TEXTURE-FILE" multiple style="display: none;" />
     </div>
-
+    
     <!-- Related to http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
     <script>
         if (typeof module === 'object') {
@@ -38,7 +38,25 @@
 
     <script src="libs/cytoscape/cytoscape.js" type="text/javascript"></script>
 
+    <!-- Monaco editor -->
+    <script>
+        if (typeof global !== "undefined" && global.require) {
+            var nodeRequire = global.require;
+        }
+    </script>
     <script src="node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
+    <script>
+        // Import monaco now
+        if (typeof nodeRequire === "undefined") {
+            require.config({ paths: { "vs": "node_modules/monaco-editor/min/vs/" }});
+            require(["vs/editor/editor.main"], function () {
+                BABYLON.EDITOR.GUI.GUICodeEditor.MonacoAvailable = true;
+            });
+        }
+        else {
+            global.require = nodeRequire;
+        }
+    </script>
 
     <!-- GUI ELEMENTS -->
     <script src="sources/gui/babylon.editor.guiElement.js" type="text/javascript"></script>
@@ -59,11 +77,11 @@
     <script src="sources/internal/babylon.editor.tools.js" type="text/javascript"></script>
     <script src="sources/internal/babylon.editor.manipulationHelpers.js" type="text/javascript"></script>
     <script src="sources/internal/babylon.editor.testGame.js" type="text/javascript"></script>
+    <script src="sources/internal/babylon.editor.settings.js" type="text/javascript"></script>
 
     <!-- SCENE -->
     <script src="sources/scene/babylon.editor.sceneManager.js" type="text/javascript"></script>
     <script src="sources/scene/babylon.editor.sceneFactory.js" type="text/javascript"></script>
-    <script src="sources/scene/babylon.editor.sceneFactory2d.js" type="text/javascript"></script>
     <script src="sources/scene/babylon.editor.filesInput.js" type="text/javascript"></script>
 
     <!-- TOOLS -->
@@ -99,6 +117,7 @@
     <script src="sources/editionTools/babylon.editor.generalTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/babylon.editor.materialTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/babylon.editor.sceneTool.js" type="text/javascript"></script>
+    <script src="sources/editionTools/babylon.editor.settingsTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/babylon.editor.lightTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/babylon.editor.animationTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/babylon.editor.postProcesses.js" type="text/javascript"></script>
@@ -125,8 +144,6 @@
 
     <script src="sources/editionTools/geometryEditors/babylon.editor.abstractMeshTool.js" type="text/javascript"></script>
     <script src="sources/editionTools/geometryEditors/babylon.editor.groundMeshTool.js" type="text/javascript"></script>
-
-    <script src="sources/editionTools/2d/babylon.editor.container2dTool.js" type="text/javascript"></script>
 
     <!-- USER INTERFACES -->
     <script src="sources/userInterfaces/babylon.editor.particleSystemEditor.js" type="text/javascript"></script>
@@ -165,7 +182,6 @@
     <script src="sources/plugins/babylon.editor.lightsMenu.js" type="text/javascript"></script>
     <script src="sources/plugins/babylon.editor.geometriesMenu.js" type="text/javascript"></script>
     <script src="sources/plugins/babylon.editor.soundsMenu.js" type="text/javascript"></script>
-    <script src="sources/plugins/babylon.editor.scene2dMenu.js" type="text/javascript"></script>
 
     <script src="sources/plugins/mainTools/babylon.editor.toolsMenu.js" type="text/javascript"></script>
 
@@ -196,8 +212,9 @@
 
     <!-- Related to http://stackoverflow.com/questions/32621988/electron-jquery-is-not-defined -->
     <script>
-        if (window.module)
+        if (window.module) {
             module = window.module;
+        }
     </script>
 
     <!-- STYLE -->
@@ -235,7 +252,7 @@
         BABYLON.EDITOR.SceneFactory.NodesToStart.push(core.currentScene);
         core.editor.timeline.reset();
 
-        core.editor.sceneGraphTool.fillGraph();
+        //core.editor.sceneGraphTool.fillGraph();
         BABYLON.EDITOR.Event.sendSceneEvent(core.currentScene, BABYLON.EDITOR.SceneEventType.OBJECT_PICKED, core);
     </script>
 </body>

@@ -11,6 +11,9 @@
         private _editor: AceAjax.Editor = null;
         private _configForm: GUI.GUIForm = null;
 
+        // Static members
+        private static _LastGeneratedFile: any = null;
+
         /**
         * Constructor
         * @param core: the editor core
@@ -35,6 +38,19 @@
 
                     obj.activeCameraID = camera ? camera.id : undefined;
                     this._editor.setValue(JSON.stringify(obj, null, "\t"), -1);
+
+                    // Create download click
+                    if (BabylonExporter._LastGeneratedFile)
+                        URL.revokeObjectURL(BabylonExporter._LastGeneratedFile);
+                    
+                    var blob = new Blob([JSON.stringify(obj)], { type: 'application/babylon' });
+                    BabylonExporter._LastGeneratedFile = URL.createObjectURL(blob);
+
+                    var link = document.createElement('a');
+                    link.download = this._core.editor.filesInput['_sceneFileToLoad'] ? this._core.editor.filesInput['_sceneFileToLoad'].name : 'scene.babylon';
+                    link.href = BabylonExporter._LastGeneratedFile;
+                    link.click();
+                    link.remove();
                 }
                 else if (button === "Close") {
                     this._window.close();
@@ -124,7 +140,10 @@
             if (!core.isPlaying)
                 SceneManager.SwitchActionManager();
 
+            // Add scale factor and export scene
+            core.currentScene.meshes.push(core.scaleFactor);
             var obj = BABYLON.SceneSerializer.Serialize(core.currentScene);
+            core.currentScene.meshes.pop();
 
             if (!core.isPlaying)
                 SceneManager.SwitchActionManager();
@@ -177,6 +196,21 @@
 
                 if (SceneFactory.NodesToStart.some((value: any, index: number, array: any[]) => { return value instanceof Sound && value.name == sound.name })) {
                     sound.autoplay = true;
+                }
+            }
+
+            // Remove texture base64 auto-generated datas
+            var materialNames = [
+                "BABYLON.PBRMaterial"
+            ];
+
+            for (var i = 0; i < obj.materials.length; i++) {
+                var mat = obj.materials[i];
+                if (materialNames.indexOf(mat.customType) !== -1) {
+                    // Remove BRDF environment which is automatically generated texture
+                    if (mat.environmentBRDFTexture && mat.environmentBRDFTexture.url === "data:EnvironmentBRDFTexture") {
+                        delete mat.environmentBRDFTexture;
+                    }
                 }
             }
             

@@ -116,7 +116,10 @@
                 material.alpha = typeof material.alpha === "string" ? parseFloat(material.alpha) : material.alpha;
 
                 var generalFolder = this._element.addFolder("Common");
-                generalFolder.add(material, "id").name("Id");
+                generalFolder.add(material, "name").name("Name").onFinishChange(r => {
+                    material.name = r;
+                    this.update();
+                });
                 generalFolder.add(material, "alpha").min(0).max(1).name("Alpha");
 
                 // Options
@@ -189,6 +192,7 @@
                 subMeshMaterial.subMaterials[subMesh.materialIndex] = material;
             }
 
+            // Fur material
             if (material instanceof FurMaterial && this.object instanceof Mesh) {
                 var furTexture = FurMaterial.GenerateTexture("furTexture", this._editionTool.core.currentScene);
                 (<FurMaterial>material).furTexture = furTexture;
@@ -232,22 +236,18 @@
             picker.open();
 
             picker.onObjectPicked = (names: string[]) => {
-                debugger;
                 for (var i = 0; i < names.length; i++) {
                     var mesh: AbstractMesh = this._core.currentScene.getMeshByName(names[i]);
                     if (!mesh)
                         continue;
 
-                    if (mesh.getDescendants().length > 0)
-                        debugger;
-
-                    if (!mesh.material && mesh.subMeshes.length > 1) {
-                        var multiMat = new MultiMaterial("MultiMat" + SceneFactory.GenerateUUID(), this._core.currentScene);
+                    if (!mesh.material && mesh.subMeshes && mesh.subMeshes.length > 1) {
+                        var multiMat = new MultiMaterial("MultiMat Generated " + SceneFactory.GenerateUUID(), this._core.currentScene);
                         multiMat.subMaterials = new Array(mesh.subMeshes.length);
                         mesh.material = multiMat;
                     }
 
-                    if (mesh.subMeshes.length > 1) {
+                    if (mesh.subMeshes && mesh.subMeshes.length > 1) {
                         for (var j = 0; j < mesh.subMeshes.length; j++)
                             (<MultiMaterial>mesh.material).subMaterials[j] = this._material;
                     }

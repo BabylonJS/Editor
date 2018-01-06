@@ -92,10 +92,15 @@ module BABYLON.EDITOR {
 
                 // Metallic
                 var metallicFolder = this._element.addFolder("Metallic");
+                if (this.material.metallic !== undefined)
+                    metallicFolder.add(this.material, "metallic").name("Metallic");
                 metallicFolder.add(this.material, "useMetallnessFromMetallicTextureBlue").name("Metallness From Metallic Texture Blue");
                 metallicFolder.add(this.material, "useRoughnessFromMetallicTextureAlpha").name("Use Roughness From Metallic Texture Alpha");
                 metallicFolder.add(this.material, "useRoughnessFromMetallicTextureGreen").name("Use Roughness From Metallic Texture Green");
-                this.addTextureButton("Metallic Texture", "metallicTexture", metallicFolder, false);
+                metallicFolder.add(this.material, "useAmbientOcclusionFromMetallicTextureRed").name("Use Ambient Occlusion From Metallic Texture Red");
+                this.addTextureButton("Metallic Texture", "metallicTexture", metallicFolder, false, () => {
+                    this.material.metallic = 1;
+                });
 
                 // Micro surface
                 var microSurfaceFolder = this._element.addFolder("Micro Surface");

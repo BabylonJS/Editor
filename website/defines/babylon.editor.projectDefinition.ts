@@ -49,6 +49,7 @@ declare module BABYLON.EDITOR.INTERNAL {
         globalAnimationSpeed: number; // Global animation speed on play
         animatedAtLaunch: IAnimationConfigurationOnPlay[];
         framesPerSecond: number;
+        settings: Settings;
     }
 
     /**
@@ -143,8 +144,6 @@ declare module BABYLON.EDITOR.INTERNAL {
         sounds: ISound[];
         actions: any;
         physicsEnabled: boolean;
-
-        scene2d: INode[];
 
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;

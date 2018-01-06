@@ -28,6 +28,7 @@
         private _mainEdit = "MAIN-EDIT";
         private _mainEditLaunch = "EDIT-LAUNCH";
         private _mainEditTextures = "EDIT-TEXTURES";
+        private _mainClearMaterials = "CLEAR-MATERIALS";
         
         private _mainAdd: string = "MAIN-ADD";
         private _addSkyMesh: string = "ADD-SKY-MESH";
@@ -138,6 +139,11 @@
                     else if (selected.selected === this._mainEditTextures) {
                         var textureEditor = new GUITextureEditor(this.core, "");
                     }
+                    else if (selected.selected === this._mainClearMaterials) {
+                        GUITextureEditor.CleanTextures(this.core);
+                        GUI.GUIWindow.CreateAlert('Cleared ' + SceneFactory.ClearUnusedMaterials(this.core.currentScene) + ' materials', 'Result');
+                        this.core.editor.editionTool.updateEditionTool();
+                    }
 
                     return true;
                 }
@@ -247,6 +253,7 @@
             this.toolbar.createMenuItem(menu, "button", this._mainEditLaunch, "Animate at Launch...", "icon-play-game");
             this.toolbar.addBreak(menu);
             this.toolbar.createMenuItem(menu, "button", this._mainEditTextures, "Edit Textures...", "icon-copy");
+            this.toolbar.createMenuItem(menu, "button", this._mainClearMaterials, "Clear Unused Materials...", "icon-copy");
             //...
 
             menu = this.toolbar.createMenu("menu", this._mainAdd, "Add", "icon-add");

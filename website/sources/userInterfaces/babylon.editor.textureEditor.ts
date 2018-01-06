@@ -207,6 +207,9 @@
                         }
                         else {
                             var file: File = BABYLON.FilesInput.FilesToLoad[selectedTexture.name.toLowerCase()];
+                            if (!file)
+                                file = BABYLON.FilesInput.FilesToLoad[selectedTexture.name];
+                            
                             if (file) {
                                 serializationObject.name = (<Texture>selectedTexture).url;
                             }
@@ -288,6 +291,7 @@
             };
             
             this._texturesList.onReload = () => {
+                GUITextureEditor.CleanTextures(this._core);
                 this._fillTextureList();
             };
             
@@ -430,10 +434,63 @@
                 else {
                     texture = Texture.CreateFromBase64String(<string>data, name, this._core.currentScene, false, false, Texture.BILINEAR_SAMPLINGMODE);
                     texture.name = (<any>texture).url = texture.name.replace("data:", "");
+
+                    // Remove buffer ?
+                    if (!SceneFactory.Settings.exportTexturesContent)
+                        delete texture['_buffer'];
                 }
+
+                if (this.propertyPath)
+                    this.object[this.propertyPath] = texture;
 
                 this._addTextureToList(texture);
             };
+        }
+
+        // Cleans the unused textures
+        public static CleanTextures (core: EditorCore): void {
+            var textures = core.currentScene.textures;
+            var materials = core.currentScene.materials;
+            var miscs = [SceneFactory.StandardPipeline, core.currentScene];
+
+            var used: BaseTexture[] = [];
+
+            var isUsed = (texture: BaseTexture) => {
+                var index = used.indexOf(texture);
+                if (index === -1)
+                    used.push(texture);
+            };
+
+            var check = (object: any) => {
+                for (var thing in object) {
+                    var value = object[thing];
+
+                    if (!(value instanceof BaseTexture) && !(value instanceof Array))
+                        continue;
+
+                    if (value instanceof Array) {
+                        for (var j = 0; j < value.length; j++)
+                            check(value[j]);
+                    }
+                    else {
+                        isUsed(value);
+                    } 
+                }
+            };
+
+            for (var i = 0; i < materials.length; i++)
+                check(materials[i]);
+
+            for (var i = 0; i < miscs.length; i++)
+                check(miscs[i]);
+
+            for (var i = 0; i < textures.length; i++) {
+                var index = used.indexOf(textures[i]);
+                if (index === -1) {
+                    textures[i].dispose();
+                    i--;
+                }
+            }
         }
     }
 }

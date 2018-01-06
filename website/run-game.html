@@ -76,11 +76,11 @@
                 console.info("Physics is enabled");
             }
 
-            // Extensions
-            BABYLON.EDITOR.EXTENSIONS.EditorExtension.ApplyExtensions(scene);
-
             // Execute scene
             scene.executeWhenReady(function () {
+                // Extensions
+                BABYLON.EDITOR.EXTENSIONS.EditorExtension.ApplyExtensions(scene);
+
                 window.addEventListener("resize", function () {
                     engine.resize();
                 });
@@ -89,18 +89,21 @@
                     engine.resize();
                 });
 
-                scene.debugLayer.show({
-                    popup: false,
-                    initialTab: 1
+                engine.runRenderLoop(function () {
+                    scene.render();
                 });
             });
         });
 
-        var loadScene = function () {
-            filesInput.reload();
-        };
+        // Copy files to load
+        for (var thing in opener.BABYLON.FilesInput.FilesToLoad) {
+            BABYLON.FilesInput.FilesToLoad[thing] = opener.BABYLON.FilesInput.FilesToLoad[thing];
+        }
 
-        window.onloadeddata();
+        filesInput._sceneFileToLoad = opener.core.editor.filesInput.__sceneFileToLoad;
+        BABYLON.EDITOR.EXTENSIONS.EditorExtension._ExtensionsDatas = opener.core.editor.filesInput.__editorExtensions;
+
+        filesInput.reload();
     </script>
 
 </body>

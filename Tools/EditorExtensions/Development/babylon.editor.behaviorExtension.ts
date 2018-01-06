@@ -28,6 +28,7 @@ module BABYLON.EDITOR.EXTENSIONS {
 
         // Private members
         private _scopes: IFunctionScope[] = [];
+        private _tools: BehaviorTools = new BehaviorTools();
 
         // Static members
         public static Constructors = { };
@@ -82,6 +83,19 @@ module BABYLON.EDITOR.EXTENSIONS {
 
         // Applies the extension
         public apply(data: IBehaviorMetadata[]): void {
+            if (!data)
+                return;
+
+            for (var i = 0; i < data.length; i++) {
+                var node = data[i].node === "Scene" ? this.scene : this.scene.getNodeByName(data[i].node);
+
+                if (!node)
+                    continue;
+
+                node.metadata = node.metadata || { };
+                node.metadata["behavior"] = data[i].metadatas;
+            }
+
             this._applyCode([this.scene]);
             this._applyCode(this.scene.meshes);
             this._applyCode(this.scene.lights);
@@ -144,6 +158,9 @@ module BABYLON.EDITOR.EXTENSIONS {
                     continue;
 
                 for (var j = 0; j < datas.length; j++) {
+                    if (!datas[j].active)
+                        continue;
+                    
                     var scope: IFunctionScope = {
                         fn: null,
                         node: node,
@@ -166,10 +183,10 @@ module BABYLON.EDITOR.EXTENSIONS {
 
             var tag = document.createElement("script");
             tag.type = "text/javascript";
-            tag.text = "BABYLON.EDITOR.EXTENSIONS.BehaviorExtension.Constructors[\"" + fnName + "\"] = function (scene, " + this._getConstructorName(node).toLowerCase() + ") {\n" + data.code + "}\n//# sourceURL=" + url + "\n";
+            tag.text = "BABYLON.EDITOR.EXTENSIONS.BehaviorExtension.Constructors[\"" + fnName + "\"] = function (scene, " + this._getConstructorName(node).toLowerCase() + ", tools) {\n" + data.code + "}\n//# sourceURL=" + url + "\n";
             document.head.appendChild(tag);
 
-            var instance = new BehaviorExtension.Constructors[fnName](this.scene, node);
+            var instance = new BehaviorExtension.Constructors[fnName](this.scene, node, this._tools);
             scope.start = instance.start;
             scope.update = instance.update;
             this._scopes.push(scope);

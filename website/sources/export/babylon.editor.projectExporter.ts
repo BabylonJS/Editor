@@ -26,8 +26,6 @@
                 physicsEnabled: core.currentScene.isPhysicsEnabled(),
                 sounds: this._SerializeSounds(core),
 
-                scene2d: this._Serialize2d(core),
-
                 requestedMaterials: requestMaterials ? [] : undefined,
                 customMetadatas: this._SerializeCustomMetadatas(core)
             };
@@ -45,7 +43,8 @@
             var config: INTERNAL.IAnimationConfiguration = {
                 globalAnimationSpeed: SceneFactory.AnimationSpeed,
                 framesPerSecond: GUIAnimationEditor.FramesPerSecond,
-                animatedAtLaunch: []
+                animatedAtLaunch: [],
+                settings: SceneFactory.Settings
             };
 
             for (var i = 0; i < SceneFactory.NodesToStart.length; i++) {
@@ -75,8 +74,11 @@
         // Serialize sounds
         private static _SerializeSounds(core: EditorCore): INTERNAL.ISound[] {
             var config: INTERNAL.ISound[] = [];
+            if (core.currentScene.soundTracks.length === 0)
+                return config;
+
             var index = 0;
-            
+
             for (index = 0; index < core.currentScene.soundTracks[0].soundCollection.length; index++) {
                 var sound = core.currentScene.soundTracks[0].soundCollection[index];
                 
@@ -273,6 +275,11 @@
                                     serializedValues: material.serialize()
                                 };
 
+                                // Remove BRDF environment which is automatically generated texture
+                                if (material instanceof PBRMaterial && matObj.serializedValues.environmentBRDFTexture && matObj.serializedValues.environmentBRDFTexture.url === "data:EnvironmentBRDFTexture") {
+                                    delete matObj.serializedValues.environmentBRDFTexture;
+                                }
+
                                 this._ConfigureMaterial(material, matObj);
                                 project.materials.push(matObj);
 
@@ -449,28 +456,6 @@
             }
 
             return dict;
-        }
-
-        // Serializes the scene 2d
-        private static _Serialize2d(core: EditorCore): INTERNAL.INode[] {
-            var nodes: INTERNAL.INode[] = [];
-
-            for (var i = 0; i < core.scene2d.meshes.length; i++) {
-                var mesh = core.scene2d.meshes[i];
-                if (!(mesh instanceof Container2D))
-                    continue;
-
-                console.log(mesh.name);
-                nodes.push({
-                    id: mesh.id,
-                    animations: [],
-                    name: mesh.name,
-                    type: "Mesh",
-                    serializationObject: mesh.serialize()
-                });
-            }
-
-            return nodes;
         }
 
         // Setups the requested materials (to be uploaded in template or release)

@@ -50,6 +50,10 @@
             // Common
             this._element.add(SceneFactory, "AnimationSpeed").min(0.0).name("Animation Speed");
 
+            this._element.add(this._core.scaleFactor.scaling, 'x').step(0.01).name('Scale Factor').onChange((r: number) => {
+                this._core.scaleFactor.scaling.set(r, r, r);
+            });
+
             // Colors
             var colorsFolder = this._element.addFolder("Colors");
 
@@ -79,6 +83,10 @@
             imgProcessingFolder.add(object.imageProcessingConfiguration, "contrast").min(0).max(10).step(0.01).name("Contrast");
             imgProcessingFolder.add(object.imageProcessingConfiguration, "exposure").min(0).max(10).step(0.01).name("Exposure");
             imgProcessingFolder.add(object.imageProcessingConfiguration, "toneMappingEnabled").name("Enable Tone Mapping");
+
+            // Environment
+            var environmentFolder = this._element.addFolder("Environment");
+            this.addTextureFolder(object, "Environment Texture", "environmentTexture", environmentFolder, true).open();
 
             // Physics
             var physicsFolder = this._element.addFolder("Physics");

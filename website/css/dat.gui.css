@@ -70,6 +70,25 @@
     margin-left: 20px;
 }
 
+.dg li.cr .property-name {
+    white-space: nowrap;
+}
+
+.dg li.cr.boolean > div {
+    display: flex;
+    justify-content: space-between;
+}
+
+.dg li.cr.boolean > div > .property-name {
+    width: 100%;
+    float: none;
+}
+
+.dg li.cr.boolean > div > .c {
+    float: none;
+    width: 40px;
+}
+
 .dg title {
     margin-left: 0px;
 }

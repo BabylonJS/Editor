@@ -131,3 +131,5 @@ electronPackages
 
 # JS generated files
 website/sources/**/*.js
+website/libs/preview release
+website/website/resources/classes.min.json

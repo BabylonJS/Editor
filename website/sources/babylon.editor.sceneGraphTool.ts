@@ -171,9 +171,6 @@
                         else if (event.sceneEvent.object instanceof Sound) {
                             parentNode = this._mainSoundTrackName;
                         }
-                        else if (event.sceneEvent.object instanceof Container2D) {
-                            parentNode = this._graphRootName + "2D";
-                        }
 
                         this._modifyElement(event.sceneEvent.object, parentNode, object.id ? object.id : SceneFactory.GenerateUUID());
                     }
@@ -197,6 +194,12 @@
             var scene = scene || this._core.currentScene;
 
             if (!graphNodeID) {
+                for (var i = 0; i < this._core.currentScene.meshes.length; i++) {
+                    var mesh = this._core.currentScene.meshes[i];
+                    if (mesh.parent === this._core.scaleFactor)
+                        mesh.parent = null;
+                }
+
                 this.sidebar.clear();
 
                 // Add root
@@ -243,15 +246,6 @@
                         this.sidebar.addNodes(this.sidebar.createNode("Sound" + j, sound.name, "icon-sound", sound), soundTrackNode.id, false);
                     }
                 }
-
-                // 2d
-                /*
-                var node2d = this.sidebar.createNode(this._graphRootName + "2D", "2D", "icon-folder", this._core.currentScene);
-                this.sidebar.addNodes(node2d, this._graphRootName, false);
-
-                this._core.scene2d.forceShowBoundingBoxes = true;
-                this.fillGraph(null, node2d.id, this._core.scene2d);
-                */
             }
 
             if (!node) {
@@ -312,19 +306,21 @@
 
                     if (object instanceof InstancedMesh) {
                         var parentNode = this.sidebar.getNode(object.sourceMesh.id);
-                        var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
+                        if (parentNode) {
+                            var instancesNode = this.sidebar.getNode(object.sourceMesh.id + "_instances");
 
-                        if (!instancesNode) {
-                            instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
-                            instancesNode.count = 1;
+                            if (!instancesNode) {
+                                instancesNode = this.sidebar.createNode(object.sourceMesh.id + "_instances", "Instances", icon, object.sourceMesh);
+                                instancesNode.count = 1;
 
-                            this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                                this.sidebar.addNodes(instancesNode, parentNode.id, false);
+                            }
+                            else
+                                instancesNode.count++;
+
+                            var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
+                            this.sidebar.addNodes(childNode, instancesNode.id, false);
                         }
-                        else
-                            instancesNode.count++;
-
-                        var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
-                        this.sidebar.addNodes(childNode, instancesNode.id, false);
                     }
                     else {
                         var childNode = this.sidebar.createNode(object.id, object.name, icon, object);
@@ -339,6 +335,13 @@
                 }
             }
 
+            if (!graphNodeID) {
+                for (var i = 0; i < this._core.currentScene.meshes.length; i++) {
+                    var mesh = this._core.currentScene.meshes[i];
+                    if (!mesh.parent)
+                        mesh.parent = this._core.scaleFactor;
+                }
+            }
         }
 
         // Creates the UI

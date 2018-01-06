@@ -27,6 +27,10 @@
             this.material.useEmissiveAsIllumination = this.material.useEmissiveAsIllumination || false;
             this.material.useReflectionFresnelFromSpecular = this.material.useReflectionFresnelFromSpecular || false;
 
+            // Functions
+            var functionsFolder = this._element.addFolder("Functions");
+            functionsFolder.add(this, '_convertToPBR').name('Convert to PBR...');
+
             // Values
             var valuesFolder = this._element.addFolder("Values");
             valuesFolder.add(this.material, "roughness").min(0).step(0.01).name("Roughness");
@@ -88,9 +92,6 @@
             refractionFolder.add(this.material, "invertRefractionY").name("Invert Y");
             this.addTextureButton("Refraction Texture", "refractionTexture", refractionFolder, true);
 
-            // Functions
-            var functionsFolder = this._element.addFolder("Functions");
-
             // Finish
             return true;
         }
@@ -104,6 +105,61 @@
             editor.onApply = (texture) => {
                 this.material.bumpTexture = texture;
             };
+        }
+
+        // Converts the current std material to a PBR material
+        private _convertToPBR (): void {
+            const scene = this._core.currentScene;
+
+            const pbr = new PBRMaterial(this.material.name + ' ' + 'PBR', scene);
+            
+            pbr.albedoColor = this.material.diffuseColor;
+            pbr.albedoTexture = this.material.diffuseTexture;
+
+            pbr.bumpTexture = this.material.bumpTexture;
+            pbr.useParallax = this.material.useParallax;
+            pbr.useParallaxOcclusion = this.material.useParallaxOcclusion;
+            pbr.parallaxScaleBias = this.material.parallaxScaleBias;
+
+            pbr.reflectivityColor = this.material.specularColor;
+            pbr.reflectivityTexture = this.material.specularTexture;
+
+            pbr.reflectionTexture = this.material.reflectionTexture;
+
+            pbr.emissiveColor = this.material.emissiveColor;
+            pbr.emissiveTexture = this.material.emissiveTexture;
+
+            pbr.ambientColor = this.material.ambientColor;
+            pbr.ambientTexture = this.material.ambientTexture;
+
+            pbr.lightmapTexture = this.material.lightmapTexture;
+            pbr.useLightmapAsShadowmap = this.material.useLightmapAsShadowmap;
+
+            pbr.refractionTexture = this.material.refractionTexture;
+            pbr.indexOfRefraction = this.material.indexOfRefraction;
+            pbr.invertRefractionY = this.material.invertRefractionY;
+
+            // Apply to all meshes and submeshes
+            for (var i = 0; i < scene.meshes.length; i++) {
+                var mat = scene.meshes[i].material;
+                if (mat !== this.material && !(mat instanceof MultiMaterial))
+                    continue;
+
+                if (mat instanceof MultiMaterial) {
+                    for (var j = 0; j < mat.subMaterials.length; j++) {
+                        var subMat = mat.subMaterials[j];
+                        if (subMat === this.material) {
+                            mat.subMaterials[j] = pbr;
+                        }
+                    }
+                }
+                else {
+                    scene.meshes[i].material = pbr;
+                }
+            }
+
+            // Update
+            this._editionTool.updateEditionTool();
         }
     }
 }
