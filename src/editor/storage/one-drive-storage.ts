@@ -72,7 +72,7 @@ export default class OneDriveStorage extends Storage {
      * Checks the token and expiration
      */
     protected async login (): Promise<void> {
-        await System.import('.build/src/editor/storage/oauth.js');
+        await Tools.ImportScript('.build/src/editor/storage/oauth.js');
 
         const now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
         return new Promise<void>(resolve => {

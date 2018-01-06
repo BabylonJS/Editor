@@ -5,6 +5,7 @@ import {
 } from 'babylonjs';
 
 import Editor from '../editor';
+import Tools from '../tools/tools';
 import Graph, { GraphNode } from '../gui/graph';
 
 export default class EditorGraph {
@@ -104,12 +105,22 @@ export default class EditorGraph {
             this.graph.element.select(this.root);
             this.editor.edition.setObject(scene);
 
+            // Sort nodes alphabetically
+            Tools.SortAlphabetically(scene.cameras, 'name');
+            Tools.SortAlphabetically(scene.lights, 'name');
+            Tools.SortAlphabetically(scene.meshes, 'name');
+
             // Set nodes
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
         }
 
+        // Sort children alphabetically
+        if (root)
+            Tools.SortAlphabetically(nodes, 'name');
+
+        // Add nodes
         nodes.forEach(n => {
             // Create a random ID if not defined
             if (!n.id)
@@ -140,7 +151,7 @@ export default class EditorGraph {
             // Check lens flares
             scene.lensFlareSystems.forEach(lf => {
                 if (lf.getEmitter() === n) {
-                    this.graph.element.add(lf.id, <GraphNode> {
+                    this.graph.element.add(n.id, <GraphNode> {
                         id: lf.id,
                         text: lf.name,
                         img: this.getIcon(lf),

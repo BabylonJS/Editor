@@ -44,7 +44,7 @@ export default abstract class Storage {
         let current: GetFiles = null;
         let previous: GetFiles[] = [];
 
-        this.picker = new Picker('Export on OneDrive');
+        this.picker = new Picker('Export...');
         this.picker.addItems(files);
         this.picker.open(async (items) => {
             this._uploadedCount = 0;
