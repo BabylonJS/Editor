@@ -20,7 +20,7 @@ export default class Dialog {
      */
     public static Create (title: string, body: string, callback: (result: string) => void, yes?: () => void, no?: () => void): void {
         w2confirm(body, title, (result) => callback(result))
-        .yes(() => yes && yes())
-        .no(() => no && no());
+            .yes(() => yes && yes())
+            .no(() => no && no());
     }
 }
