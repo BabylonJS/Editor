@@ -1,4 +1,4 @@
-Babylon.js Editor v1.2.0
+Babylon.js Editor v1.3.0
 ======
 
 Getting started with the Babylon.js Editor?
@@ -34,7 +34,7 @@ Features
 * Create and edit custom materials using the Materials Builder
 * Create and edit soft bodies (physics) using the Soft Body Editor
 * Attach scripts to your objects using the Behavior Editor
-* Live test your scenes
+* Live test your scenes with debug support
 
 **Additional features with Electron**
 * Photoshop plugin (live texturing)
