@@ -19,6 +19,9 @@ export default class ScenePicker {
     protected onCanvasMove = (ev: MouseEvent) => this.canvasMove(ev);
     protected onCanvasDblClick = (ev: MouseEvent) => this.canvasDblClick(ev);
 
+    // Private members
+    private _enabled: boolean = true;
+
     /**
      * Constructor
      * @param editor: the editor reference
@@ -38,6 +41,22 @@ export default class ScenePicker {
 
         // Add events
         this.addEvents();
+    }
+
+    /**
+     * Returns if the scene picker is enabled
+     */
+    public get enabled (): boolean {
+        return this._enabled;
+    }
+
+    /**
+     * Sets if the scene picker is enabled
+     */
+    public set enabled (value: boolean) {
+        this._enabled = value;
+        if (!value && this.lastMesh)
+            this.lastMesh.showBoundingBox = false;
     }
 
     /**
@@ -74,6 +93,9 @@ export default class ScenePicker {
      * @param ev the mouse event
      */
     protected canvasClick (ev: MouseEvent): void {
+        if (!this._enabled)
+            return;
+        
         if (Math.abs(this.lastX - ev.offsetX) > 5 || Math.abs(this.lastY - ev.offsetY) > 5)
             return;
         
@@ -89,6 +111,9 @@ export default class ScenePicker {
      * @param ev the mouse event
      */
     protected canvasMove (ev: MouseEvent): void {
+        if (!this._enabled)
+            return;
+        
         if (this.lastMesh)
             this.lastMesh.showBoundingBox = false;
 
@@ -104,6 +129,9 @@ export default class ScenePicker {
      * @param ev: the mouse event
      */
     protected canvasDblClick (ev: MouseEvent): void {
+        if (!this._enabled)
+            return;
+        
         const camera = <TargetCamera> this.scene.activeCamera;
         if (!(camera instanceof TargetCamera))
             return;

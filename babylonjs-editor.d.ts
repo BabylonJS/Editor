@@ -837,6 +837,10 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
             /**
+                * Sets if the scene picker is enabled
+                */
+            enabled: boolean;
+            /**
                 * Adds the events to the canvas
                 */
             addEvents(): void;
