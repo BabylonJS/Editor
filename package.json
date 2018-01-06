@@ -15,7 +15,9 @@
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",
-    "bundle": "node ./script/dts.js && node ./script/bundle.js && node ./script/electron.js"
+    "bundle": "node ./script/dts.js && node ./script/bundle.js && node ./script/electron.js",
+    "installer-osx": "node ./script/electron --platform=darwin",
+    "installer-win32": "node ./script/electron --platform=win32"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",
@@ -40,7 +42,9 @@
     "electron-packager": "^8.6.0",
     "yargs": "10.0.3",
     "systemjs-builder": "~0.16.12",
-    "dts-bundle": "~0.7.3"
+    "dts-bundle": "~0.7.3",
+    "electron-winstaller": "~2.6.3",
+    "electron-installer-dmg": "~0.2.1"
   },
   "dependencies": {
     "jquery": "~3.2.1",
