@@ -10,7 +10,7 @@ export default class StorageRouter {
     public application: Koa;
 
     // Protected members
-    protected path: string = process.cwd();
+    protected path: string = '';
 
     /**
      * Constructor
@@ -33,13 +33,13 @@ export default class StorageRouter {
      */
     protected getFiles (): void {
         this.router.get('/files', async (ctx, next) => {
-            this.path = path.resolve(this.path + '/' + ((ctx.query && ctx.query.path) ? ctx.query.path : ''));
+            this.path = (ctx.query && ctx.query.path) ? ctx.query.path : process.cwd();
             const entries = await fs.readdir(this.path);
-            const files: { name: string, folder: string }[] = [{ name: '..', folder: '..' }];
+            const files: { name: string, folder: string }[] = [{ name: '..', folder: path.join(this.path, '..') }];
 
             for (const e of entries) {
                 const stat = await fs.stat(path.resolve(this.path, e));
-                files.push({ name: e, folder: stat.isDirectory() ? e : null });
+                files.push({ name: e, folder: stat.isDirectory() ? path.resolve(this.path, e) : null });
             }
 
             ctx.body = {
@@ -53,6 +53,9 @@ export default class StorageRouter {
      */
     protected writeFile (): void {
         this.router.put('/files:/write', async (ctx, next) => {
+            if (!ctx.query || !ctx.query.name || !ctx.query.folder)
+                throw new Error('Please provide a folder to wirte file in.');
+            
             const chunks = [];
             ctx.req.on('data', (chunk) => {
                 chunks.push(chunk);
@@ -61,8 +64,7 @@ export default class StorageRouter {
                 const buffer = Buffer.concat(chunks);
 
                 // Write file
-                const filename = path.resolve(this.path, (ctx.query && ctx.query.name) ? ctx.query.name : '');
-                await fs.writeFile(filename, buffer);
+                await fs.writeFile(path.join(ctx.query.folder, ctx.query.name), buffer);
             });
 
             ctx.body = {
@@ -86,7 +88,9 @@ export default class StorageRouter {
 
                 // Write file
                 const filename = path.resolve(this.path, folder);
-                await fs.mkdir(filename);
+
+                if (!(await fs.pathExists(filename)))
+                    await fs.mkdir(filename);
             });
 
             ctx.body = {

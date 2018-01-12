@@ -76,7 +76,7 @@ export default abstract class Storage {
                 current = file;
 
                 this.picker.window.lock('Loading ' + (file ? file.name : 'Root') + '...');
-                files = (!Tools.IsElectron() ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(file? file.folder : null));
+                files = (!Tools.IsElectron() ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(Tools.IsElectron() ? files[id].folder : (file ? file.folder : null)));
                 this.picker.window.unlock();
 
                 this.picker.clear();
