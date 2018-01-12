@@ -294,35 +294,3 @@ export default class DefaultScene {
         scene.meshes.forEach(m => m.isPickable = true);
     }
 }
-
-/**
-var material = null;
-var canvas = scene.getEngine().getRenderingCanvas();
-
-// Called once starting the scripts
-this.start = function () {
-    material = scene.getMaterialByName('GroundMaterial');
-    material.microSurface = 0.75;
-
-    canvas.addEventListener('click', function (evt) {
-        var pick = scene.pick(evt.offsetX, evt.offsetY);
-        if (pick.pickedMesh === mesh) {
-            var anim = new BABYLON.Animation('anim', 'microSurface', 60,
-                                             BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-                                             BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, false);
-            anim.setKeys([
-                { frame: 0, value: 0.75 },
-                { frame: 500, value: 0.92 }
-            ]);
-            
-            var animate = new BABYLON.Animatable(scene, material, 0, 500, false, 1.0);
-            animate.appendAnimations(material, [anim]);
-        }
-    });
-}
-
-// Called on each update
-this.update = function () {
-    // Your code...
-}
- */
