@@ -16,7 +16,7 @@ export default class EditorApp {
         await this.CreateWindow();
 
         // Create web server
-        this.Server = new WebServer(1337);
+        this.Server = new WebServer(1338);
 
         // Create Scene Preview
         this.ScenePreview = new ScenePreview(this.Server);
