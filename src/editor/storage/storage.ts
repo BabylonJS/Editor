@@ -23,6 +23,8 @@ export default abstract class Storage {
     public editor: Editor;
     public picker: Picker = null;
 
+    public onCreateFiles: (folder: string) => void;
+
     // Protected members
     protected filesCount: number = 0;
     protected _uploadedCount: number = 0;
@@ -39,28 +41,17 @@ export default abstract class Storage {
      * Opens the folder picker
      * @param title the title of the picker
      */
-    public async openPicker (title: string, filesToWrite: CreateFiles[]): Promise<void> {
-        let files = await this.getFiles();
+    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string): Promise<void> {
+        if (folder)
+            return await this.uploadFiles(folder, filesToWrite);
+        
+        let files = await this.getFiles(folder);
         let current: GetFiles = null;
         let previous: GetFiles[] = [];
 
         this.picker = new Picker('Export...');
         this.picker.addItems(files);
-        this.picker.open(async (items) => {
-            this._uploadedCount = 0;
-            this.filesCount = this.recursivelyGetFilesToUploadCount(filesToWrite);
-
-            this.editor.layout.lockPanel('main', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
-
-            try {
-                await this.recursivelyCreateFiles(current.folder, filesToWrite);
-            } catch (e) {
-                Dialog.Create('Uploading Error', 'Cannot upload: ' + e, null);
-            }
-
-            // Unlock
-            this.editor.layout.unlockPanel('main');
-        });
+        this.picker.open(async (items) => await this.uploadFiles(current.folder, filesToWrite));
 
         this.picker.grid.onClick = async (ids) => {
             const id = ids[0];
@@ -87,19 +78,26 @@ export default abstract class Storage {
     }
 
     /**
-     * Sets the new uploaded count files
-     * @param value: the number of uploaded files
+     * Uploads the files
+     * @param folder the target folder
+     * @param filesToWrite the files to upload
      */
-    protected set uploadedCount (value: number) {
-        this._uploadedCount = value;
-        this.editor.layout.lockPanel('main', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
-    }
+    protected async uploadFiles (folder: string, filesToWrite: CreateFiles[]): Promise<void> {
+        this._uploadedCount = 0;
+        this.filesCount = this.recursivelyGetFilesToUploadCount(filesToWrite);
 
-    /**
-     * Returns the number of uploaded files
-     */
-    protected get uploadedCount (): number {
-        return this._uploadedCount;
+        this.editor.layout.lockPanel('main', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+
+        this.onCreateFiles && this.onCreateFiles(folder);
+
+        try {
+            await this.recursivelyCreateFiles(folder, filesToWrite);
+        } catch (e) {
+            Dialog.Create('Uploading Error', 'Cannot upload: ' + e, null);
+        }
+
+        // Unlock
+        this.editor.layout.unlockPanel('main');
     }
 
     /**
@@ -160,6 +158,22 @@ export default abstract class Storage {
         });
 
         return count;
+    }
+
+    /**
+     * Sets the new uploaded count files
+     * @param value: the number of uploaded files
+     */
+    protected set uploadedCount (value: number) {
+        this._uploadedCount = value;
+        this.editor.layout.lockPanel('main', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+    }
+
+    /**
+     * Returns the number of uploaded files
+     */
+    protected get uploadedCount (): number {
+        return this._uploadedCount;
     }
 
     /**
