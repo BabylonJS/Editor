@@ -24,7 +24,11 @@
         ".vs/": true,
         "obj/": true,
         "bin/": true,
-        "node_modules/": false
+        "node_modules/": false,
+
+        ".build": true,
+        ".declaration": true,
+        "electron-packages": true
 	},
     
     "editor.quickSuggestionsDelay": 0,

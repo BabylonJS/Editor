@@ -21,7 +21,7 @@ const randomId = BabylonTools.RandomId();
 
 export default class SceneExporter {
     // Public members
-    public static ProjectPath: string = ''; // TODO: manage selected project path + CTRL+S
+    public static ProjectPath: string = null;
 
     // Private members
     private static _LastBabylonFileURL: string = null;
@@ -99,11 +99,11 @@ export default class SceneExporter {
     public static async ExportProject (editor: Editor): Promise<void> {
         // Project
         const content = JSON.stringify(this.Export(editor));
-
         const storage = await this.GetStorage(editor);
-        storage.openPicker('Export Editor Project...', [
-            { name: 'scene.editorproject', data: content }
-        ]);
+        const files: CreateFiles[] = [{ name: 'scene.editorproject', data: content }];
+
+        storage.onCreateFiles = folder => this.ProjectPath = folder;
+        storage.openPicker('Export Editor Project...', files, this.ProjectPath);
     }
 
     /**
