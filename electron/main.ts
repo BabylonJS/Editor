@@ -41,13 +41,13 @@ export default class EditorApp {
                 }
             });
 
-            this.Window.loadURL("file://" + __dirname + "/../../index.html");
+            this.Window.loadURL('file://' + __dirname + '/../../index.html');
             //this.Window.webContents.openDevTools();
             this.Window.webContents.once('did-finish-load', () => {
                 resolve();
             });
             this.Window.maximize();
-            this.Window.on("closed", () => app.quit());
+            this.Window.on('closed', () => app.quit());
         });
     }
 
@@ -67,22 +67,22 @@ export default class EditorApp {
 
         // Menu
         var template = <MenuItemConstructorOptions[]> [{
-            label: "Babylon.js Editor",
+            label: 'Babylon.js Editor',
             submenu: [
-                { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
-                { type: "separator" },
-                { label: "Quit", accelerator: "Command+Q", click: () => app.quit() }
+                { label: 'About Application', selector: 'orderFrontStandardAboutPanel:' },
+                { type: 'separator' },
+                { label: 'Quit', accelerator: 'Command+Q', click: () => app.quit() }
             ]}, {
-            label: "Edit",
+            label: 'Edit',
             submenu: [
-                { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-                { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-                { type: "separator" },
-                { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-                { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-                { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-                { type: "separator" },
-                { label: "Close", accelerator: "CmdOrCtrl+W", click: () => {
+                { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' },
+                { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' },
+                { type: 'separator' },
+                { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' },
+                { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' },
+                { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
+                { type: 'separator' },
+                { label: 'Close', accelerator: 'CmdOrCtrl+W', click: () => {
                     const win = BrowserWindow.getFocusedWindow();
                     if (win && win !== this.Window)
                         win.close();
