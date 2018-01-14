@@ -51,7 +51,7 @@ export default class CodeEditor {
     public async build (parentId: string): Promise<void> {
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
-                'node_modules/babylonjs/dist/preview release/babylon.d.ts',
+                'node_modules/babylonjs/babylon.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
                 'assets/templates/post-process-creator/custom-post-process.d.ts'
             ];
