@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh, SubMesh } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
@@ -16,14 +16,17 @@ export default class NodeTool extends AbstractEditionTool<Node> {
      * @param object the object selected in the graph
      */
     public isSupported(object: any): boolean {
-        return object instanceof Node;
+        return object instanceof Node || object instanceof SubMesh;
     }
 
     /**
      * Updates the edition tool
      * @param object the object selected in the graph
      */
-    public update(node: Node): void {
+    public update(object: Node | SubMesh): void {
+        // Get node
+        const node = object instanceof SubMesh ? object.getMesh() : object;
+        
         super.update(node);
 
         // Misc.

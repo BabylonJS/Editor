@@ -13,7 +13,7 @@ export default class CustomMaterialTool extends MaterialTool<CustomEditorMateria
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return super.isSupported(object) && object.getClassName && (object.getClassName() === 'CustomMaterial' || (object.material && object.material.getClassName() === 'CustomMaterial'));
+        return super.isSupported(object) && this.object.getClassName && this.object.getClassName() === 'CustomMaterial';
     }
 
 	/**

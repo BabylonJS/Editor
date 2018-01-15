@@ -7,6 +7,7 @@ import {
 import Editor from '../editor';
 import Tools from '../tools/tools';
 import Graph, { GraphNode } from '../gui/graph';
+import SceneFactory from '../scene/scene-factory';
 
 export default class EditorGraph {
     // Public members
@@ -21,11 +22,16 @@ export default class EditorGraph {
         this.graph.topContent = '<div style="background-color: #eee; padding: 10px 5px; border-bottom: 1px solid silver">Scene Content</div>'
         this.graph.build('SCENE-GRAPH');
 
+        // Add menus
+        this.graph.addMenu({ id: 'remove', text: 'Remove', img: 'icon-error' });
+        this.graph.addMenu({ id: 'clone', text: 'Clone', img: 'icon-clone' });
+
         // Events
-        this.graph.onClick = (id, data) => {
+        this.graph.onClick = (id, data: any) => {
             this.currentObject = data;
             this.editor.core.onSelectObject.notifyObservers(data);
         };
+        this.graph.onMenuClick = (id, node) => this.onMenuClick(id, node);
 
         this.editor.core.onSelectObject.add((node: Node) => node && this.select(node.id));
     }
@@ -128,17 +134,30 @@ export default class EditorGraph {
 
             // Instance?
             const parent = root ? root.id : this.root;
-            
-            this.graph.element.add(parent, <GraphNode>{
+            const parentNode = <GraphNode> this.graph.element.add(parent, <GraphNode>{
                 id: n.id,
                 text: n.name,
                 img: this.getIcon(n),
                 data: n
             });
 
+            // Sub meshes
+            if (n instanceof AbstractMesh && n.subMeshes && n.subMeshes.length > 1) {
+                parentNode.count += n.subMeshes.length;
+                n.subMeshes.forEach((sm, index) => {
+                    this.graph.element.add(n.id, <GraphNode>{
+                        id: n.id + 'submesh_' + index,
+                        text: sm.getMaterial().name,
+                        img: this.getIcon(n),
+                        data: sm
+                    });
+                });
+            }
+
             // Check particle systems
             scene.particleSystems.forEach(ps => {
                 if (ps.emitter === n) {
+                    parentNode.count++;
                     this.graph.element.add(n.id, <GraphNode>{
                         id: ps.id,
                         text: ps.name,
@@ -151,6 +170,7 @@ export default class EditorGraph {
             // Check lens flares
             scene.lensFlareSystems.forEach(lf => {
                 if (lf.getEmitter() === n) {
+                    parentNode.count++;
                     this.graph.element.add(n.id, <GraphNode> {
                         id: lf.id,
                         text: lf.name,
@@ -160,7 +180,12 @@ export default class EditorGraph {
                 }
             });
 
-            // Descendants
+            // Add descendants to count
+            const descendants = n.getDescendants();
+            if (descendants.length)
+                parentNode.count += descendants.length;
+
+            // Fill descendants
             this.fill(scene, n);
         });
     }
@@ -181,5 +206,39 @@ export default class EditorGraph {
         }
 
         return null;
+    }
+
+    /**
+     * On the user clicks on a context menu item
+     * @param id the context menu item id
+     * @param node the related graph node
+     */
+    protected onMenuClick (id: string, node: GraphNode): void {
+        switch (id) {
+            // Remove
+            case 'remove':
+                node.data && node.data.dispose && node.data.dispose();
+                this.graph.element.remove(node.id);
+                break;
+            // Clone
+            case 'clone':
+                if (!node || !(node.data instanceof Node))
+                    return;
+                
+                const clone = node && node.data && node.data['clone'] && node.data['clone']();
+                clone.name = node.data.name + ' Cloned';
+                clone.id = BabylonTools.RandomId();
+
+                const parent = clone.parent ? clone.parent.id :this.root;
+                this.graph.add({ id: clone.id, text: clone.name, img: this.getIcon(clone), data: clone }, parent);
+                
+                // Setup this
+                this.currentObject = clone;
+                this.editor.core.onSelectObject.notifyObservers(clone);
+                break;
+            // Other
+            default:
+                break;
+        }
     }
 }

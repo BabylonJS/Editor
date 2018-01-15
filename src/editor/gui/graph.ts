@@ -7,6 +7,12 @@ export interface GraphNode {
     count?: number;
 }
 
+export interface GraphMenu {
+    id: string;
+    text: string;
+    img: string;
+}
+
 export default class Graph {
     // Public members
     public name: string;
@@ -16,6 +22,7 @@ export default class Graph {
     public bottomContent: string;
 
     public onClick: <T>(id: string, data: T) => void;
+    public onMenuClick: <T>(id: string, node: GraphNode) => void;
 
     /**
      * Constructor
@@ -48,6 +55,15 @@ export default class Graph {
     }
 
     /**
+     * Adds a context menu item to the graph when the user
+     * right clicks on the node
+     * @param menu the menu to add
+     */
+    public addMenu (menu: GraphMenu): void {
+        this.element.menu.push(menu);
+    }
+
+    /**
      * Builds the graph
      * @param parentId the parent id
      */
@@ -61,9 +77,18 @@ export default class Graph {
             topHTML: this.topContent,
             bottomHTML: this.bottomContent,
 
+            // On the user clicks on a node
             onClick: (event) => {
                 if (this.onClick && event.node)
                     this.onClick(event.node.id, event.node.data);
+            },
+
+            // On the user clicks on a context menu item
+            onMenuClick: (event) => {
+                if (this.onMenuClick) {
+                    const node = <GraphNode> this.element.get(event.target);
+                    this.onMenuClick(event.menuItem.id, node);
+                }
             }
         });
     }
