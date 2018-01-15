@@ -64,6 +64,7 @@ export default class CodeEditor {
                 declare var scene: BABYLON.Scene;
                 declare var mesh: BABYLON.Mesh;
                 declare var pointlight: BABYLON.PointLight;
+                declare var camera: BABYLON.Camera;
                 declare var universalcamera: BABYLON.UniversalCamera;
                 declare var spotlight: BABYLON.SpotLight;
                 declare var dirlight: BABYLON.DirectionalLight;
@@ -71,9 +72,6 @@ export default class CodeEditor {
                 declare var groundmesh: BABYLON.GroundMesh;
                 declare var particleSystem: BABYLON.ParticleSystem;
                 declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
-
-                declare var CustomMaterial: CustomMaterialInterface;
-                declare var CustomPostProcess: CustomPostProcessInterface;
             `;
 
             CodeEditor.ExternalLibraries = content;
@@ -87,7 +85,7 @@ export default class CodeEditor {
         });
 
         if (!CodeEditor.ExtraLib)
-            CodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'BehaviorEditor');
+            CodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor');
 
         this.editor.onDidChangeModelContent(() => {
             if (this.onChange)

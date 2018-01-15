@@ -43,11 +43,13 @@ export class CustomMaterialDefines extends MaterialDefines {
  * comes from the user
  */
 export interface CustomMaterialCode {
-    constructor: () => void;
-    setUniforms: (uniforms: string[], samplers: string[]) => void;
-    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
-    bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
-    dispose: () => void;
+    prototype: {
+        init: () => void;
+        setUniforms: (uniforms: string[], samplers: string[]) => void;
+        isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
+        bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
+        dispose: () => void;
+    }
 }
 
 export interface CustomMaterialConfig {
@@ -102,14 +104,14 @@ export default class CustomEditorMaterial extends PushMaterial {
         this._shaderName = shaderName;
         
         this._customCode = customCode;
-        this._customCode && this._customCode.constructor.call(this);
+        this._customCode && this._customCode.prototype.init.call(this);
 
         this.config = config;
     }
 
     public setCustomCode (customCode: CustomMaterialCode): void {
         this._customCode = customCode;
-        this._customCode && this._customCode.constructor.call(this);
+        this._customCode && this._customCode.prototype.init.call(this);
     }
 
     public needAlphaBlending(): boolean {
@@ -227,9 +229,9 @@ export default class CustomEditorMaterial extends PushMaterial {
             const samplers = ['diffuseSampler'];
             const uniformBuffers = new Array<string>();
 
-            this._customCode && this._customCode.setUniforms.call(this, uniforms, samplers);
+            this._customCode && this._customCode.prototype.setUniforms.call(this, uniforms, samplers);
             
-            if (this._customCode && !this._customCode.isReadyForSubMesh.call(this, mesh, subMesh, defines))
+            if (this._customCode && !this._customCode.prototype.isReadyForSubMesh.call(this, mesh, subMesh, defines))
                 return false;
 
             MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
@@ -320,7 +322,7 @@ export default class CustomEditorMaterial extends PushMaterial {
         MaterialHelper.BindFogParameters(scene, mesh, this._activeEffect);
 
         // Custom
-        this._customCode && this._customCode.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
+        this._customCode && this._customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
 
         this._afterBind(mesh, this._activeEffect);
     }
@@ -362,7 +364,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             this._diffuseTexture.dispose();
         }
 
-        this._customCode && this._customCode.dispose.call(this);
+        this._customCode && this._customCode.prototype.dispose.call(this);
 
         super.dispose(forceDisposeEffect);
     }

@@ -59,7 +59,7 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
 
             Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
 
-            code = <any> { };
+            code = <any> new Function();
             const instance = new EDITOR.MaterialCreator.Constructors[id](code);
         }
 
