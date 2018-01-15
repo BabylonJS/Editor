@@ -473,12 +473,18 @@ declare module 'babylonjs-editor/editor/gui/graph' {
             data?: any;
             count?: number;
     }
+    export interface GraphMenu {
+            id: string;
+            text: string;
+            img: string;
+    }
     export default class Graph {
             name: string;
             element: W2UI.W2Sidebar;
             topContent: string;
             bottomContent: string;
             onClick: <T>(id: string, data: T) => void;
+            onMenuClick: <T>(id: string, node: GraphNode) => void;
             /**
                 * Constructor
                 * @param name the graph name
@@ -494,6 +500,12 @@ declare module 'babylonjs-editor/editor/gui/graph' {
                 * @param parent: the optional parent of the node
                 */
             add(node: GraphNode, parent?: string): void;
+            /**
+                * Adds a context menu item to the graph when the user
+                * right clicks on the node
+                * @param menu the menu to add
+                */
+            addMenu(menu: GraphMenu): void;
             /**
                 * Builds the graph
                 * @param parentId the parent id
@@ -750,6 +762,12 @@ declare module 'babylonjs-editor/editor/components/graph' {
              * @param object
              */
             getIcon(obj: any): string;
+            /**
+                * On the user clicks on a context menu item
+                * @param id the context menu item id
+                * @param node the related graph node
+                */
+            protected onMenuClick(id: string, node: GraphNode): void;
     }
 }
 
