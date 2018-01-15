@@ -2,7 +2,7 @@ import Editor from '../editor';
 import Picker from '../gui/picker';
 
 import Tools from '../tools/tools';
-import Dialog from '../gui/dialog';
+import Window from '../gui/window';
 
 export type FileType = string | Uint8Array | ArrayBuffer;
 
@@ -93,7 +93,7 @@ export default abstract class Storage {
         try {
             await this.recursivelyCreateFiles(folder, filesToWrite);
         } catch (e) {
-            Dialog.Create('Uploading Error', 'Cannot upload: ' + e, null);
+            Window.CreateAlert('Cannot upload: ' + e, 'Uploading Error');
         }
 
         // Unlock
