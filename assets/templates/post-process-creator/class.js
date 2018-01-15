@@ -1,19 +1,20 @@
 // Called on building material
-CustomPostProcess.constructor = function () {
+CustomPostProcess.prototype.init = function () {
     // Add a custom property
     this.time = 0;
 };
 
-CustomPostProcess.setUniforms = function (uniforms, samplers) {
+CustomPostProcess.prototype.setUniforms = function (uniforms, samplers) {
     // Push custom uniforms
     uniforms.push('time');
 };
 
-CustomPostProcess.onApply = function (effect) {
+CustomPostProcess.prototype.onApply = function (effect) {
+    this.time += camera.getScene().getEngine().getDeltaTime();
     effect.setFloat('time', this.time);
 };
 
 // On dispose the material
-CustomPostProcess.dispose = function () {
+CustomPostProcess.prototype.dispose = function () {
 
 };
