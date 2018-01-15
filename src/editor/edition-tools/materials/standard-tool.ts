@@ -13,7 +13,7 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return super.isSupported(object) && (object instanceof StandardMaterial || object.material instanceof StandardMaterial);
+        return super.isSupported(object) && this.object instanceof StandardMaterial;
     }
 
 	/**

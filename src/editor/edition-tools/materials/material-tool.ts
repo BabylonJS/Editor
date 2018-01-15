@@ -1,4 +1,4 @@
-import { Material, AbstractMesh } from 'babylonjs';
+import { Material, AbstractMesh, SubMesh } from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
@@ -9,7 +9,20 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return object instanceof Material || (object instanceof AbstractMesh) && !!object.material;
+        const supported = 
+            object instanceof Material ||
+            object instanceof AbstractMesh && !!object.material ||
+            object instanceof SubMesh && !!object.getMaterial();
+
+        if (supported) {
+            // Set this.object
+            this.object = <T>(
+                object instanceof Material ? object :
+                object instanceof AbstractMesh && !!object.material ? object.material :
+                object instanceof SubMesh && !!object.getMaterial() ? object.getMaterial() : null);
+        }
+
+        return supported;
     }
 
 	/**
@@ -22,7 +35,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         if (object instanceof Material)
             this.object = <T> object;
         else
-            this.object = object.material;
+            this.object = object instanceof SubMesh ? object.getMaterial() : object.material;
         
         super.setTabName(Tools.GetConstructorName(this.object).replace('Material', ''));
 

@@ -13,7 +13,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return super.isSupported(object) && (object instanceof PBRMaterial || object.material instanceof PBRMaterial);
+        return super.isSupported(object) && this.object instanceof PBRMaterial;
     }
 
 	/**

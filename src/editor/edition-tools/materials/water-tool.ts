@@ -13,7 +13,7 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
 	* @param object the object selected in the graph
 	*/
     public isSupported(object: any): boolean {
-        return super.isSupported(object) && (object instanceof WaterMaterial || object.material instanceof WaterMaterial);
+        return super.isSupported(object) && this.object instanceof WaterMaterial;
     }
 
 	/**
