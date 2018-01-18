@@ -1,6 +1,7 @@
 import {
     Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh,
     ParticleSystem, GPUParticleSystem, IParticleSystem,
+    PostProcess,
     Tools as BabylonTools
 } from 'babylonjs';
 
@@ -82,6 +83,13 @@ export default class EditorGraph {
         this.graph.element.expandParents(id);
         this.graph.element.select(id);
         this.graph.element.scrollIntoView(id);
+    }
+
+    /**
+     * Returns the selected node id
+     */
+    public getSelected (): GraphNode {
+        return <GraphNode> this.graph.element.get(this.graph.element.selected);
     }
 
     /**
@@ -180,6 +188,19 @@ export default class EditorGraph {
                 }
             });
 
+            // Camera? Add post-processes
+            if (n instanceof Camera) {
+                n._postProcesses.forEach(p => {
+                    parentNode.count++;
+                    this.graph.element.add(n.id, <GraphNode> {
+                        id: p.name,
+                        text: p.name,
+                        img: this.getIcon(p),
+                        data: p
+                    });
+                });
+            }
+
             // Add descendants to count
             const descendants = n.getDescendants();
             if (descendants.length)
@@ -203,6 +224,8 @@ export default class EditorGraph {
             return 'icon-camera';
         } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
             return 'icon-particles';
+        } else if (obj instanceof PostProcess) {
+            return 'icon-helpers';
         }
 
         return null;

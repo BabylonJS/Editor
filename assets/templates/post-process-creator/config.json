@@ -1,6 +1,7 @@
 {
     "ratio": 1.0,
-    "textures": [
-        
-    ]
+    "textures": [],
+    "floats": ["multiplier"],
+    "vectors2": [],
+    "vectors3": []
 }

@@ -20,8 +20,12 @@ export default class SceneFactory {
      * @param node the node to add
      */
     public static AddToGraph (editor: Editor, node: any): void {
+        const selected = editor.graph.getSelected();
+
         editor.graph.clear();
         editor.graph.fill();
+
+        editor.graph.select(selected ? selected.id : editor.graph.root);
         editor.graph.select(node.id);
     }
     /**
