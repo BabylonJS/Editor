@@ -748,6 +748,10 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 */
             select(id: string): void;
             /**
+                * Returns the selected node id
+                */
+            getSelected(): GraphNode;
+            /**
                 * Clears the graph
                 */
             clear(): void;
