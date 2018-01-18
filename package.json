@@ -8,7 +8,7 @@
     "url": "https://github.com/BabylonJS/Editor/"
   },
   "scripts": {
-    "clean": "rm -rf .build && rm -rf .declaration && rm -rf dist && rm -rf electron-packages",
+    "clean": "rimraf .build && rimraf .declaration && rimraf dist && rimraf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build": "npm run clean && npm run compile && npm run compile-electron && npm run bundle",
@@ -44,7 +44,8 @@
     "systemjs-builder": "~0.16.12",
     "dts-bundle": "~0.7.3",
     "electron-winstaller": "~2.6.3",
-    "electron-installer-dmg": "~0.2.1"
+    "electron-installer-dmg": "~0.2.1",
+    "rimraf": "~2.6.2"
   },
   "dependencies": {
     "jquery": "~3.2.1",

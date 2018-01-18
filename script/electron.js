@@ -31,8 +31,9 @@ const createInstaller = function (appPath) {
     if (options.platform === 'win32') {
         winInstaller.createWindowsInstaller({
             appDirectory: appPath,
-            outputDirectory: appPath + '/../',
-            authors: 'Babylon.js Editor v2'
+            outputDirectory: options.out,
+            authors: 'Babylon.js Editor v2',
+            exe: 'Babylon.js Editor.exe'
         }).then(function () {
             console.log('Installer for Windows available at ./electron-packages');
         });
