@@ -80,7 +80,7 @@ export default class PostProcessEditor extends PostProcess {
 
             // Set textures
             this.config.textures.forEach(t => this[t] && effect.setTexture(t, this[t]));
-            this.config.floats.forEach(f => effect.setFloat(f, this[f] || 0));
+            this.config.floats.forEach(f => this[f] !== undefined && effect.setFloat(f, this[f] || 0));
             this.config.vectors2.forEach(v => this[v] && effect.setVector2(v, this[v]));
             this.config.vectors3.forEach(v => this[v] && effect.setVector3(v, this[v]));
         };

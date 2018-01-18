@@ -96,7 +96,7 @@ export default class PostProcessCreator extends EditorPlugin {
         // Create layout
         this.layout = new Layout('PostProcessCreatorCode');
         this.layout.panels = [
-            { type: 'top', content: '<div id="POST-PROCESS-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 35, overflow: 'auto', resizable: true },
+            { type: 'top', content: '<div id="POST-PROCESS-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 32, overflow: 'auto', resizable: true },
             { type: 'left', content: '<div id="POST-PROCESS-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
                 type: 'main',
@@ -118,7 +118,10 @@ export default class PostProcessCreator extends EditorPlugin {
         // Create toolbar
         this.toolbar = new Toolbar('PostProcessCreatorToolbar');
         this.toolbar.items = [
-            { id: 'cameras', type: 'menu', caption: 'Camera', img: 'icon-camera', items: [] }
+            { id: 'project', type: 'menu', caption: 'Project', img: 'icon-folder', items: [
+                { id: 'add', caption: 'Add Existing Project...', img: 'icon-export' },
+                { id: 'download', caption: 'Download Project...', img: 'icon-export' }
+            ] }
         ];
         this.toolbar.build('POST-PROCESS-CREATOR-TOOLBAR');
 
