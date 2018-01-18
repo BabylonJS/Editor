@@ -1,4 +1,8 @@
-import { PostProcess, Effect, Scene, Camera, SerializationHelper } from 'babylonjs';
+import {
+    PostProcess, Effect, Scene, Camera, SerializationHelper,
+    Tools,
+    Vector2, Vector3
+} from 'babylonjs';
 
 /**
  * The custom post-process code interface which
@@ -19,14 +23,21 @@ export interface CustomPostProcessCode {
 export interface CustomPostProcessConfig {
     ratio: number;
     textures: string[];
+    floats: string[];
+    vectors2: string[];
+    vectors3: string[];
 }
 
 export default class PostProcessEditor extends PostProcess {
     // Public members
-    public _customCode: CustomPostProcessCode;
+    public customCode: CustomPostProcessCode;
+    public config: CustomPostProcessConfig;
 
     // Protected members
     protected scene: Scene;
+
+    protected additionalUniforms: string[] = [];
+    protected additionalSamplers: string[] = [];
 
     /**
      * Constructor
@@ -36,13 +47,14 @@ export default class PostProcessEditor extends PostProcess {
      * @param ratio: the ratio of the post-process
      * @param customCode: the custom code from user
      */
-    constructor(name: string, fragmentUrl: string, camera: Camera, ratio: number, customCode: CustomPostProcessCode) {
+    constructor(name: string, fragmentUrl: string, camera: Camera, config: CustomPostProcessConfig, customCode: CustomPostProcessCode) {
         // BABYLON.PostProcess
-        super(name, fragmentUrl, [], ['textureSampler'], ratio, camera);
+        super(name, fragmentUrl, [], ['textureSampler'], config.ratio, camera);
 
         // Misc.
         this.scene = camera.getScene();
-        this._customCode = customCode;
+        this.customCode = customCode;
+        this.config = config;
 
         // Constructor
         customCode && customCode.prototype.init.call(this);
@@ -55,14 +67,56 @@ export default class PostProcessEditor extends PostProcess {
         this.updateEffect('#define UPDATED\n', uniforms, samplers);
 
         // On apply
-        this.onApply = effect => this._customCode && this._customCode.prototype.onApply.call(this, effect);
+        this.setOnApply();
+    }
+
+    /**
+     * Sets the .onApply property of the post-process
+     */
+    public setOnApply (): void {
+        this.onApply = effect => {
+            if (this.customCode)
+                this.customCode.prototype.onApply.call(this, effect);
+
+            // Set textures
+            this.config.textures.forEach(t => this[t] && effect.setTexture(t, this[t]));
+            this.config.floats.forEach(f => effect.setFloat(f, this[f] || 0));
+            this.config.vectors2.forEach(v => this[v] && effect.setVector2(v, this[v]));
+            this.config.vectors3.forEach(v => this[v] && effect.setVector3(v, this[v]));
+        };
+    }
+
+    /**
+     * Sets the post-process config
+     * @param config 
+     */
+    public setConfig (config: CustomPostProcessConfig): void {
+        const uniforms: string[] = ['scale']
+            .concat(config.floats)
+            .concat(config.vectors2)
+            .concat(config.vectors3);
+        const samplers: string[] = ['textureSampler'].concat(config.textures);
+
+        // Update and apply config
+        try {
+            this.updateEffect('#define UPDATED' + Tools.RandomId() + '\n', uniforms, samplers);
+            this.config = config;
+            this.setOnApply();
+        } catch (e) { /* Catch silently */ }
     }
 
     /**
      * Disposes the post-process
      */
     public dispose (): void {
-        this._customCode && this._customCode.prototype.dispose.call(this);
+        this.customCode && this.customCode.prototype.dispose.call(this);
         super.dispose();
+    }
+
+    /**
+     * Returns the post-process class name
+     */
+    public getClassName (): string {
+        return 'PostProcessEditor';
     }
 }

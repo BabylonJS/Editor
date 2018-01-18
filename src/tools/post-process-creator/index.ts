@@ -1,4 +1,4 @@
-import { Camera } from 'babylonjs';
+import { Camera, Effect } from 'babylonjs';
 
 import Editor, {
     IDisposable, Tools,
@@ -12,7 +12,7 @@ import Extensions from '../../extensions/extensions';
 import PostProcessCreatorExtension, { PostProcessCreatorMetadata } from '../../extensions/post-process-creator/post-process-creator';
 
 import '../../extensions/post-process-creator/post-process-creator';
-import { CustomPostProcessConfig } from '../../extensions/post-process-creator/post-process';
+import PostProcessEditor, { CustomPostProcessConfig } from '../../extensions/post-process-creator/post-process';
 
 export interface PostProcessGrid extends GridRow {
     name: string;
@@ -90,6 +90,8 @@ export default class PostProcessCreator extends EditorPlugin {
 
         this.datas = this.editor.core.scene.metadata['PostProcessCreator'];
         this.data = this.datas[0];
+
+        this.datas.forEach(d => this.createOrUpdatePostProcess(d.name));
 
         // Create layout
         this.layout = new Layout('PostProcessCreatorCode');
@@ -180,6 +182,40 @@ export default class PostProcessCreator extends EditorPlugin {
             name: data.name,
             recid: this.grid.element.records.length - 1
         });
+
+        // Add and select
+        const p = this.createOrUpdatePostProcess(data.name);
+        this.editor.core.onSelectObject.notifyObservers(p);
+    }
+
+    /**
+     * Creates or updates the given post-process id
+     */
+    protected createOrUpdatePostProcess (name: string): PostProcessEditor {
+        const camera = this.editor.core.scene.activeCamera;
+        for (const p of camera._postProcesses as PostProcessEditor[]) {
+            if (p.name === name) {
+                p.setConfig(JSON.parse(this.data.config));
+                return p;
+            }
+        }
+
+        // Update shader store
+        Effect.ShadersStore[name + 'PixelShader'] = this.data.pixel;
+
+        // Create post-process
+        const config = JSON.parse(this.data.config);
+        const p = new PostProcessEditor(name, name, camera, config, null);
+        p.setConfig(config);
+
+        // Update graph tool
+        this.editor.graph.clear();
+        this.editor.graph.fill();
+        this.editor.graph.select(p.name);
+
+        this.editor.core.onSelectObject.notifyObservers(p);
+
+        return p;
     }
 
      /**
@@ -189,7 +225,18 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     protected changePostProcess (id: number, value: string): void {
         const data = this.datas[id];
+        const lastName = data.name;
+
         data.name = value;
+
+        // Update post-process name
+        const camera = this.editor.core.scene.activeCamera;
+        for (const p of camera._postProcesses) {
+            if (p.name === lastName) {
+                p.name = value;
+                return;
+            }
+        }
     }
 
     /**
@@ -226,7 +273,28 @@ export default class PostProcessCreator extends EditorPlugin {
         });
 
         this.code.onChange = (value) => this.data && (this.data.code = value);
-        this.pixel.onChange = (value) => this.data && (this.data.pixel = value);
-        this.config.onChange = (value) => this.data && (this.data.config = value);
+
+        this.pixel.onChange = (value) => {
+            if (!this.data)
+                return;
+            
+            this.data.pixel = value;
+            Effect.ShadersStore[this.data.name + 'PixelShader'] = this.data.pixel;
+            this.createOrUpdatePostProcess(this.data.name);
+        };
+        
+        this.config.onChange = (value) => {
+            if (!this.data)
+                return;
+            
+            this.data.config = value;
+
+            try {
+                const config = JSON.parse(value);
+                const p = this.createOrUpdatePostProcess(this.data.name);
+
+                this.editor.core.onSelectObject.notifyObservers(p);
+            } catch (e) { /* Catch silently */ }
+        }
     }
 }

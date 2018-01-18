@@ -1,5 +1,5 @@
 // Uniforms
-uniform float time;
+uniform float multiplier;
 
 // Samplers
 varying vec2 vUV;
@@ -7,5 +7,5 @@ uniform sampler2D textureSampler;
 
 void main(void) 
 {
-	gl_FragColor = texture2D(textureSampler, vUV) * sin(time);
+	gl_FragColor = texture2D(textureSampler, vUV) * multiplier;
 }

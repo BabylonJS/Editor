@@ -12,6 +12,8 @@ import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
 import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import CustomMaterialTool from '../edition-tools/materials/custom-tool';
 
+import PostProcessTool from '../edition-tools/post-processes/custom-tool';
+
 import TextureTool from '../edition-tools/texture-tool';
 
 import Editor from '../editor';
@@ -51,6 +53,8 @@ export default class EditorEditionTools {
         this.addTool(new PBRMaterialTool());
         this.addTool(new WaterMaterialTool());
         this.addTool(new CustomMaterialTool());
+
+        this.addTool(new PostProcessTool());
 
         this.addTool(new TextureTool());
 

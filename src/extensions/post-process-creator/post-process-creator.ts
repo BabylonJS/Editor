@@ -64,7 +64,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         } catch (e) { /* Silently */ }
 
         // Create post-process
-        return new PostProcessEditor(data.name, id, camera, config.ratio, code);
+        return new PostProcessEditor(data.name, id, camera, config, code);
     }
 
     /**
