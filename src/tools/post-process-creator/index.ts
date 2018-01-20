@@ -84,7 +84,8 @@ export default class PostProcessCreator extends EditorPlugin {
                 cameraName: this.activeCamera ? this.activeCamera.name : null,
                 code: PostProcessCreator.DefaultCode,
                 pixel: PostProcessCreator.DefaultPixel,
-                config: PostProcessCreator.DefaultConfig
+                config: PostProcessCreator.DefaultConfig,
+                userConfig: { }
             }];
         }
 
@@ -175,7 +176,8 @@ export default class PostProcessCreator extends EditorPlugin {
             name: 'Custom Post-Process' + this.datas.length + 1,
             code: PostProcessCreator.DefaultCode,
             pixel: PostProcessCreator.DefaultPixel,
-            config: PostProcessCreator.DefaultConfig
+            config: PostProcessCreator.DefaultConfig,
+            userConfig: { }
         };
 
         // Collect and add to the list
@@ -192,13 +194,15 @@ export default class PostProcessCreator extends EditorPlugin {
     }
 
     /**
-     * Creates or updates the given post-process id
+     * Creates or updates the given post-process name
+     * @param name: the name of the post-process
      */
     protected createOrUpdatePostProcess (name: string): PostProcessEditor {
         const camera = this.editor.core.scene.activeCamera;
         for (const p of camera._postProcesses as PostProcessEditor[]) {
             if (p.name === name) {
                 p.setConfig(JSON.parse(this.data.config));
+                p.userConfig = { };
                 return p;
             }
         }
