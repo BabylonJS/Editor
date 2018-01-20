@@ -1,3 +1,5 @@
+import { Vector2, Vector3 } from 'babylonjs';
+
 import PostProcessEditor, { CustomPostProcessConfig } from '../../../extensions/post-process-creator/post-process';
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
@@ -23,6 +25,7 @@ export default class CustomPostProcessTool extends AbstractEditionTool<PostProce
         super.update(object);
         this.setTabName('Custom Post-Process');
 
+        // Get current config of the post-process
         const config = this.object.config;
 
         // Floats
@@ -30,10 +33,28 @@ export default class CustomPostProcessTool extends AbstractEditionTool<PostProce
         floats.open();
 
         config.floats.forEach(f => {
-            if (!this.object[f])
-                this.object[f] = 1;
+            if (this.object.userConfig[f] === undefined)
+                this.object.userConfig[f] = 1;
             
-            floats.add(this.object, f).step(0.01).name(f);
+            floats.add(this.object.userConfig, f).step(0.01).name(f);
+        });
+
+        // Vectors
+        const vectors = this.tool.addFolder('Vectors');
+        vectors.open();
+
+        config.vectors2.forEach(v => {
+            if (!this.object.userConfig[v] || !(this.object.userConfig[v] instanceof Vector2))
+                this.object.userConfig[v] = Vector2.Zero();
+
+            this.tool.addVector(vectors, v, <Vector2> this.object.userConfig[v]).open();
+        });
+
+        config.vectors3.forEach(v => {
+            if (!this.object.userConfig[v] || !(this.object.userConfig[v] instanceof Vector3))
+                this.object.userConfig[v] = Vector3.Zero();
+
+            this.tool.addVector(vectors, v, <Vector3> this.object.userConfig[v]).open();
         });
 
         // Samplers
@@ -41,7 +62,7 @@ export default class CustomPostProcessTool extends AbstractEditionTool<PostProce
         samplers.open();
         
         config.textures.forEach(t => {
-            this.tool.addTexture(samplers, this.editor, t, this.object, false, false).name(t);
+            this.tool.addTexture(samplers, this.editor, t, this.object.userConfig, false, false).name(t);
         });
     }
 }
