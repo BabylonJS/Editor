@@ -1,6 +1,6 @@
 import {
     PostProcess, Effect, Scene, Camera, SerializationHelper,
-    Texture,
+    BaseTexture,
     Tools,
     Vector2, Vector3
 } from 'babylonjs';
@@ -33,7 +33,7 @@ export default class PostProcessEditor extends PostProcess {
     // Public members
     public customCode: CustomPostProcessCode;
     public config: CustomPostProcessConfig;
-    public userConfig: { [index: string]: number | Vector2 | Vector3 | Texture } = { };
+    public userConfig: { [index: string]: number | Vector2 | Vector3 | BaseTexture } = { };
 
     // Protected members
     protected scene: Scene;
@@ -80,8 +80,8 @@ export default class PostProcessEditor extends PostProcess {
             if (this.customCode)
                 this.customCode.prototype.onApply.call(this, effect);
 
-            // Set textures
-            this.config.textures.forEach(t => this.userConfig[t] !== undefined && effect.setTexture(t, <Texture> this.userConfig[t]));
+            // Set user config
+            this.config.textures.forEach(t => this.userConfig[t] !== undefined && effect.setTexture(t, <BaseTexture> this.userConfig[t]));
             this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && effect.setFloat(f, <number> this.userConfig[f] || 0));
             this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && effect.setVector2(v, <Vector2> this.userConfig[v]));
             this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && effect.setVector3(v, <Vector3> this.userConfig[v]));
