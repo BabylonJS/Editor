@@ -149,6 +149,10 @@ export default class EditorGraph {
                 data: n
             });
 
+            // Cannot add
+            if (!parentNode)
+                return;
+
             // Sub meshes
             if (n instanceof AbstractMesh && n.subMeshes && n.subMeshes.length > 1) {
                 parentNode.count += n.subMeshes.length;

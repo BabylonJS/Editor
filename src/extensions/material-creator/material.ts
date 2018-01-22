@@ -5,7 +5,7 @@ import {
     serialize, serializeAsColor3, serializeAsTexture, expandToProperty, serializeAsColor4,
     Nullable, Tools,
     BaseTexture, Texture,
-    Color3, Matrix,
+    Color3, Matrix, Vector2, Vector3,
     AbstractMesh, SubMesh, Mesh, IAnimatable,
     StandardMaterial, Effect,
     SerializationHelper
@@ -57,6 +57,9 @@ export interface CustomMaterialConfig {
         name: string;
         isCube: boolean;
     }[];
+    floats: string[];
+    vectors2: string[];
+    vectors3: string[];
 }
 
 /**
@@ -89,6 +92,9 @@ export default class CustomEditorMaterial extends PushMaterial {
 
     @serialize()
     public config: CustomMaterialConfig = null;
+
+    @serialize()
+    public userConfig: { [index: string]: number | Vector2 | Vector3 | Texture } = { };
 
     // Private members
     private _renderId: number;
@@ -323,6 +329,12 @@ export default class CustomEditorMaterial extends PushMaterial {
 
         // Custom
         this._customCode && this._customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
+
+        // User config
+        this.config.textures.forEach(t => this.userConfig[t.name] !== undefined && effect.setTexture(t.name, <Texture> this.userConfig[t.name]));
+        this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && effect.setFloat(f, <number> this.userConfig[f] || 0));
+        this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && effect.setVector2(v, <Vector2> this.userConfig[v]));
+        this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && effect.setVector3(v, <Vector3> this.userConfig[v]));
 
         this._afterBind(mesh, this._activeEffect);
     }
