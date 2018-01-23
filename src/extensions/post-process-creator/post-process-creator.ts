@@ -6,7 +6,7 @@ import Extension from '../extension';
 import PostProcessEditor, { CustomPostProcessConfig } from './post-process';
 
 export interface PostProcessCreatorUserConfig {
-    textures?: any[];
+    textures?: { value: any; name: string }[];
     floats?: { value: number; name: string }[];
     vectors2?: { value: number[]; name: string }[];
     vectors3?: { value: number[]; name: string }[];
@@ -75,7 +75,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         const postprocess = new PostProcessEditor(data.name, id, camera, config, code);
 
         // User config
-        data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t, this.scene, 'file:'));
+        data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t.value, this.scene, 'file:')); // TODO: remove "file:"
         data.userConfig.floats.forEach(f =>   postprocess.userConfig[f.name] = f.value);
         data.userConfig.vectors2.forEach(v => postprocess.userConfig[v.name] = Vector2.FromArray(v.value));
         data.userConfig.vectors3.forEach(v => postprocess.userConfig[v.name] = Vector3.FromArray(v.value));
@@ -109,7 +109,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
                     return;
 
                 d.userConfig.textures = [];
-                p.config.textures.forEach(t => p.userConfig[t] && d.userConfig.textures.push((<Texture> p.userConfig[t]).serialize()));
+                p.config.textures.forEach(t => p.userConfig[t] && d.userConfig.textures.push({ value: (<Texture> p.userConfig[t]).serialize(), name: t }));
 
                 d.userConfig.floats = [];
                 p.config.floats.forEach(f => d.userConfig.floats.push({ value: <number> p.userConfig[f], name: f }));
