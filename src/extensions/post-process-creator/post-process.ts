@@ -66,7 +66,7 @@ export default class PostProcessEditor extends PostProcess {
         const samplers: string[] = ['textureSampler'];
         customCode && customCode.prototype.setUniforms.call(this, uniforms, samplers);
 
-        this.updateEffect('#define UPDATED\n', uniforms, samplers);
+        this.setConfig(config);
 
         // On apply
         this.setOnApply();
