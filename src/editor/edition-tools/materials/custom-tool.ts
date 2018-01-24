@@ -1,3 +1,5 @@
+import { Material, Vector2, Vector3 } from 'babylonjs';
+
 import CustomEditorMaterial from '../../../extensions/material-creator/material';
 
 import MaterialTool from './material-tool';
@@ -24,22 +26,45 @@ export default class CustomMaterialTool extends MaterialTool<CustomEditorMateria
         super.update(object);
         this.setTabName('Custom Material');
 
-        // Diffuse
-        const diffuse = this.tool.addFolder('Diffuse');
-        diffuse.open();
+       // Get current config of the post-process
+       const config = this.object.config;
 
-        this.tool.addColor(diffuse, 'diffuseColor', this.object.diffuseColor).open();
-        this.tool.addTexture(diffuse, this.editor, 'diffuseTexture', this.object, false).name('Diffuse Texture');
+       // Floats
+       const floats = this.tool.addFolder('Floats');
+       floats.open();
 
-        // All other textures
-        if (this.object.config) {
-            this.object.config.textures.forEach(t => {
-                const texture = this.tool.addFolder('Custom Texture: ' + t.name);
-                texture.open();
+       config.floats.forEach(f => {
+           if (this.object.userConfig[f] === undefined)
+               this.object.userConfig[f] = 1;
+           
+           floats.add(this.object.userConfig, f).step(0.01).name(f).onChange(() => this.object.markAsDirty(Material.MiscDirtyFlag));
+       });
 
-                this.tool.addTexture(texture, this.editor, t.name, this.object, t.isCube).name(t.name);
-            });
-        }
+       // Vectors
+       const vectors = this.tool.addFolder('Vectors');
+       vectors.open();
+
+       config.vectors2.forEach(v => {
+           if (!this.object.userConfig[v] || !(this.object.userConfig[v] instanceof Vector2))
+               this.object.userConfig[v] = Vector2.Zero();
+
+           this.tool.addVector(vectors, v, <Vector2> this.object.userConfig[v], () => this.object.markAsDirty(Material.MiscDirtyFlag)).open();
+       });
+
+       config.vectors3.forEach(v => {
+           if (!this.object.userConfig[v] || !(this.object.userConfig[v] instanceof Vector3))
+               this.object.userConfig[v] = Vector3.Zero();
+
+           this.tool.addVector(vectors, v, <Vector3> this.object.userConfig[v], () => this.object.markAsDirty(Material.MiscDirtyFlag)).open();
+       });
+
+       // Samplers
+       const samplers = this.tool.addFolder('Samplers');
+       samplers.open();
+       
+       config.textures.forEach(t => {
+           this.tool.addTexture(samplers, this.editor, t.name, this.object.userConfig, false, false, () => this.object.markAsDirty(Material.TextureDirtyFlag)).name(t.name);
+       });
 
         // Options
         super.addOptions();

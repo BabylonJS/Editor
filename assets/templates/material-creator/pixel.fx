@@ -29,6 +29,8 @@ varying vec4 vColor;
 varying vec2 vDiffuseUV;
 uniform sampler2D diffuseSampler;
 uniform vec2 vDiffuseInfos;
+
+uniform sampler2D otherSampler;
 #endif
 
 #include<clipPlaneFragmentDeclaration>
@@ -50,6 +52,7 @@ void main(void) {
 
 #ifdef DIFFUSE
 	baseColor = texture2D(diffuseSampler, vDiffuseUV);
+	baseColor *= texture2D(otherSampler, vDiffuseUV);
 
 #ifdef ALPHATEST
 	if (baseColor.a < 0.4)

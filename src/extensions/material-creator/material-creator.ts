@@ -1,4 +1,4 @@
-import { Scene, Effect, Tools } from 'babylonjs';
+import { Scene, Effect, Tools, Texture, Vector3, Vector2 } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -6,12 +6,20 @@ import Extension from '../extension';
 import CustomEditorMaterial, { CustomMaterialCode, CustomMaterialConfig } from './material';
 import { IStringDictionary } from 'babylonjs-editor';
 
+export interface MaterialCreatorUserConfig {
+    textures?: { value: any; name: string }[];
+    floats?: { value: number; name: string }[];
+    vectors2?: { value: number[]; name: string }[];
+    vectors3?: { value: number[]; name: string }[];
+}
+
 export interface MaterialCreatorMetadata {
     name: string;
     code: string;
     vertex: string;
     pixel: string;
     config: string;
+    userConfig: MaterialCreatorUserConfig;
 }
 
 const template = `
@@ -70,15 +78,25 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
         } catch (e) { /* Silently */ }
 
         // Get or create material
-        const material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
+        let material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
         if (material) {
             material.config = config;
             material._shaderName = id;
             material.setCustomCode(code);
             return material;
         }
+        else
+            material = new CustomEditorMaterial(data.name, this.scene, id, code, config);
+
+        // User config
+        if (data.code) { 
+            data.userConfig.textures.forEach(t => material.userConfig[t.name] = Texture.Parse(t.value, this.scene, 'file:')); // TODO: remove "file:"
+            data.userConfig.floats.forEach(f =>   material.userConfig[f.name] = f.value);
+            data.userConfig.vectors2.forEach(v => material.userConfig[v.name] = Vector2.FromArray(v.value));
+            data.userConfig.vectors3.forEach(v => material.userConfig[v.name] = Vector3.FromArray(v.value));
+        }
         
-        return new CustomEditorMaterial(data.name, this.scene, id, code, config);
+        return material;
     }
 
     /**

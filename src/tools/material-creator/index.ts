@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Mesh, Vector3, Color4, Color3 } from 'babylonjs';
+import { Engine, Scene, Effect, ArcRotateCamera, Mesh, Vector3, Color4, Color3, Material } from 'babylonjs';
 
 import Editor, {
     IDisposable, Tools,
@@ -85,7 +85,8 @@ export default class MaterialCreator extends EditorPlugin {
                 code: MaterialCreator.DefaultCode,
                 vertex: MaterialCreator.DefaultVertex,
                 pixel: MaterialCreator.DefaultPixel,
-                config: MaterialCreator.DefaultConfig
+                config: MaterialCreator.DefaultConfig,
+                userConfig: { }
             }];
             this.data = this.datas[0];
 
@@ -94,7 +95,8 @@ export default class MaterialCreator extends EditorPlugin {
                 code: null,
                 vertex: this.data.vertex,
                 pixel: this.data.pixel,
-                config: this.data.config
+                config: this.data.config,
+                userConfig: { }
             });
 
             this.editor.core.onAddObject.notifyObservers(material);
@@ -166,7 +168,8 @@ export default class MaterialCreator extends EditorPlugin {
             code: MaterialCreator.DefaultCode,
             vertex: MaterialCreator.DefaultVertex,
             pixel: MaterialCreator.DefaultPixel,
-            config: MaterialCreator.DefaultConfig
+            config: MaterialCreator.DefaultConfig,
+            userConfig: { }
         };
 
         const material = this.extension.createMaterial({
@@ -174,7 +177,8 @@ export default class MaterialCreator extends EditorPlugin {
             code: null,
             vertex: data.vertex,
             pixel: data.pixel,
-            config: data.config
+            config: data.config,
+            userConfig: data.userConfig
         });
 
         // Collect and add to the list
@@ -230,6 +234,22 @@ export default class MaterialCreator extends EditorPlugin {
     }
 
     /**
+     * Updaes the current material's shaders (vertex & pixel)
+     */
+    protected updateShaders (): void {
+        // Update material shader
+        const material = <CustomEditorMaterial> this.editor.core.scene.getMaterialByName(this.data.name);
+        if (!material)
+            return;
+
+        Effect.ShadersStore[material._shaderName + 'VertexShader'] = this.data.vertex;
+        Effect.ShadersStore[material._shaderName + 'PixelShader'] = this.data.pixel;
+
+        material._buildId++;
+        material.markAsDirty(Material.MiscDirtyFlag);
+    }
+
+    /**
      * Creates the code editor
      */
     protected async createEditors (): Promise<void> {
@@ -254,8 +274,23 @@ export default class MaterialCreator extends EditorPlugin {
         });
 
         this.code.onChange = (value) => this.data && (this.data.code = value);
-        this.vertex.onChange = (value) => this.data && (this.data.vertex = value);
-        this.pixel.onChange = (value) => this.data && (this.data.pixel = value);
+
+        this.vertex.onChange = (value) => {
+            if (!this.data)
+                return;
+            
+            this.data.vertex = value;
+            this.updateShaders();
+        };
+
+        this.pixel.onChange = (value) => {
+            if (!this.data)
+                return;
+            
+            this.data.pixel = value;
+            this.updateShaders();
+        };
+
         this.config.onChange = (value) => {
             if (!this.data)
                 return;
@@ -268,10 +303,9 @@ export default class MaterialCreator extends EditorPlugin {
                     const config = JSON.parse(this.data.config);
                     material.config = config;
 
-                    // Update edition tool
-                    const currentObject = this.editor.edition.currentObject;
-                    if (currentObject && (currentObject === material || currentObject.material === material))
-                        this.editor.edition.setObject(material);
+                    // Update shaders and edition tool
+                    this.editor.core.onSelectObject.notifyObservers(material);
+                    this.updateShaders();
                 } catch (e) { /* Silently */ }
             }
         };
