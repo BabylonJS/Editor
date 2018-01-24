@@ -203,6 +203,7 @@ export default class PostProcessCreator extends EditorPlugin {
             if (p.name === name) {
                 p.setConfig(JSON.parse(this.data.config));
                 p.userConfig = { };
+                this.editor.core.onSelectObject.notifyObservers(p);
                 return p;
             }
         }
@@ -299,8 +300,6 @@ export default class PostProcessCreator extends EditorPlugin {
             try {
                 const config = JSON.parse(value);
                 const p = this.createOrUpdatePostProcess(this.data.name);
-
-                this.editor.core.onSelectObject.notifyObservers(p);
             } catch (e) { /* Catch silently */ }
         }
     }

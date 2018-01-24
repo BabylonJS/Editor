@@ -85,18 +85,18 @@ export default class CustomEditorMaterial extends PushMaterial {
     @expandToProperty('_markAllSubMeshesAsLightsDirty')
     public maxSimultaneousLights: number;
 
-    public _customCode: CustomMaterialCode;
-
     @serialize()
     public _shaderName: string;
 
     @serialize()
-    public config: CustomMaterialConfig = null;
+    public userConfig: { [index: string]: number | Vector2 | Vector3 | BaseTexture } = { };
 
-    @serialize()
-    public userConfig: { [index: string]: number | Vector2 | Vector3 | Texture } = { };
+    public config: CustomMaterialConfig;
+    public customCode: CustomMaterialCode;
+    public _buildId: number = 0;
 
     // Private members
+    private _lastBuildId: number = 0;
     private _renderId: number;
 
     /**
@@ -109,15 +109,15 @@ export default class CustomEditorMaterial extends PushMaterial {
 
         this._shaderName = shaderName;
         
-        this._customCode = customCode;
-        this._customCode && this._customCode.prototype.init.call(this);
+        this.customCode = customCode;
+        this.customCode && this.customCode.prototype.init.call(this);
 
         this.config = config;
     }
 
     public setCustomCode (customCode: CustomMaterialCode): void {
-        this._customCode = customCode;
-        this._customCode && this._customCode.prototype.init.call(this);
+        this.customCode = customCode;
+        this.customCode && this.customCode.prototype.init.call(this);
     }
 
     public needAlphaBlending(): boolean {
@@ -134,7 +134,7 @@ export default class CustomEditorMaterial extends PushMaterial {
 
     // Methods
     public isReadyForSubMesh(mesh: AbstractMesh, subMesh: SubMesh, useInstances?: boolean): boolean {
-        if (this._customCode === undefined)
+        if (this.customCode === undefined)
             return false;
         
         if (this.isFrozen) {
@@ -185,6 +185,20 @@ export default class CustomEditorMaterial extends PushMaterial {
         // Attribs
         MaterialHelper.PrepareDefinesForAttributes(mesh, defines, true, true);
 
+        // Build id
+        if (!this.customCode) {
+            for (let i = 0; i < this._buildId; i++)
+                delete defines['BUILD_' + i];
+
+            defines['BUILD_' + this._buildId] = true;
+            defines.rebuild();
+
+            if (this._lastBuildId !== this._buildId && subMesh.effect) {
+                this._lastBuildId = this._buildId;
+                scene.getEngine()._releaseEffect(subMesh.effect);
+            }
+        }
+
         // Get correct effect      
         if (defines.isDirty) {
             defines.markAsProcessed();
@@ -230,14 +244,16 @@ export default class CustomEditorMaterial extends PushMaterial {
                 'vFogInfos', 'vFogColor', 'pointSize',
                 'vDiffuseInfos',
                 'mBones',
-                'vClipPlane', 'diffuseMatrix'
-            ];
-            const samplers = ['diffuseSampler'];
+                'vClipPlane', 'diffuseMatrix']
+                .concat(this.config.floats)
+                .concat(this.config.vectors2)
+                .concat(this.config.vectors3);
+            const samplers = this.config.textures.map(t => t.name);
             const uniformBuffers = new Array<string>();
 
-            this._customCode && this._customCode.prototype.setUniforms.call(this, uniforms, samplers);
+            this.customCode && this.customCode.prototype.setUniforms.call(this, uniforms, samplers);
             
-            if (this._customCode && !this._customCode.prototype.isReadyForSubMesh.call(this, mesh, subMesh, defines))
+            if (this.customCode && !this.customCode.prototype.isReadyForSubMesh.call(this, mesh, subMesh, defines))
                 return false;
 
             MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
@@ -328,7 +344,7 @@ export default class CustomEditorMaterial extends PushMaterial {
         MaterialHelper.BindFogParameters(scene, mesh, this._activeEffect);
 
         // Custom
-        this._customCode && this._customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
+        this.customCode && this.customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
 
         // User config
         this.config.textures.forEach(t => this.userConfig[t.name] !== undefined && effect.setTexture(t.name, <Texture> this.userConfig[t.name]));
@@ -376,13 +392,13 @@ export default class CustomEditorMaterial extends PushMaterial {
             this._diffuseTexture.dispose();
         }
 
-        this._customCode && this._customCode.prototype.dispose.call(this);
+        this.customCode && this.customCode.prototype.dispose.call(this);
 
         super.dispose(forceDisposeEffect);
     }
 
     public clone(name: string): CustomEditorMaterial {
-        return SerializationHelper.Clone<CustomEditorMaterial>(() => new CustomEditorMaterial(name, this.getScene(), this._shaderName, this._customCode, this.config), this);
+        return SerializationHelper.Clone<CustomEditorMaterial>(() => new CustomEditorMaterial(name, this.getScene(), this._shaderName, this.customCode, this.config), this);
     }
 
     public serialize(): any {
