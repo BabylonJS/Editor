@@ -79,7 +79,8 @@ export default class Editor {
             { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
             { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] }
+            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
+            { type: 'bottom', size: 0, content: '', resizable: false }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
@@ -158,6 +159,9 @@ export default class Editor {
     /**
      * Adds an "edit panel" plugin
      * @param url the URL of the plugin
+     * @param restart: if to restart the plugin
+     * @param name: the name of the plugin to show
+     * @param params: the params to give to the plugin's constructor
      */
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
         if (this.plugins[url]) {
@@ -217,6 +221,7 @@ export default class Editor {
 
     /**
      * Creates the default scene
+     * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
      */
     public async createDefaultScene(showNewSceneDialog: boolean = false): Promise<void> {
         const callback = async () => {
