@@ -23,10 +23,10 @@ attribute vec4 color;
 uniform mat4 view;
 uniform mat4 viewProjection;
 
-#ifdef DIFFUSE
-varying vec2 vDiffuseUV;
-uniform mat4 diffuseMatrix;
-uniform vec2 vDiffuseInfos;
+#ifdef TEXTURE
+varying vec2 vUV;
+uniform mat4 diffuseSamplerMatrix;
+uniform vec2 diffuseSamplerInfos;
 #endif
 
 #ifdef POINTSIZE
@@ -76,14 +76,14 @@ void main(void) {
 	vec2 uv2 = vec2(0., 0.);
 #endif
 
-#ifdef DIFFUSE
-	if (vDiffuseInfos.x == 0.)
+#ifdef TEXTURE
+	if (diffuseSamplerInfos.x == 0.)
 	{
-		vDiffuseUV = vec2(diffuseMatrix * vec4(uv, 1.0, 0.0));
+		vUV = vec2(diffuseSamplerMatrix * vec4(uv, 1.0, 0.0));
 	}
 	else
 	{
-		vDiffuseUV = vec2(diffuseMatrix * vec4(uv2, 1.0, 0.0));
+		vUV = vec2(diffuseSamplerMatrix * vec4(uv2, 1.0, 0.0));
 	}
 #endif
 

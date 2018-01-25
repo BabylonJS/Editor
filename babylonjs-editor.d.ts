@@ -669,7 +669,7 @@ declare module 'babylonjs-editor/editor/core' {
                 * Removes the given scene from the registered scenes
                 * @param scene: the scene reference to remove
                 */
-            removeScene(scene: Scene): boolean;
+            removeScene(scene: Scene, dispose?: boolean): boolean;
             /**
                 * Removes the given UI (advanced texture) from the registered UIS
                 * @param ui: the ui advanced texture reference to remove

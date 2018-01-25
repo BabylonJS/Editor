@@ -62,10 +62,6 @@ export default class PostProcessEditor extends PostProcess {
         customCode && customCode.prototype.init.call(this);
 
         // Set uniforms
-        const uniforms: string[] = ['scale'];
-        const samplers: string[] = ['textureSampler'];
-        customCode && customCode.prototype.setUniforms.call(this, uniforms, samplers);
-
         this.setConfig(config);
 
         // On apply
@@ -98,6 +94,8 @@ export default class PostProcessEditor extends PostProcess {
             .concat(config.vectors2)
             .concat(config.vectors3);
         const samplers: string[] = ['textureSampler'].concat(config.textures);
+
+        this.customCode && this.customCode.prototype.setUniforms.call(this, uniforms, samplers);
 
         // Update and apply config
         try {

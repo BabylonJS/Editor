@@ -83,13 +83,12 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
             material.config = config;
             material._shaderName = id;
             material.setCustomCode(code);
-            return material;
         }
         else
             material = new CustomEditorMaterial(data.name, this.scene, id, code, config);
 
         // User config
-        if (data.code) { 
+        if (data.code) {
             data.userConfig.textures.forEach(t => material.userConfig[t.name] = Texture.Parse(t.value, this.scene, 'file:')); // TODO: remove "file:"
             data.userConfig.floats.forEach(f =>   material.userConfig[f.name] = f.value);
             data.userConfig.vectors2.forEach(v => material.userConfig[v.name] = Vector2.FromArray(v.value));
@@ -111,10 +110,33 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
      * Called by the editor when serializing the scene
      */
     public onSerialize (): MaterialCreatorMetadata[] {
-        if (this.scene.metadata && this.scene.metadata['MaterialCreator'])
-            return this.scene.metadata['MaterialCreator'];
+        if (!this.scene.metadata || !this.scene.metadata['MaterialCreator'])
+            return null;
 
-        return null;
+        // Get data
+        const data = <MaterialCreatorMetadata[]> this.scene.metadata['MaterialCreator'];
+
+        // Apply user config
+        data.forEach(d => {
+            this.scene.materials.forEach(m => {
+                if (!(m instanceof CustomEditorMaterial) || !m.config || m.name !== d.name)
+                    return;
+
+                d.userConfig.textures = [];
+                m.config.textures.forEach(t => m.userConfig[t.name] && d.userConfig.textures.push({ value: (<Texture> m.userConfig[t.name]).serialize(), name: t.name }));
+
+                d.userConfig.floats = [];
+                m.config.floats.forEach(f => d.userConfig.floats.push({ value: <number> m.userConfig[f], name: f }));
+
+                d.userConfig.vectors2 = [];
+                m.config.vectors2.forEach(v => d.userConfig.vectors2.push({ value: (<Vector2> m.userConfig[v]).asArray(), name: v }));
+
+                d.userConfig.vectors3 = [];
+                m.config.vectors3.forEach(v => d.userConfig.vectors3.push({ value: (<Vector3> m.userConfig[v]).asArray(), name: v }));
+            });
+        });
+
+        return data;
     }
 
     /**
