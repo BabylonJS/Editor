@@ -3,7 +3,7 @@
         { "name": "diffuseSampler", "isCube": false },
         { "name": "otherSampler", "isCube": false }
     ],
-    "floats": ["time"],
+    "floats": [],
     "vectors2": [],
     "vectors3": []
 }
