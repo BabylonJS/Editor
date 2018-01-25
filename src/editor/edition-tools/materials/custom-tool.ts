@@ -29,6 +29,9 @@ export default class CustomMaterialTool extends MaterialTool<CustomEditorMateria
        // Get current config of the post-process
        const config = this.object.config;
 
+       // Base Color
+       this.tool.addColor(this.tool.element, 'Base Color', this.object.baseColor).open();
+
        // Floats
        const floats = this.tool.addFolder('Floats');
        floats.open();

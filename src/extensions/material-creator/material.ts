@@ -17,7 +17,7 @@ import Extension from '../extension';
  * Custom Material class
  */
 export class CustomMaterialDefines extends MaterialDefines {
-    public DIFFUSE = false;
+    public TEXTURE = false;
     public CLIPPLANE = false;
     public ALPHATEST = false;
     public DEPTHPREPASS = false;
@@ -67,13 +67,8 @@ export interface CustomMaterialConfig {
  */
 export default class CustomEditorMaterial extends PushMaterial {
     // Public members
-    @serializeAsTexture('diffuseTexture')
-    private _diffuseTexture: BaseTexture;
-    @expandToProperty('_markAllSubMeshesAsTexturesDirty')
-    public diffuseTexture: BaseTexture;
-
-    @serializeAsColor3('diffuse')
-    public diffuseColor = new Color3(1, 1, 1);
+    @serializeAsColor3('baseColor')
+    public baseColor = new Color3(1, 1, 1);
     
     @serialize('disableLighting')
     private _disableLighting = false;
@@ -88,7 +83,6 @@ export default class CustomEditorMaterial extends PushMaterial {
     @serialize()
     public _shaderName: string;
 
-    @serialize()
     public userConfig: { [index: string]: number | Vector2 | Vector3 | BaseTexture } = { };
 
     public config: CustomMaterialConfig;
@@ -162,13 +156,22 @@ export default class CustomEditorMaterial extends PushMaterial {
         if (defines._areTexturesDirty) {
             defines._needUVs = false;
             if (scene.texturesEnabled) {
-                if (this._diffuseTexture && StandardMaterial.DiffuseTextureEnabled) {
-                    if (!this._diffuseTexture.isReady()) {
+                let atLeastOneTexture = false;
+
+                for (const t of this.config.textures) {
+                    if (!this.userConfig[t.name])
+                        continue;
+
+                    const texture = <BaseTexture> this.userConfig[t.name];
+                    if (!texture.isReady())
                         return false;
-                    } else {
-                        defines._needUVs = true;
-                        defines.DIFFUSE = true;
-                    }
+
+                    atLeastOneTexture = true;
+                };
+
+                if (atLeastOneTexture) {
+                    defines._needUVs = true;
+                    defines.TEXTURE = true;
                 }
             }
         }
@@ -240,16 +243,22 @@ export default class CustomEditorMaterial extends PushMaterial {
 
             const shaderName = this._shaderName;
             const join = defines.toString();
-            const uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vDiffuseColor',
+            const uniformBuffers = new Array<string>();
+
+            // Uniforms and samplers
+            const samplers = this.config.textures.map(t => t.name);
+            const uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vBaseColor',
                 'vFogInfos', 'vFogColor', 'pointSize',
-                'vDiffuseInfos',
                 'mBones',
-                'vClipPlane', 'diffuseMatrix']
+                'vClipPlane']
                 .concat(this.config.floats)
                 .concat(this.config.vectors2)
                 .concat(this.config.vectors3);
-            const samplers = this.config.textures.map(t => t.name);
-            const uniformBuffers = new Array<string>();
+        
+            this.config.textures.forEach(t => {
+                uniforms.push(t.name + 'Infos');
+                uniforms.push(t.name + 'Matrix');
+            });
 
             this.customCode && this.customCode.prototype.setUniforms.call(this, uniforms, samplers);
             
@@ -309,13 +318,17 @@ export default class CustomEditorMaterial extends PushMaterial {
         MaterialHelper.BindBonesParameters(mesh, this._activeEffect);
 
         if (this._mustRebind(scene, effect)) {
-            // Textures        
-            if (this._diffuseTexture && StandardMaterial.DiffuseTextureEnabled) {
-                this._activeEffect.setTexture('diffuseSampler', this._diffuseTexture);
+            // Textures
+            this.config.textures.forEach(t => {
+                const texture = <BaseTexture> this.userConfig[t.name];
+                if (!texture)
+                    return;
+                
+                this._activeEffect.setTexture(t.name, texture);
 
-                this._activeEffect.setFloat2('vDiffuseInfos', this._diffuseTexture.coordinatesIndex, this._diffuseTexture.level);
-                this._activeEffect.setMatrix('diffuseMatrix', this._diffuseTexture.getTextureMatrix());
-            }
+                this._activeEffect.setFloat2(t.name + 'Infos', texture.coordinatesIndex, texture.level);
+                this._activeEffect.setMatrix(t.name + 'Matrix', texture.getTextureMatrix());
+            });
 
             // Clip plane
             MaterialHelper.BindClipPlane(this._activeEffect, scene);
@@ -328,7 +341,7 @@ export default class CustomEditorMaterial extends PushMaterial {
             MaterialHelper.BindEyePosition(effect, scene);
         }
 
-        this._activeEffect.setColor4('vDiffuseColor', this.diffuseColor, this.alpha * mesh.visibility);
+        this._activeEffect.setColor4('vBaseColor', this.baseColor, this.alpha * mesh.visibility);
 
         // Lights
         if (scene.lightsEnabled && !this.disableLighting) {
@@ -347,10 +360,9 @@ export default class CustomEditorMaterial extends PushMaterial {
         this.customCode && this.customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
 
         // User config
-        this.config.textures.forEach(t => this.userConfig[t.name] !== undefined && effect.setTexture(t.name, <Texture> this.userConfig[t.name]));
-        this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && effect.setFloat(f, <number> this.userConfig[f] || 0));
-        this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && effect.setVector2(v, <Vector2> this.userConfig[v]));
-        this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && effect.setVector3(v, <Vector3> this.userConfig[v]));
+        this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && this._activeEffect.setFloat(f, <number> this.userConfig[f] || 0));
+        this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector2(v, <Vector2> this.userConfig[v]));
+        this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector3(v, <Vector3> this.userConfig[v]));
 
         this._afterBind(mesh, this._activeEffect);
     }
@@ -358,9 +370,11 @@ export default class CustomEditorMaterial extends PushMaterial {
     public getAnimatables(): IAnimatable[] {
         const results = [];
 
-        if (this._diffuseTexture && this._diffuseTexture.animations && this._diffuseTexture.animations.length > 0) {
-            results.push(this._diffuseTexture);
-        }
+        this.config.textures.forEach(t => {
+            const texture = <BaseTexture> this.userConfig[t.name];
+            if (texture && texture.animations && texture.animations.length > 0)
+                results.push(texture);
+        });
 
         return results;
     }
@@ -368,9 +382,11 @@ export default class CustomEditorMaterial extends PushMaterial {
     public getActiveTextures(): BaseTexture[] {
         const activeTextures = super.getActiveTextures();
 
-        if (this._diffuseTexture) {
-            activeTextures.push(this._diffuseTexture);
-        }
+        this.config.textures.forEach(t => {
+            const texture = <BaseTexture> this.userConfig[t.name];
+            if (texture)
+                activeTextures.push(texture);
+        });
 
         return activeTextures;
     }
@@ -380,18 +396,15 @@ export default class CustomEditorMaterial extends PushMaterial {
             return true;
         }
 
-        if (this.diffuseTexture === texture) {
-            return true;
+        for (const t of this.config.textures) {
+            if (this.userConfig[t.name] === texture)
+                return true;
         }
 
         return false;
     }
 
     public dispose(forceDisposeEffect?: boolean): void {
-        if (this._diffuseTexture) {
-            this._diffuseTexture.dispose();
-        }
-
         this.customCode && this.customCode.prototype.dispose.call(this);
 
         super.dispose(forceDisposeEffect);
@@ -405,13 +418,16 @@ export default class CustomEditorMaterial extends PushMaterial {
         let serializationObject = SerializationHelper.Serialize(this);
         serializationObject.customType = 'BABYLON.CustomEditorMaterial';
         serializationObject.textures = { };
+        serializationObject.floats = { };
+        serializationObject.vectors2 = { };
+        serializationObject.vectors3 = { };
 
         // Textures
         if (this.config) {
-            this.config.textures.forEach(t => {
-                if (this[t.name])
-                    serializationObject.textures[t.name] = (<BaseTexture>this[t.name]).serialize();
-            });
+            this.config.textures.forEach(t => this.userConfig[t.name] !== undefined && (serializationObject.textures[t.name] = (this.userConfig[t.name] as BaseTexture).serialize()));
+            this.config.floats.forEach(f   => this.userConfig[f] !== undefined && (serializationObject.floats[f] = this.userConfig[f]));
+            this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && (serializationObject.vectors2[v] = (this.userConfig[v] as Vector2).asArray()));
+            this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && (serializationObject.vectors3[v] = (this.userConfig[v] as Vector3).asArray()));
         }
 
         return serializationObject;
@@ -425,9 +441,17 @@ export default class CustomEditorMaterial extends PushMaterial {
     public static Parse(source: any, scene: Scene, rootUrl: string): CustomEditorMaterial {
         const material = SerializationHelper.Parse(() => new CustomEditorMaterial(source.name, scene, source._shaderName, source._customCode, source.config), source, scene, rootUrl);
 
-        for (const thing in source.textures) {
-            material[thing] = Texture.Parse(source.textures[thing], scene, rootUrl);
-        }
+        for (const thing in source.textures)
+            material.userConfig[thing] = Texture.Parse(source.textures[thing], scene, rootUrl);
+
+        for (const thing in source.floats)
+            material.userConfig[thing] = source.floats[thing];
+
+        for (const thing in source.vectors2)
+            material.userConfig[thing] = Vector2.FromArray(source.vectors2[thing]);
+
+        for (const thing in source.vectors3)
+            material.userConfig[thing] = Vector3.FromArray(source.vectors3[thing]);
 
         return material;
     }
