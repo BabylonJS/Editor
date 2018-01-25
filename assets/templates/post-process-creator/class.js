@@ -7,13 +7,13 @@ CustomPostProcess.prototype.init = function () {
 
 CustomPostProcess.prototype.setUniforms = function (uniforms, samplers) {
     // Push custom uniforms
-    uniforms.push('multiplier');
+    uniforms.push('time');
 };
 
 CustomPostProcess.prototype.onApply = function (effect) {
-    this.time += camera.getScene().getEngine().getDeltaTime();
+    this.time += camera.getScene().getEngine().getDeltaTime() * 0.01;
 
-    effect.setFloat('multiplier', this.multiplier * Math.cos(this.time));
+    effect.setFloat('time', this.multiplier * Math.cos(this.time));
 };
 
 // On dispose the material
