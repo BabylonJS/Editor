@@ -4,15 +4,15 @@ import {
     StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline
 } from 'babylonjs';
 
-import AbstractEditionTool from './edition-tool';
-import Tools from '../tools/tools';
-import SceneManager from '../scene/scene-manager';
+import AbstractEditionTool from '../edition-tool';
+import Tools from '../../tools/tools';
+import SceneManager from '../../scene/scene-manager';
 
-import Picker from '../gui/picker';
-import SceneFactory from '../scene/scene-factory';
+import Picker from '../../gui/picker';
+import SceneFactory from '../../scene/scene-factory';
 
-import PostProcessesExtension from '../../extensions/post-process/post-processes';
-import Extensions from '../../extensions/extensions';
+import PostProcessesExtension from '../../../extensions/post-process/post-processes';
+import Extensions from '../../../extensions/extensions';
 
 export default class PostProcessesTool extends AbstractEditionTool<Scene> {
     // Public members

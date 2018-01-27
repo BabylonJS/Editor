@@ -140,7 +140,7 @@ export default class Edition {
      * @param name the name of the folder
      * @param color the color reference
      */
-    public addColor (parent: dat.GUI, name: string, color: Color3 | Color4): dat.GUI {
+    public addColor (parent: dat.GUI, name: string, color: Color3 | Color4, callback?: () => void): dat.GUI {
         const target = {
             color: [color.r, color.g, color.b]
         };
@@ -154,15 +154,15 @@ export default class Edition {
             this.getController('b', folder).setValue(value[2] / 255);
         });
         */
-        folder.add(color, 'r').step(0.01);
-        folder.add(color, 'g').step(0.01);
-        folder.add(color, 'b').step(0.01);
+        folder.add(color, 'r').step(0.01).onChange(() => callback && callback());
+        folder.add(color, 'g').step(0.01).onChange(() => callback && callback());
+        folder.add(color, 'b').step(0.01).onChange(() => callback && callback());
 
         if (color instanceof Color4) {
             // Sometimes, color.a is undefined
             color.a = color.a || 0;
 
-            folder.add(color, 'a').step(0.01);
+            folder.add(color, 'a').step(0.01).onChange(() => callback && callback());
         }
 
         return folder;

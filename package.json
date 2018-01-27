@@ -61,6 +61,7 @@
     "babylonjs-gui": "~3.2.0-alpha4",
     "babylonjs-loaders": "~3.2.0-alpha4",
     "babylonjs-materials": "~3.2.0-alpha4",
+    "babylonjs-procedural-textures": "~3.2.0-alpha4",
     "spectorjs": "~0.9.2",
     "cannon": "~0.6.2",
     "monaco-editor": "~0.5.3",

@@ -4,7 +4,6 @@ import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
 import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
-import PostProcessesTool from '../edition-tools/post-processes-tool';
 import ParticleSystemTool from '../edition-tools/particle-system-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
@@ -12,9 +11,12 @@ import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
 import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import CustomMaterialTool from '../edition-tools/materials/custom-tool';
 
+import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
 
 import TextureTool from '../edition-tools/texture-tool';
+
+import GroundTool from '../edition-tools/meshes/ground-tool';
 
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
@@ -42,7 +44,6 @@ export default class EditorEditionTools {
 
         // Add tools
         this.addTool(new SceneTool());
-        this.addTool(new PostProcessesTool());
         this.addTool(new NodeTool());
         this.addTool(new PhysicsTool());
         this.addTool(new LightTool());
@@ -54,9 +55,12 @@ export default class EditorEditionTools {
         this.addTool(new WaterMaterialTool());
         this.addTool(new CustomMaterialTool());
 
+        this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());
 
         this.addTool(new TextureTool());
+
+        this.addTool(new GroundTool());
 
         // Events
         this.editor.core.onSelectObject.add(node => this.setObject(node));

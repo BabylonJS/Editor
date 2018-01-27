@@ -67,6 +67,8 @@ export default class EditorToolbar {
                     { type: 'break;' },
                     { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
+                    { type: 'break' },
+                    { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' }
                 ]
             }
         ];
@@ -152,6 +154,9 @@ export default class EditorToolbar {
                 break;
             case 'add:water':
                 SceneFactory.CreateWaterEffect(this.editor);
+                break;
+            case 'add:ground':
+                SceneFactory.CreateGroundMesh(this.editor);
                 break;
             default: break;
         }
