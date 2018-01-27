@@ -3,6 +3,7 @@ import {
     Vector3, Color4,
     Texture,
     Mesh, ParticleSystem,
+    GroundMesh,
     Tags, Tools as BabylonTools
 } from 'babylonjs';
 
@@ -124,5 +125,16 @@ export default class SceneFactory {
         }
 
         return material;
+    }
+
+    /**
+     * Creates a new ground mesh
+     * @param editor: the editor reference
+     */
+    public static CreateGroundMesh (editor: Editor): GroundMesh {
+        const mesh = <GroundMesh> Mesh.CreateGround('New Ground', 512, 512, 32, editor.core.scene, true);
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
     }
 }
