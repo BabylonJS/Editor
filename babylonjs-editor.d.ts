@@ -65,6 +65,9 @@ declare module 'babylonjs-editor/editor/editor' {
             /**
                 * Adds an "edit panel" plugin
                 * @param url the URL of the plugin
+                * @param restart: if to restart the plugin
+                * @param name: the name of the plugin to show
+                * @param params: the params to give to the plugin's constructor
                 */
             addEditPanelPlugin(url: string, restart?: boolean, name?: string, ...params: any[]): Promise<IEditorPlugin>;
             /**
@@ -78,6 +81,7 @@ declare module 'babylonjs-editor/editor/editor' {
             restartPlugins(): Promise<void>;
             /**
                 * Creates the default scene
+                * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
                 */
             createDefaultScene(showNewSceneDialog?: boolean): Promise<void>;
             /**
@@ -1034,7 +1038,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param name the name of the folder
                 * @param color the color reference
                 */
-            addColor(parent: dat.GUI, name: string, color: Color3 | Color4): dat.GUI;
+            addColor(parent: dat.GUI, name: string, color: Color3 | Color4, callback?: () => void): dat.GUI;
             /**
                 * Adds a position element
                 * @param parent the parent folder
