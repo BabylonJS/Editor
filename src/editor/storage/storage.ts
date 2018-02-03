@@ -46,7 +46,7 @@ export default abstract class Storage {
             return await this.uploadFiles(folder, filesToWrite);
         
         let files = await this.getFiles(folder);
-        let current: GetFiles = null;
+        let current: GetFiles = { folder: 'root', name: 'root' };
         let previous: GetFiles[] = [];
 
         this.picker = new Picker('Export...');

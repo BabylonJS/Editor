@@ -126,16 +126,6 @@ export default class PostProcessCreator extends EditorPlugin {
         ];
         this.toolbar.build('POST-PROCESS-CREATOR-TOOLBAR');
 
-        // Fill toolbar menus
-        const camerasMenu = <any>this.toolbar.element.get('cameras');
-        this.editor.core.scene.cameras.forEach(c => {
-            if (c === this.editor.camera)
-                return;
-
-            camerasMenu.items.push({ id: c.id, caption: c.name, text: c.name });
-        });
-        this.toolbar.element.refresh();
-
         // Create grid
         this.grid = new Grid<PostProcessGrid>('PostProcessCreatorGrid', {
             toolbarReload: false,
