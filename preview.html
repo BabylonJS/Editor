@@ -69,6 +69,9 @@
         // Loads the Babylon.js Scenes
         var loadScene = function (sceneFile) {
             var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
 
             // Load Extensions Manager and then all extensions
             var promises = [];
