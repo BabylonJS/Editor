@@ -246,10 +246,16 @@ export default class Editor {
             // Restart plugins
             await this.restartPlugins();
 
-            //await this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer');
-            //await this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', 'Texture Viewer');
-            //await this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', 'Animations Editor');
-            //await this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', 'Behavior Code');
+            const promises: Promise<any>[] = [
+                // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
+                // this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
+                // this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', false, 'Animations Editor'),
+                // this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', false, 'Behavior Code'),
+                // this.addEditPanelPlugin('./.build/src/tools/material-creator/index.js', false, 'Material Creator'),
+                // this.addEditPanelPlugin('./.build/src/tools/post-process-creator/index.js', false, 'Material Creator')
+            ];
+
+            await Promise.all(promises);
         }
 
         if (!showNewSceneDialog)

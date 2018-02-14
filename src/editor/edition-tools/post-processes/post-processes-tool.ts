@@ -45,19 +45,25 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._standardEnabled = SceneManager.StandardRenderingPipeline !== null;
         standardPipeline.add(this, '_standardEnabled').name('Enable').onChange(async r => {
-            const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
-            pipeline.depthOfFieldDistance = 0.05;
-            
-            await Tools.CreateFileFromURL('assets/textures/lensflaredirt.png');
-            pipeline.lensTexture = pipeline.lensFlareDirtTexture = new Texture('file:lensflaredirt.png', scene);
+            if (!r)
+                SceneManager.StandardRenderingPipeline.dispose();
+            else {
+                const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
+                pipeline.depthOfFieldDistance = 0.05;
+                
+                await Tools.CreateFileFromURL('assets/textures/lensflaredirt.png');
+                pipeline.lensTexture = pipeline.lensFlareDirtTexture = new Texture('file:lensflaredirt.png', scene);
 
-            await Tools.CreateFileFromURL('assets/textures/lensstar.png');
-            pipeline.lensStarTexture = new Texture('file:lensstar.png', scene);
+                await Tools.CreateFileFromURL('assets/textures/lensstar.png');
+                pipeline.lensStarTexture = new Texture('file:lensstar.png', scene);
 
-            await Tools.CreateFileFromURL('assets/textures/lenscolor.png');
-            pipeline.lensColorTexture = new Texture('file:lenscolor.png', scene);
+                await Tools.CreateFileFromURL('assets/textures/lenscolor.png');
+                pipeline.lensColorTexture = new Texture('file:lenscolor.png', scene);
 
-            SceneManager.StandardRenderingPipeline = pipeline;
+                SceneManager.StandardRenderingPipeline = pipeline;
+            }
+
+            // Update tool
             this.update(scene);
 
             // Check if extension is created
@@ -126,14 +132,19 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._ssaoEnabled = SceneManager.SSAORenderingPipeline !== null;
         ssao.add(this, '_ssaoEnabled').name('Enable').onChange(async r => {
-            const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
-            pipeline.fallOff = 0.000001;
-            pipeline.area = 1.0;
-            pipeline.radius = 0.0004;
-            pipeline.totalStrength = 2;
-            pipeline.base = 1.3;
+            if (!r)
+                SceneManager.SSAORenderingPipeline.dispose();
+            else {
+                const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
+                pipeline.fallOff = 0.000001;
+                pipeline.area = 1.0;
+                pipeline.radius = 0.0004;
+                pipeline.totalStrength = 2;
+                pipeline.base = 1.3;
 
-            SceneManager.SSAORenderingPipeline = pipeline;
+                SceneManager.SSAORenderingPipeline = pipeline;
+            }
+
             this.update(scene);
         });
 
@@ -151,14 +162,19 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._ssao2Enabled = SceneManager.SSAO2RenderingPipeline !== null;
         ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(async r => {
-            const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);
-            pipeline.radius = 3.5;
-            pipeline.totalStrength = 1.3;
-            pipeline.expensiveBlur = true;
-            pipeline.samples = 16;
-            pipeline.maxZ = 250;
+            if (!r)
+                SceneManager.SSAO2RenderingPipeline.dispose();
+            else {
+                const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);
+                pipeline.radius = 3.5;
+                pipeline.totalStrength = 1.3;
+                pipeline.expensiveBlur = true;
+                pipeline.samples = 16;
+                pipeline.maxZ = 250;
 
-            SceneManager.SSAO2RenderingPipeline = pipeline;
+                SceneManager.SSAO2RenderingPipeline = pipeline;
+            }
+
             this.update(scene);
         });
 
