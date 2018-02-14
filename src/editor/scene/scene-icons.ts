@@ -46,7 +46,6 @@ export default class SceneIcons {
         this.material = new StandardMaterial('SceneIcons', this.scene);
         this.material.diffuseTexture = this.lightTexture;
         this.material.emissiveColor = Color3.White();
-        this.material.useAlphaFromDiffuseTexture = true;
         this.material.disableDepthWrite = false;
         this.material.disableLighting = true;
         this.scene.materials.pop();
@@ -68,7 +67,6 @@ export default class SceneIcons {
         // Alpha testing
         const scene = this.editor.core.scene;
         const engine = this.editor.core.engine;
-        engine.setAlphaTesting(true);
 
         // Render
         const subMesh = this.plane.subMeshes[0];
