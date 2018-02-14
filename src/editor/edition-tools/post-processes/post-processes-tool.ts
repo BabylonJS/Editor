@@ -45,8 +45,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._standardEnabled = SceneManager.StandardRenderingPipeline !== null;
         standardPipeline.add(this, '_standardEnabled').name('Enable').onChange(async r => {
-            if (!r)
+            if (!r) {
                 SceneManager.StandardRenderingPipeline.dispose();
+                SceneManager.StandardRenderingPipeline = null;
+            }
             else {
                 const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
                 pipeline.depthOfFieldDistance = 0.05;
@@ -132,8 +134,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._ssaoEnabled = SceneManager.SSAORenderingPipeline !== null;
         ssao.add(this, '_ssaoEnabled').name('Enable').onChange(async r => {
-            if (!r)
+            if (!r) {
                 SceneManager.SSAORenderingPipeline.dispose();
+                SceneManager.SSAORenderingPipeline = null;
+            }
             else {
                 const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
                 pipeline.fallOff = 0.000001;
@@ -162,8 +166,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
         this._ssao2Enabled = SceneManager.SSAO2RenderingPipeline !== null;
         ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(async r => {
-            if (!r)
+            if (!r) {
                 SceneManager.SSAO2RenderingPipeline.dispose();
+                SceneManager.SSAO2RenderingPipeline = null;
+            }
             else {
                 const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);
                 pipeline.radius = 3.5;
