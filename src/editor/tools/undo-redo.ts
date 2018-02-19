@@ -11,6 +11,11 @@ export default class UndoRedo {
     public static Stack: StackElement[] = [];
     public static CurrentIndex: number = 0;
 
+    public static StackSize: number = 200;
+
+    public static onUndo: (element: StackElement) => void;
+    public static onRedo: (element: StackElement) => void;
+
     /**
      * Pushes a new element in the stack
      * @param element the element to push in the stack
@@ -24,6 +29,12 @@ export default class UndoRedo {
 
         this.Stack.push(element);
         this.CurrentIndex = this.Stack.length - 1;
+
+        // TODO: manage stack size
+        // if (this.Stack.length > this.StackSize)
+
+        // Event
+        this.onRedo && this.onRedo(element);
     }
 
     /**
@@ -47,17 +58,20 @@ export default class UndoRedo {
      * Undo an action
      */
     public static Undo (): StackElement {
-        if (this.Stack.length === 0)
+        if (this.Stack.length === 0 || this.CurrentIndex < 0)
             return null;
         
         const element = this.Stack[this.CurrentIndex];
-        element.object[element.property] = element.from;
+        this._SetEffectivePropertyValue(element.object, element.property, element.from);
 
         if (element.fn)
             element.fn('from');
 
         if (this.CurrentIndex > 0)
             this.CurrentIndex--;
+
+        // Event
+        this.onUndo && this.onUndo(element);
 
         return element;
     }
@@ -66,8 +80,11 @@ export default class UndoRedo {
      * Redo an action
      */
     public static Redo (): StackElement {
+        if (this.Stack.length === 0 || this.CurrentIndex === this.Stack.length)
+            return;
+        
         const element = this.Stack[this.CurrentIndex];
-        element.object[element.property] = element.to;
+        this._SetEffectivePropertyValue(element.object, element.property, element.to);
 
         if (element.fn)
             element.fn('to');
@@ -75,6 +92,26 @@ export default class UndoRedo {
         if (this.CurrentIndex < this.Stack.length - 1)
             this.CurrentIndex++;
 
+        // Event
+        this.onRedo && this.onRedo(element);
+
         return element;
+    }
+
+    // Sets the given value to the given effective property
+    private static _SetEffectivePropertyValue (object: any, property: string, value: any): void {
+        if (!property || !object)
+            return;
+        
+        const split = property.split('.');
+
+        if (split.length > 1) {
+            property = split[split.length - 1];
+
+            for (let i = 0; i < split.length - 1; i++)
+                object = object[split[i]];
+        }
+
+        object[property] = value;
     }
 }

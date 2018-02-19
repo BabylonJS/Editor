@@ -188,7 +188,7 @@ export default class DefaultScene {
         sphereAnimated.position.set(15, 3, 0);
         sphereAnimated.material = sphereMaterialAnim;
 
-        const anim = new Animation('Rotation', 'rotation.y', 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, true);
+        let anim = new Animation('Rotation', 'rotation.y', 60, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE, true);
         anim.setKeys([
             { frame: 0, value: 0 },
             { frame: 60, value: Math.PI },
@@ -198,7 +198,18 @@ export default class DefaultScene {
         ]);
 
         sphereAnimated.animations.push(anim);
-        scene.beginAnimation(sphereAnimated, 0, 240, true, 1.0);
+
+        anim = new Animation('Position', 'position', 60, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CYCLE, true);
+        anim.setKeys([
+            { frame: 0, value: new Vector3(0, 0, 0) },
+            { frame: 60, value: new Vector3(0, 5, 0) },
+            { frame: 120, value: new Vector3(5, 5, 0) },
+            { frame: 180, value: new Vector3(0, 5, 5) },
+            { frame: 240, value: new Vector3(0, 0, 0) }
+        ]);
+
+        sphereAnimated.animations.push(anim);
+        //scene.beginAnimation(sphereAnimated, 0, 240, true, 1.0);
 
         // Plane
         const documentation = await this.LoadTexture('assets/textures/documentation.png', scene);
