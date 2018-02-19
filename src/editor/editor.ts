@@ -308,6 +308,7 @@ export default class Editor {
     // Handles the events of the editor
     private _handleEvents (): void {
         // Undo
+        UndoRedo.onUndo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ object: e.object, property: e.property, value: e.to, initialValue: e.from });
         document.addEventListener('keyup', (ev) => {
             if (ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
@@ -316,6 +317,7 @@ export default class Editor {
         });
 
         // Redo
+        UndoRedo.onRedo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ object: e.object, property: e.property, value: e.to, initialValue: e.from });
         document.addEventListener('keyup', (ev) => {
             if (ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();

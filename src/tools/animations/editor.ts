@@ -39,6 +39,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     public fpsInput: JQuery = null;
     public frameInput: JQuery = null;
+    public valueInput: JQuery = null;
 
     public paper: RaphaelPaper = null;
     public background: RaphaelElement = null;
@@ -60,10 +61,13 @@ export default class AnimationEditor extends EditorPlugin {
     public animation: Animation = null;
     public animationManager: Animatable = null;
     public key: AnimationKey = null;
+    
+    public data: DragData = null;
 
     // Protected members
     protected mouseMoveHandler: (ev: MouseEvent) => void;
     protected addingKeys: boolean = false;
+    protected removingKeys: boolean = false;
 
     protected onResize = () => this.resize();
     protected onObjectSelected = (node) => node && this.objectSelected(node);
@@ -114,11 +118,13 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.items = [
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
             { type: 'check', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
+            { type: 'check', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
             { type: 'break' },
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] }
         ];
         this.toolbar.right = `
         <div style="padding: 3px 10px;">
+            Value: <input size="10" id="ANIMATION-EDITOR-VALUE" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
             Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
             FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
         </div>`;
@@ -173,7 +179,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.frameInput[0].addEventListener('change', (ev) => {
             if (this.key) {
                 const fromFrame = this.key.frame;
-                const toFrame =  parseFloat(<string>this.frameInput.val());
+                const toFrame =  parseFloat(<string> this.frameInput.val());
 
                 this.key.frame = toFrame;
                 this.updateGraph(this.animation);
@@ -187,6 +193,30 @@ export default class AnimationEditor extends EditorPlugin {
                     fn: (type) => {
                         this.updateGraph(this.animation);
                         this.frameInput.val(type === 'from' ? fromFrame : toFrame);
+                    }
+                });
+            }
+        });
+
+        const value = $('#ANIMATION-EDITOR-VALUE');
+        this.valueInput = (<any> value).w2field('float', { autoFormat: true });
+        this.valueInput[0].addEventListener('change', (ev) => {
+            if (this.key && this.data) {
+                const fromValue = this.data.property === '' ? this.key.value : this.key.value[this.data.property];
+                const toValue = parseFloat(<string> this.valueInput.val());
+
+                this.data.property === '' ? (this.key.value = toValue) : (this.key.value[this.data.property] = toValue);
+                this.updateGraph(this.animation);
+
+                // Undo / redo
+                UndoRedo.Push({ // Value
+                    object: this.key,
+                    property: this.data.property === '' ? 'value' : `value.${this.data.property}`,
+                    from: fromValue,
+                    to: toValue,
+                    fn: (type) => {
+                        this.updateGraph(this.animation);
+                        this.frameInput.val(type === 'from' ? fromValue : toValue);
                     }
                 });
             }
@@ -248,9 +278,14 @@ export default class AnimationEditor extends EditorPlugin {
             return;
         }
 
+        // Uncheck all
+        this.toolbar.element.uncheck('add-key', 'remove-key');
+        this.addingKeys = this.removingKeys = false;
+        
         switch (id) {
             case 'add': this.addAnimation(); break;
             case 'add-key': this.addingKeys = !this.addingKeys; break;
+            case 'remove-key': this.removingKeys = !this.removingKeys; break;
             default: break;
         }
     }
@@ -325,6 +360,7 @@ export default class AnimationEditor extends EditorPlugin {
     protected onChangeAnimation(property: string): void {
         // Clean selected elements
         this.key = null;
+        this.data = null;
 
         if (!this.animatable)
             return;
@@ -555,15 +591,41 @@ export default class AnimationEditor extends EditorPlugin {
         let toValue = null;
 
         const onStart = (x: number, y: number, ev) => {
+            if (this.removingKeys) {
+                const key = this.animation.getKeys()[data.keyIndex];
+                UndoRedo.Push({
+                    fn: type => {
+                        if (type === 'from')
+                            this.animation.getKeys().splice(data.keyIndex, 0, key);
+                        else
+                            this.animation.getKeys().splice(data.keyIndex, 1);
+
+                        this.updateGraph(this.animation);
+                    }
+                });
+                this.animation.getKeys().splice(data.keyIndex, 1);
+                return this.updateGraph(this.animation);
+            }
+
             data.point.attr('opacity', 1);
             this.valueText.show();
 
-            // Set key as selected
+            // Set key and data as selected
             this.key = this.animation.getKeys()[data.keyIndex];
+            this.data = data;
+
             this.frameInput.val(this.key.frame);
 
+            if (data.property === '') {
+                this.valueInput.val(this.key.value);
+                fromValue = this.key.value;
+            }
+            else {
+                this.valueInput.val(this.key.value[data.property]);
+                fromValue = this.key.value[data.property];
+            }
+
             fromFrame = this.key.frame;
-            fromValue = this.key.value;
         };
 
         const onMove = (dx, dy, x, y, ev) => {
@@ -583,36 +645,28 @@ export default class AnimationEditor extends EditorPlugin {
             // Update current animation key (frame + value)
             const frame = Scalar.Clamp((ev.offsetX * data.maxFrame) / this.paper.width, 0, data.maxFrame - 1);
 
-            let value = 0;
+            toValue = 0;
             if (ev.offsetY > this.paper.height / 2)
-                value = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = -((ev.offsetY - this.paper.height / 2) * data.valueInterval) / (this.paper.height / 2) * 2;
             else
-                value = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
+                toValue = ((this.paper.height / 2 - ev.offsetY) * data.valueInterval) / (this.paper.height / 2) * 2;
 
             this.key.frame = frame;
             toFrame = frame;
 
-            if (data.property === '') {
-                this.key.value = value;
-                toValue = value;
-            }
-            else {
-                data.properties.forEach(p => {
-                    if (p === data.property)
-                        this.key.value[p] = value;
-                });
-
-                if (this.key.value.clone)
-                    toValue = this.key.value.clone();
-            }
+            if (data.property === '')
+                this.key.value = toValue;
+            else
+                this.key.value[data.property] = toValue;
 
             // Update frame input
             this.frameInput.val(frame);
+            this.valueInput.val(data.property === '' ? toValue : this.key.value[data.property]);
 
             // Update value text
             this.valueText.attr('x', ev.offsetX);
             this.valueText.attr('y', ev.offsetY - 20);
-            this.valueText.attr('text', value.toFixed(4));
+            this.valueText.attr('text', toValue.toFixed(4));
         };
 
         const onEnd = (ev) => {
@@ -639,10 +693,12 @@ export default class AnimationEditor extends EditorPlugin {
 
             UndoRedo.Push({ // Value
                 object: this.key,
-                property: 'value',
+                property: data.property === '' ? 'value' : `value.${data.property}`,
                 from: fromValue,
                 to: toValue,
-                fn: () => this.updateGraph(this.animation)
+                fn: () => {
+                    this.updateGraph(this.animation);
+                }
             });
         };
 
