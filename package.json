@@ -17,6 +17,7 @@
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",
     "bundle": "node ./script/dts.js && node ./script/bundle.js && node ./script/electron.js",
+    "bundle-js": "node ./script/bundle.js",
     "installer-osx": "node ./script/electron.js --platform=darwin",
     "installer-win32": "node ./script/electron.js --platform=win32",
     "dts": "node ./script/dts.js"

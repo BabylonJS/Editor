@@ -213,6 +213,9 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
     export default class UndoRedo {
             static Stack: StackElement[];
             static CurrentIndex: number;
+            static StackSize: number;
+            static onUndo: (element: StackElement) => void;
+            static onRedo: (element: StackElement) => void;
             /**
                 * Pushes a new element in the stack
                 * @param element the element to push in the stack
@@ -665,6 +668,12 @@ declare module 'babylonjs-editor/editor/core' {
             onSelectObject: Observable<any>;
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
+            onGlobalPropertyChange: Observable<{
+                    object: any;
+                    property: string;
+                    value: any;
+                    initialValue: any;
+            }>;
             /**
                 * Constructor
                 */
