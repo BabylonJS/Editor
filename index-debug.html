@@ -21,6 +21,7 @@
                 "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
                 "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
                 "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.js",
+                "babylonjs-serializers": "./node_modules/babylonjs-serializers/babylonjs.serializers.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
                 "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
@@ -46,11 +47,6 @@
                     main: "babylonjs.loaders.js",
                     format: "global"
                 },
-                "./node_modules/babylonjs-materials/": {
-                    format: "cjs",
-                    main: "babylonjs.materials.js",
-                    format: "global"
-                },
                 "./node_modules/babylonjs-gui/": {
                     format: "cjs",
                     main: "babylon.gui.js",
@@ -65,7 +61,8 @@
                 "cannonjs": { format: "global" },
                 "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
                 "babylonjs-gui": { exports: "babylonDependency.GUI" },
-                "babylonjs-materials": { exports: "babylonDependency" }
+                "babylonjs-materials": { exports: "babylonDependency" },
+                "babylonjs-serializers": { exports: "babylonDependency" }
             },
             pluginFirst: true
         });
