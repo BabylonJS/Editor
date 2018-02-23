@@ -11,6 +11,7 @@ import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 import SceneImporter from '../scene/scene-importer';
 import SceneManager from '../scene/scene-manager';
+import SceneSerializer from '../scene/scene-serializer';
 
 export default class EditorToolbar {
     // Public members
@@ -33,7 +34,9 @@ export default class EditorToolbar {
                     { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Export Project...' },
-                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
+                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' },
+                    { type: 'break' },
+                    { id: 'serialize-scene', img: 'icon-copy', text: 'Export Scene As...' }
                 ]
             },
             { type: 'break' },
@@ -106,6 +109,9 @@ export default class EditorToolbar {
                 break;
             case 'project:export-template':
                 await SceneExporter.ExportTemplate(this.editor);
+                break;
+            case 'project:serialize-scene':
+                new SceneSerializer(this.editor.core.scene);
                 break;
 
             // Edit

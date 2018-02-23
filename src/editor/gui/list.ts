@@ -46,6 +46,13 @@ export default class List {
     }
 
     /**
+     * Returns the selected value of the list
+     */
+    public getSelected (): string {
+        return <string> this.element.val();
+    }
+
+    /**
      * Builds the element
      * The parent HTML element
      */

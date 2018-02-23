@@ -10,6 +10,9 @@ export default class Window {
     public body: string = '';
     public buttons: string[] = [];
 
+    public width: number = 800;
+    public height: number = 600;
+
     public showMax: boolean = true;
 
     public onButtonClick: (id: string) => void;
@@ -60,8 +63,8 @@ export default class Window {
             title: this.title,
             body: this.body,
             buttons: buttons,
-            width: 800,
-            height: 600,
+            width: this.width,
+            height: this.height,
             showClose: true,
             showMax: this.showMax,
             modal: true
