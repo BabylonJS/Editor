@@ -821,6 +821,7 @@ export default class AnimationEditor extends EditorPlugin {
 
                 // Add key
                 if (properties.length === 1) {
+                    let keyIndex = 0;
                     let key = {
                         frame: frame,
                         value: value
@@ -828,10 +829,23 @@ export default class AnimationEditor extends EditorPlugin {
 
                     for (let i = 0; i < keys.length; i++) {
                         if (keys[i].frame > frame) {
+                            keyIndex = i;
                             keys.splice(i, 0, key);
                             break;
                         }
                     }
+
+                    // Undo redo
+                    UndoRedo.Push({
+                        fn: type => {
+                            if (type === 'from')
+                                this.animation.getKeys().splice(keyIndex, 1);
+                            else
+                                this.animation.getKeys().splice(keyIndex, 0, key);
+
+                            this.updateGraph(this.animation);
+                        }
+                    })
 
                     this.updateGraph(this.animation);
                 }
