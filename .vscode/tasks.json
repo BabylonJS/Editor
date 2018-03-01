@@ -27,6 +27,11 @@
             "type": "npm",
             "script": "dts",
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "bundle-js",
+            "problemMatcher": []
         }
     ]
 }
