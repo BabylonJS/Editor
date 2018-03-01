@@ -21,7 +21,10 @@ export default class UndoRedo {
      * @param element the element to push in the stack
      */
     public static Push (element: StackElement): void {
-        const start = (this.CurrentIndex === this.Stack.length - 1) ? this.CurrentIndex + 1 : this.CurrentIndex;
+        let start = (this.CurrentIndex === this.Stack.length - 1) ? this.CurrentIndex + 1 : this.CurrentIndex;
+        if (start < 0)
+            start = 0;
+
         for (let i = start; i < this.Stack.length; i++) {
             this.Stack.splice(i, 1);
             i--;
@@ -67,8 +70,7 @@ export default class UndoRedo {
         if (element.fn)
             element.fn('from');
 
-        if (this.CurrentIndex > 0)
-            this.CurrentIndex--;
+        this.CurrentIndex--;
 
         // Event
         this.onUndo && this.onUndo(element);
@@ -80,17 +82,17 @@ export default class UndoRedo {
      * Redo an action
      */
     public static Redo (): StackElement {
-        if (this.Stack.length === 0 || this.CurrentIndex === this.Stack.length)
+        if (this.Stack.length === 0 || this.CurrentIndex >= this.Stack.length - 1)
             return;
+        
+        if (this.CurrentIndex < this.Stack.length)
+            this.CurrentIndex++;
         
         const element = this.Stack[this.CurrentIndex];
         this._SetEffectivePropertyValue(element.object, element.property, element.to);
 
         if (element.fn)
             element.fn('to');
-
-        if (this.CurrentIndex < this.Stack.length - 1)
-            this.CurrentIndex++;
 
         // Event
         this.onRedo && this.onRedo(element);
