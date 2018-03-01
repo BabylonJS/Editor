@@ -333,6 +333,10 @@ declare module 'babylonjs-editor/editor/gui/list' {
                 */
             setSelected(text: string): void;
             /**
+                * Returns the selected value of the list
+                */
+            getSelected(): string;
+            /**
                 * Builds the element
                 * The parent HTML element
                 */
@@ -528,6 +532,8 @@ declare module 'babylonjs-editor/editor/gui/window' {
             title: string;
             body: string;
             buttons: string[];
+            width: number;
+            height: number;
             showMax: boolean;
             onButtonClick: (id: string) => void;
             onClose: () => void;
