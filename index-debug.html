@@ -46,11 +46,6 @@
                     format: "cjs",
                     main: "babylonjs.loaders.js",
                     format: "global"
-                },
-                "./node_modules/babylonjs-gui/": {
-                    format: "cjs",
-                    main: "babylon.gui.js",
-                    format: "global"
                 }
             },
             map: {
@@ -59,10 +54,7 @@
             meta: {
                 "*.css": { loader: "css" },
                 "cannonjs": { format: "global" },
-                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
-                "babylonjs-gui": { exports: "babylonDependency.GUI" },
-                "babylonjs-materials": { exports: "babylonDependency" },
-                "babylonjs-serializers": { exports: "babylonDependency" }
+                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" }
             },
             pluginFirst: true
         });

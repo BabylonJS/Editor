@@ -3,7 +3,8 @@ import {
     ActionManager,
     StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline,
     IAnimatable,
-    ParticleSystem
+    ParticleSystem,
+    GlowLayer
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -15,6 +16,8 @@ export default class SceneManager {
     public static StandardRenderingPipeline: StandardRenderingPipeline = null;
     public static SSAORenderingPipeline: SSAORenderingPipeline = null;
     public static SSAO2RenderingPipeline: SSAO2RenderingPipeline = null;
+
+    public static GlowLayer: GlowLayer = null;
 
     public static PostProcessExtension: PostProcessesExtension = null;
 

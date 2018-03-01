@@ -1,7 +1,8 @@
-import { Scene, Vector3, CannonJSPlugin } from 'babylonjs';
+import { Scene, Vector3, CannonJSPlugin, GlowLayer } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
+import SceneManager from '../scene/scene-manager';
 
 export default class SceneTool extends AbstractEditionTool<Scene> {
     // Public members
@@ -10,7 +11,8 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
     // Private members
     private _physicsEnabled: boolean = false;
-    public _fogMode: string = '';
+    private _fogMode: string = '';
+    private _glowEnabled: boolean = false;
 
 	/**
 	* Returns if the object is supported
@@ -29,7 +31,8 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
         // Misc.
         this._physicsEnabled = scene.isPhysicsEnabled();
-
+        this._glowEnabled = SceneManager.GlowLayer !== null;
+        
         // Colors
         const colors = this.tool.addFolder('Colors');
         colors.open();
@@ -38,16 +41,32 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         this.tool.addColor(colors, 'Clear', scene.clearColor).open();
 
         // Image processing
-        scene.imageProcessingConfiguration.exposure;
-        scene.imageProcessingConfiguration.contrast;
-        scene.imageProcessingConfiguration.toneMappingEnabled;
-
         const imageProcessing = this.tool.addFolder('Image Processing');
         imageProcessing.open();
 
         imageProcessing.add(scene.imageProcessingConfiguration, 'exposure').step(0.01).name('Exposure');
         imageProcessing.add(scene.imageProcessingConfiguration, 'contrast').step(0.01).name('Contrast');
         imageProcessing.add(scene.imageProcessingConfiguration, 'toneMappingEnabled').name('Tone Mapping Enabled');
+
+        // Glow layer
+        const glow = this.tool.addFolder('Glow Layer');
+        glow.open();
+
+        glow.add(this, '_glowEnabled').name('Enable Glow Layer').onFinishChange(r => {
+            if (!r) {
+                SceneManager.GlowLayer.dispose();
+                SceneManager.GlowLayer = null;
+            }
+            else
+                SceneManager.GlowLayer = new GlowLayer('GlowLayer', scene);
+
+            this.update(scene);
+        });
+
+        if (this._glowEnabled) {
+            glow.add(SceneManager.GlowLayer, 'intensity').min(0).step(0.01).name('Intensity');
+            glow.add(SceneManager.GlowLayer, 'blurKernelSize').min(0).max(128).step(1).name('Blur Size');
+        }
 
         // Environment texture
         const environment = this.tool.addFolder('Environment Texture');

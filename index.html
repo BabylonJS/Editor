@@ -45,16 +45,6 @@
                     format: "cjs",
                     main: "babylonjs.loaders.min.js",
                     format: "global"
-                },
-                "./node_modules/babylonjs-materials/": {
-                    format: "cjs",
-                    main: "babylonjs.materials.min.js",
-                    format: "global"
-                },
-                "./node_modules/babylonjs-gui/": {
-                    format: "cjs",
-                    main: "babylon.gui.min.js",
-                    format: "global"
                 }
             },
             map: {
@@ -63,9 +53,7 @@
             meta: {
                 "*.css": { loader: "css" },
                 "cannonjs": { format: "global" },
-                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
-                "babylonjs-gui": { exports: "babylonDependency.GUI" },
-                "babylonjs-materials": { exports: "babylonDependency" }
+                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" }
             },
             pluginFirst: true
         });
