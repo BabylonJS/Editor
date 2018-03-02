@@ -4,7 +4,28 @@ const build = function (baseUrl, inFile, outFile, options) {
     const builder = new Builder(baseUrl);
     builder.config({
         paths: {
-            '*': '*.js'
+            '*': '*.js',
+
+            'babylonjs': './node_modules/babylonjs/babylon.max.js',
+            'babylonjs-gui': './node_modules/babylonjs-gui/babylon.gui.js',
+            'babylonjs-materials': './node_modules/babylonjs-materials/babylonjs.materials.js',
+            'babylonjs-loaders': './node_modules/babylonjs-loaders/babylonjs.loaders.js',
+            'babylonjs-serializers': './node_modules/babylonjs-serializers/babylonjs.serializers.js',
+            'cannonjs': './node_modules/cannon/build/cannon.js',
+            'spectorjs': './node_modules/spectorjs/dist/spector.bundle.js',
+            'dat-gui': './node_modules/dat.gui/build/dat.gui.js',
+            'raphael': './node_modules/raphael/raphael.js',
+            'socket.io-client': './node_modules/socket.io-client/dist/socket.io.js',
+
+            // Editor's modules paths
+            'babylonjs-editor': './.build/src/index.js',
+            'babylonjs-editor-extensions': './.build/src/extensions/index.js',
+            'animation-editor': './.build/src/tools/animations/editor.js',
+            'material-viewer': './.build/src/tools/materials/viewer.js',
+            'behavior-editor': './.build/src/tools/behavior/code.js',
+            'texture-viewer': './.build/src/tools/textures/viewer.js',
+            'material-creator': './.build/src/tools/material-creator/index.js',
+            'post-process-creator': './.build/src/tools/post-process-creator/index.js'
         }
     });
     builder.buildStatic(inFile, outFile, options).then(function () {
@@ -33,6 +54,12 @@ build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
     format: 'cjs',
     externals: externals,
+    minify: true
+});
+
+build('./.build/src/', './.build/src/index.js', './dist/editor-all.js', {
+    globalName: 'Editor',
+    format: 'cjs',
     minify: true
 });
 
