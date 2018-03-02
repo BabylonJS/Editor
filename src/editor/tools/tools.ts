@@ -134,7 +134,7 @@ export default class Tools {
     /**
      * Returns the base url of the window
      */
-    public static GetBaseURL(): string {
+    public static GetBaseURL (): string {
         let url = window.location.href;
         url = url.replace(BabylonTools.GetFilename(url), '');
 
@@ -146,7 +146,7 @@ export default class Tools {
      * @param arr: the array to sort
      * @param property: the property to take
      */
-    public static SortAlphabetically(arr: any[], property?: string): void {
+    public static SortAlphabetically (arr: any[], property?: string): void {
         arr.sort((a, b) => {
             a = property ? a[property] : a;
             b = property ? b[property] : b;
@@ -207,7 +207,7 @@ export default class Tools {
     * Converts a string to an UInt8Array
     $ @param str: the string to convert
     */
-    public static ConvertStringToUInt8Array(str: string): Uint8Array {
+    public static ConvertStringToUInt8Array (str: string): Uint8Array {
         const len = str.length;
         const array = new Uint8Array(len);
 

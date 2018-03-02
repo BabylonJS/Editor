@@ -1,5 +1,6 @@
 import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh, SubMesh } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
+import SceneManager from '../scene/scene-manager';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members
@@ -105,12 +106,19 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             camera.add(node, 'maxZ').step(0.01).name('Max Z');
             camera.add(node, 'fov').step(0.01).name('Fov');
         }
+
+        // Animations
+        if (node.animations && node.animations.length > 0 || (node instanceof Mesh && node.skeleton)) {
+            const animations = this.tool.addFolder('Animations');
+            animations.open();
+            animations.add(this, 'playAnimations').name('Play Animations');
+        }
     }
 
     /**
      * Creates a new instance
      */
-    protected createInstance(): void {
+    protected createInstance (): void {
         const instance = (<Mesh>this.object).createInstance('New instance ' + Tools.RandomId());
         instance.id = Tools.RandomId();
 
@@ -124,5 +132,27 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
         this.editor.edition.setObject(instance);
         this.editor.graph.select(instance.id);
+    }
+
+    /**
+     * Plays the animations of the current node
+     * (including skeleton if exists)
+     */
+    protected playAnimations (): void {
+        const scene = this.editor.core.scene;
+
+        if (this.object.animations && this.object.animations.length > 0) {
+            const bounds = SceneManager.GetAnimationFrameBounds([this.object]);
+
+            scene.stopAnimation(this.object);
+            scene.beginAnimation(this.object, bounds.min, bounds.max, false, 1.0);
+        }
+
+        if (this.object instanceof Mesh && this.object.skeleton) {
+            const bounds = SceneManager.GetAnimationFrameBounds(this.object.skeleton.bones);
+
+            scene.stopAnimation(this.object.skeleton);
+            scene.beginAnimation(this.object.skeleton, bounds.min, bounds.max, false, 1.0);
+        }
     }
 }

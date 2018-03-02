@@ -1,4 +1,4 @@
-import { ParticleSystem, GPUParticleSystem, Vector3 } from 'babylonjs';
+import { ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem, BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 
 export default class ParticleSystemTool extends AbstractEditionTool<ParticleSystem | GPUParticleSystem> {
@@ -9,6 +9,7 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
     // Private members
     private _currentEmitter: string = '';
     private _currentBlendMode: string = '';
+    private _currentEmiterType: string = '';
 
     /**
      * Returns if the object is supported
@@ -45,6 +46,35 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
                     if (mesh)
                         ps.emitter = mesh;
                 });
+            }
+
+            // Emitter type
+            const emiterType = this.tool.addFolder('Emiter Type');
+            emiterType.open();
+
+            this._currentEmiterType = this._getEmiterTypeString(ps);
+            const emiterTypes: string[] = [
+                'Box',
+                'Sphere',
+                'Cone'
+            ];
+            emiterType.add(this, '_currentEmiterType', emiterTypes).name('Emiter Type').onFinishChange(r => {
+                switch (r) {
+                    case 'Box': ps.createBoxEmitter(ps.direction1, ps.direction2, ps.minEmitBox, ps.maxEmitBox); break;
+                    case 'Sphere': ps.createSphereEmitter(10); break;
+                    case 'Cone': ps.createConeEmitter(10, 0); break;
+                    default: break;
+                }
+
+                this.update(ps);
+            });
+
+            if (ps.particleEmitterType instanceof SphereParticleEmitter) {
+                emiterType.add(ps.particleEmitterType, 'radius').step(0.01).name('Radius');
+            }
+            else if (ps.particleEmitterType instanceof ConeParticleEmitter) {
+                emiterType.add(ps.particleEmitterType, 'radius').step(0.01).name('Radius');
+                emiterType.add(ps.particleEmitterType, 'angle').step(0.01).name('Angle');
             }
 
             // Texture
@@ -106,17 +136,19 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             // Gravity
             this.tool.addVector(this.tool.element, 'Gravity', ps.gravity).open();
 
-            // Direction1
-            this.tool.addVector(this.tool.element, 'Direction 1', ps.direction1).open();
+            if (ps.particleEmitterType instanceof BoxParticleEmitter) {
+                // Direction1
+                this.tool.addVector(this.tool.element, 'Direction 1', ps.direction1).open();
 
-            // Direction2
-            this.tool.addVector(this.tool.element, 'Direction 2', ps.direction2).open();
+                // Direction2
+                this.tool.addVector(this.tool.element, 'Direction 2', ps.direction2).open();
 
-            // Min Emit Box
-            this.tool.addVector(this.tool.element, 'Min Emit Box', ps.minEmitBox).open();
-            
-            // Max Emit Box
-            this.tool.addVector(this.tool.element, 'Max Emit Box', ps.maxEmitBox).open();
+                // Min Emit Box
+                this.tool.addVector(this.tool.element, 'Min Emit Box', ps.minEmitBox).open();
+                
+                // Max Emit Box
+                this.tool.addVector(this.tool.element, 'Max Emit Box', ps.maxEmitBox).open();
+            }
 
             // Color 1
             this.tool.addColor(this.tool.element, 'Color 1', ps.color1).open();
@@ -127,5 +159,19 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             // Color Dead
             this.tool.addColor(this.tool.element, 'Color Dead', ps.colorDead).open();
         }
+    }
+
+    // Returns the emiter type as a string
+    private _getEmiterTypeString (ps: IParticleSystem): string {
+        if (ps.particleEmitterType instanceof BoxParticleEmitter)
+            return 'Box';
+        
+        if (ps.particleEmitterType instanceof SphereParticleEmitter)
+            return 'Sphere';
+
+        if (ps.particleEmitterType instanceof ConeParticleEmitter)
+            return 'Cone';
+
+        return 'None';
     }
 }
