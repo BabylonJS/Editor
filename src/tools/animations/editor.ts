@@ -120,7 +120,8 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'check', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
             { type: 'check', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
             { type: 'break' },
-            { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] }
+            { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
+            { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
         ];
         this.toolbar.right = `
         <div style="padding: 3px 10px;">
@@ -286,6 +287,14 @@ export default class AnimationEditor extends EditorPlugin {
             case 'add': this.addAnimation(); break;
             case 'add-key': this.addingKeys = !this.addingKeys; break;
             case 'remove-key': this.removingKeys = !this.removingKeys; break;
+            case 'remove-animation':
+                if (this.animation) {
+                    // TODO: undo-redo
+                    const index = this.animatable.animations.indexOf(this.animation);
+                    this.animatable.animations.splice(index, 1);
+                    this.objectSelected(this.animatable);
+                }
+                break;
             default: break;
         }
     }
@@ -319,6 +328,8 @@ export default class AnimationEditor extends EditorPlugin {
      * @param object: the IAnimatable object
      */
     protected objectSelected(object: IAnimatable): void {
+        this.toolbar.element.disable('remove-animation');
+
         if (!object.animations)
             return;
 
@@ -368,13 +379,18 @@ export default class AnimationEditor extends EditorPlugin {
         // Show "no data" text
         this.noDataText.show();
         
-        // Misc.
+        // Set up current animation
         this.animation = this.animatable.animations.find(a => a.name === property);
-        if (!this.animation)
-            return this.updateGraph(this.animation);
 
-        // Hide "no data" text
+        // Return if no animation
+        if (!this.animation) {
+            this.toolbar.element.disable('remove-animation');
+            return this.updateGraph(this.animation);
+        }
+
+        // Hide "no data" text and configure toolbar
         this.noDataText.hide();
+        this.toolbar.element.enable('remove-animation');
 
         const keys = this.animation.getKeys();
         const maxFrame = keys[keys.length - 1].frame;
