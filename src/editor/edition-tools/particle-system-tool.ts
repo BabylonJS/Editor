@@ -1,4 +1,4 @@
-import { ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem, BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter } from 'babylonjs';
+import { ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem, BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter, SphereDirectedParticleEmitter } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 
 export default class ParticleSystemTool extends AbstractEditionTool<ParticleSystem | GPUParticleSystem> {
@@ -56,12 +56,14 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const emiterTypes: string[] = [
                 'Box',
                 'Sphere',
+                'Sphere Directed',
                 'Cone'
             ];
             emiterType.add(this, '_currentEmiterType', emiterTypes).name('Emiter Type').onFinishChange(r => {
                 switch (r) {
                     case 'Box': ps.createBoxEmitter(ps.direction1, ps.direction2, ps.minEmitBox, ps.maxEmitBox); break;
                     case 'Sphere': ps.createSphereEmitter(10); break;
+                    case 'Sphere Directed': ps.createDirectedSphereEmitter(10, ps.direction1, ps.direction2); break;
                     case 'Cone': ps.createConeEmitter(10, 0); break;
                     default: break;
                 }
@@ -76,6 +78,9 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
                 emiterType.add(ps.particleEmitterType, 'radius').step(0.01).name('Radius');
                 emiterType.add(ps.particleEmitterType, 'angle').step(0.01).name('Angle');
             }
+
+            if (!(ps.particleEmitterType instanceof BoxParticleEmitter))
+                emiterType.add(ps.particleEmitterType, 'directionRandomizer').min(0).max(1).step(0.001).name('Direction Randomizer');
 
             // Texture
             const texture = this.tool.addFolder('Texture');
@@ -136,18 +141,20 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             // Gravity
             this.tool.addVector(this.tool.element, 'Gravity', ps.gravity).open();
 
-            if (ps.particleEmitterType instanceof BoxParticleEmitter) {
+            if (ps.particleEmitterType instanceof BoxParticleEmitter || ps.particleEmitterType instanceof SphereDirectedParticleEmitter) {
                 // Direction1
                 this.tool.addVector(this.tool.element, 'Direction 1', ps.direction1).open();
 
                 // Direction2
                 this.tool.addVector(this.tool.element, 'Direction 2', ps.direction2).open();
 
-                // Min Emit Box
-                this.tool.addVector(this.tool.element, 'Min Emit Box', ps.minEmitBox).open();
-                
-                // Max Emit Box
-                this.tool.addVector(this.tool.element, 'Max Emit Box', ps.maxEmitBox).open();
+                if (ps.particleEmitterType instanceof BoxParticleEmitter) {
+                    // Min Emit Box
+                    this.tool.addVector(this.tool.element, 'Min Emit Box', ps.minEmitBox).open();
+                    
+                    // Max Emit Box
+                    this.tool.addVector(this.tool.element, 'Max Emit Box', ps.maxEmitBox).open();
+                }
             }
 
             // Color 1
@@ -165,6 +172,9 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
     private _getEmiterTypeString (ps: IParticleSystem): string {
         if (ps.particleEmitterType instanceof BoxParticleEmitter)
             return 'Box';
+        
+        if (ps.particleEmitterType instanceof SphereDirectedParticleEmitter)
+            return 'Sphere Directed';
         
         if (ps.particleEmitterType instanceof SphereParticleEmitter)
             return 'Sphere';
