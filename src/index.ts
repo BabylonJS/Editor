@@ -13,6 +13,7 @@ import CodeEditor from './editor/gui/code';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
+import { IExtension, ExtensionConstructor } from './editor/typings/extension'
 
 export default Editor;
 export {
@@ -24,6 +25,9 @@ export {
     IDisposable,
     
     EditorPlugin,
+    
+    IExtension,
+    ExtensionConstructor,
 
     Layout,
     Toolbar,

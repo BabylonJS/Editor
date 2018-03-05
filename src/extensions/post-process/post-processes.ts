@@ -2,7 +2,7 @@ import { Scene, PostProcessRenderPipeline, StandardRenderingPipeline } from 'bab
 
 import Extension from '../extension';
 import Extensions from '../extensions';
-import { IStringDictionary } from '../../editor/typings/typings';
+import { IStringDictionary } from 'babylonjs-editor';
 
 export interface PostProcessMetadata {
     standard?: any;
