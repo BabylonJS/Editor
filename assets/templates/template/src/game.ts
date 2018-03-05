@@ -1,7 +1,10 @@
 import {
     Engine,
-    Scene, SceneLoader
+    Scene, SceneLoader,
+    Tools
 } from 'babylonjs';
+
+import { Extensions } from 'babylonjs-editor-extensions';
 
 export default class Game {
     // Public members
@@ -24,15 +27,20 @@ export default class Game {
      */
     public run (): void {
         // Load Scene
-        SceneLoader.Load('./Scene/', 'scene.babylon', this.engine, (scene: Scene) => {
+        SceneLoader.Load('./scene/', 'scene.babylon', this.engine, (scene: Scene) => {
             this.scene = scene;
 
             // Attach camera
             this.scene.activeCamera.attachControl(this.canvas, true);
 
-            // Run render loop
-            this.engine.runRenderLoop(() => {
-                this.scene.render();
+            // Load extensions
+            Tools.LoadFile('./scene/project.editorproject', (data: string) => {
+                Extensions.ApplyExtensions(this.scene, JSON.parse(data));
+                
+                // Run render loop
+                this.engine.runRenderLoop(() => {
+                    this.scene.render();
+                });
             });
         });
     }

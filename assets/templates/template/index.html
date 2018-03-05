@@ -32,8 +32,14 @@
     <script type="text/javascript">
         System.config({
             paths: {
-                "babylonjs": "./node_modules/babylonjs/dist/preview release/babylon.max.js",
+                "babylonjs": "./node_modules/babylonjs/babylon.max.js",
                 "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
+                "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
+                "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.js",
+                "babylonjs-serializers": "./node_modules/babylonjs-serializers/babylonjs.serializers.js",
+
+                "babylonjs-editor-extensions": "./libs/editor.extensions.js",
+
                 "cannonjs": "./node_modules/cannon/build/cannon.js"
             },
             packages: {
@@ -44,16 +50,6 @@
                     format: "cjs",
                     main: "babylonjs.loaders.js",
                     format: "global"
-                },
-                "./node_modules/babylonjs/dist/preview release/materialsLibrary/": {
-                    format: "cjs",
-                    main: "babylonjs.materials.js",
-                    format: "global"
-                },
-                "./node_modules/babylonjs-gui/": {
-                    format: "cjs",
-                    main: "babylon.gui.js",
-                    format: "global"
                 }
             },
             map: {
@@ -62,8 +58,7 @@
             meta: {
                 "*.css": { loader: "css" },
                 "cannonjs": { format: "global" },
-                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
-                "babylonjs-gui": { exports: "babylonDependency.GUI" }
+                "babylonjs": { format: "global", exports: "BABYLON" }
             },
             pluginFirst: true
         });

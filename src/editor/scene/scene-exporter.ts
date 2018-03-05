@@ -73,7 +73,10 @@ export default class SceneExporter {
         this.CreateFiles(editor);
 
         // Create files
-        const sceneFiles: CreateFiles[] = [{ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) }];
+        const sceneFiles: CreateFiles[] = [
+            { name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) },
+            { name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }
+        ];
         Object.keys(FilesInput.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInput.FilesToLoad[k]) }));
 
         // Src files
@@ -81,10 +84,17 @@ export default class SceneExporter {
             { name: 'game.ts', data: await Tools.LoadFile<string>('assets/templates/template/src/game.ts') }
         ];
 
+        const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
+             { name: 'editor.extensions.js', data: await Tools.LoadFile<string>('dist/editor.extensions.js') },
+             { name: 'babylonjs-editor.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor.d.ts') },
+             { name: 'babylonjs-editor-extensions.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor-extensions.d.ts') }
+        ];
+
         const storage = await this.GetStorage(editor);
         storage.openPicker('Create Template...', [
-            { name: 'Scene', folder: sceneFiles },
+            { name: 'scene', folder: sceneFiles },
             { name: 'src', folder: srcFiles },
+            { name: 'libs', folder: distFiles },
             { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
             { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
             { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },

@@ -1,6 +1,6 @@
 import { Scene } from 'babylonjs';
 
-import { IExtension } from '../editor/typings/extension';
+import { IExtension } from 'babylonjs-editor';
 
 // Abstract class extension
 export default abstract class Extension<T> implements IExtension<T> {

@@ -1,7 +1,6 @@
 import { Scene } from 'babylonjs';
 
-import { IStringDictionary } from '../editor/typings/typings';
-import { IExtension, ExtensionConstructor } from '../editor/typings/extension';
+import { IStringDictionary, IExtension, ExtensionConstructor } from 'babylonjs-editor';
 
 export default class Extensions {
     // Public members

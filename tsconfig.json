@@ -21,6 +21,7 @@
       "./.build",
       "./.declaration",
       "./index.d.ts",
+      "./babylonjs-editor-extensions.d.ts",
       "electron",
       "electron-packages",
       "assets"

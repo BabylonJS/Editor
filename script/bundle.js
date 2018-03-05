@@ -37,9 +37,19 @@ const build = function (baseUrl, inFile, outFile, options) {
 };
 
 // Extensions
-build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extensions.js', {
+build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extensions.standalone.js', {
     globalName: 'EditorExtensions',
     format: 'global',
+    globalDeps: {
+      'babylonjs': 'BABYLON',
+      'spectorjs': 'SPECTOR'
+    },
+    minify: true
+});
+
+build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extensions.js', {
+    globalName: 'EditorExtensions',
+    format: 'cjs',
     globalDeps: {
       'babylonjs': 'BABYLON',
       'spectorjs': 'SPECTOR'

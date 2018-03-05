@@ -18,8 +18,9 @@ declare module 'babylonjs-editor' {
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
+    import { IExtension, ExtensionConstructor } from 'babylonjs-editor/editor/typings/extension';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor };
+    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -649,6 +650,33 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 */
             close(): Promise<void>;
     }
+}
+
+declare module 'babylonjs-editor/editor/typings/extension' {
+    import { Scene } from 'babylonjs';
+    /**
+        * Interface representing an editor extension
+        */
+    export interface IExtension<T> {
+            /**
+                * Sets if the extensions is always applied
+                */
+            alwaysApply: boolean;
+            /**
+                * On apply the extension
+                */
+            onApply(data: T): void;
+            /**
+                * Called by the editor when serializing the scene
+                */
+            onSerialize?(): T;
+            /**
+                * On load the extension (called by the editor when
+                * loading a scene)
+                */
+            onLoad?(data: T): void;
+    }
+    export type ExtensionConstructor<T> = new (scene: Scene) => IExtension<T>;
 }
 
 declare module 'babylonjs-editor/editor/core' {
