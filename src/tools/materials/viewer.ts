@@ -290,7 +290,8 @@ export default class AnimationEditor extends EditorPlugin {
     protected createMaterialDialog (): void {
         const materials: string[] = [
             'StandardMaterial',
-            'PBRMaterial'
+            'PBRMaterial',
+            'FireMaterial'
         ];
 
         const picker = new Picker('Select Material...');
