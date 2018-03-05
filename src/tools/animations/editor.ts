@@ -165,8 +165,10 @@ export default class AnimationEditor extends EditorPlugin {
                 this.animation.framePerSecond = toFrame;
 
                 // Undo / redo
+                const animation = this.animation;
+
                 UndoRedo.Push({ // Frame
-                    object: this.animation,
+                    object: animation,
                     property: 'framePerSecond',
                     from: fromFrame,
                     to: toFrame,
@@ -186,13 +188,16 @@ export default class AnimationEditor extends EditorPlugin {
                 this.updateGraph(this.animation);
 
                 // Undo / redo
+                const animation = this.animation;
+                const key = this.key;
+
                 UndoRedo.Push({ // Frame
-                    object: this.key,
+                    object: key,
                     property: 'frame',
                     from: fromFrame,
                     to: toFrame,
                     fn: (type) => {
-                        this.updateGraph(this.animation);
+                        this.updateGraph(animation);
                         this.frameInput.val(type === 'from' ? fromFrame : toFrame);
                     }
                 });
@@ -289,8 +294,21 @@ export default class AnimationEditor extends EditorPlugin {
             case 'remove-key': this.removingKeys = !this.removingKeys; break;
             case 'remove-animation':
                 if (this.animation) {
-                    // TODO: undo-redo
                     const index = this.animatable.animations.indexOf(this.animation);
+                    const animation = this.animation;
+                    const animatable = this.animatable;
+
+                    UndoRedo.Push({
+                        fn: (type) => {
+                            if (type === 'from')
+                                this.animatable.animations.splice(index, 0, animation);
+                            else
+                                this.animatable.animations.splice(index, 1);
+                            
+                            this.objectSelected(animatable);
+                        }
+                    });
+
                     this.animatable.animations.splice(index, 1);
                     this.objectSelected(this.animatable);
                 }
@@ -609,14 +627,16 @@ export default class AnimationEditor extends EditorPlugin {
         const onStart = (x: number, y: number, ev) => {
             if (this.removingKeys) {
                 const key = this.animation.getKeys()[data.keyIndex];
+                const animation = this.animation;
+
                 UndoRedo.Push({
                     fn: type => {
                         if (type === 'from')
-                            this.animation.getKeys().splice(data.keyIndex, 0, key);
+                            animation.getKeys().splice(data.keyIndex, 0, key);
                         else
-                            this.animation.getKeys().splice(data.keyIndex, 1);
+                            animation.getKeys().splice(data.keyIndex, 1);
 
-                        this.updateGraph(this.animation);
+                        this.updateGraph(animation);
                     }
                 });
                 this.animation.getKeys().splice(data.keyIndex, 1);
@@ -695,25 +715,27 @@ export default class AnimationEditor extends EditorPlugin {
 
             // Undo / redo
             const keys = this.animation.getKeys();
+            const key = this.key;
+            const animation = this.animation;
 
             UndoRedo.Push({ // Frame
-                object: this.key,
+                object: key,
                 property: 'frame',
                 from: fromFrame,
                 to: toFrame,
                 fn: (type) => {
-                    this.updateGraph(this.animation);
+                    this.updateGraph(animation);
                     this.frameInput.val(type === 'from' ? fromFrame : toFrame);
                 }
             });
 
             UndoRedo.Push({ // Value
-                object: this.key,
+                object: key,
                 property: data.property === '' ? 'value' : `value.${data.property}`,
                 from: fromValue,
                 to: toValue,
                 fn: () => {
-                    this.updateGraph(this.animation);
+                    this.updateGraph(animation);
                 }
             });
         };
@@ -852,14 +874,16 @@ export default class AnimationEditor extends EditorPlugin {
                     }
 
                     // Undo redo
+                    const animation = this.animation;
+
                     UndoRedo.Push({
                         fn: type => {
                             if (type === 'from')
-                                this.animation.getKeys().splice(keyIndex, 1);
+                                animation.getKeys().splice(keyIndex, 1);
                             else
-                                this.animation.getKeys().splice(keyIndex, 0, key);
+                                animation.getKeys().splice(keyIndex, 0, key);
 
-                            this.updateGraph(this.animation);
+                            this.updateGraph(animation);
                         }
                     })
 
