@@ -10,6 +10,8 @@ import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
 import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import CustomMaterialTool from '../edition-tools/materials/custom-tool';
+import SkyMaterialTool from '../edition-tools/materials/sky-tool';
+import FireMaterialTool from '../edition-tools/materials/fire-tool';
 
 import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
@@ -54,6 +56,8 @@ export default class EditorEditionTools {
         this.addTool(new PBRMaterialTool());
         this.addTool(new WaterMaterialTool());
         this.addTool(new CustomMaterialTool());
+        this.addTool(new SkyMaterialTool());
+        this.addTool(new FireMaterialTool());
 
         this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());
