@@ -41,7 +41,7 @@ export default class Extensions {
      * Applies all extesions giving all the custom metadatas
      * @param metadatas the metadatas
      */
-    public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>): void {
+    public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>, rootUrl?: string): void {
         for (const e in this.Extensions) {
             const extension = new this.Extensions[e](scene);
             this.Instances[e] = extension;

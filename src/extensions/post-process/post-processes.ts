@@ -23,9 +23,9 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
     /**
      * On apply the extension
      */
-    public onApply (data: PostProcessMetadata): void {
+    public onApply (data: PostProcessMetadata, rootUrl?: string): void {
         if (data.standard) {
-            const std = StandardRenderingPipeline.Parse(data.standard, this.scene, '');
+            const std = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
             std._attachCameras(this.scene.cameras, true);
         }
     }
