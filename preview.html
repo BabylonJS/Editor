@@ -94,7 +94,7 @@
                         // Apply
                         var readProject = function (project) {
                             BABYLON.Tools.ReadFile(project, function (data) {
-                                extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
+                                extensions.default.ApplyExtensions(scene, JSON.parse(data).customMetadatas, 'file:');
 
                                 // Run scene
                                 scene.executeWhenReady(function () {
