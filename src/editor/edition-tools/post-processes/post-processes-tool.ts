@@ -62,6 +62,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 await Tools.CreateFileFromURL('assets/textures/lenscolor.png');
                 pipeline.lensColorTexture = new Texture('file:lenscolor.png', scene);
 
+                pipeline.lensTexture.url = pipeline.lensTexture.name = pipeline.lensTexture.url.replace('file:', '');
+                pipeline.lensStarTexture.url = pipeline.lensStarTexture.name = pipeline.lensStarTexture.url.replace('file:', '');
+                pipeline.lensColorTexture.url = pipeline.lensColorTexture.name = pipeline.lensColorTexture.url.replace('file:', '');
+
                 SceneManager.StandardRenderingPipeline = pipeline;
             }
 

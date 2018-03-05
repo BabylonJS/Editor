@@ -47,7 +47,7 @@ export default class Extensions {
             this.Instances[e] = extension;
 
             if (extension.alwaysApply || metadatas[e])
-                extension.onApply(metadatas[e]);
+                extension.onApply(metadatas[e], rootUrl);
         }
     }
 }

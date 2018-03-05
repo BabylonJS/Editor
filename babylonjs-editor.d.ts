@@ -665,7 +665,7 @@ declare module 'babylonjs-editor/editor/typings/extension' {
             /**
                 * On apply the extension
                 */
-            onApply(data: T): void;
+            onApply(data: T, rootUrl?: string): void;
             /**
                 * Called by the editor when serializing the scene
                 */
