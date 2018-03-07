@@ -12,6 +12,10 @@ import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import CustomMaterialTool from '../edition-tools/materials/custom-tool';
 import SkyMaterialTool from '../edition-tools/materials/sky-tool';
 import FireMaterialTool from '../edition-tools/materials/fire-tool';
+import CellMaterialTool from '../edition-tools/materials/cell-tool';
+import GridMaterialTool from '../edition-tools/materials/grid-tool';
+import TriPlanarMaterialTool from '../edition-tools/materials/tri-planar-tool';
+import TerrainMaterialTool from '../edition-tools/materials/terrain-tool';
 
 import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
@@ -58,6 +62,10 @@ export default class EditorEditionTools {
         this.addTool(new CustomMaterialTool());
         this.addTool(new SkyMaterialTool());
         this.addTool(new FireMaterialTool());
+        this.addTool(new CellMaterialTool());
+        this.addTool(new GridMaterialTool());
+        this.addTool(new TriPlanarMaterialTool());
+        this.addTool(new TerrainMaterialTool());
 
         this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());

@@ -291,7 +291,11 @@ export default class AnimationEditor extends EditorPlugin {
         const materials: string[] = [
             'StandardMaterial',
             'PBRMaterial',
-            'FireMaterial'
+            'FireMaterial',
+            'CellMaterial',
+            'GridMaterial',
+            'TriPlanarMaterial',
+            'TerrainMaterial'
         ];
 
         const picker = new Picker('Select Material...');

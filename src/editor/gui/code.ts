@@ -52,11 +52,14 @@ export default class CodeEditor {
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
                 'node_modules/babylonjs/babylon.d.ts',
+                'node_modules/babylonjs-gui/babylon.gui.d.ts',
+                'node_modules/babylonjs-materials/babylonjs.materials.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
                 'assets/templates/post-process-creator/custom-post-process.d.ts'
             ];
-            let content = '';
 
+            let content = '';
+            
             for (const l of libs)
                 content += await Tools.LoadFile(l, false) + '\n';
 
