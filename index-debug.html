@@ -59,16 +59,11 @@
             pluginFirst: true
         });
 
-        System.import("babylonjs").then(function (e) {
-            // Add BABYLON in window
-            window.BABYLON = e;
-            
-            System.import("babylonjs-editor").then(function (e) {
-                // Run editor
-                var editor = window.editor = new e.default();
-                editor.run();
-                editor.createDefaultScene();
-            });
+        System.import("babylonjs-editor").then(function (e) {
+            // Run editor
+            var editor = window.editor = new e.default();
+            editor.run();
+            editor.createDefaultScene();
         });
     </script>
 
