@@ -295,7 +295,8 @@ export default class AnimationEditor extends EditorPlugin {
             'CellMaterial',
             'GridMaterial',
             'TriPlanarMaterial',
-            'TerrainMaterial'
+            'TerrainMaterial',
+            'LavaMaterial'
         ];
 
         const picker = new Picker('Select Material...');
