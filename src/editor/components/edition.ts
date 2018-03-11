@@ -5,6 +5,7 @@ import LightTool from '../edition-tools/light-tool';
 import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
 import ParticleSystemTool from '../edition-tools/particle-system-tool';
+import SoundTool from '../edition-tools/sound-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
@@ -56,6 +57,7 @@ export default class EditorEditionTools {
         this.addTool(new LightTool());
         this.addTool(new RenderTargetTool());
         this.addTool(new ParticleSystemTool());
+        this.addTool(new SoundTool());
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRMaterialTool());
