@@ -1,5 +1,6 @@
 import {
     Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh,
+    Sound,
     ParticleSystem, GPUParticleSystem, IParticleSystem,
     PostProcess,
     Tools as BabylonTools
@@ -106,6 +107,7 @@ export default class EditorGraph {
      */
     public fill(scene: Scene = this.editor.core.scene, root?: Node): void {
         let nodes = root ? root.getDescendants() : [];
+
         if (!root) {
             // Set scene's node
             this.graph.element.add(<GraphNode>{
@@ -128,11 +130,13 @@ export default class EditorGraph {
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
-        }
 
-        // Sort children alphabetically
-        if (root)
+            // Set sounds
+            this.fillSounds(scene, scene);
+        }
+        else {
             Tools.SortAlphabetically(nodes, 'name');
+        }
 
         // Add nodes
         nodes.forEach(n => {
@@ -205,6 +209,9 @@ export default class EditorGraph {
                 });
             }
 
+            // Sounds
+            parentNode.count += this.fillSounds(scene, n);
+
             // Add descendants to count
             const descendants = n.getDescendants();
             if (descendants.length)
@@ -230,9 +237,49 @@ export default class EditorGraph {
             return 'icon-particles';
         } else if (obj instanceof PostProcess) {
             return 'icon-helpers';
+        } else if (obj instanceof Sound) {
+            return 'icon-sound';
         }
 
         return null;
+    }
+
+    /**
+     * Fills the sounds giving the scene and the root node (attached mesh or scene)
+     * @param scene: the scene containing the sound
+     * @param root: the root node to check
+     */
+    protected fillSounds (scene: Scene, root: Scene | Node): number {
+        // Set sounds
+        if (scene.soundTracks.length === 0 || scene.soundTracks[0].soundCollection.length === 0)
+            return;
+
+        let count = 0;
+    
+        scene.soundTracks.forEach(st => {
+            st.soundCollection.forEach(s => {
+                if (root === scene && !s['_connectedMesh']) {
+                    this.graph.element.add(this.root, <GraphNode>{
+                        id: s.name,
+                        text: s.name,
+                        img: this.getIcon(s),
+                        data: s
+                    });
+                }
+                else if (s['_connectedMesh'] === root) {
+                    this.graph.element.add((<Node> root).id, <GraphNode>{
+                        id: s.name,
+                        text: s.name,
+                        img: this.getIcon(s),
+                        data: s
+                    });
+
+                    count++;
+                }
+            });
+        });
+
+        return count;
     }
 
     /**
