@@ -1,6 +1,65 @@
 Babylon.js Editor v2.0
 ======
 
+The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
+
+The editor V2 is available online at http://editor.babylonjs.com/v2
+
+The Documentation is available here: http://doc.babylonjs.com/extensions (coming soon for V2)
+
+Some more articles/tutorials are available here: https://medium.com/babylon-js
+
+## Features
+* Create and edit particle systems
+* Create and edit animations
+* Create and edit lens flares systems
+* Create and edit physics states on meshes
+* Create and edit materials (including materials library)
+* Add and edit sounds
+* Add and edit textures (including render target textures preview)
+* Save projects on OneDrive (Drop Box will come in future versions)
+* Deploy project template on OneDrive (Drop Box will come in future versions)
+* Scene graph view
+* Create and edit custom post-process
+* Create and edit custom materials
+* Attach custom scripts (JavaScript) to your objects
+* Live test your scenes with debug support
+
+## Installing
+Installing dependencies
+
+```bash
+npm i
+```
+
+## Building
+Building Editor (front + electron)
+
+```bash
+npm run build
+```
+
+## Developing
+To develop the editor, or for the editor, just watch your TypeScript files and run a local webserver.
+Then, access to http://localhost:1338/index-debug.html
+
+Watching TypeScript (front)
+```bash
+npm run watch
+```
+
+Watching TypeScript (Electron)
+```bash
+npm run watch-electron
+```
+
+Running a web server
+```bash
+npm run webserver
+```
+
+That's all!
+
 Licence
 ======
 ## Apache License 2.0 (Apache)
