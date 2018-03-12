@@ -814,6 +814,12 @@ declare module 'babylonjs-editor/editor/components/graph' {
              */
             getIcon(obj: any): string;
             /**
+                * Fills the sounds giving the scene and the root node (attached mesh or scene)
+                * @param scene: the scene containing the sound
+                * @param root: the root node to check
+                */
+            protected fillSounds(scene: Scene, root: Scene | Node): number;
+            /**
                 * On the user clicks on a context menu item
                 * @param id the context menu item id
                 * @param node the related graph node
