@@ -64,7 +64,7 @@ export default class CodeEditor {
                 content += await Tools.LoadFile(l, false) + '\n';
 
             content += `
-                declare var scene: BABYLON.Scene;
+                declare var scene: Scene;
                 declare var mesh: BABYLON.Mesh;
                 declare var pointlight: BABYLON.PointLight;
                 declare var camera: BABYLON.Camera;
