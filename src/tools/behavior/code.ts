@@ -149,6 +149,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         });
 
         this.grid.element.refresh();
+
+        // Select first behavior
+        if (this.datas.metadatas.length > 0) {
+            this.selectCode(0);
+            this.grid.select([0]);
+        }
     }
 
     /**
@@ -178,7 +184,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.datas.metadatas.push(data);
 
         this.grid.addRow({
-            recid: this.datas.metadatas.length,
+            recid: this.datas.metadatas.length - 1,
             name: data.name
         });
     }

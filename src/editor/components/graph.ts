@@ -116,7 +116,7 @@ export default class EditorGraph {
                 img: 'icon-scene',
                 data: scene
             });
-
+            
             this.graph.element.expand(this.root);
             this.graph.element.select(this.root);
             this.editor.edition.setObject(scene);
