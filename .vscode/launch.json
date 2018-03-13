@@ -2,16 +2,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
-            "request": "launch",
-            "name": "Build Electron",
-            "program": "${workspaceFolder}/script/electron.js",
-            "args": [
-                "--platform=darwin",
-                "--arch=x64"
-            ]
-        },
-        {
             "name": "Launch (source maps)",
             "type": "chrome",
             "request": "launch",
@@ -43,10 +33,11 @@
                 "--remote-debugging-port=9222"
             ],
             "port": 9222,
-            "webRoot": "${workspaceRoot}/",
+            "webRoot": "${workspaceRoot}",
             "cwd": "${workspaceRoot}",
             "sourceMaps": true,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug",
+            "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "name": "Electron Server",
@@ -61,7 +52,7 @@
                 "."
             ],
             "outFiles": [
-                ".build/electron/**/*.js"
+                ".build/**/*.js"
             ],
             "sourceMaps": true,
             "protocol": "legacy"

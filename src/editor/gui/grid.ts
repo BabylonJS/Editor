@@ -78,7 +78,7 @@ export default class Grid<T extends GridRow> {
     * @param record the row record to add
     */
     public addRow(record: T): void {
-        record.recid = this.element.total;
+        record.recid = this.element.records.length;
         this.element.add(record);
     }
 

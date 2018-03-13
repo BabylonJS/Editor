@@ -154,9 +154,9 @@ export default class Edition {
             this.getController('b', folder).setValue(value[2] / 255);
         });
         */
-        folder.add(color, 'r').step(0.01).onChange(() => callback && callback());
-        folder.add(color, 'g').step(0.01).onChange(() => callback && callback());
-        folder.add(color, 'b').step(0.01).onChange(() => callback && callback());
+        folder.add(color, 'r').min(0).max(1).step(0.01).onChange(() => callback && callback());
+        folder.add(color, 'g').min(0).max(1).step(0.01).onChange(() => callback && callback());
+        folder.add(color, 'b').min(0).max(1).step(0.01).onChange(() => callback && callback());
 
         if (color instanceof Color4) {
             // Sometimes, color.a is undefined
