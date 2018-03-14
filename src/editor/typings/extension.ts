@@ -1,4 +1,5 @@
 import { Scene } from 'babylonjs';
+import Editor from 'babylonjs-editor';
 
 /**
  * Interface representing an editor extension
@@ -23,7 +24,7 @@ export interface IExtension<T> {
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    onLoad? (data: T): void;
+    onLoad? (data: T, editor?: Editor): void;
 }
 
 // Exports a constructor type for an extension

@@ -2,7 +2,7 @@ import { Scene, PostProcessRenderPipeline, StandardRenderingPipeline } from 'bab
 
 import Extension from '../extension';
 import Extensions from '../extensions';
-import { IStringDictionary } from 'babylonjs-editor';
+import Editor, { IStringDictionary } from 'babylonjs-editor';
 
 export interface PostProcessMetadata {
     standard?: any;
@@ -24,10 +24,7 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
      * On apply the extension
      */
     public onApply (data: PostProcessMetadata, rootUrl?: string): void {
-        if (data.standard) {
-            const std = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
-            std._attachCameras(this.scene.cameras, true);
-        }
+        this._applyPostProcesses(data, rootUrl)
     }
 
     /**
@@ -47,8 +44,18 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public onLoad (): void
-    { }
+    public onLoad (data: PostProcessMetadata, editor: Editor): void {
+        // TODO: Find a way to access SceneManager
+        // this._applyPostProcesses(data, 'file:');
+    }
+
+    // Applies the post-processes on the scene
+    private _applyPostProcesses (data: PostProcessMetadata, rootUrl?: string, editor?: Editor): void {
+        if (data.standard) {
+            const std = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
+            std._attachCameras(this.scene.cameras, true);
+        }
+    }
 }
 
 Extensions.Register('PostProcess', PostProcessesExtension);
