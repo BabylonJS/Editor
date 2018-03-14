@@ -1,6 +1,6 @@
 import { Scene } from 'babylonjs';
 
-import { IExtension } from 'babylonjs-editor';
+import Editor, { IExtension } from 'babylonjs-editor';
 
 // Abstract class extension
 export default abstract class Extension<T> implements IExtension<T> {
@@ -20,13 +20,13 @@ export default abstract class Extension<T> implements IExtension<T> {
     /**
      * On apply the extension
      */
-    public abstract onApply (data: T): void;
+    public abstract onApply (data: T, rootUrl?: string): void;
 
     /**
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public abstract onLoad (data: T): void;
+    public abstract onLoad (data: T, editor?: Editor): void;
 
     /**
      * Adds a script tag element to the dom including source URL

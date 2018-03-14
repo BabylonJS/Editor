@@ -379,7 +379,8 @@ export default class Editor {
                 await Promise.all([
                     Tools.ImportScript('behavior-editor'),
                     Tools.ImportScript('material-creator'),
-                    Tools.ImportScript('post-process-creator')
+                    Tools.ImportScript('post-process-creator'),
+                    Tools.ImportScript('post-processes')
                 ]);
 
                 this.layout.unlockPanel('main');
