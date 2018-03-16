@@ -51,6 +51,7 @@ declare module 'babylonjs-editor/editor/editor' {
             filesInput: FilesInput;
             sceneFile: File;
             projectFile: File;
+            _showReloadDialog: boolean;
             /**
                 * Constructor
                 * @param scene: a scene to edit. If undefined, a default scene will be created

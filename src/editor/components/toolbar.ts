@@ -3,6 +3,7 @@ import { IEditorPlugin } from '../typings/plugin';
 
 import Toolbar from '../gui/toolbar';
 import Window from '../gui/window';
+import Dialog from '../gui/dialog';
 
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
@@ -29,6 +30,7 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
+                    { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'download-project', img: 'icon-export', text: 'Download Project...' },
                     { type: 'break' },
                     { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
@@ -98,6 +100,15 @@ export default class EditorToolbar {
             case 'project:import-project':
                 SceneImporter.ImportProject(this.editor);
                 break;
+            case 'project:reload-project':
+                Dialog.Create('Reload scene', 'Are you sure to reload the entire scene?', (result) => {
+                    if (result === 'No')
+                        return;
+                    
+                    this.editor._showReloadDialog = false;
+                    this.editor.filesInput['_processReload']();
+                });
+                break
             case 'project:download-project':
                 SceneExporter.DownloadBabylonFile(this.editor);
                 break;

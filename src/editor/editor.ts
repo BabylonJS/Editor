@@ -50,6 +50,8 @@ export default class Editor {
     public sceneFile: File = null;
     public projectFile: File = null;
 
+    public _showReloadDialog: boolean = true;
+
     /**
      * Constructor
      * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -357,7 +359,54 @@ export default class Editor {
             // Starting process
         },
         (file) => {
-            Dialog.Create('Load scene', 'Append to existing one?', async (result) => {
+            // Callback
+            const callback = async (scene: Scene) => {
+                // Configure editor
+                this.core.removeScene(this.core.scene);
+                this.core.uiTextures.forEach(ui => ui.dispose());
+
+                this.core.scene = scene;
+                this.core.scenes.push(scene);
+
+                this.playCamera = scene.activeCamera;
+
+                this.createEditorCamera();
+
+                this.core.onSelectObject.notifyObservers(this.core.scene);
+
+                // Editor project
+                for (const f in FilesInput.FilesToLoad) {
+                    const file = FilesInput.FilesToLoad[f];
+                    if (Tools.GetFileExtension(file.name) === 'editorproject') {
+                        const content = await Tools.ReadFileAsText(file);
+                        await SceneImporter.Import(this, JSON.parse(content));
+                        break;
+                    }
+                }
+
+                // Default light
+                if (scene.lights.length === 0)
+                    scene.createDefaultCameraOrLight(false, false, false);
+
+                // Graph
+                this.graph.clear();
+                this.graph.fill(scene);
+
+                // Restart plugins
+                this.restartPlugins();
+
+                // Create scene picker
+                this._createScenePicker();
+
+                // Toggle interactions (action manager, etc.)
+                SceneManager.Clear();
+                SceneManager.Toggle(this.core.scene);
+
+                // Run scene
+                this.run();
+            };
+
+            const dialogCallback = async (doNotAppend: boolean) => {
                 // Clear undo / redo
                 UndoRedo.Clear();
 
@@ -385,58 +434,11 @@ export default class Editor {
 
                 this.layout.unlockPanel('main');
 
-                // Callback
-                const callback = async (scene: Scene) => {
-                    // Configure editor
-                    this.core.removeScene(this.core.scene);
-                    this.core.uiTextures.forEach(ui => ui.dispose());
-
-                    this.core.scene = scene;
-                    this.core.scenes.push(scene);
-
-                    this.playCamera = scene.activeCamera;
-
-                    this.createEditorCamera();
-
-                    this.core.onSelectObject.notifyObservers(this.core.scene);
-
-                    // Editor project
-                    for (const f in FilesInput.FilesToLoad) {
-                        const file = FilesInput.FilesToLoad[f];
-                        if (Tools.GetFileExtension(file.name) === 'editorproject') {
-                            const content = await Tools.ReadFileAsText(file);
-                            await SceneImporter.Import(this, JSON.parse(content));
-                            break;
-                        }
-                    }
-
-                    // Default light
-                    if (scene.lights.length === 0)
-                        scene.createDefaultCameraOrLight(false, false, false);
-
-                    // Graph
-                    this.graph.clear();
-                    this.graph.fill(scene);
-
-                    // Restart plugins
-                    this.restartPlugins();
-
-                    // Create scene picker
-                    this._createScenePicker();
-
-                    // Toggle interactions (action manager, etc.)
-                    SceneManager.Clear();
-                    SceneManager.Toggle(this.core.scene);
-
-                    // Run scene
-                    this.run();
-                };
-
                 // Stop render loop
                 this.core.engine.stopRenderLoop();
 
                 // Load scene
-                if (result === 'No')
+                if (doNotAppend)
                     SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene));
                 else
                     SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene));
@@ -444,7 +446,15 @@ export default class Editor {
                 // Delete start scene (when starting the editor) and add new scene
                 delete FilesInput.FilesToLoad['scene.babylon'];
                 FilesInput.FilesToLoad[file.name] = file;
-            });
+            };
+
+            if (this._showReloadDialog)
+                Dialog.Create('Load scene', 'Append to existing one?', (result) => dialogCallback(result === 'No'));
+            else
+                dialogCallback(false);
+
+            this._showReloadDialog = true;
+
         }, (file, scene, message) => {
             // Error callback
             Dialog.Create('Error when loading scene', message, null);
