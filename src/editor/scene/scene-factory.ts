@@ -26,7 +26,7 @@ export default class SceneFactory {
         editor.graph.clear();
         editor.graph.fill();
 
-        editor.graph.select(selected ? selected.id : editor.graph.root);
+        editor.graph.select(selected ? selected : "SceneRoot");
         editor.graph.select(node.id);
     }
     /**

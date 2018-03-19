@@ -50,6 +50,7 @@ export default class EditorEditionTools {
         // Get panel
         this.panel = editor.layout.getPanelFromType('left');
 
+
         // Add tools
         this.addTool(new SceneTool());
         this.addTool(new NodeTool());

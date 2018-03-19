@@ -159,7 +159,6 @@ export default class SceneImporter {
             if (extension)
                 extension.onLoad(project.customMetadatas[m]);
         }
-
         // Finish
         scene.materials.forEach(m => m['maxSimultaneousLights'] = scene.lights.length * 2);
     }

@@ -1,5 +1,5 @@
 import Editor from '../editor';
-import { IEditorPlugin } from '../typings/plugin';
+import { IEditorPlugin } from '../typings/plugin';
 
 import Toolbar from '../gui/toolbar';
 import Window from '../gui/window';
@@ -47,8 +47,8 @@ export default class EditorToolbar {
                     { id: 'undo', img: 'icon-undo', text: 'Undo' },
                     { id: 'redo', img: 'icon-redo', text: 'Redo' },
                     { type: 'break' },
-                    { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
-                    { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' }
+                    { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
+                    { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' }
                 ]
             },
             { type: 'break' },
