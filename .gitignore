@@ -36,7 +36,6 @@ x64/
 *.log
 *.vspscc
 *.vssscc
-.builds
 
 # Visual C++ cache files
 ipch/
@@ -130,7 +129,6 @@ node_modules
 package-lock.json
 
 # Build
-.build
 .declaration
 electron-packages
 dist

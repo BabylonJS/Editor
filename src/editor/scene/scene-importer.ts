@@ -34,7 +34,7 @@ export default class SceneImporter {
 
         // Nodes
         project.nodes.forEach(n => {
-            let node: Node | Scene = null;
+            let node: Node | Scene = null;
 
             if (n.name === 'Scene') {
                 node = scene;

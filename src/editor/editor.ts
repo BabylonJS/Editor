@@ -28,13 +28,17 @@ import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 
+import GoldenLayout = require("golden-layout");
+
+
 export default class Editor {
     // Public members
     public core: Core;
     public camera: FreeCamera;
     public playCamera: Camera = null;
-
+    
     public layout: Layout;
+    public layoutToolbar: Layout;
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
@@ -49,47 +53,109 @@ export default class Editor {
     public filesInput: FilesInput;
     public sceneFile: File = null;
     public projectFile: File = null;
-
     public _showReloadDialog: boolean = true;
+
+    public layoutManagerConfig: GoldenLayout.Config;
+    public layoutManager: GoldenLayout;
 
     /**
      * Constructor
      * @param scene: a scene to edit. If undefined, a default scene will be created
      */
     constructor(scene?: Scene) {
-        // Create editor div
-        const mainDiv = Tools.CreateElement('div', 'BABYLON-EDITOR-MAIN', {
-            overflow: 'hidden',
-            width: '100%',
-            height: '100%',
-            margin: '0',
-            padding: '0',
-            touchAction: 'none',
-            position: 'fixed'
-        });
-        document.body.appendChild(mainDiv);
 
-        // Create layout
-        this.layout = new Layout('BABYLON-EDITOR-MAIN');
-        this.layout.panels = [
+        this.layoutManagerConfig = {
+            settings:{
+                showPopoutIcon: false
+            },
+            dimensions: {
+                borderWidth: 2,
+                minItemHeight: 150,
+                minItemWidth: 160,
+                headerHeight: 20,
+                dragProxyWidth: 300,
+                dragProxyHeight: 200
+            },
+            labels: {
+                close: 'close',
+                maximise: 'maximise',
+                minimise: 'minimise',
+                popout: 'open in new window'
+            },
+            content: [{
+                type: 'row',
+                content:[{
+                    type: 'component',
+                    componentName: 'Properties',
+                    componentState: { label: 'A' },
+                    width: 23
+                },{
+                    type: 'column',
+                    content:[{
+                        type: 'component',
+                        componentName: 'Scene View',
+                        componentState: { label: 'B' },
+                        height: 60
+                        
+                    }],
+                    width: 53
+                },
+                {
+                    type: 'component',
+                    componentName: 'Scene Outliner',
+                    componentState: { label: 'A' },
+                    width: 24
+                }
+                ]
+            }]
+        };
+
+    this.layoutManager = new GoldenLayout(this.layoutManagerConfig);
+
+    this.layoutManager.registerComponent('Scene Outliner',  function( container, componentState ){
+        container.getElement().html(  
+            `<input id="jstree_search" type="text" placeholder="Search" />  <div id="jstree"/>`        )
+    });
+
+    this.layoutManager.registerComponent('Scene View', ( container, componentState ) => {
+        container.getElement().html('<canvas id="renderCanvas" width="412" height="132" tabindex="1" style=""></canvas>'  )
+        container.on('resize', () => {
+            this.resize(); 
+          });
+    });
+
+    window.addEventListener('resize', () => {
+        this.resize();
+    });
+
+
+    this.layoutManager.registerComponent( 'Properties', function( container, componentState ){
+        container.getElement().html( ' <div id="EDIT-PANEL-TOOLS" style="height: 100%; width: 100%" /> ' );
+    });
+
+    this.layoutManager.init();
+
+        // Create Widget (toolbar)
+        this.layoutToolbar = new Layout('BABYLON-EDITOR-TOOLBAR');
+        this.layoutToolbar.panels = [
             {
                 type: 'top',
                 size: 55,
                 content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
-            },
-            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
-            { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'bottom', size: 0, content: '', resizable: false }
+            }
+
         ];
-        this.layout.build('BABYLON-EDITOR-MAIN');
-        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
-        window.addEventListener('resize', () => {
-            this.layout.element.resize();
-            this.resize();
-        });
+        this.layoutToolbar.build('BABYLON-EDITOR-TOOLBAR');
+
+
+        // Create Widget (Properties)
+        this.layout = new Layout('EDIT-PANEL-TOOLS');
+        this.layout.panels = [
+            { type: 'left', hidden: false, size: 310, style: "height: 100%", overflow: "unset", content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: false, tabs: <any>[] },
+        ];
+        this.layout.build('EDIT-PANEL-TOOLS');
+
 
         // Initialize core
         this.core = new Core();
@@ -102,6 +168,7 @@ export default class Editor {
 
         // Create graph
         this.graph = new EditorGraph(this);
+        
 
         // Edit panel
         this.editPanel = new EditorEditPanel(this);
@@ -120,7 +187,7 @@ export default class Editor {
         }
 
         this.graph.currentObject = this.core.scene;
-
+        
         // Create editor camera
         this.createEditorCamera();
 
@@ -135,6 +202,7 @@ export default class Editor {
 
         // Handle events
         this._handleEvents();
+
     }
 
     /**
@@ -144,18 +212,21 @@ export default class Editor {
         this.core.engine.runRenderLoop(() => {
             this.core.update();
         });
+
+
     }
 
     /**
     * Resizes elements
     */
-    public resize(): void {
-        const editionSize = this.layout.getPanelSize('left');
-        this.edition.resize(editionSize.width);
-        this.core.engine.resize();
 
-        // Notify
-        this.core.onResize.notifyObservers(null);
+    public resize(): void {
+        if (this.core){
+            this.core.engine.resize();
+
+            // Notify
+            this.core.onResize.notifyObservers(null);
+        }
     }
 
     /**
@@ -175,7 +246,6 @@ export default class Editor {
             }
         }
 
-        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
@@ -186,7 +256,6 @@ export default class Editor {
         // Create plugin
         await plugin.create();
 
-        this.layout.unlockPanel('preview');
 
         return plugin;
     }
@@ -228,16 +297,11 @@ export default class Editor {
     public async createDefaultScene(showNewSceneDialog: boolean = false): Promise<void> {
         const callback = async () => {
             // Create default scene
-            this.layout.lockPanel('main', 'Loading Preview Scene...', true);
             DefaultScene.Create(this).then(() => {
                 this.graph.clear();
                 this.graph.fill();
-                this.layout.unlockPanel('main');
             });
 
-            // Fill graph
-            this.graph.clear();
-            this.graph.fill();
 
             this.core.onSelectObject.notifyObservers(this.core.scene);
 
@@ -294,6 +358,24 @@ export default class Editor {
         this.camera.setTarget(new Vector3(0, 5, 24));
         this.camera.maxZ = 10000;
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
+        
+        // Traditional WASD (QE) controls
+        this.camera.keysUp.push(87); //  "W"
+        this.camera.keysLeft.push(65); //"A"
+        this.camera.keysDown.push(83); //"S"
+        this.camera.keysRight.push(68) //"D"
+
+
+        let that = this;
+        window.onkeydown = function(e) {
+        var key = e.keyCode ? e.keyCode : e.which;
+
+        if (key == 81) {
+            that.camera.position.y += 0.5; // "Q"
+        }else if (key == 69) {
+            that.camera.position.y -= 0.5; // "E"
+        }
+        }
 
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {

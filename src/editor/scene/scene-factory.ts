@@ -7,7 +7,7 @@ import {
     Tags, Tools as BabylonTools
 } from 'babylonjs';
 
-import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
+import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -26,7 +26,7 @@ export default class SceneFactory {
         editor.graph.clear();
         editor.graph.fill();
 
-        editor.graph.select(selected ? selected.id : editor.graph.root);
+        editor.graph.select(selected ? selected : editor.graph.root);
         editor.graph.select(node.id);
     }
     /**

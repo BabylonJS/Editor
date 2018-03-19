@@ -5,6 +5,31 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    background-color:black;
+    color:white;
+}
+
+body *{
+    font-family: sans-serif !important;
+}
+
+#jstree_search{
+    width: 90%;
+    margin: 6px;
+    padding: 8px;
+}
+
+.jstree-default .jstree-search{
+    color:white;
+    font-style: normal;
+}
+
+.jstree-default .jstree-wholerow-hovered{
+    background:lightgrey;
+}
+
+.jstree-default .jstree-wholerow-clicked{
+    background: grey;
 }
 
 #renderCanvas {
@@ -16,6 +41,20 @@ html, body {
     -ms-touch-action: none;
 }
 
+#BABYLON-EDITOR-TOOLBAR{
+    height: 55px;
+}
+
+.w2ui-layout > div .w2ui-panel{
+    z-index: unset;
+}
+
+.lm_header .lm_tab.lm_active{
+    box-shadow: unset;
+}
+
+
+
 /* W2UI */
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
@@ -24,6 +63,12 @@ html, body {
 /*
 ICONS
 */
+
+.w2ui-icon{
+    background-repeat: no-repeat !important;
+    margin: 3px !important;
+}
+
 .w2ui-icon.icon-error {
     background: url("images/error.png");
 }

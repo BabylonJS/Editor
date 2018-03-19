@@ -47,6 +47,7 @@ export default class PropertyBrowser {
         this._window.buttons = ['Select', 'Cancel'];
         this._window.open();
 
+        /*
         this._window.onButtonClick = (id) => {
             switch (id) {
                 case 'Select':
@@ -64,7 +65,7 @@ export default class PropertyBrowser {
             this._graph.element.destroy();
             this._window.close();
         };
-
+*/
         // Create graph
         this._graph = new Graph('PropertyGraph');
         this._graph.build('ANIMATION-EDITOR-PROPERTY-BORWSER');
@@ -189,10 +190,10 @@ export default class PropertyBrowser {
 
     // Returns the appropriate icon
     private _getIcon (obj: any): string {
-        if (obj instanceof Vector2 || obj instanceof Vector3 || obj instanceof Vector4 || obj instanceof Quaternion) {
+        if (obj instanceof Vector2 || obj instanceof Vector3 || obj instanceof Vector4 || obj instanceof Quaternion) {
             return 'icon-position';
         }
-        else if (obj instanceof Color3 || obj instanceof Color4) {
+        else if (obj instanceof Color3 || obj instanceof Color4) {
             return 'icon-effects';
         }
 

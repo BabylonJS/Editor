@@ -17,25 +17,72 @@ export default class EditorGraph {
     public root: string = 'ROOT';
 
     public currentObject: any = this.editor.core.scene;
+    public currentObjectId: string;
 
     constructor(protected editor: Editor) {
+
         // Build graph
-        this.graph = new Graph('SceneGraph');
-        this.graph.topContent = '<div style="background-color: #eee; padding: 10px 5px; border-bottom: 1px solid silver">Scene Content</div>'
-        this.graph.build('SCENE-GRAPH');
+        this.graph =         $("#jstree").jstree({
+            "core": {
+              "check_callback": true,
+              "multiple": false
+            },
+            "plugins" : [
+              "contextmenu", "dnd", "search",
+              "state", "types", "wholerow"
+            ],
+            "search": {
+                "show_only_matches": true,
+                "show_only_matches_children": true
+            },
+            'contextmenu' : {
+                'items' : customMenu
+            }
+          }).on('create_node.jstree', function(e, data) {
+            console.log('added');
+          }).on('changed.jstree',  (e,data) => {
+            if (data.node){
+                //Actions for selecting node
+              if (data.action == "select_node"){
+                  this.currentObject = data.node.data;
+                  this.currentObjectId = data.node.id;
+                  this.editor.core.onSelectObject.notifyObservers(data.node.data);
+              }
+            }
 
-        // Add menus
-        this.graph.addMenu({ id: 'remove', text: 'Remove', img: 'icon-error' });
-        this.graph.addMenu({ id: 'clone', text: 'Clone', img: 'icon-clone' });
+          });;
 
-        // Events
-        this.graph.onClick = (id, data: any) => {
-            this.currentObject = data;
-            this.editor.core.onSelectObject.notifyObservers(data);
-        };
-        this.graph.onMenuClick = (id, node) => this.onMenuClick(id, node);
+        //Manage Contextmenu
+        function customMenu(node)
+        {
+            var items = {
+                'Delete' : {
+                    'label' : 'Delete',
+                    'action' : function () {
+                        console.log(node);
+                         node.data && node.data.dispose && node.data.dispose();
+                         $("#jstree").jstree("delete_node", node); }
+                }
+            }
+        
+            if (node.id == this.root){
+                items = null;
+            }
+        
+            return items;
+        }
 
-        this.editor.core.onSelectObject.add((node: Node) => node && this.select(node.id));
+        //Search Function
+        var to = null;
+        $('#jstree_search').keyup(function () {
+          if(to) { clearTimeout(to); }
+          to = setTimeout(function () {
+            $('#jstree').jstree(true).search($('#jstree_search').val().toString());
+          }, 250);
+        });
+
+        this.editor.core.onSelectObject.add((node: Node) => node && this.select(node.id) );
+
     }
 
     /**
@@ -44,11 +91,7 @@ export default class EditorGraph {
     * @param name the new name/id
     */
     public renameNode (id: string, name: string): void {
-        const node = <GraphNode>this.graph.element.get(id);
-        node.id = name;
-        node.text = name;
-
-        this.graph.element.refresh();
+        $("#jstree").jstree('rename_node', id , name );
     }
 
     /**
@@ -57,14 +100,14 @@ export default class EditorGraph {
      * @param parentId the parent id
      */
     public setParent (id: string, parentId: string): void {
-        const parent = <GraphNode>this.graph.element.get(parentId);
+        /*const parent = <GraphNode>this.graph.element.get(parentId);
         const node = <GraphNode>this.graph.element.get(id);
 
         parent.count = parent.count ? parent.count++ : 1;
 
         this.graph.element.remove(node.id);
-        this.graph.element.add(parent.id, node);
-        this.graph.element.expandParents(node.id);
+        this.graph.element.add(parent.id, node);*/
+        //this.graph.element.expandParents(node.id);
     }
 
     /**
@@ -73,7 +116,9 @@ export default class EditorGraph {
      * @param parentId: the parent id of the node to add
      */
     public add (node: GraphNode, parentId: string): void {
-        this.graph.element.add(parentId, node);
+        //this.graph.element.add(parentId, node);
+        console.log(parentId);
+        console.log(node);
     }
 
     /**
@@ -81,23 +126,25 @@ export default class EditorGraph {
      * @param id the node id
      */
     public select (id: string): void {
-        this.graph.element.expandParents(id);
-        this.graph.element.select(id);
-        this.graph.element.scrollIntoView(id);
+        if(id != this.currentObjectId){
+           $('#jstree').jstree("deselect_all");
+            $('#jstree').jstree('select_node', id);
+            $('#jstree').jstree("open_node", $(id));
+        }
     }
 
     /**
      * Returns the selected node id
      */
-    public getSelected (): GraphNode {
-        return <GraphNode> this.graph.element.get(this.graph.element.selected);
+    public getSelected (): string {
+        return this.currentObjectId;
     }
 
     /**
      * Clears the graph
      */
     public clear (): void {
-        this.graph.clear();
+        $("#jstree").jstree(true).delete_node($("#jstree").jstree(true).get_node(this.root).children);
     }
 
     /**
@@ -110,15 +157,15 @@ export default class EditorGraph {
 
         if (!root) {
             // Set scene's node
-            this.graph.element.add(<GraphNode>{
-                id: this.root,
-                text: 'Scene',
-                img: 'icon-scene',
-                data: scene
-            });
-            
-            this.graph.element.expand(this.root);
-            this.graph.element.select(this.root);
+            $('#jstree').jstree().create_node("#", {
+                "id": this.root,
+                "text": "Scene",
+                "data": scene,
+                "icon" : "w2ui-icon icon-scene"
+              });
+
+            //this.graph.element.expand(this.root);
+            //this.graph.element.select(this.root);
             this.editor.edition.setObject(scene);
 
             // Sort nodes alphabetically
@@ -146,79 +193,74 @@ export default class EditorGraph {
 
             // Instance?
             const parent = root ? root.id : this.root;
-            const parentNode = <GraphNode> this.graph.element.add(parent, <GraphNode>{
-                id: n.id,
-                text: n.name,
-                img: this.getIcon(n),
-                data: n
-            });
+            const parentNode = $('#jstree').jstree().create_node(this.root, {
+                "id": n.id,
+                "text": n.name,
+                "data": n,
+                "icon" : "w2ui-icon " + this.getIcon(n),
+              });
+              $('#jstree').jstree("open_all");
 
             // Cannot add
             if (!parentNode)
                 return;
 
+            // Camera? Add post-processes
+            if (n instanceof Camera) {
+                n._postProcesses.forEach(p => {
+                    $('#jstree').jstree().create_node(n.id, {
+                        "id": p.name,
+                        "text": p.name,
+                        "data": p,
+                        "icon" : "w2ui-icon icon-camera",
+                      });
+                });
+            }
+
             // Sub meshes
             if (n instanceof AbstractMesh && n.subMeshes && n.subMeshes.length > 1) {
-                parentNode.count += n.subMeshes.length;
                 n.subMeshes.forEach((sm, index) => {
-                    this.graph.element.add(n.id, <GraphNode>{
-                        id: n.id + 'submesh_' + index,
-                        text: sm.getMaterial().name,
-                        img: this.getIcon(n),
-                        data: sm
-                    });
+                    $('#jstree').jstree().create_node(n.id, {
+                        "id": n.id + 'submesh_' + index,
+                        "text": sm.getMaterial().name,
+                        "data": sm,
+                        "icon" : "w2ui-icon " + this.getIcon(n),
+                      });
                 });
             }
 
             // Check particle systems
             scene.particleSystems.forEach(ps => {
                 if (ps.emitter === n) {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode>{
-                        id: ps.id,
-                        text: ps.name,
-                        img: this.getIcon(ps),
-                        data: ps
-                    });
+                    $('#jstree').jstree().create_node(n.id, {
+                        "id": ps.id,
+                        "text": ps.name,
+                        "data": ps,
+                        "icon" : "w2ui-icon " + this.getIcon(ps),
+                      });
                 }
             });
 
             // Check lens flares
             scene.lensFlareSystems.forEach(lf => {
                 if (lf.getEmitter() === n) {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode> {
-                        id: lf.id,
-                        text: lf.name,
-                        img: this.getIcon(lf),
-                        data: lf
-                    });
+                    $('#jstree').jstree().create_node(n.id, {
+                        "id": lf.id,
+                        "text": lf.name,
+                        "data": lf,
+                        "icon" : "w2ui-icon " + this.getIcon(lf),
+                      });
                 }
             });
 
-            // Camera? Add post-processes
-            if (n instanceof Camera) {
-                n._postProcesses.forEach(p => {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode> {
-                        id: p.name,
-                        text: p.name,
-                        img: this.getIcon(p),
-                        data: p
-                    });
-                });
-            }
-
+            
             // Sounds
-            parentNode.count += this.fillSounds(scene, n);
-
-            // Add descendants to count
-            const descendants = n.getDescendants();
-            if (descendants.length)
-                parentNode.count += descendants.length;
+            this.fillSounds(scene, n);
 
             // Fill descendants
             this.fill(scene, n);
+
+            $('#jstree').jstree("open", this.root);
         });
     }
 
@@ -233,7 +275,7 @@ export default class EditorGraph {
             return 'icon-light';
         } else if (obj instanceof Camera) {
             return 'icon-camera';
-        } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
+        } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
             return 'icon-particles';
         } else if (obj instanceof PostProcess) {
             return 'icon-helpers';
@@ -251,7 +293,7 @@ export default class EditorGraph {
      */
     protected fillSounds (scene: Scene, root: Scene | Node): number {
         // Set sounds
-        if (scene.soundTracks.length === 0 || scene.soundTracks[0].soundCollection.length === 0)
+        /*if (scene.soundTracks.length === 0 || scene.soundTracks[0].soundCollection.length === 0)
             return;
 
         let count = 0;
@@ -279,7 +321,8 @@ export default class EditorGraph {
             });
         });
 
-        return count;
+        return count;*/
+        return 22
     }
 
     /**
@@ -288,12 +331,8 @@ export default class EditorGraph {
      * @param node the related graph node
      */
     protected onMenuClick (id: string, node: GraphNode): void {
+        /*
         switch (id) {
-            // Remove
-            case 'remove':
-                node.data && node.data.dispose && node.data.dispose();
-                this.graph.element.remove(node.id);
-                break;
             // Clone
             case 'clone':
                 if (!node || !(node.data instanceof Node))
@@ -313,6 +352,6 @@ export default class EditorGraph {
             // Other
             default:
                 break;
-        }
+        }*/
     }
 }
