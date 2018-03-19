@@ -34,7 +34,7 @@ export default class SceneImporter {
 
         // Nodes
         project.nodes.forEach(n => {
-            let node: Node | Scene = null;
+            let node: Node | Scene = null;
 
             if (n.name === 'Scene') {
                 node = scene;
@@ -159,6 +159,7 @@ export default class SceneImporter {
             if (extension)
                 extension.onLoad(project.customMetadatas[m]);
         }
+
         // Finish
         scene.materials.forEach(m => m['maxSimultaneousLights'] = scene.lights.length * 2);
     }

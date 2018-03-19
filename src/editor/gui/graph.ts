@@ -45,7 +45,6 @@ export default class Graph {
      * @param parent: the optional parent of the node
      */
     public add (node: GraphNode, parent?: string): void {
-        console.log("hi");
     }
 
     /**

@@ -1,10 +1,9 @@
-
 export default class Layout {
   // Public members
   public element: W2UI.W2Layout;
+
   public name: string;
   public panels: W2UI.W2Panel[] = [];
-
 
   /**
    * Constructor
@@ -12,9 +11,7 @@ export default class Layout {
    */
   constructor (name: string) {
     this.name = name;
- 
-
-}
+  }
 
   /**
    * Returns the size of the given panel

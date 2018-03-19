@@ -9,7 +9,7 @@
   },
   "scripts": {
     "clean": "rimraf .build && rimraf .declaration && rimraf dist && rimraf electron-packages",
-    "compile": "tsc --allowSyntheticDefaultImports -p .",
+    "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build": "npm run compile && npm run compile-electron && npm run bundle",
     "rebuild": "npm run clean && npm run compile && npm run compile-electron && npm run bundle",
@@ -58,7 +58,6 @@
     "babylonjs-materials": "~3.2.0-alphaB",
     "babylonjs-procedural-textures": "~3.2.0-alphaB",
     "babylonjs-serializers": "~3.2.0-alphaB",
-    "bootstrap-tree-view": "^1.8.0",
     "cannon": "~0.6.2",
     "dat-gui": "~0.5.0",
     "dat.gui": "~0.7.0",
