@@ -10,6 +10,7 @@ export interface IEditorPlugin {
     create (): Promise<void>;
     close (): Promise<void>;
 
+    onHide? (): Promise<void>;
     onShow? (): Promise<void>;
 }
 

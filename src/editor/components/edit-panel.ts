@@ -6,7 +6,7 @@ export default class EditorEditPanel {
     public panel: W2UI.W2Panel = this.editor.layout.getPanelFromType('preview');
 
     // Protected members
-    protected currentDiv: HTMLDivElement = null;
+    protected currentPlugin: IEditorPlugin = null;
 
     /**
      * Constructor
@@ -57,11 +57,13 @@ export default class EditorEditPanel {
 
     // On the tab changed
     private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): Promise<void> {
-        if (this.currentDiv)
-            $(this.currentDiv).hide();
+        if (this.currentPlugin) {
+            $(this.currentPlugin.divElement).hide();
+            this.currentPlugin.onHide && this.currentPlugin.onHide();
+        }
 
-        this.currentDiv = plugin.divElement;
-        $(this.currentDiv).show();
+        this.currentPlugin = plugin;
+        $(this.currentPlugin.divElement).show();
 
         if (!firstShow && plugin.onShow)
             await plugin.onShow();

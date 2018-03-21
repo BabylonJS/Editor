@@ -624,6 +624,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             name: string;
             create(): Promise<void>;
             close(): Promise<void>;
+            onHide?(): Promise<void>;
             onShow?(): Promise<void>;
     }
     /**
@@ -711,6 +712,7 @@ declare module 'babylonjs-editor/editor/core' {
                     value: any;
                     initialValue: any;
             }>;
+            renderScenes: boolean;
             /**
                 * Constructor
                 */
@@ -724,7 +726,7 @@ declare module 'babylonjs-editor/editor/core' {
                 * Removes the given UI (advanced texture) from the registered UIS
                 * @param ui: the ui advanced texture reference to remove
                 */
-            removeUI(ui: AdvancedDynamicTexture): boolean;
+            removeUI(ui: AdvancedDynamicTexture, dispose?: boolean): boolean;
             /**
                 * Updates the rendering + notify updaters
                 */
@@ -880,7 +882,7 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
     export default class EditorEditPanel {
             protected editor: Editor;
             panel: W2UI.W2Panel;
-            protected currentDiv: HTMLDivElement;
+            protected currentPlugin: IEditorPlugin;
             /**
                 * Constructor
                 * @param editor: the editor reference
