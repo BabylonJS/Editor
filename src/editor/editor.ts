@@ -326,6 +326,10 @@ export default class Editor {
                 this.edition.updateDisplay();
             }
         });
+
+        // Focus / Blur
+        window.addEventListener('blur', () => this.core.renderScenes = false);
+        window.addEventListener('focus', () => this.core.renderScenes = true);
     }
 
     // Runs the given plugin URL
@@ -363,7 +367,9 @@ export default class Editor {
             const callback = async (scene: Scene) => {
                 // Configure editor
                 this.core.removeScene(this.core.scene);
+
                 this.core.uiTextures.forEach(ui => ui.dispose());
+                this.core.uiTextures = [];
 
                 this.core.scene = scene;
                 this.core.scenes.push(scene);

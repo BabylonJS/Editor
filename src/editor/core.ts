@@ -30,6 +30,8 @@ export default class Core {
     public onAddObject: Observable<{ }> = new Observable<{ }>();
     public onGlobalPropertyChange = new Observable<{ object: any; property: string; value: any, initialValue: any }>();
 
+    public renderScenes: boolean = true;
+    
     /**
      * Constructor
      */
@@ -57,11 +59,11 @@ export default class Core {
      * Removes the given UI (advanced texture) from the registered UIS
      * @param ui: the ui advanced texture reference to remove
      */
-    public removeUI (ui: AdvancedDynamicTexture): boolean {
+    public removeUI (ui: AdvancedDynamicTexture, dispose?: boolean): boolean {
         const index = this.uiTextures.findIndex(u => u === ui);
         if (index !== -1) {
-            ui.dispose();
-            this.scenes.splice(index, 1);
+            dispose && ui.dispose();
+            this.uiTextures.splice(index, 1);
             return true;
         }
         
@@ -72,6 +74,9 @@ export default class Core {
      * Updates the rendering + notify updaters
      */
     public update(): void {
+        if (!this.renderScenes)
+            return;
+        
         // On pre update
         this.updates.forEach(u => u.onPreUpdate && u.onPreUpdate());
 

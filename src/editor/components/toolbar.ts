@@ -84,7 +84,8 @@ export default class EditorToolbar {
         this.tools = new Toolbar('ToolsToolBar');
         this.tools.items = [
             { type: 'check', id: 'play', text: 'Play', img: 'icon-play-game' },
-            { type: 'button', id: 'test', text: 'Test...', img: 'icon-play-game-windowed' }
+            { type: 'button', id: 'test', text: 'Test', img: 'icon-play-game-windowed' },
+            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
         this.tools.build('TOOLS-TOOLBAR');
@@ -189,8 +190,13 @@ export default class EditorToolbar {
                 const animatables = SceneManager.GetAnimatables(this.editor.core.scene);
                 this.tools.isChecked('play', true) ? SceneManager.PlayAllAnimatables(this.editor.core.scene, animatables) : this.editor.core.scene.stopAllAnimations();
                 break;
-            
+
             case 'test':
+                SceneExporter.CreateFiles(this.editor);
+                this.editor.addEditPanelPlugin('play-game', true, 'Game');
+                break;
+            
+            case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
                 break;

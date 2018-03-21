@@ -31,6 +31,13 @@
 <body>
     <canvas id="renderCanvas"></canvas>
     <script type="text/javascript">
+        // Accessible variables from parent window
+        var renderScene = true;
+
+        // Opener or Parent ?
+        if (!opener)
+            opener = parent;
+        
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/babylon.max.js",
@@ -100,7 +107,8 @@
                                 scene.executeWhenReady(function () {
                                     scene.activeCamera.attachControl(engine.getRenderingCanvas());
                                     engine.runRenderLoop(function () {
-                                        scene.render();
+                                        if (renderScene)
+                                            scene.render();
                                     });
                                 });
                             });

@@ -117,3 +117,10 @@ build('./.build/src/', './.build/src/tools/post-process-creator/index.js', './di
     externals: externals,
     minify: true
 });
+
+build('./.build/src/', './.build/src/tools/play-game/index.js', './dist/play-game.js', {
+    globalName: 'PlayGame',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
