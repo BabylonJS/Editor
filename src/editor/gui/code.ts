@@ -48,7 +48,10 @@ export default class CodeEditor {
      * Builds the code editor
      * @param parentId the parent id of the editor
      */
-    public async build (parentId: string): Promise<void> {
+    public async build (parentId: string | HTMLElement, caller: Window = window): Promise<void> {
+        if (typeof parentId === 'string')
+            parentId = '#' + parentId;
+        
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
                 'node_modules/babylonjs/babylon.d.ts',
@@ -80,11 +83,12 @@ export default class CodeEditor {
             CodeEditor.ExternalLibraries = content;
         }
 
-        this.editor = monaco.editor.create($('#' + parentId)[0], {
+        this.editor = caller['monaco'].editor.create($(parentId)[0], {
             value: this._defaultValue,
             language: this._language,
             automaticLayout: true,
-            selectionHighlight: true
+            selectionHighlight: true,
+            theme: caller !== window ? 'vs-dark' : undefined
         });
 
         if (!CodeEditor.ExtraLib)

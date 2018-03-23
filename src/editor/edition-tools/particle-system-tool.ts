@@ -35,6 +35,9 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const emitter = this.tool.addFolder('Emitter');
             emitter.open();
 
+            emitter.add(ps, 'id').name('Id');
+            emitter.add(ps, 'name').name('Name');
+
             if (ps.emitter instanceof Vector3)
                 this.tool.addVector(emitter, 'Emitter', ps.emitter);
             else {

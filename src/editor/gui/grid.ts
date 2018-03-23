@@ -54,6 +54,7 @@ export default class Grid<T extends GridRow> {
     public onAdd: () => void;
     public onDelete: (ids: number[]) => void;
     public onChange: (recid: number, value: string) => void;
+    public onEdit: (recid: number) => void;
 
     /**
      * Constructor
@@ -156,6 +157,11 @@ export default class Grid<T extends GridRow> {
             onAdd: () => {
                 if (this.onAdd)
                     this.onAdd();
+            },
+
+            onEdit: (event) => {
+                if (this.onEdit)
+                    this.onEdit(event.recid);
             },
 
             onDelete: (event: any) => {

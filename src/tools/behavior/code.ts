@@ -89,18 +89,18 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add grid
         this.grid = new Grid<CodeGrid>('CodeGrid', {
             toolbarReload: false,
-            toolbarSearch: false,
-            toolbarEdit: false
+            toolbarSearch: false
         });
         this.grid.columns = [{ field: 'name', caption: 'Name', size: '100%', editable: { type: 'string' } }];
         this.grid.onClick = (id) => this.selectCode(id[0]);
         this.grid.onAdd = () => this.add();
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
+        this.grid.onEdit = (id) => this.editCode(id);
         this.grid.build('CODE-BEHAVIOR-LIST');
 
         // Add code editor
-        await this.createEditor();
+        this.code = await this.createEditor();
         this.template = await Tools.LoadFile<string>('./assets/templates/code.txt', false);
 
         // Events
@@ -213,13 +213,36 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     /**
      * Creates the code editor
      */
-    protected async createEditor (): Promise<void> {
-        this.code = new CodeEditor('javascript');
-        await this.code.build('CODE-BEHAVIOR-EDITOR');
+    protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
+        const code = new CodeEditor('javascript');
+        await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
-        this.code.onChange = value => {
-            if (this.data)
+        code.onChange = value => {
+            if (data) {
+                data.code = code.getValue();
+
+                if (data === this.data)
+                    this.code.setValue(data.code);
+            }
+            else if (this.data) {
                 this.data.code = this.code.getValue();
+            }
         };
+
+        return code;
+    }
+
+    /**
+     * On edit the code in a new window
+     * @param id: the id of the script
+     */
+    protected async editCode (id: number): Promise<void> {
+        // Create popup
+        const popup = Tools.OpenPopup('./code-editor.html', 'Code Editor - ' + this.datas.metadatas[id].name, 800, 600);
+        popup.document.title = 'Code Editor - ' + this.datas.metadatas[id].name;
+        popup.addEventListener('editorloaded', async () => {
+            const code = await this.createEditor(<HTMLDivElement> popup.document.getElementById('EDITOR-DIV'), this.data, popup);
+            code.setValue(this.data.code);
+        });
     }
 }
