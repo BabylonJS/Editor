@@ -384,6 +384,7 @@ declare module 'babylonjs-editor/editor/gui/grid' {
             onAdd: () => void;
             onDelete: (ids: number[]) => void;
             onChange: (recid: number, value: string) => void;
+            onEdit: (recid: number) => void;
             /**
                 * Constructor
                 * @param name the name of the grid
@@ -598,7 +599,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * Builds the code editor
                 * @param parentId the parent id of the editor
                 */
-            build(parentId: string): Promise<void>;
+            build(parentId: string | HTMLElement, caller?: Window): Promise<void>;
     }
 }
 

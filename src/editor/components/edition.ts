@@ -186,5 +186,8 @@ export default class EditorEditionTools {
             else
                 container.hide();
         });
+
+        // Hack hack hack, makes dat.gui working better
+        window.dispatchEvent(new Event('resize'));
     }
 }
