@@ -19,7 +19,7 @@ export default class CodeEditor {
 
     // Static members
     public static ExternalLibraries: string = null;
-    public static ExtraLib: MonacoDisposable;
+    public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
     
     /**
      * Constructor
@@ -91,8 +91,12 @@ export default class CodeEditor {
             theme: caller !== window ? 'vs-dark' : undefined
         });
 
-        if (!CodeEditor.ExtraLib)
-            CodeEditor.ExtraLib = monaco.languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor');
+        if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
+            CodeEditor.ExtraLibs.push({
+                lib: caller['monaco'].languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
+                caller: caller
+            });
+        }
 
         this.editor.onDidChangeModelContent(() => {
             if (this.onChange)

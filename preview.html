@@ -41,6 +41,7 @@
         System.config({
             paths: {
                 "babylonjs": "./node_modules/babylonjs/babylon.max.js",
+                "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
                 "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.min.js",
                 "cannonjs": "./node_modules/cannon/build/cannon.min.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
@@ -53,23 +54,10 @@
                     format: "cjs",
                     main: "babylonjs.loaders.js",
                     format: "global"
-                },
-                "./node_modules/babylonjs-materials/": {
-                    format: "cjs",
-                    main: "babylonjs.materials.js",
-                    format: "global"
-                },
-                "./node_modules/babylonjs/dist/preview release/materialsLibrary/": {
-                    format: "cjs",
-                    main: "babylonjs.materials.js",
-                    format: "global"
                 }
             },
             meta: {
-                "cannonjs": { format: "global" },
-                "babylonjs": { scriptLoad: true, format: "global", exports: "BABYLON" },
-                "babylonjs-gui": { exports: "babylonDependency.GUI" },
-                "babylonjs-materials": { exports: "babylonDependency" }
+                "cannonjs": { format: "global" }
             }
         });
 
@@ -155,6 +143,7 @@
         // Run sockets
         var promises = [];
         promises.push(System.import("babylonjs"));
+        promises.push(System.import("babylonjs-gui"));
         promises.push(System.import("cannonjs"));
         Promise.all(promises).then(function (e) {
             return System.import("babylonjs-materials").then(function () {

@@ -1,7 +1,8 @@
 import {
     Node,
     DirectionalLight, HemisphericLight,
-    Scene
+    Scene,
+    Tools as BabylonTools
 } from 'babylonjs';
 
 import Editor, {
@@ -237,9 +238,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param id: the id of the script
      */
     protected async editCode (id: number): Promise<void> {
+        const name = 'Code Editor - ' + this.datas.metadatas[id].name;
+
         // Create popup
-        const popup = Tools.OpenPopup('./code-editor.html', 'Code Editor - ' + this.datas.metadatas[id].name, 800, 600);
-        popup.document.title = 'Code Editor - ' + this.datas.metadatas[id].name;
+        const popup = Tools.OpenPopup('./code-editor.html#' + name, name, 1280, 800);
+        popup.document.title = name;
         popup.addEventListener('editorloaded', async () => {
             const code = await this.createEditor(<HTMLDivElement> popup.document.getElementById('EDITOR-DIV'), this.data, popup);
             code.setValue(this.data.code);
