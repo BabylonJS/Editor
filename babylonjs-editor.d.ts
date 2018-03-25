@@ -581,7 +581,15 @@ declare module 'babylonjs-editor/editor/gui/code' {
             editor: MonacoDisposable;
             onChange: (value: string) => void;
             static ExternalLibraries: string;
-            static ExtraLib: MonacoDisposable;
+            static ExtraLibs: {
+                    lib: MonacoDisposable;
+                    caller: Window;
+            }[];
+            /**
+                * Remove extra lib from the registered callers
+                * @param caller the caller reference (Window)
+                */
+            static RemoveExtraLib(caller: Window): void;
             /**
                 * Constructor
                 */
@@ -775,6 +783,7 @@ declare module 'babylonjs-editor/editor/components/graph' {
             protected editor: Editor;
             graph: Graph;
             root: string;
+            gui: string;
             currentObject: any;
             constructor(editor: Editor);
             /**
@@ -825,6 +834,11 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * @param root: the root node to check
                 */
             protected fillSounds(scene: Scene, root: Scene | Node): number;
+            /**
+                * Fills the GUI advanced textures
+                * @param root: the node to check GUI is attached to
+                */
+            protected fillGuiTextures(root: Node): number;
             /**
                 * On the user clicks on a context menu item
                 * @param id the context menu item id

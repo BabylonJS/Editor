@@ -6,7 +6,7 @@ import {
     GroundMesh,
     Tags, Tools as BabylonTools
 } from 'babylonjs';
-
+import { AdvancedDynamicTexture, Control } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
 
 import Editor from '../editor';
@@ -23,8 +23,19 @@ export default class SceneFactory {
     public static AddToGraph (editor: Editor, node: any): void {
         const selected = editor.graph.getSelected();
 
-        editor.graph.clear();
-        editor.graph.fill();
+        // TODO: add dynamically instead of rebuilding graph
+        if (node instanceof Control) {
+            editor.graph.clear();
+            editor.graph.fill();
+        }
+        else if (node instanceof Node) {
+            editor.graph.clear();
+            editor.graph.fill();
+        }
+        else {
+            editor.graph.clear();
+            editor.graph.fill();
+        }
 
         editor.graph.select(selected ? selected.id : editor.graph.root);
         editor.graph.select(node.id);
@@ -136,5 +147,18 @@ export default class SceneFactory {
         this.AddToGraph(editor, mesh);
 
         return mesh;
+    }
+
+    /**
+     * Creates a new GUI advanced texture
+     * @param editor: the editor reference
+     */
+    public static AddGui (editor: Editor): AdvancedDynamicTexture {
+        const gui = AdvancedDynamicTexture.CreateFullscreenUI('new ui');
+        editor.core.uiTextures.push(gui);
+
+        this.AddToGraph(editor, gui);
+
+        return gui;
     }
 }

@@ -64,10 +64,13 @@ export default class AnimationEditor extends EditorPlugin {
     
     public data: DragData = null;
 
+    public currentFrame: number = 0;
+
     // Protected members
     protected mouseMoveHandler: (ev: MouseEvent) => void;
     protected addingKeys: boolean = false;
     protected removingKeys: boolean = false;
+    protected isPlaying: boolean = false;
 
     protected onResize = () => this.resize();
     protected onObjectSelected = (node) => node && this.objectSelected(node);
@@ -116,6 +119,8 @@ export default class AnimationEditor extends EditorPlugin {
         // Create toolbar
         this.toolbar = new Toolbar('AnimationEditorToolbar');
         this.toolbar.items = [
+            { type: 'button', id: 'play', text: 'Play', img: 'icon-play-game', checked: false },
+            { type: 'break' },
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
             { type: 'check', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
             { type: 'check', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
@@ -289,6 +294,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.addingKeys = this.removingKeys = false;
         
         switch (id) {
+            case 'play': this.playAnimation(); break;
             case 'add': this.addAnimation(); break;
             case 'add-key': this.addingKeys = !this.addingKeys; break;
             case 'remove-key': this.removingKeys = !this.removingKeys; break;
@@ -339,6 +345,48 @@ export default class AnimationEditor extends EditorPlugin {
             this.animatable.animations.push(anim);
             this.objectSelected(this.animatable);
         };
+    }
+
+    /**
+     * Plays the animation
+     */
+    protected playAnimation (): void {
+        if (!this.animatable || !this.animation)
+            return;
+
+        if (this.isPlaying) {
+            this.cursorRect.stop();
+            this.cursorRect.attr('x', -this.cursorRect.attr('width') / 2);
+
+            this.cursorLine.stop();
+            this.cursorLine.attr('x', 0);
+
+            this.editor.core.scene.stopAnimation(this.animatable);
+
+            this.toolbar.element.uncheck('play');
+            this.isPlaying = false;
+
+            return;
+        }
+
+        const keys = this.animation.getKeys();
+        const min = this.currentFrame || keys[0].frame;
+        const max = keys[keys.length - 1].frame;
+
+        if (min === undefined || max === undefined)
+            return;
+
+        const time = ((max - min) * 1000) / this.animation.framePerSecond;
+
+        this.cursorRect.animate({ x: this.paper.width - this.cursorRect.attr('width') / 2 }, time);
+        this.cursorLine.animate({ x: this.paper.width }, time);
+
+        this.editor.core.scene.beginDirectAnimation(this.animatable, [this.animation], min, max, false, 1.0, () => {
+            this.isPlaying = false;
+        });
+
+        this.toolbar.element.check('play');
+        this.isPlaying = true;
     }
 
     /**
@@ -418,6 +466,7 @@ export default class AnimationEditor extends EditorPlugin {
 
         this.animationManager = new Animatable(this.editor.core.scene, this.animatable, keys[0].frame, maxFrame, false, 1.0);
         this.animationManager.appendAnimations(this.animatable, this.animatable.animations);
+        this.animationManager.stop();
 
         // Update graph
         this.updateGraph(this.animation);
@@ -450,6 +499,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         if (this.timeline)
             this.timeline.remove();
+
+        // Misc
+        this.currentFrame = 0;
 
         // Return if no anim
         if (!anim)
@@ -800,10 +852,13 @@ export default class AnimationEditor extends EditorPlugin {
      */
     protected onClickTimeline(maxFrame: number): void {
         this.timeline.click((ev: MouseEvent) => {
-            const frame = Scalar.Clamp((ev.offsetX * maxFrame) / this.paper.width, 0, maxFrame - 1);
+            if (this.isPlaying)
+                return;
+            
+            this.currentFrame = Scalar.Clamp((ev.offsetX * maxFrame) / this.paper.width, 0, maxFrame - 1);
 
             this.animationManager.stop();
-            this.animationManager.goToFrame(frame);
+            this.animationManager.goToFrame(this.currentFrame);
 
             // Update cursor
             this.cursorRect.undrag();

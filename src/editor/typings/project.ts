@@ -156,4 +156,6 @@ export interface ProjectRoot {
 
     requestedMaterials?: string[];
     customMetadatas?: IStringDictionary<any>;
+
+    gui: any[];
 }

@@ -16,7 +16,9 @@ export interface BehaviorMetadata {
 
 const template = `
 EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}) {
+return (function () {
     {{code}}
+})();
 }
 `;
 
@@ -69,7 +71,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 Extension.AddScript(template.replace('{{name}}', fnName).replace('{{node}}', this._getConstructorName(node)).replace('{{code}}', m.code), url);
 
                 // Create instance
-                const instance = new EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
+                const ctor = EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
+                const instance = new ctor();
                 const scope = this;
 
                 if (instance.start) {
