@@ -1,5 +1,10 @@
+// Constructor
+function Script () {
+
+}
+
 // Called once starting the scripts
-this.start = function () {
+Script.prototype.start = function () {
     // You can access the scene everywhere
     scene.clearColor = BABYLON.Color3.Black();
 
@@ -8,6 +13,8 @@ this.start = function () {
 }
 
 // Called on each update
-this.update = function () {
+Script.prototype.update = function () {
     // Your code...
 }
+
+return Script;

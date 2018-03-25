@@ -5,6 +5,7 @@ import {
     PostProcess,
     Tools as BabylonTools
 } from 'babylonjs';
+import { AdvancedDynamicTexture } from 'babylonjs-gui';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -15,6 +16,7 @@ export default class EditorGraph {
     // Public members
     public graph: Graph;
     public root: string = 'ROOT';
+    public gui: string = 'GUI';
 
     public currentObject: any = this.editor.core.scene;
 
@@ -110,7 +112,7 @@ export default class EditorGraph {
 
         if (!root) {
             // Set scene's node
-            this.graph.element.add(<GraphNode>{
+            this.graph.element.add(<GraphNode> {
                 id: this.root,
                 text: 'Scene',
                 img: 'icon-scene',
@@ -133,6 +135,16 @@ export default class EditorGraph {
 
             // Set sounds
             this.fillSounds(scene, scene);
+
+            // Set gui's node
+            this.graph.element.add(<GraphNode> {
+                id: this.gui,
+                text: 'GUI',
+                img: 'icon-lens-flare',
+                data: scene
+            });
+
+            this.fillGuiTextures(null);
         }
         else {
             Tools.SortAlphabetically(nodes, 'name');
@@ -211,6 +223,7 @@ export default class EditorGraph {
 
             // Sounds
             parentNode.count += this.fillSounds(scene, n);
+            parentNode.count += this.fillGuiTextures(n);
 
             // Add descendants to count
             const descendants = n.getDescendants();
@@ -239,6 +252,8 @@ export default class EditorGraph {
             return 'icon-helpers';
         } else if (obj instanceof Sound) {
             return 'icon-sound';
+        } else if (obj instanceof AdvancedDynamicTexture) {
+            return 'icon-ground';
         }
 
         return null;
@@ -255,7 +270,7 @@ export default class EditorGraph {
             return;
 
         let count = 0;
-    
+
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
                 if (root === scene && !s['_connectedMesh']) {
@@ -283,6 +298,34 @@ export default class EditorGraph {
     }
 
     /**
+     * Fills the GUI advanced textures
+     * @param root: the node to check GUI is attached to
+     */
+    protected fillGuiTextures (root: Node): number {
+        let count = 0;
+
+        if (!root) {
+            // Advanced ui textures
+            this.editor.core.uiTextures.forEach(ut => {
+                this.graph.element.add(this.gui, <GraphNode>{
+                    id: ut.name,
+                    text: ut.name,
+                    img: this.getIcon(ut),
+                    data: ut
+                });
+            });
+        }
+        else {
+            // Attached to mesh
+            this.editor.core.uiTextures.forEach(ut => {
+                
+            });
+        }
+
+        return count;
+    }
+
+    /**
      * On the user clicks on a context menu item
      * @param id the context menu item id
      * @param node the related graph node
@@ -293,6 +336,15 @@ export default class EditorGraph {
             case 'remove':
                 node.data && node.data.dispose && node.data.dispose();
                 this.graph.element.remove(node.id);
+
+                // Gui
+                if (node.data instanceof AdvancedDynamicTexture) {
+                    const ui = this.editor.core.uiTextures.find(ut => ut === node.data);
+                    const index = this.editor.core.uiTextures.indexOf(ui);
+
+                    if (index !== -1)
+                        this.editor.core.uiTextures.splice(index, 1);
+                }
                 break;
             // Clone
             case 'clone':

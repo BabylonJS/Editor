@@ -75,7 +75,13 @@ export default class EditorToolbar {
                     { type: 'break' },
                     { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' }
                 ]
-            }
+            },
+            { type: 'break' },
+            {
+                type: 'menu', id: 'gui', text: 'Gui', img: 'icon-lens-flare', items: [
+                    { id: 'add-advanced-texture', img: 'icon-ground', text: 'Add Advanced Texture' },
+                ]
+            },
         ];
         this.main.onClick = target => this.onMainClick(target);
         this.main.build('MAIN-TOOLBAR');
@@ -176,6 +182,11 @@ export default class EditorToolbar {
             case 'add:ground':
                 SceneFactory.CreateGroundMesh(this.editor);
                 break;
+
+            case 'gui:add-advanced-texture':
+                SceneFactory.AddGui(this.editor);
+                break;
+
             default: break;
         }
     }

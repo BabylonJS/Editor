@@ -20,6 +20,18 @@ export default class CodeEditor {
     // Static members
     public static ExternalLibraries: string = null;
     public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
+
+    /**
+     * Remove extra lib from the registered callers
+     * @param caller the caller reference (Window)
+     */
+    public static RemoveExtraLib (caller: Window): void {
+        const lib = this.ExtraLibs.find(el => el.caller === caller);
+        const index = this.ExtraLibs.indexOf(lib);
+
+        if (index !== -1)
+            this.ExtraLibs.splice(index, 1);
+    }
     
     /**
      * Constructor

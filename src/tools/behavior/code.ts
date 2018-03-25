@@ -247,5 +247,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             const code = await this.createEditor(<HTMLDivElement> popup.document.getElementById('EDITOR-DIV'), this.data, popup);
             code.setValue(this.data.code);
         });
+        popup.addEventListener('beforeunload', () => {
+            CodeEditor.RemoveExtraLib(popup);
+        });
     }
 }

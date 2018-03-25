@@ -148,7 +148,8 @@ export default class SceneExporter {
             renderTargets: null,
             requestedMaterials: null,
             shadowGenerators: this._SerializeShadowGenerators(editor),
-            sounds: null
+            sounds: null,
+            gui: editor.core.uiTextures.map(ut => ut.serialize())
         };
 
         // Finish
