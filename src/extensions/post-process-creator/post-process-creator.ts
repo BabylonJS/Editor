@@ -4,6 +4,7 @@ import Extensions from '../extensions';
 import Extension from '../extension';
 
 import PostProcessEditor, { CustomPostProcessConfig } from './post-process';
+import { IStringDictionary } from 'babylonjs-editor';
 
 export interface PostProcessCreatorUserConfig {
     textures?: { value: any; name: string }[];
@@ -37,6 +38,9 @@ window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].PostProcessCreator = EDITOR.PostProcessCreator;
 
 export default class PostProcessCreatorExtension extends Extension<PostProcessCreatorMetadata[]> {
+    // Public members
+    public instances: IStringDictionary<any> = { };
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -64,6 +68,9 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
         const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera);
         const code = new ctor();
+
+        // Save instance
+        this.instances[data.name] = code;
 
         // Custom config
         let config: CustomPostProcessConfig = null;
