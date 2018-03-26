@@ -1,8 +1,12 @@
-// Called on building material
-CustomPostProcess.prototype.init = function () {
-    // Add a custom property
+// Constructor
+function CustomPostProcess () {
     this.time = 0;
     this.multiplier = 1;
+}
+
+// Called on building material
+CustomPostProcess.prototype.init = function () {
+
 };
 
 CustomPostProcess.prototype.setUniforms = function (uniforms, samplers) {
@@ -20,3 +24,5 @@ CustomPostProcess.prototype.onApply = function (effect) {
 CustomPostProcess.prototype.dispose = function () {
 
 };
+
+return CustomPostProcess;

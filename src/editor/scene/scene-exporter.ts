@@ -39,6 +39,13 @@ export default class SceneExporter {
         let file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
         editor.sceneFile = file;
 
+        // Gui
+        editor.guiFiles = [];
+        editor.core.uiTextures.forEach(ut => {
+            const serializedGui = ut.serialize();
+            editor.guiFiles.push(Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedGui)), ut.name + '.gui'));
+        });
+
         // Project
         const name = 'scene' + randomId + '.editorproject';
         const project = this.Export(editor);

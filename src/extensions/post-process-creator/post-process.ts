@@ -10,12 +10,10 @@ import {
  * comes from the user
  */
 export interface CustomPostProcessCode {
-    prototype: {
-        init: () => void;
-        setUniforms: (uniforms: string[], samplers: string[]) => void;
-        onApply: (effect: Effect) => void;
-        dispose: () => void;
-    }
+    init: () => void;
+    setUniforms: (uniforms: string[], samplers: string[]) => void;
+    onApply: (effect: Effect) => void;
+    dispose: () => void;
 }
 
 /**
@@ -59,7 +57,7 @@ export default class PostProcessEditor extends PostProcess {
         this.config = config;
 
         // Constructor
-        customCode && customCode.prototype.init.call(this);
+        customCode && customCode.init();
 
         // Set uniforms
         this.setConfig(config);
@@ -74,7 +72,7 @@ export default class PostProcessEditor extends PostProcess {
     public setOnApply (): void {
         this.onApply = effect => {
             if (this.customCode)
-                this.customCode.prototype.onApply.call(this, effect);
+                this.customCode.onApply(effect);
 
             // Set user config
             this.config.textures.forEach(t => this.userConfig[t] !== undefined && effect.setTexture(t, <BaseTexture> this.userConfig[t]));
@@ -95,7 +93,7 @@ export default class PostProcessEditor extends PostProcess {
             .concat(config.vectors3);
         const samplers: string[] = ['textureSampler'].concat(config.textures);
 
-        this.customCode && this.customCode.prototype.setUniforms.call(this, uniforms, samplers);
+        this.customCode && this.customCode.setUniforms(uniforms, samplers);
 
         // Update and apply config
         try {
@@ -109,7 +107,7 @@ export default class PostProcessEditor extends PostProcess {
      * Disposes the post-process
      */
     public dispose (): void {
-        this.customCode && this.customCode.prototype.dispose.call(this);
+        this.customCode && this.customCode.dispose();
         super.dispose();
     }
 

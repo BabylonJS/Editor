@@ -48,6 +48,7 @@ export default class Editor {
 
     public filesInput: FilesInput;
     public sceneFile: File = null;
+    public guiFiles: File[] = [];
     public projectFile: File = null;
 
     public _showReloadDialog: boolean = true;

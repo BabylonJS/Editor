@@ -19,6 +19,8 @@ import TriPlanarMaterialTool from '../edition-tools/materials/tri-planar-tool';
 import TerrainMaterialTool from '../edition-tools/materials/terrain-tool';
 import LavaMaterialTool from '../edition-tools/materials/lava-tool';
 
+import GuiImageTool from '../edition-tools/gui/image';
+
 import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
 
@@ -73,6 +75,9 @@ export default class EditorEditionTools {
 
         this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());
+
+        // TODO: wait for parse and serialize for GUI
+        // this.addTool(new GuiImageTool());
 
         this.addTool(new TextureTool());
 

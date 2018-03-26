@@ -43,13 +43,11 @@ export class CustomMaterialDefines extends MaterialDefines {
  * comes from the user
  */
 export interface CustomMaterialCode {
-    prototype: {
-        init: () => void;
-        setUniforms: (uniforms: string[], samplers: string[]) => void;
-        isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
-        bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
-        dispose: () => void;
-    }
+    init: () => void;
+    setUniforms: (uniforms: string[], samplers: string[]) => void;
+    isReadyForSubMesh: (mesh: AbstractMesh, subMesh: SubMesh, defines: CustomMaterialDefines) => boolean;
+    bindForSubMesh: (world: Matrix, mesh: Mesh, subMesh: SubMesh, effect: Effect) => void;
+    dispose: () => void;
 }
 
 export interface CustomMaterialConfig {
@@ -104,14 +102,14 @@ export default class CustomEditorMaterial extends PushMaterial {
         this._shaderName = shaderName;
         
         this.customCode = customCode;
-        this.customCode && this.customCode.prototype.init.call(this);
+        this.customCode && this.customCode.init();
 
         this.config = config;
     }
 
     public setCustomCode (customCode: CustomMaterialCode): void {
         this.customCode = customCode;
-        this.customCode && this.customCode.prototype.init.call(this);
+        this.customCode && this.customCode.init();
     }
 
     public needAlphaBlending(): boolean {
@@ -155,7 +153,7 @@ export default class CustomEditorMaterial extends PushMaterial {
         // Textures
         if (defines._areTexturesDirty) {
             defines._needUVs = false;
-            if (scene.texturesEnabled) {
+            if (scene.texturesEnabled && this.config) {
                 let atLeastOneTexture = false;
 
                 for (const t of this.config.textures) {
@@ -246,23 +244,26 @@ export default class CustomEditorMaterial extends PushMaterial {
             const uniformBuffers = new Array<string>();
 
             // Uniforms and samplers
-            const samplers = this.config.textures.map(t => t.name);
-            const uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vBaseColor',
+            const samplers = this.config ? this.config.textures.map(t => t.name) : [];
+            let uniforms = ['world', 'view', 'viewProjection', 'vEyePosition', 'vLightsType', 'vBaseColor',
                 'vFogInfos', 'vFogColor', 'pointSize',
                 'mBones',
-                'vClipPlane']
-                .concat(this.config.floats)
-                .concat(this.config.vectors2)
-                .concat(this.config.vectors3);
-        
-            this.config.textures.forEach(t => {
-                uniforms.push(t.name + 'Infos');
-                uniforms.push(t.name + 'Matrix');
-            });
+                'vClipPlane'];
 
-            this.customCode && this.customCode.prototype.setUniforms.call(this, uniforms, samplers);
+            if (this.config) {
+                uniforms = uniforms.concat(this.config.floats)
+                                   .concat(this.config.vectors2)
+                                   .concat(this.config.vectors3);
+
+                this.config.textures.forEach(t => {
+                    uniforms.push(t.name + 'Infos');
+                    uniforms.push(t.name + 'Matrix');
+                });
+            }
+
+            this.customCode && this.customCode.setUniforms(uniforms, samplers);
             
-            if (this.customCode && !this.customCode.prototype.isReadyForSubMesh.call(this, mesh, subMesh, defines))
+            if (this.customCode && !this.customCode.isReadyForSubMesh(mesh, subMesh, defines))
                 return false;
 
             MaterialHelper.PrepareUniformsAndSamplersList(<EffectCreationOptions>{
@@ -319,16 +320,18 @@ export default class CustomEditorMaterial extends PushMaterial {
 
         if (this._mustRebind(scene, effect)) {
             // Textures
-            this.config.textures.forEach(t => {
-                const texture = <BaseTexture> this.userConfig[t.name];
-                if (!texture)
-                    return;
-                
-                this._activeEffect.setTexture(t.name, texture);
+            if (this.config) {
+                this.config.textures.forEach(t => {
+                    const texture = <BaseTexture> this.userConfig[t.name];
+                    if (!texture)
+                        return;
+                    
+                    this._activeEffect.setTexture(t.name, texture);
 
-                this._activeEffect.setFloat2(t.name + 'Infos', texture.coordinatesIndex, texture.level);
-                this._activeEffect.setMatrix(t.name + 'Matrix', texture.getTextureMatrix());
-            });
+                    this._activeEffect.setFloat2(t.name + 'Infos', texture.coordinatesIndex, texture.level);
+                    this._activeEffect.setMatrix(t.name + 'Matrix', texture.getTextureMatrix());
+                });
+            }
 
             // Clip plane
             MaterialHelper.BindClipPlane(this._activeEffect, scene);
@@ -357,13 +360,15 @@ export default class CustomEditorMaterial extends PushMaterial {
         MaterialHelper.BindFogParameters(scene, mesh, this._activeEffect);
 
         // Custom
-        this.customCode && this.customCode.prototype.bindForSubMesh.call(this, world, mesh, subMesh, this._activeEffect);
+        this.customCode && this.customCode.bindForSubMesh(world, mesh, subMesh, this._activeEffect);
 
         // User config
-        this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && this._activeEffect.setFloat(f, <number> this.userConfig[f] || 0));
-        this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector2(v, <Vector2> this.userConfig[v]));
-        this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector3(v, <Vector3> this.userConfig[v]));
-
+        if (this.config) {
+            this.config.floats.forEach(f =>   this.userConfig[f] !== undefined && this._activeEffect.setFloat(f, <number> this.userConfig[f] || 0));
+            this.config.vectors2.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector2(v, <Vector2> this.userConfig[v]));
+            this.config.vectors3.forEach(v => this.userConfig[v] !== undefined && this._activeEffect.setVector3(v, <Vector3> this.userConfig[v]));
+        }
+        
         this._afterBind(mesh, this._activeEffect);
     }
 
@@ -396,16 +401,18 @@ export default class CustomEditorMaterial extends PushMaterial {
             return true;
         }
 
-        for (const t of this.config.textures) {
-            if (this.userConfig[t.name] === texture)
-                return true;
+        if (this.config) {
+            for (const t of this.config.textures) {
+                if (this.userConfig[t.name] === texture)
+                    return true;
+            }
         }
 
         return false;
     }
 
     public dispose(forceDisposeEffect?: boolean): void {
-        this.customCode && this.customCode.prototype.dispose.call(this);
+        this.customCode && this.customCode.dispose();
 
         super.dispose(forceDisposeEffect);
     }

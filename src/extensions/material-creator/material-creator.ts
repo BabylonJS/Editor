@@ -23,7 +23,7 @@ export interface MaterialCreatorMetadata {
 }
 
 const template = `
-EDITOR.MaterialCreator.Constructors['{{name}}'] = function (CustomMaterial) {
+EDITOR.MaterialCreator.Constructors['{{name}}'] = function () {
     {{code}}
 }
 `;
@@ -67,8 +67,8 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
 
             Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
 
-            code = <any> new Function();
-            const instance = new EDITOR.MaterialCreator.Constructors[id](code);
+            const ctor = EDITOR.MaterialCreator.Constructors[id]();
+            code = new ctor();
         }
 
         // Custom config

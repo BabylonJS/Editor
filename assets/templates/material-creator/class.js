@@ -1,7 +1,11 @@
+// Constructor
+function CustomMaterial () {
+    this.time = 0;
+}
+
 // Called on building material
 CustomMaterial.prototype.init = function () {
-    // Add a custom property
-    this.time = 0;
+
 };
 
 CustomMaterial.prototype.setUniforms = function (uniforms, samplers) {
@@ -27,3 +31,5 @@ CustomMaterial.prototype.bindForSubMesh = function (world, mesh, subMesh, effect
 CustomMaterial.prototype.dispose = function () {
 
 };
+
+return CustomMaterial;

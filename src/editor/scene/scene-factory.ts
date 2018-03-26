@@ -2,17 +2,19 @@ import {
     Scene,
     Vector3, Color4,
     Texture,
+    Node,
     Mesh, ParticleSystem,
     GroundMesh,
     Tags, Tools as BabylonTools
 } from 'babylonjs';
-import { AdvancedDynamicTexture, Control } from 'babylonjs-gui';
+import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
 import Picker from '../gui/picker';
+import { GraphNode } from '../gui/graph';
 
 export default class SceneFactory {
     /**
@@ -25,12 +27,30 @@ export default class SceneFactory {
 
         // TODO: add dynamically instead of rebuilding graph
         if (node instanceof Control) {
+            // TODO: wait for parse and serialize for GUI
+            // const texture = editor.core.uiTextures[0];
+            // const parent = editor.graph.getByData(texture);
+
+            // if (parent) {
+            //     texture.addControl(node);
+
+            //     editor.graph.add(<GraphNode> {
+            //         id: node.name,
+            //         text: node.name,
+            //         img: editor.graph.getIcon(node),
+            //         data: node
+            //     }, parent.id);
+            // }
             editor.graph.clear();
             editor.graph.fill();
         }
         else if (node instanceof Node) {
-            editor.graph.clear();
-            editor.graph.fill();
+            editor.graph.add(<GraphNode> {
+                id: node.id,
+                text: node.name,
+                img: editor.graph.getIcon(node),
+                data: node
+            }, node.parent ? node.parent.id : editor.graph.root);
         }
         else {
             editor.graph.clear();
@@ -160,5 +180,17 @@ export default class SceneFactory {
         this.AddToGraph(editor, gui);
 
         return gui;
+    }
+
+    /**
+     * Creates a new GUI Image
+     * @param editor: the editor reference
+     */
+    public static AddGuiImage (editor: Editor): Image {
+        const img = new Image('New Image');
+
+        this.AddToGraph(editor, img);
+
+        return img;
     }
 }

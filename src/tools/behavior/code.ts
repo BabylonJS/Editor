@@ -102,7 +102,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Add code editor
         this.code = await this.createEditor();
-        this.template = await Tools.LoadFile<string>('./assets/templates/code.txt', false);
+        this.template = await Tools.LoadFile<string>('./assets/templates/code/code.txt', false);
 
         // Events
         this.editor.core.onSelectObject.add(this.onSelectObject);

@@ -50,6 +50,7 @@ declare module 'babylonjs-editor/editor/editor' {
             sceneIcons: SceneIcons;
             filesInput: FilesInput;
             sceneFile: File;
+            guiFiles: File[];
             projectFile: File;
             _showReloadDialog: boolean;
             /**
@@ -608,6 +609,17 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * @param parentId the parent id of the editor
                 */
             build(parentId: string | HTMLElement, caller?: Window): Promise<void>;
+            /**
+                * Creates a windowed editor
+                * @param options: the editor's configuration
+                */
+            static CreateWindowedEditor(options: {
+                    name: string;
+                    data: any;
+                    baseData: any;
+                    property: string;
+                    baseEditor: CodeEditor;
+            }): Promise<void>;
     }
 }
 
@@ -813,6 +825,11 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * Returns the selected node id
                 */
             getSelected(): GraphNode;
+            /**
+                * Returns a anode
+                * @param data: the data to search
+                */
+            getByData(data: any): GraphNode;
             /**
                 * Clears the graph
                 */

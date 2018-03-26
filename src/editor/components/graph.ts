@@ -5,7 +5,7 @@ import {
     PostProcess,
     Tools as BabylonTools
 } from 'babylonjs';
-import { AdvancedDynamicTexture } from 'babylonjs-gui';
+import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -96,6 +96,14 @@ export default class EditorGraph {
     }
 
     /**
+     * Returns a anode 
+     * @param data: the data to search
+     */
+    public getByData (data: any): GraphNode {
+        return <GraphNode> this.graph.element.get(data.id || data.name);
+    }
+
+    /**
      * Clears the graph
      */
     public clear (): void {
@@ -137,14 +145,15 @@ export default class EditorGraph {
             this.fillSounds(scene, scene);
 
             // Set gui's node
-            this.graph.element.add(<GraphNode> {
-                id: this.gui,
-                text: 'GUI',
-                img: 'icon-lens-flare',
-                data: scene
-            });
+            // TODO: wait for parse and serialize for GUI
+            // this.graph.element.add(<GraphNode> {
+            //     id: this.gui,
+            //     text: 'GUI',
+            //     img: 'icon-lens-flare',
+            //     data: scene
+            // });
 
-            this.fillGuiTextures(null);
+            // this.fillGuiTextures(null);
         }
         else {
             Tools.SortAlphabetically(nodes, 'name');
@@ -223,7 +232,9 @@ export default class EditorGraph {
 
             // Sounds
             parentNode.count += this.fillSounds(scene, n);
-            parentNode.count += this.fillGuiTextures(n);
+
+            // TODO: wait for parse and serialize for GUI
+            // parentNode.count += this.fillGuiTextures(n);
 
             // Add descendants to count
             const descendants = n.getDescendants();
@@ -254,6 +265,8 @@ export default class EditorGraph {
             return 'icon-sound';
         } else if (obj instanceof AdvancedDynamicTexture) {
             return 'icon-ground';
+        } else if (obj instanceof Image) {
+            return 'icon-dynamic-texture';
         }
 
         return null;
