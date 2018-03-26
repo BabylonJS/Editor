@@ -1,4 +1,5 @@
 import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem } from 'babylonjs';
+import { IStringDictionary } from 'babylonjs-editor';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -33,6 +34,9 @@ window['EDITOR'].BehaviorCode = EDITOR.BehaviorCode;
 
 // Code extension class
 export default class CodeExtension extends Extension<BehaviorMetadata[]> {
+    // Public members
+    public instances: IStringDictionary<any> = { };
+    
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -71,11 +75,14 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 Extension.AddScript(template.replace('{{name}}', fnName).replace('{{node}}', this._getConstructorName(node)).replace('{{code}}', m.code), url);
 
                 // Create instance
-                // TODO: setup tools
-                const ctor = EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
+                const ctor = EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools);
                 const instance = new ctor();
-                const scope = this;
 
+                // Save instance
+                this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
+
+                // Run
+                const scope = this;
                 if (instance.start) {
                     this.scene.registerBeforeRender(function () {
                         instance.start();
