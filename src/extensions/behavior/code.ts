@@ -1,4 +1,4 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools, IParticleSystem } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -15,7 +15,7 @@ export interface BehaviorMetadata {
 }
 
 const template = `
-EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}) {
+EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools) {
 return (function () {
     {{code}}
 })();
@@ -63,7 +63,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                     return;
 
                 let url = window.location.href;
-                url = url.replace(Tools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + m.name.replace(/ /g, '') + '.js';
+                url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + m.name.replace(/ /g, '') + '.js';
 
                 const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + m.name.replace(/ /g, '');
 
@@ -71,6 +71,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 Extension.AddScript(template.replace('{{name}}', fnName).replace('{{node}}', this._getConstructorName(node)).replace('{{code}}', m.code), url);
 
                 // Create instance
+                // TODO: setup tools
                 const ctor = EDITOR.BehaviorCode.Constructors[fnName](this.scene, node);
                 const instance = new ctor();
                 const scope = this;

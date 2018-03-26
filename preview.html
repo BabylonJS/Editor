@@ -102,6 +102,20 @@
                             });
                         };
 
+                        // TODO: serialize / parse GUI
+                        // Import UI
+                        // opener.editor.guiFiles.forEach(function (gf) {
+                        //     var reader = new FileReader();
+                        //     reader.onload = function (data) {
+                        //         System.import("babylonjs-gui").then(function (e) {
+                        //             e.AdvancedDynamicTexture.Parse(data.target.result);
+                        //             getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
+                        //                 readProject(project);
+                        //             });
+                        //         });
+                        //     };
+                        //     reader.readAsText(gf);
+                        // });
                         getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
                             readProject(project);
                         });

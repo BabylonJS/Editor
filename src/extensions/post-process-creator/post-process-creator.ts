@@ -22,7 +22,7 @@ export interface PostProcessCreatorMetadata {
 }
 
 const template = `
-EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (CustomPostProcess, camera) {
+EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera) {
     {{code}}
 }
 `;
@@ -61,9 +61,9 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
 
         Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
 
-        const code = <any> new Function();
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
-        const instance = new EDITOR.PostProcessCreator.Constructors[id](code, camera);
+        const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera);
+        const code = new ctor();
 
         // Custom config
         let config: CustomPostProcessConfig = null;

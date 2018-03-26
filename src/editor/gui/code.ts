@@ -70,7 +70,8 @@ export default class CodeEditor {
                 'node_modules/babylonjs-gui/babylon.gui.d.ts',
                 'node_modules/babylonjs-materials/babylonjs.materials.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
-                'assets/templates/post-process-creator/custom-post-process.d.ts'
+                'assets/templates/post-process-creator/custom-post-process.d.ts',
+                'assets/templates/code/tools.d.ts'
             ];
 
             let content = '';
@@ -90,6 +91,8 @@ export default class CodeEditor {
                 declare var groundmesh: BABYLON.GroundMesh;
                 declare var particleSystem: BABYLON.ParticleSystem;
                 declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
+
+                declare var tools: BehaviorCodeTools;
             `;
 
             CodeEditor.ExternalLibraries = content;
@@ -113,6 +116,47 @@ export default class CodeEditor {
         this.editor.onDidChangeModelContent(() => {
             if (this.onChange)
                 this.onChange(this.editor.getValue());
+        });
+    }
+
+    /**
+     * Creates a windowed editor
+     * @param options: the editor's configuration
+     */
+    public static async CreateWindowedEditor (options: {
+        name: string;
+        data: any;
+        baseData: any;
+        property: string;
+        baseEditor: CodeEditor
+    }): Promise<void>
+    {
+        // Create popup
+        const popup = Tools.OpenPopup('./code-editor.html#' + name, name, 1280, 800);
+        popup.document.title = name;
+
+        // Editor page loaded, create editor
+        popup.addEventListener('editorloaded', async () => {
+            const code = new CodeEditor('javascript');
+            await code.build(popup.document.getElementById('EDITOR-DIV'), popup);
+
+            code.onChange = value => {
+                if (options.data) {
+                    options.data[options.property] = code.getValue();
+
+                    if (options.data === options.baseData)
+                        options.baseEditor.setValue(options.data[options.property]);
+                }
+                else if (options.baseData) {
+                    options.baseData[options.property] = options.baseEditor.getValue();
+                }
+            };
+            code.setValue(options.baseData[options.property]);
+        });
+
+        // On close the window, remove extra libs (typings)
+        popup.addEventListener('beforeunload', () => {
+            CodeEditor.RemoveExtraLib(popup);
         });
     }
 }
