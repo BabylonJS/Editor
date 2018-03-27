@@ -3,10 +3,20 @@ import Extensions from './extensions';
 
 import CodeExtension from './behavior/code';
 import PostProcessCreatorExtension from './post-process-creator/post-process-creator';
+import MaterialCreatorExtension from './material-creator/material-creator';
 
 export default class Tools {
-    // TODO: fill tools
-    // getCustomMaterial (name: string): ICustomMaterial;
+    /**
+     * Returns a custom material by giving its name
+     * @param name the name of the custom material
+     */
+    public getCustomMaterial (name: string): any {
+        const ext = <MaterialCreatorExtension> Extensions.Instances['MaterialCreatorExtension'];
+        if (!ext)
+            return null;
+
+        return ext.instances[name];
+    }
 
     /**
      * Returns a custom script given by its object attached to

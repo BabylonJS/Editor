@@ -1,25 +1,25 @@
 // Constructor
-function CustomMaterial () {
+function Material () {
     this.time = 0;
 }
 
 // Called on building material
-CustomMaterial.prototype.init = function () {
+Material.prototype.init = function () {
 
 };
 
-CustomMaterial.prototype.setUniforms = function (uniforms, samplers) {
+Material.prototype.setUniforms = function (uniforms, samplers) {
     // Push custom uniforms
     uniforms.push('time');
 };
 
 // Returns if the material is ready for the given submesh
-CustomMaterial.prototype.isReadyForSubMesh = function (mesh, subMesh, defines) {
+Material.prototype.isReadyForSubMesh = function (mesh, subMesh, defines) {
     return true;
 };
 
 // Bind uniforms for submesh
-CustomMaterial.prototype.bindForSubMesh = function (world, mesh, subMesh, effect) {
+Material.prototype.bindForSubMesh = function (world, mesh, subMesh, effect) {
     var scene = mesh.getScene();
 
     // Time
@@ -28,8 +28,8 @@ CustomMaterial.prototype.bindForSubMesh = function (world, mesh, subMesh, effect
 };
 
 // On dispose the material
-CustomMaterial.prototype.dispose = function () {
+Material.prototype.dispose = function () {
 
 };
 
-return CustomMaterial;
+return Material;

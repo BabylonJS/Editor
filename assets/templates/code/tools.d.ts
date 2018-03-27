@@ -3,12 +3,14 @@ interface IScript {
     update: () => void;
 }
 
-interface ICustomMaterial extends CustomMaterial {
-
+interface ICustomMaterial {
+    code: CustomMaterial;
+    material: BABYLON.PushMaterial;
 }
 
-interface ICustomPostProcess extends CustomPostProcess {
-
+interface ICustomPostProcess {
+    code: CustomPostProcess;
+    postprocess: BABYLON.PostProcess;
 }
 
 /**
