@@ -51,4 +51,12 @@ export default class Tools {
     public getFileByName (name: string): File {
         return BABYLON.FilesInput.FilesToLoad[name];
     }
+
+    /**
+     * Returns an object url for the given file
+     * @param filename 
+     */
+    public getFileUrl (filename: string, oneTimeOnly: boolean = true): string {
+        return URL.createObjectURL(this.getFileByName(filename), { oneTimeOnly: oneTimeOnly });
+    }
 }

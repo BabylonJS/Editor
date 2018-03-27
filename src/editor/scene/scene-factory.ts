@@ -98,6 +98,8 @@ export default class SceneFactory {
         system.gravity = new Vector3(0, -2.0, 0);
         system.start();
 
+        Tags.AddTagsTo(system, 'added');
+
         // Emitter
         if (emitter) {
             system.emitter = emitter;
