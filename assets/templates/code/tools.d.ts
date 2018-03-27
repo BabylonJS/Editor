@@ -21,4 +21,5 @@ interface BehaviorCodeTools {
     getCustomMaterial (name: string): ICustomMaterial;
     getCustomPostProcess (name: string): ICustomPostProcess;
     getFileByName (name: string): File;
+    getFileUrl (filename: string): string;
 }
