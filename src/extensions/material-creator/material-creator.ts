@@ -39,6 +39,9 @@ window['EDITOR'].MaterialCreator = EDITOR.MaterialCreator;
 
 // Material Creator extension class
 export default class MaterialCreatorExtension extends Extension<MaterialCreatorMetadata[]> {
+    // Public members
+    public instances: IStringDictionary<any> = { };
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -94,6 +97,12 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
             data.userConfig.vectors2.forEach(v => material.userConfig[v.name] = Vector2.FromArray(v.value));
             data.userConfig.vectors3.forEach(v => material.userConfig[v.name] = Vector3.FromArray(v.value));
         }
+
+        // Save instances
+        this.instances[data.name] = {
+            code: code,
+            material: material
+        };
         
         return material;
     }

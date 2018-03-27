@@ -24,7 +24,7 @@ export interface PostProcessCreatorMetadata {
 
 const template = `
 EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera) {
-    {{code}}
+{{code}}
 }
 `;
 
@@ -69,9 +69,6 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera);
         const code = new ctor();
 
-        // Save instance
-        this.instances[data.name] = code;
-
         // Custom config
         let config: CustomPostProcessConfig = null;
         try {
@@ -86,6 +83,12 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         data.userConfig.floats.forEach(f =>   postprocess.userConfig[f.name] = f.value);
         data.userConfig.vectors2.forEach(v => postprocess.userConfig[v.name] = Vector2.FromArray(v.value));
         data.userConfig.vectors3.forEach(v => postprocess.userConfig[v.name] = Vector3.FromArray(v.value));
+
+        // Save instance
+        this.instances[data.name] = {
+            code: code,
+            postprocess: postprocess
+        };
 
         // Return post-process
         return postprocess;
