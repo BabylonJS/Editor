@@ -6,7 +6,8 @@ import {
     Geometry,
     Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh,
     CannonJSPlugin, PhysicsImpostor,
-    Vector3
+    Vector3,
+    EffectLayer
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -15,6 +16,7 @@ import Editor from '../editor';
 import Tools from '../tools/tools';
 
 import Extensions from '../../extensions/extensions';
+import SceneManager from './scene-manager';
 
 export default class SceneImporter {
     /**
@@ -152,6 +154,9 @@ export default class SceneImporter {
             Tags.AddTagsTo(scene.actionManager, 'added');
         }
 
+        // Effect Layers
+        project.effectLayers.forEach(el => SceneManager[el.name] = EffectLayer.Parse(el.serializationObject, scene, 'file:'));
+
         // Metadatas
         for (const m in project.customMetadatas) {
             const extension = Extensions.RequestExtension(scene, m);
@@ -172,6 +177,7 @@ export default class SceneImporter {
         project.sounds = project.sounds || [];
         project.customMetadatas = project.customMetadatas || {};
         project.physicsEnabled = project.physicsEnabled || false;
+        project.effectLayers = project.effectLayers || [];
         //project.globalConfiguration.settings = project.globalConfiguration.settings || SceneFactory.Settings;
     }
 

@@ -156,7 +156,8 @@ export default class SceneExporter {
             requestedMaterials: null,
             shadowGenerators: this._SerializeShadowGenerators(editor),
             sounds: null,
-            gui: editor.core.uiTextures.map(ut => ut.serialize())
+            gui: editor.core.uiTextures.map(ut => ut.serialize()),
+            effectLayers: this._SerializeEffectLayers(editor)
         };
 
         // Finish
@@ -246,6 +247,21 @@ export default class SceneExporter {
             });
         });
 
+        return result;
+    }
+
+    /**
+     * Serializes the Effect Layers
+     */
+    private static _SerializeEffectLayers (editor: Editor): Export.EffectLayer[] {
+        const result: Export.EffectLayer[] = [];
+
+        if (SceneManager.GlowLayer)
+            result.push({ name: 'GlowLayer', serializationObject: SceneManager.GlowLayer.serialize() });
+
+        if (SceneManager.HighLightLayer)
+            result.push({ name: 'HighLightLayer', serializationObject: SceneManager.HighLightLayer.serialize() });
+        
         return result;
     }
 

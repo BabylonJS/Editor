@@ -1,4 +1,4 @@
-import { Scene, Vector3, CannonJSPlugin, GlowLayer } from 'babylonjs';
+import { Scene, Vector3, CannonJSPlugin, GlowLayer, HighlightLayer } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -13,6 +13,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
     private _physicsEnabled: boolean = false;
     private _fogMode: string = '';
     private _glowEnabled: boolean = false;
+    private _hightlightEnabled: boolean = false;
 
 	/**
 	* Returns if the object is supported
@@ -32,6 +33,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         // Misc.
         this._physicsEnabled = scene.isPhysicsEnabled();
         this._glowEnabled = SceneManager.GlowLayer !== null;
+        this._hightlightEnabled = SceneManager.HighLightLayer !== null;
         
         // Colors
         const colors = this.tool.addFolder('Colors');
@@ -68,6 +70,29 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
             glow.add(SceneManager.GlowLayer, 'blurKernelSize').min(0).max(128).step(1).name('Blur Size');
         }
 
+        // Highlight
+        const highlight = this.tool.addFolder('HighLight');
+        highlight.open();
+
+        highlight.add(this, '_hightlightEnabled').name('Enable HightLight Layer').onFinishChange(r => {
+            if (!r) {
+                SceneManager.HighLightLayer.dispose();
+                SceneManager.HighLightLayer = null;
+            }
+            else
+                SceneManager.HighLightLayer = new HighlightLayer('HightLight Layer', scene);
+
+            this.update(scene);
+        });
+
+        if (this._hightlightEnabled) {
+            highlight.add(SceneManager.HighLightLayer, 'blurHorizontalSize').min(0).max(128).step(1).name('Horizontal Blur Size');
+            highlight.add(SceneManager.HighLightLayer, 'blurVerticalSize').min(0).max(128).step(1).name('Horizontal Blur Size');
+            highlight.add(SceneManager.HighLightLayer, 'innerGlow').name('Inner Glow');
+            highlight.add(SceneManager.HighLightLayer, 'outerGlow').name('Outer Glow');
+            this.tool.addColor(highlight, 'Neutral Color', SceneManager.HighLightLayer.neutralColor).open();
+        }
+
         // Environment texture
         const environment = this.tool.addFolder('Environment Texture');
         environment.open();
@@ -91,7 +116,7 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
         physics.add(this, '_physicsEnabled').name('Physics Enabled').onFinishChange(async r => {
             if (r) {
                 this.editor.layout.lockPanel('left', 'Enabling...', true);
-                const cannonjs = await Tools.ImportScript('cannonjs');
+                const cannonjs = await Tools.ImportScript('cannon');
                 scene.enablePhysics(new Vector3(0, -0.91, 0), new CannonJSPlugin(true));
                 scene.getPhysicsEngine().setTimeStep(0);
                 this.editor.layout.unlockPanel('left');

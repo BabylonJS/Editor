@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh, SubMesh } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh, SubMesh, Color3 } from 'babylonjs';
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
 
@@ -11,6 +11,8 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     private _parentId: string = '';
     private _enabled: boolean = true;
     private _currentCamera: boolean = false;
+
+    private _highlightEnabled: boolean = false;
 
     /**
      * Returns if the object is supported
@@ -87,6 +89,34 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 instances.open();
 
                 instances.add(this, 'createInstance').name('Create Instance...');
+            }
+
+            // HighLight Layer
+            if (node instanceof Mesh && SceneManager.HighLightLayer) {
+                const highlight = this.tool.addFolder('Highlight Layer');
+                highlight.open();
+
+                this._highlightEnabled = SceneManager.HighLightLayer.hasMesh(node);
+                highlight.add(this, '_highlightEnabled').name('Highlight Enabled').onFinishChange(r => {
+                    if (r) {
+                        SceneManager.HighLightLayer.addMesh(node, Color3.White());
+                    }
+                    else
+                        SceneManager.HighLightLayer.removeMesh(node);
+
+                    this.update(node);
+                });
+
+                if (this._highlightEnabled) {
+                    for (const m in SceneManager.HighLightLayer['_meshes']) {
+                        const mesh = SceneManager.HighLightLayer['_meshes'][m];
+                        if (mesh.mesh !== node)
+                            continue;
+                        
+                        this.tool.addColor(highlight, 'HighLight Color', mesh.color).open();
+                        highlight.add(mesh, 'glowEmissiveOnly').name('Glow Emissive Only');
+                    }
+                }
             }
         }
         // Camera

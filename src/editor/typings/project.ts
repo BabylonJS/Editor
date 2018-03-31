@@ -138,6 +138,11 @@ export interface Sound {
     serializationObject: any;
 }
 
+export interface EffectLayer {
+    name: string;
+    serializationObject: any;
+}
+
 /**
 * Root object of project
 */
@@ -153,6 +158,7 @@ export interface ProjectRoot {
     sounds: Sound[];
     actions: any;
     physicsEnabled: boolean;
+    effectLayers: EffectLayer[];
 
     requestedMaterials?: string[];
     customMetadatas?: IStringDictionary<any>;
