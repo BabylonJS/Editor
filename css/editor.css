@@ -11,6 +11,13 @@ html, body {
 
 body *{
     font-family: sans-serif !important;
+
+}
+
+
+.sceneOutliner{
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 #jstree_search{
@@ -53,11 +60,80 @@ body *{
     box-shadow: unset;
 }
 
+.vakata-context li>a{
+    font-size: 12px;
+}
 
+.vakata-context li>a>i{
+    background-position: 5px 5px !important
+}
 
 /* W2UI */
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
+}
+
+.dg.main{
+    width: 100% !important;
+}
+
+#EDIT-PANEL-TOOLS > div, #layout_EDIT-PANEL-TOOLS_panel_left{
+    height: 100% !important;
+    width: 99% !important;
+}
+
+
+#AnimationEditor, #AnimationEditor > div,
+#TextureViewer,#TextureViewer > div,
+#MaterialsViewer,#MaterialsViewer > div,
+#Code-Layout,#Code-Layout>div,
+#MaterialCreator,#MaterialCreator>div,
+#Post-ProcessCreator,#Post-ProcessCreator>div{
+    height: 100% !important;
+    width: 100% !important;
+}
+
+#layout_MaterialViewer_panel_top,#layout_TextureViewer_panel_top{
+    width: 100% !important;
+}
+
+#layout_TextureViewer_panel_left>div.w2ui-panel-content{
+    bottom: 80px;
+}
+
+
+#layout_MaterialViewer_panel_left,#layout_MaterialViewer_panel_main,
+#layout_TextureViewer_panel_left,#layout_TextureViewer_panel_main{
+    width: 50% !important;
+    height: 100% !important;
+}
+
+#layout_MaterialViewer_panel_main,
+#layout_TextureViewer_panel_main{
+    left:50% !important;
+}
+
+#MaterialsViewer .w2ui-resizer,
+#TextureViewer .w2ui-resizer{
+    display:none !important;
+}
+
+#Code-Layout.w2ui-panel {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+
+#layout_EDIT-PANEL-TOOLS_panel_left > .w2ui-panel-content{
+    overflow-y:auto !important;
+}
+
+.dg.main{
+    height:100%;
+}
+.dg.main > ul{
+    height: 100% !important;
+    padding-bottom: 65px !important;
 }
 
 /*
@@ -66,7 +142,7 @@ ICONS
 
 .w2ui-icon{
     background-repeat: no-repeat !important;
-    margin: 3px !important;
+    background-position: 3px 3px !important;
 }
 
 .w2ui-icon.icon-error {

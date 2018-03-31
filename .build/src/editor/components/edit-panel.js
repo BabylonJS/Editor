@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var layout_1 = require("../gui/layout");
 var EditorEditPanel = /** @class */ (function () {
     /**
      * Constructor
@@ -52,32 +53,30 @@ var EditorEditPanel = /** @class */ (function () {
      * @param plugin the plugin to add
      */
     EditorEditPanel.prototype.addPlugin = function (plugin) {
-        var _this = this;
-        this.panel.tabs.add({
-            id: plugin.name,
-            caption: plugin.name,
-            closable: true,
-            onClose: function () { return __awaiter(_this, void 0, void 0, function () {
-                var first;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, this.editor.removePlugin(plugin)];
-                        case 1:
-                            _a.sent();
-                            first = Object.keys(this.editor.plugins)[0];
-                            return [4 /*yield*/, this.showPlugin(this.editor.plugins[first])];
-                        case 2:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); },
-            onClick: function (event) { return _this._onChangeTab(plugin, false); }
+        this.editor.layoutManager.registerComponent(plugin.name, function (container, state) {
+            container.getElement().html('<div id="' + plugin.name.replace(/\s+/g, '') + '-Layout" />');
         });
-        $('#EDIT-PANEL-TOOLS').append(plugin.divElement);
-        this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
+        this.editor.layoutManager.root.getItemsById('SceneRow')[0].addChild({
+            type: 'component',
+            componentName: plugin.name,
+            componentState: { text: "a" }
+        });
+        this.NewPluginLayout = new layout_1.default(plugin.name.replace(/\s+/g, '') + '-Layout');
+        this.NewPluginLayout.panels = [
+            { type: 'right',
+                hidden: false,
+                size: 310,
+                style: "height: 100%",
+                overflow: "unset",
+                content: '<div style="width: 100%; height: 100%;"></div>',
+                resizable: false,
+                tabs: [] },
+        ];
+        this.NewPluginLayout.build(plugin.name.replace(/\s+/g, '') + '-Layout');
+        $('#' + plugin.name.replace(/\s+/g, '') + '-Layout').append(plugin.divElement);
+        //this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
         // Activate added plugin
-        this._onChangeTab(plugin, true);
+        //this._onChangeTab(plugin, true);
     };
     /**
      * Shows the given plugin
@@ -100,7 +99,7 @@ var EditorEditPanel = /** @class */ (function () {
                         _a.sent();
                         _a.label = 2;
                     case 2:
-                        this.panel.tabs.select(plugin.name);
+                        //this.panel.tabs.select(plugin.name);
                         this._onChangeTab(plugin, false);
                         return [2 /*return*/];
                 }

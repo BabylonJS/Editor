@@ -66,14 +66,15 @@ export default class Editor {
 
         this.layoutManagerConfig = {
             settings:{
-                showPopoutIcon: false
+                showPopoutIcon: false,
+                showCloseIcon: false
             },
             dimensions: {
                 borderWidth: 2,
-                minItemHeight: 150,
-                minItemWidth: 160,
+                minItemHeight: 220,
+                minItemWidth: 240,
                 headerHeight: 20,
-                dragProxyWidth: 300,
+                dragProxyWidth: 0,
                 dragProxyHeight: 200
             },
             labels: {
@@ -87,24 +88,31 @@ export default class Editor {
                 content:[{
                     type: 'component',
                     componentName: 'Properties',
-                    componentState: { label: 'A' },
-                    width: 23
+                    width: 21,
+                    isClosable: false
                 },{
                     type: 'column',
                     content:[{
                         type: 'component',
                         componentName: 'Scene View',
-                        componentState: { label: 'B' },
-                        height: 60
-                        
-                    }],
-                    width: 53
+                        isClosable: false
+                    },
+                    {
+                        type: 'stack',
+                        componentName: 'AdditionalDialogue',
+                        id: "SceneRow",
+                        height: 0,
+                        isClosable: false
+                    }
+                    ],
+                    width: 57,
+                    isClosable: false
                 },
                 {
                     type: 'component',
                     componentName: 'Scene Outliner',
-                    componentState: { label: 'A' },
-                    width: 24
+                    width: 22,
+                    isClosable: false
                 }
                 ]
             }]
@@ -112,16 +120,28 @@ export default class Editor {
 
     this.layoutManager = new GoldenLayout(this.layoutManagerConfig);
 
-    this.layoutManager.registerComponent('Scene Outliner',  function( container, componentState ){
+    this.layoutManager.registerComponent('Scene Outliner',  function( container ){
         container.getElement().html(  
-            `<input id="jstree_search" type="text" placeholder="Search" />  <div id="jstree"/>`        )
+            `<div class="sceneOutliner"><input id="jstree_search" type="text" placeholder="Search" />  <div id="jstree"/> </div>`        )
     });
 
-    this.layoutManager.registerComponent('Scene View', ( container, componentState ) => {
-        container.getElement().html('<canvas id="renderCanvas" width="412" height="132" tabindex="1" style=""></canvas>'  )
-        container.on('resize', () => {
-            this.resize(); 
-          });
+    this.layoutManager.registerComponent('Scene View', ( container ) => {
+        container.getElement().html('<canvas id="renderCanvas" width="412" height="132" tabindex="1" style=""></canvas>'  );
+    });
+
+    this.layoutManager.on('stateChanged',( component ) => {
+        if (this.layoutManager.root.getItemsById('SceneRow')[0].contentItems.length > 0){
+            if (this.layoutManager.root.getItemsById('SceneRow')[0].config.height == 0){
+                this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 50;
+                this.layoutManager.updateSize();
+            }
+        }
+        else {
+            this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
+            this.layoutManager.updateSize();
+        }
+
+        this.resize(); 
     });
 
     window.addEventListener('resize', () => {
@@ -129,7 +149,7 @@ export default class Editor {
     });
 
 
-    this.layoutManager.registerComponent( 'Properties', function( container, componentState ){
+    this.layoutManager.registerComponent( 'Properties', function( container ){
         container.getElement().html( ' <div id="EDIT-PANEL-TOOLS" style="height: 100%; width: 100%" /> ' );
     });
 
@@ -152,7 +172,14 @@ export default class Editor {
         // Create Widget (Properties)
         this.layout = new Layout('EDIT-PANEL-TOOLS');
         this.layout.panels = [
-            { type: 'left', hidden: false, size: 310, style: "height: 100%", overflow: "unset", content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: false, tabs: <any>[] },
+            { type: 'left',
+              hidden: false,
+              size: 310,
+              style: "height: 100%",
+              overflow: "unset",
+              content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>',
+              resizable: false,
+              tabs: <any>[] },
         ];
         this.layout.build('EDIT-PANEL-TOOLS');
 
@@ -212,7 +239,6 @@ export default class Editor {
         this.core.engine.runRenderLoop(() => {
             this.core.update();
         });
-
 
     }
 
@@ -359,23 +385,11 @@ export default class Editor {
         this.camera.maxZ = 10000;
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
         
-        // Traditional WASD (QE) controls
+        // Traditional WASD controls
         this.camera.keysUp.push(87); //  "W"
         this.camera.keysLeft.push(65); //"A"
         this.camera.keysDown.push(83); //"S"
         this.camera.keysRight.push(68) //"D"
-
-
-        let that = this;
-        window.onkeydown = function(e) {
-        var key = e.keyCode ? e.keyCode : e.which;
-
-        if (key == 81) {
-            that.camera.position.y += 0.5; // "Q"
-        }else if (key == 69) {
-            that.camera.position.y -= 0.5; // "E"
-        }
-        }
 
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {

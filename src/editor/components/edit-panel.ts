@@ -1,9 +1,13 @@
 import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
+import Layout from '../gui/layout';
 
 export default class EditorEditPanel {
     // Public members
     public panel: W2UI.W2Panel = this.editor.layout.getPanelFromType('preview');
+
+    public NewPluginLayout : Layout;
+
 
     // Protected members
     protected currentDiv: HTMLDivElement = null;
@@ -20,24 +24,37 @@ export default class EditorEditPanel {
      * @param plugin the plugin to add
      */
     public addPlugin (plugin: IEditorPlugin): void {
-        this.panel.tabs.add({
-            id: plugin.name,
-            caption: plugin.name,
-            closable: true,
-            onClose: async () => {
-                await this.editor.removePlugin(plugin);
 
-                const first = Object.keys(this.editor.plugins)[0];
-                await this.showPlugin(this.editor.plugins[first]);
-            },
-            onClick: (event) => this._onChangeTab(plugin, false)
+        this.editor.layoutManager.registerComponent( plugin.name, function( container, state ){
+            container.getElement().html( '<div id="' + plugin.name.replace(/\s+/g, '') + '-Layout" />');
         });
+        
+        this.editor.layoutManager.root.getItemsById('SceneRow')[0].addChild(
+            {
+                type: 'component',
+                componentName: plugin.name,
+                componentState: { text: "a" }
+            }
+         );
 
-        $('#EDIT-PANEL-TOOLS').append(plugin.divElement);
-        this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
+        this.NewPluginLayout = new Layout(plugin.name.replace(/\s+/g, '') + '-Layout');
+        this.NewPluginLayout.panels = [
+            { type: 'right',
+              hidden: false,
+              size: 310,
+              style: "height: 100%",
+              overflow: "unset",
+              content: '<div style="width: 100%; height: 100%;"></div>',
+              resizable: false,
+              tabs: <any>[] },
+        ];
+        this.NewPluginLayout.build(plugin.name.replace(/\s+/g, '') + '-Layout');
+
+        $('#'+plugin.name.replace(/\s+/g, '') + '-Layout').append(plugin.divElement);
+        //this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
 
         // Activate added plugin
-        this._onChangeTab(plugin, true);
+        //this._onChangeTab(plugin, true);
     }
 
     /**
@@ -51,7 +68,7 @@ export default class EditorEditPanel {
         if (plugin.onShow)
             await plugin.onShow.apply(plugin, params);
 
-        this.panel.tabs.select(plugin.name);
+        //this.panel.tabs.select(plugin.name);
         this._onChangeTab(plugin, false);
     }
 

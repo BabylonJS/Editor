@@ -66,14 +66,15 @@ var Editor = /** @class */ (function () {
         this._showReloadDialog = true;
         this.layoutManagerConfig = {
             settings: {
-                showPopoutIcon: false
+                showPopoutIcon: false,
+                showCloseIcon: false
             },
             dimensions: {
                 borderWidth: 2,
-                minItemHeight: 150,
-                minItemWidth: 160,
+                minItemHeight: 220,
+                minItemWidth: 240,
                 headerHeight: 20,
-                dragProxyWidth: 300,
+                dragProxyWidth: 0,
                 dragProxyHeight: 200
             },
             labels: {
@@ -87,41 +88,59 @@ var Editor = /** @class */ (function () {
                     content: [{
                             type: 'component',
                             componentName: 'Properties',
-                            componentState: { label: 'A' },
-                            width: 23
+                            width: 21,
+                            isClosable: false
                         }, {
                             type: 'column',
                             content: [{
                                     type: 'component',
                                     componentName: 'Scene View',
-                                    componentState: { label: 'B' },
-                                    height: 60
-                                }],
-                            width: 53
+                                    isClosable: false
+                                },
+                                {
+                                    type: 'stack',
+                                    componentName: 'AdditionalDialogue',
+                                    id: "SceneRow",
+                                    height: 0,
+                                    isClosable: false
+                                }
+                            ],
+                            width: 57,
+                            isClosable: false
                         },
                         {
                             type: 'component',
                             componentName: 'Scene Outliner',
-                            componentState: { label: 'A' },
-                            width: 24
+                            width: 22,
+                            isClosable: false
                         }
                     ]
                 }]
         };
         this.layoutManager = new GoldenLayout(this.layoutManagerConfig);
-        this.layoutManager.registerComponent('Scene Outliner', function (container, componentState) {
-            container.getElement().html("<input id=\"jstree_search\" type=\"text\" placeholder=\"Search\" />  <div id=\"jstree\"/>");
+        this.layoutManager.registerComponent('Scene Outliner', function (container) {
+            container.getElement().html("<div class=\"sceneOutliner\"><input id=\"jstree_search\" type=\"text\" placeholder=\"Search\" />  <div id=\"jstree\"/> </div>");
         });
-        this.layoutManager.registerComponent('Scene View', function (container, componentState) {
+        this.layoutManager.registerComponent('Scene View', function (container) {
             container.getElement().html('<canvas id="renderCanvas" width="412" height="132" tabindex="1" style=""></canvas>');
-            container.on('resize', function () {
-                _this.resize();
-            });
+        });
+        this.layoutManager.on('stateChanged', function (component) {
+            if (_this.layoutManager.root.getItemsById('SceneRow')[0].contentItems.length > 0) {
+                if (_this.layoutManager.root.getItemsById('SceneRow')[0].config.height == 0) {
+                    _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 50;
+                    _this.layoutManager.updateSize();
+                }
+            }
+            else {
+                _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
+                _this.layoutManager.updateSize();
+            }
+            _this.resize();
         });
         window.addEventListener('resize', function () {
             _this.resize();
         });
-        this.layoutManager.registerComponent('Properties', function (container, componentState) {
+        this.layoutManager.registerComponent('Properties', function (container) {
             container.getElement().html(' <div id="EDIT-PANEL-TOOLS" style="height: 100%; width: 100%" /> ');
         });
         this.layoutManager.init();
@@ -139,7 +158,14 @@ var Editor = /** @class */ (function () {
         // Create Widget (Properties)
         this.layout = new layout_1.default('EDIT-PANEL-TOOLS');
         this.layout.panels = [
-            { type: 'left', hidden: false, size: 310, style: "height: 100%", overflow: "unset", content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: false, tabs: [] },
+            { type: 'left',
+                hidden: false,
+                size: 310,
+                style: "height: 100%",
+                overflow: "unset",
+                content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>',
+                resizable: false,
+                tabs: [] },
         ];
         this.layout.build('EDIT-PANEL-TOOLS');
         // Initialize core
@@ -374,21 +400,11 @@ var Editor = /** @class */ (function () {
         this.camera.setTarget(new babylonjs_1.Vector3(0, 5, 24));
         this.camera.maxZ = 10000;
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
-        // Traditional WASD (QE) controls
+        // Traditional WASD controls
         this.camera.keysUp.push(87); //  "W"
         this.camera.keysLeft.push(65); //"A"
         this.camera.keysDown.push(83); //"S"
         this.camera.keysRight.push(68); //"D"
-        var that = this;
-        window.onkeydown = function (e) {
-            var key = e.keyCode ? e.keyCode : e.which;
-            if (key == 81) {
-                that.camera.position.y += 0.5; // "Q"
-            }
-            else if (key == 69) {
-                that.camera.position.y -= 0.5; // "E"
-            }
-        };
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {
             get: function () { return _this.camera.getTarget(); },

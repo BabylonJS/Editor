@@ -22,10 +22,24 @@ export default class EditorGraph {
     constructor(protected editor: Editor) {
 
         // Build graph
-        this.graph =         $("#jstree").jstree({
+        this.graph = $("#jstree").jstree({
             "core": {
               "check_callback": true,
               "multiple": false
+            },
+            "types" : {     
+                "#" : {
+                     "max_children" : 1
+                 }
+             },
+            "dnd" : {
+                "use_html5" : true,
+                "is_draggable" : function(node) {
+                    if ((node[0].data instanceof ParticleSystem || node[0].data instanceof GPUParticleSystem)) {
+                        return false;
+                    }
+                    return true;
+                }
             },
             "plugins" : [
               "contextmenu", "dnd", "search",
@@ -38,8 +52,9 @@ export default class EditorGraph {
             'contextmenu' : {
                 'items' : customMenu
             }
-          }).on('create_node.jstree', function(e, data) {
-            console.log('added');
+          // Parenting by drag and drop
+          }).on('move_node.jstree', function(e, data) {
+            data.node.data.parent = editor.core.scene.getNodeByName(data.parent);
           }).on('changed.jstree',  (e,data) => {
             if (data.node){
                 //Actions for selecting node
@@ -58,10 +73,33 @@ export default class EditorGraph {
             var items = {
                 'Delete' : {
                     'label' : 'Delete',
+                    'icon': 'w2ui-icon icon-error',
+                    'action' : function () {
+                        node.data && node.data.dispose && node.data.dispose();
+                        $("#jstree").jstree("delete_node", node);
+                    }
+                },
+                'Clone' : {
+                    'label' : 'Clone',
+                    'icon': 'w2ui-icon icon-clone',
                     'action' : function () {
                         console.log(node);
-                         node.data && node.data.dispose && node.data.dispose();
-                         $("#jstree").jstree("delete_node", node); }
+                        const clone = node && node.data && node.data['clone'] && node.data['clone']();
+                        clone.name = node.data.name + ' Cloned';
+                        clone.id = BabylonTools.RandomId();
+                        clone.icon = node.icon
+        
+                        const parent = clone.parent ? clone.parent.id :'ROOT';
+                        $('#jstree').jstree().create_node(parent, {
+                            "id": clone.id,
+                            "text": clone.name,
+                            "data": clone,
+                            "icon": clone.icon
+                          });
+
+                        // Setup this
+                        editor.core.onSelectObject.notifyObservers(clone);
+                    }
                 }
             }
         
@@ -197,7 +235,7 @@ export default class EditorGraph {
                 "id": n.id,
                 "text": n.name,
                 "data": n,
-                "icon" : "w2ui-icon " + this.getIcon(n),
+                "icon" : this.getIcon(n),
               });
               $('#jstree').jstree("open_all");
 
@@ -224,7 +262,7 @@ export default class EditorGraph {
                         "id": n.id + 'submesh_' + index,
                         "text": sm.getMaterial().name,
                         "data": sm,
-                        "icon" : "w2ui-icon " + this.getIcon(n),
+                        "icon" : this.getIcon(n)
                       });
                 });
             }
@@ -236,7 +274,7 @@ export default class EditorGraph {
                         "id": ps.id,
                         "text": ps.name,
                         "data": ps,
-                        "icon" : "w2ui-icon " + this.getIcon(ps),
+                        "icon" : this.getIcon(ps),
                       });
                 }
             });
@@ -248,7 +286,7 @@ export default class EditorGraph {
                         "id": lf.id,
                         "text": lf.name,
                         "data": lf,
-                        "icon" : "w2ui-icon " + this.getIcon(lf),
+                        "icon" : this.getIcon(lf),
                       });
                 }
             });
@@ -270,17 +308,17 @@ export default class EditorGraph {
     */
     public getIcon(obj: any): string {
         if (obj instanceof AbstractMesh) {
-            return 'icon-mesh';
+            return 'w2ui-icon icon-mesh';
         } else if (obj instanceof Light) {
-            return 'icon-light';
+            return 'w2ui-icon icon-light';
         } else if (obj instanceof Camera) {
-            return 'icon-camera';
+            return 'w2ui-icon icon-camera';
         } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
-            return 'icon-particles';
+            return 'w2ui-icon icon-particles';
         } else if (obj instanceof PostProcess) {
-            return 'icon-helpers';
+            return 'w2ui-icon icon-helpers';
         } else if (obj instanceof Sound) {
-            return 'icon-sound';
+            return 'w2ui-icon icon-sound';
         }
 
         return null;

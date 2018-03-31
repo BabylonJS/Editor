@@ -52,6 +52,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         this._parentId = node.parent ? node.parent.id : parents[0];
         parenting.add(this, '_parentId', parents).name('Parent').onChange(n => {
             node.parent = scene.getNodeByName(n);
+            window.console.log(node.parent);
+            window.console.log(n);
+        
             this.editor.graph.setParent(node.id, node.parent ? node.parent.id : this.editor.graph.root);
         });
 
@@ -122,13 +125,14 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         const instance = (<Mesh>this.object).createInstance('New instance ' + Tools.RandomId());
         instance.id = Tools.RandomId();
 
-        this.editor.graph.add({
-            id: instance.id,
-            img: this.editor.graph.getIcon(instance),
-            text: instance.name,
-            data: instance,
-            count: 0
-        }, this.object.id);
+        window.console.log(this.editor.graph.getIcon(instance))
+
+        $('#jstree').jstree().create_node(this.object.id, {
+            "id": instance.id,
+            "text": instance.name,
+            "data": instance,
+            "icon" : this.editor.graph.getIcon(instance)
+        });
 
         this.editor.edition.setObject(instance);
         this.editor.graph.select(instance.id);

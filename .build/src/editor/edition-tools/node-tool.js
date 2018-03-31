@@ -60,6 +60,8 @@ var NodeTool = /** @class */ (function (_super) {
         this._parentId = node.parent ? node.parent.id : parents[0];
         parenting.add(this, '_parentId', parents).name('Parent').onChange(function (n) {
             node.parent = scene.getNodeByName(n);
+            window.console.log(node.parent);
+            window.console.log(n);
             _this.editor.graph.setParent(node.id, node.parent ? node.parent.id : _this.editor.graph.root);
         });
         // Transforms
@@ -119,13 +121,13 @@ var NodeTool = /** @class */ (function (_super) {
     NodeTool.prototype.createInstance = function () {
         var instance = this.object.createInstance('New instance ' + babylonjs_1.Tools.RandomId());
         instance.id = babylonjs_1.Tools.RandomId();
-        this.editor.graph.add({
-            id: instance.id,
-            img: this.editor.graph.getIcon(instance),
-            text: instance.name,
-            data: instance,
-            count: 0
-        }, this.object.id);
+        window.console.log(this.editor.graph.getIcon(instance));
+        $('#jstree').jstree().create_node(this.object.id, {
+            "id": instance.id,
+            "text": instance.name,
+            "data": instance,
+            "icon": this.editor.graph.getIcon(instance)
+        });
         this.editor.edition.setObject(instance);
         this.editor.graph.select(instance.id);
     };
