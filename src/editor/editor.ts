@@ -425,7 +425,7 @@ export default class Editor {
                 }
 
                 this.layout.lockPanel('main', 'Importing Physics...', true);
-                await Tools.ImportScript('cannonjs');
+                await Tools.ImportScript('cannon');
 
                 this.layout.lockPanel('main', 'Importing Materials...', true);
                 await Tools.ImportScript('babylonjs-materials');

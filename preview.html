@@ -43,8 +43,10 @@
                 "babylonjs": "./node_modules/babylonjs/babylon.max.js",
                 "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.js",
                 "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.min.js",
-                "cannonjs": "./node_modules/cannon/build/cannon.min.js",
+                "cannon": "./node_modules/cannon/build/cannon.min.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
+                "earcut": "./node_modules/babylonjs/earcut.min.js",
+                "oimo": "./node_modules/babylonjs/Oimo.js"
             },
             packages: {
                 "./.build/src/": {
@@ -57,7 +59,7 @@
                 }
             },
             meta: {
-                "cannonjs": { format: "global" }
+                "cannon": { format: "global" }
             }
         });
 
@@ -158,7 +160,7 @@
         var promises = [];
         promises.push(System.import("babylonjs"));
         promises.push(System.import("babylonjs-gui"));
-        promises.push(System.import("cannonjs"));
+        promises.push(System.import("cannon"));
         Promise.all(promises).then(function (e) {
             return System.import("babylonjs-materials").then(function () {
                 if (opener) {
