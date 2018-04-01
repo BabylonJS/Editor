@@ -1,7 +1,7 @@
 import {
     Scene, Texture,
     SpotLight, DirectionalLight,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, Light
 } from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
@@ -115,8 +115,18 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             const vls = standardPipeline.addFolder('Volumetric Lights');
             vls.open();
             vls.add(SceneManager.StandardRenderingPipeline, 'VLSEnabled').name('Volumetric Lights Enabled').onChange(r => {
+                if (!r)
+                    return;
+                
+                const lights: Light[] = [];
+                scene.lights.forEach(l => (l instanceof SpotLight || l instanceof DirectionalLight) && lights.push(l));
+
                 const picker = new Picker('Select Light Emitter');
-                picker.addItems(scene.lights.map(l => (l instanceof SpotLight || l instanceof DirectionalLight) && l));
+                picker.addItems(lights);
+
+                if (SceneManager.StandardRenderingPipeline.sourceLight)
+                    picker.addSelected([SceneManager.StandardRenderingPipeline.sourceLight]);
+
                 picker.open((items) => {
                     if (items.length > 0)
                         SceneManager.StandardRenderingPipeline.sourceLight = <SpotLight | DirectionalLight> scene.getLightByName(items[0].name);
