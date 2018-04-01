@@ -29,6 +29,9 @@ export default class EditorEditPanel {
 
                 const first = Object.keys(this.editor.plugins)[0];
                 await this.showPlugin(this.editor.plugins[first]);
+
+                if (this.panel.tabs.tabs.length === 0)
+                    this.editor.layout.element.sizeTo('preview', 150);
             },
             onClick: (event) => this._onChangeTab(plugin, false)
         });
