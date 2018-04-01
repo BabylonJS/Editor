@@ -3,6 +3,8 @@ import { WaterMaterial } from 'babylonjs-materials';
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
 
+import Picker from '../../gui/picker';
+
 export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
     // Public members
     public divId: string = 'WATER-MATERIAL-TOOL';
@@ -30,6 +32,11 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
         specular.open();
         this.tool.addColor(specular, 'Specular', this.object.specularColor).open();
         specular.add(this.object, 'specularPower').step(0.1).name('Specular Power');
+
+        // Render List
+        const renderList = this.tool.addFolder('Reflection & Refraction');
+        renderList.open();
+        renderList.add(this, '_setRenderList').name('Set Render List...');
 
         // Bump
         const bump = this.tool.addFolder('Bump');
@@ -68,5 +75,24 @@ export default class WaterMaterialTool extends MaterialTool<WaterMaterial> {
 
         // Options
         super.addOptions();
+    }
+
+    // Sets the render list
+    private _setRenderList (): void {
+        const picker = new Picker('Reflection & Refraction');
+        picker.addSelected(this.object.getRenderList().map(m => {
+            return { id: m.id };
+        }));
+        picker.addItems(this.editor.core.scene.meshes);
+        picker.open(items => {
+            this.object['_reflectionRTT'].renderList = [];
+            this.object['_refractionRTT'].renderList = [];
+
+            items.forEach(i => {
+                const mesh = this.editor.core.scene.getMeshByID(i.name);
+                if (mesh)
+                    this.object.addToRenderList(mesh);
+            });
+        });
     }
 }
