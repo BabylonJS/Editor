@@ -54,7 +54,8 @@ export default class Tools {
 
     /**
      * Returns an object url for the given file
-     * @param filename 
+     * @param filename the reachable by the created URL
+     * @param oneTimeOnly if the URL should be requested only one time
      */
     public getFileUrl (filename: string, oneTimeOnly: boolean = true): string {
         return URL.createObjectURL(this.getFileByName(filename), { oneTimeOnly: oneTimeOnly });
