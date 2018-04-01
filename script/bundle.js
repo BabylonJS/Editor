@@ -11,11 +11,13 @@ const build = function (baseUrl, inFile, outFile, options) {
             'babylonjs-materials': './node_modules/babylonjs-materials/babylonjs.materials.js',
             'babylonjs-loaders': './node_modules/babylonjs-loaders/babylonjs.loaders.js',
             'babylonjs-serializers': './node_modules/babylonjs-serializers/babylonjs.serializers.js',
-            'cannonjs': './node_modules/cannon/build/cannon.js',
+            'cannon': './node_modules/cannon/build/cannon.js',
             'spectorjs': './node_modules/spectorjs/dist/spector.bundle.js',
             'dat-gui': './node_modules/dat.gui/build/dat.gui.js',
             'raphael': './node_modules/raphael/raphael.js',
             'socket.io-client': './node_modules/socket.io-client/dist/socket.io.js',
+            'earcut': './node_modules/babylonjs/earcut.min.js',
+            'oimo': './node_modules/babylonjs/Oimo.js',
 
             // Editor's modules paths
             'babylonjs-editor': './.build/src/index.js',
