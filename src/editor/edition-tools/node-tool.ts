@@ -10,6 +10,8 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     // Private members
     private _parentId: string = '';
     private _enabled: boolean = true;
+    private _currentMaterial: string = '';
+
     private _currentCamera: boolean = false;
 
     private _highlightEnabled: boolean = false;
@@ -41,6 +43,18 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         common.open();
         common.add(node, 'name').name('Name').onFinishChange(r => this.editor.graph.renameNode(node.id, r));
         common.add(this, '_enabled').name('Enabled').onFinishChange(r => node.setEnabled(r));
+
+        if (object instanceof Mesh) {
+            const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
+            this._currentMaterial = object.material ? object.material.name : 'None';
+            common.add(this, '_currentMaterial', materials).name('Material').onFinishChange(r => {
+                if (r === 'None')
+                    return (object.material = null);
+                
+                const material = this.editor.core.scene.getMaterialByName(r);
+                object.material = material;
+            });
+        }
 
         // Parenting
         const parenting = this.tool.addFolder('Parenting');
