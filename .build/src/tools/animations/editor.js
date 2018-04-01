@@ -96,7 +96,7 @@ var AnimationEditor = /** @class */ (function (_super) {
             var fps, frame, value;
             return __generator(this, function (_a) {
                 // Create layout
-                this.layout = new babylonjs_editor_1.Layout('AnimationEditorLayout');
+                this.layout = new babylonjs_editor_1.Layout('AnimationEditor');
                 this.layout.panels = [
                     { type: 'top', content: '<div id="ANIMATION-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
                     { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%;"></div>', resizable: false }

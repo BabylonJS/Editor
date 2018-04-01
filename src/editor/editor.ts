@@ -138,9 +138,17 @@ export default class Editor {
             }
         }
         else {
-            this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
-            this.layoutManager.updateSize();
-        }
+            if (this.layoutManager.root.getItemsById('SceneRow')[0].config.height != 0){
+                this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
+                this.layoutManager.updateSize();
+            }
+        }            
+
+        Object.entries(w2ui).forEach((value) => {
+                if (value[0].includes("-Layout")){
+                    w2ui[value[0]].resize();
+                }  
+          })  
 
         this.resize(); 
     });
@@ -263,28 +271,28 @@ export default class Editor {
      * @param name: the name of the plugin to show
      * @param params: the params to give to the plugin's constructor
      */
-    public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
-        if (this.plugins[url]) {
-            if (restart)
-                this.removePlugin(this.plugins[url]);
-            else {
-                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
-                return this.plugins[url];
-            }
-        }
+    public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, id?: string, ...params: any[]): Promise<IEditorPlugin> {
 
+        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
-        // Add tab in edit panel
-        this.editPanel.addPlugin(plugin);
+        if (this.layoutManager.root.getComponentsByName(plugin.name).length == 0){
 
-        // Create plugin
-        await plugin.create();
+            // Add tab in edit panel
+            this.editPanel.addPlugin(plugin);
+            
+            // Create plugin
+            await plugin.create();
+            return plugin;
 
+        }
+        
+        else {
+            return;
+        }
 
-        return plugin;
     }
 
     /**

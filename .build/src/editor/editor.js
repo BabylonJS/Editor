@@ -133,9 +133,16 @@ var Editor = /** @class */ (function () {
                 }
             }
             else {
-                _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
-                _this.layoutManager.updateSize();
+                if (_this.layoutManager.root.getItemsById('SceneRow')[0].config.height != 0) {
+                    _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 0;
+                    _this.layoutManager.updateSize();
+                }
             }
+            Object.entries(w2ui).forEach(function (value) {
+                if (value[0].includes("-Layout")) {
+                    w2ui[value[0]].resize();
+                }
+            });
             _this.resize();
         });
         window.addEventListener('resize', function () {
@@ -229,29 +236,23 @@ var Editor = /** @class */ (function () {
      * @param name: the name of the plugin to show
      * @param params: the params to give to the plugin's constructor
      */
-    Editor.prototype.addEditPanelPlugin = function (url, restart, name) {
+    Editor.prototype.addEditPanelPlugin = function (url, restart, name, id) {
         if (restart === void 0) { restart = false; }
         var params = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            params[_i - 3] = arguments[_i];
+        for (var _i = 4; _i < arguments.length; _i++) {
+            params[_i - 4] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
             var plugin;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (this.plugins[url]) {
-                            if (restart)
-                                this.removePlugin(this.plugins[url]);
-                            else {
-                                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
-                                return [2 /*return*/, this.plugins[url]];
-                            }
-                        }
+                        this.layout.lockPanel('preview', "Loading " + (name || url) + " ...", true);
                         return [4 /*yield*/, this._runPlugin.apply(this, [url].concat(params))];
                     case 1:
                         plugin = _a.sent();
                         this.plugins[url] = plugin;
+                        if (!(this.layoutManager.root.getComponentsByName(plugin.name).length == 0)) return [3 /*break*/, 3];
                         // Add tab in edit panel
                         this.editPanel.addPlugin(plugin);
                         // Create plugin
@@ -260,6 +261,7 @@ var Editor = /** @class */ (function () {
                         // Create plugin
                         _a.sent();
                         return [2 /*return*/, plugin];
+                    case 3: return [2 /*return*/];
                 }
             });
         });

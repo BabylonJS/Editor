@@ -88,7 +88,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout = new Layout('TextureViewer');
         this.layout.panels = [
             { type: 'top', content: '<div id="TEXTURE-VIEWER-TOOLBAR"></div>', size: 30, resizable: false },
-            { type: 'left', content: '<div id="TEXTURE-VIEWER-LIST"></div>', size: panelSize.width / 2, overflow: 'auto', resizable: true },
+            { type: 'left', content: '<div id="TEXTURE-VIEWER-LIST"></div>', size: $("#renderCanvas").width() / 2, overflow: 'auto', resizable: true },
             { type: 'main', content: '<canvas id="TEXTURE-VIEWER-CANVAS" style="display: block;position: initial; padding: 15px; width: 100%; height: 100%;"></canvas>', resizable: true }
         ];
         this.layout.build(div.attr('id'));

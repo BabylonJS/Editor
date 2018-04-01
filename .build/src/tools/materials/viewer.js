@@ -54,7 +54,7 @@ var AnimationEditor = /** @class */ (function (_super) {
      * @param name: the name of the plugin
      */
     function AnimationEditor(editor) {
-        var _this = _super.call(this, 'Materials Viewer') || this;
+        var _this = _super.call(this, 'Material Viewer') || this;
         _this.editor = editor;
         // Public members
         _this.images = [];
@@ -109,7 +109,7 @@ var AnimationEditor = /** @class */ (function (_super) {
                         this.layout = new babylonjs_editor_1.Layout('MaterialViewer');
                         this.layout.panels = [
                             { type: 'top', content: '<div id="MATERIAL-VIEWER-TOOLBAR"></div>', size: 30, resizable: false },
-                            { type: 'left', content: '<div id="MATERIAL-VIEWER-LIST"></div>', size: panelSize.width / 2, overflow: 'auto', resizable: true },
+                            { type: 'left', content: '<div id="MATERIAL-VIEWER-LIST"></div>', size: $("#renderCanvas").width() / 2, overflow: 'auto', resizable: true },
                             { type: 'main', content: '<canvas id="MATERIAL-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></canvas>', resizable: true }
                         ];
                         this.layout.build(div.attr('id'));
@@ -186,7 +186,7 @@ var AnimationEditor = /** @class */ (function (_super) {
                     case 0:
                         div = $('#MATERIAL-VIEWER-LIST');
                         // Add HTML nodes
-                        this.canvas = babylonjs_editor_1.Tools.CreateElement('canvas', 'MaterialsViewerCanvas', {
+                        this.canvas = babylonjs_editor_1.Tools.CreateElement('canvas', 'MaterialViewerCanvas', {
                             width: '100px',
                             height: '100px',
                             visibility: 'hidden'

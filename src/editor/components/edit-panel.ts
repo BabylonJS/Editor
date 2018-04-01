@@ -24,38 +24,55 @@ export default class EditorEditPanel {
      * @param plugin the plugin to add
      */
     public addPlugin (plugin: IEditorPlugin): void {
+        let layoutRegMatch = plugin.name.replace(/\W+/g, '');
+        let layoutName = layoutRegMatch + "Layout";
 
-        this.editor.layoutManager.registerComponent( plugin.name, function( container, state ){
-            container.getElement().html( '<div id="' + plugin.name.replace(/\s+/g, '') + '-Layout" />');
-        });
-        
-        this.editor.layoutManager.root.getItemsById('SceneRow')[0].addChild(
-            {
-                type: 'component',
-                componentName: plugin.name,
-                componentState: { text: "a" }
+            Object.entries(w2ui).forEach((value) => {
+                if (value[0].includes(layoutRegMatch)){
+                    w2ui[value[0]].destroy();
+                }  
+            })  
+    
+            try {
+                this.editor.layoutManager.getComponent(plugin.name)
             }
-         );
+    
+            catch(err){
+                this.editor.layoutManager.registerComponent( plugin.name, function( container ){
+                    container.getElement().html( '<div id="' + layoutName + '" />');
+                });
+            }
+            
+            this.editor.layoutManager.root.getItemsById('SceneRow')[0].addChild(
+                {
+                    type: 'component',
+                    componentName: plugin.name
+                }
+             );
+    
+            
+            this.NewPluginLayout = null;
+            this.NewPluginLayout = new Layout(layoutName);
+            this.NewPluginLayout.panels = [
+                { type: 'right',
+                  hidden: false,
+                  size: 310,
+                  style: "height: 100%",
+                  overflow: "unset",
+                  content: '<div style="width: 100%; height: 100%;"></div>',
+                  resizable: false,
+                  tabs: <any>[] },
+            ];
+            this.NewPluginLayout.build(layoutName);
+            
+           
+    
+            $('#' + layoutName).append(plugin.divElement);
 
-        this.NewPluginLayout = null;
-        this.NewPluginLayout = new Layout(plugin.name.replace(/\s+/g, '') + '-Layout');
-        this.NewPluginLayout.panels = [
-            { type: 'right',
-              hidden: false,
-              size: 310,
-              style: "height: 100%",
-              overflow: "unset",
-              content: '<div style="width: 100%; height: 100%;"></div>',
-              resizable: false,
-              tabs: <any>[] },
-        ];
-        this.NewPluginLayout.build(plugin.name.replace(/\s+/g, '') + '-Layout');
-
-        $('#'+plugin.name.replace(/\s+/g, '') + '-Layout').append(plugin.divElement);
-        //this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
-
-        // Activate added plugin
-        //this._onChangeTab(plugin, true);
+            //this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
+    
+            // Activate added plugin
+            //this._onChangeTab(plugin, true);
     }
 
     /**

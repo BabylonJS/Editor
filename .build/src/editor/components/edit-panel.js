@@ -53,16 +53,27 @@ var EditorEditPanel = /** @class */ (function () {
      * @param plugin the plugin to add
      */
     EditorEditPanel.prototype.addPlugin = function (plugin) {
-        this.editor.layoutManager.registerComponent(plugin.name, function (container, state) {
-            container.getElement().html('<div id="' + plugin.name.replace(/\s+/g, '') + '-Layout" />');
+        var layoutRegMatch = plugin.name.replace(/\W+/g, '');
+        var layoutName = layoutRegMatch + "Layout";
+        Object.entries(w2ui).forEach(function (value) {
+            if (value[0].includes(layoutRegMatch)) {
+                w2ui[value[0]].destroy();
+            }
         });
+        try {
+            this.editor.layoutManager.getComponent(plugin.name);
+        }
+        catch (err) {
+            this.editor.layoutManager.registerComponent(plugin.name, function (container) {
+                container.getElement().html('<div id="' + layoutName + '" />');
+            });
+        }
         this.editor.layoutManager.root.getItemsById('SceneRow')[0].addChild({
             type: 'component',
-            componentName: plugin.name,
-            componentState: { text: "a" }
+            componentName: plugin.name
         });
         this.NewPluginLayout = null;
-        this.NewPluginLayout = new layout_1.default(plugin.name.replace(/\s+/g, '') + '-Layout');
+        this.NewPluginLayout = new layout_1.default(layoutName);
         this.NewPluginLayout.panels = [
             { type: 'right',
                 hidden: false,
@@ -73,8 +84,8 @@ var EditorEditPanel = /** @class */ (function () {
                 resizable: false,
                 tabs: [] },
         ];
-        this.NewPluginLayout.build(plugin.name.replace(/\s+/g, '') + '-Layout');
-        $('#' + plugin.name.replace(/\s+/g, '') + '-Layout').append(plugin.divElement);
+        this.NewPluginLayout.build(layoutName);
+        $('#' + layoutName).append(plugin.divElement);
         //this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
         // Activate added plugin
         //this._onChangeTab(plugin, true);

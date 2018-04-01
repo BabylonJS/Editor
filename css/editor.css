@@ -82,14 +82,14 @@ body *{
     width: 99% !important;
 }
 
-#layout_Code-Layout_panel_right{
+#layout_CodeLayout_panel_right{
     display: none !important;
 }
 
 #AnimationEditor, #AnimationEditor > div,
 #TextureViewer,#TextureViewer > div,
-#MaterialsViewer,#MaterialsViewer > div,
-#Code-Layout,#Code-Layout>div,
+#MaterialViewer,#MaterialViewer > div,
+#CodeLayout,#CodeLayout>div,
 #MaterialCreator,#MaterialCreator>div,
 #Post-ProcessCreator,#Post-ProcessCreator>div{
     height: 100% !important;
@@ -100,35 +100,30 @@ body *{
     width: 100% !important;
 }
 
+
+#layout_Code_panel_main>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_main>div.w2ui-panel-content
+{
+    overflow:hidden !important;
+}
+
+#layout_Code_panel_main>div.w2ui-panel-content,
+#layout_Code_panel_left>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_left>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_left>div.w2ui-panel-content,
 #layout_MaterialViewer_panel_main>div.w2ui-panel-content,
 #layout_MaterialViewer_panel_left>div.w2ui-panel-content,
-#layout_TextureViewer_panel_main>div.w2ui-panel-content,
+#layout_TextureViewer_panel_main>div.w2ui-panel-content,    
 #layout_TextureViewer_panel_left>div.w2ui-panel-content{
-    bottom: 88px;
+    bottom: 54px;
 }
 
-
-#layout_MaterialViewer_panel_left,#layout_MaterialViewer_panel_main,
-#layout_TextureViewer_panel_left,#layout_TextureViewer_panel_main{
-    width: 50% !important;
-    height: 100% !important;
+.w2ui-resizer{
+    background-color: red !important;
 }
-
-#layout_MaterialViewer_panel_main,
-#layout_TextureViewer_panel_main{
-    left:50% !important;
-}
-
-#MaterialsViewer .w2ui-resizer,
-#TextureViewer .w2ui-resizer{
-    display:none !important;
-}
-
-#Code-Layout.w2ui-panel {
-    height: 100% !important;
-    width: 100% !important;
-}
-
 
 #layout_EDIT-PANEL-TOOLS_panel_left > .w2ui-panel-content{
     overflow-y:auto !important;
