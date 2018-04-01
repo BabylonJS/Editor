@@ -37,6 +37,7 @@ export default class EditorEditPanel {
             }
          );
 
+        this.NewPluginLayout = null;
         this.NewPluginLayout = new Layout(plugin.name.replace(/\s+/g, '') + '-Layout');
         this.NewPluginLayout.panels = [
             { type: 'right',

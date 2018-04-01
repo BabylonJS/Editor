@@ -95,11 +95,12 @@ var Editor = /** @class */ (function () {
                             content: [{
                                     type: 'component',
                                     componentName: 'Scene View',
+                                    height: 60,
                                     isClosable: false
                                 },
                                 {
                                     type: 'stack',
-                                    componentName: 'AdditionalDialogue',
+                                    componentName: 'AdditionalStack',
                                     id: "SceneRow",
                                     height: 0,
                                     isClosable: false
@@ -127,7 +128,7 @@ var Editor = /** @class */ (function () {
         this.layoutManager.on('stateChanged', function (component) {
             if (_this.layoutManager.root.getItemsById('SceneRow')[0].contentItems.length > 0) {
                 if (_this.layoutManager.root.getItemsById('SceneRow')[0].config.height == 0) {
-                    _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 50;
+                    _this.layoutManager.root.getItemsById('SceneRow')[0].config.height = 95;
                     _this.layoutManager.updateSize();
                 }
             }

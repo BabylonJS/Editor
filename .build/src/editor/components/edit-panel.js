@@ -61,6 +61,7 @@ var EditorEditPanel = /** @class */ (function () {
             componentName: plugin.name,
             componentState: { text: "a" }
         });
+        this.NewPluginLayout = null;
         this.NewPluginLayout = new layout_1.default(plugin.name.replace(/\s+/g, '') + '-Layout');
         this.NewPluginLayout.panels = [
             { type: 'right',

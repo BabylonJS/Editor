@@ -82,6 +82,9 @@ body *{
     width: 99% !important;
 }
 
+#layout_Code-Layout_panel_right{
+    display: none !important;
+}
 
 #AnimationEditor, #AnimationEditor > div,
 #TextureViewer,#TextureViewer > div,
@@ -97,8 +100,11 @@ body *{
     width: 100% !important;
 }
 
+#layout_MaterialViewer_panel_main>div.w2ui-panel-content,
+#layout_MaterialViewer_panel_left>div.w2ui-panel-content,
+#layout_TextureViewer_panel_main>div.w2ui-panel-content,
 #layout_TextureViewer_panel_left>div.w2ui-panel-content{
-    bottom: 80px;
+    bottom: 88px;
 }
 
 
