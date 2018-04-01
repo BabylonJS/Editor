@@ -293,7 +293,7 @@ export default class SceneExporter {
                       n instanceof Camera ? 'Camera' : 'Unknown!'
             };
 
-            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'added')) {
+            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'added') || Tags.MatchesQuery(n, 'added_particlesystem'))) {
                 addNodeToProject = true;
 
                 if (n instanceof AbstractMesh)
