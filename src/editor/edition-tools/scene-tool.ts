@@ -67,7 +67,9 @@ export default class SceneTool extends AbstractEditionTool<Scene> {
 
         if (this._glowEnabled) {
             glow.add(SceneManager.GlowLayer, 'intensity').min(0).step(0.01).name('Intensity');
-            glow.add(SceneManager.GlowLayer, 'blurKernelSize').min(0).max(128).step(1).name('Blur Size');
+            glow.add(SceneManager.GlowLayer, 'blurKernelSize').min(0).max(128).step(1).name('Blur Size').onChange(r => {
+                SceneManager.GlowLayer['_options'].blurKernelSize = r * 2;
+            });
         }
 
         // Highlight
