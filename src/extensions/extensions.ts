@@ -1,7 +1,8 @@
 import { Scene } from 'babylonjs';
 import { IStringDictionary, IExtension, ExtensionConstructor } from 'babylonjs-editor';
 
-import Tools from './tools';
+import Tools from './tools/tools';
+import Mobile from './tools/mobile';
 
 export default class Extensions {
     // Public members
@@ -9,6 +10,7 @@ export default class Extensions {
     public static Instances: IStringDictionary<IExtension<any>> = { };
 
     public static Tools: Tools = new Tools();
+    public static Mobile: Mobile = new Mobile();
 
     /**
      * Registers an extension

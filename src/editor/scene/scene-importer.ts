@@ -18,6 +18,8 @@ import Tools from '../tools/tools';
 import Extensions from '../../extensions/extensions';
 import SceneManager from './scene-manager';
 
+import PostProcessesExtension from '../../extensions/post-process/post-processes';
+
 export default class SceneImporter {
     /**
      * Imports the project
@@ -46,9 +48,11 @@ export default class SceneImporter {
                     case 'Light': node = Light.Parse(n.serializationObject, scene); break;
                     case 'Mesh':
                         // Geometries
-                        n.serializationObject.geometries.vertexData.forEach(v => {
-                            Geometry.Parse(v, scene, 'file:');
-                        });
+                        if (n.serializationObject.geometries) {
+                            n.serializationObject.geometries.vertexData.forEach(v => {
+                                Geometry.Parse(v, scene, 'file:');
+                            });
+                        }
                         // Mesh
                         n.serializationObject.meshes.forEach(m => {
                             node = Mesh.Parse(m, scene, 'file:');
@@ -66,33 +70,15 @@ export default class SceneImporter {
             }
 
             // Check particle systems
-            if (!node) {
-                project.particleSystems.forEach(ps => {
-                    if (ps.serializationObject.emitterId !== n.id)
-                        return;
-                    
-                    const system = ParticleSystem.Parse(ps.serializationObject, scene, 'file:');
-                    if (!ps.hasEmitter) {
-                        const emitter = new Mesh(n.id, scene, null, null, true);
-                        emitter.id = ps.serializationObject.emitterId;
-                        emitter.position = Vector3.FromArray(ps.emitterPosition);
+            project.particleSystems.forEach(ps => {
+                if (!ps.hasEmitter && n.id && ps.serializationObject && ps.serializationObject.emitterId === n.id) {
+                    const emitter = new Mesh(n.name, scene, null, null, true);
+                    emitter.id = ps.serializationObject.emitterId;
     
-                        system.emitter = emitter;
-    
-                        // Add tags to emitter
-                        Tags.AddTagsTo(emitter, 'added_particlesystem');
-                    }
-
-                    // Legacy
-                    if (ps.serializationObject.base64Texture) {
-                        system.particleTexture = Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, scene);
-                        system.particleTexture.name = system.particleTexture.name.replace('data:', '');
-                    }
-
-                    // Add tags to particles system
-                    Tags.AddTagsTo(system, 'added');
-                });
-            }
+                    // Add tags to emitter
+                    Tags.AddTagsTo(emitter, 'added_particlesystem');
+                }
+            });
 
             // Node not found
             if (!node)
@@ -125,6 +111,26 @@ export default class SceneImporter {
                     }, scene);
                 }
             }
+        });
+
+        // Particle systems
+        project.particleSystems.forEach(ps => {
+            const system = ParticleSystem.Parse(ps.serializationObject, scene, 'file:');
+
+            if (ps.hasEmitter)
+                system.emitter = <any> scene.getNodeByID(ps.serializationObject.emitterId);
+
+            if (!ps.hasEmitter && system.emitter && ps.emitterPosition)
+                (<AbstractMesh> system.emitter).position = Vector3.FromArray(ps.emitterPosition);
+
+            // Legacy
+            if (ps.serializationObject.base64Texture) {
+                system.particleTexture = Texture.CreateFromBase64String(ps.serializationObject.base64Texture, ps.serializationObject.base64TextureName, scene);
+                system.particleTexture.name = system.particleTexture.name.replace('data:', '');
+            }
+
+            // Add tags to particles system
+            Tags.AddTagsTo(system, 'added');
         });
 
         // Materials
@@ -163,6 +169,12 @@ export default class SceneImporter {
 
             if (extension)
                 extension.onLoad(project.customMetadatas[m]);
+        }
+
+        // Post-processes
+        const ppExtension = <PostProcessesExtension> Extensions.Instances['PostProcess'];
+        if (ppExtension) {
+            SceneManager.StandardRenderingPipeline = ppExtension.standard;
         }
 
         // Finish
