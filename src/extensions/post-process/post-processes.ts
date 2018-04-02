@@ -9,6 +9,9 @@ export interface PostProcessMetadata {
 }
 
 export default class PostProcessesExtension extends Extension<PostProcessMetadata> {
+    // Public members
+    public standard: StandardRenderingPipeline = null;
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -45,15 +48,14 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
      * loading a scene)
      */
     public onLoad (data: PostProcessMetadata, editor: Editor): void {
-        // TODO: Find a way to access SceneManager
-        // this._applyPostProcesses(data, 'file:');
+        this._applyPostProcesses(data, 'file:');
     }
 
     // Applies the post-processes on the scene
     private _applyPostProcesses (data: PostProcessMetadata, rootUrl?: string, editor?: Editor): void {
         if (data.standard) {
-            const std = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
-            std._attachCameras(this.scene.cameras, true);
+            this.standard = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
+            this.standard._attachCameras(this.scene.cameras, true);
         }
     }
 }

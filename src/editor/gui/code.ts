@@ -71,7 +71,8 @@ export default class CodeEditor {
                 'node_modules/babylonjs-materials/babylonjs.materials.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
                 'assets/templates/post-process-creator/custom-post-process.d.ts',
-                'assets/templates/code/tools.d.ts'
+                'assets/templates/code/tools.d.ts',
+                'assets/templates/code/mobile.d.ts'
             ];
 
             let content = '';
@@ -93,6 +94,7 @@ export default class CodeEditor {
                 declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
 
                 declare var tools: BehaviorCodeTools;
+                declare var mobile: Mobile;
             `;
 
             CodeEditor.ExternalLibraries = content;

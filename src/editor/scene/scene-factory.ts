@@ -74,8 +74,9 @@ export default class SceneFactory {
         system.id = BabylonTools.RandomId();
 
         if (!emitter) {
-            Tools.CreateFileFromURL('assets/textures/flare.png').then(() => {
-                system.particleTexture = new Texture('file:flare.png', scene);
+            Tools.CreateFileFromURL('assets/textures/flare.png').then(async (f) => {
+                const b64 = await Tools.ReadFileAsBase64(f);
+                system.particleTexture = Texture.CreateFromBase64String(b64, 'flare.png', scene);
                 system.particleTexture.name = system.particleTexture.url = 'flare.png';
             });
         }

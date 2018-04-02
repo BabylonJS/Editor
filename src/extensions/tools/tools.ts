@@ -1,9 +1,9 @@
 import { FilesInput } from 'babylonjs';
-import Extensions from './extensions';
+import Extensions from '../extensions';
 
-import CodeExtension from './behavior/code';
-import PostProcessCreatorExtension from './post-process-creator/post-process-creator';
-import MaterialCreatorExtension from './material-creator/material-creator';
+import CodeExtension from '../behavior/code';
+import PostProcessCreatorExtension from '../post-process-creator/post-process-creator';
+import MaterialCreatorExtension from '../material-creator/material-creator';
 
 export default class Tools {
     /**

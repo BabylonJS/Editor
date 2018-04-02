@@ -4,7 +4,8 @@ import {
     Node, AbstractMesh, Light, Camera,
     Tags,
     Vector3,
-    ActionManager
+    ActionManager,
+    ParticleSystem
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -240,11 +241,22 @@ export default class SceneExporter {
             if (!Tags.HasTags(ps) || !Tags.MatchesQuery(ps, 'added'))
                 return;
             
-            result.push({
-                emitterPosition: (ps.emitter && ps.emitter instanceof Vector3) ? ps.emitter.asArray() : null,
-                hasEmitter: ps.emitter && ps.emitter instanceof AbstractMesh,
+            var psObj = {
+                emitterPosition: (ps.emitter && ps.emitter instanceof Vector3) ? ps.emitter.asArray() : (ps.emitter && ps.emitter instanceof Node) ? ps.emitter.position.asArray() : null,
+                hasEmitter: ps.emitter && ps.emitter instanceof AbstractMesh && !Tags.MatchesQuery(ps.emitter, 'added_particlesystem'),
                 serializationObject: ps.serialize()
-            });
+            };
+
+            // Check base64 string
+            if (ps instanceof ParticleSystem && ps.particleTexture['_buffer']) {
+                // Add base64 string
+                psObj.serializationObject.base64TextureName = ps.particleTexture.name;
+                psObj.serializationObject.base64Texture = (<any>ps.particleTexture)._buffer;
+
+                delete psObj.serializationObject.textureName;
+            }
+
+            result.push(psObj);
         });
 
         return result;
@@ -293,7 +305,10 @@ export default class SceneExporter {
                       n instanceof Camera ? 'Camera' : 'Unknown!'
             };
 
-            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'added') || Tags.MatchesQuery(n, 'added_particlesystem'))) {
+            if (Tags.MatchesQuery(n, 'added_particlesystem'))
+                addNodeToProject = true;
+            
+            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'added'))) {
                 addNodeToProject = true;
 
                 if (n instanceof AbstractMesh)
