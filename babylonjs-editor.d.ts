@@ -866,8 +866,20 @@ declare module 'babylonjs-editor/editor/components/graph' {
 }
 
 declare module 'babylonjs-editor/editor/components/edition' {
+    /**
+        * Edition tools
+        */
     import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    /**
+        * Editor
+        */
+    import Layout from 'babylonjs-editor/editor/gui/layout';
     import Editor from 'babylonjs-editor/editor/editor';
+    export interface EditionToolsOptions {
+            layout?: Layout;
+            panelType?: string;
+            rootDiv?: string;
+    }
     export default class EditorEditionTools {
             protected editor: Editor;
             tools: IEditionTool<any>[];
@@ -880,7 +892,7 @@ declare module 'babylonjs-editor/editor/components/edition' {
                 * Constructor
                 * @param editor: the editor's reference
                 */
-            constructor(editor: Editor);
+            constructor(editor: Editor, options?: EditionToolsOptions);
             /**
                 * Resizes the edition tools
                 * @param width the width of the panel
