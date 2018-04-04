@@ -20,11 +20,16 @@ export default class EditorGraph {
 
     public currentObject: any = this.editor.core.scene;
 
+    /**
+     * Constructor
+     * @param editor the editor reference
+     */
     constructor(protected editor: Editor) {
         // Build graph
         this.graph = new Graph('SceneGraph');
         this.graph.topContent = '<div style="background-color: #eee; padding: 10px 5px; border-bottom: 1px solid silver">Scene Content</div>'
         this.graph.build('SCENE-GRAPH');
+        $('#SCENE-GRAPH').hide();
 
         // Add menus
         this.graph.addMenu({ id: 'remove', text: 'Remove', img: 'icon-error' });
