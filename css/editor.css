@@ -24,6 +24,10 @@ html, body {
 /*
 ICONS
 */
+.w2ui-icon {
+    background-repeat: no-repeat !important;
+}
+
 .w2ui-icon.icon-error {
     background: url("images/error.png");
 }

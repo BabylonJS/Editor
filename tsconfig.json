@@ -9,7 +9,7 @@
       "typeRoots" : ["node_modules/@types"],
       "experimentalDecorators": true,
       "types": [
-        "es6-promise", "w2ui", "jquery", "socket.io-client"
+        "es6-promise", "w2ui", "jquery", "socket.io-client", "jstree"
       ],
       "lib": [
         "es2015.promise", "es2015", "dom"
