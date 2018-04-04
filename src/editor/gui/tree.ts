@@ -1,5 +1,3 @@
-// import 'jstree';
-
 export interface TreeNode {
     id: string;
     text: string;
@@ -23,11 +21,14 @@ export default class Tree {
 
     public onClick: <T>(id: string, data: T) => void;
     public onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
-    public onDrag: <T>(id: string, data: T) => boolean;
     public onMenuClick: <T>(id: string, node: TreeNode) => void;
+
+    public onCanDrag: <T>(id: string, data: T) => boolean;
+    public onDrag:<T, U>(node: T, parent: U) => boolean;
 
     // Protected members
     protected currentSelectedNode: string = '';
+    protected moving: boolean = false;
 
     /**
      * Constructor
@@ -118,6 +119,28 @@ export default class Tree {
     }
 
     /**
+     * Set parent of the given node (id)
+     * @param id the id of the node
+     * @param parentId the parent id
+     */
+    public setParent (id: string, parentId: string): void {
+        const node = this.get(id);
+        if (!node)
+            return;
+
+        const parent = this.get(parentId);
+        if (!parent)
+            return;
+
+
+        this.moving = true;
+        this.element.jstree().move_node(node, parent);
+        this.moving = false;
+
+        this.expand(parentId);
+    }
+
+    /**
      * Builds the tree
      * @param parentId the parent id
      */
@@ -131,7 +154,7 @@ export default class Tree {
                 use_html5 : true,
                 is_draggable : (nodes: TreeNode[]) => {
                     const node = nodes[0];
-                    return this.onDrag && this.onDrag(node.id, node.data);
+                    return this.onCanDrag && this.onCanDrag(node.id, node.data);
                 }
             },
             plugins: [
@@ -176,7 +199,20 @@ export default class Tree {
                     this.onClick(data.node.id, data.node.data);
             })
             .on('move_node.jstree', (e, data) => {
+                if (!this.onDrag || this.moving)
+                    return;
+                
+                const node = this.getSelected();
+                const parent = this.get(data.parent);
 
+                if (!node || !parent)
+                    return;
+
+                const success = this.onDrag(node.data, parent.data);
+
+                // Revert ?
+                if (!success)
+                    this.setParent(node.id, data.old_parent);
             });
     }
 }
