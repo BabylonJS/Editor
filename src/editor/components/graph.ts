@@ -9,40 +9,59 @@ import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
-import Graph, { GraphNode } from '../gui/graph';
-import SceneFactory from '../scene/scene-factory';
+
+import Tree, { TreeNode } from '../gui/tree';
 
 export default class EditorGraph {
     // Public members
-    public graph: Graph;
+    public tree: Tree;
     public root: string = 'ROOT';
     public gui: string = 'GUI';
 
     public currentObject: any = this.editor.core.scene;
 
-    /**
-     * Constructor
-     * @param editor the editor reference
-     */
-    constructor(protected editor: Editor) {
-        // Build graph
-        this.graph = new Graph('SceneGraph');
-        this.graph.topContent = '<div style="background-color: #eee; padding: 10px 5px; border-bottom: 1px solid silver">Scene Content</div>'
-        this.graph.build('SCENE-GRAPH');
-        $('#SCENE-GRAPH').hide();
-
-        // Add menus
-        this.graph.addMenu({ id: 'remove', text: 'Remove', img: 'icon-error' });
-        this.graph.addMenu({ id: 'clone', text: 'Clone', img: 'icon-clone' });
+    constructor (protected editor: Editor) {
+        this.tree = new Tree('SceneTree');
+        this.tree.build('SCENE-GRAPH');
 
         // Events
-        this.graph.onClick = (id, data: any) => {
+        this.tree.onClick = (id, data: any) => {
             this.currentObject = data;
             this.editor.core.onSelectObject.notifyObservers(data);
         };
-        this.graph.onMenuClick = (id, node) => this.onMenuClick(id, node);
 
-        this.editor.core.onSelectObject.add((node: Node) => node && this.select(node.id));
+        this.tree.onContextMenu = (id, data: any) => {
+            if (!data.clone)
+                return [];
+            
+            return [
+                { id: 'delete', text: 'Delete', img: 'icon-error', callback: () => this.onMenuClick('remove') },
+                { id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') }
+            ];
+        };
+
+        this.tree.onCanDrag = (id, data) => !(data instanceof Scene);
+        this.tree.onDrag = (node: any, parent: any) => {
+            if (node instanceof ParticleSystem) {
+                if (!(parent instanceof AbstractMesh))
+                    return false;
+                
+                node.emitter = parent;
+            }
+            else if (node instanceof Node) {
+                if (!(parent instanceof Node) && !(parent instanceof Scene))
+                    return false;
+                
+                node.parent = parent instanceof Scene ? null : parent;
+            }
+            else {
+                return false;
+            }
+
+            return true;
+        };
+
+        this.editor.core.onSelectObject.add((node: Node) => node && this.tree.select(node.id));
     }
 
     /**
@@ -51,11 +70,7 @@ export default class EditorGraph {
     * @param name the new name/id
     */
     public renameNode (id: string, name: string): void {
-        const node = <GraphNode>this.graph.element.get(id);
-        node.id = name;
-        node.text = name;
-
-        this.graph.element.refresh();
+        this.tree.rename(id, name);
     }
 
     /**
@@ -64,14 +79,7 @@ export default class EditorGraph {
      * @param parentId the parent id
      */
     public setParent (id: string, parentId: string): void {
-        const parent = <GraphNode>this.graph.element.get(parentId);
-        const node = <GraphNode>this.graph.element.get(id);
-
-        parent.count = parent.count ? parent.count++ : 1;
-
-        this.graph.element.remove(node.id);
-        this.graph.element.add(parent.id, node);
-        this.graph.element.expandParents(node.id);
+        this.tree.setParent(id, parentId);
     }
 
     /**
@@ -79,8 +87,8 @@ export default class EditorGraph {
      * @param node: the node to add
      * @param parentId: the parent id of the node to add
      */
-    public add (node: GraphNode, parentId: string): void {
-        this.graph.element.add(parentId, node);
+    public add (node: TreeNode, parentId: string): void {
+        this.tree.add(node, parentId);
     }
 
     /**
@@ -88,35 +96,33 @@ export default class EditorGraph {
      * @param id the node id
      */
     public select (id: string): void {
-        this.graph.element.expandParents(id);
-        this.graph.element.select(id);
-        this.graph.element.scrollIntoView(id);
+        this.tree.select(id);
     }
 
     /**
      * Returns the selected node id
      */
-    public getSelected (): GraphNode {
-        return <GraphNode> this.graph.element.get(this.graph.element.selected);
+    public getSelected (): TreeNode {
+        return this.tree.getSelected();
     }
 
     /**
      * Returns a anode 
      * @param data: the data to search
      */
-    public getByData (data: any): GraphNode {
-        return <GraphNode> this.graph.element.get(data.id || data.name);
+    public getByData (data: any): TreeNode {
+        return <TreeNode> this.tree.get(data.id || data.name);
     }
 
     /**
      * Clears the graph
      */
     public clear (): void {
-        this.graph.clear();
+        this.tree.clear();
     }
 
     /**
-     * Fills the graph
+     * Fills the tree
      * @param scene: the root scene
      * @param root: the root node
      */
@@ -124,16 +130,14 @@ export default class EditorGraph {
         let nodes = root ? root.getDescendants() : [];
 
         if (!root) {
-            // Set scene's node
-            this.graph.element.add(<GraphNode> {
+            this.tree.add({
                 id: this.root,
                 text: 'Scene',
                 img: 'icon-scene',
                 data: scene
             });
-            
-            this.graph.element.expand(this.root);
-            this.graph.element.select(this.root);
+
+            this.tree.select(this.root);
             this.editor.edition.setObject(scene);
 
             // Sort nodes alphabetically
@@ -145,20 +149,6 @@ export default class EditorGraph {
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
-
-            // Set sounds
-            this.fillSounds(scene, scene);
-
-            // Set gui's node
-            // TODO: wait for parse and serialize for GUI
-            // this.graph.element.add(<GraphNode> {
-            //     id: this.gui,
-            //     text: 'GUI',
-            //     img: 'icon-lens-flare',
-            //     data: scene
-            // });
-
-            // this.fillGuiTextures(null);
         }
         else {
             Tools.SortAlphabetically(nodes, 'name');
@@ -172,12 +162,12 @@ export default class EditorGraph {
 
             // Instance?
             const parent = root ? root.id : this.root;
-            const parentNode = <GraphNode> this.graph.element.add(parent, <GraphNode>{
+            const parentNode = this.tree.add({
                 id: n.id,
                 text: n.name,
                 img: this.getIcon(n),
                 data: n
-            });
+            }, parent);
 
             // Cannot add
             if (!parentNode)
@@ -185,77 +175,73 @@ export default class EditorGraph {
 
             // Sub meshes
             if (n instanceof AbstractMesh && n.subMeshes && n.subMeshes.length > 1) {
-                parentNode.count += n.subMeshes.length;
+
                 n.subMeshes.forEach((sm, index) => {
-                    this.graph.element.add(n.id, <GraphNode>{
+                    this.tree.add({
                         id: n.id + 'submesh_' + index,
                         text: sm.getMaterial().name,
                         img: this.getIcon(n),
                         data: sm
-                    });
+                    }, n.id);
                 });
             }
 
             // Check particle systems
             scene.particleSystems.forEach(ps => {
                 if (ps.emitter === n) {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode>{
+                    this.tree.add({
                         id: ps.id,
                         text: ps.name,
                         img: this.getIcon(ps),
                         data: ps
-                    });
+                    }, n.id);
                 }
             });
 
             // Check lens flares
             scene.lensFlareSystems.forEach(lf => {
                 if (lf.getEmitter() === n) {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode> {
+                    this.tree.add({
                         id: lf.id,
                         text: lf.name,
                         img: this.getIcon(lf),
                         data: lf
-                    });
+                    }, n.id);
                 }
             });
 
             // Camera? Add post-processes
             if (n instanceof Camera) {
                 n._postProcesses.forEach(p => {
-                    parentNode.count++;
-                    this.graph.element.add(n.id, <GraphNode> {
+                    this.tree.add({
                         id: p.name,
                         text: p.name,
                         img: this.getIcon(p),
                         data: p
-                    });
+                    }, n.id);
                 });
             }
 
             // Sounds
-            parentNode.count += this.fillSounds(scene, n);
+            this.fillSounds(scene, n);
 
             // TODO: wait for parse and serialize for GUI
             // parentNode.count += this.fillGuiTextures(n);
 
-            // Add descendants to count
-            const descendants = n.getDescendants();
-            if (descendants.length)
-                parentNode.count += descendants.length;
-
             // Fill descendants
             this.fill(scene, n);
         });
+
+        // Expand scene as default
+        if (!root)
+            this.tree.expand(this.root);
     }
 
     /**
     * Returns the icon related to the object type
     * @param object 
     */
-    public getIcon(obj: any): string {
+    public getIcon (obj: any): string {
         if (obj instanceof AbstractMesh) {
             return 'icon-mesh';
         } else if (obj instanceof Light) {
@@ -292,20 +278,20 @@ export default class EditorGraph {
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
                 if (root === scene && !s['_connectedMesh']) {
-                    this.graph.element.add(this.root, <GraphNode>{
+                    this.tree.add({
                         id: s.name,
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
-                    });
+                    }, this.root);
                 }
                 else if (s['_connectedMesh'] === root) {
-                    this.graph.element.add((<Node> root).id, <GraphNode>{
+                    this.tree.add({
                         id: s.name,
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
-                    });
+                    }, (<Node> root).id);
 
                     count++;
                 }
@@ -325,12 +311,12 @@ export default class EditorGraph {
         if (!root) {
             // Advanced ui textures
             this.editor.core.uiTextures.forEach(ut => {
-                this.graph.element.add(this.gui, <GraphNode>{
+                this.tree.add(<TreeNode>{
                     id: ut.name,
                     text: ut.name,
                     img: this.getIcon(ut),
                     data: ut
-                });
+                }, this.gui);
             });
         }
         else {
@@ -346,14 +332,18 @@ export default class EditorGraph {
     /**
      * On the user clicks on a context menu item
      * @param id the context menu item id
-     * @param node the related graph node
+     * @param node the related tree node
      */
-    protected onMenuClick (id: string, node: GraphNode): void {
+    protected onMenuClick (id: string): void {
+        const node = this.getSelected();
+        if (!node)
+            return;
+        
         switch (id) {
             // Remove
             case 'remove':
                 node.data && node.data.dispose && node.data.dispose();
-                this.graph.element.remove(node.id);
+                this.tree.remove(node.id);
 
                 // Gui
                 if (node.data instanceof AdvancedDynamicTexture) {
@@ -374,7 +364,7 @@ export default class EditorGraph {
                 clone.id = BabylonTools.RandomId();
 
                 const parent = clone.parent ? clone.parent.id :this.root;
-                this.graph.add({ id: clone.id, text: clone.name, img: this.getIcon(clone), data: clone }, parent);
+                this.tree.add({ id: clone.id, text: clone.name, img: this.getIcon(clone), data: clone }, parent);
                 
                 // Setup this
                 this.currentObject = clone;

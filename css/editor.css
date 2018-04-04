@@ -21,6 +21,15 @@ html, body {
     width: 16px;
 }
 
+/* */
+.vakata-context li > a {
+    font-size: 12px;
+}
+
+.vakata-context li > a >i {
+    background-position: 5px 5px !important;
+}
+
 /*
 ICONS
 */
