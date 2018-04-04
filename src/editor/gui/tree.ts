@@ -40,6 +40,7 @@ export default class Tree {
 
     /**
      * Clear the tree
+     * @param root: the root node from where to remove children. If undefined, root is taken
      */
     public clear (root?: string): void {
         this.element.jstree().delete_node(this.element.jstree().get_node(root || '#').children);

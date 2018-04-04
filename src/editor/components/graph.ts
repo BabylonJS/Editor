@@ -20,6 +20,10 @@ export default class EditorGraph {
 
     public currentObject: any = this.editor.core.scene;
 
+    /**
+     * Constructor
+     * @param editor the editor reference
+     */
     constructor (protected editor: Editor) {
         this.tree = new Tree('SceneTree');
         this.tree.build('SCENE-GRAPH');
@@ -61,6 +65,7 @@ export default class EditorGraph {
             return true;
         };
 
+        // Observer
         this.editor.core.onSelectObject.add((node: Node) => node && this.tree.select(node.id));
     }
 
