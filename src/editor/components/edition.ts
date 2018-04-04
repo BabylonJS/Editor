@@ -1,3 +1,6 @@
+/**
+ * Edition tools
+ */
 import { IEditionTool } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
 import NodeTool from '../edition-tools/node-tool';
@@ -6,6 +9,8 @@ import PhysicsTool from '../edition-tools/physics-tool';
 import RenderTargetTool from '../edition-tools/render-target-tool';
 import ParticleSystemTool from '../edition-tools/particle-system-tool';
 import SoundTool from '../edition-tools/sound-tool';
+
+import AnimationTool from '../edition-tools/animation-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
@@ -28,14 +33,25 @@ import TextureTool from '../edition-tools/texture-tool';
 
 import GroundTool from '../edition-tools/meshes/ground-tool';
 
+/**
+ * Editor
+ */
+import Layout from '../gui/layout';
+
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
+
+export interface EditionToolsOptions {
+    layout?: Layout;
+    panelType?: string;
+    rootDiv?: string;
+}
 
 export default class EditorEditionTools {
     // Public members
     public tools: IEditionTool<any>[] = [];
     public currentTools: IEditionTool<any>[] = [];
-    public root: string = 'EDITION';
+    public root: string;
 
     public panel: W2UI.W2Panel;
 
@@ -48,9 +64,10 @@ export default class EditorEditionTools {
      * Constructor
      * @param editor: the editor's reference
      */
-    constructor(protected editor: Editor) {
-        // Get panel
-        this.panel = editor.layout.getPanelFromType('left');
+    constructor(protected editor: Editor, options: EditionToolsOptions = { }) {
+        // Configure panel and div
+        this.panel = (options.layout || editor.layout).getPanelFromType(options.panelType || 'left');
+        this.root = options.rootDiv || 'EDITION';
 
         // Add tools
         this.addTool(new SceneTool());
@@ -60,6 +77,8 @@ export default class EditorEditionTools {
         this.addTool(new RenderTargetTool());
         this.addTool(new ParticleSystemTool());
         this.addTool(new SoundTool());
+
+        this.addTool(new AnimationTool());
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRMaterialTool());
