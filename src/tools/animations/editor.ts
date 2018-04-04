@@ -37,7 +37,6 @@ export default class AnimationEditor extends EditorPlugin {
     public layout: Layout = null;
     public toolbar: Toolbar = null;
 
-    public fpsInput: JQuery = null;
     public frameInput: JQuery = null;
     public valueInput: JQuery = null;
 
@@ -112,7 +111,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout = new Layout('AnimationEditorLayout');
         this.layout.panels = [
             { type: 'top', content: '<div id="ANIMATION-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
-            { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%;"></div>', resizable: false }
+            { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: false }
         ]
         this.layout.build('AnimationEditor');
 
@@ -132,13 +131,16 @@ export default class AnimationEditor extends EditorPlugin {
         <div style="padding: 3px 10px;">
             Value: <input size="10" id="ANIMATION-EDITOR-VALUE" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
             Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
-            FPS: <input size="10" id="ANIMATION-EDITOR-FPS" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
         </div>`;
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
         this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
 
         // Create paper
         this.paper = Raphael($('#ANIMATION-EDITOR-PAPER')[0], 0, 0);
+        this.paper.canvas.addEventListener('focus', () => {
+            if (this.animation)
+                this.editor.edition.setObject(this.animation);
+        });
 
         // Create background
         this.background = this.paper.rect(0, 0, 0, 0);
@@ -160,28 +162,6 @@ export default class AnimationEditor extends EditorPlugin {
         this.valueText.hide();
 
         // Events / inputs
-        const fps = $('#ANIMATION-EDITOR-FPS');
-        this.fpsInput = (<any> fps).w2field('float', { autoFormat: true });
-        this.fpsInput[0].addEventListener('change', (ev) => {
-            if (this.animation) {
-                const fromFrame = this.animation.framePerSecond;
-                const toFrame = parseFloat(<string>this.fpsInput.val());
-
-                this.animation.framePerSecond = toFrame;
-
-                // Undo / redo
-                const animation = this.animation;
-
-                UndoRedo.Push({ // Frame
-                    object: animation,
-                    property: 'framePerSecond',
-                    from: fromFrame,
-                    to: toFrame,
-                    fn: (type) => this.fpsInput.val(type === 'from' ? fromFrame : toFrame)
-                });
-            }
-        });
-
         const frame = $('#ANIMATION-EDITOR-FRAME');
         this.frameInput = (<any> frame).w2field('float', { autoFormat: true });
         this.frameInput[0].addEventListener('change', (ev) => {
@@ -396,6 +376,11 @@ export default class AnimationEditor extends EditorPlugin {
     protected objectSelected(object: IAnimatable): void {
         this.toolbar.element.disable('remove-animation');
 
+        // Clean
+        this.animatable = null;
+        this.animation = null;
+
+        // Check
         if (!object.animations)
             return;
 
@@ -470,9 +455,6 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Update graph
         this.updateGraph(this.animation);
-
-        // Update FPS
-        this.fpsInput.val(this.animation.framePerSecond.toString());
     }
 
     /**
