@@ -15,6 +15,7 @@ import Dialog from './gui/dialog';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
+import EditorTree from './components/tree';
 import EditorEditionTools from './components/edition';
 import EditorEditPanel from './components/edit-panel';
 
@@ -38,6 +39,7 @@ export default class Editor {
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
+    public tree: EditorTree;
     public edition: EditorEditionTools;
     public editPanel: EditorEditPanel;
 
@@ -79,7 +81,7 @@ export default class Editor {
                 content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
             },
-            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
+            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div><div id="SCENE-TREE" style="width: 100%; height: 100%;"></div>', resizable: true },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
             { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
             { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
@@ -103,6 +105,9 @@ export default class Editor {
 
         // Create graph
         this.graph = new EditorGraph(this);
+
+        // Create tree
+        this.tree = new EditorTree(this);
 
         // Edit panel
         this.editPanel = new EditorEditPanel(this);
@@ -233,12 +238,19 @@ export default class Editor {
             DefaultScene.Create(this).then(() => {
                 this.graph.clear();
                 this.graph.fill();
+
+                this.tree.clear();
+                this.tree.fill();
+                
                 this.layout.unlockPanel('main');
             });
 
             // Fill graph
             this.graph.clear();
             this.graph.fill();
+
+            this.tree.clear();
+            this.tree.fill();
 
             this.core.onSelectObject.notifyObservers(this.core.scene);
 
@@ -398,6 +410,9 @@ export default class Editor {
                 // Graph
                 this.graph.clear();
                 this.graph.fill(scene);
+
+                this.tree.clear();
+                this.tree.fill(scene);
 
                 // Restart plugins
                 this.restartPlugins();
