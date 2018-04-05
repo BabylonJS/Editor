@@ -49,7 +49,7 @@
             this._planeMaterial = new StandardMaterial("HelperPlaneMaterial", this._scene);
             this._planeMaterial.diffuseTexture = this._cameraTexture;
             this._planeMaterial.emissiveColor = Color3.White();
-            this._planeMaterial.useAlphaFromDiffuseTexture = true;
+            // this._planeMaterial.useAlphaFromDiffuseTexture = true;
             this._planeMaterial.disableDepthWrite = false;
             this._planeMaterial.disableLighting = true;
             this._scene.materials.pop();
@@ -74,7 +74,6 @@
                 return;
             
             var engine = this._scene.getEngine();
-            engine.setAlphaTesting(true);
 
             this._subMesh = this._helperPlane.subMeshes[0];
 

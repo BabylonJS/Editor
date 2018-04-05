@@ -144,7 +144,7 @@ module BABYLON.EDITOR.EXTENSIONS {
 
             MaterialHelper.PrepareDefinesForFrameBoundValues(scene, engine, defines, useInstances);
 
-            MaterialHelper.PrepareDefinesForMisc(mesh, scene, this._useLogarithmicDepth, this.pointsCloud, this.fogEnabled, defines);
+            MaterialHelper.PrepareDefinesForMisc(mesh, scene, this._useLogarithmicDepth, this.pointsCloud, this.fogEnabled, this.needAlphaTesting(), defines);
 
             if (defines._areMiscDirty) {
                 // Nothing now
