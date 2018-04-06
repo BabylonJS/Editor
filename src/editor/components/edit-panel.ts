@@ -4,13 +4,7 @@ import Layout from '../gui/layout';
 
 export default class EditorEditPanel {
     // Public members
-    public panel: W2UI.W2Panel = this.editor.layout.getPanelFromType('preview');
-
     public NewPluginLayout : Layout;
-
-
-    // Protected members
-    protected currentDiv: HTMLDivElement = null;
 
     /**
      * Constructor
@@ -48,7 +42,6 @@ export default class EditorEditPanel {
                     componentName: plugin.name
                 }
              );
-    
             
             this.NewPluginLayout = null;
             this.NewPluginLayout = new Layout(layoutName);
@@ -64,35 +57,6 @@ export default class EditorEditPanel {
             ];
             this.NewPluginLayout.build(layoutName);
             
-           
-    
             $('#' + layoutName).append(plugin.divElement);
-    }
-
-    /**
-     * Shows the given plugin
-     * @param plugin: the plugin to show
-     */
-    public async showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
-        if (!plugin)
-            return;
-        
-        if (plugin.onShow)
-            await plugin.onShow.apply(plugin, params);
-
-        //this.panel.tabs.select(plugin.name);
-        this._onChangeTab(plugin, false);
-    }
-
-    // On the tab changed
-    private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): Promise<void> {
-        if (this.currentDiv)
-            $(this.currentDiv).hide();
-
-        this.currentDiv = plugin.divElement;
-        $(this.currentDiv).show();
-
-        if (!firstShow && plugin.onShow)
-            await plugin.onShow();
     }
 }

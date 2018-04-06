@@ -9,13 +9,10 @@
 
     <script src="./node_modules/jquery/dist/jquery.js" type="text/javascript"></script>
     <script src="./node_modules/jstree/dist/jstree.js" type="text/javascript"></script>
-
     <script src="./node_modules/golden-layout/dist/goldenlayout.js" type="text/javascript"></script>
-    
     <script src="./node_modules/w2ui/w2ui.js" type="text/javascript"></script>
 
     <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui-dark.css" />
-
     <link rel="stylesheet" type="text/css" href="./node_modules/jstree/dist/themes/default/style.min.css" />
     <link rel="stylesheet" type="text/css" href="./node_modules/golden-layout/src/css/goldenlayout-base.css" />
     <link rel="stylesheet" type="text/css" href="./node_modules/golden-layout/src/css/goldenlayout-dark-theme.css" />
@@ -37,6 +34,8 @@
                 "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
                 "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
+                "earcut": "./node_modules/babylonjs/earcut.min.js",
+                "oimo": "./node_modules/babylonjs/Oimo.js",
                 "jstree": "./node_modules/jstree/dist/jstree.js",
                 "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
                 "jquery": "./node_modules/jquery/dist/jquery.js",
@@ -50,7 +49,7 @@
                 "texture-viewer": "./.build/src/tools/textures/viewer.js",
                 "material-creator": "./.build/src/tools/material-creator/index.js",
                 "post-process-creator": "./.build/src/tools/post-process-creator/index.js",
-
+                "play-game": "./.build/src/tools/play-game/index.js",
                 "post-processes": "./.build/src/extensions/post-process/post-processes.js"
             },
             packages: {
@@ -72,7 +71,7 @@
             },
             pluginFirst: true
         });
-
+	// Import
         System.import("babylonjs-editor").then(function (e) {
             // Run editor
             var editor = window.editor = new e.default();

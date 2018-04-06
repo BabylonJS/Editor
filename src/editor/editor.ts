@@ -301,25 +301,11 @@ export default class Editor {
         await plugin.close();
         plugin.divElement.remove();
 
-        this.editPanel.panel.tabs.remove(plugin.name);
-
         for (const p in this.plugins) {
             if (this.plugins[p] === plugin) {
                 delete this.plugins[p];
                 break;
             }
-        }
-    }
-
-    /**
-     * Restarts the plugins already loaded
-     */
-    public async restartPlugins (): Promise<void> {
-        // Restart plugins
-        for (const p in this.plugins) {
-            const plugin = this.plugins[p];
-            await this.removePlugin(plugin);
-            await this.addEditPanelPlugin(p, false, plugin.name);
         }
     }
 
@@ -347,9 +333,6 @@ export default class Editor {
             // List scene preview
             if (Tools.IsElectron())
                 ScenePreview.Create();
-
-            // Restart plugins
-            await this.restartPlugins();
 
             const promises: Promise<any>[] = [
                 // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
@@ -500,9 +483,6 @@ export default class Editor {
                 // Graph
                 this.graph.clear();
                 this.graph.fill(scene);
-
-                // Restart plugins
-                this.restartPlugins();
 
                 // Create scene picker
                 this._createScenePicker();
