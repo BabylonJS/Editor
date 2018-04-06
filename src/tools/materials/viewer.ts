@@ -47,7 +47,7 @@ export default class AnimationEditor extends EditorPlugin {
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Materials Viewer');
+        super('Material Viewer');
     }
 
     /**
@@ -134,7 +134,7 @@ export default class AnimationEditor extends EditorPlugin {
         const div = $('#MATERIAL-VIEWER-LIST');
 
         // Add HTML nodes
-        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialsViewerCanvas', {
+        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialViewerCanvas', {
             width: '100px',
             height: '100px',
             visibility: 'hidden'

@@ -108,7 +108,7 @@ export default class AnimationEditor extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Create layout
-        this.layout = new Layout('AnimationEditorLayout');
+        this.layout = new Layout('AnimationEditor');
         this.layout.panels = [
             { type: 'top', content: '<div id="ANIMATION-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
             { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: false }

@@ -7,6 +7,10 @@ html, body {
     padding: 0;
 }
 
+#BABYLON-EDITOR-TOOLBAR{
+    height: 55px;
+}
+
 #renderCanvas {
     position: absolute;
     width: 100%;
@@ -15,6 +19,77 @@ html, body {
     touch-action: none;
     -ms-touch-action: none;
 }
+
+/* Golden Layout */
+.lm_header .lm_tab.lm_active{
+    box-shadow: unset;
+}
+
+/* W2UI Fixes For W2UI layouts in Golden Layout */
+.w2ui-resizer{
+    z-index: unset !important;
+}
+
+#AnimationEditor, #AnimationEditor > div,
+#TextureViewer,#TextureViewer > div,
+#MaterialViewer,#MaterialViewer > div,
+#CodeLayout,#CodeLayout>div,
+#MaterialCreator,#MaterialCreator>div,
+#Post-ProcessCreator,#Post-ProcessCreator>div{
+    height: 100% !important;
+    width: 100% !important;
+}
+
+#layout_Code_panel_main>div.w2ui-panel-content,
+#layout_Code_panel_left>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_left>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_left>div.w2ui-panel-content,
+#layout_MaterialViewer_panel_main>div.w2ui-panel-content,
+#layout_MaterialViewer_panel_left>div.w2ui-panel-content,
+#layout_TextureViewer_panel_main>div.w2ui-panel-content,    
+#layout_TextureViewer_panel_left>div.w2ui-panel-content{
+    bottom: 54px;
+}
+
+.w2ui-resizer{
+    background-color: red !important;
+}
+
+#layout_EDIT-PANEL-TOOLS_panel_left > .w2ui-panel-content{
+    overflow-y:auto !important;
+}
+
+#layout_MaterialViewer_panel_top,#layout_TextureViewer_panel_top{
+    width: 100% !important;
+}
+
+
+#layout_Code_panel_main>div.w2ui-panel-content,
+#layout_MaterialCreatorCode_panel_main>div.w2ui-panel-content,
+#layout_PostProcessCreatorCode_panel_main>div.w2ui-panel-content
+{
+    overflow:hidden !important;
+}
+
+.dg.main{
+    width: 100% !important;
+}
+
+#EDIT-PANEL-TOOLS > div, #layout_EDIT-PANEL-TOOLS_panel_left{
+    height: 100% !important;
+    width: 99% !important;
+}
+
+#layout_CodeLayout_panel_right{
+    display: none !important;
+}
+
+.w2ui-layout > div .w2ui-panel{
+    z-index: unset;
+}
+
 
 /* W2UI */
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {

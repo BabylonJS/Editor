@@ -13,6 +13,8 @@ import Core from './core';
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
 
+import LayoutManager from './gui/layout-manager'
+
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
 import EditorEditionTools from './components/edition';
@@ -35,6 +37,9 @@ export default class Editor {
     public playCamera: Camera = null;
 
     public layout: Layout;
+    public layoutToolbar: Layout;
+
+    public layoutManager : LayoutManager;
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
@@ -58,39 +63,133 @@ export default class Editor {
      * @param scene: a scene to edit. If undefined, a default scene will be created
      */
     constructor(scene?: Scene) {
-        // Create editor div
-        const mainDiv = Tools.CreateElement('div', 'BABYLON-EDITOR-MAIN', {
-            overflow: 'hidden',
-            width: '100%',
-            height: '100%',
-            margin: '0',
-            padding: '0',
-            touchAction: 'none',
-            position: 'fixed'
-        });
-        document.body.appendChild(mainDiv);
-
-        // Create layout
-        this.layout = new Layout('BABYLON-EDITOR-MAIN');
-        this.layout.panels = [
-            {
-                type: 'top',
-                size: 55,
-                content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
-                resizable: false
+        // Add our Layout Manager (Golden Layout)
+        this.layoutManager = new LayoutManager({
+            settings:{
+                showPopoutIcon: false,
+                showCloseIcon: false
             },
-            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
-            { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'bottom', size: 0, content: '', resizable: false }
-        ];
-        this.layout.build('BABYLON-EDITOR-MAIN');
-        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
-        window.addEventListener('resize', () => {
-            this.layout.element.resize();
-            this.resize();
+            dimensions: {
+                borderWidth: 2,
+                minItemHeight: 220,
+                minItemWidth: 240,
+                headerHeight: 20,
+                dragProxyWidth: 0,
+                dragProxyHeight: 200
+            },
+            labels: {
+                close: 'close',
+                maximise: 'maximise',
+                minimise: 'minimise',
+                popout: 'open in new window'
+            },
+            content: [{
+                type: 'row',
+                content:[{
+                    type: 'component',
+                    componentName: 'Properties',
+                    width: 21,
+                    isClosable: false
+                },{
+                    type: 'column',
+                    content:[{
+                        type: 'component',
+                        componentName: 'Scene View',
+                        height:60,
+                        isClosable: false
+                    },
+                    {
+                        type: 'stack',
+                        componentName: 'AdditionalStack',
+                        id: "SceneRow",
+                        height: 0,
+                        isClosable: false
+                    }
+                    ],
+                    width: 57,
+                    isClosable: false
+                },
+                {
+                    type: 'component',
+                    componentName: 'Scene Outliner',
+                    width: 22,
+                    isClosable: false
+                }
+                ]
+            }]
         });
+    
+    // Add our core components
+    this.layoutManager.addComponent('Scene Outliner',
+                                    `<div id="SCENE-GRAPH" class="sceneOutliner"><input id="jstree_search" type="text" placeholder="Search" />  <div id="jstree"/> </div>`
+    );
+
+    this.layoutManager.addComponent('Scene View',
+                                    '<canvas id="renderCanvas" tabindex="1"></canvas>'
+    );
+
+    this.layoutManager.addComponent('Properties',
+                                    '<div id="EDIT-PANEL-TOOLS" style="height: 100%; width: 100%" />'
+    );
+
+    // Hide Scene Row (Additional Components Stack) if no elements in it
+    this.layoutManager.element.on('stateChanged',( component ) => {
+        if (this.layoutManager.getFirstItemById('SceneRow').contentItems.length > 0){
+            if (this.layoutManager.getFirstItemById('SceneRow').config.height == 0){
+                this.layoutManager.getFirstItemById('SceneRow').config.height = 95;
+                this.layoutManager.element.updateSize();
+            }
+        }
+        else {
+            if (this.layoutManager.getFirstItemById('SceneRow').config.height != 0){
+                this.layoutManager.getFirstItemById('SceneRow').config.height = 0;
+                this.layoutManager.element.updateSize();
+            }
+        }            
+
+    //Resize all additional W2UI Layouts
+    Object.entries(w2ui).forEach((value) => {
+        if (value[0].includes("Layout")){
+            w2ui[value[0]].resize();
+        }  
+    })  
+
+    this.resize(); 
+    });
+
+    this.layoutManager.build();
+
+    window.addEventListener('resize', () => {
+    this.resize();
+    });
+
+    // Create Widget (Toolbar)
+    this.layoutToolbar = new Layout('BABYLON-EDITOR-TOOLBAR');
+    this.layoutToolbar.panels = [
+        {
+            type: 'top',
+            size: 55,
+            content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
+            resizable: false
+        }
+
+    ];
+    this.layoutToolbar.build('BABYLON-EDITOR-TOOLBAR');
+
+
+    // Create Widget (Properties)
+    this.layout = new Layout('EDIT-PANEL-TOOLS');
+    this.layout.panels = [
+        { type: 'left',
+          hidden: false,
+          size: 310,
+          style: "height: 100%",
+          overflow: "unset",
+          content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>',
+          resizable: false,
+          tabs: <any>[] },
+    ];
+    this.layout.build('EDIT-PANEL-TOOLS');
 
         // Initialize core
         this.core = new Core();
@@ -120,7 +219,7 @@ export default class Editor {
             this.core.scene = scene;
         }
 
-        this.graph.currentObject = this.core.scene;
+        //this.graph.currentObject = this.core.scene;
 
         // Create editor camera
         this.createEditorCamera();
@@ -167,29 +266,31 @@ export default class Editor {
      * @param params: the params to give to the plugin's constructor
      */
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
-        if (this.plugins[url]) {
-            if (restart)
-                this.removePlugin(this.plugins[url]);
-            else {
-                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
-                return this.plugins[url];
-            }
-        }
-
-        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
-
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
-        // Add tab in edit panel
-        this.editPanel.addPlugin(plugin);
+        if (this.layoutManager.element.root.getComponentsByName(plugin.name).length == 0){
 
-        // Create plugin
-        await plugin.create();
+            this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
 
-        this.layout.unlockPanel('preview');
+            const plugin = await this._runPlugin.apply(this, [url].concat(params));
+            this.plugins[url] = plugin;
+    
+            // Add tab in edit panel
+            this.editPanel.addPlugin(plugin);
+    
+            // Create plugin
+            await plugin.create();
+    
+            this.layout.unlockPanel('preview');
+    
+            return plugin;
 
-        return plugin;
+        }
+        
+        else {
+            return;
+        }
     }
 
     /**

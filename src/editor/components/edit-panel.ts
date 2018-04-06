@@ -1,12 +1,16 @@
 import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
+import Layout from '../gui/layout';
 
 export default class EditorEditPanel {
     // Public members
     public panel: W2UI.W2Panel = this.editor.layout.getPanelFromType('preview');
 
+    public NewPluginLayout : Layout;
+
+
     // Protected members
-    protected currentPlugin: IEditorPlugin = null;
+    protected currentDiv: HTMLDivElement = null;
 
     /**
      * Constructor
@@ -20,27 +24,49 @@ export default class EditorEditPanel {
      * @param plugin the plugin to add
      */
     public addPlugin (plugin: IEditorPlugin): void {
-        this.panel.tabs.add({
-            id: plugin.name,
-            caption: plugin.name,
-            closable: true,
-            onClose: async () => {
-                await this.editor.removePlugin(plugin);
-
-                const first = Object.keys(this.editor.plugins)[0];
-                await this.showPlugin(this.editor.plugins[first]);
-
-                if (this.panel.tabs.tabs.length === 0)
-                    this.editor.layout.element.sizeTo('preview', 150);
-            },
-            onClick: (event) => this._onChangeTab(plugin, false)
-        });
-
-        $('#EDIT-PANEL-TOOLS').append(plugin.divElement);
-        this.editor.layout.element.sizeTo('preview', window.innerHeight / 2);
-
-        // Activate added plugin
-        this._onChangeTab(plugin, true);
+        let layoutRegMatch = plugin.name.replace(/\W+/g, '');
+        let layoutName = layoutRegMatch + "Layout";
+            Object.entries(w2ui).forEach((value) => {
+                if (value[0].includes(layoutRegMatch)){
+                    w2ui[value[0]].destroy();
+                }  
+            })  
+    
+            try {
+                this.editor.layoutManager.element.getComponent(plugin.name)
+            }
+    
+            catch(err){
+                this.editor.layoutManager.addComponent( plugin.name,
+                                                        '<div id="' + layoutName + '" />'
+                );
+            }
+            
+            this.editor.layoutManager.getFirstItemById("SceneRow").addChild(
+                {
+                    type: 'component',
+                    componentName: plugin.name
+                }
+             );
+    
+            
+            this.NewPluginLayout = null;
+            this.NewPluginLayout = new Layout(layoutName);
+            this.NewPluginLayout.panels = [
+                { type: 'right',
+                  hidden: false,
+                  size: 310,
+                  style: "height: 100%",
+                  overflow: "unset",
+                  content: '<div style="width: 100%; height: 100%;"></div>',
+                  resizable: false,
+                  tabs: <any>[] },
+            ];
+            this.NewPluginLayout.build(layoutName);
+            
+           
+    
+            $('#' + layoutName).append(plugin.divElement);
     }
 
     /**
@@ -54,19 +80,17 @@ export default class EditorEditPanel {
         if (plugin.onShow)
             await plugin.onShow.apply(plugin, params);
 
-        this.panel.tabs.select(plugin.name);
+        //this.panel.tabs.select(plugin.name);
         this._onChangeTab(plugin, false);
     }
 
     // On the tab changed
     private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): Promise<void> {
-        if (this.currentPlugin) {
-            $(this.currentPlugin.divElement).hide();
-            this.currentPlugin.onHide && this.currentPlugin.onHide();
-        }
+        if (this.currentDiv)
+            $(this.currentDiv).hide();
 
-        this.currentPlugin = plugin;
-        $(this.currentPlugin.divElement).show();
+        this.currentDiv = plugin.divElement;
+        $(this.currentDiv).show();
 
         if (!firstShow && plugin.onShow)
             await plugin.onShow();
