@@ -28,6 +28,7 @@ html, body {
 /* W2UI Fixes For W2UI layouts in Golden Layout */
 .w2ui-resizer{
     z-index: unset !important;
+    background-color: red !important;
 }
 
 #AnimationEditor, #AnimationEditor > div,
@@ -53,10 +54,6 @@ html, body {
     bottom: 54px;
 }
 
-.w2ui-resizer{
-    background-color: red !important;
-}
-
 #layout_EDIT-PANEL-TOOLS_panel_left > .w2ui-panel-content{
     overflow-y:auto !important;
 }
@@ -75,6 +72,12 @@ html, body {
 
 .dg.main{
     width: 100% !important;
+    height:100%;
+}
+
+.dg.main > ul{
+    height: 100% !important;
+    padding-bottom: 65px !important;
 }
 
 #EDIT-PANEL-TOOLS > div, #layout_EDIT-PANEL-TOOLS_panel_left{
@@ -97,6 +100,9 @@ html, body {
 }
 
 /* JSTREE */
+.jstree-default{
+    color:white;
+}
 .vakata-context li > a {
     font-size: 12px;
 }
