@@ -148,7 +148,7 @@ export default class Editor {
         }            
 
     //Resize all additional W2UI Layouts
-    Object.entries(w2ui).forEach((value) => {
+    this.listObjectEntries(w2ui).forEach((value) => {
         if (value[0].includes("Layout")){
             w2ui[value[0]].resize();
         }  
@@ -266,28 +266,28 @@ export default class Editor {
      * @param params: the params to give to the plugin's constructor
      */
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
+        if (this.plugins[url]) {
+            if (restart)
+                this.removePlugin(this.plugins[url]);
+        }
+    
+        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
+    
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
         if (this.layoutManager.element.root.getComponentsByName(plugin.name).length == 0){
 
-            this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
-
-            const plugin = await this._runPlugin.apply(this, [url].concat(params));
-            this.plugins[url] = plugin;
-    
             // Add tab in edit panel
             this.editPanel.addPlugin(plugin);
-    
+        
             // Create plugin
             await plugin.create();
-    
-            this.layout.unlockPanel('preview');
-    
-            return plugin;
-
-        }
         
+            this.layout.unlockPanel('preview');
+        
+            return plugin;
+        }
         else {
             return;
         }
@@ -310,6 +310,28 @@ export default class Editor {
     }
 
     /**
+     * Restarts the plugins already loaded
+     */
+    public async restartPlugins (): Promise<void> {
+        // Restart plugins
+        for (const p in this.plugins) {
+            const plugin = this.plugins[p];
+            await this.removePlugin(plugin);
+            await this.addEditPanelPlugin(p, false, plugin.name);
+        }
+    }
+
+    public  listObjectEntries (obj:any): any{
+          var ownProps = Object.keys( obj ),
+              i = ownProps.length,
+              resArray = new Array(i); // preallocate the Array
+          while (i--)
+            resArray[i] = [ownProps[i], obj[ownProps[i]]];
+          
+          return resArray;
+    }
+
+    /**
      * Creates the default scene
      * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
      */
@@ -329,6 +351,9 @@ export default class Editor {
             this.graph.fill();
 
             this.core.onSelectObject.notifyObservers(this.core.scene);
+
+            // Restart plugins
+            this.restartPlugins();
 
             // List scene preview
             if (Tools.IsElectron())
