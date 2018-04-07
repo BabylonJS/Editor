@@ -160,7 +160,7 @@ export default class Tree {
             },
             plugins: [
                 'contextmenu', 'dnd', 'search',
-                'state', 'types', 'wholerow'
+                'state', 'types'
             ],
             search: {
                 show_only_matches: true,
