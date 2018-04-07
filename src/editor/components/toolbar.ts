@@ -73,7 +73,9 @@ export default class EditorToolbar {
                     { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
-                    { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' }
+                    { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
+                    { type: 'break' },
+                    { id: 'sound', img: 'icon-sound', text: 'Sound' }
                 ]
             },
             // TODO: wait for parse and serialize for GUI
@@ -183,6 +185,10 @@ export default class EditorToolbar {
                 break;
             case 'add:ground':
                 SceneFactory.CreateGroundMesh(this.editor);
+                break;
+            
+            case 'add:sound':
+                SceneFactory.AddSound(this.editor);
                 break;
 
             case 'gui:add-advanced-texture':

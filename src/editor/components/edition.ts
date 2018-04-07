@@ -11,6 +11,7 @@ import ParticleSystemTool from '../edition-tools/particle-system-tool';
 import SoundTool from '../edition-tools/sound-tool';
 
 import AnimationTool from '../edition-tools/animation-tool';
+import SkeletonTool from '../edition-tools/skeleton-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
@@ -79,6 +80,7 @@ export default class EditorEditionTools {
         this.addTool(new SoundTool());
 
         this.addTool(new AnimationTool());
+        this.addTool(new SkeletonTool());
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRMaterialTool());

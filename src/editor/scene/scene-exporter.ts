@@ -156,7 +156,7 @@ export default class SceneExporter {
             renderTargets: null,
             requestedMaterials: null,
             shadowGenerators: this._SerializeShadowGenerators(editor),
-            sounds: null,
+            sounds: this._SerializeSounds(editor),
             gui: editor.core.uiTextures.map(ut => ut.serialize()),
             effectLayers: this._SerializeEffectLayers(editor)
         };
@@ -165,6 +165,28 @@ export default class SceneExporter {
         SceneManager.Toggle(editor.core.scene);
 
         return project;
+    }
+
+    /**
+     * Serializes the custom sounds
+     */
+    private static _SerializeSounds (editor: Editor): Export.Sound[] {
+        const result: Export.Sound[] = [];
+        const scene = editor.core.scene;
+
+        scene.soundTracks.forEach(st => {
+            st.soundCollection.forEach(s => {
+                if (!Tags.HasTags(s) || !Tags.MatchesQuery(s, 'added'))
+                    return;
+
+                result.push({
+                    name: s.name,
+                    serializationObject: s.serialize()
+                });
+            });
+        });
+
+        return result;
     }
 
     /**
