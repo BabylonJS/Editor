@@ -170,8 +170,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             id: instance.id,
             img: this.editor.graph.getIcon(instance),
             text: instance.name,
-            data: instance,
-            count: 0
+            data: instance
         }, this.object.id);
 
         this.editor.edition.setObject(instance);

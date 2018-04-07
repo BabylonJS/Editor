@@ -233,6 +233,7 @@ export default class Editor {
             DefaultScene.Create(this).then(() => {
                 this.graph.clear();
                 this.graph.fill();
+                
                 this.layout.unlockPanel('main');
             });
 

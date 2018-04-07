@@ -790,10 +790,10 @@ declare module 'babylonjs-editor/editor/components/toolbar' {
 declare module 'babylonjs-editor/editor/components/graph' {
     import { Scene, Node } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
-    import Graph, { GraphNode } from 'babylonjs-editor/editor/gui/graph';
+    import Tree, { TreeNode } from 'babylonjs-editor/editor/gui/tree';
     export default class EditorGraph {
             protected editor: Editor;
-            graph: Graph;
+            tree: Tree;
             root: string;
             gui: string;
             currentObject: any;
@@ -815,7 +815,7 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * @param node: the node to add
                 * @param parentId: the parent id of the node to add
                 */
-            add(node: GraphNode, parentId: string): void;
+            add(node: TreeNode, parentId: string): void;
             /**
                 * Selects the given node id
                 * @param id the node id
@@ -824,18 +824,18 @@ declare module 'babylonjs-editor/editor/components/graph' {
             /**
                 * Returns the selected node id
                 */
-            getSelected(): GraphNode;
+            getSelected(): TreeNode;
             /**
                 * Returns a anode
                 * @param data: the data to search
                 */
-            getByData(data: any): GraphNode;
+            getByData(data: any): TreeNode;
             /**
                 * Clears the graph
                 */
             clear(): void;
             /**
-                * Fills the graph
+                * Fills the tree
                 * @param scene: the root scene
                 * @param root: the root node
                 */
@@ -859,9 +859,9 @@ declare module 'babylonjs-editor/editor/components/graph' {
             /**
                 * On the user clicks on a context menu item
                 * @param id the context menu item id
-                * @param node the related graph node
+                * @param node the related tree node
                 */
-            protected onMenuClick(id: string, node: GraphNode): void;
+            protected onMenuClick(id: string): void;
     }
 }
 
@@ -1034,6 +1034,81 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 * @param url: the url of the texture
                 */
             protected createTexture(url: string): Texture;
+    }
+}
+
+declare module 'babylonjs-editor/editor/gui/tree' {
+    export interface TreeNode {
+            id: string;
+            text: string;
+            img?: string;
+            data?: any;
+    }
+    export interface ContextMenuItem {
+            id: string;
+            text: string;
+            callback: () => void;
+            img?: string;
+    }
+    export default class Tree {
+            name: string;
+            element: JSTree;
+            onClick: <T>(id: string, data: T) => void;
+            onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+            onMenuClick: <T>(id: string, node: TreeNode) => void;
+            onCanDrag: <T>(id: string, data: T) => boolean;
+            onDrag: <T, U>(node: T, parent: U) => boolean;
+            protected currentSelectedNode: string;
+            /**
+                * Constructor
+                * @param name the tree name
+                */
+            constructor(name: string);
+            /**
+                * Clear the tree
+                */
+            clear(root?: string): void;
+            /**
+                * Adds the given node to the tree
+                * @param node: the node to add into the tree
+                * @param parent: the optional parent of the node
+                */
+            add(node: TreeNode, parent?: string): TreeNode;
+            /**
+                * Deletes the given node
+                * @param id the id of the node
+                */
+            remove(id: string): void;
+            /**
+                * Selects the given node
+                * @param id the id of the node to select
+                */
+            select(id: string): void;
+            /**
+                * Returns the selected node
+                */
+            getSelected(): TreeNode;
+            /**
+                * Get the given node
+                * @param id the id of the node to get
+                */
+            get(id: string): TreeNode;
+            /**
+                * Renames the given node
+                * @param id the node's id
+                * @param name the new name of the node
+                */
+            rename(id: string, name: string): void;
+            /**
+                * Expands the given node
+                * @param id the id of the node to expand
+                */
+            expand(id: string): void;
+            /**
+                * Builds the tree
+                * @param parentId the parent id
+                */
+            build(parentId: string): void;
     }
 }
 
