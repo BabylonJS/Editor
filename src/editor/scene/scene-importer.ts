@@ -7,7 +7,8 @@ import {
     Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh,
     CannonJSPlugin, PhysicsImpostor,
     Vector3,
-    EffectLayer
+    EffectLayer,
+    Sound
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -153,6 +154,9 @@ export default class SceneImporter {
             Tags.EnableFor(generator);
             Tags.AddTagsTo(generator, 'added');
         });
+
+        // Sounds
+        project.sounds.forEach(s => Sound.Parse(s.serializationObject, scene, 'file:'));
 
         // Actions (scene)
         if (project.actions) {

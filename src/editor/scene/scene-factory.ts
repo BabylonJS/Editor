@@ -5,7 +5,9 @@ import {
     Node,
     Mesh, ParticleSystem,
     GroundMesh,
-    Tags, Tools as BabylonTools
+    Tags, Tools as BabylonTools,
+    Sound,
+    FilesInput
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
@@ -13,6 +15,7 @@ import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
+import Window from '../gui/window';
 import Picker from '../gui/picker';
 import { GraphNode } from '../gui/graph';
 
@@ -170,6 +173,29 @@ export default class SceneFactory {
         this.AddToGraph(editor, mesh);
 
         return mesh;
+    }
+
+    /**
+     * Adds a new sound
+     * @param editor: the editor reference
+     */
+    public static AddSound (editor: Editor): void {
+        Tools.OpenFileDialog(files => {
+            const name = files[0].name;
+            const ext = Tools.GetFileExtension(name);
+
+            if (ext !== 'mp3')
+                return Window.CreateAlert('Supports only MP3 files', 'Cannot add sound');
+
+            FilesInput.FilesToLoad[name] = files[0];
+
+            const sound = new Sound(name, 'file:' + name, editor.core.scene);
+            sound['id'] = BabylonTools.RandomId();
+
+            Tags.AddTagsTo(sound, 'added');
+            
+            this.AddToGraph(editor, sound);
+        });
     }
 
     /**

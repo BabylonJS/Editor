@@ -3,7 +3,8 @@ import {
     Sound,
     ParticleSystem, GPUParticleSystem, IParticleSystem,
     PostProcess,
-    Tools as BabylonTools
+    Tools as BabylonTools,
+    Skeleton
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
@@ -154,6 +155,9 @@ export default class EditorGraph {
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
+
+            // Fill sounds
+            this.fillSounds(scene, scene);
         }
         else {
             Tools.SortAlphabetically(nodes, 'name');
@@ -178,17 +182,29 @@ export default class EditorGraph {
             if (!parentNode)
                 return;
 
-            // Sub meshes
-            if (n instanceof AbstractMesh && n.subMeshes && n.subMeshes.length > 1) {
+            // Mesh
+            if (n instanceof AbstractMesh) {
+                // Sub meshes
+                if (n.subMeshes && n.subMeshes.length > 1) {
+                    n.subMeshes.forEach((sm, index) => {
+                        this.tree.add({
+                            id: n.id + 'submesh_' + index,
+                            text: sm.getMaterial().name,
+                            img: this.getIcon(n),
+                            data: sm
+                        }, n.id);
+                    });
+                }
 
-                n.subMeshes.forEach((sm, index) => {
+                // Skeleton
+                if (n.skeleton) {
                     this.tree.add({
-                        id: n.id + 'submesh_' + index,
-                        text: sm.getMaterial().name,
-                        img: this.getIcon(n),
-                        data: sm
+                        id: n.skeleton.id || BabylonTools.RandomId(),
+                        text: n.skeleton.name,
+                        img: this.getIcon(n.skeleton),
+                        data: n.skeleton
                     }, n.id);
-                });
+                }
             }
 
             // Check particle systems
@@ -255,6 +271,8 @@ export default class EditorGraph {
             return 'icon-camera';
         } else if (obj instanceof ParticleSystem || obj instanceof GPUParticleSystem) {
             return 'icon-particles';
+        } else if (obj instanceof Skeleton) {
+            return 'icon-animated-mesh';
         } else if (obj instanceof PostProcess) {
             return 'icon-helpers';
         } else if (obj instanceof Sound) {
@@ -284,7 +302,7 @@ export default class EditorGraph {
             st.soundCollection.forEach(s => {
                 if (root === scene && !s['_connectedMesh']) {
                     this.tree.add({
-                        id: s.name,
+                        id: s['id'] || BabylonTools.RandomId(),
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
@@ -292,7 +310,7 @@ export default class EditorGraph {
                 }
                 else if (s['_connectedMesh'] === root) {
                     this.tree.add({
-                        id: s.name,
+                        id: s['id'] || BabylonTools.RandomId(),
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
