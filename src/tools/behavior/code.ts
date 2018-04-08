@@ -77,8 +77,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.layout = new Layout('Code');
         this.layout.panels = [
             { type: 'top', content: '<div id="CODE-BEHAVIOR-TOOLBAR"></div>', size: 30, resizable: false },
-            { type: 'left', content: '<div id="CODE-BEHAVIOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<div id="CODE-BEHAVIOR-EDITOR" style="width: 100%; height: 100%;"></div>', resizable: true }
+            { type: 'left', style: "bottom: 54px", content: '<div id="CODE-BEHAVIOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
+            { type: 'main', style: "bottom: 54px", content: '<div id="CODE-BEHAVIOR-EDITOR" style="width: 100%; height: 100%;"></div>', resizable: true }
         ];
         this.layout.build(div.attr('id'));
 

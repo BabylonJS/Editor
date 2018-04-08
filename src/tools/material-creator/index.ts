@@ -108,9 +108,9 @@ export default class MaterialCreator extends EditorPlugin {
         // Create layout
         this.layout = new Layout('MaterialCreatorCode');
         this.layout.panels = [
-            { type: 'left', content: '<div id="MATERIAL-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
+            { type: 'left', style: "bottom: 54px", content: '<div id="MATERIAL-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
-                type: 'main',
+                type: 'main', style: "bottom: 54px", 
                 content: `
                     <div id="MATERIAL-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%;"></div>
                     <div id="MATERIAL-CREATOR-EDITOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>

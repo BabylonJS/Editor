@@ -149,9 +149,7 @@ export default class Editor {
 
     //Resize all additional W2UI Layouts
     this.listObjectEntries(w2ui).forEach((value) => {
-        if (value[0].includes("Layout")){
-            w2ui[value[0]].resize();
-        }  
+         w2ui[value[0]].resize();
     })  
 
     this.resize(); 
@@ -179,11 +177,12 @@ export default class Editor {
 
     // Create Widget (Properties)
     this.layout = new Layout('EDIT-PANEL-TOOLS');
+    this.layout.panels
     this.layout.panels = [
         { type: 'left',
           hidden: false,
-          size: 310,
-          style: "height: 100%",
+          size: "100%",
+          style: "width: 99%; overflow-y:auto;",
           overflow: "unset",
           content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>',
           resizable: false,

@@ -57,8 +57,8 @@ export default class EditorEditPanel {
                 this.newPluginLayout.panels = [
                     { type: 'right',
                       hidden: false,
-                      size: 310,
-                      style: "height: 100%",
+                      size: "100%",
+                      style: "height: 100% !important",
                       overflow: "unset",
                       content: '<div style="width: 100%; height: 100%;"></div>',
                       resizable: false,
