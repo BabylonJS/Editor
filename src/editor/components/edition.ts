@@ -125,6 +125,8 @@ export default class EditorEditionTools {
      * @param tool the tool to add
      */
     public addTool(tool: IEditionTool<any>): void {
+        return;
+        
         let current = this.root;
 
         // Create container

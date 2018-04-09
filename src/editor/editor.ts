@@ -73,7 +73,6 @@ export default class Editor {
         document.body.appendChild(mainDiv);
 
         // Create layout
-        /*
         this.layout = new Layout('BABYLON-EDITOR-MAIN');
         this.layout.panels = [
             {
@@ -82,51 +81,45 @@ export default class Editor {
                 content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
             },
-            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
-            { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
+            //{ type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
+            //{ type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
+            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
+            //{ type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
+            //{ type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
             { type: 'bottom', size: 0, content: '', resizable: false }
         ];
-
         this.layout.build('BABYLON-EDITOR-MAIN');
+
+        // Create resizable layout
+        this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
+        this.resizableLayout.panels = [{
+            type: 'row',
+            content:[{
+                type: 'row', content: [
+                    { type: 'component', componentName: 'left', width: 25, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%;"></div>' },
+                    { type: 'column', content: [
+                        { type: 'component', componentName: 'main', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
+                        { type: 'component', componentName: 'preview', isClosable: false, html: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
+                    ] },
+                    { type: 'component', componentName: 'right', width: 25, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>' }
+                ]
+            }]
+        }];
+
+        // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
         window.addEventListener('resize', () => {
             this.layout.element.resize();
             this.resize();
         });
-        */
 
-        // Create resizable layout
-        const golden = new ResizableLayout('MainLayout');
-        golden.panels = [
-            {
-                type: 'row', content: [
-                    { type: 'component', componentName: 'left', width: 25, isClosable: false },
-                    { type: 'column', content: [
-                        { type: 'component', componentName: 'top', isClosable: false },
-                        { type: 'component', componentName: 'bottom', isClosable: false }
-                    ] },
-                    { type: 'component', componentName: 'right', width: 25, isClosable: false }
-                ]
-            }
-        ]
-        golden.build('BABYLON-EDITOR-MAIN');
+        this.resizableLayout.build('MAIN-LAYOUT');
+        this.resizableLayout.element.on('stateChanged', () => {
+            this.resize();
+        });
 
         // Initialize core
         this.core = new Core();
-
-        // Create toolbar
-        //this.toolbar = new EditorToolbar(this);
-
-        // Create edition tools
-        //this.edition = new EditorEditionTools(this);
-
-        // Create graph
-        //this.graph = new EditorGraph(this);
-
-        // Edit panel
-        //this.editPanel = new EditorEditPanel(this);
 
         // Initialize Babylon.js
         if (!scene) {
@@ -141,7 +134,18 @@ export default class Editor {
             this.core.scene = scene;
         }
 
-        //this.graph.currentObject = this.core.scene;
+        // Create toolbar
+        this.toolbar = new EditorToolbar(this);
+
+        // Create edition tools
+        this.edition = new EditorEditionTools(this);
+
+        // Create graph
+        this.graph = new EditorGraph(this);
+        this.graph.currentObject = this.core.scene;
+
+        // Edit panel
+        this.editPanel = new EditorEditPanel(this);
 
         // Create editor camera
         this.createEditorCamera();
@@ -172,8 +176,15 @@ export default class Editor {
     * Resizes elements
     */
     public resize(): void {
-        const editionSize = this.layout.getPanelSize('left');
-        this.edition.resize(editionSize.width);
+        // TODO: Edition size
+        //const editionSize = this.layout.getPanelSize('left');
+        //this.edition.resize(editionSize.width);
+
+        // Layout size
+        const layoutSize = this.layout.getPanelSize('main');
+        this.resizableLayout.element.updateSize(layoutSize.width, layoutSize.height);
+        
+        // Engine size
         this.core.engine.resize();
 
         // Notify
