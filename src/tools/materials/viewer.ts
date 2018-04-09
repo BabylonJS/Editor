@@ -47,7 +47,7 @@ export default class AnimationEditor extends EditorPlugin {
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Materials Viewer');
+        super('Material Viewer');
     }
 
     /**
@@ -80,8 +80,8 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout = new Layout('MaterialViewer');
         this.layout.panels = [
             { type: 'top', content: '<div id="MATERIAL-VIEWER-TOOLBAR"></div>', size: 30, resizable: false },
-            { type: 'left', content: '<div id="MATERIAL-VIEWER-LIST"></div>', size: panelSize.width / 2, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<canvas id="MATERIAL-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></canvas>', resizable: true }
+            { type: 'left', style: "bottom: 54px", content: '<div id="MATERIAL-VIEWER-LIST"></div>', size: $("#renderCanvas").width() / 2, overflow: 'auto', resizable: true },
+            { type: 'main', style: "bottom: 54px", content: '<canvas id="MATERIAL-VIEWER-CANVAS" style="position: absolute; padding: 15px; width: 100%; height: 100%;"></canvas>', resizable: true }
         ];
         this.layout.build(div.attr('id'));
 
@@ -134,7 +134,7 @@ export default class AnimationEditor extends EditorPlugin {
         const div = $('#MATERIAL-VIEWER-LIST');
 
         // Add HTML nodes
-        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialsViewerCanvas', {
+        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialViewerCanvas', {
             width: '100px',
             height: '100px',
             visibility: 'hidden'

@@ -7,6 +7,10 @@ html, body {
     padding: 0;
 }
 
+#BABYLON-EDITOR-TOOLBAR{
+    height: 55px;
+}
+
 #renderCanvas {
     position: absolute;
     width: 100%;
@@ -16,12 +20,35 @@ html, body {
     -ms-touch-action: none;
 }
 
+/* Golden Layout */
+.lm_header .lm_tab.lm_active{
+    box-shadow: unset;
+}
+
 /* W2UI */
+.dg.main > ul{
+    height: 100% !important;
+    padding-bottom: 65px !important;
+}
+
+div.w2ui-resizer{
+    z-index: unset !important;
+    background-color: red !important;
+}
+
+.w2ui-layout > div .w2ui-panel{
+    z-index: unset;
+}
+
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
 }
 
 /* JSTREE */
+.jstree-default{
+    color:white;
+}
+
 .vakata-context li > a {
     font-size: 12px;
 }

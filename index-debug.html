@@ -9,14 +9,18 @@
 
     <script src="./node_modules/jquery/dist/jquery.js" type="text/javascript"></script>
     <script src="./node_modules/jstree/dist/jstree.js" type="text/javascript"></script>
+    <script src="./node_modules/golden-layout/dist/goldenlayout.js" type="text/javascript"></script>
     <script src="./node_modules/w2ui/w2ui.js" type="text/javascript"></script>
 
-
-    <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui.css" />
+    <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui-dark.css" />
     <link rel="stylesheet" type="text/css" href="./node_modules/jstree/dist/themes/default/style.min.css" />
+    <link rel="stylesheet" type="text/css" href="./node_modules/golden-layout/src/css/goldenlayout-base.css" />
+    <link rel="stylesheet" type="text/css" href="./node_modules/golden-layout/src/css/goldenlayout-dark-theme.css" />
     <link rel="stylesheet" type="text/css" href="./css/editor.css" />
 </head>
 <body>
+    <div id="BABYLON-EDITOR-TOOLBAR"></div>
+
     <script type="text/javascript">
         System.config({
             paths: {
@@ -25,13 +29,16 @@
                 "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
                 "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.js",
                 "babylonjs-serializers": "./node_modules/babylonjs-serializers/babylonjs.serializers.js",
-                "cannon": "./node_modules/cannon/build/cannon.js",
+                "cannonjs": "./node_modules/cannon/build/cannon.js",
                 "spectorjs": "./node_modules/spectorjs/dist/spector.bundle.js",
                 "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
                 "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
                 "earcut": "./node_modules/babylonjs/earcut.min.js",
                 "oimo": "./node_modules/babylonjs/Oimo.js",
+                "jstree": "./node_modules/jstree/dist/jstree.js",
+                "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
+                "jquery": "./node_modules/jquery/dist/jquery.js",
 
                 // Editor's modules paths
                 "babylonjs-editor": "./.build/src/index.js",
@@ -43,7 +50,6 @@
                 "material-creator": "./.build/src/tools/material-creator/index.js",
                 "post-process-creator": "./.build/src/tools/post-process-creator/index.js",
                 "play-game": "./.build/src/tools/play-game/index.js",
-
                 "post-processes": "./.build/src/extensions/post-process/post-processes.js"
             },
             packages: {
@@ -61,7 +67,7 @@
             },
             meta: {
                 "*.css": { loader: "css" },
-                "cannon": { format: "global" }
+                "cannonjs": { format: "global" }
             },
             pluginFirst: true
         });

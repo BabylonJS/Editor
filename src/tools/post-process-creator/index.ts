@@ -98,9 +98,9 @@ export default class PostProcessCreator extends EditorPlugin {
         this.layout = new Layout('PostProcessCreatorCode');
         this.layout.panels = [
             { type: 'top', content: '<div id="POST-PROCESS-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 32, overflow: 'auto', resizable: true },
-            { type: 'left', content: '<div id="POST-PROCESS-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
+            { type: 'left', style: "bottom: 54px", content: '<div id="POST-PROCESS-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
-                type: 'main',
+                type: 'main', style: "bottom: 54px", 
                 content: `
                     <div id="POST-PROCESS-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%;"></div>
                     <div id="POST-PROCESS-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
