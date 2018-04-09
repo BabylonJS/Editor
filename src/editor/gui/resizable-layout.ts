@@ -2,8 +2,10 @@ import * as GoldenLayout from 'golden-layout';
 import '../../../../node_modules/golden-layout/src/css/goldenlayout-base.css';
 import '../../../../node_modules/golden-layout/src/css/goldenlayout-light-theme.css';
 
-export type ResizableLayoutPanel = GoldenLayout.ItemConfigType & {
-    html?: string;
+declare module 'golden-layout' {
+    export interface ComponentConfig {
+        html?: string;
+    }
 }
 
 export default class ResizableLayout {
@@ -11,9 +13,12 @@ export default class ResizableLayout {
     public element: GoldenLayout = null;
 
     public name: string;
-    public panels: ResizableLayoutPanel[] = [];
+    public panels: GoldenLayout.ItemConfig[] = [];
 
     public showCloseIcon: boolean = false;
+
+    // Protected members
+    
 
     /**
      * Constructor
@@ -38,9 +43,7 @@ export default class ResizableLayout {
                 maximise: 'Maximize',
                 minimise: 'Minimize'
             },
-            content: [
-                { type: 'column', content: this.panels }
-            ]
+            content: this.panels
         }, $('#' + parentId));
 
         // Register components
@@ -50,19 +53,19 @@ export default class ResizableLayout {
         this.element.init();
     }
 
-    private registerComponents (content: ResizableLayoutPanel[]): void {
+    private registerComponents (content: GoldenLayout.ItemConfig[]): void {
         if (!content)
             return;
 
         content.forEach(c => {
             if (c.type === 'component') {
-                this.element.registerComponent(c.componentName, (container) => {
-                    if (c.html)
-                     container.getElement().html(c.html);
+                this.element.registerComponent(c['componentName'], (container) => {
+                    if (c['html'])
+                     container.getElement().html(c['html']);
                 });
-
-                this.registerComponents(c.content);
             }
+
+            this.registerComponents(c.content);
         });
     }
 }
