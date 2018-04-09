@@ -1,6 +1,6 @@
 export default class Layout {
   // Public members
-  public element: W2UI.W2Layout;
+  public element: W2UI.W2Layout = null;
 
   public name: string;
   public panels: W2UI.W2Panel[] = [];
