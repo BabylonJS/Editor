@@ -67,7 +67,7 @@ export default class EditorEditPanel {
                 this.newPluginLayout.build(this.layoutName);
                 
                 $('#' + this.layoutName).append(plugin.divElement);
-        
+                $('#' + this.layoutName).append("<style>#"+this.layoutName+"{height: 100% !important}</style>");
     }
 
     /**

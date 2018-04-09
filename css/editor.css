@@ -31,15 +31,6 @@ html, body {
     padding-bottom: 65px !important;
 }
 
-#AnimationEditor,
-#TextureViewer,
-#MaterialViewer,
-#CodeLayout,
-#MaterialCreator,
-#Post-ProcessCreator{
-    height: 100% !important;
-}
-
 div.w2ui-resizer{
     z-index: unset !important;
     background-color: red !important;
