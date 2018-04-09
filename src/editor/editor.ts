@@ -12,6 +12,7 @@ import Core from './core';
 
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
+import ResizableLayout from './gui/resizable-layout';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -35,6 +36,7 @@ export default class Editor {
     public playCamera: Camera = null;
 
     public layout: Layout;
+    public resizableLayout: ResizableLayout;
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
@@ -71,6 +73,7 @@ export default class Editor {
         document.body.appendChild(mainDiv);
 
         // Create layout
+        /*
         this.layout = new Layout('BABYLON-EDITOR-MAIN');
         this.layout.panels = [
             {
@@ -85,27 +88,45 @@ export default class Editor {
             { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
             { type: 'bottom', size: 0, content: '', resizable: false }
         ];
+
         this.layout.build('BABYLON-EDITOR-MAIN');
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
         window.addEventListener('resize', () => {
             this.layout.element.resize();
             this.resize();
         });
+        */
+
+        // Create resizable layout
+        const golden = new ResizableLayout('MainLayout');
+        golden.panels = [
+            {
+                type: 'row', content: [
+                    { type: 'component', componentName: 'left', width: 25, isClosable: false },
+                    { type: 'column', content: [
+                        { type: 'component', componentName: 'top', isClosable: false },
+                        { type: 'component', componentName: 'bottom', isClosable: false }
+                    ] },
+                    { type: 'component', componentName: 'right', width: 25, isClosable: false }
+                ]
+            }
+        ]
+        golden.build('BABYLON-EDITOR-MAIN');
 
         // Initialize core
         this.core = new Core();
 
         // Create toolbar
-        this.toolbar = new EditorToolbar(this);
+        //this.toolbar = new EditorToolbar(this);
 
         // Create edition tools
-        this.edition = new EditorEditionTools(this);
+        //this.edition = new EditorEditionTools(this);
 
         // Create graph
-        this.graph = new EditorGraph(this);
+        //this.graph = new EditorGraph(this);
 
         // Edit panel
-        this.editPanel = new EditorEditPanel(this);
+        //this.editPanel = new EditorEditPanel(this);
 
         // Initialize Babylon.js
         if (!scene) {
@@ -120,7 +141,7 @@ export default class Editor {
             this.core.scene = scene;
         }
 
-        this.graph.currentObject = this.core.scene;
+        //this.graph.currentObject = this.core.scene;
 
         // Create editor camera
         this.createEditorCamera();

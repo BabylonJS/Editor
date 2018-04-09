@@ -1,3 +1,6 @@
+import 'jstree';
+import '../../../node_modules/jstree/dist/themes/default/style.min.css';
+
 export interface TreeNode {
     id: string;
     text: string;
