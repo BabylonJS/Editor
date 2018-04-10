@@ -81,7 +81,7 @@ export default class Tree {
             this.currentSelectedNode = id;
 
             this.element.jstree().deselect_all(true);
-            this.element.jstree().select_node(id);
+            this.element.jstree().select_node(id, true);
         }
     }
 

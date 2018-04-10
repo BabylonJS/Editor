@@ -134,6 +134,18 @@ export default class TextureViewer extends EditorPlugin {
     protected resize (): void {
         this.layout.element.resize();
         this.engine.resize();
+
+        // Responsive
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
+
+        if (panelSize.width > panelSize.height) {
+            this.layout.element.sizeTo('left', panelSize.width / 2);
+            this.layout.element.show('main');
+        }
+        else {
+            this.layout.element.sizeTo('left', panelSize.width);
+            this.layout.element.hide('main');
+        }
     }
 
     /**
