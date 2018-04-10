@@ -37,7 +37,7 @@ export default class AnimationEditor extends EditorPlugin {
     protected canvas: HTMLCanvasElement = null;
 
     protected engines: Engine[] = [];
-    protected onResizePreview = () => this.preview.engine.resize();
+    protected onResizePreview = () => this.resize();
 
     protected waitingMaterials: Material[] = [];
     protected onAddObject = (material) => this.waitingMaterials.push(material);
@@ -73,7 +73,7 @@ export default class AnimationEditor extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
-        const panelSize = this.editor.layout.getPanelSize('preview');
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
         const div = $(this.divElement);
 
         // Create layout
@@ -111,6 +111,14 @@ export default class AnimationEditor extends EditorPlugin {
             await this.addMaterialPreview(m);
 
         this.waitingMaterials = [];
+    }
+
+    /**
+     * Resizes the plugin
+     */
+    protected resize (): void {
+        this.layout.element.resize();
+        this.preview.engine.resize();
     }
 
     /**

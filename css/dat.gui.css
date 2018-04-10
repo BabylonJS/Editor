@@ -76,6 +76,7 @@
 
 .dg li.cr .property-name {
     white-space: nowrap;
+    padding-top: 7px;
 }
 
 .dg li.cr.boolean > div {

@@ -42,6 +42,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected data: BehaviorCode = null;
 
     protected onSelectObject = (node) => node && this.selectObject(node);
+    protected onResize = () => this.layout.element.resize();
 
     /**
      * Constructor
@@ -63,6 +64,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
+        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -106,6 +108,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onSelectObject.add(this.onSelectObject);
+        this.editor.core.onResize.add(this.onResize);
 
         // Select object
         if (this.editor.core.currentSelectedObject)
@@ -119,7 +122,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * On the user shows the plugin
      */
     public onShow (): void {
-        this.grid.element.resize();
+        this.onResize();
     }
 
     /**

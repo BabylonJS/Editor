@@ -35,6 +35,8 @@ export default class MaterialCreator extends EditorPlugin {
 
     protected extension: MaterialCreatorExtension = null;
 
+    protected onResize = () => this.layout.element.resize();
+
     // Static members
     public static DefaultCode: string = '';
     public static DefaultVertex: string = '';
@@ -60,6 +62,9 @@ export default class MaterialCreator extends EditorPlugin {
         this.vertex.editor.dispose();
         this.pixel.editor.dispose();
         this.config.editor.dispose();
+
+        // Events
+        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -149,6 +154,9 @@ export default class MaterialCreator extends EditorPlugin {
 
         // Add code editors
         await this.createEditors();
+
+        // Events
+        this.editor.core.onResize.add(this.onResize);
     }
 
     /**
@@ -156,6 +164,13 @@ export default class MaterialCreator extends EditorPlugin {
      */
     public onShow (): void {
         this.grid.element.resize();
+    }
+
+    /**
+     * Resizes the plugin
+     */
+    protected resize (): void {
+        this.layout.element.resize();
     }
 
     /**
