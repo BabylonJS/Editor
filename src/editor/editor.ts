@@ -87,10 +87,11 @@ export default class Editor {
         this.layout.build('BABYLON-EDITOR-MAIN');
 
         // Create resizable layout
-        const layoutState = JSON.parse(localStorage.getItem('babylonjs-editor-layout-state'));
+        const layoutStateItem = /*localStorage.getItem('babylonjs-editor-layout-state') ||*/ '{ }';
+        const layoutState = JSON.parse(layoutStateItem)
 
         this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
-        this.resizableLayout.panels = /*layoutState.content ||*/ [{
+        this.resizableLayout.panels = layoutState.content || [{
             type: 'row',
             content:[{
                 type: 'row', content: [
@@ -205,20 +206,22 @@ export default class Editor {
             }
         }
 
+        // Lock panel and load plugin
         this.layout.lockPanel('main', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
-        // Add tab in edit panel
+        // Add tab in edit panel and unlock panel
         this.editPanel.addPlugin(plugin);
+
+        this.layout.unlockPanel('main');
 
         // Create plugin
         await plugin.create();
 
         // Resize and unlock panel
         this.resize();
-        this.layout.unlockPanel('main');
 
         return plugin;
     }

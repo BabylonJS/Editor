@@ -23,7 +23,7 @@ export interface PreviewScene {
     material: PBRMaterial;
 }
 
-export default class AnimationEditor extends EditorPlugin {
+export default class TextureViewer extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
     public layout: Layout = null;
@@ -117,6 +117,15 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onResize.add(this.onResizePreview);
+    }
+
+    /**
+     * On the user shows the plugin
+     */
+    public async onShow (object?: any, property?: string, allowCubes?: boolean): Promise<void> {
+        this.object = object;
+        this.property = property;
+        this.allowCubes = allowCubes;
     }
 
     /**
