@@ -3,6 +3,7 @@
 //   ../../babylonjs
 //   ../../babylonjs-editor
 //   ../../babylonjs-gui
+//   ../../golden-layout
 //   ../../dat-gui
 
 declare module 'babylonjs-editor' {
@@ -30,6 +31,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import Core from 'babylonjs-editor/editor/core';
     import Layout from 'babylonjs-editor/editor/gui/layout';
+    import ResizableLayout from 'babylonjs-editor/editor/gui/resizable-layout';
     import EditorToolbar from 'babylonjs-editor/editor/components/toolbar';
     import EditorGraph from 'babylonjs-editor/editor/components/graph';
     import EditorEditionTools from 'babylonjs-editor/editor/components/edition';
@@ -41,6 +43,7 @@ declare module 'babylonjs-editor/editor/editor' {
             camera: FreeCamera;
             playCamera: Camera;
             layout: Layout;
+            resizableLayout: ResizableLayout;
             toolbar: EditorToolbar;
             graph: EditorGraph;
             edition: EditorEditionTools;
@@ -755,6 +758,60 @@ declare module 'babylonjs-editor/editor/core' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/resizable-layout' {
+    import * as GoldenLayout from 'golden-layout';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export type ComponentConfig = GoldenLayout.ComponentConfig & {
+            html?: HTMLElement | string;
+            onClose?: () => void;
+            onClick?: () => void;
+    };
+    export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig | GoldenLayout.ReactComponentConfig;
+    export default class ResizableLayout {
+            element: GoldenLayout;
+            name: string;
+            panels: ItemConfigType[];
+            showCloseIcon: boolean;
+            onPanelResize: () => void;
+            protected containers: IStringDictionary<GoldenLayout.Container>;
+            /**
+                * Constructor
+                * @param name the resizable layout name
+                */
+            constructor(name: string);
+            /**
+                * Returns the size of the given panel
+                * @param type: the component name
+                */
+            getPanelSize(name: string): {
+                    width: number;
+                    height: number;
+            };
+            /**
+                * Sets the given panel size
+                * @param name the panel's name
+                * @param value the new size of the panel
+                */
+            setPanelSize(name: string, value: number): void;
+            /**
+                * Shows the given tab
+                * @param name the tab to show
+                */
+            showPanelTab(name: string): void;
+            /**
+                * Adds a panel to the layout
+                * @param stackId: the stack to add component in
+                * @param config: the panel's configuration
+                */
+            addPanelToStack(stackId: string, config: ComponentConfig): void;
+            /**
+                * Builds the resizable layout
+                * @param parentId the parent id
+                */
+            build(parentId: string): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/components/toolbar' {
     import Editor from 'babylonjs-editor/editor/editor';
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
@@ -797,6 +854,10 @@ declare module 'babylonjs-editor/editor/components/graph' {
             root: string;
             gui: string;
             currentObject: any;
+            /**
+                * Constructor
+                * @param editor the editor reference
+                */
             constructor(editor: Editor);
             /**
              * Rename the node with id "id"
@@ -870,29 +931,20 @@ declare module 'babylonjs-editor/editor/components/edition' {
         * Edition tools
         */
     import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
-    /**
-        * Editor
-        */
-    import Layout from 'babylonjs-editor/editor/gui/layout';
     import Editor from 'babylonjs-editor/editor/editor';
-    export interface EditionToolsOptions {
-            layout?: Layout;
-            panelType?: string;
-            rootDiv?: string;
-    }
     export default class EditorEditionTools {
             protected editor: Editor;
             tools: IEditionTool<any>[];
             currentTools: IEditionTool<any>[];
             root: string;
-            panel: W2UI.W2Panel;
+            tabs: W2UI.W2Tabs;
             currentObject: any;
             protected lastTabName: string;
             /**
                 * Constructor
                 * @param editor: the editor's reference
                 */
-            constructor(editor: Editor, options?: EditionToolsOptions);
+            constructor(editor: Editor, rootDiv?: string);
             /**
                 * Resizes the edition tools
                 * @param width the width of the panel
@@ -925,7 +977,6 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     export default class EditorEditPanel {
             protected editor: Editor;
-            panel: W2UI.W2Panel;
             protected currentPlugin: IEditorPlugin;
             /**
                 * Constructor
@@ -1038,6 +1089,7 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
 }
 
 declare module 'babylonjs-editor/editor/gui/tree' {
+    import 'jstree';
     export interface TreeNode {
             id: string;
             text: string;
@@ -1059,6 +1111,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             onCanDrag: <T>(id: string, data: T) => boolean;
             onDrag: <T, U>(node: T, parent: U) => boolean;
             protected currentSelectedNode: string;
+            protected moving: boolean;
             /**
                 * Constructor
                 * @param name the tree name
@@ -1066,6 +1119,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             constructor(name: string);
             /**
                 * Clear the tree
+                * @param root: the root node from where to remove children. If undefined, root is taken
                 */
             clear(root?: string): void;
             /**
@@ -1104,6 +1158,12 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param id the id of the node to expand
                 */
             expand(id: string): void;
+            /**
+                * Set parent of the given node (id)
+                * @param id the id of the node
+                * @param parentId the parent id
+                */
+            setParent(id: string, parentId: string): void;
             /**
                 * Builds the tree
                 * @param parentId the parent id

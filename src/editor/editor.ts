@@ -81,40 +81,37 @@ export default class Editor {
                 content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
             },
-            //{ type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            //{ type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            //{ type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            //{ type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
             { type: 'bottom', size: 0, content: '', resizable: false }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
 
         // Create resizable layout
+        const layoutState = JSON.parse(localStorage.getItem('babylonjs-editor-layout-state'));
+
         this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
-        this.resizableLayout.panels = [{
+        this.resizableLayout.panels = /*layoutState.content ||*/ [{
             type: 'row',
             content:[{
                 type: 'row', content: [
-                    { type: 'component', componentName: 'left', width: 25, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%;"></div>' },
+                    { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%;"></div>' },
                     { type: 'column', content: [
-                        { type: 'component', componentName: 'main', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
-                        { type: 'component', componentName: 'preview', isClosable: false, html: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
+                        { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
+                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10, html: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
                     ] },
-                    { type: 'component', componentName: 'right', width: 25, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>' }
+                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>' }
                 ]
             }]
         }];
 
+        this.resizableLayout.build('MAIN-LAYOUT');
+
         // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
+        this.resizableLayout.onPanelResize = () => this.resize();
+
         window.addEventListener('resize', () => {
             this.layout.element.resize();
-            this.resize();
-        });
-
-        this.resizableLayout.build('MAIN-LAYOUT');
-        this.resizableLayout.element.on('stateChanged', () => {
             this.resize();
         });
 
@@ -175,10 +172,10 @@ export default class Editor {
     /**
     * Resizes elements
     */
-    public resize(): void {
-        // TODO: Edition size
-        //const editionSize = this.layout.getPanelSize('left');
-        //this.edition.resize(editionSize.width);
+    public resize (): void {
+        // Edition size
+        const editionSize = this.resizableLayout.getPanelSize('Properties');
+        this.edition.resize(editionSize.width);
 
         // Layout size
         const layoutSize = this.layout.getPanelSize('main');
@@ -208,7 +205,7 @@ export default class Editor {
             }
         }
 
-        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
+        this.layout.lockPanel('main', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
@@ -219,7 +216,9 @@ export default class Editor {
         // Create plugin
         await plugin.create();
 
-        this.layout.unlockPanel('preview');
+        // Resize and unlock panel
+        this.resize();
+        this.layout.unlockPanel('main');
 
         return plugin;
     }
@@ -231,8 +230,6 @@ export default class Editor {
     public async removePlugin (plugin: IEditorPlugin): Promise<void> {
         await plugin.close();
         plugin.divElement.remove();
-
-        this.editPanel.panel.tabs.remove(plugin.name);
 
         for (const p in this.plugins) {
             if (this.plugins[p] === plugin) {
@@ -364,6 +361,12 @@ export default class Editor {
         // Focus / Blur
         window.addEventListener('blur', () => this.core.renderScenes = false);
         window.addEventListener('focus', () => this.core.renderScenes = true);
+
+        // Save state
+        window.addEventListener('beforeunload', () => {
+            const state = JSON.stringify(this.resizableLayout.element.toConfig());
+            localStorage.setItem('babylonjs-editor-layout-state', state);
+        });
     }
 
     // Runs the given plugin URL

@@ -39,7 +39,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     // Protected members
     protected engines: Engine[] = [];
-    protected onResizePreview = () => this.engine.resize();
+    protected onResizePreview = () => this.resize();
 
     protected object: any;
     protected property: string;
@@ -81,7 +81,7 @@ export default class AnimationEditor extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
-        const panelSize = this.editor.layout.getPanelSize('preview');
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
         const div = $(this.divElement);
 
         // Create layout
@@ -117,6 +117,14 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onResize.add(this.onResizePreview);
+    }
+
+    /**
+     * Resizes the plugin
+     */
+    protected resize (): void {
+        this.layout.element.resize();
+        this.engine.resize();
     }
 
     /**

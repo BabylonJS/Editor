@@ -52,10 +52,10 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      * @param name the new name of the tab
      */
     protected setTabName(name: string): void {
-        const tab = <any> this.editor.edition.panel.tabs.get(this.tabName);
+        const tab = <any> this.editor.edition.tabs.get(this.tabName);
         tab.caption = name;
 
-        this.editor.edition.panel.tabs.refresh();
+        this.editor.edition.tabs.refresh();
     }
 
     /**

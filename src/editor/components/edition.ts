@@ -42,19 +42,13 @@ import Layout from '../gui/layout';
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
 
-export interface EditionToolsOptions {
-    layout?: Layout;
-    panelType?: string;
-    rootDiv?: string;
-}
-
 export default class EditorEditionTools {
     // Public members
     public tools: IEditionTool<any>[] = [];
     public currentTools: IEditionTool<any>[] = [];
     public root: string;
 
-    public panel: W2UI.W2Panel;
+    public tabs: W2UI.W2Tabs;
 
     public currentObject: any = null;
 
@@ -65,10 +59,15 @@ export default class EditorEditionTools {
      * Constructor
      * @param editor: the editor's reference
      */
-    constructor(protected editor: Editor, options: EditionToolsOptions = { }) {
-        // Configure panel and div
-        this.panel = (options.layout || editor.layout).getPanelFromType(options.panelType || 'left');
-        this.root = options.rootDiv || 'EDITION';
+    constructor(protected editor: Editor, rootDiv?: string) {
+        // Configure div
+        this.root = rootDiv || 'EDITION';
+
+        // Add tabs
+        // TODO: move to ../gui/tabs.ts
+        this.tabs = $('#' + this.root).w2tabs({
+            name: 'EDITION'
+        });
 
         // Add tools
         this.addTool(new SceneTool());
@@ -124,9 +123,7 @@ export default class EditorEditionTools {
      * Add the given tool (IEditionTool)
      * @param tool the tool to add
      */
-    public addTool(tool: IEditionTool<any>): void {
-        return;
-        
+    public addTool(tool: IEditionTool<any>): void {        
         let current = this.root;
 
         // Create container
@@ -135,7 +132,7 @@ export default class EditorEditionTools {
         $('#' + tool.divId).hide();
 
         // Add tab
-        this.panel.tabs.add({
+        this.tabs.add({
             id: tool.tabName,
             caption: tool.tabName,
             closable: false,
@@ -164,7 +161,7 @@ export default class EditorEditionTools {
                 // Show
                 $('#' + t.divId).show();
 
-                this.panel.tabs.show(t.tabName);
+                this.tabs.show(t.tabName);
                 t.update(object);
 
                 if (t.tabName === this.lastTabName)
@@ -181,7 +178,7 @@ export default class EditorEditionTools {
             } else {
                 // Hide
                 $('#' + t.divId).hide();
-                this.panel.tabs.hide(t.tabName);
+                this.tabs.hide(t.tabName);
             }
         });
 
