@@ -95,12 +95,12 @@ export default class AnimationEditor extends EditorPlugin {
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
 
+        // Add existing textures in list
+        this.createList();
+
         // Events
         this.editor.core.onResize.add(this.onResizePreview);
         this.editor.core.onAddObject.add(this.onAddObject);
-
-        // Add existing textures in list
-        await this.createList();
     }
 
     /**
@@ -119,6 +119,18 @@ export default class AnimationEditor extends EditorPlugin {
     protected resize (): void {
         this.layout.element.resize();
         this.preview.engine.resize();
+
+        // Responsive
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
+
+        if (panelSize.width > panelSize.height) {
+            this.layout.element.sizeTo('left', panelSize.width / 2);
+            this.layout.element.show('main');
+        }
+        else {
+            this.layout.element.sizeTo('left', panelSize.width);
+            this.layout.element.hide('main');
+        }
     }
 
     /**
