@@ -649,7 +649,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             create(): Promise<void>;
             close(): Promise<void>;
             onHide?(): Promise<void>;
-            onShow?(): Promise<void>;
+            onShow?(...params: any[]): Promise<void>;
     }
     /**
         * Represents an exported editor plugin
@@ -766,7 +766,7 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
             onClose?: () => void;
             onClick?: () => void;
     };
-    export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig | GoldenLayout.ReactComponentConfig;
+    export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig;
     export default class ResizableLayout {
             element: GoldenLayout;
             name: string;

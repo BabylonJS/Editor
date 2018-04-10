@@ -28,7 +28,7 @@ export default class EditorEditPanel {
                 const first = Object.keys(this.editor.plugins)[0];
 
                 if (first)
-                    await this.showPlugin(this.editor.plugins[first]);
+                    this.showPlugin(this.editor.plugins[first]);
                 else
                     this.editor.resizableLayout.setPanelSize('edit-panel', 10);
             },
@@ -42,27 +42,24 @@ export default class EditorEditPanel {
      * Shows the given plugin
      * @param plugin: the plugin to show
      */
-    public async showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
+    public showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
         if (!plugin)
             return;
         
-        if (plugin.onShow)
-            await plugin.onShow.apply(plugin, params);
-
         // Show tab
         this.editor.resizableLayout.showPanelTab(plugin.name);
 
-        this._onChangeTab(plugin, false);
+        this._onChangeTab.apply(this, [plugin, false].concat(params));
     }
 
     // On the tab changed
-    private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean): Promise<void> {
+    private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean, ...params: any[]): Promise<void> {
         if (this.currentPlugin && this.currentPlugin.onHide)
             await this.currentPlugin.onHide();
 
         this.currentPlugin = plugin;
 
         if (!firstShow && plugin.onShow)
-            await plugin.onShow();
+            await plugin.onShow.apply(plugin, params);
     }
 }

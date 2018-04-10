@@ -8,7 +8,7 @@ export type ComponentConfig = GoldenLayout.ComponentConfig & {
     onClick?: () => void;
 }
 
-export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig | GoldenLayout.ReactComponentConfig;
+export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig;
 
 export default class ResizableLayout {
     // Public element
