@@ -2,6 +2,9 @@ import Editor from '../editor';
 import { IEditorPlugin } from '../typings/plugin';
 
 export default class EditorEditPanel {
+    // Static members
+    public static PluginCount: number = 0;
+
     // Protected members
     protected currentPlugin: IEditorPlugin = null;
 
@@ -18,8 +21,12 @@ export default class EditorEditPanel {
      */
     public addPlugin (plugin: IEditorPlugin): void {
         // Add component
+        const title = plugin.name;
+        plugin.name += EditorEditPanel.PluginCount++;
+
         this.editor.resizableLayout.addPanelToStack('edit-panel', {
             type: 'component',
+            title: title,
             componentName: plugin.name,
             html: plugin.divElement,
             onClose: async () => {
@@ -28,8 +35,8 @@ export default class EditorEditPanel {
                 const first = Object.keys(this.editor.plugins)[0];
 
                 if (first)
-                    this.showPlugin(this.editor.plugins[first]);
-                else
+                    await this.showPlugin(this.editor.plugins[first]);
+                else 
                     this.editor.resizableLayout.setPanelSize('edit-panel', 10);
             },
             onClick: () => this._onChangeTab(plugin, false)
@@ -42,14 +49,14 @@ export default class EditorEditPanel {
      * Shows the given plugin
      * @param plugin: the plugin to show
      */
-    public showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
+    public async showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
         if (!plugin)
             return;
         
         // Show tab
         this.editor.resizableLayout.showPanelTab(plugin.name);
 
-        this._onChangeTab.apply(this, [plugin, false].concat(params));
+        await this._onChangeTab.apply(this, [plugin, false].concat(params));
     }
 
     // On the tab changed

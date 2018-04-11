@@ -72,7 +72,9 @@ export default class ResizableLayout {
         if (!stack)
             return;
 
-        stack.setActiveContentItem(tab);
+        try {
+            stack.setActiveContentItem(tab);
+        } catch (e) { /* Catch silently */ }
     }
 
     /**
@@ -85,7 +87,12 @@ export default class ResizableLayout {
             return;
 
         container.off('destroy');
-        container.close();
+
+        try {
+            container.close();
+        } catch (e) { /* Catch silently */ }
+
+        delete this.containers[name];
     }
 
     /**
@@ -99,13 +106,14 @@ export default class ResizableLayout {
         }
         catch (e) {
             // Does not exists, create it
-           this.registerComponents([config]);
+            this.registerComponents([config]);
         }
 
         // Add child in the stack
         this.element.root.getItemsById(stackId)[0].addChild({
             type: 'component',
-            componentName: config.componentName
+            componentName: config.componentName,
+            title: config.title
         });
     }
 
@@ -118,7 +126,7 @@ export default class ResizableLayout {
             settings: {
                 showPopoutIcon: false,
                 showCloseIcon: this.showCloseIcon,
-                showMaximiseIcon: false
+                showMaximiseIcon: true
             },
             labels: {
                 close: 'Close',

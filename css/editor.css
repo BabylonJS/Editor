@@ -30,6 +30,11 @@ html, body {
     background-position: 5px 5px !important;
 }
 
+/* Golden Layout */
+.lm_content {
+    background: #fafafa !important;
+}
+
 /*
 ICONS
 */

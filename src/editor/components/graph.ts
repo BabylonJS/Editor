@@ -52,18 +52,36 @@ export default class EditorGraph {
                     return false;
                 
                 node.emitter = parent;
+
+                return true;
             }
-            else if (node instanceof Node) {
+
+            if (node instanceof Node) {
                 if (!(parent instanceof Node) && !(parent instanceof Scene))
                     return false;
                 
                 node.parent = parent instanceof Scene ? null : parent;
-            }
-            else {
-                return false;
+
+                return true;
             }
 
-            return true;
+            if (node instanceof Sound) {
+                if (parent instanceof Scene) {
+                    node.spatialSound = false;
+                    node.detachFromMesh();
+
+                    return true;
+                }
+                
+                if (parent instanceof AbstractMesh) {
+                    node.spatialSound = true;
+                    node.attachToMesh(parent);
+
+                    return true;
+                }
+            }
+
+            return false;
         };
 
         // Observer
