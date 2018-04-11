@@ -58,6 +58,9 @@ export default class Tools {
      * @param oneTimeOnly if the URL should be requested only one time
      */
     public getFileUrl (filename: string, oneTimeOnly: boolean = true): string {
+        if (Extensions.RoolUrl)
+            return Extensions.RoolUrl + filename;
+        
         return URL.createObjectURL(this.getFileByName(filename), { oneTimeOnly: oneTimeOnly });
     }
 }

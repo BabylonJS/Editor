@@ -55,7 +55,7 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
      * Creates a new material
      * @param data: the data containing code, vertex, etc.
      */
-    public createMaterial (data: MaterialCreatorMetadata): CustomEditorMaterial {
+    public createMaterial (data: MaterialCreatorMetadata, rootUrl?: string): CustomEditorMaterial {
         const id = data.name + Tools.RandomId();
 
         Effect.ShadersStore[id + 'VertexShader'] = data.vertex;
@@ -92,7 +92,7 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
 
         // User config
         if (data.code) {
-            data.userConfig.textures.forEach(t => material.userConfig[t.name] = Texture.Parse(t.value, this.scene, 'file:')); // TODO: remove "file:"
+            data.userConfig.textures.forEach(t => material.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
             data.userConfig.floats.forEach(f =>   material.userConfig[f.name] = f.value);
             data.userConfig.vectors2.forEach(v => material.userConfig[v.name] = Vector2.FromArray(v.value));
             data.userConfig.vectors3.forEach(v => material.userConfig[v.name] = Vector3.FromArray(v.value));
@@ -110,9 +110,9 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
     /**
      * On apply the extension
      */
-    public onApply (data: MaterialCreatorMetadata[]): void {
+    public onApply (data: MaterialCreatorMetadata[], rootUrl?: string): void {
         this.datas = data;
-        this.datas.forEach(d => this.createMaterial(d));
+        this.datas.forEach(d => this.createMaterial(d, rootUrl));
     }
 
     /**

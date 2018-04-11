@@ -23,7 +23,7 @@ export interface PostProcessCreatorMetadata {
 }
 
 const template = `
-EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera) {
+EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera, tools, mobile) {
 {{code}}
 }
 `;
@@ -54,7 +54,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
      * Creates a new post-process
      * @param data: the data containing code, pixel, etc.
      */
-    public createPostProcess (data: PostProcessCreatorMetadata): PostProcessEditor {
+    public createPostProcess (data: PostProcessCreatorMetadata, rootUrl?: string): PostProcessEditor {
         const id = data.name + Tools.RandomId();
 
         // Add custom code
@@ -66,7 +66,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
 
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
-        const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera);
+        const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera, Extensions.Tools, Extensions.Mobile);
         const code = new ctor();
 
         // Custom config
@@ -79,7 +79,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         const postprocess = new PostProcessEditor(data.name, id, camera, config, code);
 
         // User config
-        data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t.value, this.scene, 'file:')); // TODO: remove "file:"
+        data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
         data.userConfig.floats.forEach(f =>   postprocess.userConfig[f.name] = f.value);
         data.userConfig.vectors2.forEach(v => postprocess.userConfig[v.name] = Vector2.FromArray(v.value));
         data.userConfig.vectors3.forEach(v => postprocess.userConfig[v.name] = Vector3.FromArray(v.value));
@@ -97,9 +97,9 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
     /**
      * On apply the extension
      */
-    public onApply (data: PostProcessCreatorMetadata[]): void {
+    public onApply (data: PostProcessCreatorMetadata[], rootUrl?: string): void {
         this.datas = data;
-        this.datas.forEach(d => this.createPostProcess(d));
+        this.datas.forEach(d => this.createPostProcess(d, rootUrl));
     }
 
     /**
