@@ -16,6 +16,7 @@ import PostProcessEditor, { CustomPostProcessConfig } from '../../extensions/po
 
 export interface PostProcessGrid extends GridRow {
     name: string;
+    preview: boolean;
 }
 
 export default class PostProcessCreator extends EditorPlugin {
@@ -86,6 +87,7 @@ export default class PostProcessCreator extends EditorPlugin {
         if (!this.editor.core.scene.metadata['PostProcessCreator']) {
             this.editor.core.scene.metadata['PostProcessCreator'] = [{
                 name: 'Custom Post-Process',
+                preview: true,
                 cameraName: this.activeCamera ? this.activeCamera.name : null,
                 code: PostProcessCreator.DefaultCode,
                 pixel: PostProcessCreator.DefaultPixel,
@@ -137,7 +139,10 @@ export default class PostProcessCreator extends EditorPlugin {
             toolbarEdit: false,
             toolbarSearch: false
         });
-        this.grid.columns = [{ field: 'name', caption: 'Name', size: '100%', editable: { type: 'string' } }];
+        this.grid.columns = [
+            { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
+            { field: 'preview', caption: 'Preview', size: '20%', editable: { type: 'checkbox' } }
+        ];
         this.grid.build('POST-PROCESS-CREATOR-LIST');
         this.grid.onAdd = () => this.addPostProcess();
         this.grid.onDelete = (selected) => this.datas.splice(selected[0], 1);
@@ -145,6 +150,7 @@ export default class PostProcessCreator extends EditorPlugin {
         this.grid.onClick = (selected) => this.selectPostProcess(selected[0]);
         this.datas.forEach((d, index) => this.grid.addRecord({
             name: d.name,
+            preview: d.preview,
             recid: index
         }));
         this.grid.element.refresh();
@@ -177,6 +183,7 @@ export default class PostProcessCreator extends EditorPlugin {
     protected addPostProcess (): void {
         // Create data and material
         const data: PostProcessCreatorMetadata = {
+            preview: true,
             cameraName: this.activeCamera ? this.activeCamera.name : null,
             name: 'Custom Post-Process' + this.datas.length + 1,
             code: PostProcessCreator.DefaultCode,
@@ -190,12 +197,15 @@ export default class PostProcessCreator extends EditorPlugin {
 
         this.grid.addRow({
             name: data.name,
+            preview: data.preview,
             recid: this.grid.element.records.length - 1
         });
 
         // Add and select
         const p = this.createOrUpdatePostProcess(data.name);
-        this.editor.core.onSelectObject.notifyObservers(p);
+
+        if (p)
+            this.editor.core.onSelectObject.notifyObservers(p);
     }
 
     /**
@@ -203,8 +213,14 @@ export default class PostProcessCreator extends EditorPlugin {
      * @param name: the name of the post-process
      */
     protected createOrUpdatePostProcess (name: string): PostProcessEditor {
+        if (!this.data.preview)
+            return null;
+        
         const camera = this.editor.core.scene.activeCamera;
         for (const p of camera._postProcesses as PostProcessEditor[]) {
+            if (!p)
+                continue;
+            
             if (p.name === name) {
                 p.setConfig(JSON.parse(this.data.config));
                 p.userConfig = { };
@@ -236,19 +252,40 @@ export default class PostProcessCreator extends EditorPlugin {
      * @param id: the id of the post-process in the array
      * @param value: the new name
      */
-    protected changePostProcess (id: number, value: string): void {
+    protected changePostProcess (id: number, value: string | boolean): void {
         const data = this.datas[id];
-        const lastName = data.name;
+        const postProcesses = this.editor.core.scene.postProcesses;
 
-        data.name = value;
+        // Name
+        if (typeof value === 'string') {
+            const lastName = data.name;
+            data.name = value;
 
-        // Update post-process name
-        const camera = this.editor.core.scene.activeCamera;
-        for (const p of camera._postProcesses) {
-            if (p.name === lastName) {
-                p.name = value;
-                return;
+            // Update post-process name
+            for (const p of postProcesses) {
+                if (p instanceof PostProcessEditor && p.name === lastName) {
+                    p.name = value;
+                    break;
+                }
             }
+
+            return;
+        }
+
+        // Preview
+        const camera = this.editor.core.scene.activeCamera;
+        data.preview = value;
+
+        for (const p of postProcesses) {
+            if (!(p instanceof PostProcessEditor) || p.name !== data.name)
+                continue;
+
+            if (value)
+                camera.attachPostProcess(p, camera._postProcesses.length + id);
+            else
+                camera.detachPostProcess(p);
+            
+            return;
         }
     }
 
