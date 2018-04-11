@@ -76,6 +76,19 @@ export default class ResizableLayout {
     }
 
     /**
+     * Removes the given panel
+     * @param name the name of the panel to remove
+     */
+    public removePanel (name: string): void {
+        const container = this.containers[name];
+        if (!container || !container.parent)
+            return;
+
+        container.off('destroy');
+        container.close();
+    }
+
+    /**
      * Adds a panel to the layout
      * @param stackId: the stack to add component in
      * @param config: the panel's configuration
@@ -147,7 +160,14 @@ export default class ResizableLayout {
                     container.on('destroy', () => c.onClose && c.onClose());
 
                     // Click
-                    container.on('show', () => c.onClick && c.onClick());
+                    let firstShow = true;
+                    container.on('show', () => {
+                        // If first show, that means the tab has just been created
+                        if (firstShow)
+                            return (firstShow = false);
+                        
+                        c.onClick && c.onClick();
+                    });
                 });
             }
 

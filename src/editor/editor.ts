@@ -113,6 +113,7 @@ export default class Editor {
 
         window.addEventListener('resize', () => {
             this.layout.element.resize();
+            this.resizableLayout.element.updateSize();
             this.resize();
         });
 
@@ -177,10 +178,6 @@ export default class Editor {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Properties');
         this.edition.resize(editionSize.width);
-
-        // Layout size
-        const layoutSize = this.layout.getPanelSize('main');
-        this.resizableLayout.element.updateSize(layoutSize.width, layoutSize.height);
         
         // Engine size
         this.core.engine.resize();
@@ -240,6 +237,9 @@ export default class Editor {
                 break;
             }
         }
+
+        // Remove panel
+        this.resizableLayout.removePanel(plugin.name);
     }
 
     /**
