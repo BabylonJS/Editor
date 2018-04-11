@@ -23,7 +23,7 @@ export interface PreviewScene {
     material: PBRMaterial;
 }
 
-export default class AnimationEditor extends EditorPlugin {
+export default class TextureViewer extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
     public layout: Layout = null;
@@ -39,7 +39,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     // Protected members
     protected engines: Engine[] = [];
-    protected onResizePreview = () => this.engine.resize();
+    protected onResizePreview = () => this.resize();
 
     protected object: any;
     protected property: string;
@@ -81,7 +81,7 @@ export default class AnimationEditor extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
-        const panelSize = this.editor.layout.getPanelSize('preview');
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
         const div = $(this.divElement);
 
         // Create layout
@@ -95,7 +95,10 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Add toolbar
         this.toolbar = new Toolbar('TextureViewerToolbar');
-        this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
+        this.toolbar.items = [
+            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
+        ];
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 
@@ -120,6 +123,28 @@ export default class AnimationEditor extends EditorPlugin {
     }
 
     /**
+     * On the user shows the plugin
+     */
+    public async onShow (object?: any, property?: string, allowCubes?: boolean): Promise<void> {
+        this.object = object;
+        this.property = property;
+        this.allowCubes = allowCubes;
+
+        this.resize();
+    }
+
+    /**
+     * Resizes the plugin
+     */
+    protected resize (): void {
+        this.layout.element.resize();
+        this.engine.resize();
+
+        // Responsive
+        super.resizeLayout(this.layout, ['left'], ['main']);
+    }
+
+    /**
      * When the user clicks on the toolbar
      * @param target: the target button
      */
@@ -127,6 +152,9 @@ export default class AnimationEditor extends EditorPlugin {
         switch (target) {
             case 'add':
                 this.createFileDialog();
+                break;
+            case 'refresh':
+                this.createList();
                 break;
             default: break;
         }

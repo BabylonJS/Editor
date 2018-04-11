@@ -36,6 +36,8 @@ export default class PostProcessCreator extends EditorPlugin {
 
     protected activeCamera: Camera = this.editor.playCamera;
 
+    protected onResize = () => this.layout.element.resize();
+
     // Static members
     public static DefaultCode: string = '';
     public static DefaultPixel: string = '';
@@ -60,6 +62,9 @@ export default class PostProcessCreator extends EditorPlugin {
         this.code.editor.dispose();
         this.pixel.editor.dispose();
         this.config.editor.dispose();
+
+        // Events
+        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -147,6 +152,9 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Add code editors
         await this.createEditors();
+
+        // Events
+        this.editor.core.onResize.add(this.onResize);
     }
 
     /**
@@ -154,6 +162,13 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     public onShow (): void {
         this.grid.element.resize();
+    }
+
+    /**
+     * Resizes the plugin
+     */
+    protected resize (): void {
+        this.layout.element.resize();
     }
 
     /**

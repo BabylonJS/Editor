@@ -214,7 +214,7 @@ export default class Edition {
 
         const target = {
             active: object[property] ? object[property].name : 'None',
-            browse: () => editor.addEditPanelPlugin('texture-viewer', true, 'Texture Viewer', object, property, allowCubes)
+            browse: () => editor.addEditPanelPlugin('texture-viewer', false, 'Textures Viewer', object, property, allowCubes)
         };
 
         const controller = parent.add(target, 'active', textures);

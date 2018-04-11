@@ -11,6 +11,7 @@
     <script src="./node_modules/w2ui/w2ui.min.js" type="text/javascript"></script>
 
     <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui.css" />
+    <link rel="stylesheet" type="text/css" href="./node_modules/jstree/dist/themes/default/style.min.css" />
     <link rel="stylesheet" type="text/css" href="./css/editor.css" />
 </head>
 <body>
@@ -27,8 +28,10 @@
                 "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
                 "raphael": "./node_modules/raphael/raphael.js",
                 "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
-                "earcut": "./node_modules/babylonjs/earcut.min.js",
+                "earcut": "./node_modules/earcut/dist/earcut.min.js",
                 "oimo": "./node_modules/babylonjs/Oimo.js",
+                "jstree": "./node_modules/jstree/dist/jstree.js",
+                "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
 
                 // Editor's modules paths
                 "babylonjs-editor": "./dist/editor.js",
@@ -63,6 +66,10 @@
             pluginFirst: true
         });
 
+        // Define modules
+        System.set('jquery', System.newModule({ __useDefault: $ }));
+
+        // Import
         System.import("babylonjs-editor").then(function (e) {
             // Run editor
             var editor = window.editor = new e.default();

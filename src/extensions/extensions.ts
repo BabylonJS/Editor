@@ -55,4 +55,11 @@ export default class Extensions {
                 extension.onApply(metadatas[e], rootUrl);
         }
     }
+
+    /**
+     * Clears all the extensions
+     */
+    public static ClearExtensions (): void {
+        this.Instances = { };
+    }
 }

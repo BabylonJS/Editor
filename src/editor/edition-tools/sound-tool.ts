@@ -47,18 +47,18 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
         common.add(sound, 'loop').name('Loop').onChange((result: boolean) => sound.updateOptions({ loop: result }));
 
         // Spatial
-        if (sound.spatialSound) {
-            const spatial = this.tool.addFolder('Spatial');
-            spatial.open();
+        const spatial = this.tool.addFolder('Spatial');
+        spatial.open();
 
+        if (sound.spatialSound) {
             spatial.add(sound, 'distanceModel', ['linear', 'exponential', 'inverse']).name('Distance Model').onFinishChange((result: string) => sound.updateOptions({ distanceModel: result }));
             spatial.add(sound, 'maxDistance').min(0.0).name('Max Distance').onChange((result: number) => sound.updateOptions({ maxDistance: result }));
 
             this._position = sound['_position'];
             this.tool.addVector(spatial, 'Position', this._position, () => sound.setPosition(this._position)).open();
-
-            spatial.add(this, '_attachToMesh').name('Attach to mesh...');
         }
+
+        spatial.add(this, '_attachToMesh').name('Attach to mesh...');
     }
 
     // Pause sound
@@ -87,16 +87,18 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
         picker.open(items => {
             if (items.length === 0) {
                 this.object.detachFromMesh();
-                this.editor.graph.setParent(this.object.name, this.editor.graph.root);
+                this.editor.graph.setParent(this.object['id'], this.editor.graph.root);
             }
             else {
                 const mesh = this.editor.core.scene.getMeshByName(items[0].name);
 
                 if (mesh) {
                     this.object.attachToMesh(mesh);
-                    this.editor.graph.setParent(this.object.name, mesh.id);
+                    this.editor.graph.setParent(this.object['id'], mesh.id);
                 }
             }
+
+            this.update(this.object);
         });
     }
 }

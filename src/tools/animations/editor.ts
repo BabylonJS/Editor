@@ -36,6 +36,7 @@ export default class AnimationEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
+    public editToolbar: Toolbar = null;
 
     public frameInput: JQuery = null;
     public valueInput: JQuery = null;
@@ -111,6 +112,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout = new Layout('AnimationEditorLayout');
         this.layout.panels = [
             { type: 'top', content: '<div id="ANIMATION-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
+            { type: 'preview', content: '<div id="ANIMATION-EDITOR-TOOLBAR-EDIT" style="width: 100%; height: 100%;"></div>', size: AnimationEditor.PaperOffset, resizable: false },
             { type: 'main', content: '<div id="ANIMATION-EDITOR-PAPER" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: false }
         ]
         this.layout.build('AnimationEditor');
@@ -127,13 +129,17 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
             { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
         ];
-        this.toolbar.right = `
-        <div style="padding: 3px 10px;">
-            Value: <input size="10" id="ANIMATION-EDITOR-VALUE" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
-            Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
-        </div>`;
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
         this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
+
+        // Create edit toolbar
+        this.editToolbar = new Toolbar('AnimationEditorToolbarEdit');
+        this.editToolbar.right = `
+            <div style="padding: 3px 10px;">
+                Value: <input size="10" id="ANIMATION-EDITOR-VALUE" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
+                Frame: <input size="10" id="ANIMATION-EDITOR-FRAME" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="0" />
+            </div>`;
+        this.editToolbar.build('ANIMATION-EDITOR-TOOLBAR-EDIT');
 
         // Create paper
         this.paper = Raphael($('#ANIMATION-EDITOR-PAPER')[0], 0, 0);
@@ -233,6 +239,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.paper.remove();
         this.layout.element.destroy();
         this.toolbar.element.destroy();
+        this.editToolbar.element.destroy();
 
         await super.close();
     }
@@ -379,6 +386,9 @@ export default class AnimationEditor extends EditorPlugin {
         // Clean
         this.animatable = null;
         this.animation = null;
+
+        this.frameInput.val('');
+        this.valueInput.val('');
 
         // Check
         if (!object.animations)

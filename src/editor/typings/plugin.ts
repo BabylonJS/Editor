@@ -1,4 +1,5 @@
 import Editor from '../editor';
+import Layout from '../gui/layout';
 
 /**
  * Interface representing an editor plugin
@@ -11,7 +12,7 @@ export interface IEditorPlugin {
     close (): Promise<void>;
 
     onHide? (): Promise<void>;
-    onShow? (): Promise<void>;
+    onShow? (...params: any[]): Promise<void>;
 }
 
 /**
@@ -26,6 +27,8 @@ export type EditorPluginConstructor = {
  */
 export abstract class EditorPlugin implements IEditorPlugin {
     // Public members
+    public editor: Editor;
+
     public divElement: HTMLDivElement;
     public name: string;
 
@@ -47,4 +50,27 @@ export abstract class EditorPlugin implements IEditorPlugin {
      */
     public async close (): Promise<void>
     { }
+
+    /**
+     * Resizes the current layout giving tabs to draw and hide
+     * @param layout the layout to resize
+     * @param keep the panels to keep
+     * @param hide the panels to hide
+     */
+    protected resizeLayout (layout: Layout, keep: string[], hide: string[]): void {
+        if (!this.editor)
+            return;
+        
+        // Responsive-like landscape / portrait
+        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
+
+        if (panelSize.width > panelSize.height) {
+            keep.forEach(k => layout.element.sizeTo(k, panelSize.width / 2));
+            hide.forEach(h => layout.element.show(h));
+        }
+        else {
+            keep.forEach(k => layout.element.sizeTo(k, panelSize.width));
+            hide.forEach(h => layout.element.hide(h));
+        }
+    }
 }

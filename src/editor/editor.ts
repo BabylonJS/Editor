@@ -12,6 +12,7 @@ import Core from './core';
 
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
+import ResizableLayout from './gui/resizable-layout';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -35,6 +36,7 @@ export default class Editor {
     public playCamera: Camera = null;
 
     public layout: Layout;
+    public resizableLayout: ResizableLayout;
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
@@ -79,21 +81,59 @@ export default class Editor {
                 content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
             },
-            { type: 'right', size: 350, content: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>', resizable: true },
-            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"><canvas id="renderCanvas"></canvas></div>', resizable: true, tabs: <any>[] },
-            { type: 'preview', size: 200, content: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
-            { type: 'left', size: 380, content: '<div id="EDITION" style="width: 100%; height: 100%;"></div>', resizable: true, tabs: <any>[] },
+            { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
             { type: 'bottom', size: 0, content: '', resizable: false }
         ];
         this.layout.build('BABYLON-EDITOR-MAIN');
+
+        // Create resizable layout
+        const layoutStateItem = /*localStorage.getItem('babylonjs-editor-layout-state') ||*/ '{ }';
+        const layoutState = JSON.parse(layoutStateItem)
+
+        this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
+        this.resizableLayout.panels = layoutState.content || [{
+            type: 'row',
+            content:[{
+                type: 'row', content: [
+                    { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
+                    { type: 'column', content: [
+                        { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
+                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10 }
+                    ] },
+                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>' }
+                ]
+            }]
+        }];
+
+        this.resizableLayout.build('MAIN-LAYOUT');
+
+        // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.resize());
+        this.resizableLayout.onPanelResize = () => this.resize();
+
         window.addEventListener('resize', () => {
             this.layout.element.resize();
+            this.resizableLayout.element.updateSize();
             this.resize();
         });
 
         // Initialize core
         this.core = new Core();
+
+        // Initialize Babylon.js
+        if (!scene) {
+            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas')
+            
+            this.core.engine = new Engine(canvas, true, {
+                antialias: true
+            });
+            this.core.scene = new Scene(this.core.engine);
+            this.core.scenes.push(this.core.scene);
+        } else {
+            this.core.engine = scene.getEngine();
+            this.core.scenes.push(scene);
+            this.core.scene = scene;
+        }
 
         // Create toolbar
         this.toolbar = new EditorToolbar(this);
@@ -103,24 +143,10 @@ export default class Editor {
 
         // Create graph
         this.graph = new EditorGraph(this);
+        this.graph.currentObject = this.core.scene;
 
         // Edit panel
         this.editPanel = new EditorEditPanel(this);
-
-        // Initialize Babylon.js
-        if (!scene) {
-            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas')
-            
-            this.core.engine = new Engine(canvas, true);
-            this.core.scene = new Scene(this.core.engine);
-            this.core.scenes.push(this.core.scene);
-        } else {
-            this.core.engine = scene.getEngine();
-            this.core.scenes.push(scene);
-            this.core.scene = scene;
-        }
-
-        this.graph.currentObject = this.core.scene;
 
         // Create editor camera
         this.createEditorCamera();
@@ -150,9 +176,12 @@ export default class Editor {
     /**
     * Resizes elements
     */
-    public resize(): void {
-        const editionSize = this.layout.getPanelSize('left');
+    public resize (): void {
+        // Edition size
+        const editionSize = this.resizableLayout.getPanelSize('Properties');
         this.edition.resize(editionSize.width);
+        
+        // Engine size
         this.core.engine.resize();
 
         // Notify
@@ -169,25 +198,29 @@ export default class Editor {
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
         if (this.plugins[url]) {
             if (restart)
-                this.removePlugin(this.plugins[url]);
+                await this.removePlugin(this.plugins[url]);
             else {
-                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
                 return this.plugins[url];
             }
         }
 
-        this.layout.lockPanel('preview', `Loading ${name || url} ...`, true);
+        // Lock panel and load plugin
+        this.layout.lockPanel('main', `Loading ${name || url} ...`, true);
 
         const plugin = await this._runPlugin.apply(this, [url].concat(params));
         this.plugins[url] = plugin;
 
-        // Add tab in edit panel
+        // Add tab in edit panel and unlock panel
         this.editPanel.addPlugin(plugin);
+
+        this.layout.unlockPanel('main');
 
         // Create plugin
         await plugin.create();
 
-        this.layout.unlockPanel('preview');
+        // Resize and unlock panel
+        this.resize();
 
         return plugin;
     }
@@ -200,14 +233,15 @@ export default class Editor {
         await plugin.close();
         plugin.divElement.remove();
 
-        this.editPanel.panel.tabs.remove(plugin.name);
-
         for (const p in this.plugins) {
             if (this.plugins[p] === plugin) {
                 delete this.plugins[p];
                 break;
             }
         }
+
+        // Remove panel
+        this.resizableLayout.removePanel(plugin.name);
     }
 
     /**
@@ -235,6 +269,28 @@ export default class Editor {
                 this.graph.fill();
                 
                 this.layout.unlockPanel('main');
+
+                // Restart plugins
+                this.core.scene.executeWhenReady(async () => {
+                    await this.restartPlugins();
+
+                    if (!showNewSceneDialog) {
+                        const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+                        await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
+                    }
+                    else {
+                        const promises: Promise<any>[] = [
+                            // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
+                            // this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
+                            // this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', false, 'Animations Editor'),
+                            // this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', false, 'Behavior Code'),
+                            // this.addEditPanelPlugin('./.build/src/tools/material-creator/index.js', false, 'Material Creator'),
+                            // this.addEditPanelPlugin('./.build/src/tools/post-process-creator/index.js', false, 'Material Creator')
+                        ];
+
+                        await Promise.all(promises);
+                    }
+                });
             });
 
             // Fill graph
@@ -246,20 +302,6 @@ export default class Editor {
             // List scene preview
             if (Tools.IsElectron())
                 ScenePreview.Create();
-
-            // Restart plugins
-            await this.restartPlugins();
-
-            const promises: Promise<any>[] = [
-                // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
-                // this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
-                // this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', false, 'Animations Editor'),
-                // this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', false, 'Behavior Code'),
-                // this.addEditPanelPlugin('./.build/src/tools/material-creator/index.js', false, 'Material Creator'),
-                // this.addEditPanelPlugin('./.build/src/tools/post-process-creator/index.js', false, 'Material Creator')
-            ];
-
-            await Promise.all(promises);
         }
 
         if (!showNewSceneDialog)
@@ -332,6 +374,14 @@ export default class Editor {
         // Focus / Blur
         window.addEventListener('blur', () => this.core.renderScenes = false);
         window.addEventListener('focus', () => this.core.renderScenes = true);
+
+        // Save state
+        window.addEventListener('beforeunload', () => {
+            const state = JSON.stringify(this.resizableLayout.element.toConfig());
+            localStorage.setItem('babylonjs-editor-layout-state', state);
+
+            localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
+        });
     }
 
     // Runs the given plugin URL

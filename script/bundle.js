@@ -18,6 +18,8 @@ const build = function (baseUrl, inFile, outFile, options) {
             'socket.io-client': './node_modules/socket.io-client/dist/socket.io.js',
             'earcut': './node_modules/babylonjs/earcut.min.js',
             'oimo': './node_modules/babylonjs/Oimo.js',
+            "jstree": "./node_modules/jstree/dist/jstree.js",
+                "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
 
             // Editor's modules paths
             'babylonjs-editor': './.build/src/index.js',
@@ -60,7 +62,11 @@ build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extens
 });
 
 // Editor
-let externals = ['babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers', 'babylonjs-materials', 'dat-gui', 'extensions/extensions'];
+let externals = [
+    'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
+    'babylonjs-materials', 'dat-gui', 'extensions/extensions',
+    'jstree', 'golden-layout', 'jquery'
+];
 
 build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
@@ -72,7 +78,8 @@ build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
 build('./.build/src/', './.build/src/index.js', './dist/editor-all.js', {
     globalName: 'Editor',
     format: 'cjs',
-    minify: true
+    minify: true,
+    externals: ['jquery']
 });
 
 // Editor
