@@ -111,6 +111,9 @@ export default class AnimationEditor extends EditorPlugin {
             await this.addMaterialPreview(m);
 
         this.waitingMaterials = [];
+
+        // Resize
+        this.resize();
     }
 
     /**
@@ -121,16 +124,7 @@ export default class AnimationEditor extends EditorPlugin {
         this.preview.engine.resize();
 
         // Responsive
-        const panelSize = this.editor.resizableLayout.getPanelSize(this.name);
-
-        if (panelSize.width > panelSize.height) {
-            this.layout.element.sizeTo('left', panelSize.width / 2);
-            this.layout.element.show('main');
-        }
-        else {
-            this.layout.element.sizeTo('left', panelSize.width);
-            this.layout.element.hide('main');
-        }
+        super.resizeLayout(this.layout, ['left'], ['main']);
     }
 
     /**

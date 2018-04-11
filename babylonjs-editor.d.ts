@@ -640,6 +640,7 @@ declare module 'babylonjs-editor/editor/typings/typings' {
 
 declare module 'babylonjs-editor/editor/typings/plugin' {
     import Editor from 'babylonjs-editor/editor/editor';
+    import Layout from 'babylonjs-editor/editor/gui/layout';
     /**
         * Interface representing an editor plugin
         */
@@ -661,6 +662,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
         * Abstract class representing an editor plugin
         */
     export abstract class EditorPlugin implements IEditorPlugin {
+            editor: Editor;
             divElement: HTMLDivElement;
             name: string;
             /**
@@ -676,6 +678,13 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 * Closes the plugin
                 */
             close(): Promise<void>;
+            /**
+                * Resizes the current layout giving tabs to draw and hide
+                * @param layout the layout to resize
+                * @param keep the panels to keep
+                * @param hide the panels to hide
+                */
+            protected resizeLayout(layout: Layout, keep: string[], hide: string[]): void;
     }
 }
 
@@ -798,6 +807,11 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
                 * @param name the tab to show
                 */
             showPanelTab(name: string): void;
+            /**
+                * Removes the given panel
+                * @param name the name of the panel to remove
+                */
+            removePanel(name: string): void;
             /**
                 * Adds a panel to the layout
                 * @param stackId: the stack to add component in
