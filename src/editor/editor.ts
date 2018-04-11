@@ -95,12 +95,12 @@ export default class Editor {
             type: 'row',
             content:[{
                 type: 'row', content: [
-                    { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%;"></div>' },
+                    { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
-                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10, html: '<div id="EDIT-PANEL-TOOLS" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
+                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10 }
                     ] },
-                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%;"></div>' }
+                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>' }
                 ]
             }]
         }];
@@ -124,7 +124,9 @@ export default class Editor {
         if (!scene) {
             const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas')
             
-            this.core.engine = new Engine(canvas, true);
+            this.core.engine = new Engine(canvas, true, {
+                antialias: true
+            });
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);
         } else {
@@ -196,9 +198,9 @@ export default class Editor {
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
         if (this.plugins[url]) {
             if (restart)
-                this.removePlugin(this.plugins[url]);
+                await this.removePlugin(this.plugins[url]);
             else {
-                this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
                 return this.plugins[url];
             }
         }
@@ -267,6 +269,28 @@ export default class Editor {
                 this.graph.fill();
                 
                 this.layout.unlockPanel('main');
+
+                // Restart plugins
+                this.core.scene.executeWhenReady(async () => {
+                    await this.restartPlugins();
+
+                    if (!showNewSceneDialog) {
+                        const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+                        await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
+                    }
+                    else {
+                        const promises: Promise<any>[] = [
+                            // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
+                            // this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
+                            // this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', false, 'Animations Editor'),
+                            // this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', false, 'Behavior Code'),
+                            // this.addEditPanelPlugin('./.build/src/tools/material-creator/index.js', false, 'Material Creator'),
+                            // this.addEditPanelPlugin('./.build/src/tools/post-process-creator/index.js', false, 'Material Creator')
+                        ];
+
+                        await Promise.all(promises);
+                    }
+                });
             });
 
             // Fill graph
@@ -278,20 +302,6 @@ export default class Editor {
             // List scene preview
             if (Tools.IsElectron())
                 ScenePreview.Create();
-
-            // Restart plugins
-            await this.restartPlugins();
-
-            const promises: Promise<any>[] = [
-                // this.addEditPanelPlugin('./.build/src/tools/materials/viewer.js', false, 'Material Viewer'),
-                // this.addEditPanelPlugin('./.build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
-                // this.addEditPanelPlugin('./.build/src/tools/animations/editor.js', false, 'Animations Editor'),
-                // this.addEditPanelPlugin('./.build/src/tools/behavior/code.js', false, 'Behavior Code'),
-                // this.addEditPanelPlugin('./.build/src/tools/material-creator/index.js', false, 'Material Creator'),
-                // this.addEditPanelPlugin('./.build/src/tools/post-process-creator/index.js', false, 'Material Creator')
-            ];
-
-            await Promise.all(promises);
         }
 
         if (!showNewSceneDialog)
@@ -369,6 +379,8 @@ export default class Editor {
         window.addEventListener('beforeunload', () => {
             const state = JSON.stringify(this.resizableLayout.element.toConfig());
             localStorage.setItem('babylonjs-editor-layout-state', state);
+
+            localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
         });
     }
 

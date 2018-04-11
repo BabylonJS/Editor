@@ -156,7 +156,10 @@ export default class SceneImporter {
         });
 
         // Sounds
-        project.sounds.forEach(s => Sound.Parse(s.serializationObject, scene, 'file:'));
+        project.sounds.forEach(s => {
+            const sound = Sound.Parse(s.serializationObject, scene, 'file:');
+            Tags.AddTagsTo(sound, 'added');
+        });
 
         // Actions (scene)
         if (project.actions) {
@@ -168,6 +171,8 @@ export default class SceneImporter {
         project.effectLayers.forEach(el => SceneManager[el.name] = EffectLayer.Parse(el.serializationObject, scene, 'file:'));
 
         // Metadatas
+        Extensions.ClearExtensions();
+
         for (const m in project.customMetadatas) {
             const extension = Extensions.RequestExtension(scene, m);
 

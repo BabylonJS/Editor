@@ -991,6 +991,7 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     export default class EditorEditPanel {
             protected editor: Editor;
+            static PluginCount: number;
             protected currentPlugin: IEditorPlugin;
             /**
                 * Constructor

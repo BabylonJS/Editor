@@ -95,7 +95,10 @@ export default class TextureViewer extends EditorPlugin {
 
         // Add toolbar
         this.toolbar = new Toolbar('TextureViewerToolbar');
-        this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
+        this.toolbar.items = [
+            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
+        ];
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 
@@ -149,6 +152,9 @@ export default class TextureViewer extends EditorPlugin {
         switch (target) {
             case 'add':
                 this.createFileDialog();
+                break;
+            case 'refresh':
+                this.createList();
                 break;
             default: break;
         }

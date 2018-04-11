@@ -32,6 +32,7 @@ export default class AnimationEditor extends EditorPlugin {
     public toolbar: Toolbar = null;
 
     public preview: PreviewScene = null;
+    public tempPreview: PreviewScene = null;
 
     // Protected members
     protected canvas: HTMLCanvasElement = null;
@@ -63,6 +64,9 @@ export default class AnimationEditor extends EditorPlugin {
         this.preview.scene.dispose();
         this.preview.engine.dispose();
 
+        this.tempPreview.scene.dispose();
+        this.tempPreview.engine.dispose();
+
         this.toolbar.element.destroy();
         this.layout.element.destroy();
 
@@ -87,13 +91,26 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Add toolbar
         this.toolbar = new Toolbar('MaterialViewerToolbar');
-        this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
+        this.toolbar.items = [
+            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
+        ];
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
 
         // Add preview
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
         this.preview.engine.runRenderLoop(() => this.preview.scene.render());
+
+        // Add temp preview
+        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialsViewerCanvas', {
+            width: '100px',
+            height: '100px',
+            visibility: 'hidden'
+        });
+        div.append(this.canvas);
+
+        this.tempPreview = this.createPreview(this.canvas);
 
         // Add existing textures in list
         this.createList();
@@ -136,6 +153,9 @@ export default class AnimationEditor extends EditorPlugin {
             case 'add':
                 this.createMaterialDialog();
                 break;
+            case 'refresh':
+                this.createList();
+                break;
             default: break;
         }
     }
@@ -146,25 +166,14 @@ export default class AnimationEditor extends EditorPlugin {
      */
     protected async createList (): Promise<void> {
         const div = $('#MATERIAL-VIEWER-LIST');
-
-        // Add HTML nodes
-        this.canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'MaterialsViewerCanvas', {
-            width: '100px',
-            height: '100px',
-            visibility: 'hidden'
-        });
-        div.append(this.canvas);
-
-        const scene = this.editor.core.scene;
-        const preview = this.createPreview(this.canvas);
+        while (div[0].children.length > 0)
+            div[0].children[0].remove();
 
         // For each material
-        for (const mat of scene.materials)
-            await this.createPreviewNode(div, this.canvas, preview, mat);
+        const scene = this.editor.core.scene;
 
-        // Dispose temp preview
-        preview.scene.dispose();
-        preview.engine.dispose();
+        for (const mat of scene.materials)
+            await this.createPreviewNode(div, this.canvas, this.tempPreview, mat);
     }
 
     /**

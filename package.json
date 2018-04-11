@@ -59,12 +59,12 @@
     "w2ui": "~1.4.3",
     "systemjs": "~0.20.19",
     "es6-promise": "~4.1.0",
-    "babylonjs": "~3.2.0-beta.4",
-    "babylonjs-gui": "~3.2.0-beta.4",
-    "babylonjs-loaders": "~3.2.0-beta.4",
-    "babylonjs-materials": "~3.2.0-beta.4",
-    "babylonjs-procedural-textures": "~3.2.0-beta.4",
-    "babylonjs-serializers": "~3.2.0-beta.4",
+    "babylonjs": "~3.2.0-beta.5",
+    "babylonjs-gui": "~3.2.0-beta.5",
+    "babylonjs-loaders": "~3.2.0-beta.5",
+    "babylonjs-materials": "~3.2.0-beta.5",
+    "babylonjs-procedural-textures": "~3.2.0-beta.5",
+    "babylonjs-serializers": "~3.2.0-beta.5",
     "spectorjs": "~0.9.2",
     "cannon": "~0.6.2",
     "monaco-editor": "~0.10.1",
@@ -75,6 +75,7 @@
     "koa-socket": "~4.4.0",
     "fs-extra": "~4.0.2",
     "jstree": "~3.3.5",
-    "golden-layout": "~1.5.9"
+    "golden-layout": "~1.5.9",
+    "earcut": "~2.1.3"
   }
 }
