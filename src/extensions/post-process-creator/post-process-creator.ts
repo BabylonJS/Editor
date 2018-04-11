@@ -15,6 +15,7 @@ export interface PostProcessCreatorUserConfig {
 
 export interface PostProcessCreatorMetadata {
     cameraName: string;
+    preview: boolean;
     name: string;
     code: string;
     pixel: string;

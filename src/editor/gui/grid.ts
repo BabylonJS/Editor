@@ -182,6 +182,8 @@ export default class Grid<T extends GridRow> {
                 
                 if (this.onChange)
                     event.onComplete = () => this.onChange(event.recid, event.value_new);
+
+                this.element.save();
             }
         });
     }
