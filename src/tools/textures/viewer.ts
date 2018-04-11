@@ -186,7 +186,7 @@ export default class TextureViewer extends EditorPlugin {
             const file = FilesInput.FilesToLoad[url];
             
             if (file)
-                await this.addPreviewNode(file, tex);
+                this.addPreviewNode(file, tex);
         }
     }
 

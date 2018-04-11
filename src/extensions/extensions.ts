@@ -12,6 +12,8 @@ export default class Extensions {
     public static Tools: Tools = new Tools();
     public static Mobile: Mobile = new Mobile();
 
+    public static RoolUrl: string = null;
+
     /**
      * Registers an extension
      * @param extension the extension to register
