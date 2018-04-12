@@ -86,6 +86,8 @@ export default class ResizableLayout {
         if (!container || !container.parent)
             return;
 
+        container.off('show');
+        container.off('resize');
         container.off('destroy');
 
         try {
@@ -110,11 +112,7 @@ export default class ResizableLayout {
         }
 
         // Add child in the stack
-        this.element.root.getItemsById(stackId)[0].addChild({
-            type: 'component',
-            componentName: config.componentName,
-            title: config.title
-        });
+        this.element.root.getItemsById(stackId)[0].addChild(config);
     }
 
     /**
