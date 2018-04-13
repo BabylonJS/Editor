@@ -339,6 +339,12 @@ export default class Editor {
         this.camera.maxZ = 10000;
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
+        // Traditional WASD controls
+        this.camera.keysUp.push(87); //  "W"
+        this.camera.keysLeft.push(65); //"A"
+        this.camera.keysDown.push(83); //"S"
+        this.camera.keysRight.push(68) //"D"
+
         // Define target property on FreeCamera
         Object.defineProperty(this.camera, 'target', {
             get: () => { return this.camera.getTarget() },
