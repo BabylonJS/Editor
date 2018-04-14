@@ -39,10 +39,10 @@ html, body {
 ::-webkit-scrollbar { width: 15px !important; }
 ::-webkit-scrollbar-track { background: white !important; }
 ::-webkit-scrollbar-thumb {
-     background: #ddd !important;
-     border-radius: 0px !important; }
-::-webkit-scrollbar-thumb:hover {
- background: #999 !important; }
+    background: #ddd !important;
+    border-radius: 0px !important;
+}
+::-webkit-scrollbar-thumb:hover { background: #999 !important; }
 
 /*
 ICONS
