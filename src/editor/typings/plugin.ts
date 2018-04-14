@@ -48,8 +48,9 @@ export abstract class EditorPlugin implements IEditorPlugin {
     /**
      * Closes the plugin
      */
-    public async close (): Promise<void>
-    { }
+    public async close (): Promise<void> {
+        $(this.divElement).html('');
+    }
 
     /**
      * Resizes the current layout giving tabs to draw and hide
