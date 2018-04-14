@@ -19,17 +19,22 @@ export default class EditorEditPanel {
      * Adds the given plugin to the 
      * @param plugin the plugin to add
      */
-    public addPlugin (plugin: IEditorPlugin): void {
+    public addPlugin (pluginUrl: string): void {
         // Add component
-        const title = plugin.name;
-        plugin.name += EditorEditPanel.PluginCount++;
-
+        const plugin = this.editor.plugins[pluginUrl];
+        
         this.editor.resizableLayout.addPanelToStack('edit-panel', {
             type: 'component',
-            title: title,
+            title: plugin.name,
             componentName: plugin.name,
-            html: plugin.divElement,
+            html: () => {
+                const plugin = this.editor.plugins[pluginUrl];
+                return plugin.divElement;
+            },
             onClose: async () => {
+                const plugin = this.editor.plugins[pluginUrl];
+
+                // Remove plugin
                 await this.editor.removePlugin(plugin);
 
                 const first = Object.keys(this.editor.plugins)[0];
@@ -39,7 +44,11 @@ export default class EditorEditPanel {
                 else 
                     this.editor.resizableLayout.setPanelSize('edit-panel', 10);
             },
-            onClick: () => this._onChangeTab(plugin, false)
+            onClick: () => {
+                const plugin = this.editor.plugins[pluginUrl];
+
+                this._onChangeTab(plugin, false);
+            }
         });
 
         this.editor.resizableLayout.setPanelSize('edit-panel', 50);

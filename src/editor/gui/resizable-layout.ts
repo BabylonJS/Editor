@@ -3,7 +3,7 @@ import * as GoldenLayout from 'golden-layout';
 import { IStringDictionary } from '../typings/typings';
 
 export type ComponentConfig = GoldenLayout.ComponentConfig & {
-    html?: HTMLElement | string;
+    html?: HTMLElement | string | (() => HTMLElement);
     onClose?: () => void;
     onClick?: () => void;
 }
@@ -157,7 +157,7 @@ export default class ResizableLayout {
                     
                     // Add html
                     if (c.html)
-                        container.getElement().append(c.html);
+                        container.getElement().append(typeof c.html === 'function' ? c.html() : c.html);
 
                     // Resize
                     container.on('resize', () => this.onPanelResize && this.onPanelResize());

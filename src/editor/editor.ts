@@ -212,7 +212,7 @@ export default class Editor {
         this.plugins[url] = plugin;
 
         // Add tab in edit panel and unlock panel
-        this.editPanel.addPlugin(plugin);
+        this.editPanel.addPlugin(url);
 
         this.layout.unlockPanel('main');
 
