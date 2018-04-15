@@ -24,7 +24,7 @@ body *{
     font-weight: 400 !important;
 }
 
-li.title, .lm_title *{
+li.title, .lm_title, .w2ui-tabs .w2ui-tab.active {
     font-weight: 700 !important;
 }
 
