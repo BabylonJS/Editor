@@ -126,6 +126,10 @@ export default class ResizableLayout {
                 showCloseIcon: this.showCloseIcon,
                 showMaximiseIcon: true
             },
+            dimensions: {
+                minItemWidth: 240,
+                minItemHeight: 180
+            },
             labels: {
                 close: 'Close',
                 maximise: 'Maximize',
