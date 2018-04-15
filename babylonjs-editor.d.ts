@@ -771,7 +771,7 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
     import * as GoldenLayout from 'golden-layout';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export type ComponentConfig = GoldenLayout.ComponentConfig & {
-            html?: HTMLElement | string;
+            html?: HTMLElement | string | (() => HTMLElement);
             onClose?: () => void;
             onClick?: () => void;
     };
@@ -1002,7 +1002,7 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
                 * Adds the given plugin to the
                 * @param plugin the plugin to add
                 */
-            addPlugin(plugin: IEditorPlugin): void;
+            addPlugin(pluginUrl: string): void;
             /**
                 * Shows the given plugin
                 * @param plugin: the plugin to show

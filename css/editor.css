@@ -21,7 +21,7 @@ html, body {
     width: 16px;
 }
 
-.w2ui-layout > div{
+.w2ui-layout > div {
     z-index: 0;
 }
 
@@ -30,7 +30,7 @@ html, body {
     font-size: 12px;
 }
 
-.vakata-context li > a >i {
+.vakata-context li > a > i {
     background-position: 5px 5px !important;
 }
 
