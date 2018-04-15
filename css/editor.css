@@ -52,7 +52,7 @@ li, .lm_content .dg li.title, .w2ui-reset table, .lm_header .lm_tab .lm_title, .
     width: 16px;
 }
 
-.w2ui-layout > div{
+.w2ui-layout > div {
     z-index: 0;
 }
 
@@ -61,7 +61,7 @@ li, .lm_content .dg li.title, .w2ui-reset table, .lm_header .lm_tab .lm_title, .
     font-size: 12px;
 }
 
-.vakata-context li > a >i {
+.vakata-context li > a > i {
     background-position: 5px 5px !important;
 }
 
