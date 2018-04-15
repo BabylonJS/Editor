@@ -50,6 +50,10 @@ li.title, .lm_title, .w2ui-toolbar *{
     width: 16px;
 }
 
+.w2ui-layout > div{
+    z-index: 0;
+}
+
 /* JSTREE */
 .vakata-context li > a {
     font-size: 12px;
