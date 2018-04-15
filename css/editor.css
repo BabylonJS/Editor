@@ -27,14 +27,16 @@ html, body {
     padding: 0;
 }
 
-body *{
-    font-family: Roboto,sans-serif !important;
-    font-weight: 400 !important;
+input, textarea, select, button, .lm_content .dg .c input[type=text], small, .lm_content .dg li.cr,
+li, .lm_content .dg li.title, .w2ui-reset table, .lm_header .lm_tab .lm_title, .w2ui-popup{
+    font-family: Roboto,sans-serif;
+    font-weight: 400;
 }
 
-li.title, .lm_title, .w2ui-toolbar *{
-    font-weight: 700 !important;
+.lm_content .dg li.title, .lm_header .lm_tab .lm_title, .w2ui-tabs .w2ui-tab.active{
+    font-weight: 700;
 }
+
 
 #renderCanvas {
     position: absolute;
