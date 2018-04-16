@@ -7,22 +7,28 @@ import {
     ActionManager,
     ParticleSystem
 } from 'babylonjs';
-
-import { IStringDictionary } from '../typings/typings';
+import { GLTF2Export, _GLTFData } from 'babylonjs-serializers';
 
 import SceneManager from './scene-manager';
+
+import Window from '../gui/window';
+import Form from '../gui/form';
+
 import Tools from '../tools/tools';
 import Editor from '../editor';
 import Extensions from '../../extensions/extensions';
 
-import * as Export from '../typings/project';
 import Storage, { CreateFiles } from '../storage/storage';
+
+import * as Export from '../typings/project';
+import { IStringDictionary } from '../typings/typings';
 
 const randomId = BabylonTools.RandomId();
 
 export default class SceneExporter {
     // Public members
     public static ProjectPath: string = null;
+    public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
 
     // Private members
     private static _LastBabylonFileURL: string = null;
@@ -31,14 +37,18 @@ export default class SceneExporter {
      * Creates a new file
      * @param editor: the editor instance
      */
-    public static CreateFiles (editor: Editor): void {
+    public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
         // Scene
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
         if (editor.playCamera)
             serializedScene.activeCameraID = editor.playCamera.id;
 
-        let file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
-        editor.sceneFile = file;
+        let file: File = null;
+        
+        if (format === 'babylon') {
+            file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
+            editor.sceneFile = file;
+        }
 
         // Gui
         editor.guiFiles = [];
@@ -78,36 +88,84 @@ export default class SceneExporter {
      * @param editor the editor reference
      */
     public static async ExportTemplate (editor: Editor): Promise<void> {
-        this.CreateFiles(editor);
+        // Create format window
+        const window = new Window('ExportTemplate');
+        window.buttons = ['Ok'];
+        window.width = 400;
+        window.height = 125;
+        window.body = `<div id="EXPORT-TEMPLATE-FORMAT" style="width: 100%; height: 100%;"></div>`;
+        window.open();
 
-        // Create files
-        const sceneFiles: CreateFiles[] = [
-            { name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) },
-            { name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }
-        ];
-        Object.keys(FilesInput.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInput.FilesToLoad[k]) }));
+        // Create form
+        const form = new Form('SceneFormatForm');
+        form.fields = [{ name: 'format', type: 'list', required: true, options: { items: ['babylon', 'glb', 'gltf'] } }];
+        form.build('EXPORT-TEMPLATE-FORMAT');
 
-        // Src files
-        const srcFiles: CreateFiles[] = [
-            { name: 'game.ts', data: await Tools.LoadFile<string>('assets/templates/template/src/game.ts') }
-        ];
+        form.element.record['format'] = this.ProjectExportFormat;
+        form.element.refresh();
 
-        const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
-             { name: 'editor.extensions.js', data: await Tools.LoadFile<string>('dist/editor.extensions.js') },
-             { name: 'babylonjs-editor.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor.d.ts') },
-             { name: 'babylonjs-editor-extensions.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor-extensions.d.ts') }
-        ];
+        // Events
+        window.onButtonClick = async () => {
+            // Update scene format
+            this.ProjectExportFormat = form.element.record['format'].id;
 
-        const storage = await this.GetStorage(editor);
-        storage.openPicker('Create Template...', [
-            { name: 'scene', folder: sceneFiles },
-            { name: 'src', folder: srcFiles },
-            { name: 'libs', folder: distFiles },
-            { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
-            { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
-            { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
-            { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
-        ]);
+            // Clear
+            form.element.destroy();
+            window.close();
+
+            // Create scene files
+            this.CreateFiles(editor, this.ProjectExportFormat);
+
+            // Create files to upload
+            const sceneFiles: CreateFiles[] = [{ name: 'project.editorproject', data: JSON.stringify(this.Export(editor).customMetadatas) }];
+
+            if (this.ProjectExportFormat === 'babylon') {
+                sceneFiles.push({ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) });
+            }
+            else {
+                let data: _GLTFData = null;
+
+                try {
+                    switch (this.ProjectExportFormat) {
+                        case 'glb': data = GLTF2Export.GLB(editor.core.scene, 'scene', { }); break;
+                        case 'gltf': data = GLTF2Export.GLTF(editor.core.scene, 'scene', { }); break;
+                        default: break;
+                    }
+                } catch (e) {
+                    Window.CreateAlert(e.message, 'Error when exporting the scene');
+                    return;
+                }
+
+                for (const f in data.glTFFiles) {
+                    const file = data.glTFFiles[f];
+                    sceneFiles.push({ name: f, data: await Tools.ReadFileAsArrayBuffer(<File> file) });
+                }
+            }
+
+            Object.keys(FilesInput.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInput.FilesToLoad[k]) }));
+
+            // Src files
+            const srcFiles: CreateFiles[] = [
+                { name: 'game.ts', data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
+            ];
+
+            const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
+                { name: 'editor.extensions.js', data: await Tools.LoadFile<string>('dist/editor.extensions.js') },
+                { name: 'babylonjs-editor.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor.d.ts') },
+                { name: 'babylonjs-editor-extensions.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor-extensions.d.ts') }
+            ];
+
+            const storage = await this.GetStorage(editor);
+            storage.openPicker('Create Template...', [
+                { name: 'scene', folder: sceneFiles },
+                { name: 'src', folder: srcFiles },
+                { name: 'libs', folder: distFiles },
+                { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
+                { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
+                { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+                { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
+            ]);
+        };
     }
 
     /**
@@ -330,7 +388,7 @@ export default class SceneExporter {
             if (Tags.MatchesQuery(n, 'added_particlesystem'))
                 addNodeToProject = true;
             
-            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'added'))) {
+            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'added')) {
                 addNodeToProject = true;
 
                 if (n instanceof AbstractMesh)
