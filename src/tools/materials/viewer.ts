@@ -116,6 +116,8 @@ export default class AnimationEditor extends EditorPlugin {
         this.createList();
 
         // Events
+        this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.preview.engine.resize());
+        
         this.editor.core.onResize.add(this.onResizePreview);
         this.editor.core.onAddObject.add(this.onAddObject);
     }

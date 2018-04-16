@@ -251,10 +251,11 @@ export default class EditorGraph {
 
             // Camera? Add post-processes
             if (n instanceof Camera) {
-                n._postProcesses.forEach(p => {
-                    if (!p)
+                scene.postProcesses.forEach(p => {
+                    const camera = p.getCamera();
+                    if (camera !== n)
                         return;
-                    
+                
                     this.tree.add({
                         id: p.name,
                         text: p.name,
