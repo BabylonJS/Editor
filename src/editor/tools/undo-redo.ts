@@ -1,4 +1,5 @@
 export interface StackElement {
+    baseObject?: any;
     property?: string;
     to?: any;
     from?: any;

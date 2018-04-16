@@ -28,7 +28,7 @@ export default class Core {
     public onSelectObject: Observable<any> = new Observable<any>();
     public onResize: Observable<{ }> = new Observable<{ }>();
     public onAddObject: Observable<{ }> = new Observable<{ }>();
-    public onGlobalPropertyChange = new Observable<{ object: any; property: string; value: any, initialValue: any }>();
+    public onGlobalPropertyChange = new Observable<{ baseObject?: any; object: any; property: string; value: any; initialValue: any; }>();
 
     public renderScenes: boolean = true;
     

@@ -1,9 +1,13 @@
+import { Scene } from 'babylonjs';
 import Editor, { EditorPlugin } from 'babylonjs-editor';
 
 export default class PlayGame extends EditorPlugin {
     // Public members
     public iframe: JQuery<HTMLIFrameElement> = null;
     public contentWindow: Window = null;
+
+    // Protected members
+    protected onChangeValue = (data: { baseObject?: any; object: any; property: string; value: any; initialValue: any; }) => this.updateValue(data);
     
     /**
      * Constructor
@@ -18,7 +22,8 @@ export default class PlayGame extends EditorPlugin {
      */
     public async close (): Promise<void> {
         $(this.divElement).empty();
-
+        this.editor.core.onGlobalPropertyChange.removeCallback(this.onChangeValue);
+        
         await super.close();
     }
 
@@ -34,6 +39,9 @@ export default class PlayGame extends EditorPlugin {
 
         this.contentWindow.addEventListener('blur', () => this.contentWindow['renderScene'] = false);
         this.contentWindow.addEventListener('focus', () => this.contentWindow['renderScene'] = true);
+
+        // Events
+        this.editor.core.onGlobalPropertyChange.add(this.onChangeValue);
     }
 
     /**
@@ -64,5 +72,50 @@ export default class PlayGame extends EditorPlugin {
                 resolve();
             };
         });
+    }
+
+    /**
+     * Updates the value in the preview page according to undo/redo
+     * @param data the data to undo-redo
+     */
+    protected updateValue (data: { baseObject?: any; object: any; property: string; value: any; initialValue: any; }): void {
+        if (!data.baseObject)
+            return;
+
+        // Get property
+        let additionalProperty: string = null;
+
+        if (data.baseObject[data.property] === undefined) {
+            for (const thing in data.baseObject) {
+                if (data.baseObject[thing] !== data.object)
+                    continue;
+                
+                additionalProperty = thing;
+                break;
+            }
+
+            if (!additionalProperty)
+                return;
+        }
+
+        const scene = <Scene> this.contentWindow['effectiveScene'];
+
+        const id = data.baseObject.id;
+        const obj = 
+            scene.getMeshByID(id) ||
+            scene.getMaterialByID(id) ||
+            scene.getLightByID(id) ||
+            scene.getCameraByID(id) ||
+            scene.getParticleSystemByID(id) ||
+            scene.getSkeletonById(id) ||
+            scene.getLensFlareSystemByID(id);
+
+        if (!obj)
+            return;
+
+        if (additionalProperty)
+            obj[additionalProperty][data.property] = data.value;
+        else
+            obj[data.property] = data.value;
     }
 }

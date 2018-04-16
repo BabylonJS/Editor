@@ -33,6 +33,7 @@
     <script type="text/javascript">
         // Accessible variables from parent window
         var renderScene = true;
+        var effectiveScene = null;
 
         // Opener or Parent ?
         if (!opener)
@@ -87,6 +88,8 @@
             Promise.all(promises).then(function () {
                 // Import scene
                 BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
+                    effectiveScene = scene;
+                    
                     System.import('./.build/src/extensions/extensions.js').then(function (extensions) {
                         // Apply
                         var readProject = function (project) {
