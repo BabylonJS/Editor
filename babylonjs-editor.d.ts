@@ -212,6 +212,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
 
 declare module 'babylonjs-editor/editor/tools/undo-redo' {
     export interface StackElement {
+            baseObject?: any;
             property?: string;
             to?: any;
             from?: any;
@@ -771,6 +772,7 @@ declare module 'babylonjs-editor/editor/core' {
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
             onGlobalPropertyChange: Observable<{
+                    baseObject?: any;
                     object: any;
                     property: string;
                     value: any;

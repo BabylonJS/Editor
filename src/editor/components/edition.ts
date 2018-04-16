@@ -173,7 +173,7 @@ export default class EditorEditionTools {
 
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
-                    UndoRedo.Push({ property: property, to: result, from: initialValue, object: object });
+                    UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
                 });
 
                 this.currentTools.push(t);
