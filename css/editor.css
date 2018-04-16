@@ -33,6 +33,14 @@ div.view-lines * {
     font-family: "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback" !important;
 }
 
+html, body {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 #renderCanvas {
     position: absolute;
     width: 100%;
