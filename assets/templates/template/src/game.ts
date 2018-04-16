@@ -27,7 +27,7 @@ export default class Game {
      */
     public run (): void {
         // Load Scene
-        SceneLoader.Load('./scene/', 'scene.babylon', this.engine, (scene: Scene) => {
+        SceneLoader.Load('./scene/', 'scene.{{scene_format}}', this.engine, (scene: Scene) => {
             this.scene = scene;
 
             // Attach camera

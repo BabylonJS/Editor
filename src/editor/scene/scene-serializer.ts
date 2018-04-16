@@ -2,7 +2,7 @@ import { Scene, Mesh } from 'babylonjs';
 import { GLTF2Export, OBJExport } from 'babylonjs-serializers';
 
 import Window from '../gui/window';
-import List from '../gui/list';
+import Form from '../gui/form';
 
 export default class SceneSerializer {
     /**
@@ -14,39 +14,52 @@ export default class SceneSerializer {
         const window = new Window('Scene Serializer');
         window.buttons = ['Ok', 'Cancel'];
         window.width = 400;
-        window.height = 125;
-        window.body = `
-            <div id="SCENE-SERIALIZER-WINDOW" style="width: 100%; height: 100%;">
-                <label>Format: </label><div id="SERIALIZER-FORMAT-LIST"></div>
-                <label>Name: </label><input type="text" />
-            </div>
-        `;
+        window.height = 165;
+        window.body = `<div id="SCENE-SERIALIZER-WINDOW" style="width: 100%; height: 100%"></div>`;
         window.open();
 
-        // Create dialog
-        const list = new List('Format List');
-        list.build($('#SERIALIZER-FORMAT-LIST')[0]);
-        list.setItems(['GLTF', 'GLB', 'OBJ']);
+        // Form
+        const form = new Form('SceneSerializer');
+        form.fields = [
+            { name: 'name', type: 'text', required: true },
+            { name: 'format', type: 'list', required: true, options: { items: ['GLB', 'GLTF', 'OBJ'] } }
+        ];
+        form.build('SCENE-SERIALIZER-WINDOW');
+
+        // Set default values
+        form.element.record['name'] = 'scene';
+        form.element.record['format'] = 'GLB';
+        form.element.refresh();
 
         // Events
         window.onButtonClick = (id) => {
+            window.close();
+
             if (id === 'Cancel')
-                return window.close();
+                return form.element.destroy();
 
-            debugger;
-            const selected = list.getSelected();
+            if (!form.isValid())
+                return;
+            
+            const name = form.element.record['name'];
+            const format = form.element.record['format'].id;
 
-            switch (selected) {
-                case 'GLB': GLTF2Export.GLB(scene, 'scene', { }).downloadFiles(); break;
-                case 'GLTF': GLTF2Export.GLTF(scene, 'scene', { }).downloadFiles(); break;
-                case 'OBJ':
-                    const obj = OBJExport.OBJ(<Mesh[]> scene.meshes, true);
-                    debugger;
-                    break;
-                default: return;
+            try {
+                switch (format) {
+                    case 'GLB': GLTF2Export.GLB(scene, name, { }).downloadFiles(); break;
+                    case 'GLTF': GLTF2Export.GLTF(scene, name, { }).downloadFiles(); break;
+                    case 'OBJ':
+                        const obj = OBJExport.OBJ(<Mesh[]> scene.meshes, true);
+                        debugger;
+                        break;
+                    default: return;
+                }
+            } catch (e) {
+                Window.CreateAlert(e.message, 'Error when exporting the scene');
             }
 
-            window.close();
+            // Clear
+            form.element.destroy();
         };
     }
 }
