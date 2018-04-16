@@ -10,6 +10,7 @@ import Picker from './editor/gui/picker';
 import Graph, { GraphNode } from './editor/gui/graph';
 import Window from './editor/gui/window';
 import CodeEditor from './editor/gui/code';
+import Form from './editor/gui/form';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
@@ -36,5 +37,6 @@ export {
     Picker,
     Graph, GraphNode,
     Window,
-    CodeEditor
+    CodeEditor,
+    Form
 }

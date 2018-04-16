@@ -18,11 +18,12 @@ declare module 'babylonjs-editor' {
     import Graph, { GraphNode } from 'babylonjs-editor/editor/gui/graph';
     import Window from 'babylonjs-editor/editor/gui/window';
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
+    import Form from 'babylonjs-editor/editor/gui/form';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { IExtension, ExtensionConstructor } from 'babylonjs-editor/editor/typings/extension';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor };
+    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -623,6 +624,36 @@ declare module 'babylonjs-editor/editor/gui/code' {
                     property: string;
                     baseEditor: CodeEditor;
             }): Promise<void>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/gui/form' {
+    export interface FormField {
+            name: string;
+            type: 'text' | 'float' | 'int' | 'alphanumeric' | 'enum' | 'list' | string;
+            required?: boolean;
+            options?: {
+                    items?: string[];
+            };
+    }
+    export default class Form {
+            element: W2UI.W2Form;
+            name: string;
+            fields: FormField[];
+            /**
+                * Constructor
+                * @param name the name of the form
+                */
+            constructor(name: string);
+            /**
+                * Returns if the form is valid
+                */
+            isValid(): boolean;
+            /**
+                * Builds the form
+                * @param parentId the parent id of the form
+                */
+            build(parentId: string): void;
     }
 }
 
