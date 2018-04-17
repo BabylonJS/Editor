@@ -20,6 +20,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'oimo': './node_modules/babylonjs/Oimo.js',
             "jstree": "./node_modules/jstree/dist/jstree.js",
             "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
+            "javascript-astar": "./node_modules/javascript-astar/astar.js",
 
             // Editor's modules paths
             'babylonjs-editor': './.build/src/index.js',
@@ -65,7 +66,7 @@ build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extens
 let externals = [
     'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
     'babylonjs-materials', 'dat-gui', 'extensions/extensions',
-    'jstree', 'golden-layout', 'jquery'
+    'jstree', 'golden-layout', 'jquery', 'javascript-astar'
 ];
 
 build('./.build/src/', './.build/src/index.js', './dist/editor.js', {

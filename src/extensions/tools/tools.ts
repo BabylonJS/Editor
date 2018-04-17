@@ -1,9 +1,11 @@
-import { FilesInput } from 'babylonjs';
+import { FilesInput, Mesh } from 'babylonjs';
 import Extensions from '../extensions';
 
 import CodeExtension from '../behavior/code';
 import PostProcessCreatorExtension from '../post-process-creator/post-process-creator';
 import MaterialCreatorExtension from '../material-creator/material-creator';
+
+import PathFinder from './path-finder';
 
 export default class Tools {
     /**
@@ -62,5 +64,19 @@ export default class Tools {
             return Extensions.RoolUrl + filename;
         
         return URL.createObjectURL(this.getFileByName(filename), { oneTimeOnly: oneTimeOnly });
+    }
+
+    /**
+     * Creates a new path finder
+     * @param with the astar graph's width
+     * @param height the astar graph's height
+     * @param mesh the mesh surface reference for the grid's nodes
+     */
+    public createPathFinder (width: number, height: number, mesh?: Mesh): PathFinder {
+        const pathFinder = new PathFinder(width, height);
+        if (mesh)
+            pathFinder.fill(mesh);
+
+        return pathFinder;
     }
 }
