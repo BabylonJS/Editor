@@ -1,11 +1,11 @@
-import { FilesInput, Mesh } from 'babylonjs';
+import { FilesInput, AbstractMesh } from 'babylonjs';
 import Extensions from '../extensions';
 
 import CodeExtension from '../behavior/code';
 import PostProcessCreatorExtension from '../post-process-creator/post-process-creator';
 import MaterialCreatorExtension from '../material-creator/material-creator';
 
-import PathFinder from './path-finder';
+import PathFinder from '../path-finder/path-finder';
 
 export default class Tools {
     /**
@@ -72,10 +72,10 @@ export default class Tools {
      * @param height the astar graph's height
      * @param mesh the mesh surface reference for the grid's nodes
      */
-    public createPathFinder (width: number, height: number, mesh?: Mesh): PathFinder {
-        const pathFinder = new PathFinder(width, height);
-        if (mesh)
-            pathFinder.fill(mesh);
+    public createPathFinder (size: number, meshes: AbstractMesh[] = []): PathFinder {
+        const pathFinder = new PathFinder(size);
+        if (meshes.length > 0)
+            pathFinder.fill(meshes);
 
         return pathFinder;
     }

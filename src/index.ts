@@ -11,6 +11,7 @@ import Graph, { GraphNode } from './editor/gui/graph';
 import Window from './editor/gui/window';
 import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
+import Edition from './editor/gui/edition';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
@@ -38,5 +39,6 @@ export {
     Graph, GraphNode,
     Window,
     CodeEditor,
-    Form
+    Form,
+    Edition
 }

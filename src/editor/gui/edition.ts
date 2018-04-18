@@ -32,8 +32,8 @@ export default class Edition {
      * @param target the target object
      * @param propName the property of the object
      */
-    public add (target: any, propName: string): dat.GUIController {
-        return this.element.add(target, propName);
+    public add (target: any, propName: string, other?: string[]): dat.GUIController {
+        return this.element.add(target, propName, other);
     }
 
     /**
