@@ -1,4 +1,4 @@
-import { AbstractMesh } from 'babylonjs';
+import { AbstractMesh, Mesh, Tags } from 'babylonjs';
 import Editor, {
     Layout,
     Edition,
@@ -31,7 +31,7 @@ export default class PathFinderEditor extends EditorPlugin {
 
     // Protected members
     protected canvas: HTMLCanvasElement = null;
-    protected pathSpheres: AbstractMesh[] = [];
+    protected pathCubes: AbstractMesh[] = [];
 
     protected onResize = () => this.layout.element.resize();
 
@@ -56,6 +56,9 @@ export default class PathFinderEditor extends EditorPlugin {
     public async close (): Promise<void> {
         this.grid.element.destroy();
         this.layout.element.destroy();
+
+        // Scene
+        this.pathCubes.forEach(c => c.dispose());
 
         // Events
         this.editor.core.onResize.removeCallback(this.onResize);
@@ -115,21 +118,24 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'PathFinderExtension');
+
+        // Build
+        if (this.data.castMeshes.length > 0)
+            this.buildPathFinder();
     }
 
     /**
      * On the user shows the plugin
      */
     public onShow (): void {
-        this.onResize();
-        this.pathSpheres.forEach(ps => ps.isVisible = false);
+        this.pathCubes.forEach(c => c.isVisible = true);
     }
 
     /**
      * On the user hides the plugin
      */
     public onHide (): void {
-        this.pathSpheres.forEach(ps => ps.isVisible = true);
+        this.pathCubes.forEach(c => c.isVisible = false);
     }
 
     /**
@@ -173,6 +179,32 @@ export default class PathFinderEditor extends EditorPlugin {
         }
 
         context.putImageData(data, 0, 0, 0, 0, p.width, p.height);
+
+        // Build spheres
+        this.pathCubes.forEach(c => c.dispose());
+        this.pathCubes = [];
+        
+        let cube: AbstractMesh = null;
+        let cubeMesh: Mesh = null;
+
+        for (let i = 0; i < p.points.length; i++) {
+            const point = p.points[i];
+            if (!point)
+                continue;
+            
+            if (!cubeMesh)
+                cubeMesh = cube = Mesh.CreateBox('sphere', 1, this.editor.core.scene, false);
+            else
+                cube = cubeMesh.createInstance('cube ' + i);
+            
+            cube.position = point;
+            Tags.AddTagsTo(cube, 'temp');
+            
+            this.pathCubes.push(cube);
+        }
+
+        if (cubeMesh)
+            cubeMesh.doNotSerialize = true;
     }
 
     /**

@@ -1,3 +1,5 @@
+import { Tags } from 'babylonjs';
+
 import Window from './window';
 import Grid, { GridRow } from './grid';
 
@@ -32,7 +34,7 @@ export default class Picker {
      * @param items: items to add
      */
     public addItems (items: PickerItem[]): void {
-        items.forEach(i => this.items.push(i.name || i.id));
+        items.forEach(i => !Tags.MatchesQuery(i, 'temp') && this.items.push(i.name || i.id));
     }
 
     /**

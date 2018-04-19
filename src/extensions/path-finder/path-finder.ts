@@ -46,10 +46,10 @@ export default class PathFinder {
      * @param from the start position (typically the position of the object to move)
      * @param to the end position (typically already known or pre-programmed)
      */
-    public fromTo (from: Vector3, to: Vector3): Vector3[] {
+    public fromTo (from: Vector3, to: Vector3, optimize: boolean = false): Vector3[] {
         // Compute coordinates to grid's coordinates
-        let fromIndex = 0;
-        let toIndex = 0;
+        let fromIndex = -1;
+        let toIndex = -1;
 
         for (let i = 0; i < this.points.length; i++) {
             const p = this.points[i];
@@ -58,19 +58,14 @@ export default class PathFinder {
             
             if (p.x === from.x && p.z === from.z) {
                 fromIndex = i;
-                break;
             }
-        }
 
-        for (let i = 0; i < this.points.length; i++) {
-            const p = this.points[i];
-            if (!p)
-                continue;
-            
             if (p.x === to.x && p.z === to.z) {
                 toIndex = i;
-                break;
             }
+
+            if (fromIndex !== -1 && toIndex !== -1)
+                break;
         }
 
         const sx = (fromIndex / this.width) >> 0;
@@ -80,29 +75,34 @@ export default class PathFinder {
         const ey = (toIndex % this.width) >> 0;
 
         // Get path
-        const path = astar.search(this.graph, this.graph.grid[sx][sy], this.graph.grid[ex][ey], { heuristic: astar.heuristics.diagonal, closest: true });
+        const path = astar.search(this.graph, this.graph.grid[ex][ey], this.graph.grid[sx][sy], { heuristic: astar.heuristics.diagonal, closest: true });
+        if (optimize) {
+            // TODO: optimize animations
+        }
 
         // Result
         const result: Vector3[] = [];
+
         path.forEach((p, index) => {
             if (!p['point'])
                 return;
             
-            result.push(new Vector3(p['point'].x, Scalar.Lerp(from.y, to.y, index / path.length), p['point'].y));
+            result.push(new Vector3(p['point'].x, Scalar.Lerp(from.y, to.y, index / path.length), p['point'].z));
         });
-        return result;
+
+        return result.reverse();
     }
 
     /**
      * Creates a new animation from the given path
      * @param path the path to set keys
      */
-    public createAnimation (path: Vector3[]): Animation {
-        const a = new Animation('PathFinderAnimation', 'position', 60, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_RELATIVE, false);
+    public createAnimation (name: string, path: Vector3[], framesPerSecond: number = 60): Animation {
+        const a = new Animation(name, 'position', framesPerSecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_RELATIVE, false);
         a.setKeys(path.map((p, index) => {
             return {
                 frame: index,
-                value: p
+                value: p.clone()
             }
         }));
 
@@ -128,7 +128,7 @@ export default class PathFinder {
             }
         });
 
-        return nearest;
+        return new Vector3(nearest.x, point.y, nearest.z);
     }
 
     /**
@@ -201,14 +201,14 @@ export default class PathFinder {
 
         // Create grah
         this.graph = new Graph(this.buffer, {
-            diagonal: false
+            diagonal: true
         });
 
         // Set points
         for (let x = 0; x < this.width; x++) {
             for (let y = 0; y < this.height; y++) {
                 const coord = (y * this.width + x);
-                this.graph.grid[x][y]['point'] = this.points[coord];
+                this.graph.grid[y][x]['point'] = this.points[coord];
             }
         }
     }
