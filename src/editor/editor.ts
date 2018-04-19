@@ -394,6 +394,13 @@ export default class Editor {
     private async _runPlugin (url: string, ...params: any[]): Promise<IEditorPlugin> {
         const plugin = await Tools.ImportScript<EditorPluginConstructor>(url);
         const args = [plugin.default, this].concat(params);
+
+        // Check first load
+        if (!plugin.default['_Loaded']) {
+            plugin.default['OnLoaded'](this);
+            plugin.default['_Loaded'] = true;
+        }
+
         const instance = new (Function.prototype.bind.apply(plugin.default, args));
 
         // Create DOM elements

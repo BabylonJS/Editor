@@ -13,6 +13,8 @@ import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
 
+import AbstractEditionTool from './editor/edition-tools/edition-tool';
+
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
 import { IExtension, ExtensionConstructor } from './editor/typings/extension';
@@ -40,5 +42,7 @@ export {
     Window,
     CodeEditor,
     Form,
-    Edition
+    Edition,
+
+    AbstractEditionTool
 }

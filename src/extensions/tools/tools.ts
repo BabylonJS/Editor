@@ -4,6 +4,7 @@ import Extensions from '../extensions';
 import CodeExtension from '../behavior/code';
 import PostProcessCreatorExtension from '../post-process-creator/post-process-creator';
 import MaterialCreatorExtension from '../material-creator/material-creator';
+import PathFinderExtension from '../path-finder/index';
 
 import PathFinder from '../path-finder/path-finder';
 
@@ -67,16 +68,14 @@ export default class Tools {
     }
 
     /**
-     * Creates a new path finder
-     * @param with the astar graph's width
-     * @param height the astar graph's height
-     * @param mesh the mesh surface reference for the grid's nodes
+     * Returns the given path finder according to the given name
+     * @param name the name of the path finder
      */
-    public createPathFinder (size: number, meshes: AbstractMesh[] = []): PathFinder {
-        const pathFinder = new PathFinder(size);
-        if (meshes.length > 0)
-            pathFinder.fill(meshes);
+    public getPathFinder (name: string): PathFinder {
+        const ext = <PathFinderExtension> Extensions.Instances['PathFinderExtension'];
+        if (!ext)
+            return null;
 
-        return pathFinder;
+        return ext.instances[name];
     }
 }

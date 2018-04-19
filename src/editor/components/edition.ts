@@ -141,6 +141,8 @@ export default class EditorEditionTools {
             onClick: (event) => this.changeTab(event.target)
         });
 
+        this.tabs.hide(tool.tabName);
+
         // Add & configure tool
         tool.editor = this.editor;
         this.tools.push(tool);

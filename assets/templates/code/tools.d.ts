@@ -22,5 +22,5 @@ interface BehaviorCodeTools {
     getCustomPostProcess (name: string): ICustomPostProcess;
     getFileByName (name: string): File;
     getFileUrl (filename: string): string;
-    createPathFinder (mesh?: BABYLON.Mesh): any;
+    getPathFinder (name: string): PathFinder;
 }
