@@ -71,6 +71,7 @@ export default class CodeEditor {
                 'node_modules/babylonjs-materials/babylonjs.materials.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
                 'assets/templates/post-process-creator/custom-post-process.d.ts',
+                'assets/templates/code/path-finder.d.ts',
                 'assets/templates/code/tools.d.ts',
                 'assets/templates/code/mobile.d.ts'
             ];

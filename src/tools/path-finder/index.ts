@@ -9,9 +9,13 @@ import Editor, {
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
+
 import { PathFinderMetadata } from '../../extensions/path-finder/index';
+import '../../extensions/path-finder/index';
 
 import PathFinder from '../../extensions/path-finder/path-finder';
+
+import PathFinderTool from './path-finder-tool';
 
 export interface PathFinderGrid extends GridRow {
     name: string;
@@ -20,21 +24,23 @@ export interface PathFinderGrid extends GridRow {
 export default class PathFinderEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
-    public edition: Edition = null;
     public grid: Grid<PathFinderGrid> = null;
 
+    public datas: PathFinderMetadata[] = [];
+    public data: PathFinderMetadata = null;
+
     // Protected members
-    protected datas: PathFinderMetadata[] = [];
-    protected data: PathFinderMetadata = null;
-
     protected canvas: HTMLCanvasElement = null;
-
     protected pathSpheres: AbstractMesh[] = [];
 
     protected onResize = () => this.layout.element.resize();
 
-    // Private members
-    private _selectedPathFinderName: string = '';
+    /**
+     * On load the extension for the first time
+     */
+    public static OnLoaded (editor: Editor): void {
+        editor.edition.addTool(new PathFinderTool());
+    }
 
     /**
      * Constructor
@@ -48,7 +54,6 @@ export default class PathFinderEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
-        this.edition.remove();
         this.grid.element.destroy();
         this.layout.element.destroy();
 
@@ -81,21 +86,17 @@ export default class PathFinderEditor extends EditorPlugin {
         // Create layout
         this.layout = new Layout('PathFinder');
         this.layout.panels = [
-            { type: 'left', content: '<div id="PATH-FINDER-EDITION" style="width: 100%; height: 100%;"></div>', size: 250, resizable: true },
-            { type: 'main', content: '<div id="PATH-FINDER-MESHES" style="width: 100%; height: 100%;"></div>', size: 100, resizable: true },
-            { type: 'right', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%;"></canvas>', resizable: true, size: undefined }
+            { type: 'left', content: '<div id="PATH-FINDER-MESHES" style="width: 100%; height: 100%;"></div>', size: '50%', resizable: true },
+            { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%;"></canvas>', resizable: true, size: '50%' }
         ];
         this.layout.build(this.divElement.id);
-
-        // Add edition
-        this.createEdition();
 
         // Add grid
         this.grid = new Grid<PathFinderGrid>('PathFinderGrid', {
             toolbarSearch: false,
             toolbarAdd: true,
             toolbarDelete: true,
-            toolbarEdit: false
+            toolbarEdit: true
         });
         this.grid.onAdd = () => this.onAdd();
         this.grid.onDelete = (id) => this.onDelete(id);
@@ -107,6 +108,7 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Get canvas
         this.canvas = <HTMLCanvasElement> $('#PATH-FINDER-PREVIEW')[0];
+        this.canvas.addEventListener('click', () => this.editor.edition.setObject(this));
 
         // Events
         this.editor.core.onResize.add(this.onResize);
@@ -131,38 +133,46 @@ export default class PathFinderEditor extends EditorPlugin {
     }
 
     /**
-     * Creates the edition
+     * Builds the current path finder
      */
-    protected createEdition (): void {
-        if (this.edition)
-            this.edition.remove();
+    public buildPathFinder (): void {
+        if (this.data.castMeshes.length === 0)
+            return;
         
-        this.edition = new Edition();
-        this.edition.build('PATH-FINDER-EDITION');
-
-        const folder = this.edition.addFolder('Configuration');
-        folder.open();
-
-        folder.add(this.data, 'name').name('Name');
-        folder.add(this.data, 'size').name('Size').onFinishChange(r => this.buildPathFinder());
-        folder.add(this.data, 'rayHeight').name('Ray Height').onFinishChange(r => this.buildPathFinder());
-        folder.add(this.data, 'rayLength').name('Ray Length').onFinishChange(r => this.buildPathFinder());
-
-        // Configuration list
-        this._selectedPathFinderName = this.data.name;
-
-        const other: string[] = [];
-        this.datas.forEach(d => other.push(d.name));
-        folder.add(this, '_selectedPathFinderName', other).name('Path Finder').onFinishChange(r => {
-            const data = this.datas.find(d => d.name === r);
-            if (!data)
-                return;
-            
-            this.data = data;
-
-            this.buildPathFinder();
-            this.createEdition();
+        const p = new PathFinder(this.data.size);
+        
+        // Get meshes
+        const meshes: AbstractMesh[] = [];
+        this.data.castMeshes.forEach(cm => {
+            const m = this.editor.core.scene.getMeshByName(cm);
+            if (m)
+                meshes.push(m);
         });
+
+        // Fill
+        if (meshes.length === 0)
+            return;
+        
+        p.fill(meshes, this.data.rayHeight, this.data.rayLength);
+
+        // Update canvas
+        this.canvas.width = p.width;
+        this.canvas.height = p.height;
+
+        const context = this.canvas.getContext('2d');
+        const data = context.getImageData(0, 0, this.data.size, this.data.size);
+
+        for (let x = 0; x < p.width; x++) {
+            for (let y = 0; y < p.height; y++) {
+                const coord = (y * p.width + x) * 4;
+                data.data[coord] = p.buffer[x][y] * 255;
+                data.data[coord + 1] = p.buffer[x][y] * 255;
+                data.data[coord + 2] = p.buffer[x][y] * 255;
+                data.data[coord + 3] = 255;
+            }
+        }
+
+        context.putImageData(data, 0, 0, 0, 0, p.width, p.height);
     }
 
     /**
@@ -207,48 +217,5 @@ export default class PathFinderEditor extends EditorPlugin {
         });
 
         this.buildPathFinder();
-    }
-
-    /**
-     * Builds the current path finder
-     */
-    protected buildPathFinder (): void {
-        if (this.data.castMeshes.length === 0)
-            return;
-        
-        const p = new PathFinder(this.data.size);
-        
-        // Get meshes
-        const meshes: AbstractMesh[] = [];
-        this.data.castMeshes.forEach(cm => {
-            const m = this.editor.core.scene.getMeshByName(cm);
-            if (m)
-                meshes.push(m);
-        });
-
-        // Fill
-        if (meshes.length === 0)
-            return;
-        
-        p.fill(meshes, this.data.rayHeight, this.data.rayLength);
-
-        // Update canvas
-        this.canvas.width = p.width;
-        this.canvas.height = p.height;
-
-        const context = this.canvas.getContext('2d');
-        const data = context.getImageData(0, 0, this.data.size, this.data.size);
-
-        for (let x = 0; x < p.width; x++) {
-            for (let y = 0; y < p.height; y++) {
-                const coord = (y * p.width + x) * 4;
-                data.data[coord] = p.buffer[x][y] * 255;
-                data.data[coord + 1] = p.buffer[x][y] * 255;
-                data.data[coord + 2] = p.buffer[x][y] * 255;
-                data.data[coord + 3] = 255;
-            }
-        }
-
-        context.putImageData(data, 0, 0, 0, 0, p.width, p.height);
     }
 }

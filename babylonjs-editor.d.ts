@@ -20,11 +20,12 @@ declare module 'babylonjs-editor' {
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
+    import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { IExtension, ExtensionConstructor } from 'babylonjs-editor/editor/typings/extension';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition };
+    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, AbstractEditionTool };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -738,6 +739,46 @@ declare module 'babylonjs-editor/editor/gui/edition' {
     }
 }
 
+declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
+    import Edition from 'babylonjs-editor/editor/gui/edition';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export interface IEditionTool<T> {
+            editor?: Editor;
+            divId: string;
+            tabName: string;
+            object: T;
+            tool: Edition;
+            update(object: T): void;
+            isSupported(object: any): boolean;
+    }
+    export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
+            editor: Editor;
+            object: T;
+            tool: Edition;
+            abstract divId: string;
+            abstract tabName: string;
+            /**
+                * Constructor
+                */
+            constructor();
+            /**
+                * Updates the edition tool
+                * @param object: the object to edit
+                */
+            update(object: T): void;
+            /**
+                * Sets the name of the tool's tab
+                * @param name the new name of the tab
+                */
+            protected setTabName(name: string): void;
+            /**
+                * Returns if the object is supported by the edition tool
+                * @param object: the object to test
+                */
+            abstract isSupported(object: any): boolean;
+    }
+}
+
 declare module 'babylonjs-editor/editor/typings/typings' {
     export interface IStringDictionary<T> {
         [index: string]: T;
@@ -797,6 +838,11 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 * @param hide the panels to hide
                 */
             protected resizeLayout(layout: Layout, keep: string[], hide: string[]): void;
+            /**
+                * On load the extension for the first time
+                */
+            static OnLoaded(editor: Editor): void;
+            static _Loaded: boolean;
     }
 }
 
@@ -1297,46 +1343,6 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param parentId the parent id
                 */
             build(parentId: string): void;
-    }
-}
-
-declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
-    import Edition from 'babylonjs-editor/editor/gui/edition';
-    import Editor from 'babylonjs-editor/editor/editor';
-    export interface IEditionTool<T> {
-            editor?: Editor;
-            divId: string;
-            tabName: string;
-            object: T;
-            tool: Edition;
-            update(object: T): void;
-            isSupported(object: any): boolean;
-    }
-    export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
-            editor: Editor;
-            object: T;
-            tool: Edition;
-            abstract divId: string;
-            abstract tabName: string;
-            /**
-                * Constructor
-                */
-            constructor();
-            /**
-                * Updates the edition tool
-                * @param object: the object to edit
-                */
-            update(object: T): void;
-            /**
-                * Sets the name of the tool's tab
-                * @param name the new name of the tab
-                */
-            protected setTabName(name: string): void;
-            /**
-                * Returns if the object is supported by the edition tool
-                * @param object: the object to test
-                */
-            abstract isSupported(object: any): boolean;
     }
 }
 

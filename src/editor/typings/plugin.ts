@@ -74,4 +74,12 @@ export abstract class EditorPlugin implements IEditorPlugin {
             hide.forEach(h => layout.element.hide(h));
         }
     }
+
+    /**
+     * On load the extension for the first time
+     */
+    public static OnLoaded (editor: Editor): void
+    { }
+
+    public static _Loaded: boolean = false;
 }
