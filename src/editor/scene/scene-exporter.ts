@@ -7,7 +7,7 @@ import {
     ActionManager,
     ParticleSystem
 } from 'babylonjs';
-import { GLTF2Export, _GLTFData } from 'babylonjs-serializers';
+import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
 import SceneManager from './scene-manager';
 
@@ -123,7 +123,7 @@ export default class SceneExporter {
                 sceneFiles.push({ name: 'scene.babylon', data: await Tools.ReadFileAsArrayBuffer(editor.sceneFile) });
             }
             else {
-                let data: _GLTFData = null;
+                let data: GLTFData = null;
 
                 try {
                     switch (this.ProjectExportFormat) {
