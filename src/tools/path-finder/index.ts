@@ -142,8 +142,17 @@ export default class PathFinderEditor extends EditorPlugin {
      * Builds the current path finder
      */
     public buildPathFinder (): void {
-        if (this.data.castMeshes.length === 0)
+        this.pathCubes.forEach(c => c.dispose());
+        this.pathCubes = [];
+
+        const context = this.canvas.getContext('2d');
+        
+        // No meshes
+        if (this.data.castMeshes.length === 0) {
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, this.canvas.width, this.canvas.height);
             return;
+        }
         
         const p = new PathFinder(this.data.size);
         
@@ -165,7 +174,6 @@ export default class PathFinderEditor extends EditorPlugin {
         this.canvas.width = p.width;
         this.canvas.height = p.height;
 
-        const context = this.canvas.getContext('2d');
         const data = context.getImageData(0, 0, this.data.size, this.data.size);
 
         for (let x = 0; x < p.width; x++) {

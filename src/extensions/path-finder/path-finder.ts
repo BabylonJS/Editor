@@ -83,12 +83,13 @@ export default class PathFinder {
         // Result
         const result: Vector3[] = [];
 
-        path.forEach((p, index) => {
+        for (let i = 0; i < path.length; i++) {
+            const p = path[i];
             if (!p['point'])
                 return;
             
-            result.push(new Vector3(p['point'].x, Scalar.Lerp(from.y, to.y, index / path.length), p['point'].z));
-        });
+            result.push(new Vector3(p['point'].x, Scalar.Lerp(from.y, to.y, i / path.length), p['point'].z));
+        }
 
         return result.reverse();
     }
@@ -99,12 +100,14 @@ export default class PathFinder {
      */
     public createAnimation (name: string, path: Vector3[], framesPerSecond: number = 60): Animation {
         const a = new Animation(name, 'position', framesPerSecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_RELATIVE, false);
-        a.setKeys(path.map((p, index) => {
-            return {
-                frame: index,
-                value: p.clone()
+        const keys = new Array(path.length);
+
+        for (let i = 0; i < path.length; i++) {
+            keys[i] = {
+                frame: i,
+                value: path[i]
             }
-        }));
+        }
 
         return a;
     }
@@ -117,7 +120,8 @@ export default class PathFinder {
         let lastDistance = Number.MAX_VALUE;
         let nearest = point;
 
-        this.points.forEach(p => {
+        for (let i = 0; i < this.points.length; i++) {
+            const p = this.points[i];
             if (!p)
                 return;
             
@@ -126,7 +130,7 @@ export default class PathFinder {
                 lastDistance = d;
                 nearest = p;
             }
-        });
+        }
 
         return new Vector3(nearest.x, point.y, nearest.z);
     }
