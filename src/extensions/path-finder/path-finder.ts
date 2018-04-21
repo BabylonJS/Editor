@@ -1,4 +1,4 @@
-import { Vector2, Vector3, Ray, BoundingInfo, Scalar, AbstractMesh, Animation } from 'babylonjs';
+import { Vector2, Vector3, Ray, BoundingInfo, Scalar, AbstractMesh, Animation, IAnimationKey } from 'babylonjs';
 import 'javascript-astar';
 
 export default class PathFinder {
@@ -55,7 +55,7 @@ export default class PathFinder {
             const p = this.points[i];
             if (!p)
                 continue;
-            
+
             if (p.x === from.x && p.z === from.z) {
                 fromIndex = i;
             }
@@ -77,7 +77,13 @@ export default class PathFinder {
         // Get path
         const path = astar.search(this.graph, this.graph.grid[ex][ey], this.graph.grid[sx][sy], { heuristic: astar.heuristics.diagonal, closest: true });
         if (optimize) {
-            // TODO: optimize animations
+            // Optimize animation (linear)
+            for (let i = path.length - 3; i >= 0; --i) {
+                while (path.length - i >= 3) {
+                    if (!this._removeAnimationKey(path, i))
+                        break;
+                }
+            }
         }
 
         // Result
@@ -100,14 +106,12 @@ export default class PathFinder {
      */
     public createAnimation (name: string, path: Vector3[], framesPerSecond: number = 60): Animation {
         const a = new Animation(name, 'position', framesPerSecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_RELATIVE, false);
-        const keys = new Array(path.length);
+        const keys = new Array<IAnimationKey>(path.length);
 
-        for (let i = 0; i < path.length; i++) {
-            keys[i] = {
-                frame: i,
-                value: path[i]
-            }
-        }
+        for (let i = 0; i < path.length; i++)
+            keys[i] = { frame: i, value: path[i] }
+
+        a.setKeys(keys);
 
         return a;
     }
@@ -123,8 +127,8 @@ export default class PathFinder {
         for (let i = 0; i < this.points.length; i++) {
             const p = this.points[i];
             if (!p)
-                return;
-            
+                continue;
+
             const d = Vector3.Distance(p, point);
             if (d < lastDistance) {
                 lastDistance = d;
@@ -215,5 +219,30 @@ export default class PathFinder {
                 this.graph.grid[y][x]['point'] = this.points[coord];
             }
         }
+    }
+
+    // Removes an animation key (used by optimize animation)
+    private _removeAnimationKey = (path: GridNode[], i: number): boolean => {
+        const first = <Vector3> path[i]['point'];
+        const middle = <Vector3> path[i + 1]['point'];
+        const last = <Vector3> path[i + 2]['point'];
+
+        if (first.equals(last) && first.equals(middle)) {
+            path.splice(i + 1, 1);
+            return true;
+        }
+
+        const computedMiddleValue = new Vector3(
+            first.x * 0.5 + last.x * 0.5,
+            first.y * 0.5 + last.y * 0.5,
+            first.z * 0.5 + last.z * 0.5
+        );
+
+        if (computedMiddleValue.equals(middle)) {
+            path.splice(i + 1, 1);
+            return true;
+        }
+
+        return false;
     }
 }
