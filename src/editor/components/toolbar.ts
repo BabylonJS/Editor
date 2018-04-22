@@ -61,9 +61,9 @@ export default class EditorToolbar {
                     { type: 'break ' },
                     { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
                     { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' },
-                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' }
-                    // { type: 'break' },
-                    // { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
+                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' },
+                    { type: 'break' },
+                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
                 ]
             },
             { type: 'break' },

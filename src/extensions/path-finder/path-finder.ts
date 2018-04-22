@@ -10,6 +10,7 @@ export default class PathFinder {
 
     public buffer: number[][];
     public points: Vector3[] = [];
+    public availablePoints: Vector3[] = [];
 
     // Protected members
     protected boundingInfo: BoundingInfo;
@@ -219,6 +220,9 @@ export default class PathFinder {
                 this.graph.grid[y][x]['point'] = this.points[coord];
             }
         }
+
+        // Available points
+        this.availablePoints = this.points.filter(p => p !== null);
     }
 
     // Removes an animation key (used by optimize animation)
