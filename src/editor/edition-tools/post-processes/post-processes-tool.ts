@@ -163,7 +163,11 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 SceneManager.SSAORenderingPipeline = pipeline;
             }
 
+            // Update tool
             this.update(scene);
+
+            // Check if extension is created
+            this._checkExtension();
         });
 
         if (this._ssaoEnabled) {
@@ -195,7 +199,11 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 SceneManager.SSAO2RenderingPipeline = pipeline;
             }
 
+            // Update tool
             this.update(scene);
+
+            // Check if extension is created
+            this._checkExtension();
         });
 
         if (this._ssao2Enabled) {
