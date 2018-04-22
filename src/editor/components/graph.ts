@@ -84,6 +84,12 @@ export default class EditorGraph {
             return false;
         };
 
+        // Search
+        const search = $('#SCENE-GRAPH-SEARCH');
+        search.keyup(() => {
+            this.tree.search(<string> search.val());
+        });
+
         // Observer
         this.editor.core.onSelectObject.add((node: Node) => node && this.tree.select(node.id));
     }

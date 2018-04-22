@@ -144,6 +144,14 @@ export default class Tree {
     }
 
     /**
+     * Search nodes fitting the given value
+     * @param value the value to search
+     */
+    public search (value: string): void {
+        this.element.jstree().search(value);
+    }
+
+    /**
      * Builds the tree
      * @param parentId the parent id
      */
