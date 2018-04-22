@@ -100,7 +100,10 @@ export default class Editor {
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
                         { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10 }
                     ] },
-                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: '<div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>' }
+                    { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
+                        <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
+                        <div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>`
+                    }
                 ]
             }]
         }];
@@ -500,7 +503,8 @@ export default class Editor {
                     Tools.ImportScript('behavior-editor'),
                     Tools.ImportScript('material-creator'),
                     Tools.ImportScript('post-process-creator'),
-                    Tools.ImportScript('post-processes')
+                    Tools.ImportScript('post-processes'),
+                    Tools.ImportScript('path-finder')
                 ]);
 
                 this.layout.unlockPanel('main');

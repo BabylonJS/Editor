@@ -134,3 +134,10 @@ build('./.build/src/', './.build/src/tools/play-game/index.js', './dist/play-gam
     externals: externals,
     minify: true
 });
+
+build('./.build/src/', './.build/src/tools/path-finder/index.js', './dist/path-finder.js', {
+    globalName: 'PathFinder',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
