@@ -20,12 +20,14 @@ declare module 'babylonjs-editor' {
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
+    import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { IExtension, ExtensionConstructor } from 'babylonjs-editor/editor/typings/extension';
+    import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, AbstractEditionTool };
+    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -150,7 +152,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * Creates an open file dialog
                 * @param callback called once the user selects files
                 */
-            static OpenFileDialog(callback: (files: File[]) => void): void;
+            static OpenFileDialog(callback?: (files: File[]) => void): Promise<File[]>;
             /**
                 * Returns the base url of the window
                 */
@@ -739,6 +741,99 @@ declare module 'babylonjs-editor/editor/gui/edition' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/tree' {
+    import 'jstree';
+    export interface TreeNode {
+            id: string;
+            text: string;
+            img?: string;
+            data?: any;
+    }
+    export interface ContextMenuItem {
+            id: string;
+            text: string;
+            callback: () => void;
+            img?: string;
+    }
+    export default class Tree {
+            name: string;
+            element: JSTree;
+            onClick: <T>(id: string, data: T) => void;
+            onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+            onMenuClick: <T>(id: string, node: TreeNode) => void;
+            onCanDrag: <T>(id: string, data: T) => boolean;
+            onDrag: <T, U>(node: T, parent: U) => boolean;
+            protected currentSelectedNode: string;
+            protected moving: boolean;
+            /**
+                * Constructor
+                * @param name the tree name
+                */
+            constructor(name: string);
+            /**
+                * Clear the tree
+                * @param root: the root node from where to remove children. If undefined, root is taken
+                */
+            clear(root?: string): void;
+            /**
+                * Adds the given node to the tree
+                * @param node: the node to add into the tree
+                * @param parent: the optional parent of the node
+                */
+            add(node: TreeNode, parent?: string): TreeNode;
+            /**
+                * Deletes the given node
+                * @param id the id of the node
+                */
+            remove(id: string): void;
+            /**
+                * Selects the given node
+                * @param id the id of the node to select
+                */
+            select(id: string): void;
+            /**
+                * Returns the selected node
+                */
+            getSelected(): TreeNode;
+            /**
+                * Get the given node
+                * @param id the id of the node to get
+                */
+            get(id: string): TreeNode;
+            /**
+                * Renames the given node
+                * @param id the node's id
+                * @param name the new name of the node
+                */
+            rename(id: string, name: string): void;
+            /**
+                * Expands the given node
+                * @param id the id of the node to expand
+                */
+            expand(id: string): void;
+            /**
+                * Set parent of the given node (id)
+                * @param id the id of the node
+                * @param parentId the parent id
+                */
+            setParent(id: string, parentId: string): void;
+            /**
+                * Search nodes fitting the given value
+                * @param value the value to search
+                */
+            search(value: string): void;
+            /**
+                * Destroys the tree
+                */
+            destroy(): void;
+            /**
+                * Builds the tree
+                * @param parentId the parent id
+                */
+            build(parentId: string): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -872,6 +967,134 @@ declare module 'babylonjs-editor/editor/typings/extension' {
             onLoad?(data: T, editor?: Editor): void;
     }
     export type ExtensionConstructor<T> = new (scene: Scene) => IExtension<T>;
+}
+
+declare module 'babylonjs-editor/editor/typings/project' {
+    import { Vector2, Vector3, Quaternion, Color3, Scene, Material, RenderTargetTexture, ReflectionProbe } from 'babylonjs';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    /**
+     * Animations
+     */
+    export interface AnimationEventValue {
+        property?: string;
+        value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion;
+    }
+    export interface AnimationEvent {
+        type: string;
+        target: Node | Scene;
+        value: AnimationEventValue;
+    }
+    export interface AnimationEventFrame {
+        frame: number;
+        events: AnimationEvent[];
+    }
+    export interface Animation {
+        targetName: string;
+        targetType: string;
+        serializationObject: any;
+        events: AnimationEventFrame[];
+    }
+    /**
+     *  Global animation configuration of the project
+     */
+    export interface AnimationConfigurationOnPlay {
+        type: string;
+        name: string;
+    }
+    export interface AnimationConfiguration {
+        globalAnimationSpeed: number;
+        animatedAtLaunch: AnimationConfigurationOnPlay[];
+        framesPerSecond: number;
+    }
+    /**
+     * Custom Materials (sky, gradient, water, etc.)
+     */
+    export interface ProjectMaterial {
+        serializedValues: any;
+        meshesNames?: string[];
+        newInstance?: boolean;
+        _babylonMaterial?: Material;
+    }
+    /**
+     * Custom physics impostors
+     */
+    export interface PhysicsImpostor {
+        physicsMass: number;
+        physicsFriction: number;
+        physicsRestitution: number;
+        physicsImpostor: number;
+    }
+    /**
+     * Modified nodes in the editor (custom animations, for custom materials, etc.)
+     */
+    export interface Node {
+        name: string;
+        id: string;
+        type: string;
+        animations: Animation[];
+        actions?: any;
+        physics?: PhysicsImpostor;
+        serializationObject?: any;
+    }
+    /**
+     * Custom particle systems
+     */
+    export interface ParticleSystem {
+        hasEmitter: boolean;
+        serializationObject: any;
+        emitterPosition?: number[];
+    }
+    /**
+     * Post-processes
+     */
+    export interface PostProcess {
+        serializationObject: any;
+    }
+    /**
+     * Lens Flares
+     */
+    export interface LensFlare {
+        serializationObject: any;
+    }
+    /**
+     * Render targets
+     */
+    export interface RenderTarget {
+        isProbe: boolean;
+        serializationObject: any;
+        waitingTexture?: RenderTargetTexture | ReflectionProbe;
+    }
+    /**
+     * Sounds
+     */
+    export interface Sound {
+        name: string;
+        serializationObject: any;
+    }
+    export interface EffectLayer {
+        name: string;
+        serializationObject: any;
+    }
+    /**
+     * Root object of project
+     */
+    export interface ProjectRoot {
+        globalConfiguration: AnimationConfiguration;
+        materials: ProjectMaterial[];
+        particleSystems: ParticleSystem[];
+        nodes: Node[];
+        shadowGenerators: any[];
+        postProcesses: PostProcess[];
+        lensFlares: LensFlare[];
+        renderTargets: RenderTarget[];
+        sounds: Sound[];
+        actions: any;
+        physicsEnabled: boolean;
+        effectLayers: EffectLayer[];
+        requestedMaterials?: string[];
+        customMetadatas?: IStringDictionary<any>;
+        gui: any[];
+    }
 }
 
 declare module 'babylonjs-editor/editor/core' {
@@ -1259,95 +1482,6 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 * @param url: the url of the texture
                 */
             protected createTexture(url: string): Texture;
-    }
-}
-
-declare module 'babylonjs-editor/editor/gui/tree' {
-    import 'jstree';
-    export interface TreeNode {
-            id: string;
-            text: string;
-            img?: string;
-            data?: any;
-    }
-    export interface ContextMenuItem {
-            id: string;
-            text: string;
-            callback: () => void;
-            img?: string;
-    }
-    export default class Tree {
-            name: string;
-            element: JSTree;
-            onClick: <T>(id: string, data: T) => void;
-            onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
-            onMenuClick: <T>(id: string, node: TreeNode) => void;
-            onCanDrag: <T>(id: string, data: T) => boolean;
-            onDrag: <T, U>(node: T, parent: U) => boolean;
-            protected currentSelectedNode: string;
-            protected moving: boolean;
-            /**
-                * Constructor
-                * @param name the tree name
-                */
-            constructor(name: string);
-            /**
-                * Clear the tree
-                * @param root: the root node from where to remove children. If undefined, root is taken
-                */
-            clear(root?: string): void;
-            /**
-                * Adds the given node to the tree
-                * @param node: the node to add into the tree
-                * @param parent: the optional parent of the node
-                */
-            add(node: TreeNode, parent?: string): TreeNode;
-            /**
-                * Deletes the given node
-                * @param id the id of the node
-                */
-            remove(id: string): void;
-            /**
-                * Selects the given node
-                * @param id the id of the node to select
-                */
-            select(id: string): void;
-            /**
-                * Returns the selected node
-                */
-            getSelected(): TreeNode;
-            /**
-                * Get the given node
-                * @param id the id of the node to get
-                */
-            get(id: string): TreeNode;
-            /**
-                * Renames the given node
-                * @param id the node's id
-                * @param name the new name of the node
-                */
-            rename(id: string, name: string): void;
-            /**
-                * Expands the given node
-                * @param id the id of the node to expand
-                */
-            expand(id: string): void;
-            /**
-                * Set parent of the given node (id)
-                * @param id the id of the node
-                * @param parentId the parent id
-                */
-            setParent(id: string, parentId: string): void;
-            /**
-                * Search nodes fitting the given value
-                * @param value the value to search
-                */
-            search(value: string): void;
-            /**
-                * Builds the tree
-                * @param parentId the parent id
-                */
-            build(parentId: string): void;
     }
 }
 
