@@ -103,9 +103,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.grid.build('CODE-BEHAVIOR-LIST');
 
         // Add code editor
+        this.layout.lockPanel('main');
         this.code = await this.createEditor();
         this.template = await Tools.LoadFile<string>('./assets/templates/code/code.txt', false);
-
+        this.layout.unlockPanel('main');
+        
         // Events
         this.editor.core.onSelectObject.add(this.onSelectObject);
         this.editor.core.onResize.add(this.onResize);
