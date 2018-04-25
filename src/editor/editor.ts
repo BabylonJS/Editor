@@ -343,8 +343,12 @@ export default class Editor {
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
         // Traditional WASD controls
-        this.camera.keysUp.push(87); //  "W"
+        this.camera.keysUp.push(87); // "W"
+        this.camera.keysUp.push(90); // "Z"
+
         this.camera.keysLeft.push(65); //"A"
+        this.camera.keysLeft.push(81); // "Q"
+        
         this.camera.keysDown.push(83); //"S"
         this.camera.keysRight.push(68) //"D"
 
