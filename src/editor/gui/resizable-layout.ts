@@ -177,6 +177,9 @@ export default class ResizableLayout {
                             return (firstShow = false);
                         
                         c.onClick && c.onClick();
+
+                        // Hack hack hack, makes resize working better
+                        window.dispatchEvent(new Event('resize'));
                     });
                 });
             }
