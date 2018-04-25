@@ -152,6 +152,13 @@ export default class Tree {
     }
 
     /**
+     * Destroys the tree
+     */
+    public destroy (): void {
+        this.element.jstree().destroy(false);
+    }
+
+    /**
      * Builds the tree
      * @param parentId the parent id
      */

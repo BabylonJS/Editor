@@ -12,12 +12,15 @@ import Window from './editor/gui/window';
 import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
+import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
 import { IExtension, ExtensionConstructor } from './editor/typings/extension';
+
+import { ProjectRoot } from './editor/typings/project';
 
 export default Editor;
 export {
@@ -43,6 +46,9 @@ export {
     CodeEditor,
     Form,
     Edition,
+    Tree, ContextMenuItem, TreeNode,
 
-    AbstractEditionTool
+    AbstractEditionTool,
+
+    ProjectRoot
 }

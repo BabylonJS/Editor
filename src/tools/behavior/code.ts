@@ -12,9 +12,13 @@ import Editor, {
     Toolbar,
     Grid, GridRow,
     CodeEditor,
+    Tree,
+    Window as Popin,
 
     EditorPlugin,
-    IDisposable   
+    IDisposable,
+
+    ProjectRoot
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
@@ -86,7 +90,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
-        this.toolbar.items = [{ id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' }];
+        this.toolbar.items = [{ id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }];
+        this.toolbar.onClick = (id) => this.toolbarClicked(id);
         this.toolbar.build('CODE-BEHAVIOR-TOOLBAR');
 
         // Add grid
@@ -128,10 +133,27 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     }
 
     /**
+     * On the user clicks on the toolbar
+     * @param id the clocked id
+     */
+    protected async toolbarClicked (id: string): Promise<void> {
+        switch (id) {
+            // Add
+            case 'import':
+                await this._importFrom();
+                break;
+            default: break;
+        }
+    }
+
+    /**
      * On the user selects a node in the editor
      * @param node the selected node
      */
     protected selectObject (node: Node | Scene): void {
+        if (!node)
+            return;
+        
         this.node = node;
         node.metadata = node.metadata || { };
 
@@ -255,5 +277,68 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         popup.addEventListener('beforeunload', () => {
             CodeEditor.RemoveExtraLib(popup);
         });
+    }
+
+    // Imports code from
+    private async _importFrom(): Promise<void> {
+        const files = await Tools.OpenFileDialog();
+        for (const f of files) {
+            if (Tools.GetFileExtension(f.name) !== 'editorproject')
+                continue;
+
+            // Read and parse
+            const content = await Tools.ReadFileAsText(f);
+            const project = <ProjectRoot> JSON.parse(content);
+
+            if (!project.customMetadatas || !project.customMetadatas.BehaviorExtension)
+                continue;
+
+            const codes = <BehaviorMetadata[]> project.customMetadatas.BehaviorExtension;
+
+            // Create window
+            const window = new Popin('ImportBehaviorCode');
+            window.title = 'Import Custom Script...';
+            window.body = `<div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%;"></div>`;
+            window.buttons = ['Ok', 'Cancel'];
+            window.open();
+
+            // Create tree and fill
+            const tree = new Tree('ImportBehaviorTree');
+            tree.build('IMPORT-BEHAVIOR-CODE');
+
+            codes.forEach(c => {
+                if (c.metadatas.length === 0)
+                    return;
+                
+                tree.add({ data: c, id: c.node, text: c.node, img: 'icon-mesh' });
+
+                c.metadatas.forEach(m => {
+                    tree.add({ data: m, id: c.node + m.name, text: m.name, img: 'icon-behavior-editor' }, c.node)
+                });
+            });
+
+            // On click on 'Ok', import script(s) and update grid
+            window.onButtonClick = (id) => {
+                const selected = tree.getSelected();
+                tree.destroy();
+
+                if (!selected || id === 'Cancel')
+                    return window.close();
+
+                const metadatas = selected.data.node ? selected.data.metadatas : [selected.data];
+
+                metadatas.forEach(m => {
+                    this.datas.metadatas.push({
+                        active: m.active,
+                        code: m.code,
+                        name: m.name
+                    });
+                });
+
+                window.close();
+
+                this.selectObject(this.node);
+            };
+        }
     }
 }

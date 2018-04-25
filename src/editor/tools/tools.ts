@@ -120,15 +120,19 @@ export default class Tools {
      * Creates an open file dialog
      * @param callback called once the user selects files
      */
-    public static OpenFileDialog (callback: (files: File[]) => void): void {
-        const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
-        input.type = 'file';
-        input.multiple = true;
-        input.onchange = async (ev: Event) => {
-            callback(<File[]> ev.target['files']);
-            input.remove();
-        };
-        input.click();
+    public static OpenFileDialog (callback?: (files: File[]) => void): Promise<File[]> {
+        return new Promise((resolve, reject) => {
+            const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
+            input.type = 'file';
+            input.multiple = true;
+            input.onchange = (ev: Event) => {
+                callback && callback(<File[]> ev.target['files']);
+                input.remove();
+
+                resolve(ev.target['files']);
+            };
+            input.click();
+        });
     }
 
     /**
