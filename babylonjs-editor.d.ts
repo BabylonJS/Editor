@@ -1339,6 +1339,11 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 */
             setParent(id: string, parentId: string): void;
             /**
+                * Search nodes fitting the given value
+                * @param value the value to search
+                */
+            search(value: string): void;
+            /**
                 * Builds the tree
                 * @param parentId the parent id
                 */
