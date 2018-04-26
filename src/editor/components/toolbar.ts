@@ -61,9 +61,9 @@ export default class EditorToolbar {
                     { type: 'break ' },
                     { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
                     { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' },
-                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' },
-                    { type: 'break' },
-                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
+                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' }
+                    // { type: 'break' },
+                    // { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
                 ]
             },
             { type: 'break' },
@@ -76,6 +76,13 @@ export default class EditorToolbar {
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
                     { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
+                    { id: 'cube', img: 'icon-box-mesh', text: 'Cube Mesh' },
+                    { id: 'sphere', img: 'icon-sphere-mesh', text: 'Sphere Mesh' },
+                    { type: 'break' },
+                    { id: 'point-light', img: 'icon-light', text: 'Point Light' },
+                    { id: 'directional-light', img: 'icon-directional-light', text: 'Directional Light' },
+                    { id: 'spot-light', img: 'icon-directional-light', text: 'Spot Light' },
+                    { id: 'hemispheric-light', img: 'icon-light', text: 'Hemispheric Light' },
                     { type: 'break' },
                     { id: 'sound', img: 'icon-sound', text: 'Sound' }
                 ]
@@ -188,8 +195,29 @@ export default class EditorToolbar {
             case 'add:water':
                 SceneFactory.CreateWaterEffect(this.editor);
                 break;
+            
             case 'add:ground':
                 SceneFactory.CreateGroundMesh(this.editor);
+                break;
+            case 'add:cube':
+                SceneFactory.CreateCube(this.editor);
+                break;
+            case 'add:sphere':
+                SceneFactory.CreateSphere(this.editor);
+                break;
+
+
+            case 'add:point-light':
+                SceneFactory.CreateLight(this.editor, 'point');
+                break;
+            case 'add:directional-light':
+                SceneFactory.CreateLight(this.editor, 'directional');
+                break;
+            case 'add:spot-light':
+                SceneFactory.CreateLight(this.editor, 'spot');
+                break;
+            case 'add:hemispheric-light':
+                SceneFactory.CreateLight(this.editor, 'hemispheric');
                 break;
             
             case 'add:sound':

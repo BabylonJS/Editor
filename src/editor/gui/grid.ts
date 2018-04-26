@@ -124,7 +124,7 @@ export default class Grid<T extends GridRow> {
             name: this.name,
             columns: this.columns,
 
-            header: this.options.header !== '',
+            header: this.options.header,
             fixedBody: true,
             keyboard: false,
 

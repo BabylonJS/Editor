@@ -7,7 +7,8 @@ import {
     GroundMesh,
     Tags, Tools as BabylonTools,
     Sound,
-    FilesInput
+    FilesInput,
+    Light, PointLight, DirectionalLight, SpotLight, HemisphericLight
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
@@ -26,6 +27,9 @@ export default class SceneFactory {
      * @param node the node to add
      */
     public static AddToGraph (editor: Editor, node: any): void {
+        // Add tags
+        Tags.AddTagsTo(node, 'added');
+        
         const selected = editor.graph.getSelected();
 
         // TODO: add dynamically instead of rebuilding graph
@@ -173,6 +177,49 @@ export default class SceneFactory {
         this.AddToGraph(editor, mesh);
 
         return mesh;
+    }
+
+    /**
+     * Creates a new cube mesh
+     * @param editor: the editor reference
+     */
+    public static CreateCube (editor: Editor): Mesh {
+        const mesh = Mesh.CreateBox('New Cube', 5, editor.core.scene);
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
+    }
+
+    /**
+     * Creates a new sphere mesh
+     * @param editor: the editor reference
+     */
+    public static CreateSphere (editor: Editor): Mesh {
+        const mesh = Mesh.CreateSphere('New Sphere', 32, 5, editor.core.scene);
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
+    }
+
+    /**
+     * Creates a new light
+     * @param editor: the editor reference
+     * @param type: the light type
+     */
+    public static CreateLight (editor: Editor, type: 'point' | 'directional' | 'spot' | 'hemispheric'): Light {
+        let light: Light = null;
+        
+        switch (type) {
+            case 'point': light = new PointLight('New Point Light', new Vector3(10, 10, 10), editor.core.scene); break;
+            case 'directional': light = new DirectionalLight('New Directional Light', new Vector3(0, -1, 0), editor.core.scene); break;
+            case 'spot': light = new SpotLight('New Spot Light', new Vector3(10, 10, 10), new Vector3(-1, -2, -1), Math.PI / 2, Math.PI / 2, editor.core.scene); break;
+            case 'hemispheric': light = new HemisphericLight('New Hemispheric Light', new Vector3(0, 1, 0), editor.core.scene); break;
+            default: break;   
+        }
+
+        this.AddToGraph(editor, light);
+
+        return light;
     }
 
     /**

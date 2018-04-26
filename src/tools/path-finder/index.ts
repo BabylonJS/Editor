@@ -1,4 +1,4 @@
-import { AbstractMesh, Mesh, Tags } from 'babylonjs';
+import { AbstractMesh, Mesh, Tags, Tools as BabylonTools } from 'babylonjs';
 import Editor, {
     Layout,
     Edition,
@@ -99,7 +99,8 @@ export default class PathFinderEditor extends EditorPlugin {
             toolbarSearch: false,
             toolbarAdd: true,
             toolbarDelete: true,
-            toolbarEdit: true
+            toolbarEdit: false,
+            header: 'Mesh Surfaces'
         });
         this.grid.onAdd = () => this.onAdd();
         this.grid.onDelete = (id) => this.onDelete(id);
@@ -139,6 +140,48 @@ export default class PathFinderEditor extends EditorPlugin {
     }
 
     /**
+     * Add a new path-finder configuration
+     */
+    public addConfiguration (): void {
+        const name = 'New path finder configuration';
+        const existing = this.datas.find(p => p.name === name);
+
+        this.data = {
+            name: name + (existing ? '_' + BabylonTools.RandomId() : ''),
+            rayHeight: 10,
+            size: 100,
+            castMeshes: [],
+            rayLength: 100
+        };
+
+        this.datas.push(this.data);
+        this.layout.unlockPanel('left');
+    }
+
+    /**
+     * Resets the view with a new data
+     * @param data the path-finder data
+     */
+    public resetWithData (data: PathFinderMetadata): void {
+        // Misc.
+        this.data = data;
+        this.grid.element.clear();
+
+        // Path finder
+        this.buildPathFinder();
+
+        // Check
+        if (!data) {
+            this.layout.lockPanel('left', 'No data', false);
+            return;
+        }
+
+        // Grid
+        this.data.castMeshes.forEach((cm, index) => this.grid.addRecord({ recid: index, name: cm }));
+        this.grid.element.refresh();
+    }
+
+    /**
      * Builds the current path finder
      */
     public buildPathFinder (): void {
@@ -148,7 +191,7 @@ export default class PathFinderEditor extends EditorPlugin {
         const context = this.canvas.getContext('2d');
         
         // No meshes
-        if (this.data.castMeshes.length === 0) {
+        if (!this.data || this.data.castMeshes.length === 0) {
             context.fillStyle = '#ffffff';
             context.fillRect(0, 0, this.canvas.width, this.canvas.height);
             return;
