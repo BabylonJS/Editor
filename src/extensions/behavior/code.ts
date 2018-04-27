@@ -1,4 +1,4 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, TonemappingOperator } from 'babylonjs';
 import { IStringDictionary } from 'babylonjs-editor';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
@@ -10,6 +10,7 @@ export interface BehaviorCode {
     code: string;
     name: string;
     active: boolean;
+    params?: any;
 }
 
 export interface BehaviorMetadata {
@@ -64,7 +65,13 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
 
             d.metadatas.forEach(m => {
                 const ctor = this.getConstructor(m, node);
+
+                // Instance
                 const instance = new (ctor.ctor || ctor)();
+                if (m.params) {
+                    for (const p in m.params)
+                        instance[p] = m.params[p];
+                }
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
@@ -143,11 +150,40 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         // Create script tag
         Extension.AddScript(
             template.replace('{{name}}', fnName)
-                    .replace('{{node}}', this._getConstructorName(node))
+                    .replace('{{node}}', this._getEffectiveConstructorName(node))
                     .replace('{{code}}', code.code), url);
 
         // Constructor
         return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
+    }
+
+    /**
+     * Returns the given object's constructor name
+     * @param obj the instance
+     */
+    public getConstructorName (obj: any): string {
+        const tokenizer = new Tokenizer(obj.toString());
+        if (!tokenizer.matchIdentifier('function') && tokenizer.token !== TokenType.IDENTIFIER)
+            return 'Unknown Constructor Name';
+
+        return tokenizer.identifier;
+    }
+
+    // Return the effective constructor name used by scripts
+    private _getEffectiveConstructorName (obj: any): string {
+        if (obj instanceof DirectionalLight)
+            return "dirlight";
+
+        if (obj instanceof HemisphericLight)
+            return "hemlight";
+
+        let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : "";
+        
+        if (ctrName === "") {
+            ctrName = typeof obj;
+        }
+        
+        return ctrName.toLowerCase();
     }
 
     // Returns a function parameters
@@ -170,23 +206,6 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         }
 
         return result;
-    }
-
-    // Returns the name of the "obj" constructor
-    private _getConstructorName(obj: any): string {
-        if (obj instanceof DirectionalLight)
-            return "dirlight";
-
-        if (obj instanceof HemisphericLight)
-            return "hemlight";
-
-        let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : "";
-        
-        if (ctrName === "") {
-            ctrName = typeof obj;
-        }
-        
-        return ctrName.toLowerCase();
     }
 }
 
