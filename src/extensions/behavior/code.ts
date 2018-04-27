@@ -1,6 +1,8 @@
 import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem } from 'babylonjs';
 import { IStringDictionary } from 'babylonjs-editor';
 
+import Tokenizer, { TokenType } from '../tools/tokenizer';
+
 import Extensions from '../extensions';
 import Extension from '../extension';
 
@@ -17,9 +19,7 @@ export interface BehaviorMetadata {
 
 const template = `
 EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
-return (function () {
-    {{code}}
-})();
+{{code}}
 }
 `;
 
@@ -63,23 +63,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 return;
 
             d.metadatas.forEach(m => {
-                if (!m.active)
-                    return;
-
-                let url = window.location.href;
-                url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + m.name.replace(/ /g, '') + '.js';
-
-                const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + m.name.replace(/ /g, '');
-
-                // Create script tag
-                Extension.AddScript(
-                    template.replace('{{name}}', fnName)
-                            .replace('{{node}}', this._getConstructorName(node))
-                            .replace('{{code}}', m.code), url);
-
-                // Create instance
-                const ctor = EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
-                const instance = new ctor();
+                const ctor = this.getConstructor(m, node);
+                const instance = new (ctor.ctor || ctor)();
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
@@ -139,6 +124,52 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
             node.metadata = node.metadata || { };
             node.metadata['behavior'] = d;
         });
+    }
+
+    /**
+     * Return the constructor
+     * @param code the code metadata
+     * @param node the attached node
+     */
+    public getConstructor (code: BehaviorCode, node: any): any {
+        if (!code.active)
+            return;
+
+        let url = window.location.href;
+        url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + code.name.replace(/ /g, '') + '.js';
+
+        const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '');
+
+        // Create script tag
+        Extension.AddScript(
+            template.replace('{{name}}', fnName)
+                    .replace('{{node}}', this._getConstructorName(node))
+                    .replace('{{code}}', code.code), url);
+
+        // Constructor
+        return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
+    }
+
+    // Returns a function parameters
+    private _getFunctionParameters (fn: any): string[] {
+        const tokenizer = new Tokenizer(fn.toString());
+        const result: string[] = [];
+
+        // function X (
+        if (!tokenizer.matchIdentifier('function') || !tokenizer.match(TokenType.IDENTIFIER) || !tokenizer.match(TokenType.PARENTHESIS))
+            return [];
+
+        // Parameters X, Y
+        while (!tokenizer.match(TokenType.PARENTHESIS)) {
+            result.push(tokenizer.identifier);
+            tokenizer.getNextToken();
+
+            // ) or whatever
+            if (!tokenizer.match(TokenType.COMMA))
+                break;
+        }
+
+        return result;
     }
 
     // Returns the name of the "obj" constructor
