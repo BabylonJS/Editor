@@ -1357,6 +1357,10 @@ declare module 'babylonjs-editor/editor/components/edition' {
                 */
             setObject(object: any): void;
             /**
+                * Refresh the edition tool
+                */
+            refresh(): void;
+            /**
                 * Updates the display of all visible edition tools
                 */
             updateDisplay(): void;

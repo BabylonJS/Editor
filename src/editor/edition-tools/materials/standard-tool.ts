@@ -1,4 +1,4 @@
-import { StandardMaterial } from 'babylonjs';
+import { StandardMaterial, PBRMaterial } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -88,6 +88,41 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         this.tool.addTexture(refraction, this.editor, 'refractionTexture', this.object, true).name('Refraction Texture');
 
         // Options
-        super.addOptions();
+        const options = super.addOptions();
+        options.add(this, '_convertToPbr').name('Convert to PBR...');
+    }
+
+    // Convert standard material to PBR material
+    private _convertToPbr (): void {
+        // Create material
+        const pbr = new PBRMaterial(this.object.name + '_pbr', this.object.getScene());
+        pbr.albedoColor = this.object.diffuseColor;
+        pbr.albedoTexture = this.object.diffuseTexture;
+        pbr.useAlphaFromAlbedoTexture = this.object.useAlphaFromDiffuseTexture;
+
+        pbr.bumpTexture = this.object.bumpTexture;
+        pbr.parallaxScaleBias = this.object.parallaxScaleBias;
+        pbr.useParallax = this.object.useParallax;
+        pbr.useParallaxOcclusion = this.object.useParallaxOcclusion;
+
+        pbr.reflectivityColor = this.object.specularColor;
+        pbr.reflectivityTexture = this.object.specularTexture;
+
+        pbr.reflectionTexture = this.object.reflectionTexture;
+        
+        pbr.emissiveColor = this.object.emissiveColor;
+        pbr.emissiveTexture = this.object.emissiveTexture;
+        
+        pbr.ambientColor = this.object.ambientColor;
+        pbr.ambientTexture = this.object.ambientTexture;
+
+        // Reassign
+        this.object.getBindedMeshes().forEach(m => {
+            if (m.material instanceof StandardMaterial)
+                m.material = pbr;
+        });
+
+        // Update
+        this.editor.edition.refresh();
     }
 }
