@@ -1,6 +1,11 @@
-import { Node, AbstractMesh, Mesh, Tools, Camera, InstancedMesh, SubMesh, Color3 } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3 } from 'babylonjs';
+
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
+import Tools from '../tools/tools';
+
+import Extensions from '../../extensions/extensions';
+import CodeExtension, { BehaviorMetadata } from '../../extensions/behavior/code';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members
@@ -157,14 +162,68 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             animations.open();
             animations.add(this, 'playAnimations').name('Play Animations');
         }
+
+        // Scripts
+        const scripts = this.tool.addFolder('Scripts');
+        scripts.open();
+
+        const behaviorExtension = Extensions.RequestExtension<CodeExtension>(this.editor.core.scene, 'BehaviorExtension');
+        if (behaviorExtension && node.metadata && node.metadata['behavior']) {
+            const data = <BehaviorMetadata> node.metadata['behavior'];
+
+            data.metadatas.forEach(m => {
+                let params: any = null;
+                try {
+                    params = behaviorExtension.getConstructor(m, node);
+
+                    if (!params.ctor)
+                        return;
+                } catch (e) {
+                    return;
+                }
+                
+                // Set params
+                m.params = m.params || { };
+
+                // Add folder and children
+                const script = scripts.addFolder(m.name);
+                script.open();
+
+                for (const p in params) {
+                    if (p === 'ctor')
+                        continue;
+                    
+                    m.params[p] = m.params[p] || params[p];
+                    if (typeof m.params[p] !== typeof params[p])
+                        m.params[p] = params[p];
+
+                    // Simple types
+                    switch (typeof params[p]) {
+                        case 'number': return script.add(m.params, p);
+                        case 'string': return script.add(m.params, p);
+                        default: break; // Not supported
+                    }
+
+                    // Complex types
+                    // TODO: manage complex types
+                    switch (Tools.GetConstructorName(params[p])) {
+                        case 'Vector2':
+                        case 'Vector3':
+                        case 'Vector4':
+                            debugger;
+                            break;
+                    }
+                }
+            });
+        }
     }
 
     /**
      * Creates a new instance
      */
     protected createInstance (): void {
-        const instance = (<Mesh>this.object).createInstance('New instance ' + Tools.RandomId());
-        instance.id = Tools.RandomId();
+        const instance = (<Mesh>this.object).createInstance('New instance ' + BabylonTools.RandomId());
+        instance.id = BabylonTools.RandomId();
 
         this.editor.graph.add({
             id: instance.id,
