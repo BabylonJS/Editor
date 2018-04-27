@@ -66,7 +66,14 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         metallic.add(this.object, 'useMetallnessFromMetallicTextureBlue').name('Metallness From Metallic Texture Blue');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureAlpha').name('Use Roughness From Metallic Texture Alpha');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureGreen').name('Use Roughness From Metallic Texture Green');
-        this.tool.addTexture(metallic, this.editor, 'metallicTexture', this.object, false).name('Metallic Texture');
+        if (this.object.metallic !== undefined)
+            metallic.add(this.object, 'metallic').step(0.01).name('Metallic');
+        this.tool.addTexture(metallic, this.editor, 'metallicTexture', this.object, false, false, t => {
+            if (this.object.metallic === undefined) {
+                this.object.metallic = 1;
+                this.update(this.object);
+            }
+        }).name('Metallic Texture');
 
         // Emissive
         const emissive = this.tool.addFolder('Emissive');
