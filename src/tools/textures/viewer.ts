@@ -183,7 +183,10 @@ export default class TextureViewer extends EditorPlugin {
             if (url.indexOf('file:') === 0)
                 url = url.replace('file:', '').toLowerCase();
             
-            const file = FilesInput.FilesToLoad[url];
+            let file = FilesInput.FilesToLoad[url];
+
+            if (!file)
+                file = FilesInput.FilesToLoad[url.toLowerCase()];
             
             if (file)
                 this.addPreviewNode(file, tex);

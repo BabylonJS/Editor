@@ -2,7 +2,8 @@ import {
     FilesInput, Tools as BabylonTools,
     Engine, Scene, Mesh, Material, PointLight, InstancedMesh,
     ArcRotateCamera,
-    Vector3
+    Vector3,
+    Tags
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
@@ -330,6 +331,8 @@ export default class AnimationEditor extends EditorPlugin {
             const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
             const material = new ctor(items[0].name + BabylonTools.RandomId(), this.editor.core.scene);
     
+            Tags.AddTagsTo(material, 'added');
+
             // Add preview node
             await this.addMaterialPreview(material);
         });
