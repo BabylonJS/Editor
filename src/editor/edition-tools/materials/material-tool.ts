@@ -2,6 +2,7 @@ import { Material, AbstractMesh, SubMesh } from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
+import * as dat from 'dat-gui';
 
 export default abstract class MaterialTool<T extends Material> extends AbstractEditionTool<T> {
     /**
@@ -49,7 +50,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
     /**
      * Add material options
      */
-    protected addOptions (): void {
+    protected addOptions (): dat.GUI {
         const options = this.tool.addFolder('Options');
         options.open();
         options.add(this.object, "wireframe").name("Wire Frame");
@@ -62,5 +63,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         
         this.object['useLogarithmicDepth'] = this.object['useLogarithmicDepth'] || false;
         options.add(this.object, "useLogarithmicDepth").name("Use Logarithmic Depth");
+
+        return options;
     }
 }

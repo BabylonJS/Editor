@@ -194,6 +194,13 @@ export default class EditorEditionTools {
     }
 
     /**
+     * Refresh the edition tool
+     */
+    public refresh (): void {
+        this.setObject(this.currentObject);
+    }
+
+    /**
      * Updates the display of all visible edition tools
      */
     public updateDisplay (): void {
