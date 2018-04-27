@@ -46,7 +46,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     /**
      * Constructor
-     * @param name: the name of the plugin 
+     * @param name: the name of the plugin
      */
     constructor(public editor: Editor) {
         super('Materials Viewer');
@@ -330,7 +330,7 @@ export default class AnimationEditor extends EditorPlugin {
         picker.open(async items => {
             const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
             const material = new ctor(items[0].name + BabylonTools.RandomId(), this.editor.core.scene);
-    
+
             Tags.AddTagsTo(material, 'added');
 
             // Add preview node
