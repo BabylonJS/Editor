@@ -210,7 +210,15 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                         case 'Vector2':
                         case 'Vector3':
                         case 'Vector4':
+                            this.tool.addVector(script, p, m.params[p]).open();
+                            break;
+                        case 'Color3':
+                        case 'Color4':
+                            this.tool.addColor(script, p, m.params[p]).open();
+                            break;
+                        default:
                             debugger;
+                            console.info('Not supported data type');
                             break;
                     }
                 }

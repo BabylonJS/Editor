@@ -1,4 +1,4 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, TonemappingOperator } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, TonemappingOperator, Vector4, Vector3, Vector2, Color4, Color3 } from 'babylonjs';
 import { IStringDictionary } from 'babylonjs-editor';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
@@ -68,10 +68,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
 
                 // Instance
                 const instance = new (ctor.ctor || ctor)();
-                if (m.params) {
-                    for (const p in m.params)
-                        instance[p] = m.params[p];
-                }
+                if (m.params)
+                    this.setCustomParams(m, instance);
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
@@ -128,9 +126,43 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
             if (!node)
                 return;
             
+            d.metadatas.forEach(m => {
+                // TODO: set custom params
+            });
+
             node.metadata = node.metadata || { };
             node.metadata['behavior'] = d;
         });
+    }
+
+    /**
+     * Sets the custom params
+     * @param m the behavior code structure
+     * @param instance the instance
+     */
+    public setCustomParams (m: BehaviorCode, instance: any): void {
+        for (const p in m.params) {
+            const param = m.params[p];
+
+            // Vector
+            if (param.w !== undefined) {
+                instance[p] = new Vector4(param.x, param.y, param.z, param.w);
+            } else if (param.z !== undefined) {
+                instance[p] = new Vector3(param.x, param.y, param.z);
+            } else if (param.y !== undefined) {
+                instance[p] = new Vector2(param.x, param.y);
+            }
+            // Color
+            else if (param.a !== undefined) {
+                instance[p] = new Color4(param.r, param.g, param.b, param.a);
+            } else if (param.b !== undefined) {
+                instance[p] = new Color3(param.r, param.g, param.b);
+            }
+            // Other
+            else {
+                instance[p] = m.params[p];
+            }
+        }
     }
 
     /**
