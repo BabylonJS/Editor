@@ -245,24 +245,34 @@ export default class AnimationEditor extends EditorPlugin {
     }
 
     /**
+     * On the user shows the plugin
+     */
+    public onShow (): void {
+        this.onResize();
+    }
+
+    /**
      * Resizes the panel
      */
     protected resize(): void {
         this.layout.element.resize();
 
-        const size = this.layout.getPanelSize('main');
-        this.paper.setSize(size.width, size.height);
+        // TODO: find why 
+        setTimeout(() => {
+            const size = this.layout.getPanelSize('main');
+            this.paper.setSize(size.width, size.height);
 
-        this.background.attr('width', size.width);
-        this.background.attr('height', size.height);
+            this.background.attr('width', size.width);
+            this.background.attr('height', size.height);
 
-        this.middleLine.attr('width', size.width);
-        this.middleLine.attr('y', size.height / 2);
+            this.middleLine.attr('width', size.width);
+            this.middleLine.attr('y', size.height / 2);
 
-        this.noDataText.attr('y', size.height / 2 - this.noDataText.attr('height') / 2);
-        this.noDataText.attr('x', size.width / 2 - this.noDataText.attr('width') / 2);
+            this.noDataText.attr('y', size.height / 2 - this.noDataText.attr('height') / 2);
+            this.noDataText.attr('x', size.width / 2 - this.noDataText.attr('width') / 2);
 
-        this.updateGraph(this.animation);
+            this.updateGraph(this.animation);
+        }, 250);
     }
 
     /**
