@@ -127,8 +127,8 @@ export default class SceneExporter {
 
                 try {
                     switch (this.ProjectExportFormat) {
-                        case 'glb': data = GLTF2Export.GLB(editor.core.scene, 'scene', { }); break;
-                        case 'gltf': data = GLTF2Export.GLTF(editor.core.scene, 'scene', { }); break;
+                        case 'glb': data = await GLTF2Export.GLBAsync(editor.core.scene, 'scene', { }); break;
+                        case 'gltf': data = await GLTF2Export.GLTFAsync(editor.core.scene, 'scene', { }); break;
                         default: break;
                     }
                 } catch (e) {

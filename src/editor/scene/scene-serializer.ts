@@ -32,7 +32,7 @@ export default class SceneSerializer {
         form.element.refresh();
 
         // Events
-        window.onButtonClick = (id) => {
+        window.onButtonClick = async (id) => {
             window.close();
 
             if (id === 'Cancel')
@@ -46,8 +46,8 @@ export default class SceneSerializer {
 
             try {
                 switch (format) {
-                    case 'GLB': GLTF2Export.GLB(scene, name, { }).downloadFiles(); break;
-                    case 'GLTF': GLTF2Export.GLTF(scene, name, { }).downloadFiles(); break;
+                    case 'GLB': (await GLTF2Export.GLBAsync(scene, name, { })).downloadFiles(); break;
+                    case 'GLTF': (await GLTF2Export.GLTFAsync(scene, name, { })).downloadFiles(); break;
                     case 'OBJ':
                         const obj = OBJExport.OBJ(<Mesh[]> scene.meshes, true);
                         debugger;
