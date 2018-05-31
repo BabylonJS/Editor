@@ -20,7 +20,7 @@ export default class ElectronStorage extends Storage {
      */
     public async createFolders (folder: any, names: string[]): Promise<void> {
         for (const n of names) {
-            await Request.Post('http://localhost:1338/files:/folder', {
+            await Request.Post('http://localhost:1337/files:/folder', {
                 name: n
             });
         }
@@ -33,7 +33,7 @@ export default class ElectronStorage extends Storage {
      */
     public async createFiles (folder: any, files: CreateFiles[]): Promise<void> {
         for (const f of files) {
-            await Request.Put('http://localhost:1338/files:/write?name=' + f.name + '&folder=' + folder, f.data);
+            await Request.Put('http://localhost:1337/files:/write?name=' + f.name + '&folder=' + folder, f.data);
         }
     }
 
@@ -42,7 +42,7 @@ export default class ElectronStorage extends Storage {
      * @param folder the parent folder
      */
     public async getFiles (folder: string): Promise<GetFiles[]> {
-        const files = await Request.Get<any>('http://localhost:1338/files' + (folder ? '?path=' + folder : ''));
+        const files = await Request.Get<any>('http://localhost:1337/files' + (folder ? '?path=' + folder : ''));
 
         const result: GetFiles[] = [];
         files.value.forEach(v => {
