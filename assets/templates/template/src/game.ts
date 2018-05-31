@@ -1,7 +1,9 @@
 import {
     Engine,
     Scene, SceneLoader,
-    Tools
+    Tools,
+    Vector3,
+    CannonJSPlugin
 } from 'babylonjs';
 
 import { Extensions } from 'babylonjs-editor-extensions';
@@ -35,6 +37,7 @@ export default class Game {
 
             // Load extensions
             Tools.LoadFile('./scene/project.editorproject', (data: string) => {
+                Extensions.RoolUrl = 'scene/';
                 Extensions.ApplyExtensions(this.scene, JSON.parse(data));
                 
                 // Run render loop

@@ -59,6 +59,7 @@ build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extens
       'babylonjs': 'BABYLON',
       'spectorjs': 'SPECTOR'
     },
+    externals: ['javascript-astar'],
     minify: true
 });
 
@@ -76,12 +77,14 @@ build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
     minify: true
 });
 
+/*
 build('./.build/src/', './.build/src/index.js', './dist/editor-all.js', {
     globalName: 'Editor',
     format: 'cjs',
     minify: true,
     externals: ['jquery']
 });
+*/
 
 // Editor
 externals = externals.concat(['babylonjs-editor', 'raphael']);

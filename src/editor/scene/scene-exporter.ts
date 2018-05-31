@@ -151,7 +151,6 @@ export default class SceneExporter {
 
             const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
                 { name: 'editor.extensions.js', data: await Tools.LoadFile<string>('dist/editor.extensions.js') },
-                { name: 'babylonjs-editor.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor.d.ts') },
                 { name: 'babylonjs-editor-extensions.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor-extensions.d.ts') }
             ];
 
