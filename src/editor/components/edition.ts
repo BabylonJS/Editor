@@ -25,6 +25,7 @@ import TriPlanarMaterialTool from '../edition-tools/materials/tri-planar-tool';
 import TerrainMaterialTool from '../edition-tools/materials/terrain-tool';
 import LavaMaterialTool from '../edition-tools/materials/lava-tool';
 import FurMaterialTool from '../edition-tools/materials/fur-tool';
+import MixMaterialTool from '../edition-tools/materials/mix-tool';
 
 import GuiImageTool from '../edition-tools/gui/image';
 
@@ -94,6 +95,7 @@ export default class EditorEditionTools {
         this.addTool(new TerrainMaterialTool());
         this.addTool(new LavaMaterialTool());
         this.addTool(new FurMaterialTool());
+        this.addTool(new MixMaterialTool());
 
         this.addTool(new PostProcessesTool());
         this.addTool(new PostProcessTool());
