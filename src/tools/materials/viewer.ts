@@ -330,7 +330,7 @@ export default class AnimationEditor extends EditorPlugin {
         picker.addItems(materials.map(m => { return { name: m } }));
         picker.open(async items => {
             const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
-            const material = new ctor(items[0].name + BabylonTools.RandomId(), this.editor.core.scene);
+            const material = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), this.editor.core.scene);
 
             Tags.AddTagsTo(material, 'added');
 

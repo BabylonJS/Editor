@@ -77,6 +77,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         });
 
         if (this._standardEnabled) {
+            standardPipeline.add(this, '_editStandardAnimations').name('Edit animations...');
+
             const bloom = standardPipeline.addFolder('Bloom');
             bloom.open();
             bloom.add(SceneManager.StandardRenderingPipeline, 'BloomEnabled').name('Bloom Enabled');
@@ -222,5 +224,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         SceneManager.PostProcessExtension =
             SceneManager.PostProcessExtension ||
             Extensions.RequestExtension<PostProcessesExtension>(this.editor.core.scene, 'PostProcess');
+    }
+
+    // Edit the animations of the standard rendering pipeline
+    private async _editStandardAnimations (): Promise<void> {
+        await this.editor.addEditPanelPlugin('animation-editor', false, 'Animations Editor - Standard', SceneManager.StandardRenderingPipeline);
     }
 }

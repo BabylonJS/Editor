@@ -54,7 +54,7 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-helpers', items: [
-                    { id: 'animations', img: 'icon-animated-mesh', text: 'Animations...' },
+                    { id: 'animations', img: 'icon-animators', text: 'Animations...' },
                     { type: 'break' },
                     { id: 'textures', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', img: 'icon-effects', text: 'Materials...' },

@@ -75,6 +75,8 @@ export default class AnimationEditor extends EditorPlugin {
     protected onResize = () => this.resize();
     protected onObjectSelected = (node) => node && this.objectSelected(node);
 
+    protected forcedObject: IAnimatable;
+
     // Static members
     public static PaperOffset: number = 30;
 
@@ -100,8 +102,11 @@ export default class AnimationEditor extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, forcedObject: IAnimatable) {
         super('Animation Editor');
+
+        // Misc.
+        this.forcedObject = forcedObject;
     }
 
     /**
@@ -223,8 +228,10 @@ export default class AnimationEditor extends EditorPlugin {
         this.editor.core.onResize.add(this.onResize);
 
         // On select object
-        this.objectSelected(this.editor.core.currentSelectedObject);
-        this.editor.core.onSelectObject.add(this.onObjectSelected);
+        this.objectSelected(this.forcedObject || this.editor.core.currentSelectedObject);
+
+        if (!this.forcedObject)
+            this.editor.core.onSelectObject.add(this.onObjectSelected);
     }
 
     /**
@@ -247,7 +254,17 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * On the user shows the plugin
      */
-    public onShow (): void {
+    public onShow (forcedObject: IAnimatable): void {
+        // Forced object?
+        this.forcedObject = forcedObject;
+        this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
+
+        if (!forcedObject)
+            this.editor.core.onSelectObject.add(this.onObjectSelected);
+        else
+            this.objectSelected(forcedObject);
+
+        // Resize
         this.onResize();
     }
 
