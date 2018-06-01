@@ -322,7 +322,8 @@ export default class AnimationEditor extends EditorPlugin {
             'GridMaterial',
             'TriPlanarMaterial',
             'TerrainMaterial',
-            'LavaMaterial'
+            'LavaMaterial',
+            'MixMaterial'
         ];
 
         const picker = new Picker('Select Material...');
