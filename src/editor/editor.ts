@@ -8,7 +8,7 @@ import {
 import { IStringDictionary } from './typings/typings';
 import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
 
-import Core from './core';
+import Core, { IUpdatable } from './core';
 
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
@@ -29,7 +29,7 @@ import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 
-export default class Editor {
+export default class Editor implements IUpdatable {
     // Public members
     public core: Core;
     public camera: FreeCamera;
@@ -54,6 +54,9 @@ export default class Editor {
     public projectFile: File = null;
 
     public _showReloadDialog: boolean = true;
+
+    // Private members
+    private _lastWaitingItems: number = 0;
 
     /**
      * Constructor
@@ -122,6 +125,7 @@ export default class Editor {
 
         // Initialize core
         this.core = new Core();
+        this.core.updates.push(this);
 
         // Initialize Babylon.js
         if (!scene) {
@@ -189,6 +193,22 @@ export default class Editor {
 
         // Notify
         this.core.onResize.notifyObservers(null);
+    }
+
+    /**
+     * On after render the scene
+     */
+    public onPostUpdate (): void {
+        // Waiting files
+        const waiting = this.core.scene.getWaitingItemsCount();
+        if (this._lastWaitingItems !== waiting) {
+            this._lastWaitingItems = waiting;
+
+            if (waiting === 0)
+                this.layout.unlockPanel('bottom');
+            else
+                this.layout.lockPanel('bottom', `Waiting for ${waiting} item(s)`, true);
+        }
     }
 
     /**
