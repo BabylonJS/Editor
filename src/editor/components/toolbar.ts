@@ -13,6 +13,7 @@ import SceneFactory from '../scene/scene-factory';
 import SceneImporter from '../scene/scene-importer';
 import SceneManager from '../scene/scene-manager';
 import SceneSerializer from '../scene/scene-serializer';
+import { GizmoType } from '../scene/scene-picker';
 
 export default class EditorToolbar {
     // Public members
@@ -104,7 +105,11 @@ export default class EditorToolbar {
         this.tools.items = [
             { type: 'check', id: 'play', text: 'Play', img: 'icon-play-game' },
             { type: 'button', id: 'test', text: 'Test', img: 'icon-play-game-windowed' },
-            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' }
+            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' },
+            { type: 'break' },
+            { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
+            { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
+            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
         this.tools.build('TOOLS-TOOLBAR');
@@ -241,19 +246,45 @@ export default class EditorToolbar {
      */
     protected onToolsClick (target: string): void {
         switch (target) {
+            // Play and text
             case 'play':
                 const animatables = SceneManager.GetAnimatables(this.editor.core.scene);
                 this.tools.isChecked('play', true) ? SceneManager.PlayAllAnimatables(this.editor.core.scene, animatables) : this.editor.core.scene.stopAllAnimations();
                 break;
-
             case 'test':
                 SceneExporter.CreateFiles(this.editor);
                 this.editor.addEditPanelPlugin('play-game', true, 'Game');
                 break;
-            
             case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
+                break;
+
+            // Gizmos
+            case 'position':
+            case 'rotation':
+            case 'scaling':
+                const active = this.tools.isChecked(target, true);
+
+                this.tools.setChecked('position', false);
+                this.tools.setChecked('rotation', false);
+                this.tools.setChecked('scaling', false);
+                this.tools.setChecked(target, active);
+
+                this.editor.scenePicker.gizmosLayer.shouldRender = active;
+
+                if (!active) {
+                    this.editor.scenePicker.gizmoType = GizmoType.NONE;
+                    break;
+                }
+
+                switch (target) {
+                    case 'position': this.editor.scenePicker.gizmoType = GizmoType.POSITION; break;
+                    case 'rotation': this.editor.scenePicker.gizmoType = GizmoType.ROTATION; break;
+                    case 'scaling': this.editor.scenePicker.gizmoType = GizmoType.SCALING; break;
+                    default: break; // Should never happen
+                }
+
                 break;
             default: break;
         }
