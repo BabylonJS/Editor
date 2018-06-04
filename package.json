@@ -7,19 +7,21 @@
   "repository": {
     "url": "https://github.com/BabylonJS/Editor/"
   },
+  "author": {
+    "name": "Julien Moreau-Mathis",
+    "url": "https://medium.com/@Luaacro"
+  },
   "scripts": {
     "clean": "rimraf .build && rimraf .declaration && rimraf dist && rimraf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build": "npm run compile && npm run compile-electron && npm run bundle",
-    "rebuild": "npm run clean && npm run compile && npm run compile-electron && npm run bundle",
+    "rebuild": "npm run clean && npm run build",
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",
     "bundle": "node ./script/dts.js && node ./script/bundle.js && node ./script/electron.js",
     "bundle-js": "node ./script/bundle.js",
-    "installer-osx": "node ./script/electron.js --platform=darwin",
-    "installer-win32": "node ./script/electron.js --platform=win32",
     "dts": "node ./script/dts.js"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
@@ -30,7 +32,6 @@
     "@types/dat-gui": "~0.6.3",
     "@types/systemjs": "~0.20.6",
     "@types/raphael": "~2.1.30",
-    "@types/electron": "~1.6.10",
     "@types/http-server": "~0.10.0",
     "@types/socket.io": "~1.4.31",
     "@types/koa": "~2.0.40",
@@ -42,14 +43,11 @@
     "typescript": "~2.6.2",
     "http-server": "^0.9.0",
     "socket.io": "~2.0.4",
-    "electron": "~1.7.9",
-    "electron-prebuilt": "~1.4.13",
-    "electron-packager": "~10.1.1",
+    "electron": "~2.0.2",
+    "electron-builder": "~20.15.1",
     "yargs": "10.0.3",
     "systemjs-builder": "~0.16.12",
     "dts-bundle": "~0.7.3",
-    "electron-winstaller": "~2.6.3",
-    "electron-installer-dmg": "~0.2.1",
     "rimraf": "~2.6.2"
   },
   "dependencies": {

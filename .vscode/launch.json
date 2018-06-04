@@ -28,16 +28,11 @@
                 "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
             "runtimeArgs": [
-                "${workspaceRoot}",
-                "--enable-logging",
+                "${workspaceRoot}/.build/electron/main.js",
                 "--remote-debugging-port=9222"
             ],
-            "port": 9222,
             "webRoot": "${workspaceRoot}",
-            "cwd": "${workspaceRoot}",
-            "sourceMaps": true,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug",
-            "internalConsoleOptions": "openOnSessionStart"
+            "sourceMaps": true
         },
         {
             "name": "Electron Server",
@@ -54,8 +49,7 @@
             "outFiles": [
                 ".build/**/*.js"
             ],
-            "sourceMaps": true,
-            "protocol": "legacy"
+            "sourceMaps": true
         }
     ]
 }

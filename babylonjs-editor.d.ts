@@ -34,7 +34,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import { Scene, FreeCamera, Camera, FilesInput } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
-    import Core from 'babylonjs-editor/editor/core';
+    import Core, { IUpdatable } from 'babylonjs-editor/editor/core';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import ResizableLayout from 'babylonjs-editor/editor/gui/resizable-layout';
     import EditorToolbar from 'babylonjs-editor/editor/components/toolbar';
@@ -43,7 +43,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
-    export default class Editor {
+    export default class Editor implements IUpdatable {
             core: Core;
             camera: FreeCamera;
             playCamera: Camera;
@@ -74,6 +74,10 @@ declare module 'babylonjs-editor/editor/editor' {
              * Resizes elements
              */
             resize(): void;
+            /**
+                * On after render the scene
+                */
+            onPostUpdate(): void;
             /**
                 * Adds an "edit panel" plugin
                 * @param url the URL of the plugin
@@ -315,6 +319,12 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 * @param id the id of the element (menu, item, etc.)
                 */
             isChecked(id: string, justClicked?: boolean): boolean;
+            /**
+                * Sets an item checked or unchecked
+                * @param id the id of the item
+                * @param checked if the item is checked or not
+                */
+            setChecked(id: string, checked: boolean): void;
             /**
                 * Builds the graph
                 * @param parentId the parent id
@@ -1398,20 +1408,27 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh } from 'babylonjs';
+    import { Scene, AbstractMesh, Mesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
+    export enum GizmoType {
+            NONE = 0,
+            POSITION = 1,
+            ROTATION = 2,
+            SCALING = 3,
+    }
     export default class ScenePicker {
             editor: Editor;
             scene: Scene;
             canvas: HTMLCanvasElement;
+            gizmosLayer: UtilityLayerRenderer;
             onPickedMesh: (mesh: AbstractMesh) => void;
             protected lastMesh: AbstractMesh;
             protected lastX: number;
             protected lastY: number;
-            protected onCanvasDown: (ev: MouseEvent) => void;
-            protected onCanvasClick: (ev: MouseEvent) => void;
-            protected onCanvasMove: (ev: MouseEvent) => void;
-            protected onCanvasDblClick: (ev: MouseEvent) => void;
+            protected onCanvasPointer: Observer<PointerInfo>;
+            protected positionGizmo: PositionGizmo;
+            protected rotationGizmo: RotationGizmo;
+            protected scalingGizmo: ScaleGizmo;
             /**
                 * Constructor
                 * @param editor: the editor reference
@@ -1423,13 +1440,22 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             enabled: boolean;
             /**
+                * Sets the gizmo type
+                */
+            gizmoType: GizmoType;
+            /**
+                * Sets the attached mesh for position, rotaiton and scaling gizmos
+                * @param mesh the mesh to attach
+                */
+            setGizmoAttachedMesh(mesh: Mesh): void;
+            /**
                 * Adds the events to the canvas
                 */
             addEvents(): void;
             /**
                 * Removes the scene picker events from the canvas
                 */
-            remove(): void;
+            removeEvents(): void;
             /**
                 * Called when canvas mouse is down
                 * @param ev the mouse event

@@ -1,64 +1,39 @@
-const packager = require('electron-packager');
-const winInstaller = require('electron-winstaller');
-const macInstaller = require('electron-installer-dmg');
+const Builder = require('electron-builder');
 
 const yargs = require('yargs');
 const args = yargs.argv;
 
-if (args.osx)
-    args.platform = args.platform || "darwin";
-else if (args.win32)
-    args.platform = args.platform || "win32";
-else if (args.linux)
-    args.platform = args.platform || "linux";
-else if (args.max)
-    args.platform = args.platform || "mas";
-else if (args.all)
-    args.platform = args.platform || "all";
+console.log('\nBuilding Electron...');
 
-const options = {
+// Build
+Builder.build({
     arch: args.arch || 'x64',
-    dir: './',
-    platform: args.platform || 'all',
-    out: 'electron-packages/',
-    overwrite: true,
-    prune: false,
-    icon: './css/icons/babylonjs_icon'
-};
+    config: {
+        appId: 'editor.babylonjs.com',
+        productName: 'BabylonJS Editor',
+        icon: './css/icons/babylonjs_icon',
+        directories: {
+            output: './electron-packages/'
+        },
+        compression: 'store',
+        files: [
+            'src/**',
+            'electron/**',
 
-// Creates an installer according to the current platform
-const createInstaller = function (appPath) {
-    if (options.platform === 'win32') {
-        winInstaller.createWindowsInstaller({
-            appDirectory: appPath,
-            outputDirectory: options.out,
-            authors: 'Babylon.js Editor v2',
-            exe: 'Babylon.js Editor.exe'
-        }).then(function () {
-            console.log('Installer for Windows available at ./electron-packages');
-        });
+            '.build/**',
+            '.declaration/**',
+            'dist/**',
+
+            'assets/**',
+            'css/**',
+
+            'babylonjs-editor.d.ts',
+            'babylonjs-editor-extensions.d.ts',
+
+            'index.html',
+            'index-debug.html',
+            'redirect.html',
+            'preview.html'
+        ]
     }
-    else if (options.platform === 'darwin') {
-        macInstaller({
-            name: 'Babylon.js Editor v2',
-            appPath: appPath,
-            out: options.out,
-            icon: options.icon + '.icns',
-            'icon-size': 140,
-            overwrite: true
-        }, function () {
-            console.log('Installer for Mac OS X available at ./electron-packages');
-        });
-    }
-}
-
-packager(options, function (err, appPath) {
-    if (err)
-        return console.warn('Cannot create electron package: ' + err.message);
-
-    // Installers
-    createInstaller(appPath[0]);
-
-    // Finish
-    console.log('Package(s) now available at: ./electron-packages');
 });
