@@ -564,7 +564,7 @@ export default class Editor implements IUpdatable {
     // Creates the scene picker
     private _createScenePicker (): void {
         if (this.scenePicker)
-            this.scenePicker.remove();
+            this.scenePicker.removeEvents();
         
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);

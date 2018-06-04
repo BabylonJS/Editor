@@ -1,6 +1,7 @@
 import {
     Scene, AbstractMesh, TargetCamera, Animation, Mesh,
-    PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer
+    PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
+    PointerInfo, PointerEventTypes
 } from 'babylonjs';
 import Editor from '../editor';
 
@@ -26,10 +27,7 @@ export default class ScenePicker {
     protected lastX: number = 0;
     protected lastY: number = 0;
     
-    protected onCanvasDown = (ev: MouseEvent) => this.canvasDown(ev);
-    protected onCanvasClick = (ev: MouseEvent) => this.canvasClick(ev);
-    protected onCanvasMove = (ev: MouseEvent) => this.canvasMove(ev);
-    protected onCanvasDblClick = (ev: MouseEvent) => this.canvasDblClick(ev);
+    protected onCanvasPointer: Observer<PointerInfo> = null;
 
     protected positionGizmo: PositionGizmo;
     protected rotationGizmo: RotationGizmo;
@@ -58,7 +56,6 @@ export default class ScenePicker {
 
         // Gizmos
         this.gizmosLayer = new UtilityLayerRenderer(scene);
-        this.gizmosLayer.utilityLayerScene.preventDefaultOnPointerDown = false;
         this.gizmosLayer.shouldRender = false;
 
         // Add events
@@ -126,20 +123,21 @@ export default class ScenePicker {
      * Adds the events to the canvas
      */
     public addEvents (): void {
-        this.canvas.addEventListener('mousedown', this.onCanvasDown, false);
-        this.canvas.addEventListener('mouseup', this.onCanvasClick, false);
-        this.canvas.addEventListener('mousemove', this.onCanvasMove, false);
-        this.canvas.addEventListener('dblclick', this.onCanvasDblClick);
+        this.onCanvasPointer = this.scene.onPointerObservable.add(ev => {
+            switch (ev.type) {
+                case PointerEventTypes.POINTERDOWN: this.canvasDown(ev.event); break;
+                case PointerEventTypes.POINTERTAP: this.canvasClick(ev.event); break;
+                case PointerEventTypes.POINTERMOVE: this.canvasMove(ev.event); break;
+                case PointerEventTypes.POINTERDOUBLETAP: this.canvasDblClick(ev.event); break;
+            }
+        });
     }
 
     /**
      * Removes the scene picker events from the canvas
      */
-    public remove (): void {
-        this.canvas.removeEventListener('mousedown', this.onCanvasDown);
-        this.canvas.removeEventListener('mouseup', this.onCanvasClick);
-        this.canvas.removeEventListener('mousemove', this.onCanvasMove);
-        this.canvas.addEventListener('dblclick', this.onCanvasDblClick);
+    public removeEvents (): void {
+        this.scene.onPointerObservable.remove(this.onCanvasPointer);
     }
 
     /**
@@ -166,6 +164,9 @@ export default class ScenePicker {
 
         if (pick.pickedMesh && this.onPickedMesh) {
             this.onPickedMesh(pick.pickedMesh);
+
+            // Attach mesh
+            this.setGizmoAttachedMesh(<Mesh> pick.pickedMesh);
         }
     }
 
