@@ -56,6 +56,7 @@ export default class ScenePicker {
 
         // Gizmos
         this.gizmosLayer = new UtilityLayerRenderer(scene);
+        this.gizmosLayer.utilityLayerScene.postProcessesEnabled = false;
         this.gizmosLayer.shouldRender = false;
 
         // Add events
