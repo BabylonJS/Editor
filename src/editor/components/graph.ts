@@ -32,6 +32,7 @@ export default class EditorGraph {
         // Events
         this.tree.onClick = (id, data: any) => {
             this.currentObject = data;
+            this.editor.scenePicker.setGizmoAttachedMesh(data);
             this.editor.core.onSelectObject.notifyObservers(data);
         };
 

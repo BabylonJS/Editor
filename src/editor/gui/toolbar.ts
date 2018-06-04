@@ -30,6 +30,18 @@ export default class Toolbar {
     }
 
     /**
+     * Sets an item checked or unchecked
+     * @param id the id of the item
+     * @param checked if the item is checked or not
+     */
+    public setChecked (id: string, checked: boolean): void {
+        if (checked)
+            this.element.check(id);
+        else
+            this.element.uncheck(id);
+    }
+
+    /**
      * Builds the graph
      * @param parentId the parent id
      */

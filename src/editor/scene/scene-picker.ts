@@ -1,11 +1,23 @@
-import { Scene, AbstractMesh, TargetCamera, Animation } from 'babylonjs';
+import {
+    Scene, AbstractMesh, TargetCamera, Animation, Mesh,
+    PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer
+} from 'babylonjs';
 import Editor from '../editor';
+
+export enum GizmoType {
+    NONE = 0,
+    POSITION,
+    ROTATION,
+    SCALING
+}
 
 export default class ScenePicker {
     // Public members
     public editor: Editor;
     public scene: Scene;
     public canvas: HTMLCanvasElement;
+
+    public gizmosLayer: UtilityLayerRenderer;
 
     public onPickedMesh: (mesh: AbstractMesh) => void;
 
@@ -19,8 +31,13 @@ export default class ScenePicker {
     protected onCanvasMove = (ev: MouseEvent) => this.canvasMove(ev);
     protected onCanvasDblClick = (ev: MouseEvent) => this.canvasDblClick(ev);
 
+    protected positionGizmo: PositionGizmo;
+    protected rotationGizmo: RotationGizmo;
+    protected scalingGizmo: ScaleGizmo;
+
     // Private members
     private _enabled: boolean = true;
+    private _gizmoType: GizmoType = GizmoType.NONE;
 
     /**
      * Constructor
@@ -39,6 +56,11 @@ export default class ScenePicker {
         });
         scene.meshes.forEach(m => m.isPickable = true);
 
+        // Gizmos
+        this.gizmosLayer = new UtilityLayerRenderer(scene);
+        this.gizmosLayer.utilityLayerScene.preventDefaultOnPointerDown = false;
+        this.gizmosLayer.shouldRender = false;
+
         // Add events
         this.addEvents();
     }
@@ -55,8 +77,49 @@ export default class ScenePicker {
      */
     public set enabled (value: boolean) {
         this._enabled = value;
-        if (!value && this.lastMesh)
-            this.lastMesh.showBoundingBox = false;
+
+        if (!value) {
+            this.gizmoType = GizmoType.NONE;
+
+            if (this.lastMesh)
+                this.lastMesh.showBoundingBox = false;
+        }
+    }
+
+    /**
+     * Sets the gizmo type
+     */
+    public set gizmoType (value: GizmoType) {
+        this._gizmoType = value;
+
+        this.positionGizmo && this.positionGizmo.dispose();
+        this.rotationGizmo && this.rotationGizmo.dispose();
+        this.scalingGizmo && this.scalingGizmo.dispose();
+
+        this.positionGizmo = this.rotationGizmo = this.scalingGizmo = null;
+
+        switch (value) {
+            case GizmoType.POSITION: this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
+            case GizmoType.ROTATION: this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
+            case GizmoType.SCALING: this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
+            default: break; // GizmoType.NONE
+        }
+
+        // Attach mesh
+        this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
+    }
+
+    /**
+     * Sets the attached mesh for position, rotaiton and scaling gizmos
+     * @param mesh the mesh to attach
+     */
+    public setGizmoAttachedMesh (mesh: Mesh): void {
+        if (!(mesh instanceof Mesh))
+            return;
+        
+        this.positionGizmo && (this.positionGizmo.attachedMesh = mesh);
+        this.rotationGizmo && (this.rotationGizmo.attachedMesh = mesh);
+        this.scalingGizmo && (this.scalingGizmo.attachedMesh = mesh);
     }
 
     /**
