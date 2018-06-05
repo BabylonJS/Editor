@@ -3,8 +3,9 @@ import { Scene, Effect, Tools, Texture, Vector3, Vector2 } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+import { IStringDictionary } from '../typings/typings';
+
 import CustomEditorMaterial, { CustomMaterialCode, CustomMaterialConfig } from './material';
-import { IStringDictionary } from 'babylonjs-editor';
 
 export interface MaterialCreatorUserConfig {
     textures?: { value: any; name: string }[];

@@ -3,8 +3,9 @@ import { Scene, Effect, Tools, Vector2, Vector3, Texture } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+import { IStringDictionary } from '../typings/typings';
+
 import PostProcessEditor, { CustomPostProcessConfig } from './post-process';
-import { IStringDictionary } from 'babylonjs-editor';
 
 export interface PostProcessCreatorUserConfig {
     textures?: { value: any; name: string }[];

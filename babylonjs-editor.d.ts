@@ -2,7 +2,6 @@
 // Dependencies for this module:
 //   ../../babylonjs
 //   ../../dat-gui
-//   ../../babylonjs-editor
 //   ../../babylonjs-gui
 //   ../../golden-layout
 
@@ -24,10 +23,9 @@ declare module 'babylonjs-editor' {
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
-    import { IExtension, ExtensionConstructor } from 'babylonjs-editor/editor/typings/extension';
     import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, IExtension, ExtensionConstructor, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot };
+    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -949,34 +947,6 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             static OnLoaded(editor: Editor): void;
             static _Loaded: boolean;
     }
-}
-
-declare module 'babylonjs-editor/editor/typings/extension' {
-    import { Scene } from 'babylonjs';
-    import Editor from 'babylonjs-editor';
-    /**
-        * Interface representing an editor extension
-        */
-    export interface IExtension<T> {
-            /**
-                * Sets if the extensions is always applied
-                */
-            alwaysApply: boolean;
-            /**
-                * On apply the extension
-                */
-            onApply(data: T, rootUrl?: string): void;
-            /**
-                * Called by the editor when serializing the scene
-                */
-            onSerialize?(): T;
-            /**
-                * On load the extension (called by the editor when
-                * loading a scene)
-                */
-            onLoad?(data: T, editor?: Editor): void;
-    }
-    export type ExtensionConstructor<T> = new (scene: Scene) => IExtension<T>;
 }
 
 declare module 'babylonjs-editor/editor/typings/project' {

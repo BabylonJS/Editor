@@ -18,7 +18,6 @@ import AbstractEditionTool from './editor/edition-tools/edition-tool';
 
 import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typings/typings';
 import { EditorPlugin } from './editor/typings/plugin';
-import { IExtension, ExtensionConstructor } from './editor/typings/extension';
 
 import { ProjectRoot } from './editor/typings/project';
 
@@ -32,9 +31,6 @@ export {
     IDisposable,
     
     EditorPlugin,
-    
-    IExtension,
-    ExtensionConstructor,
 
     Layout,
     Toolbar,
