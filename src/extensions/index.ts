@@ -7,6 +7,8 @@ import MaterialCreatorExtension from './material-creator/material-creator';
 import PathFinderExtension from './path-finder/index';
 import PostProcessCreatorExtension from './post-process-creator/post-process-creator';
 
+import { IExtension, ExtensionConstructor } from './typings/extension';
+
 export {
     Extensions,
     Extension,
@@ -15,5 +17,7 @@ export {
     PostProcessExtension,
     MaterialCreatorExtension,
     PathFinderExtension,
-    PostProcessCreatorExtension
+    PostProcessCreatorExtension,
+
+    IExtension, ExtensionConstructor
 }

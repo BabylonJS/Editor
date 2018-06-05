@@ -1,8 +1,9 @@
 import { Scene, AbstractMesh } from 'babylonjs';
-import { IStringDictionary } from 'babylonjs-editor';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
+
+import { IStringDictionary } from '../typings/typings';
 
 import PathFinder from './path-finder';
 

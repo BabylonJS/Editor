@@ -1,5 +1,7 @@
 import { Scene } from 'babylonjs';
-import { IStringDictionary, IExtension, ExtensionConstructor } from 'babylonjs-editor';
+
+import { IStringDictionary } from './typings/typings';
+import { IExtension, ExtensionConstructor } from './typings/extension';
 
 import Tools from './tools/tools';
 import Mobile from './tools/mobile';

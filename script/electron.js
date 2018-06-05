@@ -24,6 +24,8 @@ Builder.build({
             '.declaration/**',
             'dist/**',
 
+            'node_modules/babylonjs/babylon.d.ts',
+
             'assets/**',
             'css/**',
 

@@ -2,7 +2,8 @@ import { Scene, PostProcessRenderPipeline, StandardRenderingPipeline, SSAO2Rende
 
 import Extension from '../extension';
 import Extensions from '../extensions';
-import Editor, { IStringDictionary } from 'babylonjs-editor';
+
+import { IStringDictionary } from '../typings/typings';
 
 export interface PostProcessMetadata {
     standard?: any;
@@ -52,12 +53,12 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public onLoad (data: PostProcessMetadata, editor: Editor): void {
+    public onLoad (data: PostProcessMetadata): void {
         // this._applyPostProcesses(data, 'file:');
     }
 
     // Applies the post-processes on the scene
-    private _applyPostProcesses (data: PostProcessMetadata, rootUrl?: string, editor?: Editor): void {
+    private _applyPostProcesses (data: PostProcessMetadata, rootUrl?: string): void {
         if (data.standard) {
             this.standard = StandardRenderingPipeline.Parse(data.standard, this.scene, rootUrl);
             this.standard._attachCameras(this.scene.cameras, true);
