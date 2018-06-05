@@ -128,8 +128,8 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'button', id: 'play', text: 'Play', img: 'icon-play-game', checked: false },
             { type: 'break' },
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add', checked: false },
-            { type: 'check', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
-            { type: 'check', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
+            { type: 'button', id: 'add-key', text: 'Add Keys', img: 'icon-add', checked: false },
+            { type: 'button', id: 'remove-key', text: 'Remove Keys', img: 'icon-error', checked: false },
             { type: 'break' },
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
             { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
@@ -303,15 +303,23 @@ export default class AnimationEditor extends EditorPlugin {
             return;
         }
 
-        // Uncheck all
-        this.toolbar.element.uncheck('add-key', 'remove-key');
-        this.addingKeys = this.removingKeys = false;
-        
+        // Switch id
         switch (id) {
             case 'play': this.playAnimation(); break;
             case 'add': this.addAnimation(); break;
-            case 'add-key': this.addingKeys = !this.addingKeys; break;
-            case 'remove-key': this.removingKeys = !this.removingKeys; break;
+
+            case 'add-key':
+            case 'remove-key':
+                const active = this.toolbar.isChecked(id, true);
+                this.toolbar.setChecked('add-key', false);
+                this.toolbar.setChecked('remove-key', false);
+
+                this.toolbar.setChecked(id, active);
+
+                this.addingKeys = active && id === 'add-key';
+                this.removingKeys = active && id === 'remove-key';
+                break;
+
             case 'remove-animation':
                 if (this.animation) {
                     const index = this.animatable.animations.indexOf(this.animation);
