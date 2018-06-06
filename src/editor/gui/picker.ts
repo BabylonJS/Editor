@@ -60,7 +60,6 @@ export default class Picker {
      */
     public close (): void {
         this.grid.element.destroy();
-        this.window.close();
     }
 
     /**
@@ -72,6 +71,8 @@ export default class Picker {
         this.window.buttons = ['Ok', 'Close'];
         this.window.title = this.title;
         this.window.body = '<div id="PICKER-CONTAINER" style="width: 100%; height: 100%;"></div>';
+        this.window.onClose = () => this.close();
+        this.window.onToggle = () => this.grid.element.resize();
         this.window.onButtonClick = (id) => {
             if (id === 'Ok') {
                 callback(this.grid.getSelected().map(s => {
@@ -83,6 +84,7 @@ export default class Picker {
             }
 
             this.close();
+            this.window.close();
         };
         this.window.open();
 

@@ -14,9 +14,13 @@ export default class Window {
     public height: number = 600;
 
     public showMax: boolean = true;
+    public showClose: boolean = true;
 
     public onButtonClick: (id: string) => void;
     public onClose: () => void;
+    public onMax: () => void;
+    public onMin: () => void;
+    public onToggle: () => void;
 
     /**
      * Constructor
@@ -65,7 +69,7 @@ export default class Window {
             buttons: buttons,
             width: this.width,
             height: this.height,
-            showClose: true,
+            showClose: this.showClose,
             showMax: this.showMax,
             modal: true
         });
@@ -77,7 +81,21 @@ export default class Window {
         });
 
         // On close
-        this.element.on('close', () => this.onClose && this.onClose());
+        this.element.on('close', () => {
+            this.onClose && this.onClose();
+            this.onToggle = null;
+            this.onMax = null;
+            this.onMin = null;
+        });
+        this.element.on('max', ev => {
+            ev.onComplete = () => this.onMax && this.onMax();
+        });
+        this.element.on('min', ev => {
+            ev.onComplete = () => this.onMin && this.onMin();
+        });
+        this.element.on('toggle', ev => {
+            ev.onComplete = () => this.onToggle && this.onToggle();
+        });
     }
 
     /**
