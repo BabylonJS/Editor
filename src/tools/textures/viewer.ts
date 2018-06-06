@@ -3,14 +3,18 @@ import {
     Engine, Scene, BaseTexture, Texture, CubeTexture, Mesh, PBRMaterial,
     PassPostProcess,
     Camera, ArcRotateCamera,
-    Vector3
+    Vector3,
+    Tools as BabylonTools, Tags,
+    ProceduralTexture
 } from 'babylonjs';
+import 'babylonjs-procedural-textures';
 
 import Editor, {
     Tools,
 
     Layout,
     Toolbar,
+    Picker,
 
     EditorPlugin
 } from 'babylonjs-editor';
@@ -97,6 +101,8 @@ export default class TextureViewer extends EditorPlugin {
         this.toolbar = new Toolbar('TextureViewerToolbar');
         this.toolbar.items = [
             { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
+            { id: 'add-procedural', text: 'Add Procedural...', img: 'icon-add' },
+            { type: 'break' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
@@ -153,6 +159,10 @@ export default class TextureViewer extends EditorPlugin {
             case 'add':
                 this.createFileDialog();
                 break;
+            case 'add-procedural':
+                this.addProceduralTexture();
+                break;
+
             case 'refresh':
                 this.createList();
                 break;
@@ -175,6 +185,9 @@ export default class TextureViewer extends EditorPlugin {
         for (const tex of this.editor.core.scene.textures) {
             if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
                 continue;
+
+            if (tex instanceof ProceduralTexture)
+                return this.addProceduralTexturePreviewNode(tex);
             
             let url = <string> tex['url'];
             if (!url)
@@ -245,6 +258,29 @@ export default class TextureViewer extends EditorPlugin {
     }
 
     /**
+     * Add a procedural texture preview
+     * @param texture the texture to add
+     */
+    protected addProceduralTexturePreviewNode (texture: ProceduralTexture): void {
+        const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
+            width: '100px',
+            height: '100px',
+            float: 'left',
+            margin: '10px'
+        });
+        canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'procedural', texture));
+
+        const pixels = texture.readPixels();
+        const context = canvas.getContext('2d');
+
+        const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), texture.getSize().width, texture.getSize().height);
+        context.putImageData(imageData, 0, 0);
+
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
+        texturesList.append(canvas);
+    }
+    
+    /**
      * Sets the texture in preview canvas
      * @param name: the name of the texture
      */
@@ -256,6 +292,10 @@ export default class TextureViewer extends EditorPlugin {
             case 'dds':
                 this.texture = this.material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + name, this.scene);
                 this.sphere.setEnabled(true);
+                break;
+            case 'procedural':
+                this.camera.attachPostProcess(this.postProcess);
+                this.texture = ProceduralTexture.Parse(originalTexture.serialize(), this.scene, '');
                 break;
             default:
                 this.camera.attachPostProcess(this.postProcess);
@@ -334,6 +374,33 @@ export default class TextureViewer extends EditorPlugin {
             };
 
             this.layout.unlockPanel('top');
+        });
+    }
+
+    /**
+     * Opens the procedural textures picker
+     */
+    protected addProceduralTexture (): void {
+        const textures: string[] = [
+            'BrickProceduralTexture',
+            'CloudProceduralTexture',
+            'FireProceduralTexture',
+            'GrassProceduralTexture',
+            'MarbleProceduralTexture',
+            'NormalMapProceduralTexture',
+            'PerlinNoiseProceduralTexture',
+            'RoadProceduralTexture',
+            'StarfieldProceduralTexture',
+            'WoodProceduralTexture'
+        ];
+
+        const picker = new Picker('Procedural Texture Picker');
+        picker.addItems(textures.map(t => { return { name: t } }));
+        picker.open(async items => {
+            const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
+            const texture = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), 512, this.editor.core.scene);
+
+            this.addProceduralTexturePreviewNode(texture);
         });
     }
 }
