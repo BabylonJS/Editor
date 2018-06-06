@@ -456,9 +456,9 @@ export default class Editor implements IUpdatable {
         },
         (file) => {
             // Callback
-            const callback = async (scene: Scene) => {
+            const callback = async (scene: Scene, disposePreviousScene: boolean) => {
                 // Configure editor
-                this.core.removeScene(this.core.scene);
+                this.core.removeScene(this.core.scene, disposePreviousScene);
 
                 this.core.uiTextures.forEach(ui => ui.dispose());
                 this.core.uiTextures = [];
@@ -538,9 +538,9 @@ export default class Editor implements IUpdatable {
 
                 // Load scene
                 if (doNotAppend)
-                    SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene));
+                    SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene, true));
                 else
-                    SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene));
+                    SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene, false));
 
                 // Delete start scene (when starting the editor) and add new scene
                 delete FilesInput.FilesToLoad['scene.babylon'];
@@ -550,7 +550,7 @@ export default class Editor implements IUpdatable {
             if (this._showReloadDialog)
                 Dialog.Create('Load scene', 'Append to existing one?', (result) => dialogCallback(result === 'No'));
             else
-                dialogCallback(false);
+                dialogCallback(true);
 
             this._showReloadDialog = true;
 
