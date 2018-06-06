@@ -521,6 +521,9 @@ export default class Editor implements IUpdatable {
                 this.layout.lockPanel('main', 'Importing Materials...', true);
                 await Tools.ImportScript('babylonjs-materials');
 
+                this.layout.lockPanel('main', 'Importing Procedural Textures...', true);
+                await Tools.ImportScript('babylonjs-procedural-textures');
+
                 // Import extensions
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
                 await Promise.all([
