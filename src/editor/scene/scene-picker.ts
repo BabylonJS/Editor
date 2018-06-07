@@ -1,7 +1,7 @@
 import {
     Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
-    PointerInfo, PointerEventTypes
+    PointerInfo, PointerEventTypes, Gizmo
 } from 'babylonjs';
 import Editor from '../editor';
 
@@ -21,6 +21,7 @@ export default class ScenePicker {
     public gizmosLayer: UtilityLayerRenderer;
 
     public onPickedMesh: (mesh: AbstractMesh) => void;
+    public onUpdateMesh: (mesh: AbstractMesh) => void;
 
     // Protected members
     protected lastMesh: AbstractMesh = null;
@@ -32,6 +33,7 @@ export default class ScenePicker {
     protected positionGizmo: PositionGizmo;
     protected rotationGizmo: RotationGizmo;
     protected scalingGizmo: ScaleGizmo;
+    protected currentGizmo: PositionGizmo | RotationGizmo | ScaleGizmo = null;
 
     // Private members
     private _enabled: boolean = true;
@@ -90,21 +92,29 @@ export default class ScenePicker {
     public set gizmoType (value: GizmoType) {
         this._gizmoType = value;
 
+        // Dispose and clear
         this.positionGizmo && this.positionGizmo.dispose();
         this.rotationGizmo && this.rotationGizmo.dispose();
         this.scalingGizmo && this.scalingGizmo.dispose();
 
         this.positionGizmo = this.rotationGizmo = this.scalingGizmo = null;
 
+        // Create gizmo
         switch (value) {
-            case GizmoType.POSITION: this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
-            case GizmoType.ROTATION: this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
-            case GizmoType.SCALING: this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
+            case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
+            case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
+            case GizmoType.SCALING: this.currentGizmo = this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
             default: break; // GizmoType.NONE
         }
 
         // Attach mesh
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
+
+        // Events
+        // TODO: access public members
+        this.currentGizmo['_xDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        this.currentGizmo['_yDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        this.currentGizmo['_zDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
     }
 
     /**
