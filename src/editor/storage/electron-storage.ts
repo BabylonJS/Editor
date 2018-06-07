@@ -14,6 +14,17 @@ export default class ElectronStorage extends Storage {
     }
 
     /**
+     * Opens the folder picker (override default behavior)
+     * @param title the title of the picker
+     */
+    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string): Promise<void> {
+        const paths = await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
+
+        await this.getFiles(paths[0]);
+        await this.uploadFiles(paths[0], filesToWrite);
+    }
+
+    /**
      * Creates the given folders
      * @param folder the parent folder
      * @param names the folders names

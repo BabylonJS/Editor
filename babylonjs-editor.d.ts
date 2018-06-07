@@ -1396,6 +1396,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             canvas: HTMLCanvasElement;
             gizmosLayer: UtilityLayerRenderer;
             onPickedMesh: (mesh: AbstractMesh) => void;
+            onUpdateMesh: (mesh: AbstractMesh) => void;
             protected lastMesh: AbstractMesh;
             protected lastX: number;
             protected lastY: number;
@@ -1403,6 +1404,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             protected positionGizmo: PositionGizmo;
             protected rotationGizmo: RotationGizmo;
             protected scalingGizmo: ScaleGizmo;
+            protected currentGizmo: PositionGizmo | RotationGizmo | ScaleGizmo;
             /**
                 * Constructor
                 * @param editor: the editor reference

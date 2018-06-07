@@ -116,6 +116,14 @@ export default class EditorToolbar {
     }
 
     /**
+     * Sets a click and the given item's id
+     * @param id the id of the item to click
+     */
+    public setToolClicked (id: string): void {
+        this.onToolsClick(id);
+    }
+
+    /**
      * Once the user clicks on a menu of the main toolbar
      * @param target the target element
      */
