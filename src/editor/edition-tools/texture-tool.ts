@@ -1,4 +1,4 @@
-import { BaseTexture, Texture, CubeTexture } from 'babylonjs';
+import { BaseTexture, Texture, CubeTexture, ProceduralTexture } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -61,6 +61,13 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         }
         else if (texture instanceof CubeTexture) {
             // TODO
+        }
+
+        if (texture instanceof ProceduralTexture) {
+            const procedural = this.tool.addFolder('Procedural');
+            procedural.open();
+
+            procedural.add(texture, 'refreshRate').step(1).min(0).name('Refresh Rate');
         }
     }
 }
