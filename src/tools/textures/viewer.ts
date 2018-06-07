@@ -186,8 +186,10 @@ export default class TextureViewer extends EditorPlugin {
             if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
                 continue;
 
-            if (tex instanceof ProceduralTexture)
-                return this.addProceduralTexturePreviewNode(tex);
+            if (tex instanceof ProceduralTexture) {
+                this.addProceduralTexturePreviewNode(tex);
+                continue;
+            }
             
             let url = <string> tex['url'];
             if (!url)
@@ -296,6 +298,7 @@ export default class TextureViewer extends EditorPlugin {
             case 'procedural':
                 this.camera.attachPostProcess(this.postProcess);
                 this.texture = ProceduralTexture.Parse(originalTexture.serialize(), this.scene, '');
+                (<ProceduralTexture> this.texture).refreshRate = 1;
                 break;
             default:
                 this.camera.attachPostProcess(this.postProcess);
@@ -396,11 +399,14 @@ export default class TextureViewer extends EditorPlugin {
 
         const picker = new Picker('Procedural Texture Picker');
         picker.addItems(textures.map(t => { return { name: t } }));
-        picker.open(async items => {
-            const ctor = BabylonTools.Instantiate('BABYLON.' + items[0].name);
-            const texture = new ctor(items[0].name + BabylonTools.RandomId().substr(0, 5), 512, this.editor.core.scene);
+        picker.open(items => {
+            items.forEach(i => {
+                const ctor = BabylonTools.Instantiate('BABYLON.' + i.name);
+                const texture = <ProceduralTexture> new ctor(i.name + BabylonTools.RandomId().substr(0, 5), 512, this.editor.core.scene);
+                texture.refreshRate = -1;
 
-            this.addProceduralTexturePreviewNode(texture);
+                this.addProceduralTexturePreviewNode(texture);
+            });
         });
     }
 }

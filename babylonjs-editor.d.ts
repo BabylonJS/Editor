@@ -557,8 +557,12 @@ declare module 'babylonjs-editor/editor/gui/window' {
             width: number;
             height: number;
             showMax: boolean;
+            showClose: boolean;
             onButtonClick: (id: string) => void;
             onClose: () => void;
+            onMax: () => void;
+            onMin: () => void;
+            onToggle: () => void;
             /**
                 * Constructor
                 * @param name: the name of the window

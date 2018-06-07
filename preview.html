@@ -168,6 +168,7 @@
         promises.push(System.import("babylonjs"));
         promises.push(System.import("babylonjs-gui"));
         promises.push(System.import("cannon"));
+        promises.push(System.import("babylonjs-procedural-textures"));
         Promise.all(promises).then(function (e) {
             return System.import("babylonjs-materials").then(function () {
                 if (opener) {
