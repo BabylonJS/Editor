@@ -50,7 +50,7 @@ export default class Tools {
             case "dds": return "image/vnd.ms-dds";
             case "wav": case "wave": return "audio/wav";
             //case "audio/x-wav";
-            case "mp3": return "audio/mp3";
+            case "mp3": return "audio/mpeg";
             case "mpg": case "mpeg": return "audio/mpeg";
             //case "audio/mpeg3";
             //case "audio/x-mpeg-3";
@@ -102,8 +102,11 @@ export default class Tools {
     * @param withPath: if the return value should contain all path
     */
     public static GetFilenameWithoutExtension (filename: string, withPath?: boolean): string {
-        var lastDot = filename.lastIndexOf(".");
-        var lastSlash = filename.lastIndexOf("/");
+        const lastDot = filename.lastIndexOf('.');
+        
+        let lastSlash = filename.lastIndexOf('/');
+        if (lastSlash === -1)
+            lastSlash = filename.lastIndexOf('\\'); // Windows
 
         return filename.substring(withPath ? 0 : lastSlash + 1, lastDot);
     }
@@ -120,8 +123,8 @@ export default class Tools {
      * Creates an open file dialog
      * @param callback called once the user selects files
      */
-    public static OpenFileDialog (callback?: (files: File[]) => void): Promise<File[]> {
-        return new Promise((resolve, reject) => {
+    public static async OpenFileDialog (callback?: (files: File[]) => void): Promise<File[]> {
+        return new Promise<File[]>((resolve, reject) => {
             const input = Tools.CreateElement<HTMLInputElement>('input', 'TextureViewerInput');
             input.type = 'file';
             input.multiple = true;

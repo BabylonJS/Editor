@@ -57,6 +57,7 @@ export default class Editor implements IUpdatable {
 
     // Private members
     private _lastWaitingItems: number = 0;
+    private _canvasFocused: boolean = true;
 
     /**
      * Constructor
@@ -407,6 +408,13 @@ export default class Editor implements IUpdatable {
         // Focus / Blur
         window.addEventListener('blur', () => this.core.renderScenes = false);
         window.addEventListener('focus', () => this.core.renderScenes = true);
+
+        this.core.engine.getRenderingCanvas().addEventListener('focus', () => this._canvasFocused = true);
+        this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
+
+        // Shotcuts
+        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'p' && this.toolbar.setToolClicked('position'));
+        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.toolbar.setToolClicked('rotation'));
 
         // Save state
         window.addEventListener('beforeunload', () => {

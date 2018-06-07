@@ -1,3 +1,5 @@
+import { dialog } from 'electron';
+
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -23,7 +25,9 @@ export default class StorageRouter {
         // Create routes
         this.getFiles();
         this.writeFile();
+        this.readFile();
         this.createFolder();
+        this.getPaths();
         
         this.application.use(this.router.routes());
     }
@@ -74,6 +78,18 @@ export default class StorageRouter {
     }
 
     /**
+     * Get file content
+     */
+    protected readFile (): void {
+        this.router.get('/files:/read', async (ctx, next) => {
+            const filename = ctx.query.path;
+            
+            ctx.type = path.extname(filename);
+            ctx.body = fs.createReadStream(filename);
+        });
+    }
+
+    /**
      * Creates a folder
      */
     protected createFolder (): void {
@@ -96,6 +112,23 @@ export default class StorageRouter {
             ctx.body = {
                 message: 'success'
             };
+        });
+    }
+
+    /**
+     * Get a path
+     */
+    protected getPaths (): void {
+        this.router.get('/files:/paths', async (ctx, next) => {
+            const paths = await new Promise<string[]>((resolve, reject) => {
+                dialog.showOpenDialog({
+                    title: ctx.query && ctx.query.title ? ctx.query.title : undefined,
+                    defaultPath: ctx.query && ctx.query.folder ? ctx.query.folder : undefined,
+                    properties: [ctx.query && ctx.query.type || 'openDirectory']
+                }, paths => resolve(paths));
+            });
+
+            ctx.body = paths;
         });
     }
 }
