@@ -1206,6 +1206,11 @@ declare module 'babylonjs-editor/editor/components/toolbar' {
                 */
             constructor(editor: Editor);
             /**
+                * Sets a click and the given item's id
+                * @param id the id of the item to click
+                */
+            setToolClicked(id: string): void;
+            /**
                 * Once the user clicks on a menu of the main toolbar
                 * @param target the target element
                 */
