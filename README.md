@@ -1,4 +1,4 @@
-Babylon.js Editor v2.0
+Babylon.js Editor v2.0.0
 ======
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
@@ -16,9 +16,9 @@ Some more articles/tutorials are available here: https://medium.com/babylon-js
 * Create and edit physics states on meshes
 * Create and edit materials (including materials library)
 * Add and edit sounds
-* Add and edit textures (including render target textures preview)
-* Save projects on OneDrive (Drop Box will come in future versions)
-* Deploy project template on OneDrive (Drop Box will come in future versions)
+* Add and edit textures (including render target textures & procedural textures)
+* Save projects on OneDrive / local with Electron
+* Deploy project template on OneDrive / local with Electron
 * Scene graph view
 * Create and edit custom post-process
 * Create and edit custom materials
@@ -53,7 +53,7 @@ Watching TypeScript (Electron)
 npm run watch-electron
 ```
 
-Running a web server
+Running the web server
 ```bash
 npm run webserver
 ```
