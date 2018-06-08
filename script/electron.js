@@ -15,6 +15,9 @@ Builder.build({
         directories: {
             output: './electron-packages/'
         },
+        nsis: {
+            oneClick: false
+        },
         compression: 'store',
         files: [
             'src/**',
