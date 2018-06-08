@@ -4,6 +4,7 @@ import Editor, {
     Edition,
     Grid, GridRow,
     Picker,
+    Toolbar,
 
     EditorPlugin
 } from 'babylonjs-editor';
@@ -24,6 +25,7 @@ export interface PathFinderGrid extends GridRow {
 export default class PathFinderEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
+    public toolbar: Toolbar = null;
     public grid: Grid<PathFinderGrid> = null;
 
     public datas: PathFinderMetadata[] = [];
@@ -89,10 +91,20 @@ export default class PathFinderEditor extends EditorPlugin {
         // Create layout
         this.layout = new Layout('PathFinder');
         this.layout.panels = [
+            { type: 'top', content: '<div id="PATH-FINDER-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 35, resizable: false },
             { type: 'left', content: '<div id="PATH-FINDER-MESHES" style="width: 100%; height: 100%;"></div>', size: '50%', resizable: true },
             { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%;"></canvas>', resizable: true, size: '50%' }
         ];
         this.layout.build(this.divElement.id);
+
+        // Toolbar
+        this.toolbar = new Toolbar('PATH-FINDER-TOOLBAR');
+        this.toolbar.items = [
+            { id: 'paths', type: 'menu', text: 'Paths', img: 'icon-graph', items: [] },
+            { id: 'edit', type: 'button', text: 'Edit', img: 'icon-edit' }
+        ];
+        this.toolbar.build('PATH-FINDER-TOOLBAR');
+        this.resetPathsOfToolbar();
 
         // Add grid
         this.grid = new Grid<PathFinderGrid>('PathFinderGrid', {
@@ -137,6 +149,16 @@ export default class PathFinderEditor extends EditorPlugin {
      */
     public onHide (): void {
         this.pathCubes.forEach(c => c.isVisible = false);
+    }
+
+    /**
+     * Resets the paths from the toolbar
+     */
+    public resetPathsOfToolbar (): void {
+        const paths = this.toolbar.element.items[0];
+        paths.items = this.datas.map(d => ({ id: 'path-' + d.name.toLowerCase(), type: 'button', text: d.name }));
+
+        this.toolbar.element.refresh();
     }
 
     /**
@@ -256,6 +278,17 @@ export default class PathFinderEditor extends EditorPlugin {
 
         if (cubeMesh)
             cubeMesh.doNotSerialize = true;
+    }
+
+    /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    protected onToolbarClicked (id: string): void {
+        switch (id) {
+            case 'edit': this.editor.core.onSelectObject.notifyObservers(this); break;
+            default: break; // Should never happen
+        }
     }
 
     /**
