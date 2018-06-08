@@ -38,7 +38,10 @@ export default class PathFinderTool extends AbstractEditionTool<PathFinderEditor
         folder.open();
 
         if (this.object.data) {
-            folder.add(this.object.data, 'name').name('Name').onFinishChange(r => this.update(pathFinder));
+            folder.add(this.object.data, 'name').name('Name').onFinishChange(r => {
+                this.object.resetPathsOfToolbar();
+                this.update(pathFinder);
+            });
             folder.add(this.object.data, 'size').name('Size').onFinishChange(r => this.object.buildPathFinder());
             folder.add(this.object.data, 'rayHeight').name('Ray Height').onFinishChange(r => this.object.buildPathFinder());
             folder.add(this.object.data, 'rayLength').name('Ray Length').onFinishChange(r => this.object.buildPathFinder());
@@ -69,6 +72,7 @@ export default class PathFinderTool extends AbstractEditionTool<PathFinderEditor
     // Create a new path finder configuration
     private _createNewData (): void {
         this.object.addConfiguration();
+        this.object.resetPathsOfToolbar();
         this.update(this.object);
     }
 
@@ -78,6 +82,7 @@ export default class PathFinderTool extends AbstractEditionTool<PathFinderEditor
         if (index !== -1)
             this.object.datas.splice(index, 1);
         
+        this.object.resetPathsOfToolbar();
         this.object.resetWithData(this.object.datas[0]);
         this.update(this.object);
     }
