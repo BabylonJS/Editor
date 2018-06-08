@@ -413,7 +413,7 @@ export default class Editor implements IUpdatable {
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
 
         // Shotcuts
-        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'p' && this.toolbar.setToolClicked('position'));
+        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.toolbar.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.toolbar.setToolClicked('rotation'));
 
         // Save state
