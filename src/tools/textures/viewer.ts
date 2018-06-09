@@ -405,7 +405,10 @@ export default class TextureViewer extends EditorPlugin {
                 const texture = <ProceduralTexture> new ctor(i.name + BabylonTools.RandomId().substr(0, 5), 512, this.editor.core.scene);
                 texture.refreshRate = -1;
 
-                texture.onGenerated = () => this.addProceduralTexturePreviewNode(texture);
+                texture.onGenerated = () => {
+                    texture.onGenerated = undefined;
+                    this.addProceduralTexturePreviewNode(texture);
+                };
             });
         });
     }

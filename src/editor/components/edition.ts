@@ -33,6 +33,15 @@ import PostProcessesTool from '../edition-tools/post-processes/post-processes-to
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
 
 import TextureTool from '../edition-tools/texture-tool';
+import BrickProceduralTool from '../edition-tools/procedural-textures/brick-tool';
+import CloudProceduralTool from '../edition-tools/procedural-textures/cloud-tool';
+import FireProceduralTool from '../edition-tools/procedural-textures/fire-tool';
+import GrassProceduralTool from '../edition-tools/procedural-textures/grass-tool';
+import MarbleProceduralTool from '../edition-tools/procedural-textures/marble-tool';
+import NormalProceduralTool from '../edition-tools/procedural-textures/normal-tool';
+import PerlinNoiseProceduralTool from '../edition-tools/procedural-textures/perlin-tool';
+import RoadProceduralTool from '../edition-tools/procedural-textures/road-tool';
+import WoodProceduralTool from '../edition-tools/procedural-textures/wood-tool';
 
 import GroundTool from '../edition-tools/meshes/ground-tool';
 
@@ -104,6 +113,15 @@ export default class EditorEditionTools {
         // this.addTool(new GuiImageTool());
 
         this.addTool(new TextureTool());
+        this.addTool(new BrickProceduralTool());
+        this.addTool(new CloudProceduralTool());
+        this.addTool(new FireProceduralTool());
+        this.addTool(new GrassProceduralTool());
+        this.addTool(new MarbleProceduralTool());
+        this.addTool(new NormalProceduralTool());
+        this.addTool(new PerlinNoiseProceduralTool());
+        this.addTool(new RoadProceduralTool());
+        this.addTool(new WoodProceduralTool());
 
         this.addTool(new GroundTool());
 

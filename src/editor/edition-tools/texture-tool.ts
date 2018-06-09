@@ -10,6 +10,7 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
 
     // Private members
     private _currentCoordinatesMode: string = '';
+    private _proceduralTextureSize: string = '';
 
 	/**
 	* Returns if the object is supported
@@ -29,6 +30,10 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
+
+        if (texture instanceof ProceduralTexture)
+            common.add(texture, 'name').name('Name');
+
         common.add(texture, 'invertZ').name('Invert Z');
         common.add(texture, 'hasAlpha').name('Has Alpha');
         common.add(texture, 'gammaSpace').name('Gamma Space');
@@ -68,6 +73,16 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
             procedural.open();
 
             procedural.add(texture, 'refreshRate').step(1).min(0).name('Refresh Rate');
+
+            // Size
+            const sizes: string[] = [];
+            for (let i = 1; i < 12; i++)
+                sizes.push(Math.pow(2, i).toString());
+            
+            this._proceduralTextureSize = texture['_size'].toString();
+            procedural.add(this, '_proceduralTextureSize', sizes).name('Size').onFinishChange(r => {
+                texture.resize(parseInt(r), texture._generateMipMaps);
+            });
         }
     }
 }

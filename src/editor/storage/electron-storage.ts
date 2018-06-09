@@ -18,9 +18,11 @@ export default class ElectronStorage extends Storage {
      * @param title the title of the picker
      */
     public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string): Promise<void> {
-        const paths = await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
+        const paths = folder ? [folder] : await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
 
-        await this.getFiles(paths[0]);
+        await Request.Post('http://localhost:1337/files:/workingDirectory', JSON.stringify({
+            name: paths[0]
+        }));
         await this.uploadFiles(paths[0], filesToWrite);
     }
 
@@ -31,9 +33,9 @@ export default class ElectronStorage extends Storage {
      */
     public async createFolders (folder: any, names: string[]): Promise<void> {
         for (const n of names) {
-            await Request.Post('http://localhost:1337/files:/folder', {
+            await Request.Post('http://localhost:1337/files:/folder', JSON.stringify({
                 name: n
-            });
+            }));
         }
     }
     

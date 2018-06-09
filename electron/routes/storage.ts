@@ -24,6 +24,7 @@ export default class StorageRouter {
 
         // Create routes
         this.getFiles();
+        this.setWorkingDirectory();
         this.writeFile();
         this.readFile();
         this.createFolder();
@@ -53,6 +54,19 @@ export default class StorageRouter {
     }
 
     /**
+     * Set the working directory
+     */
+    protected setWorkingDirectory (): void {
+        this.router.post('/files:/workingDirectory', async (ctx, next) => {
+            this.path = ctx.request.body.name;
+            
+            ctx.body = {
+                message: 'success'
+            };
+        });
+    }
+
+    /**
      * Writes the given file
      */
     protected writeFile (): void {
@@ -60,16 +74,7 @@ export default class StorageRouter {
             if (!ctx.query || !ctx.query.name || !ctx.query.folder)
                 throw new Error('Please provide a folder to wirte file in.');
             
-            const chunks = [];
-            ctx.req.on('data', (chunk) => {
-                chunks.push(chunk);
-            });
-            ctx.req.on('end', async () => {
-                const buffer = Buffer.concat(chunks);
-
-                // Write file
-                await fs.writeFile(path.join(ctx.query.folder, ctx.query.name), buffer);
-            });
+            await fs.writeFile(path.join(ctx.query.folder, ctx.query.name), ctx.request.rawBody);
 
             ctx.body = {
                 message: 'success'
@@ -94,20 +99,11 @@ export default class StorageRouter {
      */
     protected createFolder (): void {
         this.router.post('/files:/folder', async (ctx, next) => {
-            const chunks = [];
-            ctx.req.on('data', (chunk) => {
-                chunks.push(chunk);
-            });
-            ctx.req.on('end', async () => {
-                const buffer = Buffer.concat(chunks);
-                const folder = buffer.toString().split('=')[1]; // name={{the-name}}
+            const folder = ctx.request.body.name;
+            const filename = path.resolve(this.path, folder);
 
-                // Write file
-                const filename = path.resolve(this.path, folder);
-
-                if (!(await fs.pathExists(filename)))
-                    await fs.mkdir(filename);
-            });
+            if (!(await fs.pathExists(filename)))
+                await fs.mkdir(filename);
 
             ctx.body = {
                 message: 'success'
