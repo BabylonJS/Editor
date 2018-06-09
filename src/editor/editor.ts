@@ -325,8 +325,8 @@ export default class Editor implements IUpdatable {
             this.core.onSelectObject.notifyObservers(this.core.scene);
 
             // List scene preview
-            if (Tools.IsElectron())
-                ScenePreview.Create();
+            // if (Tools.IsElectron())
+            //     ScenePreview.Create();
         }
 
         if (!showNewSceneDialog)
