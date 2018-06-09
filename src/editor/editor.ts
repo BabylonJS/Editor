@@ -24,6 +24,7 @@ import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneImporter from './scene/scene-importer';
 import SceneIcons from './scene/scene-icons';
+import SceneExporter from './scene/scene-exporter';
 
 import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
@@ -415,6 +416,8 @@ export default class Editor implements IUpdatable {
         // Shotcuts
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.toolbar.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.toolbar.setToolClicked('rotation'));
+
+        document.addEventListener('keyup', ev => ev.ctrlKey && ev.key === 's' && SceneExporter.ExportProject(this));
 
         // Save state
         window.addEventListener('beforeunload', () => {
