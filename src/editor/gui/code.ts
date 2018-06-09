@@ -76,10 +76,11 @@ export default class CodeEditor {
                 'assets/templates/code/mobile.d.ts'
             ];
 
+            const promises = libs.map(l => Tools.LoadFile(l, false));
+            const results = await Promise.all(promises);
+
             let content = '';
-            
-            for (const l of libs)
-                content += await Tools.LoadFile(l, false) + '\n';
+            results.forEach(r => content += r + '\n');
 
             content += `
                 declare var scene: BABYLON.Scene;

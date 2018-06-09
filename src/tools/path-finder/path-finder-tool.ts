@@ -7,9 +7,6 @@ export default class PathFinderTool extends AbstractEditionTool<PathFinderEditor
     public divId: string = 'PATH-FINDER-TOOL';
     public tabName: string = 'Path Finder';
 
-    // Private members
-    private _selectedPathFinderName: string = '';
-
     /**
      * Constructor
      * @param editor the path finder editor
@@ -46,20 +43,6 @@ export default class PathFinderTool extends AbstractEditionTool<PathFinderEditor
             folder.add(this.object.data, 'rayHeight').name('Ray Height').onFinishChange(r => this.object.buildPathFinder());
             folder.add(this.object.data, 'rayLength').name('Ray Length').onFinishChange(r => this.object.buildPathFinder());
         }
-
-        // Configuration list
-        this._selectedPathFinderName = this.object.data ? this.object.data.name : '';
-
-        const other: string[] = [];
-        this.object.datas.forEach(d => other.push(d.name));
-        folder.add(this, '_selectedPathFinderName', other).name('Path Finder').onFinishChange(r => {
-            const data = this.object.datas.find(d => d.name === r);
-            if (!data)
-                return;
-
-            this.object.resetWithData(data);
-            this.update(pathFinder);
-        });
 
         // Remove
         if (this.object.data)

@@ -103,6 +103,7 @@ export default class PathFinderEditor extends EditorPlugin {
             { id: 'paths', type: 'menu', text: 'Paths', img: 'icon-graph', items: [] },
             { id: 'edit', type: 'button', text: 'Edit', img: 'icon-edit' }
         ];
+        this.toolbar.onClick = id => this.onToolbarClicked(id);
         this.toolbar.build('PATH-FINDER-TOOLBAR');
         this.resetPathsOfToolbar();
 
@@ -287,7 +288,16 @@ export default class PathFinderEditor extends EditorPlugin {
     protected onToolbarClicked (id: string): void {
         switch (id) {
             case 'edit': this.editor.core.onSelectObject.notifyObservers(this); break;
-            default: break; // Should never happen
+            default:
+                // Selected an existing data?
+                for (const d of this.datas) {
+                    if (id === 'paths:path-' + d.name.toLowerCase()) {
+                        this.resetWithData(d);
+                        this.editor.core.onSelectObject.notifyObservers(this);
+                        break;
+                    }
+                }
+                break;
         }
     }
 
