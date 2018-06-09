@@ -98,6 +98,8 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             const actions = this.tool.addFolder('Actions');
             actions.open();
             actions.add(ps, 'rebuild').name('Rebuild');
+            actions.add(ps, 'start').name('Start');
+            actions.add(ps, 'stop').name('Stop');
 
             // Emit
             const emit = this.tool.addFolder('Emit');
