@@ -513,6 +513,9 @@ export default class Editor implements IUpdatable {
 
                 // Run scene
                 this.run();
+
+                // Unlock main panel
+                this.layout.unlockPanel('main');
             };
 
             const dialogCallback = async (doNotAppend: boolean) => {
@@ -555,6 +558,10 @@ export default class Editor implements IUpdatable {
                     SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene, true));
                 else
                     SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene, false));
+
+                // Lock panel and hide loading UI
+                this.core.engine.hideLoadingUI();
+                this.layout.lockPanel('main', 'Loading Scene...', true);
 
                 // Delete start scene (when starting the editor) and add new scene
                 delete FilesInput.FilesToLoad['scene.babylon'];
