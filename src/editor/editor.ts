@@ -18,6 +18,7 @@ import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
 import EditorEditionTools from './components/edition';
 import EditorEditPanel from './components/edit-panel';
+import Stats from './components/stats';
 
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
@@ -43,6 +44,7 @@ export default class Editor implements IUpdatable {
     public graph: EditorGraph;
     public edition: EditorEditionTools;
     public editPanel: EditorEditPanel;
+    public stats: Stats;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -103,7 +105,11 @@ export default class Editor implements IUpdatable {
                     { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
-                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 10 }
+                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
+                            { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
+                                <div id="STATS" style="width: 100%; height: 100%"></div>`
+                            }
+                        ] }
                     ] },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
                         <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
@@ -157,6 +163,10 @@ export default class Editor implements IUpdatable {
         // Edit panel
         this.editPanel = new EditorEditPanel(this);
 
+        // Stats
+        this.stats = new Stats(this);
+        this.stats.updateStats();
+
         // Create editor camera
         this.createEditorCamera();
 
@@ -189,6 +199,9 @@ export default class Editor implements IUpdatable {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Properties');
         this.edition.resize(editionSize.width);
+
+        // Stats size
+        this.stats.layout.element.resize();
         
         // Engine size
         this.core.engine.resize();
@@ -506,6 +519,9 @@ export default class Editor implements IUpdatable {
 
                 // Create scene picker
                 this._createScenePicker();
+
+                // Update stats
+                this.stats.updateStats();
 
                 // Toggle interactions (action manager, etc.)
                 SceneManager.Clear();
