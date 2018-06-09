@@ -66,9 +66,10 @@ export default class CodeEditor {
         
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
-                'node_modules/babylonjs/babylon.d.ts',
-                'node_modules/babylonjs-gui/babylon.gui.d.ts',
-                'node_modules/babylonjs-materials/babylonjs.materials.module.d.ts',
+                'assets/typings/babylon.d.ts',
+                'assets/typings/babylon.gui.d.ts',
+                'assets/typings/babylonjs.materials.module.d.ts',
+                'assets/typings/babylonjs.proceduralTextures.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',
                 'assets/templates/post-process-creator/custom-post-process.d.ts',
                 'assets/templates/code/path-finder.d.ts',
