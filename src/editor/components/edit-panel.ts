@@ -42,7 +42,7 @@ export default class EditorEditPanel {
                 if (first)
                     await this.showPlugin(this.editor.plugins[first]);
                 else 
-                    this.editor.resizableLayout.setPanelSize('edit-panel', 10);
+                    this.editor.resizableLayout.setPanelSize('edit-panel', 15);
             },
             onClick: () => {
                 const plugin = this.editor.plugins[pluginUrl];

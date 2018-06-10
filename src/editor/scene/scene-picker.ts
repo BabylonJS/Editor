@@ -1,9 +1,12 @@
 import {
     Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
-    PointerInfo, PointerEventTypes, Gizmo
+    PointerInfo, PointerEventTypes, Gizmo, Vector3
 } from 'babylonjs';
+
 import Editor from '../editor';
+
+import UndoRedo from '../tools/undo-redo';
 
 export enum GizmoType {
     NONE = 0,
@@ -115,6 +118,10 @@ export default class ScenePicker {
         this.currentGizmo['_xDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
         this.currentGizmo['_yDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
         this.currentGizmo['_zDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+
+        // this.currentGizmo['_xDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'x'));
+        // this.currentGizmo['_yDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'y'));
+        // this.currentGizmo['_zDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'z'));
     }
 
     /**
@@ -149,6 +156,27 @@ export default class ScenePicker {
      */
     public removeEvents (): void {
         this.scene.onPointerObservable.remove(this.onCanvasPointer);
+    }
+
+    /**
+     * Adds undo redo
+     * @param delta the delta value (from / to)
+     * @param axis the moved axis
+     */
+    protected undoRedo (delta: number, axis: 'x' | 'y' | 'z'): void {
+        let vector: Vector3 = null;
+        switch (this._gizmoType) {
+            case GizmoType.POSITION: vector = this.positionGizmo.attachedMesh.position; break;
+            case GizmoType.ROTATION: vector = this.positionGizmo.attachedMesh.rotation; break;
+            case GizmoType.SCALING: vector = this.positionGizmo.attachedMesh.scaling; break;
+            default: break;
+        }
+
+        switch (axis) {
+            case 'x': UndoRedo.Push({ object: vector, property: 'x', from: vector.x - delta, to: vector.x }); break;
+            case 'y': UndoRedo.Push({ object: vector, property: 'y', from: vector.y - delta, to: vector.y }); break;
+            case 'z': UndoRedo.Push({ object: vector, property: 'z', from: vector.z - delta, to: vector.z }); break;
+        }
     }
 
     /**
