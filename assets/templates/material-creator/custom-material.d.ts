@@ -4,4 +4,5 @@ declare class CustomMaterial {
     isReadyForSubMesh(mesh: BABYLON.Mesh, subMesh: BABYLON.SubMesh, defines: any): boolean;
     bindForSubMesh(world: BABYLON.Matrix, mesh: BABYLON.Mesh, subMesh: BABYLON.SubMesh, effect: BABYLON.Effect): void;
     dispose(): void;
+    [index: string]: any;
 }

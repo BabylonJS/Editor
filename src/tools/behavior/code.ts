@@ -48,6 +48,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected onSelectObject = (node) => node && this.selectObject(node);
     protected onResize = () => this.layout.element.resize();
 
+    // Private members
+    private _timeoutId: number = -1;
+
     /**
      * Constructor
      * @param name: the name of the plugin 
@@ -110,7 +113,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add code editor
         this.layout.lockPanel('main');
         this.code = await this.createEditor();
-        this.template = await Tools.LoadFile<string>('./assets/templates/code/code.txt', false);
+        this.template = await Tools.LoadFile<string>('./assets/templates/code/' + (Tools.IsElectron() ? 'code-typescript.ts' : 'code.js'), false);
         this.layout.unlockPanel('main');
         
         // Events
@@ -191,7 +194,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      */
     protected selectCode (index: number): void {
         this.data = this.datas.metadatas[index];
-        this.code.setValue(this.data.code);
+        this.code.setValue(Tools.IsElectron() ? this.data.code : (this.data.compiledCode || this.data.code));
     }
 
     /**
@@ -242,10 +245,22 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * Creates the code editor
      */
     protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
-        const code = new CodeEditor('javascript');
+        const code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
-        code.onChange = value => {
+        code.onChange = async value => {
+            // Compile typescript?
+            if (Tools.IsElectron()) {
+                clearTimeout(this._timeoutId);
+                this._timeoutId = setTimeout(() => {
+                    if (data)
+                        data.compiledCode = code.transpileTypeScript(data.code);
+                    else if (this.data)
+                        this.data.compiledCode = this.code.transpileTypeScript(this.data.code);
+                }, 100);
+            }
+
+            // Update metadata
             if (data) {
                 data.code = code.getValue();
 

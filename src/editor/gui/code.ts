@@ -8,6 +8,13 @@ export interface MonacoDisposable extends IDisposable {
 }
 declare var monaco: MonacoDisposable;
 
+// TODO: remove this line and find a way to
+// import * as ts from 'typescript';
+export interface TypescriptDisposable extends IDisposable {
+    [index: string]: any;
+}
+declare var ts: TypescriptDisposable;
+
 export default class CodeEditor {
     // Public members
     public editor: MonacoDisposable = null;
@@ -103,6 +110,11 @@ export default class CodeEditor {
             CodeEditor.ExternalLibraries = content;
         }
 
+        // Import typescript?
+        if (Tools.IsElectron())
+            await Tools.ImportScript('typescript');
+        
+        // Create editor
         this.editor = caller['monaco'].editor.create($(parentId)[0], {
             value: this._defaultValue,
             language: this._language,
@@ -113,7 +125,9 @@ export default class CodeEditor {
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
             CodeEditor.ExtraLibs.push({
-                lib: caller['monaco'].languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
+                lib: Tools.IsElectron() ?
+                    caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor') :
+                    caller['monaco'].languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
                 caller: caller
             });
         }
@@ -121,6 +135,17 @@ export default class CodeEditor {
         this.editor.onDidChangeModelContent(() => {
             if (this.onChange)
                 this.onChange(this.editor.getValue());
+        });
+    }
+
+    /**
+     * Transpiles the given TS source to JS source
+     * @param source the source to transpile
+     */
+    public transpileTypeScript (source: string): string {
+        return ts.transpile(source, {
+            module: 'none',
+            target: 'es5'
         });
     }
 

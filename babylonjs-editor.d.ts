@@ -39,6 +39,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorGraph from 'babylonjs-editor/editor/components/graph';
     import EditorEditionTools from 'babylonjs-editor/editor/components/edition';
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
+    import Stats from 'babylonjs-editor/editor/components/stats';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -51,6 +52,7 @@ declare module 'babylonjs-editor/editor/editor' {
             graph: EditorGraph;
             edition: EditorEditionTools;
             editPanel: EditorEditPanel;
+            stats: Stats;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -599,6 +601,9 @@ declare module 'babylonjs-editor/editor/gui/code' {
     export interface MonacoDisposable extends IDisposable {
             [index: string]: any;
     }
+    export interface TypescriptDisposable extends IDisposable {
+            [index: string]: any;
+    }
     export default class CodeEditor {
             editor: MonacoDisposable;
             onChange: (value: string) => void;
@@ -630,6 +635,11 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * @param parentId the parent id of the editor
                 */
             build(parentId: string | HTMLElement, caller?: Window): Promise<void>;
+            /**
+                * Transpiles the given TS source to JS source
+                * @param source the source to transpile
+                */
+            transpileTypeScript(source: string): string;
             /**
                 * Creates a windowed editor
                 * @param options: the editor's configuration
@@ -1383,6 +1393,33 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
                 * @param plugin: the plugin to show
                 */
             showPlugin(plugin: IEditorPlugin, ...params: any[]): Promise<void>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/stats' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    export default class Stats {
+            editor: Editor;
+            layout: Layout;
+            renderingDiv: JQuery<HTMLDivElement>;
+            averageFPS: JQuery<HTMLElement>;
+            instantaneousFPS: JQuery<HTMLElement>;
+            averageFrameTime: JQuery<HTMLElement>;
+            sceneDiv: JQuery<HTMLDivElement>;
+            texturesCount: JQuery<HTMLElement>;
+            materialsCount: JQuery<HTMLElement>;
+            compiledEffects: JQuery<HTMLElement>;
+            frameInterval: number;
+            /**
+                * Constructor
+                * @param editor the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Update the stats
+                */
+            updateStats(): void;
     }
 }
 
