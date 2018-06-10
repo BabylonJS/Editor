@@ -1,6 +1,7 @@
 interface IScript {
-    start: () => void;
-    update: () => void;
+    start?: () => void;
+    update?: () => void;
+    [index: string]: any;
 }
 
 interface ICustomMaterial {
@@ -21,6 +22,6 @@ interface BehaviorCodeTools {
     getCustomMaterial (name: string): ICustomMaterial;
     getCustomPostProcess (name: string): ICustomPostProcess;
     getFileByName (name: string): File;
-    getFileUrl (filename: string): string;
+    getFileUrl (filename: string, oneTimeOnly?: boolean): string;
     getPathFinder (name: string): PathFinder;
 }

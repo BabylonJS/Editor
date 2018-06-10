@@ -10,7 +10,6 @@
     <script src="./node_modules/jquery/dist/jquery.js" type="text/javascript"></script>
     <script src="./node_modules/w2ui/w2ui.js" type="text/javascript"></script>
 
-
     <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui.css" />
     <link rel="stylesheet" type="text/css" href="./node_modules/jstree/dist/themes/default/style.min.css" />
     <link rel="stylesheet" type="text/css" href="./css/editor.css" />
@@ -35,6 +34,7 @@
                 "jstree": "./node_modules/jstree/dist/jstree.js",
                 "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
                 "javascript-astar": "./node_modules/javascript-astar/astar.js",
+                "typescript": "./node_modules/typescript/lib/typescript.js",
 
                 // Editor's modules paths
                 "babylonjs-editor": "./.build/src/index.js",
@@ -66,7 +66,8 @@
             meta: {
                 "*.css": { loader: "css" },
                 "cannon": { format: "global" },
-                "javascript-astar": { format: "global" }
+                "javascript-astar": { format: "global" },
+                "typescript": { format: "global" }
             },
             pluginFirst: true
         });

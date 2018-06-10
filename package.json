@@ -41,7 +41,6 @@
     "@types/socket.io-client": "~1.4.32",
     "@types/jstree": "~3.3.36",
     "@types/javascript-astar": "~0.0.29",
-    "typescript": "~2.6.2",
     "http-server": "^0.9.0",
     "socket.io": "~2.0.4",
     "electron": "~2.0.2",
@@ -52,6 +51,7 @@
     "rimraf": "~2.6.2"
   },
   "dependencies": {
+    "typescript": "~2.6.2",
     "jquery": "~3.2.1",
     "dat.gui": "~0.7.2",
     "dat-gui": "~0.5.0",

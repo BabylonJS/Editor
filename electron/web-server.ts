@@ -13,7 +13,10 @@ export default class WebServer {
      */
     constructor (port: number) {
         this.application = new Koa();
-        this.application.use(KoaBodyParser());
+        this.application.use(KoaBodyParser({
+            formLimit: '200mb',
+            jsonLimit: '200mb'
+        }));
         this.application.listen(port, 'localhost');
 
         new StorageRouter(this.application);

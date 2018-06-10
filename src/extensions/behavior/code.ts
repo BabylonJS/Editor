@@ -8,6 +8,7 @@ import Extension from '../extension';
 
 export interface BehaviorCode {
     code: string;
+    compiledCode?: string;
     name: string;
     active: boolean;
     params?: any;
@@ -183,7 +184,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         Extension.AddScript(
             template.replace('{{name}}', fnName)
                     .replace('{{node}}', this._getEffectiveConstructorName(node))
-                    .replace('{{code}}', code.code), url);
+                    .replace('{{code}}', code.compiledCode || code.code), url);
 
         // Constructor
         return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
