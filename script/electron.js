@@ -38,7 +38,8 @@ Builder.build({
             'index.html',
             'index-debug.html',
             'redirect.html',
-            'preview.html'
+            'preview.html',
+            'code-editor.html'
         ]
     }
 });
