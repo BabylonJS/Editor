@@ -43,19 +43,19 @@ export default class Tools {
     */
     public static GetFileType (extension: string): string {
         switch (extension) {
-            case "png": return "image/png";
-            case "jpg": case "jpeg": return "image/jpeg";
-            case "bmp": return "image/bmp";
-            case "tga": return "image/targa";
-            case "dds": return "image/vnd.ms-dds";
-            case "wav": case "wave": return "audio/wav";
-            //case "audio/x-wav";
-            case "mp3": return "audio/mpeg";
-            case "mpg": case "mpeg": return "audio/mpeg";
-            //case "audio/mpeg3";
-            //case "audio/x-mpeg-3";
-            case "ogg": return "audio/ogg";
-            default: return "";
+            case 'png': return 'image/png';
+            case 'jpg': case 'jpeg': return 'image/jpeg';
+            case 'bmp': return 'image/bmp';
+            case 'tga': return 'image/targa';
+            case 'dds': return 'image/vnd.ms-dds';
+            case 'wav': case 'wave': return 'audio/wav';
+            //case 'audio/x-wav';
+            case 'mp3': return 'audio/mpeg';
+            case 'mpg': case 'mpeg': return 'audio/mpeg';
+            //case 'audio/mpeg3';
+            //case 'audio/x-mpeg-3';
+            case 'ogg': return 'audio/ogg';
+            default: return '';
         }
     }
 
@@ -90,7 +90,7 @@ export default class Tools {
     * @param filename: the file's name
     */
     public static GetFileExtension (filename: string): string {
-        var index = filename.lastIndexOf(".");
+        var index = filename.lastIndexOf('.');
         if (index < 0)
             return filename;
         return filename.substring(index + 1);

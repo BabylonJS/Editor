@@ -257,7 +257,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                         data.compiledCode = code.transpileTypeScript(data.code);
                     else if (this.data)
                         this.data.compiledCode = this.code.transpileTypeScript(this.data.code);
-                }, 100);
+                }, 500);
             }
 
             // Update metadata

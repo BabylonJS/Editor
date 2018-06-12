@@ -124,6 +124,8 @@ export default class CodeEditor {
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
+            caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({ experimentalDecorators: true, target: 5, allowNonTsExtensions: true });
+            
             CodeEditor.ExtraLibs.push({
                 lib: Tools.IsElectron() ?
                     caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor') :
@@ -145,7 +147,8 @@ export default class CodeEditor {
     public transpileTypeScript (source: string): string {
         return ts.transpile(source, {
             module: 'none',
-            target: 'es5'
+            target: 'es5',
+            experimentalDecorators: true
         });
     }
 

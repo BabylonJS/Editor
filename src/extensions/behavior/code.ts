@@ -1,4 +1,4 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, TonemappingOperator, Vector4, Vector3, Vector2, Color4, Color3 } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, Vector4, Vector3, Vector2, Color4, Color3, Tools } from 'babylonjs';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { IStringDictionary } from '../typings/typings';
