@@ -46,7 +46,9 @@ export default class ElectronStorage extends Storage {
      */
     public async createFiles (folder: any, files: CreateFiles[]): Promise<void> {
         for (const f of files) {
-            await Request.Put('http://localhost:1337/files:/write?name=' + f.name + '&folder=' + folder, f.data);
+            await Request.Put('http://localhost:1337/files:/write?name=' + f.name + '&folder=' + folder, f.data, {
+                'Content-Type': 'application/octet-stream'
+            });
         }
     }
 
