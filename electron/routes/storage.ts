@@ -73,8 +73,17 @@ export default class StorageRouter {
         this.router.put('/files:/write', async (ctx, next) => {
             if (!ctx.query || !ctx.query.name || !ctx.query.folder)
                 throw new Error('Please provide a folder to wirte file in.');
-            
-            await fs.writeFile(path.join(ctx.query.folder, ctx.query.name), ctx.request.rawBody);
+
+            const chunks = [];
+            ctx.req.on('data', (chunk) => {
+                chunks.push(chunk);
+            });
+            ctx.req.on('end', async () => {
+                const buffer = Buffer.concat(chunks);
+
+                // Write file
+                await fs.writeFile(path.join(ctx.query.folder, ctx.query.name), buffer);
+            });
 
             ctx.body = {
                 message: 'success'
