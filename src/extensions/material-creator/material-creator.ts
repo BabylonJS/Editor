@@ -17,6 +17,7 @@ export interface MaterialCreatorUserConfig {
 export interface MaterialCreatorMetadata {
     name: string;
     code: string;
+    compiledCode?: string;
     vertex: string;
     pixel: string;
     config: string;
@@ -25,7 +26,7 @@ export interface MaterialCreatorMetadata {
 
 const template = `
 EDITOR.MaterialCreator.Constructors['{{name}}'] = function () {
-    {{code}}
+{{code}}
 }
 `;
 
@@ -69,7 +70,7 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
             let url = window.location.href;
             url = url.replace(Tools.GetFilename(url), '') + 'materials/' + data.name.replace(/ /g, '') + '.js';
 
-            Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
+            Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.compiledCode || data.code), url);
 
             const ctor = EDITOR.MaterialCreator.Constructors[id]();
             code = new ctor();
