@@ -1,6 +1,6 @@
 class Script implements IScript {
     // Public members
-    public exports = { };
+    public blackColor = new BABYLON.Color4(0, 0, 0, 1);
 
     /**
      * Constructor
@@ -14,7 +14,7 @@ class Script implements IScript {
      */
     public start (): void {
         // You can access the scene everywhere
-        scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+        scene.clearColor = this.blackColor;
 
         // You can access the attached object everywhere
         console.log({{type}});

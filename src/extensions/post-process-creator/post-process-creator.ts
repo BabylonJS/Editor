@@ -19,6 +19,7 @@ export interface PostProcessCreatorMetadata {
     preview: boolean;
     name: string;
     code: string;
+    compiledCode?: string;
     pixel: string;
     config: string;
     userConfig: PostProcessCreatorUserConfig;
@@ -65,7 +66,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         let url = window.location.href;
         url = url.replace(Tools.GetFilename(url), '') + 'post-processes/' + data.name.replace(/ /g, '') + '.js';
 
-        Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.code), url);
+        Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.compiledCode || data.code), url);
 
         const camera = this.scene.getCameraByName(data.cameraName) || this.scene.activeCamera;
         const ctor = new EDITOR.PostProcessCreator.Constructors[id](camera, Extensions.Tools, Extensions.Mobile);

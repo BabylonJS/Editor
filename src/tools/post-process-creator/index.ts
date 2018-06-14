@@ -75,7 +75,7 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        !PostProcessCreator.DefaultCode && (PostProcessCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/post-process-creator/class.js'));
+        !PostProcessCreator.DefaultCode && (PostProcessCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/post-process-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
         !PostProcessCreator.DefaultPixel && (PostProcessCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/post-process-creator/pixel.fx'));
         !PostProcessCreator.DefaultConfig && (PostProcessCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/post-process-creator/config.json'));
 
@@ -306,7 +306,7 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     protected async createEditors (): Promise<void> {
         // Create editors
-        this.code = new CodeEditor('javascript', this.data.code);
+        this.code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', this.data.code);
         await this.code.build('POST-PROCESS-CREATOR-EDITOR-CODE');
 
         this.pixel = new CodeEditor('cpp', this.data.pixel);
@@ -322,7 +322,14 @@ export default class PostProcessCreator extends EditorPlugin {
             $('#' + this.currentTab).show();
         });
 
-        this.code.onChange = (value) => this.data && (this.data.code = value);
+        this.code.onChange = (value) => {
+            if (this.data) {
+                this.data.code = value;
+
+                if (Tools.IsElectron())
+                    this.data.compiledCode = this.code.transpileTypeScript(value);
+            }  
+        };
 
         this.pixel.onChange = (value) => {
             if (!this.data)
