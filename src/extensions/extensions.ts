@@ -50,13 +50,13 @@ export default class Extensions {
      * Applies all extesions giving all the custom metadatas
      * @param metadatas the metadatas
      */
-    public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>, rootUrl?: string): void {
+    public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>): void {
         for (const e in this.Extensions) {
             const extension = new this.Extensions[e](scene);
             this.Instances[e] = extension;
 
             if (extension.alwaysApply || metadatas[e])
-                extension.onApply(metadatas[e], rootUrl);
+                extension.onApply(metadatas[e], this.RoolUrl);
         }
     }
 

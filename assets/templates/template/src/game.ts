@@ -19,9 +19,13 @@ export default class Game {
      * Constructor
      */
     constructor () {
+        // Create engine
         this.engine = new Engine(this.canvas, true, {
             // Options
         });
+
+        // Events
+        window.addEventListener('resize', () => this.engine.resize());
     }
 
     /**
@@ -37,7 +41,7 @@ export default class Game {
 
             // Load extensions
             Tools.LoadFile('./scene/project.editorproject', (data: string) => {
-                Extensions.RoolUrl = 'scene/';
+                Extensions.RoolUrl = './scene/';
                 Extensions.ApplyExtensions(this.scene, JSON.parse(data));
                 
                 // Run render loop
