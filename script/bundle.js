@@ -132,6 +132,13 @@ build('./.build/src/', './.build/src/tools/post-process-creator/index.js', './di
     minify: true
 });
 
+build('./.build/src/', './.build/src/tools/particles-creator/index.js', './dist/particles-creator.js', {
+    globalName: 'ParticlesCreator',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
+
 build('./.build/src/', './.build/src/tools/play-game/index.js', './dist/play-game.js', {
     globalName: 'PlayGame',
     format: 'cjs',
