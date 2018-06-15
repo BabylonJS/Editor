@@ -169,9 +169,16 @@
         promises.push(System.import("babylonjs"));
         promises.push(System.import("babylonjs-gui"));
         promises.push(System.import("cannon"));
-        promises.push(System.import("babylonjs-procedural-textures"));
         Promise.all(promises).then(function (e) {
-            return System.import("babylonjs-materials").then(function () {
+            return System.import("babylonjs-procedural-textures");
+        }).then(function () {
+            return System.import("babylonjs-materials");
+        }).then(function () {
+            importTools(function (tools) {
+                if (!tools.default.isFileApiSupported(true)) {
+                    return;
+                }
+
                 if (opener) {
                     BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
                 }

@@ -63,6 +63,7 @@ export default class EditorToolbar {
                     { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
                     { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' },
                     { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' },
+                    //{ id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
                     { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
                 ]
@@ -190,6 +191,9 @@ export default class EditorToolbar {
                 break;
             case 'view:post-process-creator':
                 await this.loadTool('post-process-creator', 'Post-Process Creator');
+                break;
+            case 'view:particles-creator':
+                await this.loadTool('particles-creator', 'Particles Creator');
                 break;
             case 'view:path-finder':
                 await this.loadTool('path-finder', 'Path Finder');

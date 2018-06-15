@@ -272,4 +272,23 @@ export default class Tools {
     public static ImportScript<T> (url: string): Promise<T> {
         return System.import(url);
     }
+
+    /**
+     * According to the navigator, returns if the file API
+     * is supported
+     */
+    public static isFileApiSupported (showAlert?: boolean): boolean {
+        try {
+            const f = new File([''], 'test.txt', {
+                type: this.GetFileExtension('test.txt')
+            });
+
+            return true;
+        } catch (e) {
+            if (showAlert)
+                alert('Your navigator doesn\'t support full File API. Cannot load the scene. Please try with another navigator.');
+            
+            return false;
+        }
+    }
 }

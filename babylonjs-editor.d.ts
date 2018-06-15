@@ -215,6 +215,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param url the URL / NAME of the script
                 */
             static ImportScript<T>(url: string): Promise<T>;
+            /**
+                * According to the navigator, returns if the file API
+                * is supported
+                */
+            static isFileApiSupported(showAlert?: boolean): boolean;
     }
 }
 
