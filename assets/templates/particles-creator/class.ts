@@ -1,78 +1,79 @@
-class CustomParticles extends BABYLON.ParticleSystem {
+class CustomParticles {
     // Public members
-    public scaledUpdateSpeed: number;
-    public scaledDirection: BABYLON.Vector3 = BABYLON.Vector3.Zero();
-    public scaledColorStep: BABYLON.Color4 = new BABYLON.Color4(0, 0, 0, 0);
-    public scaledGravity: BABYLON.Vector3 = BABYLON.Vector3.Zero();
+    public finalSize: number = 2;
 
     /**
-     * Update all particles for current frame
-     * @param particles: all new particles alive
+     * Constructor
      */
-    public update (system: ParticleSystem, particles: BABYLON.Particle[]): void {
-        // Misc.
-        this.scaledUpdateSpeed = system.updateSpeed * scene.getAnimationRatio();
+    constructor () {
+        // Scope
+        const scope = this;
+        
+        // Custom update function
+        particleSystem.updateFunction = function (particles: BABYLON.Particle[]) {
+            for (var index = 0; index < particles.length; index++) {
+                var particle = particles[index];
+                particle.age += this._scaledUpdateSpeed;
 
-        // For each particle
-        for (var index = 0; index < particles.length; index++) {
-            var particle = particles[index];
-            particle.age += this.scaledUpdateSpeed;
+                if (particle.age < particle.lifeTime * .35) {
+                    particle.size = scope.finalSize * particle.age / (particle.lifeTime * 0.35);
+                }
 
-            if (particle.age >= particle.lifeTime) { // Recycle by swapping with last particle
-                this._emitFromParticle(particle);
-                this.recycleParticle(particle);
-                index--;
-                continue;
-            }
-            else {
-                particle.colorStep.scaleToRef(this.scaledUpdateSpeed, this.scaledColorStep);
-                particle.color.addInPlace(this.scaledColorStep);
+                if (particle.age >= particle.lifeTime) { // Recycle by swapping with last particle
+                    this.recycleParticle(particle);
+                    index--;
+                    continue;
+                }
+                else {
+                    var speed = this._scaledUpdateSpeed * 2;
+                    if (particle.age >= particle.lifeTime / 2) {
+                        speed = -speed;
+                    }
+                    
+                    particle.colorStep.scaleToRef(speed, this._scaledColorStep);
+                    particle.color.addInPlace(this._scaledColorStep);
 
-                if (particle.color.a < 0)
-                    particle.color.a = 0;
+                    if (particle.color.a < 0)
+                        particle.color.a = 0;
 
-                particle.angle += particle.angularSpeed * this.scaledUpdateSpeed;
+                    particle.angle += particle.angularSpeed * this._scaledUpdateSpeed;
+                    particle.direction.scaleToRef(this._scaledUpdateSpeed, this._scaledDirection);
+                    particle.position.addInPlace(this._scaledDirection);
 
-                particle.direction.scaleToRef(this.scaledUpdateSpeed, this.scaledDirection);
-                particle.position.addInPlace(this.scaledDirection);
-
-                system.gravity.scaleToRef(this.scaledUpdateSpeed, this.scaledGravity);
-                particle.direction.addInPlace(this.scaledGravity);
-
-                if (system._isAnimationSheetEnabled) {
-                    particle.updateCellIndex(this.scaledUpdateSpeed);
+                    this.gravity.scaleToRef(this._scaledUpdateSpeed, this._scaledGravity);
+                    particle.direction.addInPlace(this._scaledGravity);
                 }
             }
         }
     }
 
     /**
-     * 
-     * @param particle 
+     * Set the uniforms and samplers of the shader
+     * @param uniforms the shader's uniforms
+     * @param samplers the shader's samplers
      */
-    public recycleParticle (particle: Particle): void {
-        var lastParticle = <Particle>this._particles.pop();
+    public setUniforms (uniforms: string[], samplers: string[]): void {
 
-        if (lastParticle !== particle) {
-            lastParticle.copyTo(particle);
-        }
-        this._stockParticles.push(lastParticle);
     }
 
     /**
-     * 
-     * @param particle 
+     * Set the defines of the shader
+     * @param defines the defines for the shader
      */
-    public emitFromParticle (particle: Particle): void {
-        if (!this.subEmitters || this.subEmitters.length === 0) {
-            return;
-        }
+    public setDefines (defines: string[]): void {
+        defines.push('#define CUSTOM_DEFINE');
+    }
 
-        var templateIndex = Math.floor(Math.random() * this.subEmitters.length);
+    /**
+     * On bind the particle system shader
+     * @param effect the effect for the particles
+     */
+    public onBind (effect: BABYLON.Effect): void {
 
-        var subSystem = this.subEmitters[templateIndex].clone(this.name + "_sub", particle.position.clone());
-        subSystem._rootParticleSystem = this;
-        this.activeSubSystems.push(subSystem);
-        subSystem.start();
     }
 }
+
+return {
+    ctor: CustomParticles,
+    finalSize: 2
+};
