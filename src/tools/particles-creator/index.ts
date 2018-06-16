@@ -4,21 +4,29 @@ import Editor, {
 
     Layout,
     CodeEditor,
-    Tools
+    Tools,
+    Toolbar
 } from 'babylonjs-editor';
+
+import '../../extensions/particles-creator/particles-creator';
+import { ParticlesCreatorMetadata } from '../../extensions/particles-creator/particles-creator';
+import Extensions from '../../extensions/extensions';
 
 export default class ParticlesCreator extends EditorPlugin {
     // Public members
     public layout: Layout = null;
+    public toolbar: Toolbar = null;
 
     public functionsCode: CodeEditor = null;
     public pixelCode: CodeEditor = null;
     public vertexCode: CodeEditor = null;
 
     // Protected members
+    protected data: ParticlesCreatorMetadata = null;
     protected currentTab: string = 'PARTICLES-CREATOR-FUNCTIONS';
 
     protected resizeEvent: Observer<any> = null;
+    protected selectedObjectEvent: Observer<any> = null;
 
     // Static members
     public static DefaultCode: string = '';
@@ -38,11 +46,14 @@ export default class ParticlesCreator extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.layout.element.destroy();
+        this.toolbar.element.destroy();
+
         this.functionsCode.editor.dispose();
         this.vertexCode.editor.dispose();
         this.pixelCode.editor.dispose();
 
         this.editor.core.onResize.remove(this.resizeEvent);
+        this.editor.core.onSelectObject.remove(this.selectedObjectEvent);
 
         await super.close();
     }
@@ -59,14 +70,14 @@ export default class ParticlesCreator extends EditorPlugin {
         // Layout
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
-            { type: 'top', size: 35, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
+            { type: 'top', size: 32, resizable: false, content: `<div id="PARTICLES-CREATOR-TOOLBAR" style="width: 100%; height: 100%"></div>` },
             {
                 type: 'main',
                 resizable: false,
                 content: `
-                    <div id="PARTICLES-CREATOR-FUNCTIONS" style="width: 100%; height: 100%"></div>
-                    <div id="PARTICLES-CREATOR-VERTEX" style="width: 100%; height: 100%"></div>
-                    <div id="PARTICLES-CREATOR-PIXEL" style="width: 100%; height: 100%"></div>
+                    <div id="PARTICLES-CREATOR-FUNCTIONS" style="width: 100%; height: 100%;"></div>
+                    <div id="PARTICLES-CREATOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>
+                    <div id="PARTICLES-CREATOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
                 `,
                 tabs: <any>[
                     { id: 'functions', caption: 'Functions' },
@@ -77,24 +88,51 @@ export default class ParticlesCreator extends EditorPlugin {
         ];
         this.layout.build(this.divElement.id);
 
+        // Toolbar
+        this.toolbar = new Toolbar('PARTICLES-CREATOR-TOOLBAR');
+        this.toolbar.items = [
+            { type: 'button', id: 'apply', img: 'icon-play-game-windowed', text: 'Apply' },
+            { type: 'break' },
+            { type: 'button', img: 'icon-add', text: 'Import From...' }
+        ];
+        this.toolbar.onClick = id => this.toolbarClicked(id);
+        this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
+
         // Create editors
-        this.functionsCode = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', ParticlesCreator.DefaultCode);
+        this.functionsCode = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', '');
         await this.functionsCode.build('PARTICLES-CREATOR-FUNCTIONS');
+        this.functionsCode.onChange = value => {
+            if (this.data) {
+                if (Tools.IsElectron())
+                    this.data.compiledCode = this.functionsCode.transpileTypeScript(value);
 
-        this.vertexCode = new CodeEditor('glsl', ParticlesCreator.DefaultVertex);
+                this.data.code = value;
+            }
+        };
+
+        this.vertexCode = new CodeEditor('cpp', '');
         await this.vertexCode.build('PARTICLES-CREATOR-VERTEX');
+        this.vertexCode.onChange = value => this.data && (this.data.vertex = value);
 
-        this.pixelCode = new CodeEditor('glsl', ParticlesCreator.DefaultPixel);
+        this.pixelCode = new CodeEditor('cpp', '');
         await this.pixelCode.build('PARTICLES-CREATOR-PIXEL');
-
+        this.pixelCode.onChange = value => this.data && (this.data.pixel = value);
+        
         // Events
         this.resizeEvent = this.editor.core.onResize.add(_ => this.resize());
+        this.selectedObjectEvent = this.editor.core.onSelectObject.add(obj => this.selectObject(obj));
         
         this.layout.getPanelFromType('main').tabs.on('click', (ev) => {
             $('#' + this.currentTab).hide();
             this.currentTab = 'PARTICLES-CREATOR-' + ev.target.toUpperCase();
             $('#' + this.currentTab).show();
         });
+
+        // Extension
+        Extensions.RequestExtension(this.editor.core.scene, 'ParticlesCreatorExtension');
+
+        // Finish
+        this.selectObject(this.editor.core.currentSelectedObject);
     }
 
     /**
@@ -116,5 +154,56 @@ export default class ParticlesCreator extends EditorPlugin {
      */
     public resize (): void {
         this.layout.element.resize();
+    }
+
+    /**
+     * On the user selects an object
+     * @param object the selected object
+     */
+    public selectObject (object: any): void {
+        if (!(object instanceof ParticleSystem)) {
+            this.data = null;
+            this.functionsCode.setValue('');
+            this.vertexCode.setValue('');
+            this.pixelCode.setValue('');
+            this.layout.lockPanel('main', 'No Particle System Selected...');
+            return;
+        }
+
+        object['metadata'] = object['metadata'] || { };
+        this.data = object['metadata'].particlesCreator || {
+            id: object.id,
+            apply: false,
+            code: ParticlesCreator.DefaultCode,
+            vertex: ParticlesCreator.DefaultVertex,
+            pixel: ParticlesCreator.DefaultPixel
+        };
+        object['metadata'].particlesCreator = this.data;
+
+        // Unlock and fill
+        this.layout.unlockPanel('main');
+        this.functionsCode.setValue(this.data.code);
+        this.vertexCode.setValue(this.data.vertex);
+        this.pixelCode.setValue(this.data.pixel);
+    }
+
+    /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    public toolbarClicked (id: string): void {
+        if (!this.data)
+            return;
+        
+        switch (id) {
+            // Apply
+            case 'apply':
+                const checked = this.toolbar.isChecked(id, true);
+                this.data.apply = checked;
+                this.toolbar.setChecked(id, checked);
+                break;
+            
+            default: break;
+        }
     }
 }
