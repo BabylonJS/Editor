@@ -148,6 +148,7 @@ export default class CodeEditor {
         return ts.transpile(source, {
             module: 'none',
             target: 'es5',
+            // inlineSourceMap: true,
             experimentalDecorators: true
         });
     }

@@ -211,6 +211,20 @@ export default class Tools {
     }
 
     /**
+     * Creates an URL and downloads the given file
+     * @param file the file to download
+     */
+    public static DownloadFile (file: File): void {
+        const url = URL.createObjectURL(file, { oneTimeOnly: true });
+
+        const link = document.createElement('a');
+        link.download = file.name;
+        link.href = url;
+        link.click();
+        link.remove();
+    }
+
+    /**
     * Converts a string to an UInt8Array
     $ @param str: the string to convert
     */
