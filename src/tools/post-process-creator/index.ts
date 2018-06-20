@@ -5,7 +5,8 @@ import Editor, {
     Layout, Toolbar,
     Grid, GridRow,
     CodeEditor,
-    EditorPlugin
+    EditorPlugin,
+    Window
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
@@ -131,6 +132,7 @@ export default class PostProcessCreator extends EditorPlugin {
                 { id: 'download', caption: 'Download Project...', img: 'icon-export' }
             ] }
         ];
+        this.toolbar.onClick = id => this.onToolbarClick(id);
         this.toolbar.build('POST-PROCESS-CREATOR-TOOLBAR');
 
         // Create grid
@@ -158,6 +160,7 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Add code editors
         await this.createEditors();
+        setTimeout(() => this.selectPostProcess(0), 500);
 
         // Events
         this.editor.core.onResize.add(this.onResize);
@@ -175,6 +178,23 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     protected resize (): void {
         this.layout.element.resize();
+    }
+
+    /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    protected onToolbarClick (id: string): void {
+        switch (id) {
+            case 'project:add':
+                Tools.OpenFileDialog(files => this._addPostProcessesFromFiles(files[0]));
+                break;
+            case 'project:download':
+                const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(this.datas)), 'post-processes.json');
+                Tools.DownloadFile(file);
+                break;
+            default: break;
+        }
     }
 
     /**
@@ -351,5 +371,61 @@ export default class PostProcessCreator extends EditorPlugin {
                 const p = this.createOrUpdatePostProcess(this.data.name);
             } catch (e) { /* Catch silently */ }
         }
+    }
+
+    // Create a window and a grid to select post-processes to add
+    private async _addPostProcessesFromFiles (file: File): Promise<void> {
+        const content = await Tools.ReadFileAsText(file);
+        const data = JSON.parse(content);
+
+        const postProcesses = <PostProcessCreatorMetadata[]> (data.customMetadatas ? data.customMetadatas.PostProcessCreatorExtension : data);
+        if (!postProcesses)
+            return;
+
+        // Create window
+        const win = new Window('AddPostProcesses');
+        win.body = '<div id="ADD-POST-PROCESSES-GRID" style="width: 100%; height: 100%;"></div>';
+        win.buttons = ['Import', 'Cancel'];
+        win.open();
+
+        // Create grid
+        interface AddPostProcessGrid extends GridRow {
+            name: string;
+        }
+
+        const grid = new Grid<AddPostProcessGrid>('ADD-POST-PROCESSES-GRID', {
+            multiSelect: true,
+            toolbarDelete: false,
+            toolbarEdit: false,
+            toolbarAdd: false,
+            toolbarSearch: false
+        });
+        grid.columns = [{ field: 'name', size: '100%', caption: 'Name' }];
+        grid.build('ADD-POST-PROCESSES-GRID');
+
+        // Fill grid
+        Tools.SortAlphabetically(postProcesses, 'name');
+        postProcesses.forEach((p, index) => grid.addRow({ recid: index, name: p.name }));
+
+        // Events
+        win.onButtonClick = id => {
+            if (id === 'Import') {
+                const selected = grid.getSelected();
+                selected.forEach(s => {
+                    const data = postProcesses[s];
+                    this.datas.push(data);
+
+                    this.grid.addRow({
+                        name: data.name,
+                        preview: data.preview,
+                        recid: this.grid.element.records.length - 1
+                    });
+                });
+            }
+
+            // Clear
+            grid.element.destroy();
+            win.close();
+        };
     }
 }
