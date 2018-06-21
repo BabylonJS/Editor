@@ -66,7 +66,7 @@ export default class Picker {
      * Builds the object picker
      * @param callback: called when user clicks the button "ok"
      */
-    public open (callback: (items: { id: number, name: string }[]) => void): void {
+    public open (callback: (items: { id: number, name: string }[], selected?: number[]) => void): void {
         this.window = new Window('Picker');
         this.window.buttons = ['Ok', 'Close'];
         this.window.title = this.title;
@@ -75,12 +75,13 @@ export default class Picker {
         this.window.onToggle = () => this.grid.element.resize();
         this.window.onButtonClick = (id) => {
             if (id === 'Ok') {
-                callback(this.grid.getSelected().map(s => {
+                const selected = this.grid.getSelected();
+                callback(selected.map(s => {
                     return {
                         id: s,
                         name: this.items[s]
                     }
-                }));
+                }), selected);
             }
 
             this.close();

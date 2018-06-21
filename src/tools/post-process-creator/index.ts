@@ -6,7 +6,7 @@ import Editor, {
     Grid, GridRow,
     CodeEditor,
     EditorPlugin,
-    Window
+    Picker
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
@@ -382,50 +382,22 @@ export default class PostProcessCreator extends EditorPlugin {
         if (!postProcesses)
             return;
 
-        // Create window
-        const win = new Window('AddPostProcesses');
-        win.body = '<div id="ADD-POST-PROCESSES-GRID" style="width: 100%; height: 100%;"></div>';
-        win.buttons = ['Import', 'Cancel'];
-        win.open();
-
-        // Create grid
-        interface AddPostProcessGrid extends GridRow {
-            name: string;
-        }
-
-        const grid = new Grid<AddPostProcessGrid>('ADD-POST-PROCESSES-GRID', {
-            multiSelect: true,
-            toolbarDelete: false,
-            toolbarEdit: false,
-            toolbarAdd: false,
-            toolbarSearch: false
-        });
-        grid.columns = [{ field: 'name', size: '100%', caption: 'Name' }];
-        grid.build('ADD-POST-PROCESSES-GRID');
-
-        // Fill grid
         Tools.SortAlphabetically(postProcesses, 'name');
-        postProcesses.forEach((p, index) => grid.addRow({ recid: index, name: p.name }));
 
-        // Events
-        win.onButtonClick = id => {
-            if (id === 'Import') {
-                const selected = grid.getSelected();
-                selected.forEach(s => {
-                    const data = postProcesses[s];
-                    this.datas.push(data);
+        // Create picker
+        const picker = new Picker('AddPostProcesses');
+        picker.addItems(postProcesses);
+        picker.open((items, selected) => {
+            selected.forEach(s => {
+                const data = postProcesses[s];
+                this.datas.push(data);
 
-                    this.grid.addRow({
-                        name: data.name,
-                        preview: data.preview,
-                        recid: this.grid.element.records.length - 1
-                    });
+                this.grid.addRow({
+                    name: data.name,
+                    preview: data.preview,
+                    recid: this.grid.element.records.length - 1
                 });
-            }
-
-            // Clear
-            grid.element.destroy();
-            win.close();
-        };
+            });
+        });
     }
 }
