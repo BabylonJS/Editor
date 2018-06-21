@@ -502,7 +502,7 @@ declare module 'babylonjs-editor/editor/gui/picker' {
             open(callback: (items: {
                     id: number;
                     name: string;
-            }[]) => void): void;
+            }[], selected?: number[]) => void): void;
             /**
                 * Adds current items to the grid
                 */
