@@ -57,6 +57,7 @@ export default class PathFinderEditor extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.grid.element.destroy();
+        this.toolbar.element.destroy();
         this.layout.element.destroy();
 
         // Scene
