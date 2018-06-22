@@ -13,6 +13,8 @@ export interface IEditorPlugin {
 
     onHide? (): Promise<void>;
     onShow? (...params: any[]): Promise<void>;
+
+    onReload? (): Promise<void>;
 }
 
 /**
