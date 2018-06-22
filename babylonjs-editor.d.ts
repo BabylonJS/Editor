@@ -931,6 +931,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
             close(): Promise<void>;
             onHide?(): Promise<void>;
             onShow?(...params: any[]): Promise<void>;
+            onReload?(): Promise<void>;
     }
     /**
         * Represents an exported editor plugin

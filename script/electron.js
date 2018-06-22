@@ -9,6 +9,7 @@ console.log('\nBuilding Electron...');
 Builder.build({
     arch: args.arch || 'x64',
     config: {
+        artifactName: 'BabylonJS Editor.exe',
         appId: 'editor.babylonjs.com',
         productName: 'BabylonJS Editor',
         icon: './css/icons/babylonjs_icon',
