@@ -141,6 +141,8 @@ export default class SceneFactory {
 
         this.AddToGraph(editor, skybox);
 
+        Tags.AddTagsTo(skybox.material, 'added');
+
         return skybox;
     }
 
@@ -164,6 +166,8 @@ export default class SceneFactory {
 
             this.AddToGraph(editor, mesh);
         }
+
+        Tags.AddTagsTo(material, 'added');
 
         return material;
     }
