@@ -265,7 +265,7 @@ export default class EditorToolbar {
                 break;
             case 'test':
                 SceneExporter.CreateFiles(this.editor);
-                this.editor.addEditPanelPlugin('play-game', true, 'Game');
+                this.editor.addEditPanelPlugin('play-game', false, 'Game');
                 break;
             case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);

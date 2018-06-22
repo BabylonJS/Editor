@@ -238,6 +238,9 @@ export default class Editor implements IUpdatable {
             if (restart)
                 await this.removePlugin(this.plugins[url]);
             else {
+                if (this.plugins[url].onReload)
+                    await this.plugins[url].onReload();
+                
                 await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
                 return this.plugins[url];
             }

@@ -34,12 +34,6 @@ export default class PlayGame extends EditorPlugin {
         // Create iFrame
         await this.createIFrame();
 
-        // Manage content window
-        this.contentWindow = this.iframe[0].contentWindow;
-
-        this.contentWindow.addEventListener('blur', () => this.contentWindow['renderScene'] = false);
-        this.contentWindow.addEventListener('focus', () => this.contentWindow['renderScene'] = true);
-
         // Events
         this.editor.core.onGlobalPropertyChange.add(this.onChangeValue);
     }
@@ -59,6 +53,14 @@ export default class PlayGame extends EditorPlugin {
     }
 
     /**
+     * On reload the plugin
+     */
+    public async onReload (): Promise<void> {
+        $(this.divElement).empty();
+        await this.createIFrame();
+    }
+
+    /**
      * Creates the iFrame
      */
     protected async createIFrame (): Promise<void> {
@@ -69,6 +71,13 @@ export default class PlayGame extends EditorPlugin {
 
         return new Promise<void>((resolve) => {
             this.iframe[0].onload = () => {
+                this.contentWindow = this.iframe[0].contentWindow;
+
+                // Manage content window
+                this.contentWindow.addEventListener('blur', () => this.contentWindow['renderScene'] = false);
+                this.contentWindow.addEventListener('focus', () => this.contentWindow['renderScene'] = true);
+
+                // Resolve
                 resolve();
             };
         });
