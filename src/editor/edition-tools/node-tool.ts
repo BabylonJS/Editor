@@ -197,16 +197,15 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                     if (typeof m.params[p] !== typeof params[p])
                         m.params[p] = params[p];
 
-                    // Simple types
-                    switch (typeof params[p]) {
-                        case 'number': return script.add(m.params, p);
-                        case 'string': return script.add(m.params, p);
-                        default: break; // Not supported
-                    }
-
-                    // Complex types
+                    // Types
                     // TODO: manage complex types
                     switch (Tools.GetConstructorName(params[p])) {
+                        case 'Number':
+                            script.add(m.params, p);
+                            break;
+                        case 'String':
+                            script.add(m.params, p);
+                            break;
                         case 'Vector2':
                         case 'Vector3':
                         case 'Vector4':

@@ -67,10 +67,15 @@
             pluginFirst: true
         });
 
-        System.import("babylonjs").then(function (babylon) {
-            window.BABYLON = babylon;
-            return System.import("babylonjs-gui");
-        }).then(function (gui) {
+        var promises = [
+            System.import("babylonjs"),
+            System.import("babylonjs-materials"),
+            System.import("babylonjs-gui"),
+            System.import("babylonjs-loaders"),
+            System.import("babylonjs-procedural-textures")
+        ];
+
+        Promise.all(promises).then(function () {
             System.import("./.build/src/game.js").then(function (e) {                
                 // Run game here
                 var e = new e.default();
