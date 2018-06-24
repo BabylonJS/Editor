@@ -572,6 +572,9 @@ export default class Editor implements IUpdatable {
                 // Stop render loop
                 this.core.engine.stopRenderLoop();
 
+                // Clear last path
+                SceneExporter.ProjectPath = null;
+                
                 // Load scene
                 if (doNotAppend)
                     SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene, true));
@@ -598,6 +601,7 @@ export default class Editor implements IUpdatable {
             // Error callback
             Dialog.Create('Error when loading scene', message, null);
         });
+
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvas'));
     }
 

@@ -1,4 +1,4 @@
-import { StandardMaterial, PBRMaterial } from 'babylonjs';
+import { StandardMaterial, PBRMaterial, MultiMaterial } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -117,9 +117,19 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         pbr.ambientTexture = this.object.ambientTexture;
 
         // Reassign
-        this.object.getBindedMeshes().forEach(m => {
-            if (m.material instanceof StandardMaterial)
-                m.material = pbr;
+        this.object.getBindedMeshes().forEach(m => m.material = pbr);
+
+        // Special for multi materials
+        this.editor.core.scene.meshes.forEach(m => {
+            if (!m.material || !(m.material instanceof MultiMaterial))
+                return;
+
+            const multiMaterial = m.material;
+
+            m.material.subMaterials.forEach((sm, index) => {
+                if (sm === this.object)
+                    multiMaterial.subMaterials[index] = pbr;
+            });
         });
 
         // Update
