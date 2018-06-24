@@ -1,8 +1,11 @@
 import { Scene } from 'babylonjs';
-import Editor, { EditorPlugin } from 'babylonjs-editor';
+import Editor, { EditorPlugin, Toolbar, Layout } from 'babylonjs-editor';
 
 export default class PlayGame extends EditorPlugin {
     // Public members
+    public layout: Layout = null;
+    public toolbar: Toolbar = null;
+
     public iframe: JQuery<HTMLIFrameElement> = null;
     public contentWindow: Window = null;
 
@@ -21,7 +24,10 @@ export default class PlayGame extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
-        $(this.divElement).empty();
+        this.layout.element.destroy();
+        this.toolbar.element.destroy();
+
+        // Callbacks
         this.editor.core.onGlobalPropertyChange.removeCallback(this.onChangeValue);
         
         await super.close();
@@ -31,6 +37,22 @@ export default class PlayGame extends EditorPlugin {
      * Creates the plugin
      */
     public async create(): Promise<void> {
+        // Create layout
+        this.layout = new Layout(this.divElement.id);
+        this.layout.panels = [
+            { type: 'top', size: 30, resizable: false, content: '<div id="PLAY-GAME-TOOLBAR" style="width: 100%; height: 100%"></div>' },
+            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%;"></iframe>' }
+        ];
+        this.layout.build(this.divElement.id);
+
+        // Create toolbar
+        this.toolbar = new Toolbar('PLAY-GAME-TOOLBAR');
+        this.toolbar.items = [
+            { type: 'button', id: 'reload', img: 'w2ui-icon-reload', text: 'Reload' }
+        ];
+        this.toolbar.onClick = id => this.toolbarClicked(id);
+        this.toolbar.build('PLAY-GAME-TOOLBAR');
+
         // Create iFrame
         await this.createIFrame();
 
@@ -56,18 +78,26 @@ export default class PlayGame extends EditorPlugin {
      * On reload the plugin
      */
     public async onReload (): Promise<void> {
-        $(this.divElement).empty();
         await this.createIFrame();
+    }
+
+    /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    protected async toolbarClicked (id: string): Promise<void> {
+        switch (id) {
+            case 'reload': await this.createIFrame();
+            default: break;
+        }
     }
 
     /**
      * Creates the iFrame
      */
     protected async createIFrame (): Promise<void> {
-        const div = $(this.divElement);
-        div.append('<iframe id="PLAY-GAME-IFRAME" src="./preview.html" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%;"></iframe>');
-
         this.iframe = <JQuery<HTMLIFrameElement>> $('#PLAY-GAME-IFRAME');
+        this.iframe[0].src = './preview.html';
 
         return new Promise<void>((resolve) => {
             this.iframe[0].onload = () => {
