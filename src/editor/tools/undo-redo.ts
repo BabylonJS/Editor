@@ -35,7 +35,9 @@ export default class UndoRedo {
         this.CurrentIndex = this.Stack.length - 1;
 
         // TODO: manage stack size
-        // if (this.Stack.length > this.StackSize)
+        if (this.Stack.length > this.StackSize) {
+            this.Stack.splice(0, 1);
+        }
 
         // Event
         this.onRedo && this.onRedo(element);

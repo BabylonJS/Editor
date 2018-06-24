@@ -216,7 +216,7 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected async addPreviewNode (file: File, originalTexture: BaseTexture): Promise<void> {
         const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
-        const ext = Tools.GetFileExtension(file.name);
+        const ext = Tools.GetFileExtension(file.name).toLowerCase();
 
         const texturesList = $('#TEXTURE-VIEWER-LIST');
 
@@ -358,7 +358,7 @@ export default class TextureViewer extends EditorPlugin {
                 FilesInput.FilesToLoad[f.name.toLowerCase()] = f;
 
                 // Create texture
-                const ext = Tools.GetFileExtension(f.name);
+                const ext = Tools.GetFileExtension(f.name).toLowerCase();
                 let texture: BaseTexture = null;
 
                 switch (ext) {
