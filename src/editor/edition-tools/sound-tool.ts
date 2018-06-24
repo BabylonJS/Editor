@@ -1,4 +1,4 @@
-import { Sound, Vector3 } from 'babylonjs';
+import { Sound, Vector3, Animatable, Animation } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -14,6 +14,7 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
     private _playbackRate: number = 0;
     private _rolloffFactor: number = 0;
     private _position: Vector3 = Vector3.Zero();
+    private _time: number = 0;
 
 	/**
 	* Returns if the object is supported
@@ -46,6 +47,20 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
         common.add(this, '_rolloffFactor').min(0.0).max(1.0).step(0.01).name('Rolloff Factor').onChange((result: number) => sound.updateOptions({ rolloffFactor: result }));
         common.add(sound, 'loop').name('Loop').onChange((result: boolean) => sound.updateOptions({ loop: result }));
 
+        // Player
+        const player = this.tool.addFolder('Player');
+        player.open();
+
+        this._time = 0;
+
+        const buffer = this.object.getAudioBuffer();
+        if (buffer) {
+            player.add(this, '_time').min(0).max(buffer.duration).name('Time (seconds)').onChange(r => {
+                this.object.stop();
+                this.object.play(0, this._time);
+            });
+        }
+
         // Spatial
         const spatial = this.tool.addFolder('Spatial');
         spatial.open();
@@ -68,7 +83,8 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
 
     // Play sound
     private _playSound (): void {
-        this.object.play();
+        if (!this.object.isPlaying)
+            this.object.play();
     }
 
     // Stop sound

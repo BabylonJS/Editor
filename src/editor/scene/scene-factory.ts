@@ -232,7 +232,7 @@ export default class SceneFactory {
      */
     public static AddSound (editor: Editor): void {
         Tools.OpenFileDialog(files => {
-            const name = files[0].name;
+            const name = files[0].name.toLowerCase();
             const ext = Tools.GetFileExtension(name);
 
             if (ext !== 'mp3')
