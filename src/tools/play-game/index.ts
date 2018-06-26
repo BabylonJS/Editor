@@ -1,4 +1,4 @@
-import { Scene } from 'babylonjs';
+import { Scene, Observer } from 'babylonjs';
 import Editor, { EditorPlugin, Toolbar, Layout } from 'babylonjs-editor';
 
 export default class PlayGame extends EditorPlugin {
@@ -10,7 +10,8 @@ export default class PlayGame extends EditorPlugin {
     public contentWindow: Window = null;
 
     // Protected members
-    protected onChangeValue = (data: { baseObject?: any; object: any; property: string; value: any; initialValue: any; }) => this.updateValue(data);
+    protected changeValueObserver: Observer<any> = null;
+    protected resizeObserver: Observer<any> = null;
     
     /**
      * Constructor
@@ -28,7 +29,8 @@ export default class PlayGame extends EditorPlugin {
         this.toolbar.element.destroy();
 
         // Callbacks
-        this.editor.core.onGlobalPropertyChange.removeCallback(this.onChangeValue);
+        this.editor.core.onGlobalPropertyChange.remove(this.changeValueObserver);
+        this.editor.core.onResize.remove(this.resizeObserver);
         
         await super.close();
     }
@@ -57,7 +59,8 @@ export default class PlayGame extends EditorPlugin {
         await this.createIFrame();
 
         // Events
-        this.editor.core.onGlobalPropertyChange.add(this.onChangeValue);
+        this.changeValueObserver = this.editor.core.onGlobalPropertyChange.add(data => this.updateValue(data));
+        this.resizeObserver = this.editor.core.onResize.add(() => this.layout.element.resize());
     }
 
     /**
