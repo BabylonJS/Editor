@@ -254,7 +254,7 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Create post-process
         const config = JSON.parse(this.data.config);
-        const p = new PostProcessEditor(name, name, camera, config, null);
+        const p = new PostProcessEditor(name, name, camera, this.editor.core.engine, config, null);
         p.setConfig(config);
 
         // Update graph tool

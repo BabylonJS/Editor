@@ -1,6 +1,6 @@
 import {
     PostProcess, Effect, Scene, Camera, SerializationHelper,
-    BaseTexture,
+    BaseTexture, Texture, Engine,
     Tools,
     Vector2, Vector3
 } from 'babylonjs';
@@ -47,12 +47,12 @@ export default class PostProcessEditor extends PostProcess {
      * @param ratio: the ratio of the post-process
      * @param customCode: the custom code from user
      */
-    constructor(name: string, fragmentUrl: string, camera: Camera, config: CustomPostProcessConfig, customCode: CustomPostProcessCode) {
+    constructor(name: string, fragmentUrl: string, camera: Camera, engine: Engine, config: CustomPostProcessConfig, customCode: CustomPostProcessCode) {
         // BABYLON.PostProcess
-        super(name, fragmentUrl, [], ['textureSampler'], config.ratio, camera);
+        super(name, fragmentUrl, [], ['textureSampler'], config.ratio, camera, Texture.BILINEAR_SAMPLINGMODE, engine);
 
         // Misc.
-        this.scene = camera.getScene();
+        this.scene = camera ? camera.getScene() : engine.scenes[0];
         this.customCode = customCode;
         this.config = config;
 

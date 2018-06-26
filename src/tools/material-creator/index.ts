@@ -154,6 +154,7 @@ export default class MaterialCreator extends EditorPlugin {
 
         // Add code editors
         await this.createEditors();
+        setTimeout(() => this.selectMaterial(0), 500);
 
         // Events
         this.editor.core.onResize.add(this.onResize);

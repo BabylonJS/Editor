@@ -238,12 +238,14 @@ export default class EditorEditionTools {
             if (t.tabName === target) {
                 container.show();
                 this.lastTabName = target;
+
+                t.tool.element.open();
             }
             else
                 container.hide();
         });
 
         // Hack hack hack, makes dat.gui working better
-        window.dispatchEvent(new Event('resize'));
+        // window.dispatchEvent(new Event('resize'));
     }
 }
