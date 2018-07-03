@@ -5,8 +5,10 @@ import ScenePreview from './preview-scene';
 export default class EditorApp {
     // Static members
     public static Window: BrowserWindow = null;
+
     public static Server: WebServer = null;
-    // public static ScenePreview: ScenePreview = null;
+
+    public static ScenePreview: ScenePreview = null;
 
     /**
      * Creates a new Electron window
@@ -19,10 +21,13 @@ export default class EditorApp {
         this.Server = new WebServer(1337);
 
         // Create Scene Preview
-        // this.ScenePreview = new ScenePreview(this.Server);
+        this.ScenePreview = new ScenePreview(this.Server);
 
         // Create short cuts
         this.CreateShortcutsAndMenu();
+
+        // Finish, listen server
+        this.Server.listen(1337, 'localhost');
     }
 
     /**

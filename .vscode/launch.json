@@ -47,7 +47,7 @@
                 "."
             ],
             "outFiles": [
-                ".build/**/*.js"
+                "build/**/*.js"
             ],
             "sourceMaps": true
         }

@@ -2,7 +2,7 @@
   "name": "babylonjs-editor",
   "version": "0.0.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
-  "main": ".build/electron/main.js",
+  "main": "build/electron/main.js",
   "productName": "Babylon.js Editor",
   "repository": {
     "url": "https://github.com/BabylonJS/Editor/"
@@ -12,7 +12,7 @@
     "url": "https://medium.com/@Luaacro"
   },
   "scripts": {
-    "clean": "rimraf .build && rimraf .declaration && rimraf dist && rimraf electron-packages",
+    "clean": "rimraf build && rimraf declaration && rimraf dist && rimraf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
     "build": "npm run compile && npm run compile-electron && npm run bundle",
@@ -37,6 +37,7 @@
     "@types/koa": "~2.0.40",
     "@types/koa-router": "~7.0.25",
     "@types/koa-bodyparser": "~4.2.0",
+    "@types/koa-static": "~4.0.0",
     "@types/fs-extra": "~4.0.5",
     "@types/socket.io-client": "~1.4.32",
     "@types/jstree": "~3.3.36",
@@ -74,6 +75,7 @@
     "koa-router": "~7.3.0",
     "koa-socket": "~4.4.0",
     "koa-bodyparser": "~4.2.1",
+    "koa-static": "~5.0.0",
     "fs-extra": "~4.0.2",
     "jstree": "~3.3.5",
     "golden-layout": "~1.5.9",

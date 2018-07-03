@@ -24,14 +24,14 @@ const build = function (baseUrl, inFile, outFile, options) {
             'javascript-astar': './node_modules/javascript-astar/astar.js',
 
             // Editor's modules paths
-            'babylonjs-editor': './.build/src/index.js',
-            'babylonjs-editor-extensions': './.build/src/extensions/index.js',
-            'animation-editor': './.build/src/tools/animations/editor.js',
-            'material-viewer': './.build/src/tools/materials/viewer.js',
-            'behavior-editor': './.build/src/tools/behavior/code.js',
-            'texture-viewer': './.build/src/tools/textures/viewer.js',
-            'material-creator': './.build/src/tools/material-creator/index.js',
-            'post-process-creator': './.build/src/tools/post-process-creator/index.js'
+            'babylonjs-editor': './build/src/index.js',
+            'babylonjs-editor-extensions': './build/src/extensions/index.js',
+            'animation-editor': './build/src/tools/animations/editor.js',
+            'material-viewer': './build/src/tools/materials/viewer.js',
+            'behavior-editor': './build/src/tools/behavior/code.js',
+            'texture-viewer': './build/src/tools/textures/viewer.js',
+            'material-creator': './build/src/tools/material-creator/index.js',
+            'post-process-creator': './build/src/tools/post-process-creator/index.js'
         }
     });
     builder.buildStatic(inFile, outFile, options).then(function () {
@@ -43,7 +43,7 @@ const build = function (baseUrl, inFile, outFile, options) {
 };
 
 // Extensions
-build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extensions.standalone.js', {
+build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensions.standalone.js', {
     globalName: 'EditorExtensions',
     format: 'global',
     globalDeps: {
@@ -53,7 +53,7 @@ build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extens
     minify: true
 });
 
-build('./.build/src/', './.build/src/extensions/index.js', './dist/editor.extensions.js', {
+build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensions.js', {
     globalName: 'EditorExtensions',
     format: 'cjs',
     globalDeps: {
@@ -71,7 +71,7 @@ let externals = [
     'jstree', 'golden-layout', 'jquery', 'javascript-astar'
 ];
 
-build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
+build('./build/src/', './build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
     format: 'cjs',
     externals: externals,
@@ -79,7 +79,7 @@ build('./.build/src/', './.build/src/index.js', './dist/editor.js', {
 });
 
 /*
-build('./.build/src/', './.build/src/index.js', './dist/editor-all.js', {
+build('./build/src/', './build/src/index.js', './dist/editor-all.js', {
     globalName: 'Editor',
     format: 'cjs',
     minify: true,
@@ -90,63 +90,63 @@ build('./.build/src/', './.build/src/index.js', './dist/editor-all.js', {
 // Editor
 externals = externals.concat(['babylonjs-editor', 'raphael']);
 
-build('./.build/src/', './.build/src/tools/animations/editor.js', './dist/animations-editor.js', {
+build('./build/src/', './build/src/tools/animations/editor.js', './dist/animations-editor.js', {
     globalName: 'AnimationEditor',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/behavior/code.js', './dist/behavior-editor.js', {
+build('./build/src/', './build/src/tools/behavior/code.js', './dist/behavior-editor.js', {
     globalName: 'BehaviorEditor',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/textures/viewer.js', './dist/texture-viewer.js', {
+build('./build/src/', './build/src/tools/textures/viewer.js', './dist/texture-viewer.js', {
     globalName: 'TextureViewer',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/materials/viewer.js', './dist/material-viewer.js', {
+build('./build/src/', './build/src/tools/materials/viewer.js', './dist/material-viewer.js', {
     globalName: 'MaterialViewer',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/material-creator/index.js', './dist/material-creator.js', {
+build('./build/src/', './build/src/tools/material-creator/index.js', './dist/material-creator.js', {
     globalName: 'MaterialCreator',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/post-process-creator/index.js', './dist/post-process-creator.js', {
+build('./build/src/', './build/src/tools/post-process-creator/index.js', './dist/post-process-creator.js', {
     globalName: 'PostProcessCreator',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/particles-creator/index.js', './dist/particles-creator.js', {
+build('./build/src/', './build/src/tools/particles-creator/index.js', './dist/particles-creator.js', {
     globalName: 'ParticlesCreator',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/play-game/index.js', './dist/play-game.js', {
+build('./build/src/', './build/src/tools/play-game/index.js', './dist/play-game.js', {
     globalName: 'PlayGame',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./.build/src/', './.build/src/tools/path-finder/index.js', './dist/path-finder.js', {
+build('./build/src/', './build/src/tools/path-finder/index.js', './dist/path-finder.js', {
     globalName: 'PathFinder',
     format: 'cjs',
     externals: externals,

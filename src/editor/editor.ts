@@ -181,6 +181,10 @@ export default class Editor implements IUpdatable {
 
         // Handle events
         this._handleEvents();
+
+        // Scene Preview
+        if (Tools.IsElectron())
+            ScenePreview.Create(this);
     }
 
     /**

@@ -13,6 +13,10 @@ export default class ScenePreview {
     public server: IO = null;
     public client: IO = null;
 
+    // Protected members
+    protected clientConnected: boolean = false;
+    protected serverConnected: boolean = false;
+
     /**
      * Constructor
      * @param server: the Web Server
@@ -24,19 +28,17 @@ export default class ScenePreview {
         this.client = new IO('client');
         this.client.attach(server.application);
 
-        this.server.on('connection', async (socket) => {
-            // Server
-            socket.on('receive-scene', (data: FileData) => {
-                this.client.emit('request-scene', data);
-            });
+        this.server.on('connection', () => this.serverConnected = true);
+        this.client.on('connection', () => {
+            this.clientConnected = true;
 
-            // Client connected
-            this.client.on('connection', () => {
-                this.client.removeAllListeners();
+            // Send files
+            this.server.broadcast('request-scene');
+        });
 
-                // Send files
-                this.server.emit('request-scene');
-            });
+        // Server
+        this.server.on('receive-scene', (data: FileData) => {
+            this.client.broadcast('request-scene', data.data);
         });
     }
 }

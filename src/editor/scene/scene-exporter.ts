@@ -187,8 +187,8 @@ export default class SceneExporter {
      */
     public static async GetStorage (editor: Editor): Promise<Storage> {
         const storage = Tools.IsElectron()
-            ? await Tools.ImportScript<any>('.build/src/editor/storage/electron-storage.js')
-            : await Tools.ImportScript<any>('.build/src/editor/storage/one-drive-storage.js');
+            ? await Tools.ImportScript<any>('build/src/editor/storage/electron-storage.js')
+            : await Tools.ImportScript<any>('build/src/editor/storage/one-drive-storage.js');
 
         return new storage.default(editor);
     }

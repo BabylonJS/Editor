@@ -7,7 +7,7 @@
     <script src="./node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
     <script src="./node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
 
-    <!-- <script src="./node_modules/socket.io-client/dist/socket.io.js" type="text/javascript"></script> -->
+    <script src="./node_modules/socket.io-client/dist/socket.io.js" type="text/javascript"></script>
 
     <style>
         html, body {
@@ -39,7 +39,7 @@
         var requests = null;
 
         // Opener or Parent ?
-        if (!opener)
+        if (!opener && parent !== window)
             opener = parent;
         
         System.config({
@@ -55,7 +55,7 @@
                 "javascript-astar": "./node_modules/javascript-astar/astar.js"
             },
             packages: {
-                "./.build/src/": {
+                "./build/src/": {
                     defaultExtension: "js"
                 },
                 "./node_modules/babylonjs-loaders/": {
@@ -80,13 +80,13 @@
             // Load Extensions Manager and then all extensions
             var promises = [];
             var files = [
-                "./.build/src/extensions/behavior/code.js",
-                "./.build/src/extensions/spector/spector-debug.js",
-                "./.build/src/extensions/post-process/post-processes.js",
-                "./.build/src/extensions/material-creator/material-creator.js",
-                "./.build/src/extensions/post-process-creator/post-process-creator.js",
-                "./.build/src/extensions/path-finder/index.js",
-                "./.build/src/extensions/particles-creator/particles-creator.js"
+                "./build/src/extensions/behavior/code.js",
+                "./build/src/extensions/spector/spector-debug.js",
+                "./build/src/extensions/post-process/post-processes.js",
+                "./build/src/extensions/material-creator/material-creator.js",
+                "./build/src/extensions/post-process-creator/post-process-creator.js",
+                "./build/src/extensions/path-finder/index.js",
+                "./build/src/extensions/particles-creator/particles-creator.js"
             ];
 
             for (var i = 0; i < files.length; i++) {
@@ -98,7 +98,7 @@
                 BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
                     effectiveScene = scene;
                     
-                    System.import('./.build/src/extensions/extensions.js').then(function (extensions) {
+                    System.import('./build/src/extensions/extensions.js').then(function (extensions) {
                         // Apply
                         var readProject = function (project) {
                             BABYLON.Tools.ReadFile(project, function (data) {
@@ -167,11 +167,11 @@
         }).then(function () {
             return System.import("babylonjs-materials");
         }).then(function () {
-            return System.import('./.build/src/editor/tools/tools.js').then(function (t) {
+            return System.import('./build/src/editor/tools/tools.js').then(function (t) {
                 tools = t.default;
             });
         }).then(function () {
-            return System.import('./.build/src/editor/tools/request.js').then(function (r) {
+            return System.import('./build/src/editor/tools/request.js').then(function (r) {
                 requests = r.default;
             });
         }).then(function () {
@@ -187,25 +187,23 @@
 
             if (opener) {
                 BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
+
+                var sceneFile = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon');
+                loadScene(sceneFile);
             }
+            else {
+                var socket = io('/client');
+                socket.on('request-scene', (files) => {
+                    // Import Editor tools
+                    for (var thing in files) {
+                        var file = tools.CreateFile(files[thing], thing);
+                        BABYLON.FilesInput.FilesToLoad[thing] = file;
+                    }
 
-            var sceneFile = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon');
-            loadScene(sceneFile);
-
-            // var socket = io('http://localhost:1337/client');
-            // socket.on('request-scene', (files) => {
-            //     // Import Editor tools
-            //     importTools(function (tools) {
-            //         for (var thing in files) {
-            //             var file = tools.default.CreateFile(files[thing], thing);
-            //             BABYLON.FilesInput.FilesToLoad[thing] = file;
-            //         }
-
-            //         getFileByExtension(files, 'babylon', function (sceneFile) {
-            //             loadScene(sceneFile);
-            //         });
-            //     });
-            // });
+                    var sceneFile = getFileByExtension(files, 'babylon');
+                    loadScene(sceneFile);
+                });
+            }
         });
     </script>
 </body>

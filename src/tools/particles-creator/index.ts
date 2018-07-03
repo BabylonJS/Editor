@@ -104,7 +104,7 @@ export default class ParticlesCreator extends EditorPlugin {
         this.functionsCode.onChange = value => {
             if (this.data) {
                 if (Tools.IsElectron())
-                    this.data.compiledCode = this.functionsCode.transpileTypeScript(value);
+                    this.data.compiledCode = this.functionsCode.transpileTypeScript(value, this.data.id.replace(/ /, ''));
 
                 this.data.code = value;
             }
