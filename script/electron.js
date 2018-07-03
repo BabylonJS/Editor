@@ -24,8 +24,8 @@ Builder.build({
             'src/**',
             'electron/**',
 
-            '.build/**',
-            '.declaration/**',
+            'build/**',
+            'declaration/**',
             'dist/**',
 
             'node_modules/babylonjs/babylon.d.ts',

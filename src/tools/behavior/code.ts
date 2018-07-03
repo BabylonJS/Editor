@@ -254,9 +254,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 clearTimeout(this._timeoutId);
                 this._timeoutId = setTimeout(() => {
                     if (data)
-                        data.compiledCode = code.transpileTypeScript(data.code);
+                        data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''));
                     else if (this.data)
-                        this.data.compiledCode = this.code.transpileTypeScript(this.data.code);
+                        this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''));
                 }, 500);
             }
 

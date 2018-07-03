@@ -130,8 +130,8 @@ node_modules
 package-lock.json
 
 # Build
-.build
-.declaration
+build
+declaration
 electron-packages
 dist
 

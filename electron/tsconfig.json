@@ -4,8 +4,8 @@
       "module": "commonjs",
       "sourceMap": true,
       "declaration": true,
-      "outDir": "../.build/electron",
-      "declarationDir": "../.declaration/electron",
+      "outDir": "../build/electron",
+      "declarationDir": "../declaration/electron",
       "typeRoots" : ["../node_modules/@types"],
       "types": [
         "node", "electron"
@@ -17,8 +17,8 @@
     "exclude": [
       "./test/",
       "./node_modules",
-      "./.build",
-      "./.declaration",
+      "../build",
+      "../declaration",
       "./index.d.ts"
     ]
   }

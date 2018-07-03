@@ -294,7 +294,7 @@ export default class MaterialCreator extends EditorPlugin {
                 this.data.code = value;
                 
                 if (Tools.IsElectron())
-                    this.data.compiledCode = this.code.transpileTypeScript(value);
+                    this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
             }
         };
 
