@@ -35,6 +35,9 @@
         var renderScene = true;
         var effectiveScene = null;
 
+        var tools = null;
+        var requests = null;
+
         // Opener or Parent ?
         if (!opener)
             opener = parent;
@@ -127,39 +130,28 @@
                         //     };
                         //     reader.readAsText(gf);
                         // });
-                        getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
-                            readProject(project);
-                        });
+                        var project = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject');
+                        readProject(project);
                     });
                 });
             });
         };
 
-        // Imports the tools
-        var importTools = function (callback) {
-            System.import('./.build/src/editor/tools/tools.js').then(function (tools) {
-                callback(tools);
-            });
-        }
-
         // Returns the scene file
-        var getFileByExtension = function (files, extension, callback) {
+        var getFileByExtension = function (files, extension) {
             if (opener) {
                 switch (extension) {
-                    case 'babylon': return callback(opener.editor.sceneFile);
-                    case 'editorproject': return callback(opener.editor.projectFile);
+                    case 'babylon': return opener.editor.sceneFile;
+                    case 'editorproject': return opener.editor.projectFile;
                     default: throw new Error('Cannot get file with extension "' + extension, '"');
                 }
             } else {
-                importTools(function (tools) {
-                    for (var thing in files) {
-                        var file = tools.default.CreateFile(files[thing], thing);
-                        if (tools.default.GetFileExtension(file.name) === extension) {
-                            callback(file);
-                            break;
-                        }
+                for (var thing in files) {
+                    var file = tools.CreateFile(files[thing], thing);
+                    if (tools.GetFileExtension(file.name) === extension) {
+                        return file;
                     }
-                });
+                }
             }
         };
 
@@ -175,34 +167,45 @@
         }).then(function () {
             return System.import("babylonjs-materials");
         }).then(function () {
-            importTools(function (tools) {
-                if (!tools.default.isFileApiSupported(true)) {
-                    return;
-                }
-
-                if (opener) {
-                    BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
-                }
-
-                getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon', function (sceneFile) {
-                    loadScene(sceneFile);
-                });
-
-                // var socket = io('http://localhost:1337/client');
-                // socket.on('request-scene', (files) => {
-                //     // Import Editor tools
-                //     importTools(function (tools) {
-                //         for (var thing in files) {
-                //             var file = tools.default.CreateFile(files[thing], thing);
-                //             BABYLON.FilesInput.FilesToLoad[thing] = file;
-                //         }
-
-                //         getFileByExtension(files, 'babylon', function (sceneFile) {
-                //             loadScene(sceneFile);
-                //         });
-                //     });
-                // });
+            return System.import('./.build/src/editor/tools/tools.js').then(function (t) {
+                tools = t.default;
             });
+        }).then(function () {
+            return System.import('./.build/src/editor/tools/request.js').then(function (r) {
+                requests = r.default;
+            });
+        }).then(function () {
+            return System.import('./node_modules/jquery/dist/jquery.js');
+        }).then(function () {
+            if (!window.frameElement) {
+                return requests.Get('http://localhost:1337/devTools');
+            }
+        }).then(function () {
+            if (!tools.isFileApiSupported(true)) {
+                return;
+            }
+
+            if (opener) {
+                BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
+            }
+
+            var sceneFile = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon');
+            loadScene(sceneFile);
+
+            // var socket = io('http://localhost:1337/client');
+            // socket.on('request-scene', (files) => {
+            //     // Import Editor tools
+            //     importTools(function (tools) {
+            //         for (var thing in files) {
+            //             var file = tools.default.CreateFile(files[thing], thing);
+            //             BABYLON.FilesInput.FilesToLoad[thing] = file;
+            //         }
+
+            //         getFileByExtension(files, 'babylon', function (sceneFile) {
+            //             loadScene(sceneFile);
+            //         });
+            //     });
+            // });
         });
     </script>
 </body>

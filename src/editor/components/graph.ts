@@ -245,7 +245,7 @@ export default class EditorGraph {
             });
 
             // Check lens flares
-            scene.lensFlareSystems.forEach(lf => {
+            scene.lensFlareSystems && scene.lensFlareSystems.forEach(lf => {
                 if (lf.getEmitter() === n) {
                     this.tree.add({
                         id: lf.id,
