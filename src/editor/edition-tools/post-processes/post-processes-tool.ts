@@ -137,10 +137,10 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 });
             });
             if (SceneManager.StandardRenderingPipeline.VLSEnabled) {
-                vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightCoefficient').min(0).max(1).step(0.01).name('Scattering Coefficient');
+                vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightCoefficient').min(-2).max(2).step(0.01).name('Scattering Coefficient');
                 vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightPower').min(0).max(10).step(0.01).name('Scattering Power');
                 vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightBlurScale').min(0).max(64).step(1).name('Blur scale');
-                vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightStepsCount').min(0).max(100).step(1).name('Steps count');
+                vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightStepsCount').min(0).max(512).step(1).name('Steps count');
             }
         }
 
