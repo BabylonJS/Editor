@@ -31,9 +31,11 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
-                    { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'download-project', img: 'icon-export', text: 'Download Project...' },
                     { type: 'break' },
+                    { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
+                    { type: 'break' },
+                    { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Export Project...' },
@@ -134,6 +136,12 @@ export default class EditorToolbar {
             case 'project:import-project':
                 SceneImporter.ImportProject(this.editor);
                 break;
+            case 'project:download-project':
+                SceneExporter.DownloadBabylonFile(this.editor);
+                break;
+            case 'project:import-meshes-from':
+                SceneImporter.ImportMeshesFromFile(this.editor);
+                break;
             case 'project:reload-project':
                 Dialog.Create('Reload scene', 'Are you sure to reload the entire scene?', (result) => {
                     if (result === 'No')
@@ -143,9 +151,6 @@ export default class EditorToolbar {
                     this.editor.filesInput['_processReload']();
                 });
                 break
-            case 'project:download-project':
-                SceneExporter.DownloadBabylonFile(this.editor);
-                break;
             case 'project:clean-project':
                 await this.editor.createDefaultScene(true);
                 break;
