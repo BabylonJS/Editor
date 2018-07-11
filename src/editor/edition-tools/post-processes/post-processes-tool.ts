@@ -87,6 +87,12 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             bloom.add(SceneManager.StandardRenderingPipeline, 'blurWidth').min(0).max(512).step(0.01).name('Blur Width');
             bloom.add(SceneManager.StandardRenderingPipeline, 'horizontalBlur').name('Horizontal Blur');
 
+            const lensTexture = bloom.addFolder('Lens Dirt Texture');
+            lensTexture.open();
+            this.tool.addTexture(lensTexture, this.editor, 'lensTexture', SceneManager.StandardRenderingPipeline, false, false, texture => {
+                SceneManager.StandardRenderingPipeline.lensFlareDirtTexture = <Texture> texture;
+            }).name('Texture');
+
             const motionBlur = standardPipeline.addFolder('Motion Blur');
             motionBlur.open();
             motionBlur.add(SceneManager.StandardRenderingPipeline, 'MotionBlurEnabled').name('Motion Blur Enabled');

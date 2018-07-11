@@ -20,6 +20,7 @@ import Editor from '../editor';
 
 import Tools from '../tools/tools';
 
+import Window from '../gui/window';
 import Picker from '../gui/picker';
 
 import Extensions from '../../extensions/extensions';
@@ -276,6 +277,8 @@ export default class SceneImporter {
                         // Add to graph
                         SceneFactory.AddToGraph(editor, m);
                     });
+                }, null, (scene, message) => {
+                    Window.CreateAlert(message, 'Error');
                 });
             });
         });
