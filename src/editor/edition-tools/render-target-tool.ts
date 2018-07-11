@@ -1,7 +1,6 @@
 import { Light, RenderTargetTexture } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
-import Tools from '../tools/tools';
 
 import Picker from '../gui/picker';
 
