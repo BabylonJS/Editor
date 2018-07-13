@@ -8,6 +8,8 @@ import {
 import { IStringDictionary } from './typings/typings';
 import { EditorPluginConstructor, IEditorPlugin } from './typings/plugin';
 
+import Extensions from '../extensions/extensions';
+
 import Core, { IUpdatable } from './core';
 
 import Layout from './gui/layout';
@@ -503,7 +505,13 @@ export default class Editor implements IUpdatable {
 
                 this.core.onSelectObject.notifyObservers(this.core.scene);
 
+                // Clear scene manager
+                SceneManager.Clear();
+
                 // Editor project
+                if (disposePreviousScene)
+                    Extensions.ClearExtensions();
+                
                 for (const f in FilesInput.FilesToLoad) {
                     const file = FilesInput.FilesToLoad[f];
                     if (Tools.GetFileExtension(file.name) === 'editorproject') {
@@ -531,7 +539,6 @@ export default class Editor implements IUpdatable {
                 this.stats.updateStats();
 
                 // Toggle interactions (action manager, etc.)
-                SceneManager.Clear();
                 SceneManager.Toggle(this.core.scene);
 
                 // Run scene

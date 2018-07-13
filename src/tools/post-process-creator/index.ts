@@ -85,7 +85,11 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
-        if (!this.editor.core.scene.metadata['PostProcessCreator']) {
+        if (!this.editor.core.scene.metadata['PostProcessCreator'])
+            this.editor.core.scene.metadata['PostProcessCreator'] = [];
+
+        /*
+        if (this.editor.core.scene.metadata['PostProcessCreator'].length === 0) {
             this.editor.core.scene.metadata['PostProcessCreator'] = [{
                 name: 'Custom Post-Process',
                 preview: true,
@@ -93,10 +97,16 @@ export default class PostProcessCreator extends EditorPlugin {
                 code: PostProcessCreator.DefaultCode,
                 pixel: PostProcessCreator.DefaultPixel,
                 config: PostProcessCreator.DefaultConfig,
-                userConfig: { }
+                userConfig: {
+                    textures: [],
+                    floats: [],
+                    vectors2: [],
+                    vectors3: []
+                }
             }];
         }
-
+        */
+        
         this.datas = this.editor.core.scene.metadata['PostProcessCreator'];
         this.data = this.datas[0];
 
@@ -147,7 +157,7 @@ export default class PostProcessCreator extends EditorPlugin {
         ];
         this.grid.build('POST-PROCESS-CREATOR-LIST');
         this.grid.onAdd = () => this.addPostProcess();
-        this.grid.onDelete = (selected) => this.datas.splice(selected[0], 1);
+        this.grid.onDelete = (selected) => this.deletePostProcess(selected[0]);
         this.grid.onChange = (selected, value) => this.changePostProcess(selected, value);
         this.grid.onClick = (selected) => this.selectPostProcess(selected[0]);
         this.datas.forEach((d, index) => this.grid.addRecord({
@@ -160,10 +170,15 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Add code editors
         await this.createEditors();
-        setTimeout(() => this.selectPostProcess(0), 500);
 
         // Events
         this.editor.core.onResize.add(this.onResize);
+
+        // UI
+        if (!this.data)
+            this.layout.lockPanel('main', 'No Post-Process Selected');
+        else
+            setTimeout(() => this.selectPostProcess(0), 500);
     }
 
     /**
@@ -198,18 +213,47 @@ export default class PostProcessCreator extends EditorPlugin {
     }
 
     /**
+     * Deletes the given post-process
+     * @param id the id of the selected item
+     */
+    protected deletePostProcess (id: number): void {
+        const data = this.datas[id];
+
+        const p = this.createOrUpdatePostProcess(data.name);
+        p.dispose();
+
+        // Remove data
+        this.datas.splice(id, 1);
+        this.data = this.datas[0];
+
+        // Check if empty
+        if (this.datas.length === 0) {
+            this.code.setValue('');
+            this.pixel.setValue('');
+            this.config.setValue('');
+
+            this.layout.lockPanel('main', 'No Post-Process Selected');
+        }
+    }
+
+    /**
      * Creates a new post-process
      */
     protected addPostProcess (): void {
         // Create data and material
-        const data: PostProcessCreatorMetadata = {
+        const data: PostProcessCreatorMetadata = this.data = {
             preview: true,
             cameraName: this.activeCamera ? this.activeCamera.name : null,
             name: 'Custom Post-Process' + this.datas.length + 1,
             code: PostProcessCreator.DefaultCode,
             pixel: PostProcessCreator.DefaultPixel,
             config: PostProcessCreator.DefaultConfig,
-            userConfig: { }
+            userConfig: {
+                textures: [],
+                floats: [],
+                vectors2: [],
+                vectors3: []
+            }
         };
 
         // Collect and add to the list
@@ -221,11 +265,19 @@ export default class PostProcessCreator extends EditorPlugin {
             recid: this.grid.element.records.length - 1
         });
 
+        this.grid.select([this.datas.length - 1]);
+
+        // Select new post-process to edit
+        this.selectPostProcess(this.datas.length - 1);
+
         // Add and select
         const p = this.createOrUpdatePostProcess(data.name);
 
         if (p)
             this.editor.core.onSelectObject.notifyObservers(p);
+
+        // UI
+        this.layout.unlockPanel('main');
     }
 
     /**
@@ -326,13 +378,13 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     protected async createEditors (): Promise<void> {
         // Create editors
-        this.code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', this.data.code);
+        this.code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', this.data ? this.data.code : '');
         await this.code.build('POST-PROCESS-CREATOR-EDITOR-CODE');
 
-        this.pixel = new CodeEditor('cpp', this.data.pixel);
+        this.pixel = new CodeEditor('cpp', this.data ? this.data.pixel : '');
         await this.pixel.build('POST-PROCESS-CREATOR-EDITOR-PIXEL');
 
-        this.config = new CodeEditor('json', this.data.config);
+        this.config = new CodeEditor('json', this.data ? this.data.config : '');
         await this.config.build('POST-PROCESS-CREATOR-EDITOR-CONFIG');
 
         // Events
@@ -398,6 +450,14 @@ export default class PostProcessCreator extends EditorPlugin {
                     recid: this.grid.element.records.length - 1
                 });
             });
+
+            if (selected.length > 0) {
+                this.layout.unlockPanel('main');
+
+                this.data = this.datas[this.datas.length - 1];
+                this.grid.select([this.datas.length - 1]);
+                this.selectPostProcess(this.datas.length - 1);
+            }
         });
     }
 }

@@ -111,7 +111,6 @@ export default class ParticlesCreatorExtension extends Extension<ParticlesCreato
      * loading a scene)
      */
     public onLoad (data: ParticlesCreatorMetadata[]): void {
-        debugger;
         data.forEach(d => {
             const ps = this.scene.getParticleSystemByID(d.id);
             if (!ps)

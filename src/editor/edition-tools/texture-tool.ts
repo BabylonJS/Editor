@@ -1,4 +1,4 @@
-import { BaseTexture, Texture, CubeTexture, ProceduralTexture } from 'babylonjs';
+import { BaseTexture, Texture, CubeTexture, ProceduralTexture, RenderTargetTexture, MirrorTexture, Plane } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -10,7 +10,7 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
 
     // Private members
     private _currentCoordinatesMode: string = '';
-    private _proceduralTextureSize: string = '';
+    private _textureSize: string = '';
 
 	/**
 	* Returns if the object is supported
@@ -67,21 +67,37 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         else if (texture instanceof CubeTexture) {
             // TODO
         }
+        
+        // Mirror
+        if (texture instanceof MirrorTexture) {
+            // Plane
+            const mirror = this.tool.addFolder('Mirror');
+            mirror.open();
+
+            mirror.add(texture.mirrorPlane, 'd').name('Distance');
+            this.tool.addVector(mirror, 'Normal', texture.mirrorPlane.normal).open();
+        }
 
         if (texture instanceof ProceduralTexture) {
             const procedural = this.tool.addFolder('Procedural');
             procedural.open();
 
             procedural.add(texture, 'refreshRate').step(1).min(0).name('Refresh Rate');
+        }
+
+        // Resize
+        if (texture['resize']) {
+            const size = this.tool.addFolder('Size');
+            size.open();
 
             // Size
             const sizes: string[] = [];
             for (let i = 1; i < 12; i++)
                 sizes.push(Math.pow(2, i).toString());
             
-            this._proceduralTextureSize = texture['_size'].toString();
-            procedural.add(this, '_proceduralTextureSize', sizes).name('Size').onFinishChange(r => {
-                texture.resize(parseInt(r), texture._generateMipMaps);
+            this._textureSize = texture['_size'].toString();
+            size.add(this, '_textureSize', sizes).name('Size').onFinishChange(r => {
+                texture['resize'](parseInt(r), texture['_generateMipMaps']);
             });
         }
     }

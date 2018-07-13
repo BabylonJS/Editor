@@ -28,6 +28,15 @@ export default class SceneManager {
      */
     public static Clear (): void {
         this.ActionManagers = { };
+        
+        this.PostProcessExtension = null;
+        
+        this.GlowLayer = null;
+        this.HighLightLayer = null;
+
+        this.StandardRenderingPipeline = null;
+        this.SSAO2RenderingPipeline = null;
+        this.SSAORenderingPipeline = null;
     }
 
     /**

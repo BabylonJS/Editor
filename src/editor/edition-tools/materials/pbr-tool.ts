@@ -48,7 +48,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         // Reflection
         const reflection = this.tool.addFolder('Reflection');
         reflection.open();
-        this.tool.addTexture(reflection, this.editor, 'reflectionTexture', this.object, true, true).name('Reflection Texture');
+        this.tool.addTexture(reflection, this.editor, 'reflectionTexture', this.object, true, false).name('Reflection Texture');
         this.tool.addColor(reflection, 'Color', this.object.reflectionColor).open();
         reflection.add(this.object, 'environmentIntensity').step(0.01).name('Environment Intensity');
 

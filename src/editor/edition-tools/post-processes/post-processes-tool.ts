@@ -225,7 +225,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
     // Checks if the post processes extension is created
     private async _checkExtension (): Promise<void> {
-        await Tools.ImportScript('./.build/src/extensions/post-process/post-processes');
+        await Tools.ImportScript('./build/src/extensions/post-process/post-processes.js');
         
         SceneManager.PostProcessExtension =
             SceneManager.PostProcessExtension ||
