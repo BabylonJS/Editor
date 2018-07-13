@@ -236,10 +236,11 @@ export default class SceneImporter {
             for (const f of files) {
                 const name = f.name.toLowerCase();
 
-                if (Tools.GetFileExtension(f.name) !== 'babylon' && !FilesInput.FilesToLoad[name])
-                    FilesInput.FilesToLoad[name] = f;
-                else
+                if (Tools.GetFileExtension(f.name) === 'babylon')
                     babylonFile = f;
+                
+                if (!FilesInput.FilesToLoad[name])
+                    FilesInput.FilesToLoad[name] = f;
             };
 
             // Read file

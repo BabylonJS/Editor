@@ -10,6 +10,7 @@ export default class Extensions {
     // Public members
     public static Extensions: IStringDictionary<ExtensionConstructor<any>> = { };
     public static Instances: IStringDictionary<IExtension<any>> = { };
+    public static OrderedExtensions: string[] = [];
 
     public static Tools: Tools = new Tools();
     public static Mobile: Mobile = new Mobile();
@@ -25,6 +26,8 @@ export default class Extensions {
             return false;
 
         this.Extensions[name] = extension;
+        this.OrderedExtensions.push(name);
+
         return true;
     }
 
@@ -51,12 +54,12 @@ export default class Extensions {
      * @param metadatas the metadatas
      */
     public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>): void {
-        for (const e in this.Extensions) {
-            const extension = new this.Extensions[e](scene);
-            this.Instances[e] = extension;
+        for (const name of this.OrderedExtensions) {
+            const extension = new this.Extensions[name](scene);
+            this.Instances[name] = extension;
 
-            if (extension.alwaysApply || metadatas[e])
-                extension.onApply(metadatas[e], this.RoolUrl);
+            if (extension.alwaysApply || metadatas[name])
+                extension.onApply(metadatas[name], this.RoolUrl);
         }
     }
 

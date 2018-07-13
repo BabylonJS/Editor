@@ -5,7 +5,11 @@ import {
     Camera, ArcRotateCamera,
     Vector3,
     Tools as BabylonTools, Tags,
-    ProceduralTexture
+    ProceduralTexture,
+    RenderTargetTexture,
+    Observer,
+    DynamicTexture,
+    MirrorTexture
 } from 'babylonjs';
 import 'babylonjs-procedural-textures';
 
@@ -49,6 +53,10 @@ export default class TextureViewer extends EditorPlugin {
     protected property: string;
     protected allowCubes: boolean;
 
+    // Private members
+    private _renderTargetObservers: Observer<any>[] = [];
+    private _lastRenderTargetObserver: Observer<any> = null;
+
     /**
      * Constructor
      * @param name: the name of the plugin 
@@ -69,8 +77,13 @@ export default class TextureViewer extends EditorPlugin {
             e.scenes.forEach(s => s.dispose());
             e.dispose();
         });
+
         this.editor.core.onResize.removeCallback(this.onResizePreview);
 
+        // Render targets
+        this.clearRenderTargetObservers();
+
+        // Dispose
         this.postProcess.dispose(this.camera);
         this.scene.dispose();
         this.engine.dispose();
@@ -102,6 +115,8 @@ export default class TextureViewer extends EditorPlugin {
         this.toolbar.items = [
             { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
             { id: 'add-procedural', text: 'Add Procedural...', img: 'icon-add' },
+            { id: 'add-render-target', text: 'Add Render Target...', img: 'icon-add' },
+            { id: 'add-mirror', text: 'Add Mirror...', img: 'icon-add' },
             { type: 'break' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
@@ -162,6 +177,12 @@ export default class TextureViewer extends EditorPlugin {
             case 'add-procedural':
                 this.addProceduralTexture();
                 break;
+            case 'add-render-target':
+                this.addRenderTargetTexture();
+                break;
+            case 'add-mirror':
+                this.addMirrorTexture();
+                break;
 
             case 'refresh':
                 this.createList();
@@ -171,17 +192,32 @@ export default class TextureViewer extends EditorPlugin {
     }
 
     /**
+     * Clears all the observers
+     */
+    protected clearRenderTargetObservers (): void {
+        this._renderTargetObservers.forEach(r => this.editor.core.scene.onAfterRenderObservable.remove(r));
+        
+        if (this._lastRenderTargetObserver) {
+            this.editor.core.scene.onAfterRenderObservable.remove(this._lastRenderTargetObserver);
+            this._lastRenderTargetObserver = null;
+        }
+    }
+
+    /**
      * Creates the list of textures (on the left)
      * @param div the tool's div element
      */
     protected async createList (): Promise<void> {
+        // Clear
         this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
 
         const div = $('#TEXTURE-VIEWER-LIST');
         while (div[0].children.length > 0)
             div[0].children[0].remove();
 
-        // Add HTML nodes
+        this.clearRenderTargetObservers();
+
+        // Add HTML nodes for textures
         for (const tex of this.editor.core.scene.textures) {
             if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
                 continue;
@@ -205,6 +241,11 @@ export default class TextureViewer extends EditorPlugin {
             
             if (file)
                 this.addPreviewNode(file, tex);
+        }
+
+        // Add render targets
+        for (const tex of this.editor.core.scene.customRenderTargets) {
+            this.addRenderTargetTexturePreviewNode(tex);
         }
     }
 
@@ -281,6 +322,48 @@ export default class TextureViewer extends EditorPlugin {
         const texturesList = $('#TEXTURE-VIEWER-LIST');
         texturesList.append(canvas);
     }
+
+    /**
+     * Adds a render target texture preview
+     * @param texture: the render target texture to preview
+     */
+    protected addRenderTargetTexturePreviewNode (texture: RenderTargetTexture): void {
+        // Create canvas
+        const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
+            width: '100px',
+            height: '100px',
+            float: 'left',
+            margin: '10px'
+        });
+        canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'rendertarget', texture));
+
+        const context = canvas.getContext('2d');
+
+        // Add to DOM
+        const texturesList = $('#TEXTURE-VIEWER-LIST');
+        texturesList.append(canvas);
+
+        // Register render
+        let renderId = 0;
+        this._renderTargetObservers.push(this.editor.core.scene.onAfterRenderObservable.add(() => {
+            if (renderId < 10) {
+                renderId++;
+                return;
+            }
+
+            renderId = 0;
+
+            // Resize canvas
+            canvas.width = texture.getSize().width;
+            canvas.height = texture.getSize().height;
+
+            const pixels = texture.readPixels();
+            const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), canvas.width, canvas.height);
+
+            context.putImageData(imageData, 0, 0);
+            context.rotate(Math.PI);
+        }));
+    }
     
     /**
      * Sets the texture in preview canvas
@@ -290,6 +373,13 @@ export default class TextureViewer extends EditorPlugin {
         this.camera.detachPostProcess(this.postProcess);
         this.sphere.setEnabled(false);
 
+        // Remove last render target observer
+        if (this._lastRenderTargetObserver) {
+            this.editor.core.scene.onAfterRenderObservable.remove(this._lastRenderTargetObserver);
+            this._lastRenderTargetObserver = null;
+        }
+
+        // Switch extension and draw result in the right canvas
         switch (extension) {
             case 'dds':
                 this.texture = this.material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + name, this.scene);
@@ -299,6 +389,18 @@ export default class TextureViewer extends EditorPlugin {
                 this.camera.attachPostProcess(this.postProcess);
                 this.texture = ProceduralTexture.Parse(originalTexture.serialize(), this.scene, '');
                 (<ProceduralTexture> this.texture).refreshRate = 1;
+                break;
+            case 'rendertarget':
+                this.camera.attachPostProcess(this.postProcess);
+                this.texture = new DynamicTexture(name, { width: originalTexture.getSize().width, height: originalTexture.getSize().height }, this.scene, false);
+
+                this._lastRenderTargetObserver = this.editor.core.scene.onAfterRenderObservable.add(() => {
+                    const pixels = originalTexture.readPixels();
+                    const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), originalTexture.getSize().width, originalTexture.getSize().height);
+
+                    (<DynamicTexture> this.texture).getContext().putImageData(imageData, 0, 0);
+                    (<DynamicTexture> this.texture).update(false);
+                });
                 break;
             default:
                 this.camera.attachPostProcess(this.postProcess);
@@ -378,6 +480,24 @@ export default class TextureViewer extends EditorPlugin {
 
             this.layout.unlockPanel('top');
         });
+    }
+
+    /**
+     * Add a new render target texture
+     */
+    protected addRenderTargetTexture (): void {
+        const rt = new RenderTargetTexture('New Render Target', 512, this.editor.core.scene, true, true);
+        this.editor.core.scene.customRenderTargets.push(rt);
+
+        this.addRenderTargetTexturePreviewNode(rt);
+    }
+
+    /**
+     * Add a new mirror texture
+     */
+    protected addMirrorTexture (): void {
+        const rt = new MirrorTexture('New Mirror Texture', 512, this.editor.core.scene, true);
+        this.addRenderTargetTexturePreviewNode(rt);
     }
 
     /**

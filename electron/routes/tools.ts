@@ -32,6 +32,8 @@ export default class ToolsRouter {
                 win.webContents.openDevTools({
                     mode: 'detach'
                 });
+
+                setTimeout(() => win.focus(), 2000);
             }
 
             ctx.body = {
