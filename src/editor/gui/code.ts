@@ -115,7 +115,7 @@ export default class CodeEditor {
             await Tools.ImportScript('typescript');
         
         // Create editor
-        this.editor = caller['monaco'].editor.create($(parentId)[0], {
+        this.editor = caller['monaco'].editor.create($(<any>parentId)[0], {
             value: this._defaultValue,
             language: this._language,
             automaticLayout: true,
