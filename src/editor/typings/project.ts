@@ -107,13 +107,6 @@ export interface ParticleSystem {
 }
 
 /**
-* Post-processes
-*/
-export interface PostProcess {
-    serializationObject: any;
-}
-
-/**
 * Lens Flares
 */
 export interface LensFlare {
@@ -152,7 +145,6 @@ export interface ProjectRoot {
     particleSystems: ParticleSystem[];
     nodes: Node[];
     shadowGenerators: any[];
-    postProcesses: PostProcess[];
     lensFlares: LensFlare[];
     renderTargets: RenderTarget[];
     sounds: Sound[];
