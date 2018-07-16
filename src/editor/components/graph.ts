@@ -12,6 +12,7 @@ import Editor from '../editor';
 import Tools from '../tools/tools';
 
 import Tree, { TreeNode } from '../gui/tree';
+import { UndoRedo } from 'babylonjs-editor';
 
 export default class EditorGraph {
     // Public members
@@ -51,7 +52,19 @@ export default class EditorGraph {
             if (node instanceof ParticleSystem) {
                 if (!(parent instanceof AbstractMesh))
                     return false;
-                
+
+                // Undo redo
+                const oldEmitter = node.emitter;
+                const newEmitter = parent;
+
+                UndoRedo.Push({ object: node, property: 'emitter', from: oldEmitter, to: newEmitter, fn: (type) => {
+                    if (type === 'from')
+                        this.tree.setParent(node.id, oldEmitter['id']);
+                    else
+                        this.tree.setParent(node.id, newEmitter.id);
+                }});
+
+                // Apply
                 node.emitter = parent;
 
                 return true;
@@ -60,13 +73,27 @@ export default class EditorGraph {
             if (node instanceof Node) {
                 if (!(parent instanceof Node) && !(parent instanceof Scene))
                     return false;
-                
-                node.parent = parent instanceof Scene ? null : parent;
+
+                // Undo redo
+                const oldParent = node.parent;
+                const newParent = parent instanceof Scene ? null : parent;
+
+                UndoRedo.Push({ object: node, property: 'parent', from: oldParent, to: newParent, fn: (type) => {
+                    if (type === 'from')
+                        this.tree.setParent(node.id, oldParent ? oldParent.id : this.root);
+                    else
+                        this.tree.setParent(node.id, newParent ? newParent.id : this.root);
+                }});
+
+                // Apply
+                node.parent = newParent;
 
                 return true;
             }
 
             if (node instanceof Sound) {
+                // TODO: undo-redo for sounds
+                // Need to get current attached mesh
                 if (parent instanceof Scene) {
                     node.spatialSound = false;
                     node.detachFromMesh();
