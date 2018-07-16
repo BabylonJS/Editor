@@ -209,8 +209,7 @@ export default class SceneExporter {
             nodes: this._SerializeNodes(editor),
             particleSystems: this._SerializeParticleSystems(editor),
             physicsEnabled: editor.core.scene.isPhysicsEnabled(),
-            postProcesses: null,
-            renderTargets: null,
+            renderTargets: this._SerializeRenderTargets(editor),
             requestedMaterials: null,
             shadowGenerators: this._SerializeShadowGenerators(editor),
             sounds: this._SerializeSounds(editor),
@@ -274,6 +273,25 @@ export default class SceneExporter {
         });
 
         return result;
+    }
+
+    /**
+     * Serializes all the render targets
+     */
+    private static _SerializeRenderTargets (editor: Editor): Export.RenderTarget[] {
+        const renderTargets: Export.RenderTarget[] = [];
+
+        editor.core.scene.customRenderTargets.forEach(rt => {
+            if (!Tags.HasTags(rt) || !Tags.MatchesQuery(rt, 'added'))
+                return;
+
+            renderTargets.push({
+                isProbe: false,
+                serializationObject: rt.serialize()
+            });
+        });
+
+        return renderTargets;
     }
 
     /**

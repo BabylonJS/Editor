@@ -490,6 +490,9 @@ export default class TextureViewer extends EditorPlugin {
         this.editor.core.scene.customRenderTargets.push(rt);
 
         this.addRenderTargetTexturePreviewNode(rt);
+
+        // Tags
+        Tags.AddTagsTo(rt, 'added');
     }
 
     /**

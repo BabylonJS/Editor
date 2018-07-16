@@ -26,7 +26,6 @@ export default class SpectorDebugExtension extends Extension<{ }> {
      * On apply the extension
      */
     public onApply (): void {
-        const canvas = this.scene.getEngine().getRenderingCanvas();
         this.spector.displayUI();
     }
 

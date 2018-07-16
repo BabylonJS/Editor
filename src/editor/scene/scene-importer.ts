@@ -12,7 +12,8 @@ import {
     SceneLoader,
     FilesInput,
     MultiMaterial,
-    Tools as BabylonTools
+    Tools as BabylonTools,
+    RenderTargetTexture
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -178,6 +179,12 @@ export default class SceneImporter {
         // Effect Layers
         project.effectLayers.forEach(el => SceneManager[el.name] = EffectLayer.Parse(el.serializationObject, scene, 'file:'));
 
+        // Render targets
+        project.renderTargets.forEach(rt => {
+            const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
+            scene.customRenderTargets.push(texture);
+        });
+
         // Metadatas
         Extensions.ClearExtensions();
 
@@ -192,6 +199,7 @@ export default class SceneImporter {
         const ppExtension = <PostProcessesExtension> Extensions.Instances['PostProcess'];
         if (ppExtension) {
             SceneManager.StandardRenderingPipeline = ppExtension.standard;
+            SceneManager.SSAO2RenderingPipeline = ppExtension.ssao2;
         }
 
         // Finish

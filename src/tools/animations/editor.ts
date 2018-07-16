@@ -1,6 +1,6 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
-    Vector2, Vector3, Quaternion, Color3
+    Color3, Tags
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -366,6 +366,9 @@ export default class AnimationEditor extends EditorPlugin {
 
             this.animatable.animations.push(anim);
             this.objectSelected(this.animatable);
+
+            // Tags
+            Tags.AddTagsTo(anim, 'added');
         };
     }
 
