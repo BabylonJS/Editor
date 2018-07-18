@@ -13,7 +13,8 @@ import {
     FilesInput,
     MultiMaterial,
     Tools as BabylonTools,
-    RenderTargetTexture
+    RenderTargetTexture,
+    InstancedMesh
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -148,7 +149,7 @@ export default class SceneImporter {
             const material = Material.Parse(m.serializedValues, scene, 'file:');
             m.meshesNames.forEach(mn => {
                 const mesh = scene.getMeshByName(mn);
-                if (mesh)
+                if (mesh && !(mesh instanceof InstancedMesh))
                     mesh.material = material;
             });
 
