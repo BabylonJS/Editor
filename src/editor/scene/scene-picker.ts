@@ -41,6 +41,7 @@ export default class ScenePicker {
     // Private members
     private _enabled: boolean = true;
     private _gizmoType: GizmoType = GizmoType.NONE;
+    private _gizmoDelta: number = 0;
 
     /**
      * Constructor
@@ -115,13 +116,18 @@ export default class ScenePicker {
 
         // Events
         // TODO: access public members
-        this.currentGizmo['_xDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-        this.currentGizmo['_yDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-        this.currentGizmo['_zDrag']['_dragBehavior'].onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
 
-        // this.currentGizmo['_xDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'x'));
-        // this.currentGizmo['_yDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'y'));
-        // this.currentGizmo['_zDrag']['_dragBehavior'].onDragEndObservable.add(g => this.undoRedo(g, 'z'));
+        // Undo redo
+        this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.x);
+        this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.y);
+        this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.z);
+
+        this.currentGizmo.xGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('x'));
+        this.currentGizmo.yGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('y'));
+        this.currentGizmo.zGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('z'));
     }
 
     /**
@@ -163,20 +169,22 @@ export default class ScenePicker {
      * @param delta the delta value (from / to)
      * @param axis the moved axis
      */
-    protected undoRedo (delta: number, axis: 'x' | 'y' | 'z'): void {
+    protected undoRedo (axis: 'x' | 'y' | 'z'): void {
         let vector: Vector3 = null;
         switch (this._gizmoType) {
-            case GizmoType.POSITION: vector = this.positionGizmo.attachedMesh.position; break;
-            case GizmoType.ROTATION: vector = this.positionGizmo.attachedMesh.rotation; break;
-            case GizmoType.SCALING: vector = this.positionGizmo.attachedMesh.scaling; break;
+            case GizmoType.POSITION: vector = this.positionGizmo.xGizmo.attachedMesh.position; break;
+            case GizmoType.ROTATION: vector = this.rotationGizmo.xGizmo.attachedMesh.rotation; break;
+            case GizmoType.SCALING: vector = this.scalingGizmo.xGizmo.attachedMesh.scaling; break;
             default: break;
         }
 
         switch (axis) {
-            case 'x': UndoRedo.Push({ object: vector, property: 'x', from: vector.x - delta, to: vector.x }); break;
-            case 'y': UndoRedo.Push({ object: vector, property: 'y', from: vector.y - delta, to: vector.y }); break;
-            case 'z': UndoRedo.Push({ object: vector, property: 'z', from: vector.z - delta, to: vector.z }); break;
+            case 'x': UndoRedo.Push({ object: vector, property: 'x', from: vector.x - this._gizmoDelta, to: vector.x }); break;
+            case 'y': UndoRedo.Push({ object: vector, property: 'y', from: vector.y - this._gizmoDelta, to: vector.y }); break;
+            case 'z': UndoRedo.Push({ object: vector, property: 'z', from: vector.z - this._gizmoDelta, to: vector.z }); break;
         }
+
+        this._gizmoDelta = 0;
     }
 
     /**
