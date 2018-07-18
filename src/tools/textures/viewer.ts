@@ -20,7 +20,8 @@ import Editor, {
     Toolbar,
     Picker,
 
-    EditorPlugin
+    EditorPlugin,
+    UndoRedo
 } from 'babylonjs-editor';
 
 export interface PreviewScene {
@@ -411,6 +412,7 @@ export default class TextureViewer extends EditorPlugin {
         this.engine.resize();
 
         if (this.object && this.property) {
+            UndoRedo.Push({ object: this.object, property: this.property, from: this.object[this.property], to: originalTexture });
             this.object[this.property] = originalTexture;
         }
         else {

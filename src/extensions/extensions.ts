@@ -51,7 +51,7 @@ export default class Extensions {
 
     /**
      * Applies all extesions giving all the custom metadatas
-     * @param metadatas the metadatas
+     * @param metadatas the metadatas for all extensions
      */
     public static ApplyExtensions (scene: Scene, metadatas: IStringDictionary<any>): void {
         for (const name of this.OrderedExtensions) {

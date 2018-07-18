@@ -364,7 +364,21 @@ export default class AnimationEditor extends EditorPlugin {
                 { frame: 60, value: infos.defaultValue.clone ? infos.defaultValue.clone() : infos.defaultValue }
             ]);
 
-            this.animatable.animations.push(anim);
+            const length = this.animatable.animations.push(anim);
+
+            // Undo redo
+            UndoRedo.Push({
+                fn: (type) => {
+                    debugger;
+                    if (type === 'from')
+                        this.animatable.animations.splice(length - 1, 1);
+                    else
+                        this.animatable.animations.splice(length - 1, 0, anim);
+
+                    this.objectSelected(this.animatable);
+                }
+            });
+
             this.objectSelected(this.animatable);
 
             // Tags

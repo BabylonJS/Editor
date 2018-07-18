@@ -14,7 +14,8 @@ import Editor, {
     Toolbar,
     Picker,
 
-    EditorPlugin
+    EditorPlugin,
+    UndoRedo
 } from 'babylonjs-editor';
 
 export interface PreviewScene {
@@ -301,10 +302,14 @@ export default class AnimationEditor extends EditorPlugin {
             if (!pick.pickedMesh)
                 return;
 
-            if (pick.pickedMesh instanceof InstancedMesh)
+            if (pick.pickedMesh instanceof InstancedMesh) {
                 pick.pickedMesh.sourceMesh.material = material;
-            else if (pick.pickedMesh instanceof Mesh)
+                UndoRedo.Push({ object: pick.pickedMesh.sourceMesh, property: 'material', from: pick.pickedMesh.sourceMesh.material, to: material });
+            }
+            else if (pick.pickedMesh instanceof Mesh) {
+                UndoRedo.Push({ object: pick.pickedMesh, property: 'material', from: pick.pickedMesh.material, to: material });
                 pick.pickedMesh.material = material;
+            }
 
             this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
         };

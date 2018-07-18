@@ -1050,12 +1050,6 @@ declare module 'babylonjs-editor/editor/typings/project' {
         emitterPosition?: number[];
     }
     /**
-     * Post-processes
-     */
-    export interface PostProcess {
-        serializationObject: any;
-    }
-    /**
      * Lens Flares
      */
     export interface LensFlare {
@@ -1089,7 +1083,6 @@ declare module 'babylonjs-editor/editor/typings/project' {
         particleSystems: ParticleSystem[];
         nodes: Node[];
         shadowGenerators: any[];
-        postProcesses: PostProcess[];
         lensFlares: LensFlare[];
         renderTargets: RenderTarget[];
         sounds: Sound[];
