@@ -39,6 +39,14 @@ export default class EditorPreview {
     }
 
     /**
+     * Resizes the preview
+     */
+    public resize (): void {
+        this.layout.element.resize();
+        this.editor.core.engine.resize();
+    }
+
+    /**
      * On the user clicks on the toolbar
      * @param id the id of the clicked item
      */

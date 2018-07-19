@@ -214,8 +214,8 @@ export default class Editor implements IUpdatable {
         // Stats size
         this.stats.layout.element.resize();
         
-        // Engine size
-        this.core.engine.resize();
+        // Resize preview
+        this.preview.resize();
 
         // Notify
         this.core.onResize.notifyObservers(null);
