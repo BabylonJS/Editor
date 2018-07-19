@@ -53,7 +53,7 @@ import Layout from '../gui/layout';
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
 
-export default class EditorEditionTools {
+export default class EditorInspector {
     // Public members
     public tools: IEditionTool<any>[] = [];
     public currentTools: IEditionTool<any>[] = [];
@@ -155,13 +155,13 @@ export default class EditorEditionTools {
 
         // Add tab
         this.tabs.add({
-            id: tool.tabName,
+            id: tool.divId,
             caption: tool.tabName,
             closable: false,
             onClick: (event) => this.changeTab(event.target)
         });
 
-        this.tabs.hide(tool.tabName);
+        this.tabs.hide(tool.divId);
 
         // Add & configure tool
         tool.editor = this.editor;
@@ -185,7 +185,7 @@ export default class EditorEditionTools {
                 // Show
                 $('#' + t.divId).show();
 
-                this.tabs.show(t.tabName);
+                this.tabs.show(t.divId);
                 t.update(object);
 
                 if (t.tabName === this.lastTabName)
@@ -202,12 +202,12 @@ export default class EditorEditionTools {
             } else {
                 // Hide
                 $('#' + t.divId).hide();
-                this.tabs.hide(t.tabName);
+                this.tabs.hide(t.divId);
             }
         });
 
         if (firstTool)
-            this.changeTab(firstTool.tabName);
+            this.changeTab(firstTool.divId);
 
         // Current object
         this.currentObject = object;
@@ -235,7 +235,7 @@ export default class EditorEditionTools {
         this.tools.forEach(t => {
             const container = $('#' + t.divId);
 
-            if (t.tabName === target) {
+            if (t.divId === target) {
                 container.show();
                 this.lastTabName = target;
 

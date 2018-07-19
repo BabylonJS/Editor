@@ -7,7 +7,7 @@ import SceneManager from '../scene/scene-manager';
 export default class SceneTool extends AbstractEditionTool<Scene> {
     // Public members
     public divId: string = 'SCENE-TOOL';
-    public tabName: string = 'Scene';
+    public tabName: string = 'Properties';
 
     // Private members
     private _physicsEnabled: boolean = false;
