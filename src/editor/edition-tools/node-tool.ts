@@ -10,7 +10,7 @@ import CodeExtension, { BehaviorMetadata } from '../../extensions/behavior/code'
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members
     public divId: string = 'NODE-TOOL';
-    public tabName: string = 'Node';
+    public tabName: string = 'Properties';
 
     // Private members
     private _parentId: string = '';
@@ -48,6 +48,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         common.open();
         common.add(node, 'name').name('Name').onFinishChange(r => this.editor.graph.renameNode(node.id, r));
         common.add(this, '_enabled').name('Enabled').onFinishChange(r => node.setEnabled(r));
+        common.add(node, 'isVisible').name('Is Visible');
 
         if (object instanceof Mesh) {
             const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
@@ -87,21 +88,6 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
         // Abstract mesh
         if (node instanceof AbstractMesh) {
-            // Collisions
-            const collisions = this.tool.addFolder('Collisions');
-            collisions.open();
-
-            collisions.add(node, 'checkCollisions').name('Check Collisions');
-            collisions.add(node, 'isBlocker').name('Is Blocker');
-
-            // Rendering
-            const rendering = this.tool.addFolder('Rendering');
-            rendering.open();
-
-            rendering.add(node, 'receiveShadows').name('Receive Shadows');
-            rendering.add(node, 'applyFog').name('Apply Fog');
-            rendering.add(node, 'isVisible').name('Is Visible');
-
             if (!(node instanceof InstancedMesh)) {
                 // Instances
                 const instances = this.tool.addFolder('Instances');

@@ -38,13 +38,18 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         else
             this.object = object instanceof SubMesh ? object.getMaterial() : object.material;
         
-        super.setTabName(Tools.GetConstructorName(this.object).replace('Material', ''));
+        super.setTabName(Tools.GetConstructorName(this.object).replace('Material', '') + ' Material');
 
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
         common.add(this.object, 'name').name('Name');
         common.add(this.object, 'alpha').min(0).max(1).name('Alpha');
+
+        if (object instanceof AbstractMesh) {
+            common.add(object, 'receiveShadows').name('Receive Shadows');
+            common.add(object, 'applyFog').name('Apply Fog');
+        }
     }
 
     /**

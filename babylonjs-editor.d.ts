@@ -37,7 +37,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import ResizableLayout from 'babylonjs-editor/editor/gui/resizable-layout';
     import EditorToolbar from 'babylonjs-editor/editor/components/toolbar';
     import EditorGraph from 'babylonjs-editor/editor/components/graph';
-    import EditorEditionTools from 'babylonjs-editor/editor/components/edition';
+    import EditorInspector from 'babylonjs-editor/editor/components/inspector';
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
     import Stats from 'babylonjs-editor/editor/components/stats';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
@@ -50,7 +50,7 @@ declare module 'babylonjs-editor/editor/editor' {
             resizableLayout: ResizableLayout;
             toolbar: EditorToolbar;
             graph: EditorGraph;
-            edition: EditorEditionTools;
+            edition: EditorInspector;
             editPanel: EditorEditPanel;
             stats: Stats;
             plugins: IStringDictionary<IEditorPlugin>;
@@ -1325,13 +1325,13 @@ declare module 'babylonjs-editor/editor/components/graph' {
     }
 }
 
-declare module 'babylonjs-editor/editor/components/edition' {
+declare module 'babylonjs-editor/editor/components/inspector' {
     /**
         * Edition tools
         */
     import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import Editor from 'babylonjs-editor/editor/editor';
-    export default class EditorEditionTools {
+    export default class EditorInspector {
             protected editor: Editor;
             tools: IEditionTool<any>[];
             currentTools: IEditionTool<any>[];

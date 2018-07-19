@@ -18,7 +18,7 @@ import ResizableLayout from './gui/resizable-layout';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
-import EditorEditionTools from './components/edition';
+import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
 import Stats from './components/stats';
 
@@ -44,7 +44,7 @@ export default class Editor implements IUpdatable {
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
-    public edition: EditorEditionTools;
+    public edition: EditorInspector;
     public editPanel: EditorEditPanel;
     public stats: Stats;
 
@@ -104,7 +104,7 @@ export default class Editor implements IUpdatable {
             type: 'row',
             content:[{
                 type: 'row', content: [
-                    { type: 'component', componentName: 'Properties', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
+                    { type: 'component', componentName: 'Inspector', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
                         { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
@@ -156,7 +156,7 @@ export default class Editor implements IUpdatable {
         this.toolbar = new EditorToolbar(this);
 
         // Create edition tools
-        this.edition = new EditorEditionTools(this);
+        this.edition = new EditorInspector(this);
 
         // Create graph
         this.graph = new EditorGraph(this);
@@ -203,7 +203,7 @@ export default class Editor implements IUpdatable {
     */
     public resize (): void {
         // Edition size
-        const editionSize = this.resizableLayout.getPanelSize('Properties');
+        const editionSize = this.resizableLayout.getPanelSize('Inspector');
         this.edition.resize(editionSize.width);
 
         // Stats size
