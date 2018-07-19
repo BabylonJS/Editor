@@ -2,9 +2,9 @@ import { FilesInput, AbstractMesh } from 'babylonjs';
 import Extensions from '../extensions';
 
 import CodeExtension from '../behavior/code';
-import PostProcessCreatorExtension from '../post-process-creator/post-process-creator';
-import MaterialCreatorExtension from '../material-creator/material-creator';
-import PathFinderExtension from '../path-finder/index';
+import PostProcessEditorExtension from '../post-process-editor/post-process-editor';
+import MaterialEditorExtension from '../material-editor/material-editor';
+import PathFinderExtension from '../path-finder';
 
 import PathFinder from '../path-finder/path-finder';
 
@@ -14,7 +14,7 @@ export default class Tools {
      * @param name the name of the custom material
      */
     public getCustomMaterial (name: string): any {
-        const ext = <MaterialCreatorExtension> Extensions.Instances['MaterialCreatorExtension'];
+        const ext = <MaterialEditorExtension> Extensions.Instances['MaterialCreatorExtension'];
         if (!ext)
             return null;
 
@@ -40,7 +40,7 @@ export default class Tools {
      * @param name the name of the post-process
      */
     public getCustomPostProcess (name: string): any {
-        const ext = <PostProcessCreatorExtension> Extensions.Instances['PostProcessCreatorExtension'];
+        const ext = <PostProcessEditorExtension> Extensions.Instances['PostProcessCreatorExtension'];
         if (!ext)
             return null;
 

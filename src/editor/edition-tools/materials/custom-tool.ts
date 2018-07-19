@@ -1,6 +1,6 @@
 import { Material, Vector2, Vector3 } from 'babylonjs';
 
-import CustomEditorMaterial from '../../../extensions/material-creator/material';
+import CustomEditorMaterial from '../../../extensions/material-editor/material';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';

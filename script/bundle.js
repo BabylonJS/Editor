@@ -30,8 +30,8 @@ const build = function (baseUrl, inFile, outFile, options) {
             'material-viewer': './build/src/tools/materials/viewer.js',
             'behavior-editor': './build/src/tools/behavior/code.js',
             'texture-viewer': './build/src/tools/textures/viewer.js',
-            'material-creator': './build/src/tools/material-creator/index.js',
-            'post-process-creator': './build/src/tools/post-process-creator/index.js'
+            'material-editor': './build/src/tools/material-editor/index.js',
+            'post-process-editor': './build/src/tools/post-process-editor/index.js'
         }
     });
     builder.buildStatic(inFile, outFile, options).then(function () {
@@ -118,15 +118,15 @@ build('./build/src/', './build/src/tools/materials/viewer.js', './dist/material-
     minify: true
 });
 
-build('./build/src/', './build/src/tools/material-creator/index.js', './dist/material-creator.js', {
-    globalName: 'MaterialCreator',
+build('./build/src/', './build/src/tools/material-editor/index.js', './dist/material-editor.js', {
+    globalName: 'MaterialEditor',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./build/src/', './build/src/tools/post-process-creator/index.js', './dist/post-process-creator.js', {
-    globalName: 'PostProcessCreator',
+build('./build/src/', './build/src/tools/post-process-editor/index.js', './dist/post-process-editor.js', {
+    globalName: 'PostProcessEditor',
     format: 'cjs',
     externals: externals,
     minify: true

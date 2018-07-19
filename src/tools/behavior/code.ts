@@ -56,7 +56,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Code');
+        super('Code Editor');
     }
 
     /**

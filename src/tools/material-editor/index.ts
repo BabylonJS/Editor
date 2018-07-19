@@ -8,16 +8,16 @@ import Editor, {
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
-import MaterialCreatorExtension, { MaterialCreatorMetadata } from '../../extensions/material-creator/material-creator';
+import MaterialCreatorExtension, { MaterialCreatorMetadata } from '../../extensions/material-editor/material-editor';
 
-import '../../extensions/material-creator/material-creator';
-import CustomEditorMaterial from '../../extensions/material-creator/material';
+import '../../extensions/material-editor/material-editor';
+import CustomEditorMaterial from '../../extensions/material-editor/material';
 
 export interface MaterialGrid extends GridRow {
     name: string;
 }
 
-export default class MaterialCreator extends EditorPlugin {
+export default class MaterialEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public grid: Grid<MaterialGrid> = null;
@@ -48,7 +48,7 @@ export default class MaterialCreator extends EditorPlugin {
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Material Creator');
+        super('Material Editor');
     }
 
     /**
@@ -74,10 +74,10 @@ export default class MaterialCreator extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        !MaterialCreator.DefaultCode && (MaterialCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
-        !MaterialCreator.DefaultVertex && (MaterialCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
-        !MaterialCreator.DefaultPixel && (MaterialCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
-        !MaterialCreator.DefaultConfig && (MaterialCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json'));
+        !MaterialEditor.DefaultCode && (MaterialEditor.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
+        !MaterialEditor.DefaultVertex && (MaterialEditor.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
+        !MaterialEditor.DefaultPixel && (MaterialEditor.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
+        !MaterialEditor.DefaultConfig && (MaterialEditor.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json'));
 
         // Request extension
         this.extension = Extensions.RequestExtension<MaterialCreatorExtension>(this.editor.core.scene, 'MaterialCreatorExtension');
@@ -87,10 +87,10 @@ export default class MaterialCreator extends EditorPlugin {
         if (!this.editor.core.scene.metadata['MaterialCreator']) {
             this.datas = this.editor.core.scene.metadata['MaterialCreator'] = [{
                 name: 'Custom material',
-                code: MaterialCreator.DefaultCode,
-                vertex: MaterialCreator.DefaultVertex,
-                pixel: MaterialCreator.DefaultPixel,
-                config: MaterialCreator.DefaultConfig,
+                code: MaterialEditor.DefaultCode,
+                vertex: MaterialEditor.DefaultVertex,
+                pixel: MaterialEditor.DefaultPixel,
+                config: MaterialEditor.DefaultConfig,
                 userConfig: { }
             }];
             this.data = this.datas[0];
@@ -181,10 +181,10 @@ export default class MaterialCreator extends EditorPlugin {
         // Create data and material
         const data: MaterialCreatorMetadata = {
             name: 'Custom material' + this.datas.length + 1,
-            code: MaterialCreator.DefaultCode,
-            vertex: MaterialCreator.DefaultVertex,
-            pixel: MaterialCreator.DefaultPixel,
-            config: MaterialCreator.DefaultConfig,
+            code: MaterialEditor.DefaultCode,
+            vertex: MaterialEditor.DefaultVertex,
+            pixel: MaterialEditor.DefaultPixel,
+            config: MaterialEditor.DefaultConfig,
             userConfig: { }
         };
 

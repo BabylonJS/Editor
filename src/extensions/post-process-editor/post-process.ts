@@ -27,7 +27,7 @@ export interface CustomPostProcessConfig {
     vectors3: string[];
 }
 
-export default class PostProcessEditor extends PostProcess {
+export default class AbstractPostProcessEditor extends PostProcess {
     // Public members
     public customCode: CustomPostProcessCode;
     public config: CustomPostProcessConfig;

@@ -4,8 +4,8 @@ import Extension from './extension';
 import CodeExtension from './behavior/code';
 import PathFinderExtension from './path-finder/index';
 import ParticlesCreatorExtension from './particles-creator/particles-creator';
-import PostProcessCreatorExtension from './post-process-creator/post-process-creator';
-import MaterialCreatorExtension from './material-creator/material-creator';
+import PostProcessEditorExtension from './post-process-editor/post-process-editor';
+import MaterialEditorExtension from './material-editor/material-editor';
 import PostProcessExtension from './post-process/post-processes';
 
 import { IExtension, ExtensionConstructor } from './typings/extension';
@@ -16,9 +16,9 @@ export {
 
     CodeExtension,
     PostProcessExtension,
-    MaterialCreatorExtension,
+    MaterialEditorExtension,
     PathFinderExtension,
-    PostProcessCreatorExtension,
+    PostProcessEditorExtension,
     ParticlesCreatorExtension,
 
     IExtension, ExtensionConstructor
