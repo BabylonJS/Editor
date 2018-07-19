@@ -1348,6 +1348,10 @@ declare module 'babylonjs-editor/editor/components/preview' {
                 */
             constructor(editor: Editor);
             /**
+                * Resizes the preview
+                */
+            resize(): void;
+            /**
                 * On the user clicks on the toolbar
                 * @param id the id of the clicked item
                 */
