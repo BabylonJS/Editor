@@ -1,8 +1,9 @@
 import {
-    Scene, Node, Mesh, AbstractMesh, Light, Camera, InstancedMesh,
+    Scene, Node, AbstractMesh, Light, Camera,
     Sound,
-    ParticleSystem, GPUParticleSystem, IParticleSystem,
+    ParticleSystem, GPUParticleSystem,
     PostProcess,
+    Animation,
     Tools as BabylonTools,
     Skeleton
 } from 'babylonjs';
@@ -12,7 +13,11 @@ import Editor from '../editor';
 import Tools from '../tools/tools';
 
 import Tree, { TreeNode } from '../gui/tree';
-import { UndoRedo } from 'babylonjs-editor';
+import UndoRedo from '../tools/undo-redo';
+
+import ScenePicker from '../scene/scene-picker';
+
+// import { BehaviorMetadata } from '../../extensions/behavior/code';
 
 export default class EditorGraph {
     // Public members
@@ -37,14 +42,24 @@ export default class EditorGraph {
             this.editor.core.onSelectObject.notifyObservers(data);
         };
 
+        this.tree.onDblClick = (id, data: any) => {
+            if (data.globalPosition || data.getAbsolutePosition)
+                ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), data.globalPosition || data.getAbsolutePosition(), this.editor.camera);
+        };
+
         this.tree.onContextMenu = (id, data: any) => {
             if (!data.clone)
                 return [];
-            
-            return [
+
+            const result = [
                 { id: 'delete', text: 'Delete', img: 'icon-error', callback: () => this.onMenuClick('remove') },
                 { id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') }
             ];
+
+            if (data.globalPosition || data.getAbsolutePosition)
+                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', callback: () => this.onMenuClick('focus') });
+            
+            return result;
         };
 
         this.tree.onCanDrag = (id, data) => !(data instanceof Scene);
@@ -257,6 +272,28 @@ export default class EditorGraph {
                         data: n.skeleton
                     }, n.id);
                 }
+
+                // Metadatas
+                /*
+                if (n.metadata && n.metadata.behavior && n.metadata.behavior.metadatas.length > 0) {
+                    const code = <BehaviorMetadata> n.metadata.behavior;
+                    const codeNode = this.tree.add({
+                        id: n.id + 'behavior',
+                        text: 'Scripts',
+                        data: code,
+                        img: 'icon-behavior-editor'
+                    }, n.id);
+
+                    code.metadatas.forEach(m => {
+                        this.tree.add({
+                            id: BabylonTools.RandomId(),
+                            text: m.name,
+                            data: m,
+                            img: 'icon-behavior-editor'
+                        }, codeNode.id);
+                    });
+                }
+                */
             }
 
             // Check particle systems
@@ -291,7 +328,7 @@ export default class EditorGraph {
                         return;
                 
                     this.tree.add({
-                        id: p.name,
+                        id: p.name + BabylonTools.RandomId(),
                         text: p.name,
                         img: this.getIcon(p),
                         data: p
@@ -448,6 +485,10 @@ export default class EditorGraph {
                 // Setup this
                 this.currentObject = clone;
                 this.editor.core.onSelectObject.notifyObservers(clone);
+                break;
+            // Focus
+            case 'focus':
+                ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), node.data.globalPosition || node.data.getAbsolutePosition(), this.editor.camera);
                 break;
             // Other
             default:

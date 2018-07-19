@@ -18,6 +18,7 @@ import ResizableLayout from './gui/resizable-layout';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
+import EditorPreview from './components/preview';
 import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
 import Stats from './components/stats';
@@ -44,6 +45,7 @@ export default class Editor implements IUpdatable {
 
     public toolbar: EditorToolbar;
     public graph: EditorGraph;
+    public preview: EditorPreview;
     public edition: EditorInspector;
     public editPanel: EditorEditPanel;
     public stats: Stats;
@@ -106,7 +108,7 @@ export default class Editor implements IUpdatable {
                 type: 'row', content: [
                     { type: 'component', componentName: 'Inspector', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
-                        { type: 'component', componentName: 'Preview', isClosable: false, html: '<canvas id="renderCanvas"></canvas>' },
+                        { type: 'component', componentName: 'Preview', isClosable: false, html: '<div id="PREVIEW" style="width: 100%; height: 100%;"></div>' },
                         { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
@@ -136,6 +138,9 @@ export default class Editor implements IUpdatable {
         // Initialize core
         this.core = new Core();
         this.core.updates.push(this);
+
+        // Initialize preview
+        this.preview = new EditorPreview(this);
 
         // Initialize Babylon.js
         if (!scene) {

@@ -22,6 +22,8 @@ export default class Tree {
     public element: JSTree = null;
 
     public onClick: <T>(id: string, data: T) => void;
+    public onDblClick: <T>(id: string, data: T) => void;
+
     public onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
     public onMenuClick: <T>(id: string, node: TreeNode) => void;
 
@@ -231,6 +233,13 @@ export default class Tree {
                 // Revert ?
                 if (!success)
                     this.setParent(node.id, data.old_parent);
+            });
+
+            this.element.dblclick(() => {
+                if (this.onDblClick) {
+                    const node = this.getSelected();
+                    this.onDblClick(node.id, node.data);
+                }
             });
     }
 }

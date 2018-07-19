@@ -1,7 +1,7 @@
 import {
     Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
-    PointerInfo, PointerEventTypes, Gizmo, Vector3
+    PointerInfo, PointerEventTypes, Vector3, Camera
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -249,15 +249,26 @@ export default class ScenePicker {
 
         const pick = this.scene.pick(ev.offsetX, ev.offsetY);
 
-        if (pick.pickedMesh) {
-            const anim = new Animation('LockedTargetAnimation', 'target', 1, Animation.ANIMATIONTYPE_VECTOR3);
-            anim.setKeys([
-                { frame: 0, value: camera.getTarget() },
-                { frame: 1, value: pick.pickedMesh.getAbsolutePosition() },
-            ]);
+        if (pick.pickedMesh)
+            ScenePicker.CreateAndPlayFocusAnimation(camera.getTarget(), pick.pickedMesh.getAbsolutePosition(), camera);
+    }
 
-            this.scene.stopAnimation(camera);
-            this.scene.beginDirectAnimation(camera, [anim], 0, 1, false, 1.0);
-        }
+    /**
+     * Creates an starts an animation that targets the given "end" position
+     * @param start the start target position
+     * @param end the end target position
+     * @param camera the camera to animate
+     */
+    public static CreateAndPlayFocusAnimation (start: Vector3, end: Vector3, camera: Camera): void {
+        const anim = new Animation('LockedTargetAnimation', 'target', 60, Animation.ANIMATIONTYPE_VECTOR3);
+        anim.setKeys([
+            { frame: 0, value: start },
+            { frame: 24, value: end },
+        ]);
+
+        const scene = camera.getScene();
+
+        scene.stopAnimation(camera);
+        scene.beginDirectAnimation(camera, [anim], 0, 24, false, 1.0);
     }
 }
