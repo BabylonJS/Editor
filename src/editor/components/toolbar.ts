@@ -67,7 +67,7 @@ export default class EditorToolbar {
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     //{ id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
-                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
+                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' }
                 ]
             },
             { type: 'break' },
