@@ -180,10 +180,12 @@ export default class Grid<T extends GridRow> {
                 if (typeof event.recid !== 'number')
                     return;
                 
-                if (this.onChange)
-                    event.onComplete = () => this.onChange(event.recid, event.value_new);
-
-                this.element.save();
+                if (this.onChange) {
+                    event.onComplete = () => {
+                        this.onChange(event.recid, event.value_new);
+                        this.element.save();
+                    };
+                }
             }
         });
     }
