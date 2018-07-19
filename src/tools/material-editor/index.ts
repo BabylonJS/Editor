@@ -74,7 +74,7 @@ export default class MaterialEditor extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        !MaterialEditor.DefaultCode && (MaterialEditor.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
+        !MaterialEditor.DefaultCode && (MaterialEditor.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class.ts'));
         !MaterialEditor.DefaultVertex && (MaterialEditor.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
         !MaterialEditor.DefaultPixel && (MaterialEditor.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
         !MaterialEditor.DefaultConfig && (MaterialEditor.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json'));
@@ -270,7 +270,7 @@ export default class MaterialEditor extends EditorPlugin {
      */
     protected async createEditors (): Promise<void> {
         // Create editors
-        this.code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', this.data.code);
+        this.code = new CodeEditor('typescript', this.data.code);
         await this.code.build('MATERIAL-CREATOR-EDITOR-CODE');
 
         this.vertex = new CodeEditor('cpp', this.data.vertex);
@@ -292,9 +292,7 @@ export default class MaterialEditor extends EditorPlugin {
         this.code.onChange = (value) => {
             if (this.data) {
                 this.data.code = value;
-                
-                if (Tools.IsElectron())
-                    this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
+                this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
             }
         };
 

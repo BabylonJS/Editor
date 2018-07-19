@@ -63,7 +63,7 @@ export default class ParticlesCreator extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        !ParticlesCreator.DefaultCode && (ParticlesCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/particles-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
+        !ParticlesCreator.DefaultCode && (ParticlesCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/particles-creator/class.ts'));
         !ParticlesCreator.DefaultVertex && (ParticlesCreator.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.vertex.fx'));
         !ParticlesCreator.DefaultPixel && (ParticlesCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/particles-creator/shader.fragment.fx'));
         
@@ -99,14 +99,12 @@ export default class ParticlesCreator extends EditorPlugin {
         this.toolbar.build('PARTICLES-CREATOR-TOOLBAR');
 
         // Create editors
-        this.functionsCode = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript', '');
+        this.functionsCode = new CodeEditor('typescript', '');
         await this.functionsCode.build('PARTICLES-CREATOR-FUNCTIONS');
         this.functionsCode.onChange = value => {
             if (this.data) {
-                if (Tools.IsElectron())
-                    this.data.compiledCode = this.functionsCode.transpileTypeScript(value, this.data.id.replace(/ /, ''));
-
                 this.data.code = value;
+                this.data.compiledCode = this.functionsCode.transpileTypeScript(value, this.data.id.replace(/ /, ''));
             }
         };
 

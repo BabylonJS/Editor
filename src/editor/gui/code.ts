@@ -117,9 +117,8 @@ export default class CodeEditor {
             CodeEditor.ExternalLibraries = content;
         }
 
-        // Import typescript?
-        if (Tools.IsElectron())
-            await Tools.ImportScript('typescript');
+        // Import typescript
+        await Tools.ImportScript('typescript');
         
         // Create editor
         this.editor = caller['monaco'].editor.create($(<any>parentId)[0], {
@@ -134,9 +133,7 @@ export default class CodeEditor {
             caller['monaco'].languages.typescript.typescriptDefaults.setCompilerOptions({ experimentalDecorators: true, target: 5, allowNonTsExtensions: true });
             
             CodeEditor.ExtraLibs.push({
-                lib: Tools.IsElectron() ?
-                    caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor') :
-                    caller['monaco'].languages.typescript.javascriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
+                lib: caller['monaco'].languages.typescript.typescriptDefaults.addExtraLib(CodeEditor.ExternalLibraries, 'CodeEditor'),
                 caller: caller
             });
         }
