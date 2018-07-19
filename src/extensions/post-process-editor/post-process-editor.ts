@@ -5,7 +5,7 @@ import Extension from '../extension';
 
 import { IStringDictionary } from '../typings/typings';
 
-import PostProcessEditor, { CustomPostProcessConfig } from './post-process';
+import AbstractPostProcessEditor, { CustomPostProcessConfig } from './post-process';
 
 export interface PostProcessCreatorUserConfig {
     textures?: { value: any; name: string }[];
@@ -40,7 +40,7 @@ export module EDITOR {
 window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].PostProcessCreator = EDITOR.PostProcessCreator;
 
-export default class PostProcessCreatorExtension extends Extension<PostProcessCreatorMetadata[]> {
+export default class PostProcessEditorExtension extends Extension<PostProcessCreatorMetadata[]> {
     // Public members
     public instances: IStringDictionary<any> = { };
 
@@ -57,7 +57,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
      * Creates a new post-process
      * @param data: the data containing code, pixel, etc.
      */
-    public createPostProcess (data: PostProcessCreatorMetadata, rootUrl?: string): PostProcessEditor {
+    public createPostProcess (data: PostProcessCreatorMetadata, rootUrl?: string): AbstractPostProcessEditor {
         const id = data.name + Tools.RandomId();
 
         // Add custom code
@@ -79,7 +79,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         } catch (e) { /* Silently */ }
 
         // Create post-process
-        let postprocess = new PostProcessEditor(data.name, id, /*data.preview ? camera : null*/camera, this.scene.getEngine(), config, code);
+        let postprocess = new AbstractPostProcessEditor(data.name, id, /*data.preview ? camera : null*/camera, this.scene.getEngine(), config, code);
 
         // User config
         data.userConfig.textures.forEach(t => postprocess.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
@@ -118,7 +118,7 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
         // Apply user config
         data.forEach(d => {
             this.scene.postProcesses.forEach(p => {
-                if (!(p instanceof PostProcessEditor) || !p.config || p.name !== d.name)
+                if (!(p instanceof AbstractPostProcessEditor) || !p.config || p.name !== d.name)
                     return;
 
                 d.userConfig.textures = [];
@@ -154,4 +154,4 @@ export default class PostProcessCreatorExtension extends Extension<PostProcessCr
 }
 
 // Register
-Extensions.Register('PostProcessCreatorExtension', PostProcessCreatorExtension);
+Extensions.Register('PostProcessCreatorExtension', PostProcessEditorExtension);

@@ -10,17 +10,17 @@ import Editor, {
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
-import PostProcessCreatorExtension, { PostProcessCreatorMetadata } from '../../extensions/post-process-creator/post-process-creator';
+import PostProcessCreatorExtension, { PostProcessCreatorMetadata } from '../../extensions/post-process-editor/post-process-editor';
 
-import '../../extensions/post-process-creator/post-process-creator';
-import PostProcessEditor, { CustomPostProcessConfig } from '../../extensions/post-process-creator/post-process';
+import '../../extensions/post-process-editor/post-process-editor';
+import AbstractPostProcessEditor, { CustomPostProcessConfig } from '../../extensions/post-process-editor/post-process';
 
 export interface PostProcessGrid extends GridRow {
     name: string;
     preview: boolean;
 }
 
-export default class PostProcessCreator extends EditorPlugin {
+export default class PostProcessEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
@@ -50,7 +50,7 @@ export default class PostProcessCreator extends EditorPlugin {
      * @param name: the name of the plugin 
      */
     constructor(public editor: Editor) {
-        super('Post-Process Creator');
+        super('Post-Process Editor');
     }
 
     /**
@@ -76,9 +76,9 @@ export default class PostProcessCreator extends EditorPlugin {
      */
     public async create(): Promise<void> {
         // Template
-        !PostProcessCreator.DefaultCode && (PostProcessCreator.DefaultCode = await Tools.LoadFile<string>('./assets/templates/post-process-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
-        !PostProcessCreator.DefaultPixel && (PostProcessCreator.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/post-process-creator/pixel.fx'));
-        !PostProcessCreator.DefaultConfig && (PostProcessCreator.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/post-process-creator/config.json'));
+        !PostProcessEditor.DefaultCode && (PostProcessEditor.DefaultCode = await Tools.LoadFile<string>('./assets/templates/post-process-creator/' + (Tools.IsElectron() ? 'class.ts' : 'class.js')));
+        !PostProcessEditor.DefaultPixel && (PostProcessEditor.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/post-process-creator/pixel.fx'));
+        !PostProcessEditor.DefaultConfig && (PostProcessEditor.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/post-process-creator/config.json'));
 
         // Request extension
         Extensions.RequestExtension<PostProcessCreatorExtension>(this.editor.core.scene, 'PostProcessCreatorExtension');
@@ -245,9 +245,9 @@ export default class PostProcessCreator extends EditorPlugin {
             preview: true,
             cameraName: this.activeCamera ? this.activeCamera.name : null,
             name: 'Custom Post-Process' + this.datas.length + 1,
-            code: PostProcessCreator.DefaultCode,
-            pixel: PostProcessCreator.DefaultPixel,
-            config: PostProcessCreator.DefaultConfig,
+            code: PostProcessEditor.DefaultCode,
+            pixel: PostProcessEditor.DefaultPixel,
+            config: PostProcessEditor.DefaultConfig,
             userConfig: {
                 textures: [],
                 floats: [],
@@ -284,12 +284,12 @@ export default class PostProcessCreator extends EditorPlugin {
      * Creates or updates the given post-process name
      * @param name: the name of the post-process
      */
-    protected createOrUpdatePostProcess (name: string): PostProcessEditor {
+    protected createOrUpdatePostProcess (name: string): AbstractPostProcessEditor {
         if (!this.data.preview)
             return null;
         
         const camera = this.editor.core.scene.activeCamera;
-        for (const p of camera._postProcesses as PostProcessEditor[]) {
+        for (const p of camera._postProcesses as AbstractPostProcessEditor[]) {
             if (!p)
                 continue;
             
@@ -306,7 +306,7 @@ export default class PostProcessCreator extends EditorPlugin {
 
         // Create post-process
         const config = JSON.parse(this.data.config);
-        const p = new PostProcessEditor(name, name, camera, this.editor.core.engine, config, null);
+        const p = new AbstractPostProcessEditor(name, name, camera, this.editor.core.engine, config, null);
         p.setConfig(config);
 
         // Update graph tool
@@ -335,7 +335,7 @@ export default class PostProcessCreator extends EditorPlugin {
 
             // Update post-process name
             for (const p of postProcesses) {
-                if (p instanceof PostProcessEditor && p.name === lastName) {
+                if (p instanceof AbstractPostProcessEditor && p.name === lastName) {
                     p.name = value;
                     break;
                 }
@@ -349,7 +349,7 @@ export default class PostProcessCreator extends EditorPlugin {
         data.preview = value;
 
         for (const p of postProcesses) {
-            if (!(p instanceof PostProcessEditor) || p.name !== data.name)
+            if (!(p instanceof AbstractPostProcessEditor) || p.name !== data.name)
                 continue;
 
             if (value)

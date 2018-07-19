@@ -40,7 +40,7 @@ window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].MaterialCreator = EDITOR.MaterialCreator;
 
 // Material Creator extension class
-export default class MaterialCreatorExtension extends Extension<MaterialCreatorMetadata[]> {
+export default class MaterialEditorExtension extends Extension<MaterialCreatorMetadata[]> {
     // Public members
     public instances: IStringDictionary<any> = { };
 
@@ -166,4 +166,4 @@ export default class MaterialCreatorExtension extends Extension<MaterialCreatorM
 }
 
 // Register
-Extensions.Register('MaterialCreatorExtension', MaterialCreatorExtension);
+Extensions.Register('MaterialCreatorExtension', MaterialEditorExtension);

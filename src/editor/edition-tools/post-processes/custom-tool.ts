@@ -1,6 +1,6 @@
 import { Vector2, Vector3 } from 'babylonjs';
 
-import PostProcessEditor, { CustomPostProcessConfig } from '../../../extensions/post-process-creator/post-process';
+import PostProcessEditor, { CustomPostProcessConfig } from '../../../extensions/post-process-editor/post-process';
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
 

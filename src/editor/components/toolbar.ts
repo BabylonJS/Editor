@@ -62,9 +62,9 @@ export default class EditorToolbar {
                     { id: 'textures', img: 'icon-copy', text: 'Textures...' },
                     { id: 'materials', img: 'icon-effects', text: 'Materials...' },
                     { type: 'break ' },
-                    { id: 'code', img: 'icon-behavior-editor', text: 'Code...' },
-                    { id: 'material-creator', img: 'icon-shaders', text: 'Material Creator' },
-                    { id: 'post-process-creator', img: 'icon-shaders', text: 'Post-Process Creator' },
+                    { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
+                    { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
+                    { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     //{ id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
                     { id: 'path-finder', img: 'icon-graph', text: 'Path Finder' }
@@ -188,14 +188,14 @@ export default class EditorToolbar {
             case 'view:materials':
                 await this.loadTool('material-viewer', 'Materials Viewer');
                 break;
-            case 'view:code':
-                await this.loadTool('behavior-editor', 'Behavior Code');
+            case 'view:code-editor':
+                await this.loadTool('behavior-editor', 'Code Editor');
                 break;
-            case 'view:material-creator':
-                await this.loadTool('material-creator', 'Material Creator');
+            case 'view:material-editor':
+                await this.loadTool('material-editor', 'Material Editor');
                 break;
-            case 'view:post-process-creator':
-                await this.loadTool('post-process-creator', 'Post-Process Creator');
+            case 'view:post-process-editor':
+                await this.loadTool('post-process-editor', 'Post-Process Editor');
                 break;
             case 'view:particles-creator':
                 await this.loadTool('particles-creator', 'Particles Creator');
