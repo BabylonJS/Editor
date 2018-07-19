@@ -14,6 +14,7 @@ import Editor, {
     CodeEditor,
     Tree,
     Window as Popin,
+    Form,
 
     EditorPlugin,
     IDisposable,
@@ -200,15 +201,17 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     /**
      * The user clicks on "Add"
      */
-    protected add (): void {
+    protected async add (): Promise<void> {
         let ctor = Tools.GetConstructorName(this.node).toLowerCase();
         if (this.node instanceof DirectionalLight)
             ctor = "dirlight";
         else if (this.node instanceof HemisphericLight)
             ctor = "hemlight";
 
+        const name = await this.askName();
+
         const data: BehaviorCode = {
-            name: 'New Script',
+            name: name,
             active: true,
             code: this.template.replace(/{{type}}/g, ctor)
         };
@@ -218,6 +221,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             recid: this.datas.metadatas.length - 1,
             name: data.name
         });
+
+        // Select latest script
+        this.grid.select([this.datas.metadatas.length - 1]);
+        this.selectCode(this.datas.metadatas.length - 1);
+        this.code.focus();
     }
 
     /**
@@ -291,6 +299,43 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         });
         popup.addEventListener('beforeunload', () => {
             CodeEditor.RemoveExtraLib(popup);
+        });
+    }
+
+    /**
+     * Asks the name of the new script to add by creating a
+     * window and a form
+     */
+    protected async askName (): Promise<string> {
+        return new Promise<string>((resolve) => {
+            // Window
+            const popin = new Popin('AskName');
+            popin.title = 'Script name';
+            popin.body = `<div id="ASK-NAME-BEHAVIOR-CODE" style="width: 100%; height: 100%"></div>`;
+            popin.buttons = ['Ok'];
+            popin.showClose = false;
+            popin.showMax = false;
+            popin.width = 500;
+            popin.height = 160;
+            popin.open();
+
+            // Form
+            const form = new Form('AskNameForm');
+            form.fields.push({ name: 'Name', required: true, type: 'text', options: {  } });
+            form.onChange = () => popin.onButtonClick('Ok');
+            form.build('ASK-NAME-BEHAVIOR-CODE');
+
+            // Events
+            popin.onButtonClick = id => {
+                if (!form.isValid())
+                    return;
+
+                resolve(form.element.record['Name']);
+
+                // Destroy
+                form.element.destroy();
+                popin.close();
+            };
         });
     }
 

@@ -64,6 +64,13 @@ export default class CodeEditor {
     }
 
     /**
+     * Focus the editor
+     */
+    public focus (): void {
+        this.editor.focus();
+    }
+
+    /**
      * Builds the code editor
      * @param parentId the parent id of the editor
      */

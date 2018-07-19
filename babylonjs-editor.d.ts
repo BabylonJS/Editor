@@ -641,6 +641,10 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 */
             setValue(value: string): void;
             /**
+                * Focus the editor
+                */
+            focus(): void;
+            /**
                 * Builds the code editor
                 * @param parentId the parent id of the editor
                 */
@@ -677,6 +681,7 @@ declare module 'babylonjs-editor/editor/gui/form' {
             element: W2UI.W2Form;
             name: string;
             fields: FormField[];
+            onChange: () => void;
             /**
                 * Constructor
                 * @param name the name of the form
