@@ -15,6 +15,8 @@ export default class Form {
 
     public fields: FormField[] = [];
 
+    public onChange: () => void;
+
     /**
      * Constructor
      * @param name the name of the form
@@ -37,7 +39,11 @@ export default class Form {
     public build (parentId: string): void {
         this.element = $('#' + parentId).w2form({
             name: this.name,
-            fields: this.fields
+            fields: this.fields,
+
+            onChange: (event) => {
+                event.onComplete = () => this.onChange && this.onChange();
+            }
         });
     }
 }
