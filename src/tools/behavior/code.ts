@@ -93,6 +93,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         ];
         this.layout.build(div.attr('id'));
 
+        // Lock
+        this.layout.lockPanel('left', 'Loading...', true);
+
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
         this.toolbar.items = [
@@ -134,6 +137,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
+
+        // Unlock
+        this.layout.unlockPanel('left');
     }
 
     /**
