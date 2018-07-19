@@ -37,6 +37,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import ResizableLayout from 'babylonjs-editor/editor/gui/resizable-layout';
     import EditorToolbar from 'babylonjs-editor/editor/components/toolbar';
     import EditorGraph from 'babylonjs-editor/editor/components/graph';
+    import EditorPreview from 'babylonjs-editor/editor/components/preview';
     import EditorInspector from 'babylonjs-editor/editor/components/inspector';
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
     import Stats from 'babylonjs-editor/editor/components/stats';
@@ -50,6 +51,7 @@ declare module 'babylonjs-editor/editor/editor' {
             resizableLayout: ResizableLayout;
             toolbar: EditorToolbar;
             graph: EditorGraph;
+            preview: EditorPreview;
             edition: EditorInspector;
             editPanel: EditorEditPanel;
             stats: Stats;
@@ -312,6 +314,7 @@ declare module 'babylonjs-editor/editor/gui/layout' {
 declare module 'babylonjs-editor/editor/gui/toolbar' {
     export interface W2Item extends W2UI.W2Item {
             html?: string;
+            selected?: string[];
     }
     export default class Toolbar {
             name: string;
@@ -796,6 +799,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             name: string;
             element: JSTree;
             onClick: <T>(id: string, data: T) => void;
+            onDblClick: <T>(id: string, data: T) => void;
             onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
             onMenuClick: <T>(id: string, node: TreeNode) => void;
             onCanDrag: <T>(id: string, data: T) => boolean;
@@ -1330,6 +1334,27 @@ declare module 'babylonjs-editor/editor/components/graph' {
     }
 }
 
+declare module 'babylonjs-editor/editor/components/preview' {
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class EditorPreview {
+            protected editor: Editor;
+            layout: Layout;
+            toolbar: Toolbar;
+            /**
+                * Constructor
+                * @param editor: the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * On the user clicks on the toolbar
+                * @param id the id of the clicked item
+                */
+            protected onToolbarClicked(id: string): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/components/inspector' {
     /**
         * Edition tools
@@ -1433,7 +1458,7 @@ declare module 'babylonjs-editor/editor/components/stats' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh, Mesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo } from 'babylonjs';
+    import { Scene, AbstractMesh, Mesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export enum GizmoType {
             NONE = 0,
@@ -1509,6 +1534,13 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * @param ev: the mouse event
                 */
             protected canvasDblClick(ev: MouseEvent): void;
+            /**
+                * Creates an starts an animation that targets the given "end" position
+                * @param start the start target position
+                * @param end the end target position
+                * @param camera the camera to animate
+                */
+            static CreateAndPlayFocusAnimation(start: Vector3, end: Vector3, camera: Camera): void;
     }
 }
 
