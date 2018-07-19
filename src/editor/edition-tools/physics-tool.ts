@@ -1,4 +1,4 @@
-import { Mesh, FreeCamera, PhysicsImpostor } from 'babylonjs';
+import { Mesh, FreeCamera, PhysicsImpostor, AbstractMesh } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -32,7 +32,9 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
 
         collisions.add(node, 'checkCollisions').name('Check Collisions');
         collisions.add(node, 'collisionMask').step(0.01).name('Collision Mask');
-        collisions.add(node, 'isBlocker').name('Is Blocker');
+
+        if (node instanceof AbstractMesh)
+            collisions.add(node, 'isBlocker').name('Is Blocker');
 
         if (node instanceof Mesh)
             collisions.add(node, 'useOctreeForCollisions').name('Use Octree For Collisions');

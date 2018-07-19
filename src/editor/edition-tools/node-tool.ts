@@ -48,7 +48,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         common.open();
         common.add(node, 'name').name('Name').onFinishChange(r => this.editor.graph.renameNode(node.id, r));
         common.add(this, '_enabled').name('Enabled').onFinishChange(r => node.setEnabled(r));
-        common.add(node, 'isVisible').name('Is Visible');
+
+        if (node instanceof AbstractMesh)
+            common.add(node, 'isVisible').name('Is Visible');
 
         if (object instanceof Mesh) {
             const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
