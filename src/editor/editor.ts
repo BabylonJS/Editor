@@ -387,7 +387,10 @@ export default class Editor implements IUpdatable {
         this.camera.angularSensibility = 3000;
         this.camera.setTarget(new Vector3(0, 5, 24));
         this.camera.maxZ = 10000;
-        this.camera.doNotSerialize = true;
+
+        if (this.core.scene.cameras.length > 1)
+            this.camera.doNotSerialize = true;
+        
         this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
 
         // Traditional WASD controls

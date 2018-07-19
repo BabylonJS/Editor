@@ -29,6 +29,7 @@ import '../../extensions/behavior/code';
 
 export interface CodeGrid extends GridRow {
     name: string;
+    active: boolean;
 }
 
 export default class BehaviorCodeEditor extends EditorPlugin {
@@ -94,7 +95,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
-        this.toolbar.items = [{ id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }];
+        this.toolbar.items = [
+            { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
+        ];
+        this.toolbar.right = 'No object selected';
         this.toolbar.onClick = (id) => this.toolbarClicked(id);
         this.toolbar.build('CODE-BEHAVIOR-TOOLBAR');
 
@@ -103,7 +107,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             toolbarReload: false,
             toolbarSearch: false
         });
-        this.grid.columns = [{ field: 'name', caption: 'Name', size: '100%', editable: { type: 'string' } }];
+        this.grid.columns = [
+            { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
+            { field: 'active', caption: 'Active', size: '20%', editable: { type: 'checkbox' } }
+        ];
         this.grid.onClick = (id) => this.selectCode(id[0]);
         this.grid.onAdd = () => this.add();
         this.grid.onDelete = (ids) => this.delete(ids);
@@ -114,7 +121,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add code editor
         this.layout.lockPanel('main');
         this.code = await this.createEditor();
-        this.template = await Tools.LoadFile<string>('./assets/templates/code/' + (Tools.IsElectron() ? 'code-typescript.ts' : 'code.js'), false);
+        this.template = await Tools.LoadFile<string>('./assets/templates/code/code-typescript.ts', false);
         this.layout.unlockPanel('main');
         
         // Events
@@ -176,7 +183,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.datas.metadatas.forEach((d, index) => {
             this.grid.addRecord({
                 recid: index,
-                name: d.name
+                name: d.name,
+                active: d.active
             });
         });
 
@@ -187,6 +195,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.selectCode(0);
             this.grid.select([0]);
         }
+
+        // Refresh right text
+        this.toolbar.element.right = `Attached to "${(node instanceof Scene ? 'Scene' : node.name)}"`;
+        this.toolbar.element.render();
     }
 
     /**
@@ -195,7 +207,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      */
     protected selectCode (index: number): void {
         this.data = this.datas.metadatas[index];
-        this.code.setValue(Tools.IsElectron() ? this.data.code : (this.data.compiledCode || this.data.code));
+        this.code.setValue(this.data.code);
     }
 
     /**
@@ -219,7 +231,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         this.grid.addRow({
             recid: this.datas.metadatas.length - 1,
-            name: data.name
+            name: data.name,
+            active: true
         });
 
         // Select latest script
@@ -245,28 +258,29 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param id: the id of the script
      * @param value: the new value
      */
-    protected change (id: number, value: string): void {
-        this.datas.metadatas[id].name = value;
+    protected change (id: number, value: string | boolean): void {
+        if (typeof value === 'string')
+            this.datas.metadatas[id].name = value;
+        else
+            this.datas.metadatas[id].active = value;
     }
 
     /**
      * Creates the code editor
      */
     protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
-        const code = new CodeEditor(Tools.IsElectron() ? 'typescript' : 'javascript');
+        const code = new CodeEditor('typescript');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
         code.onChange = async value => {
-            // Compile typescript?
-            if (Tools.IsElectron()) {
-                clearTimeout(this._timeoutId);
-                this._timeoutId = setTimeout(() => {
-                    if (data)
-                        data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''));
-                    else if (this.data)
-                        this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''));
-                }, 500);
-            }
+            // Compile typescript
+            clearTimeout(this._timeoutId);
+            this._timeoutId = setTimeout(() => {
+                if (data)
+                    data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''));
+                else if (this.data)
+                    this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''));
+            }, 500);
 
             // Update metadata
             if (data) {

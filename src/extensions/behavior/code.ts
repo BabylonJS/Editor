@@ -65,6 +65,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 return;
 
             d.metadatas.forEach(m => {
+                if (!m.active)
+                    return;
+                
                 const ctor = this.getConstructor(m, node);
 
                 // Instance
@@ -172,9 +175,6 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
      * @param node the attached node
      */
     public getConstructor (code: BehaviorCode, node: any): any {
-        if (!code.active)
-            return;
-
         let url = window.location.href;
         url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + code.name.replace(/ /g, '') + '.js';
 
