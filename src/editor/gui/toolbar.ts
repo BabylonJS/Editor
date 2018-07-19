@@ -1,5 +1,6 @@
 export interface W2Item extends W2UI.W2Item {
     html?: string;
+    selected?: string[];
 }
 
 export default class Toolbar {
