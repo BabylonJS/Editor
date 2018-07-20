@@ -453,8 +453,8 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
-        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.toolbar.setToolClicked('position'));
-        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.toolbar.setToolClicked('rotation'));
+        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.preview.setToolClicked('position'));
+        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 
         document.addEventListener('keyup', ev => ev.ctrlKey && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
         document.addEventListener('keyup', ev => ev.ctrlKey && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));

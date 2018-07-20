@@ -3,6 +3,8 @@ import Toolbar from '../gui/toolbar';
 
 import Editor from '../editor';
 
+import { GizmoType } from '../scene/scene-picker';
+
 export default class EditorPreview {
     // Public members
     public layout: Layout;
@@ -33,8 +35,12 @@ export default class EditorPreview {
                 { type: 'break' },
                 { id: 'textures', img: 'icon-dynamic-texture', text: 'Textures' },
                 { id: 'lights', img: 'icon-light', text: 'Lights' }
-            ]
-        }];
+            ]},
+            { type: 'break' },
+            { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
+            { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
+            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false }
+        ];
         this.toolbar.build('PREVIEW-TOOLBAR');
     }
 
@@ -47,11 +53,20 @@ export default class EditorPreview {
     }
 
     /**
+     * Sets a click and the given item's id
+     * @param id the id of the item to click
+     */
+    public setToolClicked (id: string): void {
+        this.onToolbarClicked(id);
+    }
+
+    /**
      * On the user clicks on the toolbar
      * @param id the id of the clicked item
      */
     protected onToolbarClicked (id: string): void {
         switch (id) {
+            // Show
             case 'show:bounding-boxes': this.editor.core.scene.forceShowBoundingBoxes = !this.editor.core.scene.forceShowBoundingBoxes; break;
             case 'show:wireframe': this.editor.core.scene.forceWireframe = !this.editor.core.scene.forceWireframe; break;
 
@@ -59,6 +74,33 @@ export default class EditorPreview {
 
             case 'show:textures': this.editor.core.scene.texturesEnabled = !this.editor.core.scene.texturesEnabled; break;
             case 'show:lights': this.editor.core.scene.lightsEnabled = !this.editor.core.scene.lightsEnabled; break;
+
+            // Gizmos
+            case 'position':
+            case 'rotation':
+            case 'scaling':
+                const active = this.toolbar.isChecked(id, true);
+
+                this.toolbar.setChecked('position', false);
+                this.toolbar.setChecked('rotation', false);
+                this.toolbar.setChecked('scaling', false);
+                this.toolbar.setChecked(id, active);
+
+                this.editor.scenePicker.gizmosLayer.shouldRender = active;
+
+                if (!active) {
+                    this.editor.scenePicker.gizmoType = GizmoType.NONE;
+                    break;
+                }
+
+                switch (id) {
+                    case 'position': this.editor.scenePicker.gizmoType = GizmoType.POSITION; break;
+                    case 'rotation': this.editor.scenePicker.gizmoType = GizmoType.ROTATION; break;
+                    case 'scaling': this.editor.scenePicker.gizmoType = GizmoType.SCALING; break;
+                    default: break; // Should never happen
+                }
+
+                break;
 
             default: break;
         }
