@@ -4,6 +4,9 @@ interface IScript {
     [index: string]: any;
 }
 
+declare type ScriptConstructor = new () => IScript;
+declare var exportScript: (ctor: ScriptConstructor, params?: { [index: string]: number | string | BABYLON.Vector3 | BABYLON.Vector2 }) => ScriptConstructor | { ctor: ScriptConstructor };
+
 interface ICustomMaterial {
     code: CustomMaterial;
     material: BABYLON.PushMaterial;

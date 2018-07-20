@@ -28,4 +28,4 @@ class Script implements IScript {
     }
 }
 
-return Script;
+exportScript(Script);
