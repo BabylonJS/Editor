@@ -110,22 +110,10 @@ export default class EditorToolbar {
         this.tools.items = [
             { type: 'check', id: 'play', text: 'Play', img: 'icon-play-game' },
             { type: 'button', id: 'test', text: 'Test', img: 'icon-play-game-windowed' },
-            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' },
-            { type: 'break' },
-            { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
-            { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
-            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false }
+            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
         this.tools.build('TOOLS-TOOLBAR');
-    }
-
-    /**
-     * Sets a click and the given item's id
-     * @param id the id of the item to click
-     */
-    public setToolClicked (id: string): void {
-        this.onToolsClick(id);
     }
 
     /**
@@ -284,33 +272,6 @@ export default class EditorToolbar {
             case 'test-debug':
                 SceneExporter.CreateFiles(this.editor);
                 Tools.OpenPopup('./preview.html', 'Preview', 1280, 800);
-                break;
-
-            // Gizmos
-            case 'position':
-            case 'rotation':
-            case 'scaling':
-                const active = this.tools.isChecked(target, true);
-
-                this.tools.setChecked('position', false);
-                this.tools.setChecked('rotation', false);
-                this.tools.setChecked('scaling', false);
-                this.tools.setChecked(target, active);
-
-                this.editor.scenePicker.gizmosLayer.shouldRender = active;
-
-                if (!active) {
-                    this.editor.scenePicker.gizmoType = GizmoType.NONE;
-                    break;
-                }
-
-                switch (target) {
-                    case 'position': this.editor.scenePicker.gizmoType = GizmoType.POSITION; break;
-                    case 'rotation': this.editor.scenePicker.gizmoType = GizmoType.ROTATION; break;
-                    case 'scaling': this.editor.scenePicker.gizmoType = GizmoType.SCALING; break;
-                    default: break; // Should never happen
-                }
-
                 break;
             default: break;
         }
