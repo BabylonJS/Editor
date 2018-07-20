@@ -3,6 +3,7 @@
 //   ../../babylonjs
 //   ../../dat-gui
 //   ../../babylonjs-gui
+//   ../../babylonjs-materials
 //   ../../golden-layout
 
 declare module 'babylonjs-editor' {
@@ -24,8 +25,10 @@ declare module 'babylonjs-editor' {
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
+    import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
+    import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
     export default Editor;
-    export { Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot };
+    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1100,6 +1103,134 @@ declare module 'babylonjs-editor/editor/typings/project' {
     }
 }
 
+declare module 'babylonjs-editor/editor/scene/scene-manager' {
+    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, IAnimatable, GlowLayer, HighlightLayer } from 'babylonjs';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    import PostProcessesExtension from 'babylonjs-editor/extensions/post-process/post-processes';
+    export default class SceneManager {
+            static ActionManagers: IStringDictionary<ActionManager>;
+            static StandardRenderingPipeline: StandardRenderingPipeline;
+            static SSAORenderingPipeline: SSAORenderingPipeline;
+            static SSAO2RenderingPipeline: SSAO2RenderingPipeline;
+            static GlowLayer: GlowLayer;
+            static HighLightLayer: HighlightLayer;
+            static PostProcessExtension: PostProcessesExtension;
+            /**
+                * Clears the scene manager
+                */
+            static Clear(): void;
+            /**
+                * Toggles all interaction events to disable but keep
+                * references like Action Manager references etc.
+                * @param scene the scene to toggle
+                */
+            static Toggle(scene: Scene): void;
+            /**
+                * Returns the animatable objects
+                * @param scene the scene containing animatables
+                */
+            static GetAnimatables(scene: Scene): IAnimatable[];
+            /**
+                * Returns the animation frame bounds (min frame, max frame)
+                * @param animatables the animtables to check
+                */
+            static GetAnimationFrameBounds(animatables: IAnimatable[]): {
+                    min: number;
+                    max: number;
+            };
+            /**
+                * Plays all the animtables
+                * @param scene: the scene containing the animatables
+                * @param animatables the animatables to play
+                */
+            static PlayAllAnimatables(scene: Scene, animatables: IAnimatable[]): void;
+            /**
+                * Stops all the animatables
+                * @param scene the scene containing the animatables
+                * @param animatables the animatable objects
+                */
+            static StopAllAnimatables(scene: Scene, animatables: IAnimatable[]): void;
+            /**
+                * Clears all the unused materials from the scene
+                * @param scene: the scene containing the materials
+                */
+            static CleanUnusedMaterials(scene: Scene): number;
+            /**
+                * Clears all the unused textures from the scene
+                * @param scene the scene containing the textures
+                */
+            static CleanUnusedTextures(scene: Scene): number;
+    }
+}
+
+declare module 'babylonjs-editor/editor/scene/scene-factory' {
+    import { Mesh, ParticleSystem, GroundMesh, Light } from 'babylonjs';
+    import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
+    import { WaterMaterial } from 'babylonjs-materials';
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class SceneFactory {
+            /**
+                * Adds the given node to the scene's graph (on the right)
+                * @param editor the editor reference
+                * @param node the node to add
+                */
+            static AddToGraph(editor: Editor, node: any): void;
+            /**
+                * Creates a new default particle system
+                * @param editor: the editor reference
+                * @param emitter: the emitter of the system
+                */
+            static CreateDefaultParticleSystem(editor: Editor, spriteSheetEnabled: boolean, emitter?: any): ParticleSystem;
+            /**
+                * Creates a skybox with a sky effect on it (SkyMaterial)
+                * @param editor the editor reference
+                */
+            static CreateSkyEffect(editor: Editor): Mesh;
+            /**
+                * Creates a new mesh (if createGround set to true) with a water material assigned
+                * the water will reflect all the scene's meshes
+                * @param editor the editor reference
+                */
+            static CreateWaterEffect(editor: Editor, createGround?: boolean): WaterMaterial;
+            /**
+                * Creates a new ground mesh
+                * @param editor: the editor reference
+                */
+            static CreateGroundMesh(editor: Editor): GroundMesh;
+            /**
+                * Creates a new cube mesh
+                * @param editor: the editor reference
+                */
+            static CreateCube(editor: Editor): Mesh;
+            /**
+                * Creates a new sphere mesh
+                * @param editor: the editor reference
+                */
+            static CreateSphere(editor: Editor): Mesh;
+            /**
+                * Creates a new light
+                * @param editor: the editor reference
+                * @param type: the light type
+                */
+            static CreateLight(editor: Editor, type: 'point' | 'directional' | 'spot' | 'hemispheric'): Light;
+            /**
+                * Adds a new sound
+                * @param editor: the editor reference
+                */
+            static AddSound(editor: Editor): void;
+            /**
+                * Creates a new GUI advanced texture
+                * @param editor: the editor reference
+                */
+            static AddGui(editor: Editor): AdvancedDynamicTexture;
+            /**
+                * Creates a new GUI Image
+                * @param editor: the editor reference
+                */
+            static AddGuiImage(editor: Editor): Image;
+    }
+}
+
 declare module 'babylonjs-editor/editor/core' {
     import { Engine, Scene, Observable } from 'babylonjs';
     import { AdvancedDynamicTexture } from 'babylonjs-gui';
@@ -1578,5 +1709,93 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 */
             protected createTexture(url: string): Texture;
     }
+}
+
+declare module 'babylonjs-editor/extensions/post-process/post-processes' {
+    import { Scene, StandardRenderingPipeline, SSAO2RenderingPipeline } from 'babylonjs';
+    import Extension from 'babylonjs-editor/extensions/extension';
+    export interface PostProcessMetadata {
+            standard?: any;
+            ssao2?: any;
+    }
+    export default class PostProcessesExtension extends Extension<PostProcessMetadata> {
+            standard: StandardRenderingPipeline;
+            ssao2: SSAO2RenderingPipeline;
+            /**
+                * Constructor
+                * @param scene: the babylonjs scene
+                */
+            constructor(scene: Scene);
+            /**
+                * On apply the extension
+                */
+            onApply(data: PostProcessMetadata, rootUrl?: string): void;
+            /**
+                * Called by the editor when serializing the scene
+                */
+            onSerialize(): PostProcessMetadata;
+            /**
+                * On load the extension (called by the editor when
+                * loading a scene)
+                */
+            onLoad(data: PostProcessMetadata): void;
+    }
+}
+
+declare module 'babylonjs-editor/extensions/extension' {
+    import { Scene } from 'babylonjs';
+    import { IExtension } from 'babylonjs-editor/extensions/typings/extension';
+    export default abstract class Extension<T> implements IExtension<T> {
+            scene: Scene;
+            datas: T;
+            alwaysApply: boolean;
+            /**
+                * Constructor
+                * @param scene: the scene
+                */
+            constructor(scene: Scene);
+            /**
+                * On apply the extension
+                */
+            abstract onApply(data: T, rootUrl?: string): void;
+            /**
+                * On load the extension (called by the editor when
+                * loading a scene)
+                */
+            abstract onLoad(data: T): void;
+            /**
+                * Adds a script tag element to the dom including source URL
+                * @param code: the code's text
+                * @param url: the URL of the script to show in devtools
+                */
+            static AddScript(code: string, url: string): HTMLScriptElement;
+    }
+}
+
+declare module 'babylonjs-editor/extensions/typings/extension' {
+    import { Scene } from 'babylonjs';
+    /**
+        * Interface representing an editor extension
+        */
+    export interface IExtension<T> {
+            /**
+                * Sets if the extensions is always applied
+                */
+            alwaysApply: boolean;
+            /**
+                * On apply the extension
+                */
+            onApply(data: T, rootUrl?: string): void;
+            /**
+                * Called by the editor when serializing the scene
+                */
+            onSerialize?(): T;
+            /**
+                * On load the extension (called by the editor when
+                * loading a scene)
+                */
+            onLoad?(data: T): void;
+    }
+    export type ExtensionConstructor<T> = new (scene: Scene) => IExtension<T>;
 }
 
