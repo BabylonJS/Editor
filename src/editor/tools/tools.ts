@@ -2,6 +2,9 @@ import { Tools as BabylonTools, FilesInput } from 'babylonjs';
 import { IStringDictionary } from '../typings/typings';
 
 export default class Tools {
+    // Public members
+    public static PendingFilesToLoad: number = 0;
+
     /**
      * Creates a div element
      * @param style: the div's style
@@ -184,7 +187,15 @@ export default class Tools {
      */
     public static async LoadFile<T extends string | ArrayBuffer> (url: string, arrayBuffer: boolean = false): Promise<T> {
         return new Promise<T>((resolve, reject) => {
-            BabylonTools.LoadFile(url, (data: T) => resolve(data), null, null, arrayBuffer, (r, e) => reject(e));
+            this.PendingFilesToLoad++;
+
+            BabylonTools.LoadFile(url, (data: T) => {
+                this.PendingFilesToLoad--;
+                resolve(data);
+            }, null, null, arrayBuffer, (r, e) => {
+                this.PendingFilesToLoad--;
+                reject(e);
+            });
         });
     }
 
@@ -208,20 +219,6 @@ export default class Tools {
         catch (e) {
             return Promise.reject(e);
         }
-    }
-
-    /**
-     * Creates an URL and downloads the given file
-     * @param file the file to download
-     */
-    public static DownloadFile (file: File): void {
-        const url = URL.createObjectURL(file, { oneTimeOnly: true });
-
-        const link = document.createElement('a');
-        link.download = file.name;
-        link.href = url;
-        link.click();
-        link.remove();
     }
 
     /**

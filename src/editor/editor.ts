@@ -226,7 +226,7 @@ export default class Editor implements IUpdatable {
      */
     public onPostUpdate (): void {
         // Waiting files
-        const waiting = this.core.scene.getWaitingItemsCount();
+        const waiting = this.core.scene.getWaitingItemsCount() + Tools.PendingFilesToLoad;
         if (this._lastWaitingItems !== waiting) {
             this._lastWaitingItems = waiting;
 
@@ -447,11 +447,17 @@ export default class Editor implements IUpdatable {
         this.core.engine.getRenderingCanvas().addEventListener('focus', () => this._canvasFocused = true);
         this.core.engine.getRenderingCanvas().addEventListener('blur', () => this._canvasFocused = false);
 
+        // Shift key
+        let shiftDown = false;
+        document.addEventListener('keydown', ev => !shiftDown && (shiftDown = ev.key === 'Shift'));
+        document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
+
         // Shotcuts
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.toolbar.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.toolbar.setToolClicked('rotation'));
 
-        document.addEventListener('keyup', ev => ev.ctrlKey && ev.key === 's' && SceneExporter.ExportProject(this));
+        document.addEventListener('keyup', ev => ev.ctrlKey && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
+        document.addEventListener('keyup', ev => ev.ctrlKey && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));
 
         // Save state
         window.addEventListener('beforeunload', () => {

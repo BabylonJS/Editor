@@ -112,6 +112,7 @@ declare module 'babylonjs-editor/editor/editor' {
 declare module 'babylonjs-editor/editor/tools/tools' {
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export default class Tools {
+            static PendingFilesToLoad: number;
             /**
                 * Creates a div element
                 * @param style: the div's style
@@ -186,11 +187,6 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param url: the URLof the file
                 */
             static CreateFileFromURL(url: string): Promise<File>;
-            /**
-                * Creates an URL and downloads the given file
-                * @param file the file to download
-                */
-            static DownloadFile(file: File): void;
             /**
              * Converts a string to an UInt8Array
             $ @param str: the string to convert

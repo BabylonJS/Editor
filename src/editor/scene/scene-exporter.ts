@@ -30,9 +30,6 @@ export default class SceneExporter {
     public static ProjectPath: string = null;
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
 
-    // Private members
-    private static _LastBabylonFileURL: string = null;
-
     /**
      * Creates a new file
      * @param editor: the editor instance
@@ -70,17 +67,7 @@ export default class SceneExporter {
      */
     public static DownloadBabylonFile (editor: Editor): void {
         this.CreateFiles(editor);
-
-        if (this._LastBabylonFileURL)
-            URL.revokeObjectURL(this._LastBabylonFileURL);
-
-        this._LastBabylonFileURL = URL.createObjectURL(editor.sceneFile);
-
-        const link = document.createElement('a');
-        link.download = editor.sceneFile.name;
-        link.href = this._LastBabylonFileURL;
-        link.click();
-        link.remove();
+        BabylonTools.Download(editor.sceneFile, editor.sceneFile.name);
     }
 
     /**
@@ -179,6 +166,18 @@ export default class SceneExporter {
 
         storage.onCreateFiles = folder => this.ProjectPath = folder;
         storage.openPicker('Export Editor Project...', files, this.ProjectPath);
+    }
+
+    /**
+     * Downloads the project's file
+     * @param editor the editor reference
+     */
+    public static async DownloadProjectFile (editor: Editor): Promise<void> {
+        // Project
+        const content = JSON.stringify(this.Export(editor));
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(content), 'scene.editorproject');
+
+        BabylonTools.Download(file, file.name);
     }
 
     /**

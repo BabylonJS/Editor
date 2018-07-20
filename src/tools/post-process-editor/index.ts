@@ -1,7 +1,7 @@
-import { Camera, Effect } from 'babylonjs';
+import { Camera, Effect, Tools as BabylonTools } from 'babylonjs';
 
 import Editor, {
-    IDisposable, Tools,
+    Tools,
     Layout, Toolbar,
     Grid, GridRow,
     CodeEditor,
@@ -206,7 +206,7 @@ export default class PostProcessEditor extends EditorPlugin {
                 break;
             case 'project:download':
                 const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(this.datas)), 'post-processes.json');
-                Tools.DownloadFile(file);
+                BabylonTools.Download(file, file.name);
                 break;
             default: break;
         }
