@@ -21,8 +21,13 @@ import { EditorPlugin } from './editor/typings/plugin';
 
 import { ProjectRoot } from './editor/typings/project';
 
+import SceneManager from './editor/scene/scene-manager';
+import SceneFactory from './editor/scene/scene-factory';
+
 export default Editor;
 export {
+    Editor,
+    
     Tools,
     UndoRedo,
 
@@ -46,5 +51,8 @@ export {
 
     AbstractEditionTool,
 
-    ProjectRoot
+    ProjectRoot,
+
+    SceneManager,
+    SceneFactory
 }

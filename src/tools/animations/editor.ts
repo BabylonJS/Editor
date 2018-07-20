@@ -7,12 +7,13 @@ import Editor, {
     Tools,
     UndoRedo,
 
+    SceneManager,
+
     IStringDictionary,
     EditorPlugin,
 
     Layout,
-    Toolbar,
-    List
+    Toolbar
 } from 'babylonjs-editor';
 
 import PropertyBrowser from './property-browser';
@@ -881,6 +882,7 @@ export default class AnimationEditor extends EditorPlugin {
             doAnimatables(this.editor.core.scene.cameras, frame);
             doAnimatables(this.editor.core.scene.lights, frame);
             doAnimatables(<any> this.editor.core.scene.particleSystems, frame);
+            doAnimatables([SceneManager.StandardRenderingPipeline], frame);
         };
 
         const onEnd = (ev: MouseEvent) => {

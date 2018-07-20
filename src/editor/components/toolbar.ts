@@ -263,7 +263,7 @@ export default class EditorToolbar {
             // Play and text
             case 'play':
                 const animatables = SceneManager.GetAnimatables(this.editor.core.scene);
-                this.tools.isChecked('play', true) ? SceneManager.PlayAllAnimatables(this.editor.core.scene, animatables) : this.editor.core.scene.stopAllAnimations();
+                this.tools.isChecked('play', true) ? SceneManager.PlayAllAnimatables(this.editor.core.scene, animatables) : SceneManager.StopAllAnimatables(this.editor.core.scene, animatables);
                 break;
             case 'test':
                 SceneExporter.CreateFiles(this.editor);
