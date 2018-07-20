@@ -59,10 +59,10 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-helpers', items: [
-                    { id: 'animations', img: 'icon-animators', text: 'Animations...' },
+                    { id: 'animations', img: 'icon-animators', text: 'Animations Editor...' },
                     { type: 'break' },
-                    { id: 'textures', img: 'icon-copy', text: 'Textures...' },
-                    { id: 'materials', img: 'icon-effects', text: 'Materials...' },
+                    { id: 'textures', img: 'icon-copy', text: 'Textures Viewer...' },
+                    { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
                     { type: 'break ' },
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
                     { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },

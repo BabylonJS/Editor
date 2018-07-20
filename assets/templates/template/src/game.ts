@@ -41,6 +41,7 @@ export default class Game {
 
             // Load extensions
             Tools.LoadFile('./scene/project.editorproject', (data: string) => {
+                // Apply extensions (such as custom code, custom materials etc.)
                 Extensions.RoolUrl = './scene/';
                 Extensions.ApplyExtensions(this.scene, JSON.parse(data));
                 

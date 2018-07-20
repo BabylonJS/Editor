@@ -7,7 +7,7 @@
     "compile": "tsc -p .",
     "build": "npm run clean && npm run compile",
     "watch": "tsc -p . --watch",
-    "webserver": "http-server -p 1337"
+    "webserver": "http-server -p 1338"
   },
   "license": "(Apache-2.0)",
   "devDependencies": {

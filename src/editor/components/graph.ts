@@ -458,6 +458,7 @@ export default class EditorGraph {
         switch (id) {
             // Remove
             case 'remove':
+                // TODO: implement undo-redo and do not dispose objects
                 node.data && node.data.dispose && node.data.dispose();
                 this.tree.remove(node.id);
 
