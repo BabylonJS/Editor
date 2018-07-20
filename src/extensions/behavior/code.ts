@@ -21,7 +21,28 @@ export interface BehaviorMetadata {
 
 const template = `
 EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
+var returnValue = null;
+
 {{code}}
+
+function exportScript (value, params) {
+    if (!params) {
+        returnValue = value;
+    } else {
+        returnValue = {
+            ctor: value
+        };
+
+        var keys = Object.keys(params);
+        for (var i = 0; i < keys.length; i++) {
+            returnValue[keys[i]] = params[keys[i]];
+        }
+    }
+};
+
+if (returnValue) {
+    return returnValue;
+}
 }
 `;
 
