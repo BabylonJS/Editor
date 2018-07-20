@@ -504,6 +504,9 @@ export default class Editor implements IUpdatable {
         },
         () => {
             // Starting process
+            FilesInput.FilesToLoad = { };
+            this.projectFile = null;
+            this.sceneFile = null;
         },
         (file) => {
             // Callback
