@@ -70,6 +70,7 @@ export default class EditorEditPanel {
 
     // On the tab changed
     private async _onChangeTab (plugin: IEditorPlugin, firstShow: boolean, ...params: any[]): Promise<void> {
+        // On hide on show
         if (this.currentPlugin && this.currentPlugin.onHide)
             await this.currentPlugin.onHide();
 

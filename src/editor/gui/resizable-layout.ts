@@ -23,6 +23,7 @@ export default class ResizableLayout {
 
     // Protected members
     protected containers: IStringDictionary<GoldenLayout.Container> = { };
+    protected configs: IStringDictionary<ComponentConfig> = { };
 
     /**
      * Constructor
@@ -103,6 +104,10 @@ export default class ResizableLayout {
      * @param config: the panel's configuration
      */
     public addPanelToStack (stackId: string, config: ComponentConfig): void {
+        // Update config
+        this.configs[config.componentName] = config;
+
+        // Add container
         try {
             const component = this.element.getComponent(config.componentName);
             const container = this.containers[config.componentName];
@@ -173,7 +178,9 @@ export default class ResizableLayout {
     }
 
     // Configure the given container with the given config
-    private _configureContainer (container: GoldenLayout.Container, config: ComponentConfig): void { 
+    private _configureContainer (container: GoldenLayout.Container, lastConfig: ComponentConfig): void { 
+        const config = this.configs[lastConfig.componentName] || lastConfig;
+
         // Add html
         if (config.html)
             container.getElement().append(typeof config.html === 'function' ? config.html() : config.html);
@@ -193,8 +200,8 @@ export default class ResizableLayout {
             
             config.onClick && config.onClick();
 
-            // Hack hack hack, makes resize working better
-            window.dispatchEvent(new Event('resize'));
+            // Hack hack hack, makes resize working better for canvas
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
         });
     }
 }

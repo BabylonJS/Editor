@@ -186,7 +186,6 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                         m.params[p] = params[p];
 
                     // Types
-                    // TODO: manage complex types
                     switch (Tools.GetConstructorName(params[p])) {
                         case 'Number':
                             script.add(m.params, p);
