@@ -12,7 +12,7 @@ import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
-import Tree, { TreeNode } from '../gui/tree';
+import Tree, { TreeNode, ContextMenuItem } from '../gui/tree';
 import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
@@ -50,14 +50,24 @@ export default class EditorGraph {
         this.tree.onContextMenu = (id, data: any) => {
             if (!data.clone)
                 return [];
-
-            const result = [
-                { id: 'delete', text: 'Delete', img: 'icon-error', callback: () => this.onMenuClick('remove') },
-                { id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') }
-            ];
+            
+            const result: ContextMenuItem[] = [];
 
             if (data.globalPosition || data.getAbsolutePosition)
                 result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', callback: () => this.onMenuClick('focus') });
+            
+            if (data instanceof AbstractMesh)
+                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separator: true, callback: () => this.onMenuClick('set-material') });
+
+            if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem)
+                result.push({ id: 'set-script', text: 'Set Script...', img: 'icon-behavior-editor', separator: true, callback: () => this.onMenuClick('set-script') });
+
+            if (data.clone)
+                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') });
+
+            result.push.apply(result, [
+                { id: 'delete', text: 'Delete', img: 'icon-error', callback: () => this.onMenuClick('remove') }
+            ]);
             
             return result;
         };
@@ -450,27 +460,27 @@ export default class EditorGraph {
      * @param id the context menu item id
      * @param node the related tree node
      */
-    protected onMenuClick (id: string): void {
+    protected async onMenuClick (id: string): Promise<void> {
         const node = this.getSelected();
         if (!node)
             return;
         
         switch (id) {
-            // Remove
-            case 'remove':
-                // TODO: implement undo-redo and do not dispose objects
-                node.data && node.data.dispose && node.data.dispose();
-                this.tree.remove(node.id);
-
-                // Gui
-                if (node.data instanceof AdvancedDynamicTexture) {
-                    const ui = this.editor.core.uiTextures.find(ut => ut === node.data);
-                    const index = this.editor.core.uiTextures.indexOf(ui);
-
-                    if (index !== -1)
-                        this.editor.core.uiTextures.splice(index, 1);
-                }
+            // Focus
+            case 'focus':
+                ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), node.data.globalPosition || node.data.getAbsolutePosition(), this.editor.camera);
                 break;
+
+            // Add Material
+            case 'set-material':
+                await this.editor.addEditPanelPlugin('material-viewer', false, 'Materials Viewer', node.data, true);
+                break;
+
+            // Add Script
+            case 'set-script':
+                await this.editor.addEditPanelPlugin('behavior-editor', false, 'Code Editor', node.data, true);
+                break;
+            
             // Clone
             case 'clone':
                 if (!node || !(node.data instanceof Node))
@@ -487,10 +497,23 @@ export default class EditorGraph {
                 this.currentObject = clone;
                 this.editor.core.onSelectObject.notifyObservers(clone);
                 break;
-            // Focus
-            case 'focus':
-                ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), node.data.globalPosition || node.data.getAbsolutePosition(), this.editor.camera);
+
+            // Remove
+            case 'remove':
+                // TODO: implement undo-redo and do not dispose objects
+                node.data && node.data.dispose && node.data.dispose();
+                this.tree.remove(node.id);
+
+                // Gui
+                if (node.data instanceof AdvancedDynamicTexture) {
+                    const ui = this.editor.core.uiTextures.find(ut => ut === node.data);
+                    const index = this.editor.core.uiTextures.indexOf(ui);
+
+                    if (index !== -1)
+                        this.editor.core.uiTextures.splice(index, 1);
+                }
                 break;
+            
             // Other
             default:
                 break;

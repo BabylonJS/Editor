@@ -50,6 +50,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected onSelectObject = (node) => node && this.selectObject(node);
     protected onResize = () => this.layout.element.resize();
 
+    protected targetNode: any;
+    protected targetNodeAddScript: boolean;
+
     // Private members
     private _timeoutId: number = -1;
 
@@ -57,8 +60,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, targetNode: any, targetNodeAddScript: boolean) {
         super('Code Editor');
+
+        // Misc.
+        this.targetNode = targetNode;
+        this.targetNodeAddScript = targetNodeAddScript;
     }
 
     /**
@@ -132,8 +139,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.editor.core.onResize.add(this.onResize);
 
         // Select object
-        if (this.editor.core.currentSelectedObject)
-            this.selectObject(this.editor.core.currentSelectedObject);
+        if (this.targetNode || this.editor.core.currentSelectedObject)
+            this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
+
+        // Add new script
+        if (this.targetNodeAddScript)
+            this.add();
 
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
@@ -145,8 +156,15 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     /**
      * On the user shows the plugin
      */
-    public onShow (): void {
+    public onShow (targetNode: any, targetNodeAddScript: boolean): void {
         this.onResize();
+
+        // Add new script?
+        if (targetNode)
+            this.selectObject(this.targetNode);
+        
+        if (targetNodeAddScript)
+            this.add();
     }
 
     /**

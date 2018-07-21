@@ -95,11 +95,11 @@ declare module 'babylonjs-editor/editor/editor' {
                 * Removes the given plugin
                 * @param plugin: the plugin to remove
                 */
-            removePlugin(plugin: IEditorPlugin): Promise<void>;
+            removePlugin(plugin: IEditorPlugin, removePanel?: boolean): Promise<void>;
             /**
                 * Restarts the plugins already loaded
                 */
-            restartPlugins(): Promise<void>;
+            restartPlugins(removePanels?: boolean): Promise<void>;
             /**
                 * Creates the default scene
                 * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
@@ -792,6 +792,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             id: string;
             text: string;
             callback: () => void;
+            separator?: boolean;
             img?: string;
     }
     export default class Tree {
@@ -1453,7 +1454,7 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * @param id the context menu item id
                 * @param node the related tree node
                 */
-            protected onMenuClick(id: string): void;
+            protected onMenuClick(id: string): Promise<void>;
     }
 }
 

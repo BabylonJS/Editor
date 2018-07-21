@@ -1,4 +1,4 @@
-import { Engine, Scene, Effect, ArcRotateCamera, Mesh, Vector3, Color4, Color3, Material } from 'babylonjs';
+import { Effect, Material } from 'babylonjs';
 
 import Editor, {
     IDisposable, Tools,

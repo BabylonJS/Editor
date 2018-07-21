@@ -13,6 +13,7 @@ export interface ContextMenuItem {
     text: string;
     callback: () => void;
 
+    separator?: boolean;
     img?: string;
 }
 
@@ -203,7 +204,9 @@ export default class Tree {
                         result[i.id] = {
                             label: i.text,
                             icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
-                            action: () => i.callback()
+                            action: () => i.callback(),
+                            separator_before: i.separator,
+                            separator_after: i.separator
                         }
                     });
 
