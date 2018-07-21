@@ -5,7 +5,10 @@ interface IScript {
 }
 
 declare type ScriptConstructor = new () => IScript;
-declare var exportScript: (ctor: ScriptConstructor, params?: { [index: string]: number | string | BABYLON.Vector3 | BABYLON.Vector2 }) => ScriptConstructor | { ctor: ScriptConstructor };
+declare type CustomizableParams = number | string |
+                                  BABYLON.Vector3 | BABYLON.Vector2 | BABYLON.Vector4 |
+                                  BABYLON.Color3 | BABYLON.Color4;
+declare var exportScript: (ctor: ScriptConstructor, params?: { [index: string]: CustomizableParams }) => ScriptConstructor | { ctor: ScriptConstructor };
 
 interface ICustomMaterial {
     code: CustomMaterial;
