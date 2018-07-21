@@ -281,9 +281,11 @@ export default class Editor implements IUpdatable {
      * Removes the given plugin
      * @param plugin: the plugin to remove
      */
-    public async removePlugin (plugin: IEditorPlugin): Promise<void> {
+    public async removePlugin (plugin: IEditorPlugin, removePanel: boolean = true): Promise<void> {
         await plugin.close();
-        plugin.divElement.remove();
+
+        if (removePanel)
+            plugin.divElement.remove();
 
         for (const p in this.plugins) {
             if (this.plugins[p] === plugin) {
@@ -293,17 +295,18 @@ export default class Editor implements IUpdatable {
         }
 
         // Remove panel
-        this.resizableLayout.removePanel(plugin.name);
+        if (removePanel)
+            this.resizableLayout.removePanel(plugin.name);
     }
 
     /**
      * Restarts the plugins already loaded
      */
-    public async restartPlugins (): Promise<void> {
+    public async restartPlugins (removePanels: boolean = false): Promise<void> {
         // Restart plugins
         for (const p in this.plugins) {
             const plugin = this.plugins[p];
-            await this.removePlugin(plugin);
+            await this.removePlugin(plugin, removePanels);
             await this.addEditPanelPlugin(p, false, plugin.name);
         }
     }
