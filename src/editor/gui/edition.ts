@@ -162,7 +162,7 @@ export default class Edition {
             // Sometimes, color.a is undefined
             color.a = color.a || 0;
 
-            folder.add(color, 'a').step(0.01).onChange(() => callback && callback());
+            folder.add(color, 'a').min(0).max(1).step(0.01).onChange(() => callback && callback());
         }
 
         return folder;
@@ -182,7 +182,7 @@ export default class Edition {
         if (vector instanceof Vector3 || vector instanceof Vector4)
         folder.add(vector, 'z').step(0.01).onChange(() => callback && callback());
 
-        if (vector instanceof Color4)
+        if (vector instanceof Vector4)
             folder.add(vector, 'w').step(0.01).onChange(() => callback && callback());
 
         return folder;
