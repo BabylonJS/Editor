@@ -98,7 +98,7 @@ export default class Editor implements IUpdatable {
         this.layout.build('BABYLON-EDITOR-MAIN');
 
         // Create resizable layout
-        const layoutStateItem = /*localStorage.getItem('babylonjs-editor-layout-state') ||*/ '{ }';
+        const layoutStateItem = localStorage.getItem('babylonjs-editor-layout-state') || '{ }';
         const layoutState = JSON.parse(layoutStateItem)
 
         this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
