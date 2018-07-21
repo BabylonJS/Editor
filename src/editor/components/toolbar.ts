@@ -108,9 +108,9 @@ export default class EditorToolbar {
         // Build toolbar
         this.tools = new Toolbar('ToolsToolBar');
         this.tools.items = [
-            { type: 'check', id: 'play', text: 'Play', img: 'icon-play-game' },
-            { type: 'button', id: 'test', text: 'Test', img: 'icon-play-game-windowed' },
-            { type: 'button', id: 'test-debug', text: 'Test And Debug...', img: 'icon-play-game-windowed' }
+            { type: 'check', id: 'play', text: 'Play Animations', img: 'icon-play-game' },
+            { type: 'button', id: 'test', text: 'Play', img: 'icon-play-game-windowed' },
+            { type: 'button', id: 'test-debug', text: 'Play And Debug...', img: 'icon-play-game-windowed' }
         ];
         this.tools.onClick = target => this.onToolsClick(target);
         this.tools.build('TOOLS-TOOLBAR');

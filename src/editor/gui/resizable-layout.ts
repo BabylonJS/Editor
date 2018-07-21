@@ -104,11 +104,15 @@ export default class ResizableLayout {
      */
     public addPanelToStack (stackId: string, config: ComponentConfig): void {
         try {
-            this.element.getComponent(config.componentName);
+            const component = this.element.getComponent(config.componentName);
+            const container = this.containers[config.componentName];
+
+            if (container)
+                return this._configureContainer(container, config);
         }
         catch (e) {
             // Does not exists, create it
-            this.registerComponents([config]);
+            this._registerComponents([config]);
         }
 
         // Add child in the stack
@@ -139,7 +143,7 @@ export default class ResizableLayout {
         }, $('#' + parentId));
 
         // Register components
-        this.panels.forEach(p => this.registerComponents(<ComponentConfig[]> p.content));
+        this.panels.forEach(p => this._registerComponents(<ComponentConfig[]> p.content));
 
         // Initialize
         this.element.init();
@@ -149,7 +153,7 @@ export default class ResizableLayout {
     }
 
     // Registers all components
-    private registerComponents (content: ComponentConfig[]): void {
+    private _registerComponents (content: ComponentConfig[]): void {
         if (!content)
             return;
 
@@ -159,32 +163,38 @@ export default class ResizableLayout {
                     // Register panel
                     this.containers[c.componentName] = container;
                     
-                    // Add html
-                    if (c.html)
-                        container.getElement().append(typeof c.html === 'function' ? c.html() : c.html);
-
-                    // Resize
-                    container.on('resize', () => this.onPanelResize && this.onPanelResize());
-
-                    // Destroy
-                    container.on('destroy', () => c.onClose && c.onClose());
-
-                    // Click
-                    let firstShow = true;
-                    container.on('show', () => {
-                        // If first show, that means the tab has just been created
-                        if (firstShow)
-                            return (firstShow = false);
-                        
-                        c.onClick && c.onClick();
-
-                        // Hack hack hack, makes resize working better
-                        window.dispatchEvent(new Event('resize'));
-                    });
+                    // Configure
+                    this._configureContainer(container, c);
                 });
             }
 
-            this.registerComponents(<GoldenLayout.ComponentConfig[]> c.content);
+            this._registerComponents(<GoldenLayout.ComponentConfig[]> c.content);
+        });
+    }
+
+    // Configure the given container with the given config
+    private _configureContainer (container: GoldenLayout.Container, config: ComponentConfig): void { 
+        // Add html
+        if (config.html)
+            container.getElement().append(typeof config.html === 'function' ? config.html() : config.html);
+
+        // Resize
+        container.on('resize', () => this.onPanelResize && this.onPanelResize());
+
+        // Destroy
+        container.on('destroy', () => config.onClose && config.onClose());
+
+        // Click
+        let firstShow = true;
+        container.on('show', () => {
+            // If first show, that means the tab has just been created
+            if (firstShow)
+                return (firstShow = false);
+            
+            config.onClick && config.onClick();
+
+            // Hack hack hack, makes resize working better
+            window.dispatchEvent(new Event('resize'));
         });
     }
 }
