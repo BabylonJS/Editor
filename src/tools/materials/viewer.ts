@@ -1,6 +1,7 @@
 import {
-    FilesInput, Tools as BabylonTools,
-    Engine, Scene, Mesh, Material, PointLight, InstancedMesh,
+    Tools as BabylonTools,
+    Engine, Scene, Mesh, Material, PointLight,
+    InstancedMesh, AbstractMesh,
     ArcRotateCamera,
     Vector3,
     Tags
@@ -45,12 +46,17 @@ export default class AnimationEditor extends EditorPlugin {
     protected waitingMaterials: Material[] = [];
     protected onAddObject = (material) => this.waitingMaterials.push(material);
 
+    protected targetObject: AbstractMesh;
+
     /**
      * Constructor
      * @param name: the name of the plugin
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, targetObject?: AbstractMesh) {
         super('Materials Viewer');
+
+        // Misc.
+        this.targetObject = targetObject;
     }
 
     /**
@@ -127,7 +133,7 @@ export default class AnimationEditor extends EditorPlugin {
     /**
      * On the user shows the plugin
      */
-    public async onShow (): Promise<void> {
+    public async onShow (targetObject?: AbstractMesh): Promise<void> {
         for (const m of this.waitingMaterials)
             await this.addMaterialPreview(m);
 
@@ -135,6 +141,9 @@ export default class AnimationEditor extends EditorPlugin {
 
         // Resize
         this.resize();
+
+        // Misc.
+        this.targetObject = targetObject;
     }
 
     /**
@@ -220,6 +229,9 @@ export default class AnimationEditor extends EditorPlugin {
             this.preview.sphere.material = Material.Parse(obj, this.preview.scene, 'file:');
             this.preview.engine.resize();
             this.editor.core.onSelectObject.notifyObservers(material);
+
+            if (this.targetObject)
+                this.targetObject.material = material;
         });
 
         // Drag'n'drop
