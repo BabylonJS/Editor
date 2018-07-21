@@ -482,7 +482,8 @@ export default class Editor implements IUpdatable {
         const instance = new (Function.prototype.bind.apply(plugin.default, args));
 
         // Create DOM elements
-        instance.divElement = <HTMLDivElement> Tools.CreateElement('div', instance.name.replace(/ /, ''), {
+        const id = instance.name.replace(/ /, '');
+        instance.divElement = <HTMLDivElement> document.getElementById(id) || Tools.CreateElement('div', id, {
             width: '100%',
             height: '100%'
         });

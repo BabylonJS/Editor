@@ -1299,6 +1299,7 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
             showCloseIcon: boolean;
             onPanelResize: () => void;
             protected containers: IStringDictionary<GoldenLayout.Container>;
+            protected configs: IStringDictionary<ComponentConfig>;
             /**
                 * Constructor
                 * @param name the resizable layout name
