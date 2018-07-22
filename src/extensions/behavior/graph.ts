@@ -1,10 +1,13 @@
-import { Scene } from 'babylonjs';
-import { LGraph, LGraphCanvas } from 'litegraph.js';
+import { Scene, AbstractMesh, Light, Camera, Vector3 } from 'babylonjs';
+import { LGraph, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { GetPosition, SetPosition } from './graph-nodes/position';
+import { GetPosition, SetPosition } from './graph-nodes/node/position';
+import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
+import { GetScale, SetScale } from './graph-nodes/node/scale';
+import { RenderLoop } from './graph-nodes/core/engine';
 
 // Interfaces
 export interface BehaviorGraph {
@@ -33,14 +36,48 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * On apply the extension
      */
     public onApply (data: BehaviorMetadata[]): void {
+        this.datas = data;
 
+        // Register
+        GraphExtension.RegisterNodes();
+
+        // For each node
+        this.datas.forEach(d => {
+            const node = this.scene.getNodeByName(d.node);
+            if (!node)
+                return;
+
+            // For each graph
+            d.metadatas.forEach(m => {
+                const graph = new LGraph();
+                graph.scriptObject = node;
+
+                graph.configure(m.graph);
+
+                this.scene.onReadyObservable.addOnce(() => {
+                    graph.start();
+                });
+            });
+        });
     }
 
     /**
      * Called by the editor when serializing the scene
      */
     public onSerialize (): BehaviorMetadata[] {
-        return [];
+        const result: BehaviorMetadata[] = [];
+        const add = (objects: (AbstractMesh | Light | Camera)[]) => {
+            objects.forEach(o => {
+                if (o.metadata && o.metadata['behaviorGraph'])
+                    result.push(o.metadata['behaviorGraph']);
+            });
+        };
+
+        add(this.scene.meshes);
+        add(this.scene.lights);
+        add(this.scene.cameras);
+
+        return result;
     }
 
     /**
@@ -48,16 +85,65 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * loading a scene)
      */
     public onLoad (data: BehaviorMetadata[]): void {
+        this.datas = data;
+        
+        // For each node
+        this.datas.forEach(d => {
+            const node = this.scene.getNodeByName(d.node);
+            if (!node)
+                return;
 
+            node.metadata = node.metadata || { };
+            node.metadata['behaviorGraph'] = d;
+        });
     }
 
     /**
-     * 
-     * @param graph the graph to register
+     * Clears all the additional nodes available for Babylon.js
      */
-    public static RegisterNodes (graph: LGraph, node?: any): void {
-        GetPosition.Register(graph, node);
-        SetPosition.Register(graph, node);
+    public static ClearNodes (): void {
+        const available = ['node', 'scene', 'core'];
+        const keys = Object.keys(LiteGraph.registered_node_types);
+
+        keys.forEach(k => {
+            const split = k.split('/');
+            if (available.indexOf(split[0]) !== -1)
+                delete LiteGraph.registered_node_types[k];
+        });
+    }
+
+    /**
+     * Registers all the additional nodes available for Babylon.js
+     * @param object the object being 
+     */
+    public static RegisterNodes (object?: any): void {
+        // Unregister all except:
+        const available = ['node', 'scene', 'math', 'math3d', 'basic'];
+        const keys = Object.keys(LiteGraph.registered_node_types);
+
+        keys.forEach(k => {
+            const split = k.split('/');
+            if (available.indexOf(split[0]) === -1)
+                delete LiteGraph.registered_node_types[k];
+        });
+
+        // Register custom
+        RenderLoop.Register('core/renderloop', RenderLoop);
+        
+        if (!object || object.position && object.position instanceof Vector3) {
+            GetPosition.Register('node/getposition', GetPosition);
+            SetPosition.Register('node/setposition', SetPosition);
+        }
+
+        if (!object || object.rotation && object.rotation instanceof Vector3) {
+            GetRotation.Register('node/getrotation', GetRotation);
+            SetRotation.Register('node/setrotation', SetRotation);
+        }
+
+        if (!object || object.scaling && object.scaling instanceof Vector3) {
+            GetScale.Register('node/getscale', GetScale);
+            SetScale.Register('node/setscale', SetScale);
+        }
     }
 }
 
