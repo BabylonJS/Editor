@@ -26,8 +26,8 @@ export default class EditorPreview {
         // Toolbar
         this.toolbar = new Toolbar('PREVIEW-TOOLBAR');
         this.toolbar.onClick = id => this.onToolbarClicked(id);
-        this.toolbar.items = [{
-            type: 'menu', id: 'show', text: 'Show', img: 'icon-helpers', selected: [], items: [
+        this.toolbar.items = [
+            { type: 'menu', id: 'show', text: 'Show', img: 'icon-helpers', selected: [], items: [
                 { id: 'bounding-boxes', img: 'icon-bounding-box', text: 'Bounding Box' },
                 { id: 'wireframe', img: 'icon-wireframe', text: 'Wireframe' },
                 { type: 'break' },
@@ -35,6 +35,11 @@ export default class EditorPreview {
                 { type: 'break' },
                 { id: 'textures', img: 'icon-dynamic-texture', text: 'Textures' },
                 { id: 'lights', img: 'icon-light', text: 'Lights' }
+            ]},
+            { type: 'break' },
+            { type: 'menu', id: 'camera', text: 'Camera', img: 'icon-camera', items: [
+                { id: 'free', text: 'Free Camera', img: 'icon-camera' },
+                { id: 'arc', text: 'Arc Rotate Camera', img: 'icon-camera' }
             ]},
             { type: 'break' },
             { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
@@ -74,6 +79,10 @@ export default class EditorPreview {
 
             case 'show:textures': this.editor.core.scene.texturesEnabled = !this.editor.core.scene.texturesEnabled; break;
             case 'show:lights': this.editor.core.scene.lightsEnabled = !this.editor.core.scene.lightsEnabled; break;
+
+            // Camera
+            case 'camera:free': this.editor.createEditorCamera('free'); break;
+            case 'camera:arc': this.editor.createEditorCamera('arc'); break;
 
             // Gizmos
             case 'position':

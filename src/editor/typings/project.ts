@@ -46,19 +46,8 @@ export interface Animation {
     events: AnimationEventFrame[];
 }
 
-/**
-*  Global animation configuration of the project
-*/
-export interface AnimationConfigurationOnPlay {
-    type: string; // Object type to animate/play on play
-    name: string; // Object name
-}
-
-export interface AnimationConfiguration {
-    globalAnimationSpeed: number; // Global animation speed on play
-    animatedAtLaunch: AnimationConfigurationOnPlay[];
-    framesPerSecond: number;
-    //settings: Settings; TODO
+export interface GlobalConfiguration {
+    serializedCamera?: any;
 }
 
 /**
@@ -140,7 +129,7 @@ export interface EffectLayer {
 * Root object of project
 */
 export interface ProjectRoot {
-    globalConfiguration: AnimationConfiguration;
+    globalConfiguration: GlobalConfiguration;
     materials: ProjectMaterial[];
     particleSystems: ParticleSystem[];
     nodes: Node[];

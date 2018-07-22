@@ -2,7 +2,8 @@ import {
     Engine, Scene, SceneLoader,
     FreeCamera, Camera,
     Vector3,
-    FilesInput
+    FilesInput,
+    ArcRotateCamera
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -15,6 +16,7 @@ import Core, { IUpdatable } from './core';
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
 import ResizableLayout from './gui/resizable-layout';
+import { TreeNode } from './gui/tree';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -37,7 +39,7 @@ import UndoRedo from './tools/undo-redo';
 export default class Editor implements IUpdatable {
     // Public members
     public core: Core;
-    public camera: FreeCamera;
+    public camera: FreeCamera | ArcRotateCamera;
     public playCamera: Camera = null;
 
     public layout: Layout;
@@ -144,7 +146,8 @@ export default class Editor implements IUpdatable {
 
         // Initialize Babylon.js
         if (!scene) {
-            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas')
+            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas');
+            canvas.addEventListener('contextmenu', ev => ev.preventDefault());
             
             this.core.engine = new Engine(canvas, true, {
                 antialias: true
@@ -388,18 +391,52 @@ export default class Editor implements IUpdatable {
     /**
      * Creates the editor camera
      */
-    protected createEditorCamera (): Camera {
+    public createEditorCamera (type: 'arc' | 'free' | any = 'free'): Camera {
+        // Graph node
+        let graphNode: TreeNode = null;
+        if (this.camera)
+            graphNode = this.graph.getByData(this.camera);
+
+        // Values
+        const position = this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(0, 5, 25);
+        const target = this.core.scene.activeCamera ? this.core.scene.activeCamera['_currentTarget'] || new Vector3(0, 5, 24) : new Vector3(0, 5, 24);
+
+        // Dispose existing camera
+        if (this.camera)
+            this.camera.dispose();
+
         // Editor camera
-        this.camera = new FreeCamera('Editor Camera', this.core.scene.activeCamera ? this.core.scene.activeCamera.position : new Vector3(0, 5, 25), this.core.scene);
-        this.camera.speed = 0.5;
-        this.camera.angularSensibility = 3000;
-        this.camera.setTarget(new Vector3(0, 5, 24));
+        if (type === 'free') {
+            this.camera = new FreeCamera('Editor Camera', position, this.core.scene);
+            this.camera.speed = 0.5;
+            this.camera.angularSensibility = 3000;
+            this.camera.setTarget(target);
+            this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
+
+            // Define target property on FreeCamera
+            Object.defineProperty(this.camera, 'target', {
+                get: () => { return this.camera.getTarget() },
+                set: (v: Vector3) => (<FreeCamera> this.camera).setTarget(v)
+            });
+        }
+        else if (type === 'arc') {
+            this.camera = new ArcRotateCamera('Editor Camera', Math.PI / 2, Math.PI / 2, 15, target, this.core.scene);
+            this.camera.panningSensibility = 500;
+            this.camera.attachControl(this.core.engine.getRenderingCanvas(), true, false);
+        }
+        else {
+            this.camera = <FreeCamera | ArcRotateCamera> Camera.Parse(type, this.core.scene);
+        }
+
+        // Configure
         this.camera.maxZ = 10000;
 
         if (this.core.scene.cameras.length > 1)
             this.camera.doNotSerialize = true;
-        
-        this.camera.attachControl(this.core.engine.getRenderingCanvas(), true);
+
+        // Update graph node
+        if (graphNode)
+            graphNode.data = this.camera;
 
         // Traditional WASD controls
         this.camera.keysUp.push(87); // "W"
@@ -410,12 +447,6 @@ export default class Editor implements IUpdatable {
         
         this.camera.keysDown.push(83); //"S"
         this.camera.keysRight.push(68) //"D"
-
-        // Define target property on FreeCamera
-        Object.defineProperty(this.camera, 'target', {
-            get: () => { return this.camera.getTarget() },
-            set: (v: Vector3) => this.camera.setTarget(v)
-        });
 
         // Set as active camera
         this.core.scene.activeCamera = this.camera;
@@ -459,8 +490,9 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.preview.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 
-        document.addEventListener('keyup', ev => ev.ctrlKey && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => ev.ctrlKey && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));
+        document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));
 
         // Save state
         window.addEventListener('beforeunload', () => {
