@@ -35,6 +35,7 @@
                 "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
                 "javascript-astar": "./node_modules/javascript-astar/astar.js",
                 "typescript": "./node_modules/typescript/lib/typescript.js",
+                "litegraph.js": "./node_modules/litegraph.js/build/litegraph.js",
 
                 // Editor's modules paths
                 "babylonjs-editor": "./build/src/index.js",
@@ -42,6 +43,7 @@
                 "animation-editor": "./build/src/tools/animations/editor.js",
                 "material-viewer": "./build/src/tools/materials/viewer.js",
                 "behavior-editor": "./build/src/tools/behavior/code.js",
+                "graph-editor": "./build/src/tools/behavior/graph.js",
                 "texture-viewer": "./build/src/tools/textures/viewer.js",
                 "material-editor": "./build/src/tools/material-editor/index.js",
                 "post-process-editor": "./build/src/tools/post-process-editor/index.js",
@@ -68,7 +70,8 @@
                 "*.css": { loader: "css" },
                 "cannon": { format: "global" },
                 "javascript-astar": { format: "global" },
-                "typescript": { format: "global" }
+                "typescript": { format: "global" },
+                "litegraph.js": { format: "global" }
             },
             pluginFirst: true
         });

@@ -337,16 +337,16 @@ export default class Editor implements IUpdatable {
                         await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
                     }
                     else {
-                        const promises: Promise<any>[] = [
-                            // this.addEditPanelPlugin('./build/src/tools/materials/viewer.js', false, 'Material Viewer'),
-                            // this.addEditPanelPlugin('./build/src/tools/textures/viewer.js', false, 'Texture Viewer'),
-                            // this.addEditPanelPlugin('./build/src/tools/animations/editor.js', false, 'Animations Editor'),
-                            // this.addEditPanelPlugin('./build/src/tools/behavior/code.js', false, 'Behavior Code'),
-                            // this.addEditPanelPlugin('./build/src/tools/material-creator/index.js', false, 'Material Creator'),
-                            // this.addEditPanelPlugin('./build/src/tools/post-process-creator/index.js', false, 'Material Creator')
-                        ];
+                        // const promises: Promise<any>[] = [
+                        //     this.addEditPanelPlugin('./build/src/tools/materials/viewer.js', false, 'Materials Viewer'),
+                        //     this.addEditPanelPlugin('./build/src/tools/textures/viewer.js', false, 'Textures Viewer'),
+                        //     this.addEditPanelPlugin('./build/src/tools/animations/editor.js', false, 'Animations Editor'),
+                        //     this.addEditPanelPlugin('./build/src/tools/behavior/code.js', false, 'Behavior Code'),
+                        //     this.addEditPanelPlugin('./build/src/tools/material-creator/index.js', false, 'Material Creator'),
+                        //     this.addEditPanelPlugin('./build/src/tools/post-process-creator/index.js', false, 'Material Creator')
+                        // ];
 
-                        await Promise.all(promises);
+                        // await Promise.all(promises);
                     }
 
                     // Resize
