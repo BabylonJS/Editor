@@ -65,6 +65,8 @@ export default class EditorToolbar {
                     { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
                     { type: 'break ' },
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
+                    { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
+                    { type: 'break' },
                     { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     //{ id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
@@ -187,6 +189,9 @@ export default class EditorToolbar {
                 break;
             case 'view:code-editor':
                 await this.loadTool('behavior-editor', 'Code Editor');
+                break;
+            case 'view:graph-editor':
+                await this.loadTool('graph-editor', 'Graph Editor');
                 break;
             case 'view:material-editor':
                 await this.loadTool('material-editor', 'Material Editor');
