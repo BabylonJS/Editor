@@ -22,6 +22,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'jstree': './node_modules/jstree/dist/jstree.js',
             'golden-layout': './node_modules/golden-layout/dist/goldenlayout.js',
             'javascript-astar': './node_modules/javascript-astar/astar.js',
+            'litegraph.js': './node_modules/litegraph.js/build/litegraph.js',
 
             // Editor's modules paths
             'babylonjs-editor': './build/src/index.js',
@@ -60,7 +61,7 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
       'babylonjs': 'BABYLON',
       'spectorjs': 'SPECTOR'
     },
-    externals: ['javascript-astar'],
+    externals: ['javascript-astar', 'litegraph.js'],
     minify: true
 });
 
@@ -68,7 +69,7 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
 let externals = [
     'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
     'babylonjs-materials', 'dat-gui', 'extensions/extensions',
-    'jstree', 'golden-layout', 'jquery', 'javascript-astar'
+    'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js'
 ];
 
 build('./build/src/', './build/src/index.js', './dist/editor.js', {
@@ -99,6 +100,13 @@ build('./build/src/', './build/src/tools/animations/editor.js', './dist/animatio
 
 build('./build/src/', './build/src/tools/behavior/code.js', './dist/behavior-editor.js', {
     globalName: 'BehaviorEditor',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
+
+build('./build/src/', './build/src/tools/behavior/graph.js', './dist/graph-editor.js', {
+    globalName: 'GraphEditor',
     format: 'cjs',
     externals: externals,
     minify: true

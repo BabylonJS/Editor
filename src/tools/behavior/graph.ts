@@ -4,7 +4,6 @@ import {
 } from 'babylonjs';
 
 import { LGraph, LGraphCanvas } from 'litegraph.js';
-import '../../../../node_modules/litegraph.js/css/litegraph.css';
 
 import Editor, {
     Layout,
@@ -33,16 +32,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public graph: LGraphCanvas = null;
 
     // Protected members
-    protected node: Node = null;
+    protected node: Node & { [index: string]: any } = null;
 
-    public data: BehaviorGraph = null;
-    public datas: BehaviorMetadata = null;
+    protected data: BehaviorGraph = null;
+    protected datas: BehaviorMetadata = null;
     
     protected resizeObserver: Observer<any> = null;
     protected selectedObjectObserver: Observer<any> = null;
 
-    // Static members
-    private static _RegisteredNodes: boolean = false;
+    // Private members
+    private _savedState: any = { };
 
     /**
      * Constructor
@@ -82,24 +81,34 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('GRAPH-EDITOR-TOOLBAR');
         this.toolbar.items = [
-            { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
+            { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
+            { type: 'break' },
+            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' },
+            //{ type: 'break' },
+            //{ id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
+        this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.right = 'No object selected';
         this.toolbar.build('GRAPH-EDITOR-TOOLBAR');
 
         // Add grid
         this.grid = new Grid<GraphGrid>('GRAPH-EDITOR-LIST', {
             toolbarReload: false,
-            toolbarSearch: false
+            toolbarSearch: false,
+            toolbarEdit: false
         });
         this.grid.columns = [
             { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
             { field: 'active', caption: 'Active', size: '20%', editable: { type: 'checkbox' } }
         ];
         this.grid.onAdd = () => this.add();
+        this.grid.onClick = ids => this.selectGraph(ids[0]);
+        this.grid.onDelete = (ids) => this.delete(ids);
+        this.grid.onChange = (id, value) => this.change(id, value);
         this.grid.build('GRAPH-EDITOR-LIST');
 
         // Graph
+        System.import('./node_modules/litegraph.js/css/litegraph.css');
         this.graphData = new LGraph();
         this.graphData.onPropertyChanged = () => this.data && (this.data.graph = this.graphData.serialize());
 
@@ -115,19 +124,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
-
-        // Register nodes
-        if (!BehaviorGraphEditor._RegisteredNodes) {
-            GraphExtension.RegisterNodes(this.graphData);
-            BehaviorGraphEditor._RegisteredNodes = true;
-        }
     }
 
     /**
      * On the user shows the plugin
      */
     public onShow (): void {
-
+        this.resize();
     }
 
     /**
@@ -139,8 +142,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Graph canvas
         const size = this.layout.getPanelSize('main');
-        this.graph.canvas.width = size.width;
-        this.graph.canvas.height = size.height;
+        this.graph.resize(size.width, size.height);
+    }
+
+    /**
+     * When the user clicks on the toolbar
+     * @param id: the id of the clicked item
+     */
+    protected toolbarClicked (id: string): void {
+        switch (id) {
+            case 'save': this.data && (this.data.graph = this.graphData.serialize()); break;
+            case 'play-stop': this.playStop(); break;
+        }
     }
 
     /**
@@ -148,9 +161,15 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param data the selected node
      */
     protected objectSelected (node: Node): void {
-        if (!(node instanceof Node))
+        if (!(node instanceof Node)) {
+            this.layout.lockPanel('left', 'Please Select A Node');
             return;
+        }
 
+        // Stop running graph
+        this.playStop(true);
+
+        // Configure node
         this.node = node;
         node.metadata = node.metadata || { };
 
@@ -161,9 +180,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Clear existing data
         this.data = null;
-
         this.grid.element.clear();
+
+        // Graph data
         this.graphData.clear();
+        this.graphData.scriptObject = node;
 
         // Add rows
         this.datas.metadatas.forEach((d, index) => {
@@ -185,6 +206,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Refresh right text
         this.toolbar.element.right = `Attached to "${node.name}"`;
         this.toolbar.element.render();
+
+        // Unlock
+        this.layout.unlockPanel('left');
     }
 
     /**
@@ -192,8 +216,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
-        debugger;
         this.data = this.datas.metadatas[index];
+
+        // Stop running graph
+        this.playStop(true);
+
+        // Configure
+        GraphExtension.ClearNodes();
+        GraphExtension.RegisterNodes(this.node);
 
         this.graphData.clear();
         this.graphData.configure(this.data.graph);
@@ -221,5 +251,49 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Select latest script
         this.grid.select([this.datas.metadatas.length - 1]);
         this.selectGraph(this.datas.metadatas.length - 1);
+    }
+
+    /**
+     * The user wants to delete a script
+     * @param ids: the ids to delete
+     */
+    protected delete (ids: number[]): void {
+        let offset = 0;
+        ids.forEach(id => {
+            this.datas.metadatas.splice(id - offset, 1);
+            offset++;
+        });
+    }
+
+    /**
+     * On the user changes the name of the script
+     * @param id: the id of the script
+     * @param value: the new value
+     */
+    protected change (id: number, value: string | boolean): void {
+        if (typeof value === 'string')
+            this.datas.metadatas[id].name = value;
+        else
+            this.datas.metadatas[id].active = value;
+    }
+
+    /**
+     * Plays or stops the current graph
+     */
+    protected playStop (stop: boolean = false): void {
+        if (stop || this.graphData.status === LGraph.STATUS_RUNNING) {
+            for (const obj in this._savedState)
+                this.node[obj] = this._savedState[obj];
+            
+            this._savedState = { };
+            this.graphData.stop();
+        }
+        else {
+            this.node.position && (this._savedState.position = this.node.position.clone());
+            this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
+            this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
+
+            this.graphData.start();
+        }
     }
 }
