@@ -32,7 +32,7 @@ declare module 'babylonjs-editor' {
 }
 
 declare module 'babylonjs-editor/editor/editor' {
-    import { Scene, FreeCamera, Camera, FilesInput } from 'babylonjs';
+    import { Scene, FreeCamera, Camera, FilesInput, ArcRotateCamera } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { IEditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import Core, { IUpdatable } from 'babylonjs-editor/editor/core';
@@ -48,7 +48,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
             core: Core;
-            camera: FreeCamera;
+            camera: FreeCamera | ArcRotateCamera;
             playCamera: Camera;
             layout: Layout;
             resizableLayout: ResizableLayout;
@@ -108,7 +108,7 @@ declare module 'babylonjs-editor/editor/editor' {
             /**
                 * Creates the editor camera
                 */
-            protected createEditorCamera(): Camera;
+            createEditorCamera(type?: 'arc' | 'free' | any): Camera;
     }
 }
 
@@ -1008,17 +1008,8 @@ declare module 'babylonjs-editor/editor/typings/project' {
         serializationObject: any;
         events: AnimationEventFrame[];
     }
-    /**
-     *  Global animation configuration of the project
-     */
-    export interface AnimationConfigurationOnPlay {
-        type: string;
-        name: string;
-    }
-    export interface AnimationConfiguration {
-        globalAnimationSpeed: number;
-        animatedAtLaunch: AnimationConfigurationOnPlay[];
-        framesPerSecond: number;
+    export interface GlobalConfiguration {
+        serializedCamera?: any;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)
@@ -1087,7 +1078,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
      * Root object of project
      */
     export interface ProjectRoot {
-        globalConfiguration: AnimationConfiguration;
+        globalConfiguration: GlobalConfiguration;
         materials: ProjectMaterial[];
         particleSystems: ParticleSystem[];
         nodes: Node[];

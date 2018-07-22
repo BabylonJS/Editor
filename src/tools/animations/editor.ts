@@ -275,9 +275,10 @@ export default class AnimationEditor extends EditorPlugin {
     protected resize(): void {
         this.layout.element.resize();
 
-        // TODO: find why 
+        // TODO: find why setTimeout needed
         setTimeout(() => {
             const size = this.layout.getPanelSize('main');
+
             this.paper.setSize(size.width, size.height);
 
             this.background.attr('width', size.width);

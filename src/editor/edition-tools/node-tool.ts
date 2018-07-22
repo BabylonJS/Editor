@@ -136,9 +136,13 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 scene.activeCamera = r ? node : this.editor.camera;
             });
 
-            if (node['speed'] !== undefined)
+            if (node['panningSensibility'] !== undefined) {
+                camera.add(node, 'panningSensibility').step(1).name('Panning Sensibility');
+            }
+            else if (node['speed'] !== undefined) {
                 camera.add(node, 'speed').step(0.01).name('Speed');
-
+            }
+            
             camera.add(node, 'minZ').step(0.01).name('Min Z');
             camera.add(node, 'maxZ').step(0.01).name('Max Z');
             camera.add(node, 'fov').step(0.01).name('Fov');

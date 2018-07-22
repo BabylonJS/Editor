@@ -39,12 +39,9 @@ export default class SceneExporter {
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
         if (editor.playCamera)
             serializedScene.activeCameraID = editor.playCamera.id;
-
-        let file: File = null;
         
         if (format === 'babylon') {
-            file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
-            editor.sceneFile = file;
+            editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
         }
 
         // Gui
@@ -57,8 +54,7 @@ export default class SceneExporter {
         // Project
         const name = 'scene' + randomId + '.editorproject';
         const project = this.Export(editor);
-        file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
-        editor.projectFile = file;
+        editor.projectFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
     }
 
     /**
@@ -202,7 +198,7 @@ export default class SceneExporter {
         const project: Export.ProjectRoot = {
             actions: null,
             customMetadatas: this._SerializeCustomMetadatas(editor),
-            globalConfiguration: null,
+            globalConfiguration: this._SerializeGlobalConfiguration(editor),
             lensFlares: null,
             materials: this._SerializeMaterials(editor),
             nodes: this._SerializeNodes(editor),
@@ -220,6 +216,15 @@ export default class SceneExporter {
         SceneManager.Toggle(editor.core.scene);
 
         return project;
+    }
+
+    /**
+     * Serializes the global configuration of the project
+     */
+    private static _SerializeGlobalConfiguration (editor: Editor): Export.GlobalConfiguration {
+        return {
+            serializedCamera: editor.camera.serialize()
+        }
     }
 
     /**

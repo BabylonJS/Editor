@@ -43,6 +43,10 @@ export default class SceneImporter {
         // Clean project (compatibility)
         this.CleanProject(project);
 
+        // Global Configuration
+        if (project.globalConfiguration.serializedCamera)
+            editor.createEditorCamera(project.globalConfiguration.serializedCamera);
+
         // Physics
         if (!scene.isPhysicsEnabled())
             scene.enablePhysics(scene.gravity, new CannonJSPlugin());
@@ -216,7 +220,7 @@ export default class SceneImporter {
         project.customMetadatas = project.customMetadatas || {};
         project.physicsEnabled = project.physicsEnabled || false;
         project.effectLayers = project.effectLayers || [];
-        //project.globalConfiguration.settings = project.globalConfiguration.settings || SceneFactory.Settings;
+        project.globalConfiguration = project.globalConfiguration || { };
     }
 
     /**
