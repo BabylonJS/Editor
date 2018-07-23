@@ -13,7 +13,7 @@ export class GetProperty extends LiteGraphNode {
         this.desc = 'Gets the value to the given property';
 
         this.addProperty('path', 'id');
-        this.addOutput('Value', 'value');
+        this.addOutput('Value', 'string,number');
     }
 
     /**
@@ -46,8 +46,8 @@ export class SetProperty extends LiteGraphNode {
         this.addProperty('path', 'id');
         this.addProperty('value', '');
 
-        this.addInput('Value', 'value');
-        this.addOutput('Value', 'value');
+        this.addInput('Value', 'string,number');
+        this.addOutput('Value', 'string,number');
     }
 
     /**
@@ -68,7 +68,7 @@ export class SetProperty extends LiteGraphNode {
         switch (typeof effectiveProperty[lastSplit]) {
             case 'string': effectiveProperty[lastSplit] = value; break;
             case 'number': effectiveProperty[lastSplit] = parseFloat(value); break;
-            case 'boolean': effectiveProperty[lastSplit] = value.toLowerCase() === 'true'; break;
+            case 'boolean': effectiveProperty[lastSplit] = value.toString().toLowerCase() === 'true'; break;
             default: console.log(`Cannot set property "${path}" as it is not a string, number or boolean`); break;
         }
 
