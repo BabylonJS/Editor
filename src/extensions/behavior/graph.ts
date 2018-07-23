@@ -50,8 +50,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
             // For each graph
             d.metadatas.forEach(m => {
+                if (!m.active)
+                    return;
+                
                 const graph = new LGraph();
                 graph.scriptObject = node;
+                graph.scriptScene = this.scene;
 
                 graph.configure(m.graph);
 

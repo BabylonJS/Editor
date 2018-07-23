@@ -631,6 +631,7 @@ export default class Editor implements IUpdatable {
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
                 await Promise.all([
                     Tools.ImportScript('behavior-editor'),
+                    Tools.ImportScript('graph-editor'),
                     Tools.ImportScript('material-editor'),
                     Tools.ImportScript('post-process-editor'),
                     Tools.ImportScript('post-processes'),
