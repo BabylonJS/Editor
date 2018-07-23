@@ -2,12 +2,13 @@ import { LiteGraph, LGraph } from 'litegraph.js';
 
 export abstract class LiteGraphNode {
     // Public members
-    public size: number[];
+    public size: number[] = [60, 20];
     public title: string;
     public desc: string;
     public mode: number;
 
     public _data: any;
+    public properties: { [index: string]: string };
 
     public graph: LGraph;
 
@@ -53,4 +54,6 @@ export abstract class LiteGraphNode {
 
     public getInputData? (slot: number): any;
     public setOutputData? (slot: number, data: any): void;
+
+    public addProperty? (name: string, defaultValue: string | number | boolean): void;
 }

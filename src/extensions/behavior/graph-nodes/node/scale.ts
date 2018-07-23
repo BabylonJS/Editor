@@ -10,7 +10,6 @@ export class GetScale extends LiteGraphNode {
     constructor () {
         super();
 
-        this.size = [60, 20];
         this.title = 'Get Scale';
         this.desc = 'Get Object Scale by Vec3';
 
@@ -46,7 +45,6 @@ export class SetScale extends LiteGraphNode {
     constructor () {
         super(true);
 
-        this.size = [60, 20];
         this.title = 'Set Scale';
         this.desc = 'Set Object Scale by Vec3';
 

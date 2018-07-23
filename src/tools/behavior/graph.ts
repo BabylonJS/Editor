@@ -292,6 +292,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.position && (this._savedState.position = this.node.position.clone());
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
+            this.node.material && (this._savedState.material = this.node.material.clone(this.node.material.name));
 
             this.graphData.start();
         }
