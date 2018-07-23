@@ -21,6 +21,7 @@ declare module 'babylonjs-editor' {
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
+    import Dialog from 'babylonjs-editor/editor/gui/dialog';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
@@ -28,7 +29,7 @@ declare module 'babylonjs-editor' {
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
     export default Editor;
-    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
+    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -872,6 +873,25 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param parentId the parent id
                 */
             build(parentId: string): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/gui/dialog' {
+    export default class Dialog {
+            /**
+                * Creates a GUI dialog window
+                * @param title the title of the window
+                * @param body the body of the window
+                * @param callback the dialog's callback
+                * @param yes callback when user clicks "yes"
+                * @param no callback when the user clicks "no"
+                */
+            static Create(title: string, body: string, callback: (result: string) => void, yes?: () => void, no?: () => void): void;
+            /**
+                * Creates a GUI dialog with a text input
+                * @param title the title of the dialog
+                */
+            static CreateWithTextInput(title: string): Promise<string>;
     }
 }
 

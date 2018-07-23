@@ -14,10 +14,9 @@ import Editor, {
     CodeEditor,
     Tree,
     Window as Popin,
-    Form,
+    Dialog,
 
     EditorPlugin,
-    IDisposable,
 
     ProjectRoot
 } from 'babylonjs-editor';
@@ -244,7 +243,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         else if (this.node instanceof HemisphericLight)
             ctor = "hemlight";
 
-        const name = await this.askName();
+        const name = await Dialog.CreateWithTextInput('Script Name');
 
         const data: BehaviorCode = {
             name: name,
@@ -337,43 +336,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         });
         popup.addEventListener('beforeunload', () => {
             CodeEditor.RemoveExtraLib(popup);
-        });
-    }
-
-    /**
-     * Asks the name of the new script to add by creating a
-     * window and a form
-     */
-    protected async askName (): Promise<string> {
-        return new Promise<string>((resolve) => {
-            // Window
-            const popin = new Popin('AskName');
-            popin.title = 'Script name';
-            popin.body = `<div id="ASK-NAME-BEHAVIOR-CODE" style="width: 100%; height: 100%"></div>`;
-            popin.buttons = ['Ok'];
-            popin.showClose = false;
-            popin.showMax = false;
-            popin.width = 500;
-            popin.height = 160;
-            popin.open();
-
-            // Form
-            const form = new Form('AskNameForm');
-            form.fields.push({ name: 'Name', required: true, type: 'text', options: {  } });
-            form.onChange = () => popin.onButtonClick('Ok');
-            form.build('ASK-NAME-BEHAVIOR-CODE');
-
-            // Events
-            popin.onButtonClick = id => {
-                if (!form.isValid())
-                    return;
-
-                resolve(form.element.record['Name']);
-
-                // Destroy
-                form.element.destroy();
-                popin.close();
-            };
         });
     }
 
