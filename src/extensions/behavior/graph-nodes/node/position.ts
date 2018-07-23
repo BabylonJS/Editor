@@ -10,7 +10,6 @@ export class GetPosition extends LiteGraphNode {
     constructor () {
         super();
 
-        this.size = [60,20];
         this.title = 'Get Position';
         this.desc = 'Get Object Position by Vec3';
 
@@ -46,7 +45,6 @@ export class SetPosition extends LiteGraphNode {
     constructor () {
         super(true);
 
-        this.size = [60,20];
         this.title = 'Set Position';
         this.desc = 'Set Object Position by Vec3';
 

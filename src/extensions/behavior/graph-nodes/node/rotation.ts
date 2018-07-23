@@ -10,7 +10,6 @@ export class GetRotation extends LiteGraphNode {
     constructor () {
         super();
 
-        this.size = [60, 20];
         this.title = 'Get Rotation';
         this.desc = 'Get Object Rotation by Vec3';
 
@@ -46,7 +45,6 @@ export class SetRotation extends LiteGraphNode {
     constructor () {
         super(true);
 
-        this.size = [60, 20];
         this.title = 'Set Rotation';
         this.desc = 'Set Object Rotation by Vec3';
 

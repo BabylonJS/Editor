@@ -10,7 +10,6 @@ export class RenderLoop extends LiteGraphNode {
     constructor () {
         super();
 
-        this.size = [60,20];
         this.title = 'Render Loop';
         this.desc = 'On Render Loop';
         this.mode = LiteGraph.ALWAYS;

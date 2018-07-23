@@ -8,6 +8,7 @@ import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
 import { RenderLoop } from './graph-nodes/core/engine';
+import { GetProperty, SetProperty } from './graph-nodes/basic/set-property';
 
 // Interfaces
 export interface BehaviorGraph {
@@ -129,7 +130,10 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
         // Register custom
         RenderLoop.Register('core/renderloop', RenderLoop);
-        
+
+        GetProperty.Register('basic/getproperty', GetProperty);
+        SetProperty.Register('basic/setproperty', SetProperty);
+
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);
             SetPosition.Register('node/setposition', SetPosition);
