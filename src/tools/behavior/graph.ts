@@ -9,6 +9,7 @@ import Editor, {
     Layout,
     Toolbar,
     Grid, GridRow,
+    Dialog,
     EditorPlugin,
 } from 'babylonjs-editor';
 
@@ -232,10 +233,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     /**
      * When the user adds a new graph
      */
-    protected add (): void {
+    protected async add (): Promise<void> {
         // Create data
+        const name = await Dialog.CreateWithTextInput('Graph Name');
         const data: BehaviorGraph = {
-            name: 'New Graph',
+            name: name,
             active: true,
             graph: new LGraph().serialize()
         };

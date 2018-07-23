@@ -13,6 +13,7 @@ import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
 import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
+import Dialog from './editor/gui/dialog';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
 
@@ -48,6 +49,7 @@ export {
     Form,
     Edition,
     Tree, ContextMenuItem, TreeNode,
+    Dialog,
 
     AbstractEditionTool,
 

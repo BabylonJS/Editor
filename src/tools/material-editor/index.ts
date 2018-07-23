@@ -1,8 +1,9 @@
 import { Effect, Material } from 'babylonjs';
 
 import Editor, {
-    IDisposable, Tools,
-    Layout, Toolbar, Grid, GridRow,
+    Tools,
+    Layout, Grid, GridRow,
+    Dialog,
     CodeEditor,
     EditorPlugin
 } from 'babylonjs-editor';
@@ -177,10 +178,11 @@ export default class MaterialEditor extends EditorPlugin {
     /**
      * Creates a new material
      */
-    protected addMaterial (): void {
+    protected async addMaterial (): Promise<void> {
         // Create data and material
+        const name = await Dialog.CreateWithTextInput('Material Name');
         const data: MaterialCreatorMetadata = {
-            name: 'Custom material' + this.datas.length + 1,
+            name: name,
             code: MaterialEditor.DefaultCode,
             vertex: MaterialEditor.DefaultVertex,
             pixel: MaterialEditor.DefaultPixel,

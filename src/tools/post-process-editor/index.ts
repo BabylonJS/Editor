@@ -5,6 +5,7 @@ import Editor, {
     Layout, Toolbar,
     Grid, GridRow,
     CodeEditor,
+    Dialog,
     EditorPlugin,
     Picker
 } from 'babylonjs-editor';
@@ -239,12 +240,13 @@ export default class PostProcessEditor extends EditorPlugin {
     /**
      * Creates a new post-process
      */
-    protected addPostProcess (): void {
+    protected async addPostProcess (): Promise<void> {
         // Create data and material
+        const name = await Dialog.CreateWithTextInput('Post-Process Name');
         const data: PostProcessCreatorMetadata = this.data = {
             preview: true,
             cameraName: this.activeCamera ? this.activeCamera.name : null,
-            name: 'Custom Post-Process' + this.datas.length + 1,
+            name: name,
             code: PostProcessEditor.DefaultCode,
             pixel: PostProcessEditor.DefaultPixel,
             config: PostProcessEditor.DefaultConfig,
