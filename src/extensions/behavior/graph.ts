@@ -107,12 +107,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * Clears all the additional nodes available for Babylon.js
      */
     public static ClearNodes (): void {
-        const available = ['node', 'scene', 'core'];
+        const available = ['node', 'scene', 'core', 'basic/script'];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
             const split = k.split('/');
-            if (available.indexOf(split[0]) !== -1)
+            if (available.indexOf(split[0]) !== -1 || available.indexOf(k) !== -1)
                 delete LiteGraph.registered_node_types[k];
         });
     }

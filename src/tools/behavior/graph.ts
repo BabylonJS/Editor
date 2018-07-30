@@ -13,6 +13,8 @@ import Editor, {
     EditorPlugin,
 } from 'babylonjs-editor';
 
+import GraphNodeTool from './graph-tool';
+
 import Extensions from '../../extensions/extensions';
 import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extensions/behavior/graph';
 
@@ -43,6 +45,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+
+    /**
+     * On load the extension for the first time
+     */
+    public static OnLoaded (editor: Editor): void {
+        editor.edition.addTool(new GraphNodeTool());
+    }
 
     /**
      * Constructor
@@ -110,10 +119,17 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Graph
         System.import('./node_modules/litegraph.js/css/litegraph.css');
+
         this.graphData = new LGraph();
-        this.graphData.onPropertyChanged = () => this.data && (this.data.graph = this.graphData.serialize());
+        // this.graphData.onPropertyChanged = () => this.data && (this.data.graph = this.graphData.serialize());
+        this.graphData.onNodeAdded = node => {
+            node.shape = 'round';
+            // this.graphData.onPropertyChanged();
+        };
+        // this.graphData.onNodeRemoved = node => this.graphData.onPropertyChanged();
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
 
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());

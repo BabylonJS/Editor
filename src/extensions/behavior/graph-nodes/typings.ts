@@ -6,6 +6,7 @@ export abstract class LiteGraphNode {
     public title: string;
     public desc: string;
     public mode: number;
+    public shape: string = 'round';
 
     public _data: any;
     public properties: { [index: string]: string };

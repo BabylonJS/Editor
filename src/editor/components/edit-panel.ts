@@ -57,6 +57,7 @@ export default class EditorEditPanel {
     /**
      * Shows the given plugin
      * @param plugin: the plugin to show
+     * @param params: parameters to send to the plugin (onShow)
      */
     public async showPlugin (plugin: IEditorPlugin, ...params: any[]): Promise<void> {
         if (!plugin)
