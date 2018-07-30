@@ -19,24 +19,20 @@ declare module BABYLON {
         Vertex_Before_PositionUpdated: string;
         Vertex_Before_NormalUpdated: string;
     }
-    class ShaderForVer3_0 extends CustomShaderStructure {
-        constructor();
-    }
-    class StandardShaderVersions {
-        static Ver3_0: any;
-    }
     class CustomMaterial extends StandardMaterial {
         static ShaderIndexer: number;
         CustomParts: ShaderSpecialParts;
-        ShaderVersion: CustomShaderStructure;
+        _isCreatedShader: boolean;
+        _createdShaderName: string;
         _customUniform: string[];
         _newUniforms: string[];
         _newUniformInstances: any[];
         _newSamplerInstances: Texture[];
+        FragmentShader: string;
+        VertexShader: string;
         AttachAfterBind(mesh: Mesh, effect: Effect): void;
         ReviewUniform(name: string, arr: string[]): string[];
         Builder(shaderName: string, uniforms: string[], uniformBuffers: string[], samplers: string[], defines: StandardMaterialDefines): string;
-        SelectVersion(ver: string): void;
         constructor(name: string, scene: Scene);
         AddUniform(name: string, kind: string, param: any): CustomMaterial;
         Fragment_Begin(shaderPart: string): CustomMaterial;

@@ -563,7 +563,7 @@
                     var animKeys = anim.getKeys();
 
                     var animation = new Animation(anim.name, anim.targetPropertyPath.join("."), anim.framePerSecond, anim.dataType, anim.loopMode);
-                    var keys: { frame: number, value: any, inTangent?: any, outTangent?: any }[] = [];
+                    var keys: IAnimationKey[] = [];
 
                     for (var j = 0; j < animKeys.length; j++) {
                         keys.push({

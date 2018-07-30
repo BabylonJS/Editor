@@ -60,7 +60,12 @@ gulp.task("typescript-compile", function () {
         .pipe(typescript({
             target: "ES5",
             declarationFiles: true,
-            experimentalDecorators: false
+            experimentalDecorators: false,
+            lib: [
+                "dom",
+                "es2015.promise",
+                "es5"
+            ]
         }));
     
     return merge2([
@@ -95,7 +100,12 @@ gulp.task("build", ["build-extensions", "typescript-compile"], function () {
             module: "amd",
             declarationFiles: false,
             experimentalDecorators: false,
-            out: config.build.filename
+            out: config.build.filename,
+            lib: [
+                "dom",
+                "es2015.promise",
+                "es5"
+            ]
         }));
     
     // Return js
@@ -125,7 +135,12 @@ gulp.task("build-extensions", function () {
             target: "ES5",
             declarationFiles: true,
             experimentalDecorators: true,
-            out: config.editorExtensions.filename
+            out: config.editorExtensions.filename,
+            lib: [
+                "dom",
+                "es2015.promise",
+                "es5"
+            ]
         }));
 
     return merge2([
