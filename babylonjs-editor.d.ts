@@ -1569,6 +1569,7 @@ declare module 'babylonjs-editor/editor/components/edit-panel' {
             /**
                 * Shows the given plugin
                 * @param plugin: the plugin to show
+                * @param params: parameters to send to the plugin (onShow)
                 */
             showPlugin(plugin: IEditorPlugin, ...params: any[]): Promise<void>;
     }

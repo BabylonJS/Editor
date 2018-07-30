@@ -5,7 +5,7 @@ The Babylon.js Editor provides a way, for designers (and developers), to go furt
 
 The editor V2 is available online at http://editor.babylonjs.com/v2
 
-The Documentation is available here: http://doc.babylonjs.com/extensions (coming soon for V2)
+The Documentation is available here: http://doc.babylonjs.com/extensions starting with **[V2]**
 
 Some more articles/tutorials are available here: https://medium.com/babylon-js
 
@@ -22,8 +22,8 @@ Some more articles/tutorials are available here: https://medium.com/babylon-js
 * Scene graph view
 * Create and edit custom post-process
 * Create and edit custom materials
-* Attach custom scripts (JavaScript) to your objects
-* Live test your scenes with debug support
+* Attach custom scripts (JavaScript and TypeScript) to your objects
+* Test your scenes with debug support
 
 ## Installing
 Installing dependencies
