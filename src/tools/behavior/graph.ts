@@ -72,6 +72,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
 
+        this.node && this.editor.edition.setObject(this.node);
+
         await super.close();
     }
 
@@ -121,12 +123,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        // this.graphData.onPropertyChanged = () => this.data && (this.data.graph = this.graphData.serialize());
-        this.graphData.onNodeAdded = node => {
-            node.shape = 'round';
-            // this.graphData.onPropertyChanged();
-        };
-        // this.graphData.onNodeRemoved = node => this.graphData.onPropertyChanged();
+        this.graphData.onNodeAdded = node => node.shape = 'round';
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
@@ -311,6 +308,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
             this.node.material && (this._savedState.material = this.node.material.clone(this.node.material.name));
+
+            const keys = Object.keys(this.node);
+            keys.forEach(k => {
+                const type = typeof this.node[k];
+
+                if (type === 'number' || type === 'string' || type === 'boolean')
+                    this._savedState[k] = this.node[k];
+            });
 
             this.graphData.start();
         }
