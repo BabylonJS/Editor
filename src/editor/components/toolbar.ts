@@ -65,11 +65,11 @@ export default class EditorToolbar {
                     { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
                     { type: 'break ' },
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
-                    { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
+                    // { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
                     { type: 'break' },
                     { id: 'material-editor', img: 'icon-shaders', text: 'Material Editor...' },
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
-                    //{ id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
+                    // { id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
                     { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' }
                 ]
