@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "sourceMap": true,
+      "declaration": true,
+      "outDir": "../build/electron",
+      "declarationDir": "../declaration/electron",
+      "typeRoots" : ["../node_modules/@types"],
+      "types": [
+        "node", "electron"
+      ],
+      "lib": [
+        "es2015.promise", "es2015", "dom"
+      ]
+    },
+    "exclude": [
+      "./test/",
+      "./node_modules",
+      "../build",
+      "../declaration",
+      "./index.d.ts"
+    ]
+  }
+  

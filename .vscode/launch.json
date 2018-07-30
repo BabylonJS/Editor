@@ -6,7 +6,7 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
-            "webRoot": "${workspaceRoot}/website/",
+            "webRoot": "${workspaceRoot}/",
             "sourceMaps": true,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
@@ -15,12 +15,12 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
-            "webRoot": "${workspaceRoot}/website/",
+            "webRoot": "${workspaceRoot}/",
             "sourceMaps": false,
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
         {
-            "name": "Debug electron",
+            "name": "Electron Web",
             "type": "chrome",
             "request": "launch",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
@@ -28,12 +28,31 @@
                 "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
             },
             "runtimeArgs": [
-                "${workspaceRoot}/website/electron/main.js",
+                "${workspaceRoot}/.build/electron/main.js",
                 "--remote-debugging-port=9222"
             ],
-            "webRoot": "${workspaceRoot}/website/",
-            "sourceMaps": true,
-            "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
+            "webRoot": "${workspaceRoot}",
+            "sourceMaps": true
+        },
+        {
+            "name": "Electron Server",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
+            "env": {
+                "DEBUG": "true"
+            },
+            "args": [
+                "."
+            ],
+            "outFiles": [
+                "build/**/*.js"
+            ],
+            "sourceMaps": true
         }
     ]
 }

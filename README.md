@@ -1,114 +1,64 @@
-Babylon.js Editor v1.3.0
+Babylon.js Editor v2.0.0
 ======
-
-Getting started with the Babylon.js Editor?
-Check out the introduction with demos here: https://medium.com/babylon-js/welcome-to-the-babylon-js-editor-c08dccdcec07#.dbhqaduir
 
 The Babylon.js Editor provides a way, for designers (and developers), to go further in scene design and write less lines of code.
 
-The editor is available online at http://editor.babylonjs.com/
+The editor V2 is available online at http://editor.babylonjs.com/v2
 
-The Documentation is available here: http://doc.babylonjs.com/extensions
+The Documentation is available here: http://doc.babylonjs.com/extensions starting with **[V2]**
 
 Some more articles/tutorials are available here: https://medium.com/babylon-js
 
-Features
-======
-
+## Features
 * Create and edit particle systems
 * Create and edit animations
 * Create and edit lens flares systems
 * Create and edit physics states on meshes
 * Create and edit materials (including materials library)
 * Add and edit sounds
-* Create and edit materials (including materials library)
-* Add and edit textures (including render target textures preview)
-* Save projects on OneDrive (Drop Box will come in future versions)
-* Deploy project template on OneDrive (Drop Box will come in future versions)
-* Cinematics Editor
+* Add and edit textures (including render target textures & procedural textures)
+* Save projects on OneDrive / local with Electron
+* Deploy project template on OneDrive / local with Electron
 * Scene graph view
-* Create and edit post-process
-* Create and edit render targets (soon exported in final .babylon scenes)
-* Create post-processes using the Post-Process Builder
-* Create actions using the Actions Builder
-* Create and edit custom materials using the Materials Builder
-* Create and edit soft bodies (physics) using the Soft Body Editor
-* Attach scripts to your objects using the Behavior Editor
-* Live test your scenes with debug support
+* Create and edit custom post-process
+* Create and edit custom materials
+* Attach custom scripts (JavaScript and TypeScript) to your objects
+* Test your scenes with debug support
 
-**Additional features with Electron**
-* Photoshop plugin (live texturing)
-* Auto reload scenes (file watching)
+## Installing
+Installing dependencies
 
-Contribute
-======
-
-The branch "**master**" contains the online version of the editor, available at http://editor.babylonjs.com/
-
-If you want to contribute, you can use the branch "**develop**" and pull request.
-The **master** branch will be merged with the **dev** branch at each stable version, even preview :)
-
-Build
-======
-
-Install gulp-cli:
-```
-npm install -g gulp-cli
+```bash
+npm i
 ```
 
-Install dependencies:
-```
-npm install
+## Building
+Building Editor (front + electron)
+
+```bash
+npm run build
 ```
 
-Compile the TypeScript files into their respective JS files:
-```
-gulp typescript-compile
-```
+## Developing
+To develop the editor, or for the editor, just watch your TypeScript files and run a local webserver.
+Then, access to http://localhost:1338/index-debug.html
 
-Watch
-```
-gulp watch
-```
-
-Build the Babylon.js Editor including minified and maximized versions
-```
-gulp build
+Watching TypeScript (front)
+```bash
+npm run watch
 ```
 
-Test and run webserver
-```
-gulp webserver
-```
-
-Electron
-======
-
-Build the Electron version
-```
-gulp electron --platform --arch=arch
+Watching TypeScript (Electron)
+```bash
+npm run watch-electron
 ```
 
-Where "--platform" is the target platform:
-* osx
-* win32
-* linux
-* all (to package all platforms above with a single command line)
+Running the web server
+```bash
+npm run webserver
+```
 
-And "--arch" the architecture (optional):
-* x64
-* x86
-
-Example:
-* gulp electron --win32
-
-Roadmap for v1.3.0
-======
-* Create custom materials/post-processes and write custom JavaScript in order to go further in effects design
-
-Roadmap for future :)
-======
-* Add collaborative features
+That's all!
 
 Licence
 ======

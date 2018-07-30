@@ -1,28 +1,37 @@
-// Available variables which can be used inside of strings.
-// ${workspaceRoot}: the root folder of the team
-// ${file}: the current opened file
-// ${fileBasename}: the current opened file's basename
-// ${fileDirname}: the current opened file's dirname
-// ${fileExtname}: the current opened file's extension
-// ${cwd}: the current working directory of the spawned process
-
-// A task runner configuration for gulp. Gulp provides a less task
-// which compiles less to css.
 {
-	"version": "0.1.0",
-	"command": "gulp",
-	"isShellCommand": true,
-	"tasks": [
-		{
-			"taskName": "watch",
-			"isBuildCommand": true,
-			"showOutput": "always",
-			"problemMatcher": "$gulp-tsc"
-		},
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
         {
-			"taskName": "webserver",
-			"isTestCommand": true,
-			"showOutput": "always"
-		}
-	]
+            "type": "npm",
+            "script": "watch",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "compile",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "rebuild",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "dts",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "bundle-js",
+            "problemMatcher": []
+        }
+    ]
 }

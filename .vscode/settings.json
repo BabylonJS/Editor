@@ -1,36 +1,22 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "files.exclude": {
-		"**/.git": true,
-		"**/.DS_Store": true,
-
-        "website/sources/**/**.js": true,
-        "website/sources/**/*.d.ts": true,
-        "website/sources/**/*.js.map": true,
-
-        "website/electron/*.js": true,
-        "website/electron/*.js.map": true,
-        "website/electron/*.d.ts": true,
-
-        "Tools/TypeScriptParser/*.js": true,
-        "Tools/TypeScriptParser/*.d.ts": true,
-        "Tools/TypeScriptParser/*.js.map": true,
-
+        "**/.git": true,
+        "**/.DS_Store": true,
         "**/.tempChromeProfileForDebug": true,
-
-        "**.config": true,
-        "**.csproj": true,
-        "**.sln": true,
+        "web.Debug.config": true,
+        "web.Release.config": true,
+        "*.csproj": true,
+        "*.sln": true,
         ".vs/": true,
         "obj/": true,
         "bin/": true,
-        "node_modules/": true,
-        "electronPackages/": true,
-        "BabylonJSEditor.csproj.user": true,
+        "node_modules/": false,
+        "build": true,
+        "declaration": true,
+        "electron-packages": true
+    },
 
-        "website/libs/**/*.d.ts": true
-	},
-    
     "editor.quickSuggestionsDelay": 0,
     "typescript.tsdk": "./node_modules/typescript/lib"
 }
