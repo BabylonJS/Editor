@@ -7,8 +7,9 @@ import Extension from '../extension';
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
-import { RenderLoop } from './graph-nodes/core/engine';
-import { GetProperty, SetProperty } from './graph-nodes/basic/property';
+import { RenderLoop, RenderStart } from './graph-nodes/core/engine';
+import { Property } from './graph-nodes/basic/property';
+import { Condition } from './graph-nodes/logic/condition';
 
 // Interfaces
 export interface BehaviorGraph {
@@ -107,7 +108,11 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * Clears all the additional nodes available for Babylon.js
      */
     public static ClearNodes (): void {
-        const available = ['node', 'scene', 'core', 'basic/script'];
+        const available = [
+            'node', 'scene', 'core', 'logic',
+            'basic/script',
+            'math/compare', 'math/condition', 'math/formula', 'math/converter', 'math/range'
+        ];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
@@ -123,7 +128,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      */
     public static RegisterNodes (object?: any): void {
         // Unregister all except:
-        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'graph'];
+        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'graph', 'logic'];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
@@ -133,10 +138,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         });
 
         // Register custom
+        RenderStart.Register('core/renderstarts', RenderStart);
         RenderLoop.Register('core/renderloop', RenderLoop);
 
-        GetProperty.Register('node/getproperty', GetProperty);
-        SetProperty.Register('node/setproperty', SetProperty);
+        Condition.Register('logic/condition', Condition);
+
+        Property.Register('node/property', Property);
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);

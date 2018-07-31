@@ -3,7 +3,7 @@ import {
     Scene, Node
 } from 'babylonjs';
 
-import { LGraph, LGraphCanvas } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
 
 import Editor, {
     Layout,
@@ -19,6 +19,7 @@ import Extensions from '../../extensions/extensions';
 import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
+import { RenderStart } from '../../extensions/behavior/graph-nodes/core/engine';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -124,6 +125,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData = new LGraph();
         this.graphData.onNodeAdded = node => node.shape = 'round';
+        this.graphData.onStopEvent = () => RenderStart.Started = false;
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
@@ -247,12 +249,23 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * When the user adds a new graph
      */
     protected async add (): Promise<void> {
+        // Configure
+        GraphExtension.ClearNodes();
+        GraphExtension.RegisterNodes(this.node);
+
+        // Create base data
+        const node = LiteGraph.createNode('core/renderloop');
+        node.pos = [30, 30];
+
+        const graph = new LGraph();
+        graph.add(node);
+
         // Create data
         const name = await Dialog.CreateWithTextInput('Graph Name');
         const data: BehaviorGraph = {
             name: name,
             active: true,
-            graph: new LGraph().serialize()
+            graph: graph.serialize()
         };
         this.datas.metadatas.push(data);
 

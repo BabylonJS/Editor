@@ -4,6 +4,8 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class RenderLoop extends LiteGraphNode {
+    public static Desc = 'On Render Loop';
+    
     /**
      * Constructor
      */
@@ -11,16 +13,44 @@ export class RenderLoop extends LiteGraphNode {
         super();
 
         this.title = 'Render Loop';
-        this.desc = 'On Render Loop';
         this.mode = LiteGraph.ALWAYS;
 
-        this.addOutput("Render", LiteGraph.EVENT);
+        this.addOutput('Render', LiteGraph.EVENT);
     }
 
     /**
      * On execute the node
      */
     public onExecute (): void {
+        this.triggerSlot(0);
+    }
+}
+
+export class RenderStart extends LiteGraphNode {
+    // Static members
+    public static Started: boolean = false;
+    public static Desc = 'On rendering starts (called once)';
+
+    /**
+     * Constructor
+     */
+    constructor () {
+        super();
+
+        this.title = 'Render Starts';
+        this.mode = LiteGraph.ALWAYS;
+
+        this.addOutput('Render', LiteGraph.EVENT);
+    }
+
+    /**
+     * On execute the node
+     */
+    public onExecute (): void {
+        if (RenderStart.Started)
+            return;
+        
+        RenderStart.Started = true;
         this.triggerSlot(0);
     }
 }

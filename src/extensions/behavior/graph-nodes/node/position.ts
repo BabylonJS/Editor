@@ -4,6 +4,8 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class GetPosition extends LiteGraphNode {
+    public static Desc = 'Get Object Position by Vec3';
+
     /**
      * Constructor
      */
@@ -11,7 +13,7 @@ export class GetPosition extends LiteGraphNode {
         super();
 
         this.title = 'Get Position';
-        this.desc = 'Get Object Position by Vec3';
+        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');
@@ -39,6 +41,8 @@ export class GetPosition extends LiteGraphNode {
 }
 
 export class SetPosition extends LiteGraphNode {
+    public static Desc = 'Set Object Position by Vec3';
+    
     /**
      * Constructor
      */
@@ -46,7 +50,6 @@ export class SetPosition extends LiteGraphNode {
         super(true);
 
         this.title = 'Set Position';
-        this.desc = 'Set Object Position by Vec3';
 
         this.addInput('vec3', 'vec3');
         this.addInput('x','number');

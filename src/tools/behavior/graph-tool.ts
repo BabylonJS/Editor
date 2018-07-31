@@ -1,5 +1,5 @@
-import { LGraph } from 'litegraph.js';
-import { AbstractEditionTool } from 'babylonjs-editor';
+import { LGraph, LiteGraph } from 'litegraph.js';
+import { AbstractEditionTool, Tools } from 'babylonjs-editor';
 
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
@@ -30,6 +30,17 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
      */
     public update(node: LiteGraphNode): void {
         super.update(node);
+
+        // Description
+        const ctor = Tools.GetConstructorName(node);
+        for (const key in LiteGraph.registered_node_types) {
+            if (LiteGraph.registered_node_types[key].name === ctor) {
+                const desc = LiteGraph.registered_node_types[key].desc || LiteGraph.registered_node_types[key].Desc;
+
+                this.tool.addFolder(desc);
+                break;
+            }
+        }
 
         // Common
         const common = this.tool.addFolder('Common');

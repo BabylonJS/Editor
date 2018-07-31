@@ -4,7 +4,6 @@ export abstract class LiteGraphNode {
     // Public members
     public size: number[] = [60, 20];
     public title: string;
-    public desc: string;
     public mode: number;
     public shape: string = 'round';
 
@@ -14,6 +13,7 @@ export abstract class LiteGraphNode {
     public graph: LGraph;
 
     // Static members
+    public static Desc: string;
     public static LastCtor: new (addExecute?: boolean) => LiteGraphNode = null;
 
     /**
@@ -23,6 +23,8 @@ export abstract class LiteGraphNode {
     constructor (addExecute?: boolean) {
         if (addExecute)
             this.addInput("Execute", LiteGraph.EVENT);
+
+        this.mode = LiteGraph.ON_TRIGGER;
     }
 
     /**
@@ -48,7 +50,7 @@ export abstract class LiteGraphNode {
     /**
      * Allowed methods
      */
-    public triggerSlot? (slot: number): void;
+    public triggerSlot? (slot: number, data?: any): void;
 
     public addInput? (type: string, name: string): void;
     public addOutput? (name: string, type: string): void;
