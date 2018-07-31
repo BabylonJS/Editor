@@ -135,8 +135,8 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         // Register custom
         RenderLoop.Register('core/renderloop', RenderLoop);
 
-        GetProperty.Register('basic/getproperty', GetProperty);
-        SetProperty.Register('basic/setproperty', SetProperty);
+        GetProperty.Register('node/getproperty', GetProperty);
+        SetProperty.Register('node/setproperty', SetProperty);
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);
