@@ -123,12 +123,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      */
     public static RegisterNodes (object?: any): void {
         // Unregister all except:
-        const available = ['node', 'scene', 'math', 'math3d', 'basic'];
+        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'graph'];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
             const split = k.split('/');
-            if (available.indexOf(split[0]) === -1)
+            if (available.indexOf(split[0]) === -1 && available.indexOf(k) === -1)
                 delete LiteGraph.registered_node_types[k];
         });
 

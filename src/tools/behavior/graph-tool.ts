@@ -31,13 +31,18 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
     public update(node: LiteGraphNode): void {
         super.update(node);
 
-        // Check
+        // Common
+        const common = this.tool.addFolder('Common');
+        common.open();
+
+        common.add(node, 'title').name('Title');
+
+        // Properties
         if (Object.keys(node.properties).length === 0) {
             this.tool.addFolder('No properties');
             return;
         }
 
-        // Properties
         const properties = this.tool.addFolder('Properties');
         properties.open();
 

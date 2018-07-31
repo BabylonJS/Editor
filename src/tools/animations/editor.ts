@@ -1,6 +1,6 @@
 import {
     IAnimatable, Animation, Animatable, Scalar,
-    Color3, Tags
+    Color3, Tags, Scene, Vector2, Vector3
 } from 'babylonjs';
 import * as Raphael from 'raphael';
 import Editor, {
@@ -135,6 +135,7 @@ export default class AnimationEditor extends EditorPlugin {
             { type: 'menu', id: 'animations', text: 'Animations', img: 'icon-animated-mesh', items: [] },
             { type: 'button', id: 'remove-animation', text: 'Remove Animation', img: 'icon-error' }
         ];
+        this.toolbar.right = 'No object selected';
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
         this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
 
@@ -443,6 +444,10 @@ export default class AnimationEditor extends EditorPlugin {
 
         this.frameInput.val('');
         this.valueInput.val('');
+
+        // Refresh right text
+        this.toolbar.element.right = `Selected object: "${(object instanceof Scene ? 'Scene' : object['name'])}"`;
+        this.toolbar.element.render();
 
         // Check
         if (!object.animations)
@@ -959,38 +964,53 @@ export default class AnimationEditor extends EditorPlugin {
                 else
                     value = ((this.paper.height / 2 - ev.offsetY) * valueInterval) / (this.paper.height / 2) * 2;
 
+                // Key
+                let keyIndex = 0;
+                let key = {
+                    frame: frame,
+                    value: null
+                };
+
                 // Add key
-                if (properties.length === 1) {
-                    let keyIndex = 0;
-                    let key = {
-                        frame: frame,
-                        value: value
-                    };
-
-                    for (let i = 0; i < keys.length; i++) {
-                        if (keys[i].frame > frame) {
-                            keyIndex = i;
-                            keys.splice(i, 0, key);
-                            break;
-                        }
+                for (let i = 0; i < keys.length; i++) {
+                    if (keys[i].frame > frame) {
+                        keyIndex = i;
+                        keys.splice(i, 0, key);
+                        break;
                     }
-
-                    // Undo redo
-                    const animation = this.animation;
-
-                    UndoRedo.Push({
-                        fn: type => {
-                            if (type === 'from')
-                                animation.getKeys().splice(keyIndex, 1);
-                            else
-                                animation.getKeys().splice(keyIndex, 0, key);
-
-                            this.updateGraph(animation);
-                        }
-                    })
-
-                    this.updateGraph(this.animation);
                 }
+
+                // Setup key
+                const lastKey = keys[keyIndex - 1];
+
+                switch (properties.length) {
+                    case 1: key.value = value; break;
+                    case 2: key.value = lastKey ? new Vector2().copyFrom(lastKey.value) : new Vector2(value, value + 1); break;
+                    case 3:
+                        switch (properties[0]) {
+                            case 'x': key.value = lastKey ? new Vector3().copyFrom(lastKey.value) : new Vector3(value, value - 1, value + 1); break;
+                            case 'r': key.value = lastKey ? new Color3().copyFrom(lastKey.value) : new Color3(value, value, value); break;
+                            default: debugger; break;
+                        }
+                        break;
+                    default: debugger; break;
+                }
+
+                // Undo redo
+                const animation = this.animation;
+
+                UndoRedo.Push({
+                    fn: type => {
+                        if (type === 'from')
+                            animation.getKeys().splice(keyIndex, 1);
+                        else
+                            animation.getKeys().splice(keyIndex, 0, key);
+
+                        this.updateGraph(animation);
+                    }
+                })
+
+                this.updateGraph(this.animation);
             });
 
             points.push(circle);
