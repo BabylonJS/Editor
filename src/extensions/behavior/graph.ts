@@ -8,7 +8,7 @@ import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
 import { RenderLoop, RenderStart } from './graph-nodes/core/engine';
-import { Property } from './graph-nodes/basic/property';
+import { GetProperty, SetProperty } from './graph-nodes/basic/property';
 import { Condition } from './graph-nodes/logic/condition';
 import { LiteGraphNode } from './graph-nodes/typings';
 
@@ -156,7 +156,8 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
         Condition.Register('logic/condition', Condition);
 
-        Property.Register('node/property', Property);
+        GetProperty.Register('node/getproperty', GetProperty);
+        SetProperty.Register('node/setproperty', SetProperty);
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);

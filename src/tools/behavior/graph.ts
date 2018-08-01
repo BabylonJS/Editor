@@ -129,14 +129,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graphData = new LGraph();
         this.graphData.onNodeAdded = (node: LiteGraphNode) => {
             node.shape = 'round';
-
-            switch (node.mode) {
-                case LiteGraph.ALWAYS: node.color = '#FFF'; node.bgColor = '#AAA'; break;
-                case LiteGraph.ON_EVENT: node.color = '#AAF'; node.bgColor = '#44A'; break;
-                case LiteGraph.ON_TRIGGER: node.color = '#AFA'; node.bgColor = '#4A4'; break;
-                case LiteGraph.NEVER: node.color = '#FAA'; node.bgColor = '#A44'; break;
-                default: break;
-            }
+            LiteGraphNode.SetColor(node);
         };
         this.graphData.onStopEvent = () => RenderStart.Started = false;
 

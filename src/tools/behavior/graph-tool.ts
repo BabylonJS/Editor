@@ -1,5 +1,6 @@
-import { LGraph, LiteGraph } from 'litegraph.js';
+import { Material } from 'babylonjs';
 import { AbstractEditionTool, Tools } from 'babylonjs-editor';
+import { LGraph, LiteGraph } from 'litegraph.js';
 
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
@@ -55,14 +56,7 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
         this._mode = modes[node.mode];
         common.add(this, '_mode', modes).name('Mode').onChange(r => {
             node.mode = LiteGraph[r];
-
-            switch (node.mode) {
-                case LiteGraph.ALWAYS: node.color = '#FFF'; node.bgColor = '#AAA'; break;
-                case LiteGraph.ON_EVENT: node.color = '#AAF'; node.bgColor = '#44A'; break;
-                case LiteGraph.ON_TRIGGER: node.color = '#AFA'; node.bgColor = '#4A4'; break;
-                case LiteGraph.NEVER: node.color = '#FAA'; node.bgColor = '#A44'; break;
-                default: break;
-            }
+            LiteGraphNode.SetColor(node);
         });
 
 
@@ -78,6 +72,11 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
         const keys = Object.keys(node.properties);
 
         keys.forEach(k => {
+            // Property path?
+            if (k === 'propertyPath')
+                return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
+
+            // Swith type of property
             switch (typeof node.properties[k]) {
                 case 'number': properties.add(node.properties, k).step(0.001).name(k); break;
                 case 'string': properties.add(node.properties, k).name(k); break;
@@ -85,5 +84,47 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
                 default: break;
             }
         });
+    }
+
+    // Returns all the available properties
+    private _getPropertiesPaths (node: LiteGraphNode, path: string = '', root?: any, rootProperties?: string[]): string[] {
+        const result = rootProperties || [];
+        const object = root || node.graph.scriptObject;
+
+        for (const k in object) {
+            const key = path === '' ? k : `${path}.${k}`;
+
+            // Bypass _
+            if (k[0] === '_')
+                continue;
+
+            // Material?
+            if (object[k] instanceof Material) {
+                this._getPropertiesPaths(node, key, object[k], result);
+                continue;
+            }
+
+            // Constructor name
+            const ctor = Tools.GetConstructorName(object[k]).toLowerCase();
+            switch (ctor) {
+                case 'boolean':
+                case 'string':
+                case 'number': result.push(key); break;
+                
+                case 'vector2':
+                    result.push(key + '.x');
+                    result.push(key + '.y');
+                    break;
+                case 'vector3':
+                    result.push(key + '.x');
+                    result.push(key + '.y');
+                    result.push(key + '.z');
+                    break;
+
+                default: break;
+            }
+        }
+
+        return result;
     }
 }

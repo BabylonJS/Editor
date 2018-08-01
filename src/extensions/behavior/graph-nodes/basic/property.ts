@@ -2,8 +2,41 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 
 import { LiteGraphNode } from '../typings';
 
-export class Property extends LiteGraphNode {
-    public static Desc = 'Gets and/or Sets the value to the given property';
+export class GetProperty extends LiteGraphNode {
+    public static Desc = 'Gets the value of the given property';
+    
+    /**
+     * Constructor
+     */
+    constructor () {
+        super();
+
+        this.title = 'Get Property';
+
+        this.addProperty('propertyPath', 'material.name');
+        this.addOutput('Value', 'string,number,boolean');
+    }
+
+    /**
+     * On execute the node
+     */
+    public onExecute (): void {
+        const node = this.graph.scriptObject;
+        const path = this.properties['propertyPath'];
+
+        const split = path.split('.');
+
+        // Get property
+        let effectiveProperty = node[split[0]];
+        for (let i = 1; i < split.length; i++)
+            effectiveProperty = effectiveProperty[split[i]];
+
+        this.setOutputData(0, effectiveProperty);
+    }
+}
+
+export class SetProperty extends LiteGraphNode {
+    public static Desc = 'Sets the value of the given property';
     
     /**
      * Constructor
@@ -11,7 +44,7 @@ export class Property extends LiteGraphNode {
     constructor () {
         super(true);
 
-        this.title = 'Get/Set Property';
+        this.title = 'Set Property';
 
         this.addProperty('propertyPath', 'material.name');
         this.addInput('New Value', 'number,string,boolean');
@@ -27,23 +60,20 @@ export class Property extends LiteGraphNode {
         const input = this.getInputData(1);
 
         const split = path.split('.');
+        const length = split.length;
 
         // Set property?
-        if (input !== undefined && split.length === 1) {
+        if (length === 1) {
             node[path] = input;
-
-            this.setOutputData(0, input);
         }
         else {
             let effectiveProperty = node[split[0]];
-            for (let i = 1; i < split.length; i++) {
-                if (input !== undefined && i === split.length - 1)
-                    effectiveProperty[split[i]] = input;
-                
-                effectiveProperty = effectiveProperty[split[i]];
-            }
+            for (let i = 1; i < length - 1; i++)
+                effectiveProperty[split[i]] = input;
 
-            this.setOutputData(0, effectiveProperty);
+            effectiveProperty[split[length - 1]] = input;
         }
+
+        this.setOutputData(0, input);
     }
 }
