@@ -108,6 +108,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
         this.toolbar.right = 'No object selected';
+        this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/custom_scripts';
         this.toolbar.onClick = (id) => this.toolbarClicked(id);
         this.toolbar.build('CODE-BEHAVIOR-TOOLBAR');
 

@@ -1,3 +1,5 @@
+import Tools from "../tools/tools";
+
 export interface W2Item extends W2UI.W2Item {
     html?: string;
     selected?: string[];
@@ -8,6 +10,7 @@ export default class Toolbar {
     public name: string;
     public items: W2Item[] = [];
     public right: string = undefined;
+    public helpUrl: string = undefined;
 
     public element: W2UI.W2Toolbar;
 
@@ -59,10 +62,18 @@ export default class Toolbar {
      * @param parentId the parent id
      */
     public build(parentId: string): void {
+        if (this.helpUrl) {
+            this.items.push({ type: 'break' });
+            this.items.push({ type: 'button', id: 'generated-help-button', img: 'icon-help', caption: 'Help...', text: 'Help...' });
+        }
+
         this.element = $('#' + parentId).w2toolbar({
             name: this.name,
             items: this.items,
             onClick: (event) => {
+                if (event.target === 'generated-help-button')
+                    Tools.OpenPopup(this.helpUrl, 'Documentation', 1280, 800);
+                
                 if (this.onClick)
                     this.onClick(event.target);
             },

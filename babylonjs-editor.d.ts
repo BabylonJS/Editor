@@ -320,6 +320,7 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
             name: string;
             items: W2Item[];
             right: string;
+            helpUrl: string;
             element: W2UI.W2Toolbar;
             onClick: (target: string) => void;
             /**

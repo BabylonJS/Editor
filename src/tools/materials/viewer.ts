@@ -103,6 +103,7 @@ export default class AnimationEditor extends EditorPlugin {
             { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
+        this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_materials';
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
 

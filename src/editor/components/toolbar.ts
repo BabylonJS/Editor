@@ -104,6 +104,7 @@ export default class EditorToolbar {
             //     ]
             // },
         ];
+        this.main.helpUrl = 'http://doc.babylonjs.com/resources/';
         this.main.onClick = target => this.onMainClick(target);
         this.main.build('MAIN-TOOLBAR');
 
