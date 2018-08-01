@@ -2,9 +2,12 @@ import { LiteGraph, LGraph } from 'litegraph.js';
 
 export abstract class LiteGraphNode {
     // Public members
-    public size: number[] = [60, 20];
     public title: string;
     public mode: number;
+    public color: string;
+    public bgColor: string;
+
+    public size: number[] = [60, 20];
     public shape: string = 'round';
 
     public _data: any;
@@ -49,6 +52,8 @@ export abstract class LiteGraphNode {
     public setOutputData? (slot: number, data: any): void;
 
     public addProperty? (name: string, defaultValue: string | number | boolean): void;
+
+    public onDrawBackground? (ctx: CanvasRenderingContext2D): void;
 
     /**
      * Register the node

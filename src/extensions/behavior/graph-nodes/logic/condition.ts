@@ -12,6 +12,7 @@ export class Condition extends LiteGraphNode {
         super(true);
 
         this.title = 'Condition between A and B';
+        this.mode = LiteGraph.ALWAYS;
 
         this.addInput('A', 'number,string,boolean');
         this.addInput('B', 'number,string,boolean');

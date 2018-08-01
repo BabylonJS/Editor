@@ -20,6 +20,7 @@ import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extension
 
 import '../../extensions/behavior/graph';
 import { RenderStart } from '../../extensions/behavior/graph-nodes/core/engine';
+import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -66,6 +67,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        this.playStop(true);
+        
         this.layout.element.destroy();
         this.toolbar.element.destroy();
         this.grid.element.destroy();
@@ -124,11 +127,24 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        this.graphData.onNodeAdded = node => node.shape = 'round';
+        this.graphData.onNodeAdded = (node: LiteGraphNode) => {
+            node.shape = 'round';
+
+            switch (node.mode) {
+                case LiteGraph.ALWAYS: node.color = '#FFF'; node.bgColor = '#AAA'; break;
+                case LiteGraph.ON_EVENT: node.color = '#AAF'; node.bgColor = '#44A'; break;
+                case LiteGraph.ON_TRIGGER: node.color = '#AFA'; node.bgColor = '#4A4'; break;
+                case LiteGraph.NEVER: node.color = '#FAA'; node.bgColor = '#A44'; break;
+                default: break;
+            }
+        };
         this.graphData.onStopEvent = () => RenderStart.Started = false;
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
+
+        GraphExtension.ClearNodes();
+        GraphExtension.RegisterNodes();
 
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
@@ -178,7 +194,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected objectSelected (node: Node): void {
         if (!(node instanceof Node)) {
-            this.layout.lockPanel('left', 'Please Select A Node');
+            this.layout.lockPanel('left');
+            this.layout.lockPanel('main', 'Please Select A Node');
             return;
         }
 
@@ -225,6 +242,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Unlock
         this.layout.unlockPanel('left');
+        this.layout.unlockPanel('main');
     }
 
     /**
@@ -279,6 +297,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param ids: the ids to delete
      */
     protected delete (ids: number[]): void {
+        this.playStop(true);
+
         let offset = 0;
         ids.forEach(id => {
             this.datas.metadatas.splice(id - offset, 1);
@@ -308,6 +328,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             
             this._savedState = { };
             this.graphData.stop();
+
+            this.toolbar.updateItem('play-stop', {
+                img: 'icon-play-game',
+                checked: false
+            });
         }
         else {
             this.node.position && (this._savedState.position = this.node.position.clone());
@@ -324,6 +349,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             });
 
             this.graphData.start();
+
+            this.toolbar.updateItem('play-stop', {
+                img: 'icon-error',
+                checked: true
+            });
         }
     }
 }

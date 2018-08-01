@@ -339,6 +339,12 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 */
             setChecked(id: string, checked: boolean): void;
             /**
+                * Updates the given item
+                * @param id the id of the item to update
+                * @param data the new item
+                */
+            updateItem(id: string, data: W2Item): void;
+            /**
                 * Builds the graph
                 * @param parentId the parent id
                 */

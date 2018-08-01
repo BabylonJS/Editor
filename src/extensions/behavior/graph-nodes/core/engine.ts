@@ -14,6 +14,7 @@ export class RenderLoop extends LiteGraphNode {
         super();
 
         this.title = 'Render Loop';
+        this.mode = LiteGraph.NEVER;
 
         this.addOutput('Render', LiteGraph.EVENT);
     }
@@ -38,6 +39,7 @@ export class RenderStart extends LiteGraphNode {
         super();
 
         this.title = 'Render Starts';
+        this.mode = LiteGraph.NEVER;
 
         this.addOutput('Render', LiteGraph.EVENT);
     }

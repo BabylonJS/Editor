@@ -8,6 +8,9 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
     public divId: string = 'BEHAVIOR-GRAPH-NODE-TOOL';
     public tabName: string = 'Graph Node';
 
+    // Private members
+    private _mode: string = '';
+
     /**
      * Constructor
      * @param editor the path finder editor
@@ -47,6 +50,21 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
         common.open();
 
         common.add(node, 'title').name('Title');
+
+        const modes: string[] = ['ALWAYS', 'ON_EVENT', 'NEVER', 'ON_TRIGGER'];
+        this._mode = modes[node.mode];
+        common.add(this, '_mode', modes).name('Mode').onChange(r => {
+            node.mode = LiteGraph[r];
+
+            switch (node.mode) {
+                case LiteGraph.ALWAYS: node.color = '#FFF'; node.bgColor = '#AAA'; break;
+                case LiteGraph.ON_EVENT: node.color = '#AAF'; node.bgColor = '#44A'; break;
+                case LiteGraph.ON_TRIGGER: node.color = '#AFA'; node.bgColor = '#4A4'; break;
+                case LiteGraph.NEVER: node.color = '#FAA'; node.bgColor = '#A44'; break;
+                default: break;
+            }
+        });
+
 
         // Properties
         if (Object.keys(node.properties).length === 0) {

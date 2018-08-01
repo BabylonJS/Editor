@@ -26,8 +26,8 @@ export default class Toolbar {
      * @param id the id of the element (menu, item, etc.)
      */
     public isChecked (id: string, justClicked: boolean = false): boolean {
-        const result = this.element.get(id);
-        return justClicked ? !result['checked'] : result['checked'];
+        const result = <W2Item> this.element.get(id);
+        return justClicked ? !result.checked : result.checked;
     }
 
     /**
@@ -40,6 +40,18 @@ export default class Toolbar {
             this.element.check(id);
         else
             this.element.uncheck(id);
+    }
+
+    /**
+     * Updates the given item
+     * @param id the id of the item to update
+     * @param data the new item
+     */
+    public updateItem (id: string, data: W2Item): void {
+        const item = this.element.get(id);
+        Object.assign(item, data);
+
+        this.element.refresh(id);
     }
 
     /**

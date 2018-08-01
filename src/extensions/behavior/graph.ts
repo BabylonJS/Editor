@@ -10,6 +10,7 @@ import { GetScale, SetScale } from './graph-nodes/node/scale';
 import { RenderLoop, RenderStart } from './graph-nodes/core/engine';
 import { Property } from './graph-nodes/basic/property';
 import { Condition } from './graph-nodes/logic/condition';
+import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
 export interface BehaviorGraph {
@@ -60,8 +61,20 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
                 graph.configure(m.graph);
 
+                // On ready
                 this.scene.onReadyObservable.addOnce(() => {
                     graph.start();
+                });
+
+                // Render loop
+                const nodes = <LiteGraphNode[]> graph._nodes;
+                nodes.forEach(n => {
+                    if (n instanceof RenderLoop) {
+                        this.scene.onAfterRenderObservable.add(() => n.onExecute());
+                    }
+                    else if (n instanceof RenderStart) {
+                        this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                    }
                 });
             });
         });
