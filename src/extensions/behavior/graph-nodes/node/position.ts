@@ -13,7 +13,6 @@ export class GetPosition extends LiteGraphNode {
         super();
 
         this.title = 'Get Position';
-        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');

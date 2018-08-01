@@ -13,7 +13,6 @@ export class GetRotation extends LiteGraphNode {
         super();
 
         this.title = 'Get Rotation';
-        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');

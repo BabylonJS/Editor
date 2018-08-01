@@ -13,7 +13,7 @@ export abstract class LiteGraphNode {
     public graph: LGraph;
 
     // Static members
-    public static Desc: string;
+    public static desc: string;
     public static LastCtor: new (addExecute?: boolean) => LiteGraphNode = null;
 
     /**
@@ -21,16 +21,34 @@ export abstract class LiteGraphNode {
      * @param addExecute if add an execute input
      */
     constructor (addExecute?: boolean) {
-        if (addExecute)
+        if (addExecute) {
             this.addInput("Execute", LiteGraph.EVENT);
-
-        this.mode = LiteGraph.ON_TRIGGER;
+            this.mode = LiteGraph.ON_TRIGGER;
+        }
     }
 
     /**
      * On the node is executed
      */
-    public abstract onExecute? (): void;
+    public onExecute? (): void;
+
+    /**
+     * On the node's action is executed
+     */
+    public onAction? (): void;
+
+    /**
+     * Allowed methods
+     */
+    public triggerSlot? (slot: number, data?: any): void;
+
+    public addInput? (type: string, name: string): void;
+    public addOutput? (name: string, type: string): void;
+
+    public getInputData? (slot: number, forceUpdate?: boolean): any;
+    public setOutputData? (slot: number, data: any): void;
+
+    public addProperty? (name: string, defaultValue: string | number | boolean): void;
 
     /**
      * Register the node
@@ -46,17 +64,4 @@ export abstract class LiteGraphNode {
 
         LiteGraph.registered_node_types[location] = this.LastCtor;
     }
-
-    /**
-     * Allowed methods
-     */
-    public triggerSlot? (slot: number, data?: any): void;
-
-    public addInput? (type: string, name: string): void;
-    public addOutput? (name: string, type: string): void;
-
-    public getInputData? (slot: number): any;
-    public setOutputData? (slot: number, data: any): void;
-
-    public addProperty? (name: string, defaultValue: string | number | boolean): void;
 }

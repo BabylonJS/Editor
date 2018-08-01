@@ -4,6 +4,7 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class RenderLoop extends LiteGraphNode {
+    // Static members
     public static Desc = 'On Render Loop';
     
     /**
@@ -13,7 +14,6 @@ export class RenderLoop extends LiteGraphNode {
         super();
 
         this.title = 'Render Loop';
-        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('Render', LiteGraph.EVENT);
     }
@@ -38,7 +38,6 @@ export class RenderStart extends LiteGraphNode {
         super();
 
         this.title = 'Render Starts';
-        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('Render', LiteGraph.EVENT);
     }

@@ -253,19 +253,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes(this.node);
 
-        // Create base data
-        const node = LiteGraph.createNode('core/renderloop');
-        node.pos = [30, 30];
-
-        const graph = new LGraph();
-        graph.add(node);
-
         // Create data
         const name = await Dialog.CreateWithTextInput('Graph Name');
         const data: BehaviorGraph = {
             name: name,
             active: true,
-            graph: graph.serialize()
+            graph: new LGraph().serialize()
         };
         this.datas.metadatas.push(data);
 

@@ -13,7 +13,6 @@ export class GetScale extends LiteGraphNode {
         super();
 
         this.title = 'Get Scale';
-        this.mode = LiteGraph.ALWAYS;
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');
