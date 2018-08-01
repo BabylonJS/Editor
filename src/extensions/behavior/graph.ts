@@ -10,7 +10,7 @@ import { GetScale, SetScale } from './graph-nodes/node/scale';
 import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
 import { GetProperty, SetProperty } from './graph-nodes/basic/property';
 import { Condition } from './graph-nodes/logic/condition';
-import { PointerOver, PointerDown } from './graph-nodes/event/pointer';
+import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
 import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
 
 import { LiteGraphNode } from './graph-nodes/typings';
@@ -162,6 +162,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         if (!object || object instanceof AbstractMesh) {
             PointerOver.Register('event/pointerover', PointerOver);
             PointerDown.Register('event/pointerdown', PointerDown);
+            PointerOut.Register('event/pointerout', PointerOut);
         }
 
         PlayAnimations.Register('action/playanimations', PlayAnimations);

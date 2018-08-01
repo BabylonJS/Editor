@@ -26,6 +26,12 @@ export class AbstractPointer extends LiteGraphNode {
     }
 
     /**
+     * Called if provided buy the master class
+     * @param pickedMesh the picked mesh reference
+     */
+    public customCheck? (mesh: AbstractMesh, pickedMesh: AbstractMesh): boolean;
+
+    /**
      * On execute the node
      */
     public onExecute (): void {
@@ -39,7 +45,7 @@ export class AbstractPointer extends LiteGraphNode {
                     return;
 
                 const pick = scene.pick(scene.pointerX, scene.pointerY);
-                this.isSuccess = pick.pickedMesh === mesh;
+                this.isSuccess = this.customCheck ? this.customCheck(mesh, pick.pickedMesh) : pick.pickedMesh === mesh;
             });
         }
 
@@ -73,5 +79,32 @@ export class PointerDown extends AbstractPointer {
      */
     constructor () {
         super('Pointer Down', PointerEventTypes.POINTERDOWN, true);
+    }
+}
+
+export class PointerOut extends AbstractPointer {
+    // Static members
+    public static Desc = 'Triggers and action on the pointer is out on the mesh (only meshes are supported)';
+
+    // Private members
+    private _wasOver: boolean = false;
+
+    /**
+     * Constructor
+     */
+    constructor () {
+        super('Pointer Out', PointerEventTypes.POINTERMOVE, true);
+    }
+
+    /**
+     * Called if provided buy the master class
+     * @param pickedMesh the picked mesh reference
+     */
+    public customCheck (mesh: AbstractMesh, pickedMesh: AbstractMesh): boolean {
+        if (this._wasOver && mesh !== pickedMesh)
+            return true;
+
+        this._wasOver = mesh === pickedMesh;
+        return false;
     }
 }
