@@ -6,14 +6,12 @@ export abstract class LiteGraphNode {
     public mode: number;
     public color: string;
     public bgColor: string;
-    public properties: { [index: string]: string };
+    public properties: { [index: string]: string | number | boolean };
 
     public size: number[] = [60, 20];
     public shape: string = 'round';
 
     public graph: LGraph;
-
-    public onConnectionsChange: (type: number, slot: number, added: boolean, info: any) => void;
 
     // Private members
     protected _data: any;
@@ -27,23 +25,29 @@ export abstract class LiteGraphNode {
      * @param addExecute if add an execute input
      */
     constructor (addExecute?: boolean) {
-        if (addExecute) {
+        if (addExecute)
             this.addInput("Execute", LiteGraph.EVENT);
-            
-            // On connection change
-            this.onConnectionsChange = (type, slot, added) => {
-                if (this.mode === LiteGraph.NEVER)
-                    return;
-                
-                if (added && type === LiteGraph.INPUT && slot === 0)
-                    this.mode = LiteGraph.ON_TRIGGER;
-                else
-                    this.mode = LiteGraph.ALWAYS;
-
-                LiteGraphNode.SetColor(this);
-            };
-        }
     }
+
+    /**
+     * On connections changed for this node
+     * @param type input (1) or output (2)
+     * @param slot the slot which has been modified
+     * @param added if the connection is newly added
+     */
+    public onConnectionsChange (type, slot, added): void {
+        if (this.mode === LiteGraph.NEVER)
+            return;
+        
+        if (type === LiteGraph.INPUT && slot === 0) {
+            if (added)
+                this.mode = LiteGraph.ON_TRIGGER;
+            else
+                this.mode = LiteGraph.ALWAYS;
+        }
+
+        LiteGraphNode.SetColor(this);
+    };
 
     /**
      * On the node is executed

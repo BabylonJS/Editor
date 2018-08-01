@@ -1,5 +1,4 @@
-import { LGraph, LiteGraph } from 'litegraph.js';
-
+import { Node } from 'babylonjs';
 import { LiteGraphNode } from '../typings';
 
 export class GetProperty extends LiteGraphNode {
@@ -22,7 +21,7 @@ export class GetProperty extends LiteGraphNode {
      */
     public onExecute (): void {
         const node = this.graph.scriptObject;
-        const path = this.properties['propertyPath'];
+        const path = <string> this.properties['propertyPath'];
 
         const split = path.split('.');
 
@@ -47,6 +46,8 @@ export class SetProperty extends LiteGraphNode {
         this.title = 'Set Property';
 
         this.addProperty('propertyPath', 'material.name');
+        this.addProperty('nodePath', 'self');
+
         this.addInput('New Value', 'number,string,boolean');
         this.addOutput('Value', 'string,number,boolean');
     }
@@ -55,16 +56,23 @@ export class SetProperty extends LiteGraphNode {
      * On execute the node
      */
     public onExecute (): void {
-        const node = this.graph.scriptObject;
-        const path = this.properties['propertyPath'];
-        const input = this.getInputData(1);
+        // Properties
+        const propertyPath = <string> this.properties['propertyPath'];
+        const nodePath = <string> this.properties['nodePath'];
 
-        const split = path.split('.');
-        const length = split.length;
+        // Node
+        let node = <Node> this.graph.scriptObject;
+        if (nodePath !== 'self')
+            node = node.getScene().getNodeByName(nodePath);
 
         // Set property?
+        const input = this.getInputData(1);
+
+        const split = propertyPath.split('.');
+        const length = split.length;
+
         if (length === 1) {
-            node[path] = input;
+            node[propertyPath] = input;
         }
         else {
             let effectiveProperty = node[split[0]];

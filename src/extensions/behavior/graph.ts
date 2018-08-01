@@ -7,9 +7,12 @@ import Extension from '../extension';
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
-import { RenderLoop, RenderStart } from './graph-nodes/core/engine';
+import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
 import { GetProperty, SetProperty } from './graph-nodes/basic/property';
 import { Condition } from './graph-nodes/logic/condition';
+import { PointerOver, PointerDown } from './graph-nodes/event/pointer';
+import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
+
 import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
@@ -151,10 +154,18 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         });
 
         // Register custom
-        RenderStart.Register('core/renderstarts', RenderStart);
-        RenderLoop.Register('core/renderloop', RenderLoop);
+        RenderStart.Register('render/renderstarts', RenderStart);
+        RenderLoop.Register('render/renderloop', RenderLoop);
 
         Condition.Register('logic/condition', Condition);
+
+        if (!object || object instanceof AbstractMesh) {
+            PointerOver.Register('event/pointerover', PointerOver);
+            PointerDown.Register('event/pointerdown', PointerDown);
+        }
+
+        PlayAnimations.Register('action/playanimations', PlayAnimations);
+        StopAnimations.Register('action/stopanimations', StopAnimations);
 
         GetProperty.Register('node/getproperty', GetProperty);
         SetProperty.Register('node/setproperty', SetProperty);

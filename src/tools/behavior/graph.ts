@@ -19,7 +19,6 @@ import Extensions from '../../extensions/extensions';
 import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
-import { RenderStart } from '../../extensions/behavior/graph-nodes/core/engine';
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
 export interface GraphGrid extends GridRow {
@@ -131,7 +130,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             node.shape = 'round';
             LiteGraphNode.SetColor(node);
         };
-        this.graphData.onStopEvent = () => RenderStart.Started = false;
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
@@ -211,6 +209,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Graph data
         this.graphData.clear();
         this.graphData.scriptObject = node;
+        this.graphData.scene = node.getScene();
 
         // Add rows
         this.datas.metadatas.forEach((d, index) => {
@@ -326,6 +325,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 img: 'icon-play-game',
                 checked: false
             });
+
+            this.editor.core.disableObjectSelection = false;
         }
         else {
             this.node.position && (this._savedState.position = this.node.position.clone());
@@ -347,6 +348,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 img: 'icon-error',
                 checked: true
             });
+
+            this.editor.core.disableObjectSelection = true;
         }
     }
 }

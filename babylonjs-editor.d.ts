@@ -1269,6 +1269,7 @@ declare module 'babylonjs-editor/editor/core' {
             scene: Scene;
             uiTextures: AdvancedDynamicTexture[];
             currentSelectedObject: any;
+            disableObjectSelection: boolean;
             updates: IUpdatable[];
             onSelectObject: Observable<any>;
             onResize: Observable<{}>;
