@@ -7,12 +7,15 @@ import Extension from '../extension';
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
+import { GetAmbientColor, SetAmbientColor } from './graph-nodes/scene/ambient-color';
+import { GetClearColor, SetClearColor } from './graph-nodes/scene/clear-color';
 import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
 import { GetProperty, SetProperty } from './graph-nodes/properties/property';
 import { Condition } from './graph-nodes/logic/condition';
 import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
 import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
 import { Number, String, Boolean } from './graph-nodes/basic/const';
+import { Color } from './graph-nodes/basic/color';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
@@ -142,7 +145,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
     /**
      * Registers all the additional nodes available for Babylon.js
-     * @param object the object being 
+     * @param object the object which is attached
      */
     public static RegisterNodes (object?: any): void {
         // Unregister all except:
@@ -160,6 +163,8 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         String.Register('basic/string', String);
         Boolean.Register('basic/boolean', Boolean);
 
+        Color.Register('basic/color', Color);
+
         RenderStart.Register('render/renderstarts', RenderStart);
         RenderLoop.Register('render/renderloop', RenderLoop);
 
@@ -176,6 +181,14 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
         GetProperty.Register('property/get', GetProperty);
         SetProperty.Register('property/set', SetProperty);
+
+        if (!object || object instanceof Scene) {
+            GetClearColor.Register('scene/getclearcolor', GetClearColor);
+            SetClearColor.Register('scene/setclearcolor', SetClearColor);
+
+            GetAmbientColor.Register('scene/getambientcolor', GetAmbientColor);
+            SetAmbientColor.Register('scene/setambientcolor', SetAmbientColor);
+        }
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);

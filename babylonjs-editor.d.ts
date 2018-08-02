@@ -415,16 +415,23 @@ declare module 'babylonjs-editor/editor/gui/grid' {
             columnsHeaders?: boolean;
             multiSelect?: boolean;
     }
+    export interface GridContextMenuItem {
+            id: number;
+            text: string;
+            icon?: string;
+    }
     export default class Grid<T extends GridRow> {
             name: string;
             element: W2UI.W2Grid;
             options: GridOptions;
             columns: GridColumn[];
+            contextMenuItems: GridContextMenuItem[];
             onClick: (selected: number[]) => void;
             onAdd: () => void;
             onDelete: (ids: number[]) => void;
             onChange: (recid: number, value: string) => void;
             onEdit: (recid: number) => void;
+            onContextMenu: (id: number, recid: number) => void;
             /**
                 * Constructor
                 * @param name the name of the grid

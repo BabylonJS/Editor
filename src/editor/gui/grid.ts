@@ -29,6 +29,12 @@ export interface GridOptions {
     multiSelect?: boolean;
 }
 
+export interface GridContextMenuItem {
+    id: number;
+    text: string;
+    icon?: string;
+}
+
 export default class Grid<T extends GridRow> {
     // Public members
     public name: string;
@@ -49,12 +55,14 @@ export default class Grid<T extends GridRow> {
     };
 
     public columns: GridColumn[] = [];
+    public contextMenuItems: GridContextMenuItem[] = [];
 
     public onClick: (selected: number[]) => void;
     public onAdd: () => void;
     public onDelete: (ids: number[]) => void;
     public onChange: (recid: number, value: string) => void;
     public onEdit: (recid: number) => void;
+    public onContextMenu: (id: number, recid: number) => void;
 
     /**
      * Constructor
@@ -123,6 +131,7 @@ export default class Grid<T extends GridRow> {
         this.element = $('#' + parentId).w2grid({
             name: this.name,
             columns: this.columns,
+            menu: this.contextMenuItems,
 
             header: this.options.header,
             fixedBody: true,
@@ -186,6 +195,11 @@ export default class Grid<T extends GridRow> {
                         this.element.save();
                     };
                 }
+            },
+
+            onMenuClick: (event) => {
+                if (this.onContextMenu)
+                    this.onContextMenu(event.menuItem.id, event.recid);
             }
         });
     }

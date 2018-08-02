@@ -145,6 +145,18 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
                     result.push(key + '.z');
                     break;
 
+                case 'color3':
+                    result.push(key + '.r');
+                    result.push(key + '.g');
+                    result.push(key + '.b');
+                    break;
+                case 'color4':
+                    result.push(key + '.r');
+                    result.push(key + '.g');
+                    result.push(key + '.b');
+                    result.push(key + '.a');
+                    break;
+
                 default: break;
             }
         }

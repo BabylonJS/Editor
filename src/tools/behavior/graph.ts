@@ -48,6 +48,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     // Private members
     private _savedState: any = { };
 
+    // Static members
+    private static _CopiedGraph: BehaviorGraph = null;
+
     /**
      * On load the extension for the first time
      */
@@ -98,6 +101,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.toolbar = new Toolbar('GRAPH-EDITOR-TOOLBAR');
         this.toolbar.items = [
             { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
+            { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
             { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' },
             //{ type: 'break' },
@@ -117,10 +121,15 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
             { field: 'active', caption: 'Active', size: '20%', editable: { type: 'checkbox' } }
         ];
+        this.grid.contextMenuItems = [
+            { id: 1, text: 'Copy', icon: 'icon-export' },
+            { id: 2, text: 'Clone', icon: 'icon-export' }
+        ]
         this.grid.onAdd = () => this.add();
         this.grid.onClick = ids => this.selectGraph(ids[0]);
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
+        this.grid.onContextMenu = (id, recid) => this.gridContextMenuClicked(id, recid);
         this.grid.build('GRAPH-EDITOR-LIST');
 
         // Graph
@@ -134,6 +143,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
 
         GraphExtension.ClearNodes();
@@ -177,7 +187,32 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected toolbarClicked (id: string): void {
         switch (id) {
             case 'save': this.data && (this.data.graph = this.graphData.serialize()); break;
+            case 'paste':
+                if (BehaviorGraphEditor._CopiedGraph) {
+                    this.datas.metadatas.push(Object.assign({ }, BehaviorGraphEditor._CopiedGraph));
+                    this.objectSelected(this.node);
+                }
+                break;
             case 'play-stop': this.playStop(); break;
+        }
+    }
+
+    /**
+     * When the user clicks on a context menu item of the grid
+     * @param id the id of the clicked item
+     * @param recid the id of the selected item
+     */
+    protected gridContextMenuClicked (id: number, recid: number): void {
+        switch (id) {
+            case 1: BehaviorGraphEditor._CopiedGraph = this.datas.metadatas[recid]; break;
+            case 2:
+                const clone = Object.assign({ }, this.datas.metadatas[recid]);
+                clone.name += ' Cloned';
+                
+                this.datas.metadatas.push(clone);
+                this.objectSelected(this.node);
+                break;
+            default: break;
         }
     }
 
