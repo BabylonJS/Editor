@@ -72,19 +72,32 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
         const keys = Object.keys(node.properties);
 
         keys.forEach(k => {
-            // Property path?
-            if (k === 'propertyPath')
-                return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
-
             // Node path?
             if (k === 'nodePath') {
-                const scene = <Scene> node.graph.scene;
+                const scene = <Scene> node.graph.scriptScene;
 
                 const result: string[] = ['self'];
                 scene.meshes.forEach(m => result.push(m.name));
                 scene.lights.forEach(l => result.push(l.name));
                 scene.cameras.forEach(c => result.push(c.name));
-                return properties.add(node.properties, k, result).name('Target Node');
+                return properties.add(node.properties, k, result).name('Target Node').onChange(() => this.update(node));
+            }
+
+            // Property path?
+            if (k === 'propertyPath') {
+                if (node.hasProperty('nodePath')) {
+                    const path = <string> node.properties['nodePath'];
+
+                    if (path === 'self')
+                        return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
+
+                    const scene = this.editor.core.scene;
+                    const target = path === 'Scene' ? scene : scene.getNodeByName(path);
+
+                    return properties.add(node.properties, k, this._getPropertiesPaths(node, '', target)).name(k);
+                }
+                
+                return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
             }
 
             // Swith type of property
@@ -99,7 +112,7 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
 
     // Returns all the available properties
     private _getPropertiesPaths (node: LiteGraphNode, path: string = '', root?: any, rootProperties?: string[]): string[] {
-        const result = rootProperties || [];
+        const result = rootProperties || ['Scene'];
         const object = root || node.graph.scriptObject;
 
         for (const k in object) {

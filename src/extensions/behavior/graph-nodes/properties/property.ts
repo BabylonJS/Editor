@@ -13,6 +13,8 @@ export class GetProperty extends LiteGraphNode {
         this.title = 'Get Property';
 
         this.addProperty('propertyPath', 'material.name');
+        this.addProperty('nodePath', 'self');
+
         this.addOutput('Value', 'string,number,boolean');
     }
 
@@ -20,12 +22,16 @@ export class GetProperty extends LiteGraphNode {
      * On execute the node
      */
     public onExecute (): void {
-        const node = this.graph.scriptObject;
-        const path = <string> this.properties['propertyPath'];
+        // Properties
+        const propertyPath = <string> this.properties['propertyPath'];
+        const nodePath = <string> this.properties['nodePath'];
 
-        const split = path.split('.');
+        // Node
+        const node = this.getTargetNode(nodePath);
 
         // Get property
+        const split = propertyPath.split('.');
+        
         let effectiveProperty = node[split[0]];
         for (let i = 1; i < split.length; i++)
             effectiveProperty = effectiveProperty[split[i]];
@@ -61,9 +67,7 @@ export class SetProperty extends LiteGraphNode {
         const nodePath = <string> this.properties['nodePath'];
 
         // Node
-        let node = <Node> this.graph.scriptObject;
-        if (nodePath !== 'self')
-            node = node.getScene().getNodeByName(nodePath);
+        const node = this.getTargetNode(nodePath);
 
         // Set property?
         const input = this.getInputData(1);

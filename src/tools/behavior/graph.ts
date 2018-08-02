@@ -20,6 +20,7 @@ import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extension
 
 import '../../extensions/behavior/graph';
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
+import { RenderStart, RenderLoop } from '../../extensions/behavior/graph-nodes/render/engine';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -36,7 +37,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public graph: LGraphCanvas = null;
 
     // Protected members
-    protected node: Node & { [index: string]: any } = null;
+    protected node: (Node | Scene) & { [index: string]: any } = null;
 
     protected data: BehaviorGraph = null;
     protected datas: BehaviorMetadata = null;
@@ -126,6 +127,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
+        this.graphData.onStopEvent = () => RenderStart.Started = false;
         this.graphData.onNodeAdded = (node: LiteGraphNode) => {
             node.shape = 'round';
             LiteGraphNode.SetColor(node);
@@ -183,8 +185,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * On the user selected a node
      * @param data the selected node
      */
-    protected objectSelected (node: Node): void {
-        if (!(node instanceof Node)) {
+    protected objectSelected (node: Node | Scene): void {
+        if (!(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
             this.layout.lockPanel('main', 'Please Select A Node');
             return;
@@ -200,7 +202,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Add all graphs
         this.datas = node.metadata['behaviorGraph'];
         if (!this.datas)
-            this.datas = node.metadata['behaviorGraph'] = { node: node.name, metadatas: [] };
+            this.datas = node.metadata['behaviorGraph'] = { node: node instanceof Scene ? 'Scene' : node.name, metadatas: [] };
 
         // Clear existing data
         this.data = null;
@@ -209,8 +211,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Graph data
         this.graphData.clear();
         this.graphData.scriptObject = node;
-        this.graphData.scene = node.getScene();
-
+        this.graphData.scriptScene = this.editor.core.scene;
         // Add rows
         this.datas.metadatas.forEach((d, index) => {
             this.grid.addRecord({
@@ -229,7 +230,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         }
 
         // Refresh right text
-        this.toolbar.element.right = `Attached to "${node.name}"`;
+        this.toolbar.element.right = `Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
         this.toolbar.element.render();
 
         // Unlock
@@ -329,6 +330,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.editor.core.disableObjectSelection = false;
         }
         else {
+            // Save
             this.node.position && (this._savedState.position = this.node.position.clone());
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
@@ -342,8 +344,19 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     this._savedState[k] = this.node[k];
             });
 
+            // Start
+            const nodes = <LiteGraphNode[]> this.graphData._nodes;
+            nodes.forEach(n => {
+                if (n instanceof RenderStart)
+                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+
+                if (n instanceof RenderLoop)
+                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+            });
+
             this.graphData.start();
 
+            // Update toolbar
             this.toolbar.updateItem('play-stop', {
                 img: 'icon-error',
                 checked: true

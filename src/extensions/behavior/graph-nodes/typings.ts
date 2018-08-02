@@ -1,3 +1,4 @@
+import { Node, Scene } from 'babylonjs';
 import { LiteGraph, LGraph } from 'litegraph.js';
 
 export abstract class LiteGraphNode {
@@ -50,6 +51,14 @@ export abstract class LiteGraphNode {
     };
 
     /**
+     * Returns if the node has the given property defined
+     * @param name the name of the property
+     */
+    public hasProperty (name: string): boolean {
+        return this.properties[name] !== undefined;
+    }
+
+    /**
      * On the node is executed
      */
     public onExecute? (): void;
@@ -73,6 +82,20 @@ export abstract class LiteGraphNode {
     public addProperty? (name: string, defaultValue: string | number | boolean): void;
 
     public onDrawBackground? (ctx: CanvasRenderingContext2D): void;
+
+    /**
+     * Returns the target node
+     * @param name the name of the node
+     */
+    protected getTargetNode (name: string): Node | Scene {
+        if (name === 'self')
+            return this.graph.scriptObject;
+
+        if (name === 'Scene')
+            return this.graph.scriptScene;
+
+        return this.graph.scriptScene.getNodeByName(name);
+    }
 
     /**
      * Register the node

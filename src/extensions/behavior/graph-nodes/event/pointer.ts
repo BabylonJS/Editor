@@ -101,8 +101,10 @@ export class PointerOut extends AbstractPointer {
      * @param pickedMesh the picked mesh reference
      */
     public customCheck (mesh: AbstractMesh, pickedMesh: AbstractMesh): boolean {
-        if (this._wasOver && mesh !== pickedMesh)
+        if (this._wasOver && mesh !== pickedMesh) {
+            this._wasOver = false;
             return true;
+        }
 
         this._wasOver = mesh === pickedMesh;
         return false;

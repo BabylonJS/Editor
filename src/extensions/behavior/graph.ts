@@ -8,10 +8,11 @@ import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
 import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
-import { GetProperty, SetProperty } from './graph-nodes/basic/property';
+import { GetProperty, SetProperty } from './graph-nodes/properties/property';
 import { Condition } from './graph-nodes/logic/condition';
 import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
 import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
+import { Number, String, Boolean } from './graph-nodes/basic/const';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
@@ -49,7 +50,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
         // For each node
         this.datas.forEach(d => {
-            const node = this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
 
@@ -64,11 +65,6 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
                 graph.configure(m.graph);
 
-                // On ready
-                this.scene.onReadyObservable.addOnce(() => {
-                    graph.start();
-                });
-
                 // Render loop
                 const nodes = <LiteGraphNode[]> graph._nodes;
                 nodes.forEach(n => {
@@ -79,6 +75,11 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
                         this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
                     }
                 });
+
+                // On ready
+                this.scene.onReadyObservable.addOnce(() => {
+                    graph.start();
+                });
             });
         });
     }
@@ -88,13 +89,14 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      */
     public onSerialize (): BehaviorMetadata[] {
         const result: BehaviorMetadata[] = [];
-        const add = (objects: (AbstractMesh | Light | Camera)[]) => {
+        const add = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
             objects.forEach(o => {
-                if (o.metadata && o.metadata['behaviorGraph'])
-                    result.push(o.metadata['behaviorGraph']);
+                if (o.metadata && o.metadata.behaviorGraph)
+                    result.push(o.metadata.behaviorGraph);
             });
         };
 
+        add([this.scene]);
         add(this.scene.meshes);
         add(this.scene.lights);
         add(this.scene.cameras);
@@ -111,12 +113,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         
         // For each node
         this.datas.forEach(d => {
-            const node = this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
 
             node.metadata = node.metadata || { };
-            node.metadata['behaviorGraph'] = d;
+            node.metadata.behaviorGraph = d;
         });
     }
 
@@ -126,7 +128,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
     public static ClearNodes (): void {
         const available = [
             'node', 'scene', 'core', 'logic',
-            'basic/script',
+            'basic/script', 'basic/const',
             'math/compare', 'math/condition', 'math/formula', 'math/converter', 'math/range'
         ];
         const keys = Object.keys(LiteGraph.registered_node_types);
@@ -154,6 +156,10 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         });
 
         // Register custom
+        Number.Register('basic/number', Number);
+        String.Register('basic/string', String);
+        Boolean.Register('basic/boolean', Boolean);
+
         RenderStart.Register('render/renderstarts', RenderStart);
         RenderLoop.Register('render/renderloop', RenderLoop);
 
@@ -168,8 +174,8 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         PlayAnimations.Register('action/playanimations', PlayAnimations);
         StopAnimations.Register('action/stopanimations', StopAnimations);
 
-        GetProperty.Register('node/getproperty', GetProperty);
-        SetProperty.Register('node/setproperty', SetProperty);
+        GetProperty.Register('property/get', GetProperty);
+        SetProperty.Register('property/set', SetProperty);
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);
