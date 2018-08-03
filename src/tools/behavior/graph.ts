@@ -136,7 +136,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        this.graphData.onStopEvent = () => RenderStart.Started = false;
+        this.graphData.onStopEvent = () => {
+            this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
+        };
         this.graphData.onNodeAdded = (node: LiteGraphNode) => {
             node.shape = 'round';
             LiteGraphNode.SetColor(node);

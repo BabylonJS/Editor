@@ -58,6 +58,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     /**
      * Constructor
      * @param name: the name of the plugin 
+     * @param targetNode: the node being edited
+     * @param targetNodeAddScript: if the code editor should prompt a string request
      */
     constructor(public editor: Editor, targetNode: any, targetNodeAddScript: boolean) {
         super('Code Editor');
@@ -155,6 +157,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     /**
      * On the user shows the plugin
+     * @param targetNode: the node being edited
+     * @param targetNodeAddScript: if the code editor should prompt a string request
      */
     public onShow (targetNode: any, targetNodeAddScript: boolean): void {
         this.onResize();
@@ -291,12 +295,15 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     /**
      * Creates the code editor
+     * @param parent: the parent html div
+     * @param data: the behavior data if opened into a new window
+     * @param caller: the window attached to the editor
      */
     protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
         const code = new CodeEditor('typescript');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
-        code.onChange = async value => {
+        code.onChange = value => {
             // Compile typescript
             clearTimeout(this._timeoutId);
             this._timeoutId = setTimeout(() => {

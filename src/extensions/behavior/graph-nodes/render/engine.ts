@@ -29,8 +29,10 @@ export class RenderLoop extends LiteGraphNode {
 
 export class RenderStart extends LiteGraphNode {
     // Static members
-    public static Started: boolean = false;
     public static Desc = 'On rendering starts (called once)';
+
+    // Public members
+    public started: boolean = false;
 
     /**
      * Constructor
@@ -48,10 +50,10 @@ export class RenderStart extends LiteGraphNode {
      * On execute the node
      */
     public onExecute (): void {
-        if (RenderStart.Started)
+        if (this.started)
             return;
         
-        RenderStart.Started = true;
+        this.started = true;
         this.triggerSlot(0);
     }
 }
