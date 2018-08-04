@@ -177,11 +177,13 @@ export default class Grid<T extends GridRow> {
                 if (event.force) {
                     const selected = <number[]>this.element.getSelection();
 
-                    if (this.onDelete)
-                        this.onDelete(selected);
+                    event.onComplete = () => {
+                        if (this.onDelete)
+                            this.onDelete(selected);
 
-                    for (let i = 0; i < this.element.records.length; i++)
-                        this.element.records[i]['recid'] = i;
+                        for (let i = 0; i < this.element.records.length; i++)
+                            this.element.records[i]['recid'] = i;
+                    }
                 }
             },
 
