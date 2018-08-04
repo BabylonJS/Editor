@@ -93,7 +93,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this._contextMenu.mainDiv && this._contextMenu.mainDiv.remove();
         this._contextMenu.layout &&  this._contextMenu.layout.element.destroy();
-        this._contextMenu.tree && this._contextMenu.tree.destroy();
+        // this._contextMenu.tree && this._contextMenu.tree.destroy();
         this._contextMenu.search && this._contextMenu.search.remove();
 
         // Events
@@ -447,16 +447,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected createContextMenu (): void {
         // Create main div
-        const zoom = 0.8;
         const mainDiv = Tools.CreateElement<HTMLDivElement>('div', 'GRAPH-CANVAS-CONTEXT-MENU', {
             width: '300px',
             height: '300px',
             position: 'relative',
             overflow: 'hidden',
+            zoom: '0.8',
+            visibility: 'hidden',
+            opacity: '0.9',
             'box-shadow': '1px 2px 4px rgba(0, 0, 0, .5)',
             'border-radius': '25px',
-            zoom: zoom.toString(),
-            visibility: 'hidden'
         });
         document.body.appendChild(mainDiv);
 
@@ -474,18 +474,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Create tree
         const tree = new Tree('GRAPH-CANVAS-CONTEXT-MENU-TREE');
+        tree.wholerow = true;
         tree.build('GRAPH-CANVAS-CONTEXT-MENU-TREE');
-
-        const nodes = LiteGraph.registered_node_types;
-        for (const n in nodes) {
-            const split = n.split('/');
-            const parent = tree.get(split[0]);
-
-            if (!parent)
-                tree.add({ id: split[0], text: split[0], img: 'icon-behavior-editor' });
-            else
-                tree.add({ id: n, text: split[1], img: 'icon-behavior-editor' }, parent.id);
-        }
 
         // Search div
         const searchDiv = $('#GRAPH-CANVAS-CONTEXT-MENU-SEARCH');
@@ -512,6 +502,40 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this._contextMenu.mainDiv.style.visibility = '';
 
         // Tree
+        this._contextMenu.tree.clear();
+        this._contextMenu.search.value = '';
+
+        if (node) {
+            // Draw node's options
+            this._contextMenu.tree.add({ id: 'graph-remove', text: 'Remove', img: 'icon-error' });
+            this._contextMenu.mainDiv.style.height = '100px';
+        }
+        else {
+            // Add new node
+            const nodes = LiteGraph.registered_node_types;
+            for (const n in nodes) {
+                const split = n.split('/');
+                const parent = this._contextMenu.tree.get(split[0]) || this._contextMenu.tree.add({ id: split[0], text: split[0], img: 'icon-behavior-editor' });
+
+                this._contextMenu.tree.add({ id: n, text: split[1], img: 'icon-behavior-editor' }, parent.id);
+            }
+
+            this._contextMenu.mainDiv.style.height = '300px';
+        }
+
+        this._contextMenu.tree.onClick = (id) => {
+            switch (id) {
+                case 'graph-remove':
+                    this.graphData.remove(node);
+                    break;
+                
+                default:
+                    return;
+            }
+
+            this._contextMenu.mainDiv.style.visibility = 'hidden';
+        };
+
         this._contextMenu.tree.onDblClick = (id) => {
             // Create node
             const node = LiteGraph.createNode(id);
