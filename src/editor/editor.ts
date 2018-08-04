@@ -711,18 +711,25 @@ export default class Editor implements IUpdatable {
             
             // Download!
             const path = await Request.Get<string>('http://localhost:1337/installerPath');
+
+            let lastProgress = '';
             const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
-                this.toolbar.notifyRightMessage(`Downloading update... ${((data.loaded * 100) / data.total).toFixed(2)}%`);
+                const progress = ((data.loaded * 100) / data.total).toFixed(1);
+
+                if (progress !== lastProgress) {
+                    this.toolbar.notifyRightMessage(`Downloading update... ${progress}%`);
+                    lastProgress = progress;
+                }
             });
 
             // Reset toolbar message
             this.toolbar.notifyRightMessage('');
 
             // Save!
-            await Request.Put('http://localhost:1337/files:/write?name=' + path + '&folder=' + saveDirectory[0], data, {
+            await Request.Put('http://localhost:1337/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
                 'Content-Type': 'application/octet-stream'
             });
-
+            
             // Notify
             Window.CreateAlert(`Update has been downloaded and available at: <h3>${saveDirectory[0]}</h3>`, 'Update downloaded!');
         }
