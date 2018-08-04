@@ -185,7 +185,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param url the url of the file
                 * @param arrayBuffer if should load file as arraybuffer
                 */
-            static LoadFile<T extends string | ArrayBuffer>(url: string, arrayBuffer?: boolean): Promise<T>;
+            static LoadFile<T extends string | ArrayBuffer>(url: string, arrayBuffer?: boolean, onProgress?: (data?: any) => void): Promise<T>;
             /**
                 * Loads a file and creates a new File added to the FilesToLoad
                 * @param url: the URLof the file
@@ -886,7 +886,7 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
                 * @param yes callback when user clicks "yes"
                 * @param no callback when the user clicks "no"
                 */
-            static Create(title: string, body: string, callback: (result: string) => void, yes?: () => void, no?: () => void): void;
+            static Create(title: string, body: string, callback?: (result: string) => void, yes?: () => void, no?: () => void): Promise<string>;
             /**
                 * Creates a GUI dialog with a text input
                 * @param title the title of the dialog
@@ -1368,6 +1368,11 @@ declare module 'babylonjs-editor/editor/components/toolbar' {
                 * @param editor: the editor's reference
                 */
             constructor(editor: Editor);
+            /**
+                * Notifies the user that something happens
+                * @param message message to draw
+                */
+            notifyRightMessage(message: string): void;
             /**
                 * Once the user clicks on a menu of the main toolbar
                 * @param target the target element

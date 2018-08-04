@@ -17,6 +17,7 @@ import Layout from './gui/layout';
 import Dialog from './gui/dialog';
 import ResizableLayout from './gui/resizable-layout';
 import { TreeNode } from './gui/tree';
+import Window from './gui/window';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -35,6 +36,7 @@ import SceneExporter from './scene/scene-exporter';
 import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
+import Request from './tools/request';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -192,9 +194,14 @@ export default class Editor implements IUpdatable {
         // Handle events
         this._handleEvents();
 
-        // Scene Preview
-        if (Tools.IsElectron())
+        // Electron
+        if (Tools.IsElectron()) {
+            // Scene Preview
             ScenePreview.Create(this);
+
+            // Check for updates
+            this._checkUpdates();
+        }
     }
 
     /**
@@ -684,5 +691,40 @@ export default class Editor implements IUpdatable {
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onPickedMesh = (m) => this.core.onSelectObject.notifyObservers(m);
         this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
+    }
+
+    // Checks for updates if electron
+    private async _checkUpdates (): Promise<void> {
+        // Get versions
+        const currentVersion = await Request.Get('http://localhost:1337/version');
+
+        const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json');
+        const newVersion = JSON.parse(packageJson).version;
+
+        if (currentVersion !== newVersion) {
+            const answer = await Dialog.Create('Update available!', `An update is available! (v${newVersion}). Would you like to download it?`);
+            if (answer === 'No')
+                return;
+
+            // Select path to save
+            const saveDirectory = await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory`);
+            
+            // Download!
+            const path = await Request.Get<string>('http://localhost:1337/installerPath');
+            const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
+                this.toolbar.notifyRightMessage(`Downloading update... ${((data.loaded * 100) / data.total).toFixed(2)}%`);
+            });
+
+            // Reset toolbar message
+            this.toolbar.notifyRightMessage('');
+
+            // Save!
+            await Request.Put('http://localhost:1337/files:/write?name=' + path + '&folder=' + saveDirectory[0], data, {
+                'Content-Type': 'application/octet-stream'
+            });
+
+            // Notify
+            Window.CreateAlert(`Update has been downloaded and available at: <h3>${saveDirectory[0]}</h3>`, 'Update downloaded!');
+        }
     }
 }

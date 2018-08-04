@@ -21,10 +21,15 @@ export default class Dialog {
      * @param yes callback when user clicks "yes"
      * @param no callback when the user clicks "no"
      */
-    public static Create (title: string, body: string, callback: (result: string) => void, yes?: () => void, no?: () => void): void {
-        w2confirm(body, title, (result) => callback(result))
+    public static Create (title: string, body: string, callback?: (result: string) => void, yes?: () => void, no?: () => void): Promise<string> {
+        return new Promise<string>((resolve) => {
+            w2confirm(body, title, (result) => {
+                resolve(result);
+                callback && callback(result);
+            })
             .yes(() => yes && yes())
             .no(() => no && no());
+        });
     }
 
     /**
