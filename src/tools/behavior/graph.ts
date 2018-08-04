@@ -270,9 +270,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.toolbar.element.right = `Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
         this.toolbar.element.render();
 
-        // Unlock
+        // Unlock / lock
         this.layout.unlockPanel('left');
-        this.layout.unlockPanel('main');
+
+        if (this.datas.metadatas.length === 0)
+            this.layout.lockPanel('main', 'Please add a graph');
+        else
+            this.layout.unlockPanel('main');
     }
 
     /**
@@ -320,6 +324,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Select latest script
         this.grid.select([this.datas.metadatas.length - 1]);
         this.selectGraph(this.datas.metadatas.length - 1);
+
+        // Unlock
+        this.layout.unlockPanel('main');
     }
 
     /**
@@ -334,6 +341,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.datas.metadatas.splice(id - offset, 1);
             offset++;
         });
+
+        // Update
+        this.objectSelected(this.node);
     }
 
     /**

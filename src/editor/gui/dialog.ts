@@ -56,14 +56,15 @@ export default class Dialog {
             form.build('ASK-NAME-CREATE-DIALOG');
 
             // Events
+            popin.onClose = () => form.element.destroy();
+
             popin.onButtonClick = id => {
                 if (!form.isValid())
                     return;
 
                 resolve(form.element.record['Name']);
 
-                // Destroy
-                form.element.destroy();
+                // Close
                 popin.close();
             };
         });
