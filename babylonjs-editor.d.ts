@@ -232,6 +232,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
 
 declare module 'babylonjs-editor/editor/tools/undo-redo' {
     export interface StackElement {
+            scope?: string;
             baseObject?: any;
             property?: string;
             to?: any;
@@ -254,6 +255,11 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
                 * Pops an element from the undo/redo stack
                 */
             static Pop(): void;
+            /**
+                * Clears the given scope. For example when an extension has been closed
+                * @param scope the scope name
+                */
+            static ClearScope(scope: string): void;
             /**
                 * Clears the undo / redo stack
                 */

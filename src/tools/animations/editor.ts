@@ -190,6 +190,7 @@ export default class AnimationEditor extends EditorPlugin {
                 const key = this.key;
 
                 UndoRedo.Push({ // Frame
+                    scope: this.divElement.id,
                     object: key,
                     property: 'frame',
                     from: fromFrame,
@@ -214,6 +215,7 @@ export default class AnimationEditor extends EditorPlugin {
 
                 // Undo / redo
                 UndoRedo.Push({ // Value
+                    scope: this.divElement.id,
                     object: this.key,
                     property: this.data.property === '' ? 'value' : `value.${this.data.property}`,
                     from: fromValue,
@@ -249,6 +251,8 @@ export default class AnimationEditor extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
         this.editToolbar.element.destroy();
+
+        UndoRedo.ClearScope(this.divElement.id);
 
         await super.close();
     }
@@ -330,6 +334,7 @@ export default class AnimationEditor extends EditorPlugin {
                     const animatable = this.animatable;
 
                     UndoRedo.Push({
+                        scope: this.divElement.id,
                         fn: (type) => {
                             if (type === 'from')
                                 this.animatable.animations.splice(index, 0, animation);
@@ -371,8 +376,8 @@ export default class AnimationEditor extends EditorPlugin {
 
             // Undo redo
             UndoRedo.Push({
+                scope: this.divElement.id,
                 fn: (type) => {
-                    debugger;
                     if (type === 'from')
                         this.animatable.animations.splice(length - 1, 1);
                     else
@@ -733,6 +738,7 @@ export default class AnimationEditor extends EditorPlugin {
                 const animation = this.animation;
 
                 UndoRedo.Push({
+                    scope: this.divElement.id,
                     fn: type => {
                         if (type === 'from')
                             animation.getKeys().splice(data.keyIndex, 0, key);
@@ -822,6 +828,7 @@ export default class AnimationEditor extends EditorPlugin {
             const animation = this.animation;
 
             UndoRedo.Push({ // Frame
+                scope: this.divElement.id,
                 object: key,
                 property: 'frame',
                 from: fromFrame,
@@ -833,6 +840,7 @@ export default class AnimationEditor extends EditorPlugin {
             });
 
             UndoRedo.Push({ // Value
+                scope: this.divElement.id,
                 object: key,
                 property: data.property === '' ? 'value' : `value.${data.property}`,
                 from: fromValue,
@@ -1000,6 +1008,7 @@ export default class AnimationEditor extends EditorPlugin {
                 const animation = this.animation;
 
                 UndoRedo.Push({
+                    scope: this.divElement.id,
                     fn: type => {
                         if (type === 'from')
                             animation.getKeys().splice(keyIndex, 1);
