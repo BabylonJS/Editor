@@ -232,6 +232,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
 
 declare module 'babylonjs-editor/editor/tools/undo-redo' {
     export interface StackElement {
+            scope?: string;
             baseObject?: any;
             property?: string;
             to?: any;
@@ -254,6 +255,11 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
                 * Pops an element from the undo/redo stack
                 */
             static Pop(): void;
+            /**
+                * Clears the given scope. For example when an extension has been closed
+                * @param scope the scope name
+                */
+            static ClearScope(scope: string): void;
             /**
                 * Clears the undo / redo stack
                 */
@@ -320,6 +326,7 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
             name: string;
             items: W2Item[];
             right: string;
+            helpUrl: string;
             element: W2UI.W2Toolbar;
             onClick: (target: string) => void;
             /**
@@ -338,6 +345,12 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 * @param checked if the item is checked or not
                 */
             setChecked(id: string, checked: boolean): void;
+            /**
+                * Updates the given item
+                * @param id the id of the item to update
+                * @param data the new item
+                */
+            updateItem(id: string, data: W2Item): void;
             /**
                 * Builds the graph
                 * @param parentId the parent id
@@ -408,16 +421,23 @@ declare module 'babylonjs-editor/editor/gui/grid' {
             columnsHeaders?: boolean;
             multiSelect?: boolean;
     }
+    export interface GridContextMenuItem {
+            id: number;
+            text: string;
+            icon?: string;
+    }
     export default class Grid<T extends GridRow> {
             name: string;
             element: W2UI.W2Grid;
             options: GridOptions;
             columns: GridColumn[];
+            contextMenuItems: GridContextMenuItem[];
             onClick: (selected: number[]) => void;
             onAdd: () => void;
             onDelete: (ids: number[]) => void;
             onChange: (recid: number, value: string) => void;
             onEdit: (recid: number) => void;
+            onContextMenu: (id: number, recid: number) => void;
             /**
                 * Constructor
                 * @param name the name of the grid
@@ -1262,6 +1282,7 @@ declare module 'babylonjs-editor/editor/core' {
             scene: Scene;
             uiTextures: AdvancedDynamicTexture[];
             currentSelectedObject: any;
+            disableObjectSelection: boolean;
             updates: IUpdatable[];
             onSelectObject: Observable<any>;
             onResize: Observable<{}>;

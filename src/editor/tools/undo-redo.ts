@@ -1,4 +1,5 @@
 export interface StackElement {
+    scope?: string;
     baseObject?: any;
     property?: string;
     to?: any;
@@ -48,6 +49,21 @@ export default class UndoRedo {
         this.Stack.pop();
         if (this.CurrentIndex > 0)
             this.CurrentIndex--;
+    }
+
+    /**
+     * Clears the given scope. For example when an extension has been closed
+     * @param scope the scope name
+     */
+    public static ClearScope (scope: string): void {
+        for (let i = 0; i < this.Stack.length; i++) {
+            const element = this.Stack[i];
+            if (element.scope === scope) {
+                this.Stack.splice(i, 1);
+                i--;
+                this.CurrentIndex--;
+            }
+        }
     }
 
     /**

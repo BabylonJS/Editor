@@ -22,6 +22,7 @@ export default class Core {
     public uiTextures: AdvancedDynamicTexture[] = [];
 
     public currentSelectedObject: any = null;
+    public disableObjectSelection: boolean = false;
 
     public updates: IUpdatable[] = [];
 

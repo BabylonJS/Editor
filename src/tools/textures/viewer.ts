@@ -121,6 +121,7 @@ export default class TextureViewer extends EditorPlugin {
             { type: 'break' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
+        this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_textures';
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
 

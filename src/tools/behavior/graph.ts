@@ -3,7 +3,7 @@ import {
     Scene, Node
 } from 'babylonjs';
 
-import { LGraph, LGraphCanvas } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
 
 import Editor, {
     Layout,
@@ -19,6 +19,8 @@ import Extensions from '../../extensions/extensions';
 import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
+import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
+import { RenderStart, RenderLoop } from '../../extensions/behavior/graph-nodes/render/engine';
 
 export interface GraphGrid extends GridRow {
     name: string;
@@ -35,7 +37,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public graph: LGraphCanvas = null;
 
     // Protected members
-    protected node: Node & { [index: string]: any } = null;
+    protected node: (Node | Scene) & { [index: string]: any } = null;
 
     protected data: BehaviorGraph = null;
     protected datas: BehaviorMetadata = null;
@@ -45,6 +47,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+
+    // Static members
+    private static _CopiedGraph: BehaviorGraph = null;
 
     /**
      * On load the extension for the first time
@@ -65,12 +70,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        this.playStop(true);
+        
         this.layout.element.destroy();
         this.toolbar.element.destroy();
         this.grid.element.destroy();
 
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
+
+        this.node && this.editor.edition.setObject(this.node);
 
         await super.close();
     }
@@ -92,6 +101,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.toolbar = new Toolbar('GRAPH-EDITOR-TOOLBAR');
         this.toolbar.items = [
             { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
+            { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
             { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' },
             //{ type: 'break' },
@@ -111,25 +121,35 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
             { field: 'active', caption: 'Active', size: '20%', editable: { type: 'checkbox' } }
         ];
+        this.grid.contextMenuItems = [
+            { id: 1, text: 'Copy', icon: 'icon-export' },
+            { id: 2, text: 'Clone', icon: 'icon-export' }
+        ]
         this.grid.onAdd = () => this.add();
         this.grid.onClick = ids => this.selectGraph(ids[0]);
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
+        this.grid.onContextMenu = (id, recid) => this.gridContextMenuClicked(id, recid);
         this.grid.build('GRAPH-EDITOR-LIST');
 
         // Graph
         System.import('./node_modules/litegraph.js/css/litegraph.css');
 
         this.graphData = new LGraph();
-        // this.graphData.onPropertyChanged = () => this.data && (this.data.graph = this.graphData.serialize());
-        this.graphData.onNodeAdded = node => {
-            node.shape = 'round';
-            // this.graphData.onPropertyChanged();
+        this.graphData.onStopEvent = () => {
+            this.graphData._nodes.forEach(n => n instanceof RenderStart && (n.started = false));
         };
-        // this.graphData.onNodeRemoved = node => this.graphData.onPropertyChanged();
+        this.graphData.onNodeAdded = (node: LiteGraphNode) => {
+            node.shape = 'round';
+            LiteGraphNode.SetColor(node);
+        };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
+
+        GraphExtension.ClearNodes();
+        GraphExtension.RegisterNodes();
 
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
@@ -169,7 +189,32 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected toolbarClicked (id: string): void {
         switch (id) {
             case 'save': this.data && (this.data.graph = this.graphData.serialize()); break;
+            case 'paste':
+                if (BehaviorGraphEditor._CopiedGraph) {
+                    this.datas.metadatas.push(Object.assign({ }, BehaviorGraphEditor._CopiedGraph));
+                    this.objectSelected(this.node);
+                }
+                break;
             case 'play-stop': this.playStop(); break;
+        }
+    }
+
+    /**
+     * When the user clicks on a context menu item of the grid
+     * @param id the id of the clicked item
+     * @param recid the id of the selected item
+     */
+    protected gridContextMenuClicked (id: number, recid: number): void {
+        switch (id) {
+            case 1: BehaviorGraphEditor._CopiedGraph = this.datas.metadatas[recid]; break;
+            case 2:
+                const clone = Object.assign({ }, this.datas.metadatas[recid]);
+                clone.name += ' Cloned';
+                
+                this.datas.metadatas.push(clone);
+                this.objectSelected(this.node);
+                break;
+            default: break;
         }
     }
 
@@ -177,9 +222,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * On the user selected a node
      * @param data the selected node
      */
-    protected objectSelected (node: Node): void {
-        if (!(node instanceof Node)) {
-            this.layout.lockPanel('left', 'Please Select A Node');
+    protected objectSelected (node: Node | Scene): void {
+        if (!(node instanceof Node) && !(node instanceof Scene)) {
+            this.layout.lockPanel('left');
+            this.layout.lockPanel('main', 'Please Select A Node');
             return;
         }
 
@@ -193,7 +239,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Add all graphs
         this.datas = node.metadata['behaviorGraph'];
         if (!this.datas)
-            this.datas = node.metadata['behaviorGraph'] = { node: node.name, metadatas: [] };
+            this.datas = node.metadata['behaviorGraph'] = { node: node instanceof Scene ? 'Scene' : node.name, metadatas: [] };
 
         // Clear existing data
         this.data = null;
@@ -202,7 +248,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Graph data
         this.graphData.clear();
         this.graphData.scriptObject = node;
-
+        this.graphData.scriptScene = this.editor.core.scene;
         // Add rows
         this.datas.metadatas.forEach((d, index) => {
             this.grid.addRecord({
@@ -221,11 +267,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         }
 
         // Refresh right text
-        this.toolbar.element.right = `Attached to "${node.name}"`;
+        this.toolbar.element.right = `Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
         this.toolbar.element.render();
 
         // Unlock
         this.layout.unlockPanel('left');
+        this.layout.unlockPanel('main');
     }
 
     /**
@@ -250,6 +297,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * When the user adds a new graph
      */
     protected async add (): Promise<void> {
+        // Configure
+        GraphExtension.ClearNodes();
+        GraphExtension.RegisterNodes(this.node);
+
         // Create data
         const name = await Dialog.CreateWithTextInput('Graph Name');
         const data: BehaviorGraph = {
@@ -276,6 +327,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param ids: the ids to delete
      */
     protected delete (ids: number[]): void {
+        this.playStop(true);
+
         let offset = 0;
         ids.forEach(id => {
             this.datas.metadatas.splice(id - offset, 1);
@@ -305,14 +358,48 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             
             this._savedState = { };
             this.graphData.stop();
+
+            this.toolbar.updateItem('play-stop', {
+                img: 'icon-play-game',
+                checked: false
+            });
+
+            this.editor.core.disableObjectSelection = false;
         }
         else {
+            // Save
             this.node.position && (this._savedState.position = this.node.position.clone());
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
             this.node.material && (this._savedState.material = this.node.material.clone(this.node.material.name));
 
+            const keys = Object.keys(this.node);
+            keys.forEach(k => {
+                const type = typeof this.node[k];
+
+                if (type === 'number' || type === 'string' || type === 'boolean')
+                    this._savedState[k] = this.node[k];
+            });
+
+            // Start
+            const nodes = <LiteGraphNode[]> this.graphData._nodes;
+            nodes.forEach(n => {
+                if (n instanceof RenderStart)
+                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+
+                if (n instanceof RenderLoop)
+                    return this.editor.core.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+            });
+
             this.graphData.start();
+
+            // Update toolbar
+            this.toolbar.updateItem('play-stop', {
+                img: 'icon-error',
+                checked: true
+            });
+
+            this.editor.core.disableObjectSelection = true;
         }
     }
 }

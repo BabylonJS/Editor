@@ -4,6 +4,8 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class GetScale extends LiteGraphNode {
+    public static Desc = 'Get Object Scale by Vec3';
+
     /**
      * Constructor
      */
@@ -11,7 +13,6 @@ export class GetScale extends LiteGraphNode {
         super();
 
         this.title = 'Get Scale';
-        this.desc = 'Get Object Scale by Vec3';
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');
@@ -39,6 +40,8 @@ export class GetScale extends LiteGraphNode {
 }
 
 export class SetScale extends LiteGraphNode {
+    public static Desc = 'Set Object Scale by Vec3';
+    
     /**
      * Constructor
      */
@@ -46,7 +49,6 @@ export class SetScale extends LiteGraphNode {
         super(true);
 
         this.title = 'Set Scale';
-        this.desc = 'Set Object Scale by Vec3';
 
         this.addInput('vec3', 'vec3');
         this.addInput('x','number');

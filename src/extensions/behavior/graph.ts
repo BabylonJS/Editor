@@ -7,8 +7,17 @@ import Extension from '../extension';
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
-import { RenderLoop } from './graph-nodes/core/engine';
-import { GetProperty, SetProperty } from './graph-nodes/basic/set-property';
+import { GetAmbientColor, SetAmbientColor } from './graph-nodes/scene/ambient-color';
+import { GetClearColor, SetClearColor } from './graph-nodes/scene/clear-color';
+import { RenderLoop, RenderStart } from './graph-nodes/render/engine';
+import { GetProperty, SetProperty } from './graph-nodes/properties/property';
+import { Condition } from './graph-nodes/logic/condition';
+import { PointerOver, PointerDown, PointerOut } from './graph-nodes/event/pointer';
+import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
+import { Number, String, Boolean } from './graph-nodes/basic/const';
+import { Color } from './graph-nodes/basic/color';
+
+import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
 export interface BehaviorGraph {
@@ -44,7 +53,7 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
         // For each node
         this.datas.forEach(d => {
-            const node = this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
 
@@ -59,6 +68,18 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
                 graph.configure(m.graph);
 
+                // Render loop
+                const nodes = <LiteGraphNode[]> graph._nodes;
+                nodes.forEach(n => {
+                    if (n instanceof RenderLoop) {
+                        this.scene.onAfterRenderObservable.add(() => n.onExecute());
+                    }
+                    else if (n instanceof RenderStart) {
+                        this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
+                    }
+                });
+
+                // On ready
                 this.scene.onReadyObservable.addOnce(() => {
                     graph.start();
                 });
@@ -71,13 +92,14 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      */
     public onSerialize (): BehaviorMetadata[] {
         const result: BehaviorMetadata[] = [];
-        const add = (objects: (AbstractMesh | Light | Camera)[]) => {
+        const add = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
             objects.forEach(o => {
-                if (o.metadata && o.metadata['behaviorGraph'])
-                    result.push(o.metadata['behaviorGraph']);
+                if (o.metadata && o.metadata.behaviorGraph)
+                    result.push(o.metadata.behaviorGraph);
             });
         };
 
+        add([this.scene]);
         add(this.scene.meshes);
         add(this.scene.lights);
         add(this.scene.cameras);
@@ -94,12 +116,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
         
         // For each node
         this.datas.forEach(d => {
-            const node = this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
 
             node.metadata = node.metadata || { };
-            node.metadata['behaviorGraph'] = d;
+            node.metadata.behaviorGraph = d;
         });
     }
 
@@ -107,7 +129,11 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * Clears all the additional nodes available for Babylon.js
      */
     public static ClearNodes (): void {
-        const available = ['node', 'scene', 'core', 'basic/script'];
+        const available = [
+            'node', 'scene', 'core', 'logic',
+            'basic/script', 'basic/const',
+            'math/compare', 'math/condition', 'math/formula', 'math/converter', 'math/range'
+        ];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
@@ -119,24 +145,50 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
 
     /**
      * Registers all the additional nodes available for Babylon.js
-     * @param object the object being 
+     * @param object the object which is attached
      */
     public static RegisterNodes (object?: any): void {
         // Unregister all except:
-        const available = ['node', 'scene', 'math', 'math3d', 'basic'];
+        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'graph', 'logic'];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
             const split = k.split('/');
-            if (available.indexOf(split[0]) === -1)
+            if (available.indexOf(split[0]) === -1 && available.indexOf(k) === -1)
                 delete LiteGraph.registered_node_types[k];
         });
 
         // Register custom
-        RenderLoop.Register('core/renderloop', RenderLoop);
+        Number.Register('basic/number', Number);
+        String.Register('basic/string', String);
+        Boolean.Register('basic/boolean', Boolean);
 
-        GetProperty.Register('basic/getproperty', GetProperty);
-        SetProperty.Register('basic/setproperty', SetProperty);
+        Color.Register('basic/color', Color);
+
+        RenderStart.Register('render/renderstarts', RenderStart);
+        RenderLoop.Register('render/renderloop', RenderLoop);
+
+        Condition.Register('logic/condition', Condition);
+
+        if (!object || object instanceof AbstractMesh) {
+            PointerOver.Register('event/pointerover', PointerOver);
+            PointerDown.Register('event/pointerdown', PointerDown);
+            PointerOut.Register('event/pointerout', PointerOut);
+        }
+
+        PlayAnimations.Register('action/playanimations', PlayAnimations);
+        StopAnimations.Register('action/stopanimations', StopAnimations);
+
+        GetProperty.Register('property/get', GetProperty);
+        SetProperty.Register('property/set', SetProperty);
+
+        if (!object || object instanceof Scene) {
+            GetClearColor.Register('scene/getclearcolor', GetClearColor);
+            SetClearColor.Register('scene/setclearcolor', SetClearColor);
+
+            GetAmbientColor.Register('scene/getambientcolor', GetAmbientColor);
+            SetAmbientColor.Register('scene/setambientcolor', SetAmbientColor);
+        }
 
         if (!object || object.position && object.position instanceof Vector3) {
             GetPosition.Register('node/getposition', GetPosition);

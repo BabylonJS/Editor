@@ -1,6 +1,8 @@
 const Builder = require('systemjs-builder');
 
 const build = function (baseUrl, inFile, outFile, options) {
+    options.mangle = false;
+
     const builder = new Builder(baseUrl);
     builder.config({
         paths: {
@@ -35,11 +37,12 @@ const build = function (baseUrl, inFile, outFile, options) {
             'post-process-editor': './build/src/tools/post-process-editor/index.js'
         }
     });
+    
     builder.buildStatic(inFile, outFile, options).then(function () {
-      console.log('Build complete for: ' + outFile);
+        console.log('Build complete for: ' + outFile);
     }).catch(function(err) {
-      console.log('Build error for: ' + outFile);
-      console.log(err);
+        console.log('Build error for: ' + outFile);
+        console.log(err);
     });
 };
 

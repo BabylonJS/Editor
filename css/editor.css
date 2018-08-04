@@ -314,3 +314,7 @@ ICONS
 .w2ui-icon.icon-animators {
     background: url("images/animators.png");
 }
+
+.w2ui-icon.icon-help {
+    background: url("images/help.png");
+}

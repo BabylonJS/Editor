@@ -17,8 +17,6 @@ import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
 
-// import { BehaviorMetadata } from '../../extensions/behavior/code';
-
 export default class EditorGraph {
     // Public members
     public tree: Tree;
@@ -282,28 +280,6 @@ export default class EditorGraph {
                         data: n.skeleton
                     }, n.id);
                 }
-
-                // Metadatas
-                /*
-                if (n.metadata && n.metadata.behavior && n.metadata.behavior.metadatas.length > 0) {
-                    const code = <BehaviorMetadata> n.metadata.behavior;
-                    const codeNode = this.tree.add({
-                        id: n.id + 'behavior',
-                        text: 'Scripts',
-                        data: code,
-                        img: 'icon-behavior-editor'
-                    }, n.id);
-
-                    code.metadatas.forEach(m => {
-                        this.tree.add({
-                            id: BabylonTools.RandomId(),
-                            text: m.name,
-                            data: m,
-                            img: 'icon-behavior-editor'
-                        }, codeNode.id);
-                    });
-                }
-                */
             }
 
             // Check particle systems

@@ -1,3 +1,5 @@
+import Tools from "../tools/tools";
+
 export interface W2Item extends W2UI.W2Item {
     html?: string;
     selected?: string[];
@@ -8,6 +10,7 @@ export default class Toolbar {
     public name: string;
     public items: W2Item[] = [];
     public right: string = undefined;
+    public helpUrl: string = undefined;
 
     public element: W2UI.W2Toolbar;
 
@@ -26,8 +29,8 @@ export default class Toolbar {
      * @param id the id of the element (menu, item, etc.)
      */
     public isChecked (id: string, justClicked: boolean = false): boolean {
-        const result = this.element.get(id);
-        return justClicked ? !result['checked'] : result['checked'];
+        const result = <W2Item> this.element.get(id);
+        return justClicked ? !result.checked : result.checked;
     }
 
     /**
@@ -43,14 +46,34 @@ export default class Toolbar {
     }
 
     /**
+     * Updates the given item
+     * @param id the id of the item to update
+     * @param data the new item
+     */
+    public updateItem (id: string, data: W2Item): void {
+        const item = this.element.get(id);
+        Object.assign(item, data);
+
+        this.element.refresh(id);
+    }
+
+    /**
      * Builds the graph
      * @param parentId the parent id
      */
     public build(parentId: string): void {
+        if (this.helpUrl) {
+            this.items.push({ type: 'break' });
+            this.items.push({ type: 'button', id: 'generated-help-button', img: 'icon-help', caption: 'Help...', text: 'Help...' });
+        }
+
         this.element = $('#' + parentId).w2toolbar({
             name: this.name,
             items: this.items,
             onClick: (event) => {
+                if (event.target === 'generated-help-button')
+                    Tools.OpenPopup(this.helpUrl, 'Documentation', 1280, 800);
+                
                 if (this.onClick)
                     this.onClick(event.target);
             },

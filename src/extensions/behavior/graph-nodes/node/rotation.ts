@@ -4,6 +4,8 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class GetRotation extends LiteGraphNode {
+    public static Desc = 'Get Object Rotation by Vec3';
+
     /**
      * Constructor
      */
@@ -11,7 +13,6 @@ export class GetRotation extends LiteGraphNode {
         super();
 
         this.title = 'Get Rotation';
-        this.desc = 'Get Object Rotation by Vec3';
 
         this.addOutput('vec3', 'vec3');
         this.addOutput('x', 'number');
@@ -39,6 +40,8 @@ export class GetRotation extends LiteGraphNode {
 }
 
 export class SetRotation extends LiteGraphNode {
+    public static Desc = 'Set Object Rotation by Vec3';
+    
     /**
      * Constructor
      */
@@ -46,7 +49,6 @@ export class SetRotation extends LiteGraphNode {
         super(true);
 
         this.title = 'Set Rotation';
-        this.desc = 'Set Object Rotation by Vec3';
 
         this.addInput('vec3', 'vec3');
         this.addInput('x','number');
