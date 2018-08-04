@@ -1,3 +1,4 @@
+import * as os from 'os';
 import { BrowserWindow } from 'electron';
 
 import * as Koa from 'koa';
@@ -18,6 +19,8 @@ export default class ToolsRouter {
 
         // Create routes
         this.openDevTools();
+        this.getVersion();
+        this.getInstallerPath();
         
         this.application.use(this.router.routes());
     }
@@ -39,6 +42,29 @@ export default class ToolsRouter {
             ctx.body = {
                 message: 'success'
             };
+        });
+    }
+
+    /**
+     * Returns the editor's version set from the package.json
+     */
+    protected getVersion (): void {
+        this.router.get('/version', async (ctx, next) => {
+            const json = require('../../../package.json');
+            ctx.body = json.version;
+        });
+    }
+
+    /**
+     * Returns the installer path according to the current platform
+     */
+    protected getInstallerPath (): void {
+        this.router.get('/installerPath', async (ctx, next) => {
+            switch (os.platform()) {
+                case 'win32': ctx.body = 'BabylonJS Editor.exe'; break;
+                case 'darwin': ctx.body = 'BabylonJS Editor.dmg'; break;
+                default: ctx.body = ''; break;
+            }
         });
     }
 }

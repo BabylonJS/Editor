@@ -185,14 +185,17 @@ export default class Tools {
      * @param url the url of the file
      * @param arrayBuffer if should load file as arraybuffer
      */
-    public static async LoadFile<T extends string | ArrayBuffer> (url: string, arrayBuffer: boolean = false): Promise<T> {
+    public static async LoadFile<T extends string | ArrayBuffer> (url: string, arrayBuffer: boolean = false, onProgress?: (data?: any) => void): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             this.PendingFilesToLoad++;
 
             BabylonTools.LoadFile(url, (data: T) => {
                 this.PendingFilesToLoad--;
                 resolve(data);
-            }, null, null, arrayBuffer, (r, e) => {
+            }, (data) => {
+                if (onProgress)
+                    onProgress(data);
+            }, null, arrayBuffer, (r, e) => {
                 this.PendingFilesToLoad--;
                 reject(e);
             });

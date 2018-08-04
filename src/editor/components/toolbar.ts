@@ -118,6 +118,15 @@ export default class EditorToolbar {
     }
 
     /**
+     * Notifies the user that something happens
+     * @param message message to draw
+     */
+    public notifyRightMessage (message: string): void {
+        this.tools.element.right = message;
+        this.tools.element.render();
+    }
+
+    /**
      * Once the user clicks on a menu of the main toolbar
      * @param target the target element
      */
