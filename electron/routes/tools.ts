@@ -62,6 +62,7 @@ export default class ToolsRouter {
         this.router.get('/installerPath', async (ctx, next) => {
             switch (os.platform()) {
                 case 'win32': ctx.body = 'BabylonJS Editor.exe'; break;
+                case 'darwin': ctx.body = 'BabylonJS Editor.dmg'; break;
                 default: ctx.body = ''; break;
             }
         });
