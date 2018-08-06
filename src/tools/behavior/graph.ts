@@ -1,6 +1,7 @@
 import {
     Observer,
-    Scene, Node
+    Scene,
+    Node
 } from 'babylonjs';
 
 import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
@@ -11,6 +12,8 @@ import Editor, {
     Grid, GridRow,
     Dialog,
     EditorPlugin,
+    Tools,
+    Tree,
 } from 'babylonjs-editor';
 
 import GraphNodeTool from './graph-tool';
@@ -47,6 +50,17 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+    private _contextMenu: {
+        mainDiv: HTMLDivElement;
+        layout: Layout,
+        search: HTMLInputElement;
+        tree: Tree
+    } = {
+        mainDiv: null,
+        layout: null,
+        search: null,
+        tree: null
+    };
 
     // Static members
     private static _CopiedGraph: BehaviorGraph = null;
@@ -72,10 +86,17 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public async close (): Promise<void> {
         this.playStop(true);
         
+        // Clear
         this.layout.element.destroy();
         this.toolbar.element.destroy();
         this.grid.element.destroy();
 
+        this._contextMenu.mainDiv && this._contextMenu.mainDiv.remove();
+        this._contextMenu.layout &&  this._contextMenu.layout.element.destroy();
+        // this._contextMenu.tree && this._contextMenu.tree.destroy();
+        this._contextMenu.search && this._contextMenu.search.remove();
+
+        // Events
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
 
@@ -145,11 +166,19 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph.canvas.addEventListener('mousedown', (ev: MouseEvent) => {
+            if (ev.button !== 2 && this._contextMenu.mainDiv)
+                this._contextMenu.mainDiv.style.visibility = 'hidden';
+        });
         this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
+        this.graph.processContextMenu = (node, event) => this.processContextMenu(node, event);
 
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes();
+
+        // Context menu
+        this.createContextMenu();
 
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
@@ -225,7 +254,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected objectSelected (node: Node | Scene): void {
         if (!(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
-            this.layout.lockPanel('main', 'Please Select A Node');
+            this.layout.lockPanel('main', 'No Node Selected');
             return;
         }
 
@@ -274,7 +303,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.layout.unlockPanel('left');
 
         if (this.datas.metadatas.length === 0)
-            this.layout.lockPanel('main', 'Please add a graph');
+            this.layout.lockPanel('main', 'No Graph Selected');
         else
             this.layout.unlockPanel('main');
     }
@@ -411,5 +440,219 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
             this.editor.core.disableObjectSelection = true;
         }
+    }
+
+    /**
+     * Creates the context menu of the canvas
+     */
+    protected createContextMenu (): void {
+        // Create main div
+        const mainDiv = Tools.CreateElement<HTMLDivElement>('div', 'GRAPH-CANVAS-CONTEXT-MENU', {
+            width: '300px',
+            height: '300px',
+            position: 'relative',
+            overflow: 'hidden',
+            zoom: '0.8',
+            visibility: 'hidden',
+            opacity: '0.9',
+            'box-shadow': '1px 2px 4px rgba(0, 0, 0, .5)',
+            'border-radius': '25px',
+        });
+        document.body.appendChild(mainDiv);
+
+        // Layout
+        const layout = new Layout('GRAPH-CANVAS-CONTEXT-MENU');
+        layout.panels = [{
+            title: 'Options',
+            type: 'main',
+            overflow: 'hidden',
+            content: `
+                <input id="GRAPH-CANVAS-CONTEXT-MENU-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
+                <div id="GRAPH-CANVAS-CONTEXT-MENU-TREE" style="width: 100%; height: 100%; overflow: auto;"></div>`
+        }];
+        layout.build('GRAPH-CANVAS-CONTEXT-MENU');
+
+        // Create tree
+        const tree = new Tree('GRAPH-CANVAS-CONTEXT-MENU-TREE');
+        tree.wholerow = true;
+        tree.keyboard = true;
+        tree.build('GRAPH-CANVAS-CONTEXT-MENU-TREE');
+
+        // Search div
+        const searchDiv = $('#GRAPH-CANVAS-CONTEXT-MENU-SEARCH');
+        searchDiv.keyup(() => {
+            tree.search(<string> searchDiv.val());
+            
+            // Select first match
+            const nodes = tree.element.jstree().get_json();
+            for (const n of nodes) {
+                if (n.state.hidden)
+                    continue;
+
+                for (const c of n.children) {
+                    if (c.state.hidden)
+                        continue;
+
+                    tree.select(c.id);
+                    break;
+                }
+
+                break;
+            }
+        });
+
+        // Save
+        this._contextMenu = {
+            mainDiv: mainDiv,
+            layout: layout,
+            search: <HTMLInputElement> searchDiv[0],
+            tree: tree
+        };
+    }
+
+    /**
+     * Processes the context menu of the canvas
+     * @param node the node under pointer
+     * @param event the mouse event
+     */
+    protected processContextMenu (node: LiteGraphNode, event: MouseEvent): void {
+        const zoom = parseFloat(this._contextMenu.mainDiv.style.zoom);
+        this._contextMenu.mainDiv.style.left = event.pageX / zoom + 'px';
+        this._contextMenu.mainDiv.style.top = (event.pageY + 300 > window.innerHeight) ? (window.innerHeight - 300) / zoom + 'px' : event.pageY / zoom + 'px';
+        this._contextMenu.mainDiv.style.visibility = '';
+
+        // Tree
+        this._contextMenu.tree.clear();
+        this._contextMenu.search.value = '';
+
+        if (node) {
+            this._contextMenu.mainDiv.style.height = '120px';
+
+            // Draw ouputs
+            if (node.onGetOutputs) {
+                const outputs = node.onGetOutputs();
+                const parent = this._contextMenu.tree.add({ id: 'graph-outputs', text: 'Outputs', img: 'icon-helpers' });
+
+                outputs.forEach(o => {
+                    this._contextMenu.tree.add({ id: 'graph-outputs' + o[0], text: o[0], data: o, img: 'icon-export' }, parent.id);
+                });
+
+                this._contextMenu.mainDiv.style.height = '300px';
+            }
+
+            // Draw inputs
+            if (node.onGetInputs) {
+                const inputs = node.onGetInputs();
+                const parent = this._contextMenu.tree.add({ id: 'graph-inputs', text: 'Inputs', img: 'icon-helpers' });
+
+                inputs.forEach(i => {
+                    this._contextMenu.tree.add({ id: 'graph-inputs' + i[0], text: i[0], data: i, img: 'icon-export' }, parent.id);
+                });
+
+                this._contextMenu.mainDiv.style.height = '300px';
+            }
+
+            // Draw misc
+            this._contextMenu.tree.add({ id: 'graph-clone', text: 'Clone', img: 'icon-export' });
+            this._contextMenu.tree.add({ id: 'graph-remove', text: 'Remove', img: 'icon-error' });
+        }
+        else {
+            // Add new node
+            const nodes = LiteGraph.registered_node_types;
+            for (const n in nodes) {
+                const split = n.split('/');
+                const parent = this._contextMenu.tree.get(split[0]) || this._contextMenu.tree.add({ id: split[0], text: split[0], img: 'icon-behavior-editor' });
+
+                this._contextMenu.tree.add({ id: n, text: split[1], img: 'icon-behavior-editor' }, parent.id);
+            }
+
+            this._contextMenu.mainDiv.style.height = '300px';
+        }
+
+        // On the user clicks on an item
+        this._contextMenu.tree.onClick = (id, data) => {
+            switch (id) {
+                case 'graph-clone':
+                    const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
+                    clone.pos = [event.offsetX, event.offsetY];
+
+                    Object.assign(clone.properties, node.properties);
+                    Object.assign(clone.outputs, node.outputs);
+
+                    this.graphData.add(clone);
+                    break;
+                case 'graph-remove':
+                    this.graphData.remove(node);
+                    break;
+                
+                default:
+                    // Input
+                    if (id.indexOf('graph-inputs') === 0) {
+                        node.addInput(data[0], data[1]);
+                    }
+                    // Outputs
+                    else if (id.indexOf('graph-outputs') === 0) {
+                        node.addOutput(data[0], data[1]);
+                    }
+                    else {
+                        return;
+                    }
+            }
+
+            this._contextMenu.mainDiv.style.visibility = 'hidden';
+        };
+
+        // On the user dbl clicks an item
+        this._contextMenu.tree.onDblClick = (id) => {
+            // Create node
+            const node = LiteGraph.createNode(id);
+            if (!node)
+                return;
+            
+            node.pos = [event.offsetX, event.offsetY];
+
+            // Add and close context menu
+            this.graphData.add(node);
+            this._contextMenu.mainDiv.style.visibility = 'hidden';
+        };
+
+        // Focus on search
+        setTimeout(() => this._contextMenu.search.focus(), 1);
+
+        // Enter (once a node is selected)
+        const enterCallback = (ev: KeyboardEvent) => {
+            if (ev.keyCode !== 13)
+                return;
+            
+            const selected = this._contextMenu.tree.getSelected();
+            if (!selected)
+                return;
+            
+            this._contextMenu.tree.onDblClick(selected.id, selected.data);
+            this._contextMenu.tree.onClick(selected.id, selected.data);
+
+            window.removeEventListener('keyup', enterCallback);
+        };
+
+        window.addEventListener('keyup', enterCallback);
+
+        // Mouse up (close or not the context menu)
+        const mouseUpCallback = (ev: MouseEvent) => {
+            let parent = <HTMLDivElement> ev.target;
+            while (parent) {
+                if (parent.id === this._contextMenu.mainDiv.id)
+                    break;
+
+                parent = <HTMLDivElement> parent.parentNode;
+            }
+
+            if (!parent) {
+                this._contextMenu.mainDiv.style.visibility = 'hidden';
+                window.removeEventListener('mousedown', mouseUpCallback);
+                window.removeEventListener('keyup', enterCallback);
+            }
+        };
+
+        window.addEventListener('mousedown', mouseUpCallback);
     }
 }

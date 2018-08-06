@@ -146,14 +146,30 @@ export default class Edition {
         };
 
         const folder = parent.addFolder(name);
-        /*
-        TODO: Fix CSS Issue with color element
-        folder.addColor(target, 'color').name('Color').onChange((value: number[]) => {
-            this.getController('r', folder).setValue(value[0] / 255);
-            this.getController('g', folder).setValue(value[1] / 255);
-            this.getController('b', folder).setValue(value[2] / 255);
-        });
-        */
+        const picker = {
+            callback: () => {
+                const input = document.createElement('input');
+                input.type = 'color';
+                input.value = color.toHexString();
+                input.addEventListener('input', ev => {
+                    const result = Color3.FromHexString(input.value);
+                    color.r = result.r;
+                    color.g = result.g;
+                    color.b = result.b;
+                    this.updateDisplay();
+                });
+                input.addEventListener('change', ev => {
+                    const result = Color3.FromHexString(input.value);
+                    color.r = result.r;
+                    color.g = result.g;
+                    color.b = result.b;
+                    this.updateDisplay();
+                });
+                input.click();
+            }
+        };
+
+        folder.add(picker, 'callback').name('Color Picker');
         folder.add(color, 'r').min(0).max(1).step(0.01).onChange(() => callback && callback());
         folder.add(color, 'g').min(0).max(1).step(0.01).onChange(() => callback && callback());
         folder.add(color, 'b').min(0).max(1).step(0.01).onChange(() => callback && callback());

@@ -818,6 +818,8 @@ declare module 'babylonjs-editor/editor/gui/tree' {
     }
     export default class Tree {
             name: string;
+            wholerow: boolean;
+            keyboard: boolean;
             element: JSTree;
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;
