@@ -463,7 +463,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Layout
         const layout = new Layout('GRAPH-CANVAS-CONTEXT-MENU');
         layout.panels = [{
-            title: 'Add a new node',
+            title: 'Options',
             type: 'main',
             overflow: 'hidden',
             content: `
