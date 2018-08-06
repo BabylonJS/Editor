@@ -493,7 +493,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     if (c.state.hidden)
                         continue;
 
-                    tree.select(c.id);
+                    const selected = tree.getSelected();
+                    if (!selected || selected.id !== c.id)
+                        tree.select(c.id);
                     break;
                 }
 
@@ -517,7 +519,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected processContextMenu (node: LiteGraphNode, event: MouseEvent): void {
         const zoom = parseFloat(this._contextMenu.mainDiv.style.zoom);
-        this._contextMenu.mainDiv.style.left = event.pageX / zoom + 'px';
+        this._contextMenu.mainDiv.style.left = (event.pageX + 10) / zoom + 'px';
         this._contextMenu.mainDiv.style.top = (event.pageY + 300 > window.innerHeight) ? (window.innerHeight - 300) / zoom + 'px' : event.pageY / zoom + 'px';
         this._contextMenu.mainDiv.style.visibility = '';
 
@@ -649,10 +651,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (!parent) {
                 this._contextMenu.mainDiv.style.visibility = 'hidden';
                 window.removeEventListener('mousedown', mouseUpCallback);
+                this.graph.canvas.removeEventListener('mousedown', mouseUpCallback);
                 window.removeEventListener('keyup', enterCallback);
             }
         };
 
         window.addEventListener('mousedown', mouseUpCallback);
+        this.graph.canvas.addEventListener('mousedown', mouseUpCallback);
     }
 }
