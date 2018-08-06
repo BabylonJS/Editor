@@ -1371,6 +1371,11 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
                 */
             addPanelToStack(stackId: string, config: ComponentConfig): void;
             /**
+                * Returns the tabs count in the given stack id
+                * @param stackId the stack id containing tabs
+                */
+            getTabsCount(stackId: string): number;
+            /**
                 * Builds the resizable layout
                 * @param parentId the parent id
                 */

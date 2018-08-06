@@ -227,6 +227,11 @@ export default class Editor implements IUpdatable {
         // Resize preview
         this.preview.resize();
 
+        // Edit panel
+        const tabsCount = this.resizableLayout.getTabsCount('edit-panel');
+        if (tabsCount === 0)
+            this.resizableLayout.setPanelSize('edit-panel', 0);
+
         // Notify
         this.core.onResize.notifyObservers(null);
     }
