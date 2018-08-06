@@ -21,6 +21,7 @@ export default class Tree {
     // Public members
     public name: string;
     public wholerow: boolean = false;
+    public keyboard: boolean = false;
     public element: JSTree = null;
 
     public onClick: <T>(id: string, data: T) => void;
@@ -171,8 +172,12 @@ export default class Tree {
             'contextmenu', 'dnd', 'search',
             'state', 'types'
         ];
+
         if (this.wholerow)
             plugins.push('wholerow')
+
+        if (this.keyboard)
+            plugins.push('hotkeys');
 
         this.element = $('#' + parentId).jstree({
             core: {

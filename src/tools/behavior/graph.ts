@@ -254,7 +254,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected objectSelected (node: Node | Scene): void {
         if (!(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
-            this.layout.lockPanel('main', 'Please Select A Node');
+            this.layout.lockPanel('main', 'No Node Selected');
             return;
         }
 
@@ -303,7 +303,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.layout.unlockPanel('left');
 
         if (this.datas.metadatas.length === 0)
-            this.layout.lockPanel('main', 'Please add a graph');
+            this.layout.lockPanel('main', 'No Graph Selected');
         else
             this.layout.unlockPanel('main');
     }
@@ -475,11 +475,31 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Create tree
         const tree = new Tree('GRAPH-CANVAS-CONTEXT-MENU-TREE');
         tree.wholerow = true;
+        tree.keyboard = true;
         tree.build('GRAPH-CANVAS-CONTEXT-MENU-TREE');
 
         // Search div
         const searchDiv = $('#GRAPH-CANVAS-CONTEXT-MENU-SEARCH');
-        searchDiv.keyup(() => tree.search(<string> searchDiv.val()));
+        searchDiv.keyup(() => {
+            tree.search(<string> searchDiv.val());
+            
+            // Select first match
+            const nodes = tree.element.jstree().get_json();
+            for (const n of nodes) {
+                if (n.state.hidden)
+                    continue;
+
+                for (const c of n.children) {
+                    if (c.state.hidden)
+                        continue;
+
+                    tree.select(c.id);
+                    break;
+                }
+
+                break;
+            }
+        });
 
         // Save
         this._contextMenu = {
@@ -506,9 +526,35 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this._contextMenu.search.value = '';
 
         if (node) {
-            // Draw node's options
+            this._contextMenu.mainDiv.style.height = '120px';
+
+            // Draw ouputs
+            if (node.onGetOutputs) {
+                const outputs = node.onGetOutputs();
+                const parent = this._contextMenu.tree.add({ id: 'graph-outputs', text: 'Outputs', img: 'icon-helpers' });
+
+                outputs.forEach(o => {
+                    this._contextMenu.tree.add({ id: 'graph-outputs' + o[0], text: o[0], data: o, img: 'icon-export' }, parent.id);
+                });
+
+                this._contextMenu.mainDiv.style.height = '300px';
+            }
+
+            // Draw inputs
+            if (node.onGetInputs) {
+                const inputs = node.onGetInputs();
+                const parent = this._contextMenu.tree.add({ id: 'graph-inputs', text: 'Inputs', img: 'icon-helpers' });
+
+                inputs.forEach(i => {
+                    this._contextMenu.tree.add({ id: 'graph-inputs' + i[0], text: i[0], data: i, img: 'icon-export' }, parent.id);
+                });
+
+                this._contextMenu.mainDiv.style.height = '300px';
+            }
+
+            // Draw misc
+            this._contextMenu.tree.add({ id: 'graph-clone', text: 'Clone', img: 'icon-export' });
             this._contextMenu.tree.add({ id: 'graph-remove', text: 'Remove', img: 'icon-error' });
-            this._contextMenu.mainDiv.style.height = '100px';
         }
         else {
             // Add new node
@@ -523,19 +569,40 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this._contextMenu.mainDiv.style.height = '300px';
         }
 
-        this._contextMenu.tree.onClick = (id) => {
+        // On the user clicks on an item
+        this._contextMenu.tree.onClick = (id, data) => {
             switch (id) {
+                case 'graph-clone':
+                    const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
+                    clone.pos = [event.offsetX, event.offsetY];
+
+                    Object.assign(clone.properties, node.properties);
+                    Object.assign(clone.outputs, node.outputs);
+
+                    this.graphData.add(clone);
+                    break;
                 case 'graph-remove':
                     this.graphData.remove(node);
                     break;
                 
                 default:
-                    return;
+                    // Input
+                    if (id.indexOf('graph-inputs') === 0) {
+                        node.addInput(data[0], data[1]);
+                    }
+                    // Outputs
+                    else if (id.indexOf('graph-outputs') === 0) {
+                        node.addOutput(data[0], data[1]);
+                    }
+                    else {
+                        return;
+                    }
             }
 
             this._contextMenu.mainDiv.style.visibility = 'hidden';
         };
 
+        // On the user dbl clicks an item
         this._contextMenu.tree.onDblClick = (id) => {
             // Create node
             const node = LiteGraph.createNode(id);
@@ -549,11 +616,28 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this._contextMenu.mainDiv.style.visibility = 'hidden';
         };
 
-        // Search
+        // Focus on search
         setTimeout(() => this._contextMenu.search.focus(), 1);
 
-        // Mouse up
-        const mouseUpCallbac = (ev: MouseEvent) => {
+        // Enter (once a node is selected)
+        const enterCallback = (ev: KeyboardEvent) => {
+            if (ev.keyCode !== 13)
+                return;
+            
+            const selected = this._contextMenu.tree.getSelected();
+            if (!selected)
+                return;
+            
+            this._contextMenu.tree.onDblClick(selected.id, selected.data);
+            this._contextMenu.tree.onClick(selected.id, selected.data);
+
+            window.removeEventListener('keyup', enterCallback);
+        };
+
+        window.addEventListener('keyup', enterCallback);
+
+        // Mouse up (close or not the context menu)
+        const mouseUpCallback = (ev: MouseEvent) => {
             let parent = <HTMLDivElement> ev.target;
             while (parent) {
                 if (parent.id === this._contextMenu.mainDiv.id)
@@ -564,10 +648,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
             if (!parent) {
                 this._contextMenu.mainDiv.style.visibility = 'hidden';
-                window.removeEventListener('mousedown', mouseUpCallbac);
+                window.removeEventListener('mousedown', mouseUpCallback);
+                window.removeEventListener('keyup', enterCallback);
             }
         };
 
-        window.addEventListener('mousedown', mouseUpCallbac);
+        window.addEventListener('mousedown', mouseUpCallback);
     }
 }
