@@ -7,8 +7,12 @@ export abstract class LiteGraphNode {
     public mode: number;
     public color: string;
     public bgColor: string;
+    public readonly type: string;
+    
     public properties: { [index: string]: string | number | boolean };
+    public outputs: any[];
 
+    public pos: number[];
     public size: number[] = [60, 20];
     public shape: string = 'round';
 
@@ -82,6 +86,9 @@ export abstract class LiteGraphNode {
     public addProperty? (name: string, defaultValue: string | number | boolean): void;
 
     public onDrawBackground? (ctx: CanvasRenderingContext2D): void;
+
+    public onGetOutputs? (): string[][];
+    public onGetInputs? (): string[][];
 
     /**
      * Returns the target node

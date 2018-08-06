@@ -227,6 +227,11 @@ export default class Editor implements IUpdatable {
         // Resize preview
         this.preview.resize();
 
+        // Edit panel
+        const tabsCount = this.resizableLayout.getTabsCount('edit-panel');
+        if (tabsCount === 0)
+            this.resizableLayout.setPanelSize('edit-panel', 0);
+
         // Notify
         this.core.onResize.notifyObservers(null);
     }
@@ -701,7 +706,7 @@ export default class Editor implements IUpdatable {
         // Get versions
         const currentVersion = await Request.Get('http://localhost:1337/version');
 
-        const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json');
+        const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
         const newVersion = JSON.parse(packageJson).version;
 
         if (currentVersion !== newVersion) {

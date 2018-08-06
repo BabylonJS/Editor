@@ -818,6 +818,8 @@ declare module 'babylonjs-editor/editor/gui/tree' {
     }
     export default class Tree {
             name: string;
+            wholerow: boolean;
+            keyboard: boolean;
             element: JSTree;
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;
@@ -1368,6 +1370,11 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
                 * @param config: the panel's configuration
                 */
             addPanelToStack(stackId: string, config: ComponentConfig): void;
+            /**
+                * Returns the tabs count in the given stack id
+                * @param stackId the stack id containing tabs
+                */
+            getTabsCount(stackId: string): number;
             /**
                 * Builds the resizable layout
                 * @param parentId the parent id

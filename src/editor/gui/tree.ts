@@ -20,6 +20,8 @@ export interface ContextMenuItem {
 export default class Tree {
     // Public members
     public name: string;
+    public wholerow: boolean = false;
+    public keyboard: boolean = false;
     public element: JSTree = null;
 
     public onClick: <T>(id: string, data: T) => void;
@@ -166,6 +168,17 @@ export default class Tree {
      * @param parentId the parent id
      */
     public build (parentId: string): void {
+        const plugins = [
+            'contextmenu', 'dnd', 'search',
+            'state', 'types'
+        ];
+
+        if (this.wholerow)
+            plugins.push('wholerow')
+
+        if (this.keyboard)
+            plugins.push('hotkeys');
+
         this.element = $('#' + parentId).jstree({
             core: {
                 check_callback: true,
@@ -178,10 +191,7 @@ export default class Tree {
                     return this.onCanDrag && this.onCanDrag(node.id, node.data);
                 }
             },
-            plugins: [
-                'contextmenu', 'dnd', 'search',
-                'state', 'types'
-            ],
+            plugins: plugins,
             search: {
                 show_only_matches: true,
                 show_only_matches_children: true

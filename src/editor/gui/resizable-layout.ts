@@ -125,6 +125,21 @@ export default class ResizableLayout {
     }
 
     /**
+     * Returns the tabs count in the given stack id
+     * @param stackId the stack id containing tabs
+     */
+    public getTabsCount (stackId: string): number {
+        const item = this.element.root.getItemsById(stackId)[0];
+        if (!item)
+            return -1;
+
+        if (!item.config.content)
+            return -1;
+        
+        return item.config.content.length;
+    }
+
+    /**
      * Builds the resizable layout
      * @param parentId the parent id
      */
