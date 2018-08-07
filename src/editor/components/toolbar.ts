@@ -7,13 +7,13 @@ import Dialog from '../gui/dialog';
 
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
+import ThemeSwitcher from '../tools/theme';
 
 import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
 import SceneImporter from '../scene/scene-importer';
 import SceneManager from '../scene/scene-manager';
 import SceneSerializer from '../scene/scene-serializer';
-import { GizmoType } from '../scene/scene-picker';
 
 export default class EditorToolbar {
     // Public members
@@ -53,7 +53,10 @@ export default class EditorToolbar {
                     { id: 'redo', img: 'icon-redo', text: 'Redo' },
                     { type: 'break' },
                     { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
-                    { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' }
+                    { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' },
+                    { type: 'break' },
+                    { id: 'set-theme-light', img: 'icon-helpers', text: 'Light Theme' },
+                    { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' }
                 ]
             },
             { type: 'break' },
@@ -179,11 +182,19 @@ export default class EditorToolbar {
             case 'edit:redo':
                 UndoRedo.Redo();
                 break;
+
             case 'edit:clean-materials':
                 Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedMaterials(this.editor.core.scene)} materials`, 'Report');
                 break;
             case 'edit:clean-textures':
                 Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedTextures(this.editor.core.scene)} textures`, 'Report');
+                break;
+
+            case 'edit:set-theme-light':
+                ThemeSwitcher.ThemeName = 'Light';
+                break;
+            case 'edit:set-theme-dark':
+                ThemeSwitcher.ThemeName = 'Dark';
                 break;
 
             // View
