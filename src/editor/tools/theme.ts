@@ -6,15 +6,13 @@ export default class ThemeSwitcher {
     // Public members
     public static LightThemeUrls: string[] = [
         'node_modules/w2ui/w2ui.css',
-        'node_modules/jstree/dist/themes/default/style.min.css',
         'node_modules/golden-layout/src/css/goldenlayout-light-theme.css',
         'css/dat.gui.css'
     ];
 
     public static DarkThemeUrls: string[] = [
-        'node_modules/w2ui/w2ui-dark.css',
-        'node_modules/jstree/dist/themes/default-dark/style.min.css',
-        'node_modules/golden-layout/src/css/goldenlayout-dark-theme.css'
+        'node_modules/golden-layout/src/css/goldenlayout-dark-theme.css',
+        'css/dark.css'
     ];
 
     // Private members

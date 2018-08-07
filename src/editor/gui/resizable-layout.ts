@@ -143,7 +143,7 @@ export default class ResizableLayout {
      * Builds the resizable layout
      * @param parentId the parent id
      */
-    public build (parentId: string): void {
+    public async build (parentId: string): Promise<void> {
         this.element = new GoldenLayout({
             settings: {
                 showPopoutIcon: false,
@@ -168,8 +168,8 @@ export default class ResizableLayout {
         // Initialize
         this.element.init();
 
-        System.import('./node_modules/golden-layout/src/css/goldenlayout-base.css');
-        System.import('./node_modules/golden-layout/src/css/goldenlayout-light-theme.css');
+        await System.import('./node_modules/golden-layout/src/css/goldenlayout-base.css');
+        await System.import('./node_modules/golden-layout/src/css/goldenlayout-light-theme.css');
     }
 
     // Registers all components

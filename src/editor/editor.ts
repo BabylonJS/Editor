@@ -37,6 +37,7 @@ import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
+import ThemeSwitcher from './tools/theme';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -512,6 +513,7 @@ export default class Editor implements IUpdatable {
             localStorage.setItem('babylonjs-editor-layout-state', state);
 
             localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
+            localStorage.setItem('babylonjs-editor-theme-name', ThemeSwitcher.ThemeName);
         });
     }
 
