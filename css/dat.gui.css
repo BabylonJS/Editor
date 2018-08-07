@@ -15,6 +15,10 @@
     background-color: #ddd;
 }
 
+.dg.main > ul > li > div.dg > ul > li:first-child {
+    border-radius: 0px !important;
+}
+
 .dg {
     color: #555;
     text-shadow: none !important;
@@ -22,6 +26,12 @@
 
 .dg.main::-webkit-scrollbar {
     background: #fafafa;
+}
+
+.dg .c select{
+    height: 16px;
+    width: 124px;
+    font-size: 11px;
 }
 
 .dg.main::-webkit-scrollbar-thumb {
@@ -52,25 +62,27 @@
 .dg li.save-row .button.revert {
     float: left;
     margin-left: 0px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
-    font-family:'MS Reference Sans Serif';
+    font-family:Roboto,sans-serif !important;
 }
 
 .dg li.folder .folder {
-    margin-left: 20px;
+    margin-left: 11px;
 }
 
 .dg li.title {
-    background: #e8e8e8 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;
-    font-size: 12px;
+    background: #e8e8e8 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 11px no-repeat;
+    font-size: 11px;
     font-weight: bold;
-    font-family:'MS Reference Sans Serif';
+    font-family: Roboto,sans-serif !important;
+    border-radius: 8px 0px 0px 8px;
 }
 
+
 .dg li.cr {
-    font-size: 12px;
-    font-family:'MS Reference Sans Serif';
+    font-size: 11px;
+    font-family: Roboto,sans-serif !important;
     margin-left: 20px;
 }
 
@@ -104,8 +116,8 @@
 
 .dg .c input[type=text] {
     background: #e9e9e9;
-    font-size: 12px;
-    font-family: 'MS Reference Sans Serif';
+    font-size: 11px;
+    font-family: Roboto,sans-serif !important;
 }
  
 .dg .c input[type=text]:hover {
