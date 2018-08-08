@@ -1379,7 +1379,7 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
                 * Builds the resizable layout
                 * @param parentId the parent id
                 */
-            build(parentId: string): void;
+            build(parentId: string): Promise<void>;
     }
 }
 
