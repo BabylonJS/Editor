@@ -105,6 +105,7 @@ export default class PathFinderEditor extends EditorPlugin {
             { id: 'edit', type: 'button', text: 'Edit', img: 'icon-edit' }
         ];
         this.toolbar.onClick = id => this.onToolbarClicked(id);
+        this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/using_pathfinder';
         this.toolbar.build('PATH-FINDER-TOOLBAR');
         this.resetPathsOfToolbar();
 

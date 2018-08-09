@@ -137,6 +137,7 @@ export default class AnimationEditor extends EditorPlugin {
         ];
         this.toolbar.right = 'No object selected';
         this.toolbar.onClick = (id) => this.onToolbarClick(id);
+        this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_animations';
         this.toolbar.build('ANIMATION-EDITOR-TOOLBAR');
 
         // Create edit toolbar
