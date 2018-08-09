@@ -16,6 +16,7 @@
 
 </head>
 <body>
+    <div id="LOADING-DIV" style="width: 100%; height: 100%;"></div>
     <script type="text/javascript">
         System.config({
             paths: {
@@ -79,8 +80,15 @@
         // Define modules
         System.set('jquery', System.newModule({ __useDefault: $ }));
 
-        // Import
+        // Lock and import
+        var loadingDiv = document.getElementById('LOADING-DIV');
+        w2utils.lock(loadingDiv, 'Loading Editor...', true);
+        
         System.import("babylonjs-editor").then(function (e) {
+            // Unlock and remove loading div
+            w2utils.unlock(loadingDiv);
+            loadingDiv.remove();
+
             // Run editor
             var editor = window.editor = new e.default();
             editor.run();
