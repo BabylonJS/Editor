@@ -463,7 +463,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             // Create window
             const window = new Popin('ImportBehaviorCode');
             window.title = 'Import Custom Script...';
-            window.body = `<div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%;"></div>`;
+            window.body = `
+                <input id="IMPORT-BEHAVIOR-CODE-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
+                <div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%;"></div>
+            `;
             window.buttons = ['Ok', 'Cancel'];
             window.open();
 
@@ -497,6 +500,14 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                     tree.add({ data: m, id: c.node + m.name, text: m.name, img: 'icon-behavior-editor' }, c.node)
                 });
             });
+
+            // Search
+            const search = $('#IMPORT-BEHAVIOR-CODE-SEARCH');
+            search.keyup(() => {
+                tree.search(<string> search.val());
+            });
+
+            setTimeout(() => search.focus(), 1);
 
             // On click on 'Ok', import script(s) and update grid
             window.onButtonClick = (id) => {
