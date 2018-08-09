@@ -174,6 +174,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.onResize();
 
         // Add new script?
+        this.targetNode = targetNode;
         if (targetNode)
             this.selectObject(this.targetNode);
         
