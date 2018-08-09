@@ -3,6 +3,8 @@ import { Scene, Effect, Tools, Texture, Vector3, Vector2 } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+import { exportScriptString } from '../tools/tools';
+
 import { IStringDictionary } from '../typings/typings';
 
 import CustomEditorMaterial, { CustomMaterialCode, CustomMaterialConfig } from './material';
@@ -27,6 +29,8 @@ export interface MaterialCreatorMetadata {
 const template = `
 EDITOR.MaterialCreator.Constructors['{{name}}'] = function () {
 {{code}}
+
+${exportScriptString}
 }
 `;
 

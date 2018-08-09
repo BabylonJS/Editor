@@ -36,14 +36,14 @@ export default class Extensions {
      * if already exists
      * @param name the name of the extension
      */
-    public static RequestExtension<T> (scene: Scene, name: string): T & IExtension<T> {
+    public static RequestExtension<T extends IExtension<any>> (scene: Scene, name: string): T {
         if (this.Instances[name])
-            return <T & IExtension<T>> this.Instances[name];
+            return <T> this.Instances[name];
 
         if (!this.Extensions[name])
             return null;
 
-        const instance = <T & IExtension<T>> new this.Extensions[name](scene);
+        const instance = <T> new this.Extensions[name](scene);
         this.Instances[name] = instance;
 
         return instance;

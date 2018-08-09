@@ -79,3 +79,28 @@ export default class Tools {
         return ext.instances[name];
     }
 }
+
+/**
+ * String used by dynamic scripts to write "exportScript" instead of "return Script" etc.
+ * This makes TypeScript compliant
+ */
+export const exportScriptString = `
+function exportScript (value, params) {
+    if (!params) {
+        returnValue = value;
+    } else {
+        returnValue = {
+            ctor: value
+        };
+
+        var keys = Object.keys(params);
+        for (var i = 0; i < keys.length; i++) {
+            returnValue[keys[i]] = params[keys[i]];
+        }
+    }
+};
+
+if (returnValue) {
+    return returnValue;
+}
+`;

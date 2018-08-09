@@ -52,13 +52,15 @@ export default class EditorGraph {
             const result: ContextMenuItem[] = [];
 
             if (data.globalPosition || data.getAbsolutePosition)
-                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', callback: () => this.onMenuClick('focus') });
+                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: () => this.onMenuClick('focus') });
             
             if (data instanceof AbstractMesh)
-                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separator: true, callback: () => this.onMenuClick('set-material') });
+                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: () => this.onMenuClick('set-material') });
 
-            if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem)
-                result.push({ id: 'set-script', text: 'Set Script...', img: 'icon-behavior-editor', separator: true, callback: () => this.onMenuClick('set-script') });
+            if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
+                result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: () => this.onMenuClick('attach-script') });
+                result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: () => this.onMenuClick('add-script') });
+            }
 
             if (data.clone)
                 result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') });
@@ -452,8 +454,12 @@ export default class EditorGraph {
                 await this.editor.addEditPanelPlugin('material-viewer', false, 'Materials Viewer', node.data, true);
                 break;
 
+            // Set Script
+            case 'attach-script':
+                await this.editor.addEditPanelPlugin('behavior-editor', false, 'Code Editor', node.data, false, true);
+                break;
             // Add Script
-            case 'set-script':
+            case 'add-script':
                 await this.editor.addEditPanelPlugin('behavior-editor', false, 'Code Editor', node.data, true);
                 break;
             
