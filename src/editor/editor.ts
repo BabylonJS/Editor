@@ -37,7 +37,7 @@ import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
-import ThemeSwitcher from './tools/theme';
+import ThemeSwitcher, { ThemeType } from './tools/theme';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -203,6 +203,10 @@ export default class Editor implements IUpdatable {
             // Check for updates
             this._checkUpdates();
         }
+
+        // Apply theme
+        const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
+        ThemeSwitcher.ThemeName = theme || 'Light';
     }
 
     /**

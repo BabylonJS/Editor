@@ -169,7 +169,6 @@ export default class ResizableLayout {
         this.element.init();
 
         await System.import('./node_modules/golden-layout/src/css/goldenlayout-base.css');
-        await System.import('./node_modules/golden-layout/src/css/goldenlayout-light-theme.css');
     }
 
     // Registers all components
