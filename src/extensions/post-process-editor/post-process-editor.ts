@@ -3,6 +3,8 @@ import { Scene, Effect, Tools, Vector2, Vector3, Texture } from 'babylonjs';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+import { exportScriptString } from '../tools/tools';
+
 import { IStringDictionary } from '../typings/typings';
 
 import AbstractPostProcessEditor, { CustomPostProcessConfig } from './post-process';
@@ -28,6 +30,8 @@ export interface PostProcessCreatorMetadata {
 const template = `
 EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera, tools, mobile) {
 {{code}}
+
+${exportScriptString}
 }
 `;
 

@@ -1,17 +1,27 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, Vector4, Vector3, Vector2, Color4, Color3, Tools } from 'babylonjs';
+import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, Vector4, Vector3, Vector2, Color4, Color3, Tools, GroundMesh } from 'babylonjs';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
+import { exportScriptString } from '../tools/tools';
+
 import { IStringDictionary } from '../typings/typings';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+export interface BehaviorCodeLink {
+    node: string;
+    metadata: string;
+}
+
 export interface BehaviorCode {
-    code: string;
+    code?: string;
     compiledCode?: string;
+
     name: string;
     active: boolean;
     params?: any;
+
+    link?: BehaviorCodeLink;
 }
 
 export interface BehaviorMetadata {
@@ -25,24 +35,7 @@ var returnValue = null;
 
 {{code}}
 
-function exportScript (value, params) {
-    if (!params) {
-        returnValue = value;
-    } else {
-        returnValue = {
-            ctor: value
-        };
-
-        var keys = Object.keys(params);
-        for (var i = 0; i < keys.length; i++) {
-            returnValue[keys[i]] = params[keys[i]];
-        }
-    }
-};
-
-if (returnValue) {
-    return returnValue;
-}
+${exportScriptString}
 }
 `;
 
@@ -88,13 +81,24 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
             d.metadatas.forEach(m => {
                 if (!m.active)
                     return;
+
+                let effectiveCode: BehaviorCode = m;
+                if (m.link) {
+                    const metadata = this.datas.find(d => d.node === m.link.node);
+                    const code = metadata.metadatas.find(dm => dm.name === m.link.metadata);
+
+                    if (!code)
+                        return;
+
+                    effectiveCode = code;
+                }
                 
-                const ctor = this.getConstructor(m, node);
+                const ctor = this.getConstructor(effectiveCode, node);
 
                 // Instance
                 const instance = new (ctor.ctor || ctor)();
                 if (m.params)
-                    this.setCustomParams(m, instance);
+                    this.setCustomParams(effectiveCode, instance);
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
@@ -124,8 +128,14 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         const result: BehaviorMetadata[] = [];
         const add = (objects: (Scene | Node | IParticleSystem)[]) => {
             objects.forEach(o => {
-                if (o['metadata'] && o['metadata']['behavior'])
-                    result.push(o['metadata']['behavior']);
+                if (o['metadata'] && o['metadata'].behavior) {
+                    const behavior = <BehaviorMetadata> o['metadata'].behavior;
+                    behavior.node = o instanceof Scene ? 'Scene' :
+                                    o instanceof Node ? o.name :
+                                    o.id;
+
+                    result.push(behavior);
+                }
             });
         };
 
@@ -147,7 +157,11 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
         
         // For each node
         this.datas.forEach(d => {
-            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+
+            if (!node)
+                node = this.scene.getParticleSystemByID(d.node);
+            
             if (!node)
                 return;
             
@@ -155,8 +169,8 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
                 // TODO: set custom params
             });
 
-            node.metadata = node.metadata || { };
-            node.metadata['behavior'] = d;
+            node['metadata'] = node['metadata'] || { };
+            node['metadata'].behavior = d;
         });
     }
 
@@ -226,14 +240,17 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     // Return the effective constructor name used by scripts
     private _getEffectiveConstructorName (obj: any): string {
         if (obj instanceof DirectionalLight)
-            return "dirlight";
+            return 'dirlight';
 
         if (obj instanceof HemisphericLight)
-            return "hemlight";
+            return 'hemlight';
 
-        let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : "";
+        if (obj instanceof GroundMesh)
+            return 'mesh';
+
+        let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : '';
         
-        if (ctrName === "") {
+        if (ctrName === '') {
             ctrName = typeof obj;
         }
         

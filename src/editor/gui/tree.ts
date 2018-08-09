@@ -6,6 +6,8 @@ export interface TreeNode {
 
     img?: string;
     data?: any;
+
+    parent?: string;
 }
 
 export interface ContextMenuItem {
@@ -13,7 +15,8 @@ export interface ContextMenuItem {
     text: string;
     callback: () => void;
 
-    separator?: boolean;
+    separatorBefore?: boolean;
+    separatorAfter?: boolean;
     img?: string;
 }
 
@@ -215,8 +218,8 @@ export default class Tree {
                             label: i.text,
                             icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
                             action: () => i.callback(),
-                            separator_before: i.separator,
-                            separator_after: i.separator
+                            separator_before: i.separatorBefore,
+                            separator_after: i.separatorAfter
                         }
                     });
 

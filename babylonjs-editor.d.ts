@@ -808,12 +808,14 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             text: string;
             img?: string;
             data?: any;
+            parent?: string;
     }
     export interface ContextMenuItem {
             id: string;
             text: string;
             callback: () => void;
-            separator?: boolean;
+            separatorBefore?: boolean;
+            separatorAfter?: boolean;
             img?: string;
     }
     export default class Tree {
