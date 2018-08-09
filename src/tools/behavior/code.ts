@@ -5,6 +5,7 @@ import {
     Tools as BabylonTools,
     IParticleSystem
 } from 'babylonjs';
+import * as BABYLON from 'babylonjs';
 
 import Editor, {
     Tools,
@@ -477,9 +478,21 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 if (c.metadatas.length === 0 || (importAsLink && c.node === nodeName))
                     return;
                 
+                // Check instance
+                if (c.node === 'Scene' && !(this.node instanceof Scene))
+                    return;
+
+                const node = this.editor.core.scene.getNodeByName(c.node) || this.editor.core.scene.getParticleSystemByID(c.node);
+                if (node && Tools.GetConstructorName(node) !== Tools.GetConstructorName(this.node))
+                    return;
+                
+                // Add
                 tree.add({ data: c, id: c.node, text: c.node, img: 'icon-mesh' });
 
                 c.metadatas.forEach(m => {
+                    if (m.link)
+                        return;
+                    
                     tree.add({ data: m, id: c.node + m.name, text: m.name, img: 'icon-behavior-editor' }, c.node)
                 });
             });
@@ -506,11 +519,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                     });
                 });
 
-                tree.destroy();
                 window.close();
 
                 this.selectObject(this.node);
             };
+
+            window.onClose = () => tree.destroy();
         }
     }
 }
