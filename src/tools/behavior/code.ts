@@ -465,7 +465,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             window.title = 'Import Custom Script...';
             window.body = `
                 <input id="IMPORT-BEHAVIOR-CODE-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
-                <div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%;"></div>
+                <div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%; overflow: auto;"></div>
             `;
             window.buttons = ['Ok', 'Cancel'];
             window.open();
