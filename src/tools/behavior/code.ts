@@ -51,6 +51,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected data: BehaviorCode = null;
 
     protected onSelectObject = (node) => node && this.selectObject(node);
+    protected onSelectAsset = (asset) => asset && this.selectAsset(asset);
     protected onResize = () => this.layout.element.resize();
 
     protected targetNode: any;
@@ -87,6 +88,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
+        this.editor.core.onSelectAsset.removeCallback(this.onSelectAsset);
         this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
@@ -143,6 +145,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.layout.unlockPanel('main');
         
         // Events
+        this.editor.core.onSelectAsset.add(this.onSelectAsset);
         this.editor.core.onSelectObject.add(this.onSelectObject);
         this.editor.core.onResize.add(this.onResize);
 
@@ -201,6 +204,23 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     }
 
     /**
+     * On the user selects an asset in the editor
+     * @param asset the selected asset
+     */
+    protected selectAsset (asset: BehaviorCode): void {
+        if (asset.code) {
+            this.layout.hidePanel('left');
+
+            this.datas = {
+                node: 'Unknown',
+                metadatas: [asset]
+            };
+
+            this.selectCode(0);
+        }
+    }
+
+    /**
      * On the user selects a node in the editor
      * @param node the selected node
      */
@@ -241,6 +261,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.grid.select([0]);
             currentNodeName = this.datas.metadatas[0].name;
         }
+
+        // Show grid
+        this.layout.showPanel('left');
 
         // Refresh right text
         this._updateToolbarText();

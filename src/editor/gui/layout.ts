@@ -15,6 +15,7 @@ export default class Layout {
 
     /**
      * Returns the size of the given panel
+     * @param type the panel type (left, top, etc.)
      */
     public getPanelSize (type: string): { width: number; height: number; } {
         const panel = this.getPanelFromType(type);
@@ -22,6 +23,31 @@ export default class Layout {
             width: panel['width'],
             height: panel['height']
         };
+    }
+
+    /**
+     * Sets the panel size
+     * @param type the panel type (left, top, etc.)
+     * @param size the new panel size
+     */
+    public setPanelSize (type: string, size: number): void {
+        this.element.sizeTo(type, size);
+    }
+
+    /**
+     * Hides the given panel
+     * @param type the panel type (left, top, etc.)
+     */
+    public hidePanel (type: string): void {
+        this.element.hide(type);
+    }
+
+    /**
+     * Shows the given panel
+     * @param type the panel type (left, top, etc.)
+     */
+    public showPanel (type: string): void {
+        this.element.show(type);
     }
 
     /**

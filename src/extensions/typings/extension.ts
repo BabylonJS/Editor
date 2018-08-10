@@ -1,9 +1,11 @@
 import { Scene } from 'babylonjs';
 
+import { IAssetComponent } from './asset';
+
 /**
  * Interface representing an editor extension
  */
-export interface IExtension<T> {
+export interface IExtension<T> extends IAssetComponent {
     /**
      * Sets if the extensions is always applied
      */

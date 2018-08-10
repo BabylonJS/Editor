@@ -1,4 +1,5 @@
 import Editor from './editor/editor';
+
 import Tools from './editor/tools/tools';
 import UndoRedo from './editor/tools/undo-redo';
 

@@ -4,6 +4,7 @@ import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
 
 import { IStringDictionary } from '../typings/typings';
+import { IAssetComponent, AssetElement } from '../typings/asset';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -49,8 +50,11 @@ window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].BehaviorCode = EDITOR.BehaviorCode;
 
 // Code extension class
-export default class CodeExtension extends Extension<BehaviorMetadata[]> {
+export default class CodeExtension extends Extension<BehaviorMetadata[]> implements IAssetComponent {
     // Public members
+    public id: string = 'CodeExtension';
+    public assetsCaption: string = 'Scripts';
+
     public instances: IStringDictionary<any> = { };
     
     /**
@@ -60,6 +64,28 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> {
     constructor (scene: Scene) {
         super(scene);
         this.datas = [];
+    }
+
+    /**
+     * On get all the assets to be drawn in the assets component
+     */
+    public onGetAssets<BehaviorCode> (): AssetElement<BehaviorCode>[] {
+        const result: AssetElement<BehaviorCode>[] = [];
+        const data = this.onSerialize();
+
+        data.forEach(d => {
+            d.metadatas.forEach(d => {
+                if (d.link)
+                    return;
+
+                result.push({
+                    name: d.name,
+                    data: <any> d
+                });
+            });
+        });
+
+        return result;
     }
 
     /**

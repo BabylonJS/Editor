@@ -44,7 +44,8 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorPreview from 'babylonjs-editor/editor/components/preview';
     import EditorInspector from 'babylonjs-editor/editor/components/inspector';
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
-    import Stats from 'babylonjs-editor/editor/components/stats';
+    import EditorStats from 'babylonjs-editor/editor/components/stats';
+    import EditorAssets from 'babylonjs-editor/editor/components/assets';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -58,7 +59,8 @@ declare module 'babylonjs-editor/editor/editor' {
             preview: EditorPreview;
             edition: EditorInspector;
             editPanel: EditorEditPanel;
-            stats: Stats;
+            stats: EditorStats;
+            assets: EditorAssets;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -287,11 +289,28 @@ declare module 'babylonjs-editor/editor/gui/layout' {
             constructor(name: string);
             /**
                 * Returns the size of the given panel
+                * @param type the panel type (left, top, etc.)
                 */
             getPanelSize(type: string): {
                     width: number;
                     height: number;
             };
+            /**
+                * Sets the panel size
+                * @param type the panel type (left, top, etc.)
+                * @param size the new panel size
+                */
+            setPanelSize(type: string, size: number): void;
+            /**
+                * Hides the given panel
+                * @param type the panel type (left, top, etc.)
+                */
+            hidePanel(type: string): void;
+            /**
+                * Shows the given panel
+                * @param type the panel type (left, top, etc.)
+                */
+            showPanel(type: string): void;
             /**
                 * Locks the given panel type
                 * @param type the panel type
@@ -1289,6 +1308,7 @@ declare module 'babylonjs-editor/editor/core' {
             disableObjectSelection: boolean;
             updates: IUpdatable[];
             onSelectObject: Observable<any>;
+            onSelectAsset: Observable<any>;
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
             onGlobalPropertyChange: Observable<{
@@ -1539,6 +1559,9 @@ declare module 'babylonjs-editor/editor/components/inspector' {
         * Edition tools
         */
     import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    /**
+        * Editor
+        */
     import Editor from 'babylonjs-editor/editor/editor';
     export default class EditorInspector {
             protected editor: Editor;
@@ -1634,6 +1657,40 @@ declare module 'babylonjs-editor/editor/components/stats' {
                 * Update the stats
                 */
             updateStats(): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/assets' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
+    export default class EditorAssets {
+            protected editor: Editor;
+            tabs: W2UI.W2Tabs;
+            components: IAssetComponent[];
+            protected currentComponent: IAssetComponent;
+            /**
+                * Constructor
+                * @param editor the editore reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Clears the assets components
+                */
+            clear(): void;
+            /**
+                * Refreshes the tabs
+                */
+            refresh(id?: string): Promise<void>;
+            /**
+                * Adds a new tab to draw components
+                * @param component the component to add in assets panel
+                */
+            addTab(component: IAssetComponent): void;
+            /**
+                * Shows the tab identified by the given id
+                * @param id the id of the tab to show
+                */
+            showTab(id: string): void;
     }
 }
 
@@ -1791,6 +1848,19 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
     }
 }
 
+declare module 'babylonjs-editor/extensions/typings/asset' {
+    export interface AssetElement<T> {
+        img?: string;
+        name?: string;
+        data?: T;
+    }
+    export interface IAssetComponent {
+        id?: string;
+        assetsCaption?: string;
+        onGetAssets?<T>(): AssetElement<T>[] | Promise<AssetElement<T>[]>;
+    }
+}
+
 declare module 'babylonjs-editor/extensions/extension' {
     import { Scene } from 'babylonjs';
     import { IExtension } from 'babylonjs-editor/extensions/typings/extension';
@@ -1823,10 +1893,11 @@ declare module 'babylonjs-editor/extensions/extension' {
 
 declare module 'babylonjs-editor/extensions/typings/extension' {
     import { Scene } from 'babylonjs';
+    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
     /**
         * Interface representing an editor extension
         */
-    export interface IExtension<T> {
+    export interface IExtension<T> extends IAssetComponent {
             /**
                 * Sets if the extensions is always applied
                 */

@@ -24,7 +24,8 @@ import EditorGraph from './components/graph';
 import EditorPreview from './components/preview';
 import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
-import Stats from './components/stats';
+import EditorStats from './components/stats';
+import EditorAssets from './components/assets';
 
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
@@ -53,7 +54,8 @@ export default class Editor implements IUpdatable {
     public preview: EditorPreview;
     public edition: EditorInspector;
     public editPanel: EditorEditPanel;
-    public stats: Stats;
+    public stats: EditorStats;
+    public assets: EditorAssets;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -114,9 +116,12 @@ export default class Editor implements IUpdatable {
                     { type: 'component', componentName: 'Inspector', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<div id="PREVIEW" style="width: 100%; height: 100%;"></div>' },
-                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
+                        { type: 'row', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
+                            },
+                            { type: 'component', componentName: 'Assets', width: 20, isClosable: false, html: `
+                                <div id="ASSETS" style="width: 100%; height: 100%"></div>`
                             }
                         ] }
                     ] },
@@ -177,8 +182,11 @@ export default class Editor implements IUpdatable {
         this.editPanel = new EditorEditPanel(this);
 
         // Stats
-        this.stats = new Stats(this);
+        this.stats = new EditorStats(this);
         this.stats.updateStats();
+
+        // Assets
+        this.assets = new EditorAssets(this);
 
         // Create editor camera
         this.createEditorCamera();

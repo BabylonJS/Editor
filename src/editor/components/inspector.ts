@@ -27,8 +27,6 @@ import LavaMaterialTool from '../edition-tools/materials/lava-tool';
 import FurMaterialTool from '../edition-tools/materials/fur-tool';
 import MixMaterialTool from '../edition-tools/materials/mix-tool';
 
-import GuiImageTool from '../edition-tools/gui/image';
-
 import PostProcessesTool from '../edition-tools/post-processes/post-processes-tool';
 import PostProcessTool from '../edition-tools/post-processes/custom-tool';
 
@@ -48,8 +46,6 @@ import GroundTool from '../edition-tools/meshes/ground-tool';
 /**
  * Editor
  */
-import Layout from '../gui/layout';
-
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
 
