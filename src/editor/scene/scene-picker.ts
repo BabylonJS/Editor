@@ -53,7 +53,6 @@ export default class ScenePicker {
         this.scene = scene;
         this.editor = editor;
 
-        scene.preventDefaultOnPointerDown = false;
         scene.cameras.forEach(c => {
             c.detachControl(canvas);
             c.attachControl(canvas, true);
