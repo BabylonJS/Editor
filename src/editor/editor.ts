@@ -94,7 +94,7 @@ export default class Editor implements IUpdatable {
             {
                 type: 'top',
                 size: 55,
-                content: '<div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
+                content: '<a class="babylonjs-logo" href="http://babylonjs.com" target="_blank"></a> <div id="MAIN-TOOLBAR" style="width: 100%; height: 50%;"></div><div id="TOOLS-TOOLBAR" style="width: 100%; height: 50%;"></div>',
                 resizable: false
             },
             { type: 'main', content: '<div id="MAIN-LAYOUT" style="width: 100%; height: 100%; overflow: hidden;"></div>', resizable: true, tabs: <any>[] },
