@@ -1,5 +1,7 @@
 import { IDisposable } from '../typings/typings';
+
 import Tools from '../tools/tools';
+import ThemeSwitcher from '../tools/theme';
 
 // TODO: remove this line and find a way to
 // import * as monaco from 'monaco-editor';
@@ -126,7 +128,7 @@ export default class CodeEditor {
             language: this._language,
             automaticLayout: true,
             selectionHighlight: true,
-            theme: caller !== window ? 'vs-dark' : undefined
+            theme: caller !== window || ThemeSwitcher.ThemeName === 'Dark' ? 'vs-dark' : undefined
         });
 
         if (!CodeEditor.ExtraLibs.find(el => el.caller === caller)) {
