@@ -42,6 +42,11 @@ export default class EditorAssets {
 
         this.components = [];
         this.currentComponent = null;
+
+        if (this.emptyTextNode) {
+            this.emptyTextNode.remove();
+            this.emptyTextNode = null;
+        }
     }
 
     /**

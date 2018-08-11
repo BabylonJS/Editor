@@ -367,22 +367,14 @@ export default class Editor implements IUpdatable {
                         await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
                     }
                     else {
-                        // const promises: Promise<any>[] = [
-                        //     this.addEditPanelPlugin('./build/src/tools/materials/viewer.js', false, 'Materials Viewer'),
-                        //     this.addEditPanelPlugin('./build/src/tools/textures/viewer.js', false, 'Textures Viewer'),
-                        //     this.addEditPanelPlugin('./build/src/tools/animations/editor.js', false, 'Animations Editor'),
-                        //     this.addEditPanelPlugin('./build/src/tools/behavior/code.js', false, 'Behavior Code'),
-                        //     this.addEditPanelPlugin('./build/src/tools/material-creator/index.js', false, 'Material Creator'),
-                        //     this.addEditPanelPlugin('./build/src/tools/post-process-creator/index.js', false, 'Material Creator')
-                        // ];
-
-                        // await Promise.all(promises);
-
                         // Create scene picker
                         this._createScenePicker();
 
                         // Update stats
                         this.stats.updateStats();
+
+                        // Assets
+                        this.assets.refresh();
                     }
 
                     // Resize
@@ -418,12 +410,20 @@ export default class Editor implements IUpdatable {
 
                 this.createEditorCamera();
 
+                // Stats
+                this.stats.updateStats();
+
+                // Assets
+                this.assets.clear();
+
                 // Create default scene?
                 if (!showNewSceneDialog)
                     callback();
                 else {
                     this.graph.clear();
                     this.graph.fill();
+
+                    this.assets.refresh();
 
                     this._createScenePicker();
                 }
