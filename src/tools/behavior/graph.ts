@@ -306,6 +306,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             };
 
             this.selectGraph(0);
+
+            this.layout.unlockPanel('left');
+            this.layout.unlockPanel('main');
         }
     }
 

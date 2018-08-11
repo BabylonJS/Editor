@@ -161,7 +161,11 @@ export default class SceneExporter {
         const files: CreateFiles[] = [{ name: 'scene.editorproject', data: content }];
 
         storage.onCreateFiles = folder => this.ProjectPath = folder;
-        storage.openPicker('Export Editor Project...', files, this.ProjectPath);
+        await storage.openPicker('Export Editor Project...', files, this.ProjectPath);
+
+        // Notify
+        editor.toolbar.notifyRightMessage('Saved Project');
+        setTimeout(() => editor.toolbar.notifyRightMessage(''), 1000);
     }
 
     /**
