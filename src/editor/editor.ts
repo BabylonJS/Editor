@@ -364,6 +364,12 @@ export default class Editor implements IUpdatable {
                         // ];
 
                         // await Promise.all(promises);
+
+                        // Create scene picker
+                        this._createScenePicker();
+
+                        // Update stats
+                        this.stats.updateStats();
                     }
 
                     // Resize

@@ -31,19 +31,22 @@ export default class EditorToolbar {
             {
                 type: 'menu', id: 'project', text: 'Project', img: 'icon-folder', items: [
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
-                    { id: 'download-scene', img: 'icon-export', text: 'Download Scene...' },
-                    { type: 'break' },
-                    { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
                     { type: 'break' },
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
                     { type: 'break' },
-                    { id: 'export-project', img: 'icon-files', text: 'Export Project...' },
+                    { id: 'export-project', img: 'icon-files', text: 'Save Project...' },
                     { id: 'download-project', img: 'icon-files', text: 'Save Project As...' },
                     { type: 'break' },
-                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' },
+                    { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
+                ]
+            },
+            {
+                type: 'menu', id: 'scene', text: 'Scene', img: 'icon-scene', items: [
+                    { id: 'import-meshes-from', img: 'icon-add', text: 'Import Meshes From...' },
                     { type: 'break' },
-                    { id: 'serialize-scene', img: 'icon-copy', text: 'Export Scene As...' }
+                    { id: 'download-scene', img: 'icon-export', text: 'Download Scene...' },
+                    { id: 'serialize-scene', img: 'icon-export', text: 'Download Scene As...' }
                 ]
             },
             { type: 'break' },
@@ -140,13 +143,6 @@ export default class EditorToolbar {
             case 'project:import-project':
                 SceneImporter.ImportProject(this.editor);
                 break;
-            case 'project:download-scene':
-                SceneExporter.DownloadBabylonFile(this.editor);
-                break;
-
-            case 'project:import-meshes-from':
-                SceneImporter.ImportMeshesFromFile(this.editor);
-                break;
 
             case 'project:reload-project':
                 Dialog.Create('Reload scene', 'Are you sure to reload the entire scene?', (result) => {
@@ -171,7 +167,16 @@ export default class EditorToolbar {
             case 'project:export-template':
                 await SceneExporter.ExportTemplate(this.editor);
                 break;
-            case 'project:serialize-scene':
+
+            // Scene
+            case 'scene:import-meshes-from':
+                SceneImporter.ImportMeshesFromFile(this.editor);
+                break;
+            
+            case 'scene:download-scene':
+                SceneExporter.DownloadBabylonFile(this.editor);
+                break;
+            case 'scene:serialize-scene':
                 new SceneSerializer(this.editor.core.scene);
                 break;
 

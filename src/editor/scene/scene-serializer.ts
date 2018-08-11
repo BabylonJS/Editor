@@ -1,5 +1,7 @@
-import { Scene, Mesh } from 'babylonjs';
+import { Scene, Mesh, Tools as BabylonTools } from 'babylonjs';
 import { GLTF2Export, OBJExport } from 'babylonjs-serializers';
+
+import Tools from '../tools/tools';
 
 import Window from '../gui/window';
 import Form from '../gui/form';
@@ -50,7 +52,9 @@ export default class SceneSerializer {
                     case 'GLTF': (await GLTF2Export.GLTFAsync(scene, name, { })).downloadFiles(); break;
                     case 'OBJ':
                         const obj = OBJExport.OBJ(<Mesh[]> scene.meshes, true);
-                        debugger;
+                        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(obj), 'scene.obj');
+
+                        BabylonTools.Download(file, 'scene.obj');
                         break;
                     default: return;
                 }
