@@ -306,6 +306,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * The user clicks on "Add"
      */
     protected async add (): Promise<void> {
+        if (!this.node)
+            return;
+        
         let ctor = Tools.GetConstructorName(this.node).toLowerCase();
         if (this.node instanceof DirectionalLight)
             ctor = "dirlight";

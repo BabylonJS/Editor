@@ -1,4 +1,4 @@
-import { FilesInput, AbstractMesh } from 'babylonjs';
+import { Node, Scene, ParticleSystem } from 'babylonjs';
 import Extensions from '../extensions';
 
 import CodeExtension from '../behavior/code';
@@ -27,12 +27,27 @@ export default class Tools {
      * @param object the object containing the script
      * @param name the name of the script
      */
-    public getCustomScript (objectName: string, name: string): any {
+    public getCustomScript (object: string | Node | ParticleSystem | Scene, name: string): any {
         const ext = <CodeExtension> Extensions.Instances['BehaviorExtension'];
         if (!ext)
             return null;
 
-        return ext.instances[objectName + name];
+        // String
+        if ((typeof object).toLowerCase() === 'string') {
+            return ext.instances[object + name];
+        }
+        // Scene
+        else if (object instanceof Scene) {
+            return ext.instances['scene' + name];
+        }
+        // Particle system
+        else if (object instanceof ParticleSystem) {
+            return ext.instances[object.id + name];
+        }
+        // Object.name
+        else {
+            return ext.instances[object['name'] + name];
+        }
     }
     
     /**

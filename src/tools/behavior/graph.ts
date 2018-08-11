@@ -407,6 +407,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * When the user adds a new graph
      */
     protected async add (): Promise<void> {
+        if (!this.node)
+            return;
+        
         // Configure
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes(this.node);

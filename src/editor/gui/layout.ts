@@ -39,6 +39,10 @@ export default class Layout {
      * @param type the panel type (left, top, etc.)
      */
     public hidePanel (type: string): void {
+        const panel = this.getPanelFromType(type);
+        if (panel.hidden)
+            return;
+        
         this.element.hide(type);
     }
 
@@ -47,6 +51,10 @@ export default class Layout {
      * @param type the panel type (left, top, etc.)
      */
     public showPanel (type: string): void {
+        const panel = this.getPanelFromType(type);
+        if (!panel.hidden)
+            return;
+        
         this.element.show(type);
     }
 
