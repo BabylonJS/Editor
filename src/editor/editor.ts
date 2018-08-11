@@ -405,8 +405,15 @@ export default class Editor implements IUpdatable {
 
                 this.createEditorCamera();
 
-                // Create default scene
-                callback();
+                // Create default scene?
+                if (!showNewSceneDialog)
+                    callback();
+                else {
+                    this.graph.clear();
+                    this.graph.fill();
+
+                    this._createScenePicker();
+                }
             }
         });
     }

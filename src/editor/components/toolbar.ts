@@ -33,7 +33,7 @@ export default class EditorToolbar {
                     { id: 'import-project', img: 'icon-export', text: 'Import Project...' },
                     { type: 'break' },
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
-                    { id: 'clean-project', img: 'icon-copy', text: 'Clean Project...' },
+                    { id: 'new-project', img: 'icon-copy', text: 'New Project...' },
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Save Project...' },
                     { id: 'download-project', img: 'icon-files', text: 'Save Project As...' },
@@ -153,7 +153,7 @@ export default class EditorToolbar {
                     this.editor.filesInput['_processReload']();
                 });
                 break
-            case 'project:clean-project':
+            case 'project:new-project':
                 await this.editor.createDefaultScene(true);
                 break;
 
