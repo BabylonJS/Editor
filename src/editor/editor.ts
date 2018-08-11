@@ -507,6 +507,16 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.preview.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 
+        document.addEventListener('keyup', ev => {
+            if (this._canvasFocused && ev.key === 'f') {
+                const node = this.core.currentSelectedObject;
+                if (!node)
+                    return;
+                
+                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), node.globalPosition || node.getAbsolutePosition(), this.camera);
+            }
+        });
+
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));
