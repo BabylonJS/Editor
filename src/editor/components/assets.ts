@@ -1,3 +1,5 @@
+import { Tools as BabylonTools } from 'babylonjs';
+
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
@@ -10,6 +12,7 @@ export default class EditorAssets {
 
     // Protected members
     protected currentComponent: IAssetComponent = null;
+    protected emptyTextNode: HTMLHeadElement = null;
 
     // Static members
     private static _DefaultImageSource: string = null;
@@ -49,6 +52,31 @@ export default class EditorAssets {
         if (!EditorAssets._DefaultImageSource) {
             const file = await Tools.CreateFileFromURL('assets/textures/waitlogo.png');
             EditorAssets._DefaultImageSource = await Tools.ReadFileAsBase64(file);
+        }
+
+        // Empty?
+        if (this.components.length === 0) {
+            this.emptyTextNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
+                'float': 'left',
+                'left': '50%',
+                'top': '50%',
+                'transform': 'translate(-50%, -50%)',
+                'overflow': 'hidden',
+                'position': 'relative',
+                'font-family': 'Roboto,sans-serif !important',
+                'opacity': '0.5'
+            });
+            this.emptyTextNode.textContent = 'Empty';
+
+            $('#ASSETS').append(this.emptyTextNode);
+
+            return;
+        }
+
+        // Remove empty text
+        if (this.emptyTextNode) {
+            this.emptyTextNode.remove();
+            this.emptyTextNode = null;
         }
 
         // Refresh each component
@@ -94,6 +122,7 @@ export default class EditorAssets {
 
                 // Events
                 img.addEventListener('click', ev => this.editor.core.onSelectAsset.notifyObservers(a.data));
+                img.addEventListener('dblclick', ev => this.editor.addEditPanelPlugin(c.id, false));
 
                 // Add
                 parent.appendChild(text);

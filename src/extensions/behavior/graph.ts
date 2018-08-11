@@ -46,7 +46,7 @@ export interface BehaviorGraphMetadata {
 // Code extension class
 export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
     // Public members
-    public id: string = 'GraphExtension';
+    public id: string = 'graph-editor';
     public assetsCaption: string = 'Graphs';
 
     /**

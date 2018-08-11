@@ -69,6 +69,7 @@ declare module 'babylonjs-editor/editor/editor' {
             guiFiles: File[];
             projectFile: File;
             _showReloadDialog: boolean;
+            static LayoutVersion: string;
             /**
                 * Constructor
                 * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -1669,6 +1670,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
             tabs: W2UI.W2Tabs;
             components: IAssetComponent[];
             protected currentComponent: IAssetComponent;
+            protected emptyTextNode: HTMLHeadElement;
             /**
                 * Constructor
                 * @param editor the editore reference

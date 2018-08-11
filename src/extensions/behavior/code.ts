@@ -54,7 +54,7 @@ window['EDITOR'].BehaviorCode = EDITOR.BehaviorCode;
 // Code extension class
 export default class CodeExtension extends Extension<BehaviorMetadata> implements IAssetComponent {
     // Public members
-    public id: string = 'CodeExtension';
+    public id: string = 'behavior-editor';
     public assetsCaption: string = 'Scripts';
 
     public instances: IStringDictionary<any> = { };

@@ -73,6 +73,9 @@ export default class Editor implements IUpdatable {
     private _lastWaitingItems: number = 0;
     private _canvasFocused: boolean = true;
 
+    // Static members
+    public static LayoutVersion: string = '2.1.0';
+
     /**
      * Constructor
      * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -105,8 +108,10 @@ export default class Editor implements IUpdatable {
         this.layout.build('BABYLON-EDITOR-MAIN');
 
         // Create resizable layout
-        const layoutStateItem = localStorage.getItem('babylonjs-editor-layout-state') || '{ }';
-        const layoutState = JSON.parse(layoutStateItem)
+        const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');
+
+        const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') || '{ }' : '{ }';
+        const layoutState = JSON.parse(layoutStateItem);
 
         this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
         this.resizableLayout.panels = layoutState.content || [{
@@ -116,15 +121,15 @@ export default class Editor implements IUpdatable {
                     { type: 'component', componentName: 'Inspector', width: 20, isClosable: false, html: '<div id="EDITION" style="width: 100%; height: 100%; overflow: auto;"></div>' },
                     { type: 'column', content: [
                         { type: 'component', componentName: 'Preview', isClosable: false, html: '<div id="PREVIEW" style="width: 100%; height: 100%;"></div>' },
-                        { type: 'row', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
+                        { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
-                            },
-                            { type: 'component', componentName: 'Assets', width: 20, isClosable: false, html: `
-                                <div id="ASSETS" style="width: 100%; height: 100%"></div>`
                             }
-                        ] }
+                        ] },
                     ] },
+                    { type: 'component', componentName: 'Assets', width: 20, isClosable: false, html: `
+                        <div id="ASSETS" style="width: 100%; height: 100%"></div>`
+                    },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
                         <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
                         <div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>`
@@ -549,6 +554,7 @@ export default class Editor implements IUpdatable {
 
             localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
             localStorage.setItem('babylonjs-editor-theme-name', ThemeSwitcher.ThemeName);
+            localStorage.setItem('babylonjs-editor-layout-version', Editor.LayoutVersion);
         });
     }
 
