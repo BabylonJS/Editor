@@ -4,6 +4,8 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
+import { AssetElement } from '../typings/asset';
+
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
 import { GetScale, SetScale } from './graph-nodes/node/scale';
@@ -33,6 +35,10 @@ export interface BehaviorMetadata {
 
 // Code extension class
 export default class GraphExtension extends Extension<BehaviorMetadata[]> {
+    // Public members
+    public id: string = 'GraphExtension';
+    public assetsCaption: string = 'Graphs';
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -40,6 +46,25 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
     constructor (scene: Scene) {
         super(scene);
         this.datas = [];
+    }
+
+    /**
+     * On get all the assets to be drawn in the assets component
+     */
+    public onGetAssets<BehaviorCode> (): AssetElement<BehaviorCode>[] {
+        const result: AssetElement<BehaviorCode>[] = [];
+        const data = this.onSerialize();
+
+        data.forEach(d => {
+            d.metadatas.forEach(d => {
+                result.push({
+                    name: d.name,
+                    data: <any> d
+                });
+            });
+        });
+
+        return result;
     }
 
     /**

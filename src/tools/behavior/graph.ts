@@ -39,6 +39,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public graphData: LGraph = null;
     public graph: LGraphCanvas = null;
 
+    public extension: GraphExtension = null;
+
     // Protected members
     protected node: (Node | Scene) & { [index: string]: any } = null;
 
@@ -47,6 +49,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     
     protected resizeObserver: Observer<any> = null;
     protected selectedObjectObserver: Observer<any> = null;
+    protected selectedAssetObserver: Observer<any> = null;
 
     // Private members
     private _savedState: any = { };
@@ -98,6 +101,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
+        this.editor.core.onSelectAsset.remove(this.selectedAssetObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
 
         this.node && this.editor.edition.setObject(this.node);
@@ -182,13 +186,15 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
         this.selectedObjectObserver = this.editor.core.onSelectObject.add(data => this.objectSelected(data));
+        this.selectedAssetObserver = this.editor.core.onSelectAsset.add(data => this.assetSelected(data));
 
         // Select object
         if (this.editor.core.currentSelectedObject)
             this.objectSelected(this.editor.core.currentSelectedObject);
         
         // Request extension
-        Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
+        this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
+        this.editor.assets.addTab(this.extension);
     }
 
     /**
@@ -247,6 +253,24 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     }
 
     /**
+     * On the user selects an asset in the editor
+     * @param asset the selected asset
+     */
+    protected assetSelected (asset: BehaviorGraph): void {
+        if (asset.graph) {
+            this.layout.hidePanel('left');
+            this.resize();
+
+            this.datas = {
+                node: 'Unknown',
+                metadatas: [asset]
+            };
+
+            this.selectGraph(0);
+        }
+    }
+
+    /**
      * On the user selected a node
      * @param data the selected node
      */
@@ -293,6 +317,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.selectGraph(0);
             this.grid.select([0]);
         }
+
+        // Show grid
+        this.layout.showPanel('left');
+        this.resize();
 
         // Refresh right text
         this._updateToolbarText();
@@ -357,6 +385,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Unlock
         this.layout.unlockPanel('main');
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
@@ -374,6 +405,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Update
         this.objectSelected(this.node);
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
