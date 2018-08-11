@@ -386,8 +386,6 @@ export default class Editor implements IUpdatable {
             this.graph.clear();
             this.graph.fill();
 
-            this.core.onSelectObject.notifyObservers(this.core.scene);
-
             // List scene preview
             // if (Tools.IsElectron())
             //     ScenePreview.Create();
@@ -427,6 +425,8 @@ export default class Editor implements IUpdatable {
 
                     this._createScenePicker();
                 }
+
+                this.core.onSelectObject.notifyObservers(this.core.scene);
             }
         });
     }

@@ -127,7 +127,10 @@ export default class EditorAssets {
 
                 // Events
                 img.addEventListener('click', ev => this.editor.core.onSelectAsset.notifyObservers(a.data));
-                img.addEventListener('dblclick', ev => this.editor.addEditPanelPlugin(c.id, false));
+                img.addEventListener('dblclick', async (ev) => {
+                    await this.editor.addEditPanelPlugin(c.id, false);
+                    this.editor.core.onSelectAsset.notifyObservers(a.data);
+                });
 
                 // Add
                 parent.appendChild(text);
