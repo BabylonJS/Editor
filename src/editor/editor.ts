@@ -611,8 +611,6 @@ export default class Editor implements IUpdatable {
 
                 this.createEditorCamera();
 
-                this.core.onSelectObject.notifyObservers(this.core.scene);
-
                 // Clear scene manager
                 SceneManager.Clear();
 
@@ -654,6 +652,9 @@ export default class Editor implements IUpdatable {
 
                 // Unlock main panel
                 this.layout.unlockPanel('main');
+
+                // Select scene
+                this.core.onSelectObject.notifyObservers(this.core.scene);
             };
 
             const dialogCallback = async (doNotAppend: boolean) => {

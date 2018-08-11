@@ -9,25 +9,27 @@ import { IAssetComponent, AssetElement } from '../typings/asset';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-export interface BehaviorCodeLink {
-    node: string;
-    metadata: string;
+export interface BehaviorCode {
+    code: string;
+    compiledCode?: string;
+    name: string;
+    id: string;
 }
 
-export interface BehaviorCode {
-    code?: string;
-    compiledCode?: string;
-
-    name: string;
+export interface BehaviorNodeCode {
+    codeId: string;
     active: boolean;
     params?: any;
+}
 
-    link?: BehaviorCodeLink;
+export interface BehaviorNodeMetadata {
+    node: string;
+    metadatas: BehaviorNodeCode[];
 }
 
 export interface BehaviorMetadata {
-    node: string;
-    metadatas: BehaviorCode[];
+    scripts: BehaviorCode[];
+    nodes: BehaviorNodeMetadata[];
 }
 
 const template = `
@@ -50,7 +52,7 @@ window['EDITOR'] = window['EDITOR'] || { };
 window['EDITOR'].BehaviorCode = EDITOR.BehaviorCode;
 
 // Code extension class
-export default class CodeExtension extends Extension<BehaviorMetadata[]> implements IAssetComponent {
+export default class CodeExtension extends Extension<BehaviorMetadata> implements IAssetComponent {
     // Public members
     public id: string = 'CodeExtension';
     public assetsCaption: string = 'Scripts';
@@ -63,7 +65,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
      */
     constructor (scene: Scene) {
         super(scene);
-        this.datas = [];
+        this.datas = null;
     }
 
     /**
@@ -73,17 +75,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
         const result: AssetElement<BehaviorCode>[] = [];
         const data = this.onSerialize();
 
-        data.forEach(d => {
-            d.metadatas.forEach(d => {
-                if (d.link)
-                    return;
-
-                result.push({
-                    name: d.name,
-                    data: <any> d
-                });
-            });
-        });
+        data.scripts.forEach(s => result.push({ name: s.name, data: <any> s }));
 
         return result;
     }
@@ -91,11 +83,11 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
     /**
      * On apply the extension
      */
-    public onApply (data: BehaviorMetadata[]): void {
+    public onApply (data: BehaviorMetadata): void {
         this.datas = data;
 
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
 
             if (!node)
@@ -108,26 +100,16 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
                 if (!m.active)
                     return;
 
-                let effectiveCode: BehaviorCode = m;
-                if (m.link) {
-                    const metadata = this.datas.find(d => d.node === m.link.node);
-                    const code = metadata.metadatas.find(dm => dm.name === m.link.metadata);
-
-                    if (!code)
-                        return;
-
-                    effectiveCode = code;
-                }
-                
-                const ctor = this.getConstructor(effectiveCode, node);
+                const code = this.datas.scripts.find(s => s.id === m.codeId);
+                const ctor = this.getConstructor(code, node);
 
                 // Instance
                 const instance = new (ctor.ctor || ctor)();
                 if (m.params)
-                    this.setCustomParams(effectiveCode, instance);
+                    this.setCustomParams(m, instance);
 
                 // Save instance
-                this.instances[(node instanceof Scene ? 'scene' : node.name) + m.name] = instance;
+                this.instances[(node instanceof Scene ? 'scene' : node.name) + code.name] = instance;
 
                 // Run
                 const scope = this;
@@ -150,17 +132,21 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
     /**
      * Called by the editor when serializing the scene
      */
-    public onSerialize (): BehaviorMetadata[] {
-        const result: BehaviorMetadata[] = [];
+    public onSerialize (): BehaviorMetadata {
+        const result = <BehaviorMetadata> {
+            scripts: this.scene.metadata ? (this.scene.metadata.behaviorScripts || []) : [],
+            nodes: []
+        };
+
         const add = (objects: (Scene | Node | IParticleSystem)[]) => {
             objects.forEach(o => {
                 if (o['metadata'] && o['metadata'].behavior) {
-                    const behavior = <BehaviorMetadata> o['metadata'].behavior;
+                    const behavior = <BehaviorNodeMetadata> o['metadata'].behavior;
                     behavior.node = o instanceof Scene ? 'Scene' :
                                     o instanceof Node ? o.name :
                                     o.id;
 
-                    result.push(behavior);
+                    result.nodes.push(behavior);
                 }
             });
         };
@@ -178,11 +164,46 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public onLoad (data: BehaviorMetadata[]): void {
+    public onLoad (data: BehaviorMetadata): void {
+        // Process old projects?
+        if (!data.scripts) {
+            const oldData = <any> data;
+
+            data = {
+                scripts: [],
+                nodes: []
+            };
+
+            oldData.forEach(od => {
+                const node = { node: od.node, metadatas: [] };
+
+                od.metadatas.forEach(m => {
+                    const id = Tools.RandomId();
+                    if (m.link)
+                        return;
+                    
+                    data.scripts.push({ name: m.name, id: id, code: m.code, compiledCode: m.compiledCode });
+                    
+                    node.metadatas.push({
+                        codeId: id,
+                        active: m.active,
+                        params: m.params
+                    });
+                });
+
+                data.nodes.push(node);
+            });
+        }
+
+        // Save
         this.datas = data;
-        
+
+        // Scene metadtas
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.behaviorScripts = this.datas.scripts;
+
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
 
             if (!node)
@@ -205,7 +226,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata[]> impleme
      * @param m the behavior code structure
      * @param instance the instance
      */
-    public setCustomParams (m: BehaviorCode, instance: any): void {
+    public setCustomParams (m: BehaviorNodeCode, instance: any): void {
         for (const p in m.params) {
             const param = m.params[p];
 

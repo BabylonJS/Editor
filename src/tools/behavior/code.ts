@@ -17,6 +17,7 @@ import Editor, {
     Tree,
     Window as Popin,
     Dialog,
+    Picker,
 
     EditorPlugin,
 
@@ -24,7 +25,7 @@ import Editor, {
 } from 'babylonjs-editor';
 
 import Extensions from '../../extensions/extensions';
-import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorCodeLink } from '../../extensions/behavior/code';
+import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior/code';
 
 import '../../extensions/behavior/code';
 
@@ -47,7 +48,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     protected node: Node | Scene | IParticleSystem = null;
 
-    protected datas: BehaviorMetadata = null;
+    protected datas: BehaviorNodeMetadata = null;
     protected data: BehaviorCode = null;
 
     protected onSelectObject = (node) => node && this.selectObject(node);
@@ -115,6 +116,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
         this.toolbar.items = [
+            { id: 'add-new', text: 'Add New Script', caption: 'Add New Script', img: 'icon-add' },
+            { type: 'break' },
             { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
         this.toolbar.right = 'No object selected';
@@ -132,7 +135,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             { field: 'active', caption: 'Active', size: '20%', editable: { type: 'checkbox' } }
         ];
         this.grid.onClick = (id) => this.selectCode(id[0]);
-        this.grid.onAdd = () => this.add();
+        this.grid.onAdd = () => this._importFrom([this._getSerializedMetadatasFile()]);
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
         this.grid.onEdit = (id) => this.editCode(id);
@@ -149,6 +152,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.editor.core.onSelectObject.add(this.onSelectObject);
         this.editor.core.onResize.add(this.onResize);
 
+        // Metadatas
+        this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
+        this.editor.core.scene.metadata.behaviorScripts = this.editor.core.scene.metadata.behaviorScripts || [];
+
         // Select object
         if (this.targetNode || this.editor.core.currentSelectedObject)
             this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
@@ -163,7 +170,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Set script
         if (this.targetNodeSetScript)
-            this._importFrom([this._getSerializedMetadatasFile()], true);
+            this._importFrom([this._getSerializedMetadatasFile()]);
 
         // Unlock
         this.layout.unlockPanel('left');
@@ -187,7 +194,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Set script
         if (targetNodeSetScript)
-            this._importFrom([this._getSerializedMetadatasFile()], true);
+            this._importFrom([this._getSerializedMetadatasFile()]);
     }
 
     /**
@@ -197,6 +204,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected async toolbarClicked (id: string): Promise<void> {
         switch (id) {
             // Add
+            case 'add-new':
+                await this.add();
+                break;
+            // Import
             case 'import':
                 await this._importFrom();
                 break;
@@ -214,7 +225,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
             this.datas = {
                 node: 'Unknown',
-                metadatas: [asset]
+                metadatas: [{
+                    active: true,
+                    codeId: asset.id
+                }]
             };
 
             this.selectCode(0);
@@ -244,10 +258,14 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.code.setValue('');
 
         // Add rows
+        const scripts = this.editor.core.scene.metadata.behaviorScripts;
+
         this.datas.metadatas.forEach((d, index) => {
+            const code = scripts.find(s => s.id === d.codeId);
+
             this.grid.addRecord({
                 recid: index,
-                name: d.name,
+                name: code.name,
                 active: d.active
             });
         });
@@ -275,23 +293,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param index the index of the 
      */
     protected selectCode (index: number): void {
-        this.data = this.datas.metadatas[index];
+        const scripts = this.editor.core.scene.metadata.behaviorScripts;
+        this.data = scripts.find(s => s.id === this.datas.metadatas[index].codeId);
+
+        this.code.setValue(this.data.code);
 
         // Refresh right text
         this._updateToolbarText();
-
-        // Link?
-        if (this.data.link) {
-            const link = this.data.link;
-            const node = link.node === 'Scene' ? this.editor.core.scene :
-                         this.editor.core.scene.getNodeByName(link.node) ||
-                         this.editor.core.scene.getParticleSystemByID(link.node);
-
-            const metadatas = <BehaviorCode[]> node['metadata'].behavior.metadatas;
-            this.data = metadatas.find(m => m.name === link.metadata);
-        }
-
-        this.code.setValue(this.data.code);
     }
 
     /**
@@ -304,14 +312,21 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         else if (this.node instanceof HemisphericLight)
             ctor = "hemlight";
 
+        // Add script
         const name = await Dialog.CreateWithTextInput('Script Name');
-
         const data: BehaviorCode = {
             name: name,
-            active: true,
+            id: BabylonTools.RandomId(),
             code: this.template.replace(/{{type}}/g, ctor)
         };
-        this.datas.metadatas.push(data);
+
+        this.editor.core.scene.metadata.behaviorScripts.push(data);
+
+        // Add metadata to node
+        this.datas.metadatas.push({
+            active: true,
+            codeId: data.id
+        });
 
         this.grid.addRow({
             recid: this.datas.metadatas.length - 1,
@@ -333,31 +348,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param ids: the ids to delete
      */
     protected async delete (ids: number[]): Promise<void> {
-        // Check links
-        for (let i = 0; i < ids.length; i++) {
-            const code = this.datas.metadatas[i];
-            const result = this._manageLinks(code.name, false);
-
-            if (result.length > 0) {
-                const answer = await Dialog.Create('Some links found', 'Some links to the scripts you are deleting were found. If you remove these scripts, all links will be deleted. Are you sure?');
-                if (answer === 'No') {
-                    this.selectObject(this.node);
-                    return;
-                }
-                
-                break;
-            }
-        }
-
         // Remove including links
         let offset = 0;
         ids.forEach(id => {
-            const code = this.datas.metadatas[id - offset];
-            if (!code.link) {
-                // No a link, remove all other references
-                this._manageLinks(code.name, true);
-            }
-
             this.datas.metadatas.splice(id - offset, 1);
             offset++;
         });
@@ -373,7 +366,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      */
     protected change (id: number, value: string | boolean): void {
         if (typeof value === 'string') {
-            !this.datas.metadatas[id].link && (this.datas.metadatas[id].name = value);
+            const scripts = this.editor.core.scene.metadata.behaviorScripts;
+
+            const code = scripts.find(s => s.id === this.datas.metadatas[id].codeId);
+            code.name = value;
 
             // Refresh right text
             this._updateToolbarText();
@@ -422,7 +418,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param id: the id of the script
      */
     protected async editCode (id: number): Promise<void> {
-        const name = 'Code Editor - ' + this.datas.metadatas[id].name;
+        const name = 'Code Editor - ' + this.data.name;
 
         // Create popup
         const popup = Tools.OpenPopup('./code-editor.html#' + name, name, 1280, 800);
@@ -434,40 +430,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         popup.addEventListener('beforeunload', () => {
             CodeEditor.RemoveExtraLib(popup);
         });
-    }
-
-    // Manages the links
-    private _manageLinks (metadata: string, remove: boolean): any {
-        const result: BehaviorCode[] = [];
-        const removeLink = (link: BehaviorCodeLink, objects: (Scene | Node | IParticleSystem)[], remove: boolean) => {
-            objects.forEach(o => {
-                if (!o['metadata'] || !o['metadata'].behavior)
-                    return;
-                
-                const behavior = <BehaviorMetadata> o['metadata'].behavior;
-                
-                for (let i = 0; i < behavior.metadatas.length; i++) {
-                    const code = behavior.metadatas[i];
-                    if (code.link && code.link.node === link.node && code.link.metadata === link.metadata) {
-                        if (remove) {
-                            behavior.metadatas.splice(i, 1);
-                            i--;
-                        }
-                        else {
-                            result.push(code);
-                        }
-                    }
-                }
-            });
-        };
-
-        removeLink({ node: this.datas.node, metadata: metadata }, this.editor.core.scene.meshes, remove);
-        removeLink({ node: this.datas.node, metadata: metadata }, this.editor.core.scene.lights, remove);
-        removeLink({ node: this.datas.node, metadata: metadata }, this.editor.core.scene.cameras, remove);
-        removeLink({ node: this.datas.node, metadata: metadata }, this.editor.core.scene.particleSystems, remove);
-        removeLink({ node: this.datas.node, metadata: metadata }, [this.editor.core.scene], remove);
-
-        return result;
     }
 
     // Returns the serialized metadatas file
@@ -488,9 +450,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     }
 
     // Imports code from
-    private async _importFrom(files?: File[], importAsLink?: boolean): Promise<void> {
-        if (!files)
+    private async _importFrom(files?: File[]): Promise<void> {
+        let importFromFile = false;
+
+        if (!files) {
+            importFromFile = true;
             files = await Tools.OpenFileDialog();
+        }
         
         for (const f of files) {
             if (Tools.GetFileExtension(f.name) !== 'editorproject')
@@ -503,88 +469,32 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             if (!project.customMetadatas || !project.customMetadatas.BehaviorExtension)
                 continue;
 
-            const codes = <BehaviorMetadata[]> project.customMetadatas.BehaviorExtension;
+            const metadatas = <BehaviorMetadata> project.customMetadatas.BehaviorExtension;
+            const scripts = this.editor.core.scene.metadata.behaviorScripts;
 
-            // Create window
-            const window = new Popin('ImportBehaviorCode');
-            window.title = 'Import Custom Script...';
-            window.body = `
-                <input id="IMPORT-BEHAVIOR-CODE-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
-                <div id="IMPORT-BEHAVIOR-CODE" style="width: 100%; height: 100%; overflow: auto;"></div>
-            `;
-            window.buttons = ['Ok', 'Cancel'];
-            window.open();
+            const picker = new Picker('Import Scripts From...');
+            picker.search = true;
+            picker.addItems(metadatas.scripts);
+            picker.open(items => {
+                items.forEach(i => {
+                    // Add script
+                    const code = importFromFile ? metadatas.scripts[i.id] : scripts[i.id];
+                    const id = importFromFile ? BabylonTools.RandomId() : code.id;
 
-            // Create tree and fill
-            const tree = new Tree('ImportBehaviorTree');
-            tree.build('IMPORT-BEHAVIOR-CODE');
+                    if (importFromFile) {
+                        code.id = id;
+                        scripts.push(code);
+                    }
 
-            const nodeName = this.node instanceof Scene ? 'Scene' :
-                             this.node instanceof Node ? this.node.name :
-                             this.node.id;
-
-            codes.forEach(c => {
-                if (c.metadatas.length === 0 || (importAsLink && c.node === nodeName))
-                    return;
-                
-                // Check instance
-                if (c.node === 'Scene' && !(this.node instanceof Scene))
-                    return;
-
-                const node = this.editor.core.scene.getNodeByName(c.node) || this.editor.core.scene.getParticleSystemByID(c.node);
-                if (node && Tools.GetConstructorName(node) !== Tools.GetConstructorName(this.node))
-                    return;
-                
-                // Add
-                tree.add({ data: c, id: c.node, text: c.node, img: 'icon-mesh' });
-
-                c.metadatas.forEach(m => {
-                    if (m.link)
-                        return;
-                    
-                    tree.add({ data: m, id: c.node + m.name, text: m.name, img: 'icon-behavior-editor' }, c.node)
-                });
-            });
-
-            // Search
-            const search = $('#IMPORT-BEHAVIOR-CODE-SEARCH');
-            search.keyup(() => {
-                tree.search(<string> search.val());
-            });
-
-            setTimeout(() => search.focus(), 1);
-
-            // On click on 'Ok', import script(s) and update grid
-            window.onButtonClick = (id) => {
-                const selected = tree.getSelected();
-
-                if (!selected || id === 'Cancel')
-                    return window.close();
-
-                if (importAsLink && selected.data.node)
-                    return;
-                
-                const metadatas = selected.data.node ? selected.data.metadatas : [selected.data];
-                const parent = selected.parent ? tree.get(selected.parent) : null;
-
-                metadatas.forEach(m => {
+                    // Add link to current node
                     this.datas.metadatas.push({
-                        active: m.active,
-                        code: importAsLink ? undefined : m.code,
-                        name: m.name,
-                        link: importAsLink ? { node: parent.data.node, metadata: m.name } : undefined
+                        active: true,
+                        codeId: id
                     });
                 });
 
-                window.close();
-
                 this.selectObject(this.node);
-
-                // Update assets
-                this.editor.assets.refresh(this.extension.id);
-            };
-
-            window.onClose = () => tree.destroy();
+            });
         }
     }
 }

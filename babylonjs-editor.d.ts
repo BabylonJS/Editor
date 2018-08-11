@@ -515,6 +515,7 @@ declare module 'babylonjs-editor/editor/gui/picker' {
             window: Window;
             grid: Grid<Row>;
             title: string;
+            search: boolean;
             /**
                 * Constructor
                 */

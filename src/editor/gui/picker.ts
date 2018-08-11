@@ -21,6 +21,7 @@ export default class Picker {
     public grid: Grid<Row> = null;
 
     public title: string;
+    public search: boolean = false;
 
     /**
      * Constructor
@@ -97,7 +98,7 @@ export default class Picker {
             toolbarReload: false,
             toolbarEdit: false,
             toolbarDelete: false,
-            toolbarSearch: false
+            toolbarSearch: this.search
         });
         this.grid.build('PICKER-CONTAINER');
 

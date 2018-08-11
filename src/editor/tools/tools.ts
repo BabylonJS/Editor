@@ -26,7 +26,7 @@ export default class Tools {
     * @param obj the object
     */
     public static GetConstructorName (obj: any): string {
-        let ctrName = (obj && obj.constructor) ? obj.constructor.name : '';
+        let ctrName = (obj !== undefined && obj !== null && obj.constructor) ? obj.constructor.name : '';
 
         if (ctrName === '')
             ctrName = typeof obj;
