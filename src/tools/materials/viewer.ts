@@ -217,13 +217,15 @@ export default class AnimationEditor extends EditorPlugin {
             'position': 'relative'
         });
         text.innerText = material.name;
-        parent.appendChild(text);
 
         const img = Tools.CreateElement<HTMLImageElement>('img', material.id, {
             'width': '100px',
             'height': '100px'
         });
+
+        // Add
         parent.appendChild(img);
+        parent.appendChild(text);
 
         const base64 = await this.createMaterialPreview(canvas, preview, material);
         img.src = base64;

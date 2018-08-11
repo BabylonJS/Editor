@@ -133,8 +133,8 @@ export default class EditorAssets {
                 });
 
                 // Add
-                parent.appendChild(text);
                 parent.appendChild(img);
+                parent.appendChild(text);
                 div.append(parent);
             });
         });

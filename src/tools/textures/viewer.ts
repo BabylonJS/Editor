@@ -273,20 +273,6 @@ export default class TextureViewer extends EditorPlugin {
             'margin': '10px'
         });
 
-        const text = Tools.CreateElement<HTMLElement>('small', originalTexture.name + 'text', {
-            'float': 'left',
-            'width': '100px',
-            'left': '50%',
-            'top': '5px',
-            'transform': 'translate(-50%, -50%)',
-            'text-overflow': 'ellipsis',
-            'white-space': 'nowrap',
-            'overflow': 'hidden',
-            'position': 'relative'
-        });
-        text.innerText = originalTexture.name;
-        parent.appendChild(text);
-
         if (ext === 'dds') {
             // Canvas
             const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
@@ -321,6 +307,21 @@ export default class TextureViewer extends EditorPlugin {
                 texture.name = texture.url = texture.name.replace('file:', '');
             }
         }
+
+        // Add text
+        const text = Tools.CreateElement<HTMLElement>('small', originalTexture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '5px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = originalTexture.name;
+        parent.appendChild(text);
     }
 
     /**
@@ -334,20 +335,6 @@ export default class TextureViewer extends EditorPlugin {
             'float': 'left',
             'margin': '10px'
         });
-
-        const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
-            'float': 'left',
-            'width': '100px',
-            'left': '50%',
-            'top': '8px',
-            'transform': 'translate(-50%, -50%)',
-            'text-overflow': 'ellipsis',
-            'white-space': 'nowrap',
-            'overflow': 'hidden',
-            'position': 'relative'
-        });
-        text.innerText = texture.name;
-        parent.appendChild(text);
 
         const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
             width: '100px',
@@ -364,6 +351,21 @@ export default class TextureViewer extends EditorPlugin {
 
         const texturesList = $('#TEXTURE-VIEWER-LIST');
         texturesList.append(parent);
+
+        // Add text
+        const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '8px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = texture.name;
+        parent.appendChild(text);
     }
 
     /**
@@ -378,6 +380,15 @@ export default class TextureViewer extends EditorPlugin {
             'margin': '10px'
         });
 
+        // Create canvas
+        const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
+            width: '100px',
+            height: '100px'
+        });
+        canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'rendertarget', texture));
+        parent.appendChild(canvas);
+
+        // Add text
         const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
             'float': 'left',
             'width': '100px',
@@ -392,22 +403,14 @@ export default class TextureViewer extends EditorPlugin {
         text.innerText = texture.name;
         parent.appendChild(text);
 
-        // Create canvas
-        const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
-            width: '100px',
-            height: '100px'
-        });
-        canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'rendertarget', texture));
-        parent.appendChild(canvas);
-
-        const context = canvas.getContext('2d');
-
         // Add to DOM
         const texturesList = $('#TEXTURE-VIEWER-LIST');
         texturesList.append(parent);
 
         // Register render
         let renderId = 0;
+        const context = canvas.getContext('2d');
+        
         this._renderTargetObservers.push(this.editor.core.scene.onAfterRenderObservable.add(() => {
             if (renderId < 10) {
                 renderId++;
