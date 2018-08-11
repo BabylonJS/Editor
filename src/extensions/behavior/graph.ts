@@ -1,4 +1,4 @@
-import { Scene, AbstractMesh, Light, Camera, Vector3 } from 'babylonjs';
+import { Scene, AbstractMesh, Light, Camera, Vector3, Tools } from 'babylonjs';
 import { LGraph, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
@@ -22,19 +22,29 @@ import { Color } from './graph-nodes/basic/color';
 import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
-export interface BehaviorGraph {
+export interface Graph {
     graph: any;
     name: string;
+    id: string;
+}
+
+export interface NodeGraph {
+    graphId: string;
     active: boolean;
 }
 
-export interface BehaviorMetadata {
+export interface GraphNodeMetadata {
     node: string;
-    metadatas: BehaviorGraph[];
+    metadatas: NodeGraph[];
+}
+
+export interface BehaviorGraphMetadata {
+    graphs: Graph[];
+    nodes: GraphNodeMetadata[];
 }
 
 // Code extension class
-export default class GraphExtension extends Extension<BehaviorMetadata[]> {
+export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
     // Public members
     public id: string = 'GraphExtension';
     public assetsCaption: string = 'Graphs';
@@ -45,24 +55,17 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      */
     constructor (scene: Scene) {
         super(scene);
-        this.datas = [];
+        this.datas = null;
     }
 
     /**
      * On get all the assets to be drawn in the assets component
      */
-    public onGetAssets<BehaviorCode> (): AssetElement<BehaviorCode>[] {
-        const result: AssetElement<BehaviorCode>[] = [];
+    public onGetAssets<Graph> (): AssetElement<Graph>[] {
+        const result: AssetElement<Graph>[] = [];
         const data = this.onSerialize();
 
-        data.forEach(d => {
-            d.metadatas.forEach(d => {
-                result.push({
-                    name: d.name,
-                    data: <any> d
-                });
-            });
-        });
+        data.graphs.forEach(g => result.push({ name: g.name, data: <any> g }));
 
         return result;
     }
@@ -70,14 +73,14 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
     /**
      * On apply the extension
      */
-    public onApply (data: BehaviorMetadata[]): void {
+    public onApply (data: BehaviorGraphMetadata): void {
         this.datas = data;
 
         // Register
         GraphExtension.RegisterNodes();
 
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
@@ -86,12 +89,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
             d.metadatas.forEach(m => {
                 if (!m.active)
                     return;
-                
+
                 const graph = new LGraph();
                 graph.scriptObject = node;
                 graph.scriptScene = this.scene;
 
-                graph.configure(m.graph);
+                graph.configure(this.datas.graphs.find(s => s.id === m.graphId).graph);
 
                 // Render loop
                 const nodes = <LiteGraphNode[]> graph._nodes;
@@ -115,12 +118,16 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Called by the editor when serializing the scene
      */
-    public onSerialize (): BehaviorMetadata[] {
-        const result: BehaviorMetadata[] = [];
+    public onSerialize (): BehaviorGraphMetadata {
+        const result = <BehaviorGraphMetadata> {
+            graphs: this.scene.metadata ? (this.scene.metadata.behaviorGraphs || []) : [],
+            nodes: []
+        };
+
         const add = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
             objects.forEach(o => {
                 if (o.metadata && o.metadata.behaviorGraph)
-                    result.push(o.metadata.behaviorGraph);
+                    result.nodes.push(o.metadata.behaviorGraph);
             });
         };
 
@@ -136,11 +143,47 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public onLoad (data: BehaviorMetadata[]): void {
+    public onLoad (data: BehaviorGraphMetadata): void {
+        // Process old projects?
+        if (!data.graphs) {
+            const oldData = <any> data;
+
+            data = {
+                graphs: [],
+                nodes: []
+            };
+
+            oldData.forEach(od => {
+                const node = { node: od.node, metadatas: [] };
+
+                od.metadatas.forEach(m => {
+                    // Add graph
+                    const graph = data.graphs.find(g => g.name === m.name);
+                    const id = graph ? graph.id : Tools.RandomId();
+
+                    if (!graph)
+                        data.graphs.push({ name: m.name, id: id, graph: m.graph });   
+                    
+                    // Add node metadata
+                    node.metadatas.push({
+                        graphId: id,
+                        active: m.active
+                    });
+                });
+
+                data.nodes.push(node);
+            });
+        }
+
+        // Save
         this.datas = data;
         
+        // Scene
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.behaviorGraphs = this.datas.graphs;
+
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;

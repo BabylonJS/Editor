@@ -371,8 +371,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             const code = scripts.find(s => s.id === this.datas.metadatas[id].codeId);
             code.name = value;
 
-            // Refresh right text
+            // Refresh right text and assets
             this._updateToolbarText();
+            this.editor.assets.refresh(this.extension.id);
         }
         else
             this.datas.metadatas[id].active = value;
