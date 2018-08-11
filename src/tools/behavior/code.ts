@@ -153,8 +153,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         if (this.targetNode || this.editor.core.currentSelectedObject)
             this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
 
-        // Request extension
+        // Request extension and register asset
         this.extension = <CodeExtension> Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
+        this.editor.assets.addTab(this.extension);
 
         // Add new script
         if (this.targetNodeAddScript)
@@ -322,6 +323,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.grid.select([this.datas.metadatas.length - 1]);
         this.selectCode(this.datas.metadatas.length - 1);
         this.code.focus();
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
@@ -357,6 +361,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.datas.metadatas.splice(id - offset, 1);
             offset++;
         });
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
@@ -572,6 +579,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 window.close();
 
                 this.selectObject(this.node);
+
+                // Update assets
+                this.editor.assets.refresh(this.extension.id);
             };
 
             window.onClose = () => tree.destroy();

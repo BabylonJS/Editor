@@ -1,7 +1,7 @@
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
-import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
+import { IAssetComponent } from '../../extensions/typings/asset';
 
 export default class EditorAssets {
     // Public members

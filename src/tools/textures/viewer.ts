@@ -266,15 +266,37 @@ export default class TextureViewer extends EditorPlugin {
         if (availableExtensions.indexOf(ext) === -1)
             return;
 
+        const parent = Tools.CreateElement<HTMLDivElement>('div', originalTexture.name + 'div', {
+            'width': '100px',
+            'height': '100px',
+            'float': 'left',
+            'margin': '10px'
+        });
+
+        const text = Tools.CreateElement<HTMLElement>('small', originalTexture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '5px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = originalTexture.name;
+        parent.appendChild(text);
+
         if (ext === 'dds') {
+            // Canvas
             const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
                 width: '100px',
-                height: '100px',
-                float: 'left',
-                margin: '10px'
+                height: '100px'
             });
             canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
-            texturesList.append(canvas);
+            parent.appendChild(canvas);
+
+            texturesList.append(parent);
 
             const preview = this.createPreview(canvas, file);
             preview.engine.runRenderLoop(() => preview.scene.render());
@@ -285,14 +307,13 @@ export default class TextureViewer extends EditorPlugin {
             const data = await Tools.ReadFileAsBase64(file);
             const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
                 width: '100px',
-                height: '100px',
-                float: 'left',
-                margin: '10px'
+                height: '100px'
             });
             img.src = data;
             img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
+            parent.appendChild(img);
 
-            texturesList.append(img);
+            texturesList.append(parent);
 
             // Create texture in editor scene
             if (!this.editor.core.scene.textures.find(t => t.name === file.name)) {
@@ -307,13 +328,33 @@ export default class TextureViewer extends EditorPlugin {
      * @param texture the texture to add
      */
     protected addProceduralTexturePreviewNode (texture: ProceduralTexture): void {
+        const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
+            'width': '100px',
+            'height': '100px',
+            'float': 'left',
+            'margin': '10px'
+        });
+
+        const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '8px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = texture.name;
+        parent.appendChild(text);
+
         const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
             width: '100px',
-            height: '100px',
-            float: 'left',
-            margin: '10px'
+            height: '100px'
         });
         canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'procedural', texture));
+        parent.appendChild(canvas);
 
         const pixels = texture.readPixels();
         const context = canvas.getContext('2d');
@@ -322,7 +363,7 @@ export default class TextureViewer extends EditorPlugin {
         context.putImageData(imageData, 0, 0);
 
         const texturesList = $('#TEXTURE-VIEWER-LIST');
-        texturesList.append(canvas);
+        texturesList.append(parent);
     }
 
     /**
@@ -330,20 +371,40 @@ export default class TextureViewer extends EditorPlugin {
      * @param texture: the render target texture to preview
      */
     protected addRenderTargetTexturePreviewNode (texture: RenderTargetTexture): void {
+        const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
+            'width': '100px',
+            'height': '100px',
+            'float': 'left',
+            'margin': '10px'
+        });
+
+        const text = Tools.CreateElement<HTMLElement>('small', texture.name + 'text', {
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '8px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
+        });
+        text.innerText = texture.name;
+        parent.appendChild(text);
+
         // Create canvas
         const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', texture.name, {
             width: '100px',
-            height: '100px',
-            float: 'left',
-            margin: '10px'
+            height: '100px'
         });
         canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'rendertarget', texture));
+        parent.appendChild(canvas);
 
         const context = canvas.getContext('2d');
 
         // Add to DOM
         const texturesList = $('#TEXTURE-VIEWER-LIST');
-        texturesList.append(canvas);
+        texturesList.append(parent);
 
         // Register render
         let renderId = 0;
