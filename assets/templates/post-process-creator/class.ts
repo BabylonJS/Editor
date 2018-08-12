@@ -1,3 +1,5 @@
+import Effect = BABYLON.Effect;
+
 class PostProcess {
     // Public members
     public time: number = 0;
@@ -31,18 +33,18 @@ class PostProcess {
      * On applying the post-process
      * @param effect: the effect which will send the uniforms and samplers to the shader
      */
-    public onApply (effect: BABYLON.Effect) {
+    public onApply (effect: Effect): void {
         this.time += camera.getScene().getEngine().getDeltaTime() * 0.01;
     
         effect.setFloat('time', this.multiplier * Math.cos(this.time));
-    };
+    }
     
     /**
      * On dispose the post-process
      */
     public dispose (): void {
     
-    };
+    }
 }
 
-return PostProcess;
+exportScript(PostProcess);
