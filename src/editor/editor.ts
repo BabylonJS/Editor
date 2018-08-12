@@ -364,6 +364,12 @@ export default class Editor implements IUpdatable {
                         // ];
 
                         // await Promise.all(promises);
+
+                        // Create scene picker
+                        this._createScenePicker();
+
+                        // Update stats
+                        this.stats.updateStats();
                     }
 
                     // Resize
@@ -399,8 +405,15 @@ export default class Editor implements IUpdatable {
 
                 this.createEditorCamera();
 
-                // Create default scene
-                callback();
+                // Create default scene?
+                if (!showNewSceneDialog)
+                    callback();
+                else {
+                    this.graph.clear();
+                    this.graph.fill();
+
+                    this._createScenePicker();
+                }
             }
         });
     }
@@ -506,6 +519,16 @@ export default class Editor implements IUpdatable {
         // Shotcuts
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.preview.setToolClicked('position'));
         document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.preview.setToolClicked('rotation'));
+
+        document.addEventListener('keyup', ev => {
+            if (this._canvasFocused && ev.key === 'f') {
+                const node = this.core.currentSelectedObject;
+                if (!node)
+                    return;
+                
+                ScenePicker.CreateAndPlayFocusAnimation(this.camera.getTarget(), node.globalPosition || node.getAbsolutePosition(), this.camera);
+            }
+        });
 
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
