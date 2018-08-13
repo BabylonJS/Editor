@@ -287,20 +287,15 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         });
 
         this.grid.element.refresh();
-
-        let currentNodeName = "";
         
         // Select first graph
         if (this.datas.metadatas.length > 0) {
             this.selectGraph(0);
             this.grid.select([0]);
-            currentNodeName = this.datas.metadatas[0].name;
         }
 
         // Refresh right text
-        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">` + currentNodeName + `</h2> Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
-        this.toolbar.element.render();
-
+        this._updateToolbarText();
 
         // Unlock / lock
         this.layout.unlockPanel('left');
@@ -316,10 +311,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
-
         this.data = this.datas.metadatas[index];
-
-        document.getElementById("currentNodeNameGraph").innerText = this.data.name;
 
         // Stop running graph
         this.playStop(true);
@@ -330,6 +322,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graphData.clear();
         this.graphData.configure(this.data.graph);
+
+        // Refresh right text
+        this._updateToolbarText();
     }
 
     /**
@@ -387,13 +382,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param value: the new value
      */
     protected change (id: number, value: string | boolean): void {
-
-        if (value){
-            document.getElementById("currentNodeNameGraph").innerText = <string>value;
-        }
-
-        if (typeof value === 'string')
+        if (typeof value === 'string') {
             this.datas.metadatas[id].name = value;
+
+            // Refresh right text
+            this._updateToolbarText();
+        }
         else
             this.datas.metadatas[id].active = value;
     }
@@ -671,5 +665,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         window.addEventListener('mousedown', mouseUpCallback);
         this.graph.canvas.addEventListener('mousedown', mouseUpCallback);
+    }
+
+    // Updates the toolbar text (attached object + edited objec)
+    private _updateToolbarText (): void {
+        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node.name}"`;
+        this.toolbar.element.render();
     }
 }

@@ -243,8 +243,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         }
 
         // Refresh right text
-        this.toolbar.element.right = `<h2 id="currentNodeNameCode">` + currentNodeName + `</h2> Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
-        this.toolbar.element.render();
+        this._updateToolbarText();
     }
 
     /**
@@ -254,7 +253,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected selectCode (index: number): void {
         this.data = this.datas.metadatas[index];
 
-        document.getElementById("currentNodeNameCode").innerText = this.data.name;
+        // Refresh right text
+        this._updateToolbarText();
 
         // Link?
         if (this.data.link) {
@@ -342,13 +342,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param value: the new value
      */
     protected change (id: number, value: string | boolean): void {
-
-        if (value){
-            document.getElementById("currentNodeNameCode").innerText = <string>value;
-        }
-
-        if (typeof value === 'string')
+        if (typeof value === 'string') {
             !this.datas.metadatas[id].link && (this.datas.metadatas[id].name = value);
+
+            // Refresh right text
+            this._updateToolbarText();
+        }
         else
             this.datas.metadatas[id].active = value;
     }
@@ -450,6 +449,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         };
         
         return Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(result)), 'editorproject');
+    }
+
+    // Updates the toolbar text (attached object + edited objec)
+    private _updateToolbarText (): void {
+        this.toolbar.element.right = `<h2 id="currentNodeNameCode">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node.name}"`;
+        this.toolbar.element.render();
     }
 
     // Imports code from
