@@ -124,8 +124,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
             { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
-            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' },
-            //{ type: 'break' },
+            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' }            //{ type: 'break' },
             //{ id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
@@ -289,15 +288,19 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.grid.element.refresh();
 
+        let currentNodeName = "";
+        
         // Select first graph
         if (this.datas.metadatas.length > 0) {
             this.selectGraph(0);
             this.grid.select([0]);
+            currentNodeName = this.datas.metadatas[0].name;
         }
 
         // Refresh right text
-        this.toolbar.element.right = `Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
+        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">` + currentNodeName + `</h2> Attached to "${node instanceof Scene ? 'Scene' : node.name}"`;
         this.toolbar.element.render();
+
 
         // Unlock / lock
         this.layout.unlockPanel('left');
@@ -313,7 +316,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
+
         this.data = this.datas.metadatas[index];
+
+        document.getElementById("currentNodeNameGraph").innerText = this.data.name;
 
         // Stop running graph
         this.playStop(true);
@@ -381,6 +387,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param value: the new value
      */
     protected change (id: number, value: string | boolean): void {
+
+        if (value){
+            document.getElementById("currentNodeNameGraph").innerText = <string>value;
+        }
+
         if (typeof value === 'string')
             this.datas.metadatas[id].name = value;
         else
@@ -616,6 +627,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Add and close context menu
             this.graphData.add(node);
             this._contextMenu.mainDiv.style.visibility = 'hidden';
+
+
         };
 
         // Focus on search
