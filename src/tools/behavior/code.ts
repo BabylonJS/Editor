@@ -278,7 +278,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         if (this.datas.metadatas.length > 0) {
             this.selectCode(0);
             this.grid.select([0]);
-            currentNodeName = this.datas.metadatas[0].name;
         }
 
         // Show grid
