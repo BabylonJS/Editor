@@ -80,6 +80,9 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
                 scene.meshes.forEach(m => result.push(m.name));
                 scene.lights.forEach(l => result.push(l.name));
                 scene.cameras.forEach(c => result.push(c.name));
+
+                Tools.SortAlphabetically(result);
+
                 return properties.add(node.properties, k, result).name('Target Node').onChange(() => this.update(node));
             }
 
@@ -161,6 +164,7 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
             }
         }
 
+        Tools.SortAlphabetically(result);
         return result;
     }
 }
