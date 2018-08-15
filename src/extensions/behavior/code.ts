@@ -256,17 +256,20 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      * @param code the code metadata
      * @param node the attached node
      */
-    public getConstructor (code: BehaviorCode, node: any): any {
+    public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         let url = window.location.href;
         url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + code.name.replace(/ /g, '') + '.js';
 
         const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '');
-
+        const effectiveCode = template.replace('{{name}}', fnName)
+                                      .replace('{{node}}', this._getEffectiveConstructorName(node))
+                                      .replace('{{code}}', code.compiledCode || code.code);
+        // Evaluate?
+        if (evaluate)
+            (new Function(effectiveCode))();
         // Create script tag
-        Extension.AddScript(
-            template.replace('{{name}}', fnName)
-                    .replace('{{node}}', this._getEffectiveConstructorName(node))
-                    .replace('{{code}}', code.compiledCode || code.code), url);
+        else
+            Extension.AddScript(effectiveCode, url);
 
         // Constructor
         return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
