@@ -190,14 +190,21 @@ export default class SceneImporter {
             scene.customRenderTargets.push(texture);
         });
 
+        // Clear assets
+        editor.assets.clear();
+
         // Metadatas
         Extensions.ClearExtensions();
 
         for (const m in project.customMetadatas) {
             const extension = Extensions.RequestExtension(scene, m);
 
-            if (extension)
+            if (extension) {
                 extension.onLoad(project.customMetadatas[m]);
+
+                if (extension.onGetAssets)
+                    editor.assets.addTab(extension);
+            }
         }
 
         // Post-processes
@@ -206,6 +213,9 @@ export default class SceneImporter {
             SceneManager.StandardRenderingPipeline = ppExtension.standard;
             SceneManager.SSAO2RenderingPipeline = ppExtension.ssao2;
         }
+
+        // Refresh assets
+        editor.assets.refresh();
 
         // Finish
         scene.materials.forEach(m => m['maxSimultaneousLights'] = scene.lights.length * 2);

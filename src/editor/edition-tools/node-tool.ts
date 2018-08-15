@@ -5,7 +5,7 @@ import SceneManager from '../scene/scene-manager';
 import Tools from '../tools/tools';
 
 import Extensions from '../../extensions/extensions';
-import CodeExtension, { BehaviorMetadata } from '../../extensions/behavior/code';
+import CodeExtension, { BehaviorNodeMetadata } from '../../extensions/behavior/code';
 
 export default class NodeTool extends AbstractEditionTool<Node> {
     // Public members
@@ -160,13 +160,14 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         scripts.open();
 
         const behaviorExtension = Extensions.RequestExtension<CodeExtension>(this.editor.core.scene, 'BehaviorExtension');
-        if (behaviorExtension && node.metadata && node.metadata['behavior']) {
-            const data = <BehaviorMetadata> node.metadata['behavior'];
+        if (behaviorExtension && node.metadata && node.metadata.behavior) {
+            const data = <BehaviorNodeMetadata> node.metadata.behavior;
 
             data.metadatas.forEach(m => {
+                const code = this.editor.core.scene.metadata.behaviorScripts.find(s => s.id === m.codeId);
                 let params: any = null;
                 try {
-                    params = behaviorExtension.getConstructor(m, node);
+                    params = behaviorExtension.getConstructor(code, node, true);
 
                     if (!params.ctor)
                         return;
@@ -178,7 +179,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 m.params = m.params || { };
 
                 // Add folder and children
-                const script = scripts.addFolder(m.name);
+                const script = scripts.addFolder(code.name);
                 script.open();
 
                 for (const p in params) {

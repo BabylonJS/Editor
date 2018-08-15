@@ -199,24 +199,33 @@ export default class AnimationEditor extends EditorPlugin {
      */
     protected async createPreviewNode (div: JQuery, canvas: HTMLCanvasElement, preview: PreviewScene, material: Material): Promise<void> {
         const parent = Tools.CreateElement<HTMLDivElement>('div', material.id + 'div', {
-            width: '100px',
-            height: '100px',
-            float: 'left',
-            margin: '10px'
+            'width': '100px',
+            'height': '100px',
+            'float': 'left',
+            'margin': '10px'
         });
 
         const text = Tools.CreateElement<HTMLElement>('small', material.id + 'text', {
-            float: 'left',
-            position: 'relative'
+            'float': 'left',
+            'width': '100px',
+            'left': '50%',
+            'top': '8px',
+            'transform': 'translate(-50%, -50%)',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'position': 'relative'
         });
         text.innerText = material.name;
-        parent.appendChild(text);
 
         const img = Tools.CreateElement<HTMLImageElement>('img', material.id, {
-            width: '100px',
-            height: '100px'
+            'width': '100px',
+            'height': '100px'
         });
+
+        // Add
         parent.appendChild(img);
+        parent.appendChild(text);
 
         const base64 = await this.createMaterialPreview(canvas, preview, material);
         img.src = base64;

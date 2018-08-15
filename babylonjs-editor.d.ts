@@ -44,7 +44,8 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorPreview from 'babylonjs-editor/editor/components/preview';
     import EditorInspector from 'babylonjs-editor/editor/components/inspector';
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
-    import Stats from 'babylonjs-editor/editor/components/stats';
+    import EditorStats from 'babylonjs-editor/editor/components/stats';
+    import EditorAssets from 'babylonjs-editor/editor/components/assets';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -58,7 +59,8 @@ declare module 'babylonjs-editor/editor/editor' {
             preview: EditorPreview;
             edition: EditorInspector;
             editPanel: EditorEditPanel;
-            stats: Stats;
+            stats: EditorStats;
+            assets: EditorAssets;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -67,6 +69,7 @@ declare module 'babylonjs-editor/editor/editor' {
             guiFiles: File[];
             projectFile: File;
             _showReloadDialog: boolean;
+            static LayoutVersion: string;
             /**
                 * Constructor
                 * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -287,11 +290,28 @@ declare module 'babylonjs-editor/editor/gui/layout' {
             constructor(name: string);
             /**
                 * Returns the size of the given panel
+                * @param type the panel type (left, top, etc.)
                 */
             getPanelSize(type: string): {
                     width: number;
                     height: number;
             };
+            /**
+                * Sets the panel size
+                * @param type the panel type (left, top, etc.)
+                * @param size the new panel size
+                */
+            setPanelSize(type: string, size: number): void;
+            /**
+                * Hides the given panel
+                * @param type the panel type (left, top, etc.)
+                */
+            hidePanel(type: string): void;
+            /**
+                * Shows the given panel
+                * @param type the panel type (left, top, etc.)
+                */
+            showPanel(type: string): void;
             /**
                 * Locks the given panel type
                 * @param type the panel type
@@ -496,6 +516,7 @@ declare module 'babylonjs-editor/editor/gui/picker' {
             window: Window;
             grid: Grid<Row>;
             title: string;
+            search: boolean;
             /**
                 * Constructor
                 */
@@ -1289,6 +1310,7 @@ declare module 'babylonjs-editor/editor/core' {
             disableObjectSelection: boolean;
             updates: IUpdatable[];
             onSelectObject: Observable<any>;
+            onSelectAsset: Observable<any>;
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
             onGlobalPropertyChange: Observable<{
@@ -1539,6 +1561,9 @@ declare module 'babylonjs-editor/editor/components/inspector' {
         * Edition tools
         */
     import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    /**
+        * Editor
+        */
     import Editor from 'babylonjs-editor/editor/editor';
     export default class EditorInspector {
             protected editor: Editor;
@@ -1634,6 +1659,50 @@ declare module 'babylonjs-editor/editor/components/stats' {
                 * Update the stats
                 */
             updateStats(): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/assets' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
+    export default class EditorAssets {
+            protected editor: Editor;
+            tabs: W2UI.W2Tabs;
+            components: IAssetComponent[];
+            contextMenu: ContextMenu;
+            protected currentComponent: IAssetComponent;
+            protected emptyTextNode: HTMLHeadElement;
+            /**
+                * Constructor
+                * @param editor the editore reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Clears the assets components
+                */
+            clear(): void;
+            /**
+                * Refreshes the tabs
+                */
+            refresh(id?: string): Promise<void>;
+            /**
+                * Adds a new tab to draw components
+                * @param component the component to add in assets panel
+                */
+            addTab(component: IAssetComponent): void;
+            /**
+                * Shows the tab identified by the given id
+                * @param id the id of the tab to show
+                */
+            showTab(id: string): void;
+            /**
+                * Processes the context menu for the clicked item
+                * @param ev the mouse event object
+                * @param component the component being modified
+                * @param asset the target asset
+                */
+            protected processContextMenu(ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void;
     }
 }
 
@@ -1791,6 +1860,64 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/context-menu' {
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Tree from 'babylonjs-editor/editor/gui/tree';
+    export interface ContextMenuOptions {
+            width: number;
+            height: number;
+            search: boolean;
+    }
+    export default class ContextMenu {
+            name: string;
+            mainDiv: HTMLDivElement;
+            layout: Layout;
+            search: HTMLInputElement;
+            tree: Tree;
+            protected mouseUpCallback: (ev: MouseEvent) => void;
+            /**
+                * Constructor
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            constructor(name: string, options: ContextMenuOptions);
+            /**
+                * Shows the context menu where the user right clicks
+                * @param event the mouse event
+                */
+            show(event: MouseEvent): void;
+            /**
+                * Hides the context menu
+                */
+            hide(): void;
+            /**
+                * Removes the context menu elements
+                */
+            remove(): void;
+            /**
+                * Builds the context menu
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            protected build(name: string, options: ContextMenuOptions): void;
+    }
+}
+
+declare module 'babylonjs-editor/extensions/typings/asset' {
+    export interface AssetElement<T> {
+        img?: string;
+        name?: string;
+        data?: T;
+    }
+    export interface IAssetComponent {
+        id?: string;
+        assetsCaption?: string;
+        onGetAssets?<T>(): AssetElement<T>[] | Promise<AssetElement<T>[]>;
+        onRemoveAsset?<T>(asset: AssetElement<T>): void;
+        onAddAsset?<T>(asset: AssetElement<T>): void;
+    }
+}
+
 declare module 'babylonjs-editor/extensions/extension' {
     import { Scene } from 'babylonjs';
     import { IExtension } from 'babylonjs-editor/extensions/typings/extension';
@@ -1823,10 +1950,11 @@ declare module 'babylonjs-editor/extensions/extension' {
 
 declare module 'babylonjs-editor/extensions/typings/extension' {
     import { Scene } from 'babylonjs';
+    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
     /**
         * Interface representing an editor extension
         */
-    export interface IExtension<T> {
+    export interface IExtension<T> extends IAssetComponent {
             /**
                 * Sets if the extensions is always applied
                 */

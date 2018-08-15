@@ -20,13 +20,14 @@
     "systemjs-plugin-css": "~0.1.35",
     "systemjs": "~0.20.19",
     "es6-promise": "~4.1.0",
-    "babylonjs": "~3.2.0",
-    "babylonjs-gui": "~3.2.0",
-    "babylonjs-loaders": "~3.2.0",
-    "babylonjs-materials": "~3.2.0",
-    "babylonjs-procedural-textures": "~3.2.0",
+    "babylonjs": "3.3.0-beta.1",
+    "babylonjs-gui": "3.3.0-beta.1",
+    "babylonjs-loaders": "3.3.0-beta.1",
+    "babylonjs-materials": "3.3.0-beta.1",
+    "babylonjs-procedural-textures": "3.3.0-beta.1",
     "cannon": "~0.6.2",
     "earcut": "~2.1.3",
-    "javascript-astar": "~0.4.1"
+    "javascript-astar": "~0.4.1",
+    "litegraph.js": "~0.6.0"
   }
 }

@@ -1,7 +1,8 @@
 import {
     Observer,
     Scene,
-    Node
+    Node,
+    Tools as BabylonTools
 } from 'babylonjs';
 
 import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
@@ -14,12 +15,14 @@ import Editor, {
     EditorPlugin,
     Tools,
     Tree,
+    Picker,
+    ProjectRoot,
 } from 'babylonjs-editor';
 
 import GraphNodeTool from './graph-tool';
 
 import Extensions from '../../extensions/extensions';
-import GraphExtension, { BehaviorMetadata, BehaviorGraph } from '../../extensions/behavior/graph';
+import GraphExtension, { GraphNodeMetadata, NodeGraph, GraphData, BehaviorGraphMetadata } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
@@ -39,14 +42,17 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     public graphData: LGraph = null;
     public graph: LGraphCanvas = null;
 
+    public extension: GraphExtension = null;
+
     // Protected members
     protected node: (Node | Scene) & { [index: string]: any } = null;
 
-    protected data: BehaviorGraph = null;
-    protected datas: BehaviorMetadata = null;
+    protected data: GraphData = null;
+    protected datas: GraphNodeMetadata = null;
     
     protected resizeObserver: Observer<any> = null;
     protected selectedObjectObserver: Observer<any> = null;
+    protected selectedAssetObserver: Observer<any> = null;
 
     // Private members
     private _savedState: any = { };
@@ -63,7 +69,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     };
 
     // Static members
-    private static _CopiedGraph: BehaviorGraph = null;
+    private static _CopiedGraph: NodeGraph = null;
 
     /**
      * On load the extension for the first time
@@ -98,6 +104,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
+        this.editor.core.onSelectAsset.remove(this.selectedAssetObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
 
         this.node && this.editor.edition.setObject(this.node);
@@ -121,6 +128,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('GRAPH-EDITOR-TOOLBAR');
         this.toolbar.items = [
+            { id: 'add-new', text: 'Add New Graph', caption: 'Add New Graph', img: 'icon-add' },
+            { type: 'break' },
             { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
             { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
@@ -145,7 +154,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             { id: 1, text: 'Copy', icon: 'icon-export' },
             { id: 2, text: 'Clone', icon: 'icon-export' }
         ]
-        this.grid.onAdd = () => this.add();
+        this.grid.onAdd = () => this._importFrom([this._getSerializedMetadatasFile()]);
         this.grid.onClick = ids => this.selectGraph(ids[0]);
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
@@ -179,16 +188,22 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Context menu
         this.createContextMenu();
 
+        // Metadatas
+        this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
+        this.editor.core.scene.metadata.behaviorGraphs = this.editor.core.scene.metadata.behaviorGraphs || [];
+
         // Events
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
         this.selectedObjectObserver = this.editor.core.onSelectObject.add(data => this.objectSelected(data));
+        this.selectedAssetObserver = this.editor.core.onSelectAsset.add(data => this.assetSelected(data));
 
         // Select object
         if (this.editor.core.currentSelectedObject)
             this.objectSelected(this.editor.core.currentSelectedObject);
         
         // Request extension
-        Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
+        this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
+        this.editor.assets.addTab(this.extension);
     }
 
     /**
@@ -216,10 +231,26 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected toolbarClicked (id: string): void {
         switch (id) {
+            case 'add-new': this.add(); break;
             case 'save': this.data && (this.data.graph = this.graphData.serialize()); break;
             case 'paste':
                 if (BehaviorGraphEditor._CopiedGraph) {
-                    this.datas.metadatas.push(Object.assign({ }, BehaviorGraphEditor._CopiedGraph));
+                    const graphs = this.editor.core.scene.metadata.behaviorGraphs;
+
+                    // Clone graph
+                    const clonedGraph = Object.assign({ }, graphs.find(g => g.id === BehaviorGraphEditor._CopiedGraph.graphId));
+                    clonedGraph.id = BabylonTools.RandomId();
+
+                    graphs.push(clonedGraph);
+
+                    // Add metadata
+                    const clone = Object.assign({ }, BehaviorGraphEditor._CopiedGraph);
+                    clone.graphId = clonedGraph.id;
+
+                    this.datas.metadatas.push(clone);
+
+                    // Finish
+                    this.editor.assets.refresh(this.extension.id);
                     this.objectSelected(this.node);
                 }
                 break;
@@ -236,13 +267,50 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         switch (id) {
             case 1: BehaviorGraphEditor._CopiedGraph = this.datas.metadatas[recid]; break;
             case 2:
-                const clone = Object.assign({ }, this.datas.metadatas[recid]);
-                clone.name += ' Cloned';
+                const graphs = this.editor.core.scene.metadata.behaviorGraphs;
+                const metadata = this.datas.metadatas[recid];
+
+                // Clone graph
+                const clonedGraph = Object.assign({ }, graphs.find(g => g.id === metadata.graphId));
+                clonedGraph.id = BabylonTools.RandomId();
+                clonedGraph.name += ' Cloned';
+
+                graphs.push(clonedGraph);
                 
+                // Add metadata
+                const clone = Object.assign({ }, this.datas.metadatas[recid]);
+                clone.graphId = clonedGraph.id;
+
                 this.datas.metadatas.push(clone);
+
+                // Finish
+                this.editor.assets.refresh(this.extension.id);
                 this.objectSelected(this.node);
                 break;
             default: break;
+        }
+    }
+
+    /**
+     * On the user selects an asset in the editor
+     * @param asset the selected asset
+     */
+    protected assetSelected (asset: GraphData): void {
+        if (asset.graph) {
+            this.layout.hidePanel('left');
+            this.resize();
+            
+            this.node = null;
+
+            this.datas = {
+                node: 'Unknown',
+                metadatas: [{ active: true, graphId: asset.id }]
+            };
+
+            this.selectGraph(0);
+
+            this.layout.unlockPanel('left');
+            this.layout.unlockPanel('main');
         }
     }
 
@@ -265,9 +333,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         node.metadata = node.metadata || { };
 
         // Add all graphs
-        this.datas = node.metadata['behaviorGraph'];
+        this.datas = node.metadata.behaviorGraph;
         if (!this.datas)
-            this.datas = node.metadata['behaviorGraph'] = { node: node instanceof Scene ? 'Scene' : node.name, metadatas: [] };
+            this.datas = node.metadata.behaviorGraph = { node: node instanceof Scene ? 'Scene' : node.name, metadatas: [] };
 
         // Clear existing data
         this.data = null;
@@ -277,11 +345,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graphData.clear();
         this.graphData.scriptObject = node;
         this.graphData.scriptScene = this.editor.core.scene;
+
         // Add rows
+        const graphs = this.editor.core.scene.metadata.behaviorGraphs;
+
         this.datas.metadatas.forEach((d, index) => {
+            const graph = graphs.find(s => s.id === d.graphId);
+
             this.grid.addRecord({
                 recid: index,
-                name: d.name,
+                name: graph.name,
                 active: d.active
             });
         });
@@ -293,6 +366,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.selectGraph(0);
             this.grid.select([0]);
         }
+
+        // Show grid
+        this.layout.showPanel('left');
+        this.resize();
 
         // Refresh right text
         this._updateToolbarText();
@@ -311,7 +388,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param index the index of the selected graph
      */
     protected selectGraph (index: number): void {
-        this.data = this.datas.metadatas[index];
+        const graphs = this.editor.core.scene.metadata.behaviorGraphs;
+        this.data = graphs.find(s => s.id === this.datas.metadatas[index].graphId);
 
         // Stop running graph
         this.playStop(true);
@@ -337,26 +415,41 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Create data
         const name = await Dialog.CreateWithTextInput('Graph Name');
-        const data: BehaviorGraph = {
+        const data: GraphData = {
             name: name,
-            active: true,
+            id: BabylonTools.RandomId(),
             graph: new LGraph().serialize()
         };
-        this.datas.metadatas.push(data);
 
-        // Add to grid
-        this.grid.addRow({
-            recid: this.datas.metadatas.length - 1,
-            name: data.name,
-            active: true
-        });
+        this.editor.core.scene.metadata.behaviorGraphs.push(data);
 
-        // Select latest script
-        this.grid.select([this.datas.metadatas.length - 1]);
-        this.selectGraph(this.datas.metadatas.length - 1);
+        if (this.node) {
+            // Add metadata to node
+            this.datas.metadatas.push({
+                active: true,
+                graphId: data.id
+            });
+
+            // Add to grid
+            this.grid.addRow({
+                recid: this.datas.metadatas.length - 1,
+                name: data.name,
+                active: true
+            });
+
+            // Select latest script
+            this.grid.select([this.datas.metadatas.length - 1]);
+            this.selectGraph(this.datas.metadatas.length - 1);
+        }
+        else {
+            this.assetSelected(data);
+        }
 
         // Unlock
         this.layout.unlockPanel('main');
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
@@ -374,6 +467,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Update
         this.objectSelected(this.node);
+
+        // Update assets
+        this.editor.assets.refresh(this.extension.id);
     }
 
     /**
@@ -383,10 +479,14 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected change (id: number, value: string | boolean): void {
         if (typeof value === 'string') {
-            this.datas.metadatas[id].name = value;
+            const graphs = this.editor.core.scene.metadata.behaviorGraphs;
 
-            // Refresh right text
+            const graph = graphs.find(s => s.id === this.datas.metadatas[id].graphId);
+            graph.name = value;
+
+            // Refresh right text and assets
             this._updateToolbarText();
+            this.editor.assets.refresh(this.extension.id);
         }
         else
             this.datas.metadatas[id].active = value;
@@ -669,7 +769,67 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Updates the toolbar text (attached object + edited objec)
     private _updateToolbarText (): void {
-        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node.name}"`;
+        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
         this.toolbar.element.render();
+    }
+    
+    // Returns the serialized metadatas file
+    private _getSerializedMetadatasFile (): File {
+        const result = {
+            customMetadatas: {
+                BehaviorGraphExtension: this.extension.onSerialize()
+            }
+        };
+        
+        return Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(result)), 'editorproject');
+    }
+
+    // Imports graph from
+    private async _importFrom(files?: File[]): Promise<void> {
+        let importFromFile = false;
+
+        if (!files) {
+            importFromFile = true;
+            files = await Tools.OpenFileDialog();
+        }
+        
+        for (const f of files) {
+            if (Tools.GetFileExtension(f.name) !== 'editorproject')
+                continue;
+
+            // Read and parse
+            const content = await Tools.ReadFileAsText(f);
+            const project = <ProjectRoot> JSON.parse(content);
+
+            if (!project.customMetadatas || !project.customMetadatas.BehaviorGraphExtension)
+                continue;
+
+            const metadatas = <BehaviorGraphMetadata> project.customMetadatas.BehaviorGraphExtension;
+            const graphs = this.editor.core.scene.metadata.behaviorGraphs;
+
+            const picker = new Picker('Import Scripts From...');
+            picker.search = true;
+            picker.addItems(metadatas.graphs);
+            picker.open(items => {
+                items.forEach(i => {
+                    // Add script
+                    const graph = importFromFile ? metadatas.graphs[i.id] : graphs[i.id];
+                    const id = importFromFile ? BabylonTools.RandomId() : graph.id;
+
+                    if (importFromFile) {
+                        graph.id = id;
+                        graphs.push(graph);
+                    }
+
+                    // Add link to current node
+                    this.datas.metadatas.push({
+                        active: true,
+                        graphId: id
+                    });
+                });
+
+                this.objectSelected(this.node);
+            });
+        }
     }
 }

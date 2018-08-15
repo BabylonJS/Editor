@@ -24,7 +24,8 @@ import EditorGraph from './components/graph';
 import EditorPreview from './components/preview';
 import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
-import Stats from './components/stats';
+import EditorStats from './components/stats';
+import EditorAssets from './components/assets';
 
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
@@ -53,7 +54,8 @@ export default class Editor implements IUpdatable {
     public preview: EditorPreview;
     public edition: EditorInspector;
     public editPanel: EditorEditPanel;
-    public stats: Stats;
+    public stats: EditorStats;
+    public assets: EditorAssets;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -70,6 +72,9 @@ export default class Editor implements IUpdatable {
     // Private members
     private _lastWaitingItems: number = 0;
     private _canvasFocused: boolean = true;
+
+    // Static members
+    public static LayoutVersion: string = '2.1.0';
 
     /**
      * Constructor
@@ -103,8 +108,10 @@ export default class Editor implements IUpdatable {
         this.layout.build('BABYLON-EDITOR-MAIN');
 
         // Create resizable layout
-        const layoutStateItem = localStorage.getItem('babylonjs-editor-layout-state') || '{ }';
-        const layoutState = JSON.parse(layoutStateItem)
+        const layoutVersion = localStorage.getItem('babylonjs-editor-layout-version');
+
+        const layoutStateItem = (layoutVersion === Editor.LayoutVersion) ? localStorage.getItem('babylonjs-editor-layout-state') || '{ }' : '{ }';
+        const layoutState = JSON.parse(layoutStateItem);
 
         this.resizableLayout = new ResizableLayout('MAIN-LAYOUT');
         this.resizableLayout.panels = layoutState.content || [{
@@ -118,8 +125,11 @@ export default class Editor implements IUpdatable {
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
                             }
-                        ] }
+                        ] },
                     ] },
+                    { type: 'component', componentName: 'Assets', width: 20, isClosable: false, html: `
+                        <div id="ASSETS" style="width: 100%; height: 100%"></div>`
+                    },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
                         <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
                         <div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>`
@@ -177,8 +187,11 @@ export default class Editor implements IUpdatable {
         this.editPanel = new EditorEditPanel(this);
 
         // Stats
-        this.stats = new Stats(this);
+        this.stats = new EditorStats(this);
         this.stats.updateStats();
+
+        // Assets
+        this.assets = new EditorAssets(this);
 
         // Create editor camera
         this.createEditorCamera();
@@ -354,22 +367,14 @@ export default class Editor implements IUpdatable {
                         await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
                     }
                     else {
-                        // const promises: Promise<any>[] = [
-                        //     this.addEditPanelPlugin('./build/src/tools/materials/viewer.js', false, 'Materials Viewer'),
-                        //     this.addEditPanelPlugin('./build/src/tools/textures/viewer.js', false, 'Textures Viewer'),
-                        //     this.addEditPanelPlugin('./build/src/tools/animations/editor.js', false, 'Animations Editor'),
-                        //     this.addEditPanelPlugin('./build/src/tools/behavior/code.js', false, 'Behavior Code'),
-                        //     this.addEditPanelPlugin('./build/src/tools/material-creator/index.js', false, 'Material Creator'),
-                        //     this.addEditPanelPlugin('./build/src/tools/post-process-creator/index.js', false, 'Material Creator')
-                        // ];
-
-                        // await Promise.all(promises);
-
                         // Create scene picker
                         this._createScenePicker();
 
                         // Update stats
                         this.stats.updateStats();
+
+                        // Assets
+                        this.assets.refresh();
                     }
 
                     // Resize
@@ -380,8 +385,6 @@ export default class Editor implements IUpdatable {
             // Fill graph
             this.graph.clear();
             this.graph.fill();
-
-            this.core.onSelectObject.notifyObservers(this.core.scene);
 
             // List scene preview
             // if (Tools.IsElectron())
@@ -405,6 +408,12 @@ export default class Editor implements IUpdatable {
 
                 this.createEditorCamera();
 
+                // Stats
+                this.stats.updateStats();
+
+                // Assets
+                this.assets.clear();
+
                 // Create default scene?
                 if (!showNewSceneDialog)
                     callback();
@@ -412,8 +421,12 @@ export default class Editor implements IUpdatable {
                     this.graph.clear();
                     this.graph.fill();
 
+                    this.assets.refresh();
+
                     this._createScenePicker();
                 }
+
+                this.core.onSelectObject.notifyObservers(this.core.scene);
             }
         });
     }
@@ -541,6 +554,7 @@ export default class Editor implements IUpdatable {
 
             localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
             localStorage.setItem('babylonjs-editor-theme-name', ThemeSwitcher.ThemeName);
+            localStorage.setItem('babylonjs-editor-layout-version', Editor.LayoutVersion);
         });
     }
 
@@ -581,9 +595,6 @@ export default class Editor implements IUpdatable {
         },
         () => {
             // Starting process
-            FilesInput.FilesToLoad = { };
-            Extensions.ClearExtensions();
-            
             this.projectFile = null;
             this.sceneFile = null;
         },
@@ -602,8 +613,6 @@ export default class Editor implements IUpdatable {
                 this.playCamera = scene.activeCamera;
 
                 this.createEditorCamera();
-
-                this.core.onSelectObject.notifyObservers(this.core.scene);
 
                 // Clear scene manager
                 SceneManager.Clear();
@@ -646,6 +655,9 @@ export default class Editor implements IUpdatable {
 
                 // Unlock main panel
                 this.layout.unlockPanel('main');
+
+                // Select scene
+                this.core.onSelectObject.notifyObservers(this.core.scene);
             };
 
             const dialogCallback = async (doNotAppend: boolean) => {

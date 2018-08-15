@@ -1,8 +1,10 @@
-import { Scene, AbstractMesh, Light, Camera, Vector3 } from 'babylonjs';
+import { Scene, AbstractMesh, Light, Camera, Vector3, Tools } from 'babylonjs';
 import { LGraph, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
+
+import { AssetElement } from '../typings/asset';
 
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
@@ -20,39 +22,109 @@ import { Color } from './graph-nodes/basic/color';
 import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
-export interface BehaviorGraph {
+export interface GraphData {
     graph: any;
     name: string;
+    id: string;
+}
+
+export interface NodeGraph {
+    graphId: string;
     active: boolean;
 }
 
-export interface BehaviorMetadata {
+export interface GraphNodeMetadata {
     node: string;
-    metadatas: BehaviorGraph[];
+    metadatas: NodeGraph[];
+}
+
+export interface BehaviorGraphMetadata {
+    graphs: GraphData[];
+    nodes: GraphNodeMetadata[];
 }
 
 // Code extension class
-export default class GraphExtension extends Extension<BehaviorMetadata[]> {
+export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
+    // Public members
+    public id: string = 'graph-editor';
+    public assetsCaption: string = 'Graphs';
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
      */
     constructor (scene: Scene) {
         super(scene);
-        this.datas = [];
+        this.datas = null;
+    }
+
+    /**
+     * On get all the assets to be drawn in the assets component
+     */
+    public onGetAssets (): AssetElement<any>[] {
+        const result: AssetElement<GraphData>[] = [];
+        const data = this.onSerialize();
+
+        data.graphs.forEach(g => result.push({ name: g.name, data: <any> g }));
+
+        return result;
+    }
+
+    /**
+     * On the user wants to remove the asset
+     * @param asset the asset to remove
+     */
+    public onRemoveAsset (asset: AssetElement<any>): void {
+        const data = <GraphData> asset.data;
+
+        // Remove links
+        const remove = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
+            objects.forEach(o => {
+                if (!o.metadata || !o.metadata.behaviorGraph)
+                    return;
+                
+                const graphs = <GraphNodeMetadata> o.metadata.behaviorGraph;
+                const links = graphs.metadatas;
+                for (let i  =0; i < links.length; i++) {
+                    if (links[i].graphId === data.id) {
+                        links.splice(i, 1);
+                        i--;
+                    }
+                }
+            });
+        };
+
+        remove([this.scene]);
+        remove(this.scene.meshes);
+        remove(this.scene.lights);
+        remove(this.scene.cameras);
+
+        // Remove data
+        const index = this.scene.metadata.behaviorGraphs.indexOf(data);
+
+        if (index !== -1)
+            this.scene.metadata.behaviorGraphs.splice(index, 1);
+    }
+
+    /**
+     * On the user adds an asset
+     * @param asset the asset to add
+     */
+    public onAddAsset (asset: AssetElement<any>): void {
+        this.scene.metadata.behaviorGraphs.push(asset.data);
     }
 
     /**
      * On apply the extension
      */
-    public onApply (data: BehaviorMetadata[]): void {
+    public onApply (data: BehaviorGraphMetadata): void {
         this.datas = data;
 
         // Register
         GraphExtension.RegisterNodes();
 
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
@@ -61,12 +133,12 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
             d.metadatas.forEach(m => {
                 if (!m.active)
                     return;
-                
+
                 const graph = new LGraph();
                 graph.scriptObject = node;
                 graph.scriptScene = this.scene;
 
-                graph.configure(m.graph);
+                graph.configure(this.datas.graphs.find(s => s.id === m.graphId).graph);
 
                 // Render loop
                 const nodes = <LiteGraphNode[]> graph._nodes;
@@ -90,12 +162,16 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
     /**
      * Called by the editor when serializing the scene
      */
-    public onSerialize (): BehaviorMetadata[] {
-        const result: BehaviorMetadata[] = [];
+    public onSerialize (): BehaviorGraphMetadata {
+        const result = <BehaviorGraphMetadata> {
+            graphs: this.scene.metadata ? (this.scene.metadata.behaviorGraphs || []) : [],
+            nodes: []
+        };
+
         const add = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
             objects.forEach(o => {
                 if (o.metadata && o.metadata.behaviorGraph)
-                    result.push(o.metadata.behaviorGraph);
+                    result.nodes.push(o.metadata.behaviorGraph);
             });
         };
 
@@ -111,11 +187,46 @@ export default class GraphExtension extends Extension<BehaviorMetadata[]> {
      * On load the extension (called by the editor when
      * loading a scene)
      */
-    public onLoad (data: BehaviorMetadata[]): void {
+    public onLoad (data: BehaviorGraphMetadata): void {
+        // Process old projects?
+        if (!data.graphs) {
+            const oldData = <any> data;
+
+            data = {
+                graphs: [],
+                nodes: []
+            };
+
+            oldData.forEach(od => {
+                const node = { node: od.node, metadatas: [] };
+
+                od.metadatas.forEach(m => {
+                    // Add graph
+                    const id = Tools.RandomId();
+                    
+                    // Add graph asset
+                    data.graphs.push({ name: m.name, id: id, graph: m.graph });   
+                    
+                    // Add node metadata
+                    node.metadatas.push({
+                        graphId: id,
+                        active: m.active
+                    });
+                });
+
+                data.nodes.push(node);
+            });
+        }
+
+        // Save
         this.datas = data;
         
+        // Scene
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.behaviorGraphs = this.datas.graphs;
+
         // For each node
-        this.datas.forEach(d => {
+        this.datas.nodes.forEach(d => {
             const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
             if (!node)
                 return;
