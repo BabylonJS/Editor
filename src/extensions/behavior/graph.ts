@@ -22,7 +22,7 @@ import { Color } from './graph-nodes/basic/color';
 import { LiteGraphNode } from './graph-nodes/typings';
 
 // Interfaces
-export interface Graph {
+export interface GraphData {
     graph: any;
     name: string;
     id: string;
@@ -39,7 +39,7 @@ export interface GraphNodeMetadata {
 }
 
 export interface BehaviorGraphMetadata {
-    graphs: Graph[];
+    graphs: GraphData[];
     nodes: GraphNodeMetadata[];
 }
 
@@ -61,13 +61,57 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
     /**
      * On get all the assets to be drawn in the assets component
      */
-    public onGetAssets<Graph> (): AssetElement<Graph>[] {
-        const result: AssetElement<Graph>[] = [];
+    public onGetAssets (): AssetElement<any>[] {
+        const result: AssetElement<GraphData>[] = [];
         const data = this.onSerialize();
 
         data.graphs.forEach(g => result.push({ name: g.name, data: <any> g }));
 
         return result;
+    }
+
+    /**
+     * On the user wants to remove the asset
+     * @param asset the asset to remove
+     */
+    public onRemoveAsset (asset: AssetElement<any>): void {
+        const data = <GraphData> asset.data;
+
+        // Remove links
+        const remove = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
+            objects.forEach(o => {
+                if (!o.metadata || !o.metadata.behaviorGraph)
+                    return;
+                
+                const graphs = <GraphNodeMetadata> o.metadata.behaviorGraph;
+                const links = graphs.metadatas;
+                for (let i  =0; i < links.length; i++) {
+                    if (links[i].graphId === data.id) {
+                        links.splice(i, 1);
+                        i--;
+                    }
+                }
+            });
+        };
+
+        remove([this.scene]);
+        remove(this.scene.meshes);
+        remove(this.scene.lights);
+        remove(this.scene.cameras);
+
+        // Remove data
+        const index = this.scene.metadata.behaviorGraphs.indexOf(data);
+
+        if (index !== -1)
+            this.scene.metadata.behaviorGraphs.splice(index, 1);
+    }
+
+    /**
+     * On the user adds an asset
+     * @param asset the asset to add
+     */
+    public onAddAsset (asset: AssetElement<any>): void {
+        this.scene.metadata.behaviorGraphs.push(asset.data);
     }
 
     /**

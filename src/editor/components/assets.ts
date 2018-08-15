@@ -2,13 +2,18 @@ import { Tools as BabylonTools } from 'babylonjs';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
+import UndoRedo from '../tools/undo-redo';
 
-import { IAssetComponent } from '../../extensions/typings/asset';
+import ContextMenu from '../gui/context-menu';
+
+import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 
 export default class EditorAssets {
     // Public members
     public tabs: W2UI.W2Tabs;
     public components: IAssetComponent[] = [];
+
+    public contextMenu: ContextMenu;
 
     // Protected members
     protected currentComponent: IAssetComponent = null;
@@ -25,6 +30,13 @@ export default class EditorAssets {
         // Tabs
         this.tabs = $('#ASSETS').w2tabs({
             name: 'ASSETS'
+        });
+
+        // Context menu
+        this.contextMenu = new ContextMenu('AssetContextMenu', {
+            width: 200,
+            height: 55,
+            search: false
         });
 
         // Finalize
@@ -90,6 +102,8 @@ export default class EditorAssets {
                 return;
             
             const assets = await c.onGetAssets();
+            Tools.SortAlphabetically(assets, 'name');
+
             const div = $('#' + c.id);
 
             // Clear
@@ -127,6 +141,8 @@ export default class EditorAssets {
 
                 // Events
                 img.addEventListener('click', ev => this.editor.core.onSelectAsset.notifyObservers(a.data));
+                img.addEventListener('contextmenu', ev => this.processContextMenu(ev, c, a));
+
                 img.addEventListener('dblclick', async (ev) => {
                     await this.editor.addEditPanelPlugin(c.id, false);
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
@@ -180,5 +196,49 @@ export default class EditorAssets {
 
         this.currentComponent = this.components.find(c => c.id === id);
         $('#' + this.currentComponent.id).show();
+        this.tabs.select(id);
+    }
+
+    /**
+     * Processes the context menu for the clicked item
+     * @param ev the mouse event object
+     * @param component the component being modified
+     * @param asset the target asset
+     */
+    protected processContextMenu (ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void {
+        if (!component.onRemoveAsset)
+            return;
+
+        // Configure
+        this.contextMenu.tree.clear();
+        this.contextMenu.tree.add({ id: 'remove', text: 'Remove' });
+
+        // Events
+        this.contextMenu.tree.onClick = () => {
+            // Undo redo
+            if (component.onAddAsset) {
+                UndoRedo.Push({
+                    fn: (type) => {
+                        if (type === 'from')
+                            component.onAddAsset(asset);
+                        else
+                            component.onRemoveAsset(asset);
+                        
+                        this.refresh();
+                        this.showTab(component.id);
+                    }
+                });
+            }
+
+            // Remove asset
+            component.onRemoveAsset(asset);
+            this.refresh();
+
+            // Remove context menu
+            this.contextMenu.hide();
+        };
+
+        // Show
+        this.contextMenu.show(ev);
     }
 }

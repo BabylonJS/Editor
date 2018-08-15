@@ -202,8 +202,10 @@ export default class EditorInspector {
             }
         });
 
-        if (firstTool)
+        if (firstTool) {
             this.changeTab(firstTool.divId);
+            this.tabs.select(firstTool.divId);
+        }
 
         // Current object
         this.currentObject = object;

@@ -22,7 +22,7 @@ import Editor, {
 import GraphNodeTool from './graph-tool';
 
 import Extensions from '../../extensions/extensions';
-import GraphExtension, { GraphNodeMetadata, NodeGraph, Graph, BehaviorGraphMetadata } from '../../extensions/behavior/graph';
+import GraphExtension, { GraphNodeMetadata, NodeGraph, GraphData, BehaviorGraphMetadata } from '../../extensions/behavior/graph';
 
 import '../../extensions/behavior/graph';
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
@@ -47,7 +47,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     // Protected members
     protected node: (Node | Scene) & { [index: string]: any } = null;
 
-    protected data: Graph = null;
+    protected data: GraphData = null;
     protected datas: GraphNodeMetadata = null;
     
     protected resizeObserver: Observer<any> = null;
@@ -295,7 +295,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * On the user selects an asset in the editor
      * @param asset the selected asset
      */
-    protected assetSelected (asset: Graph): void {
+    protected assetSelected (asset: GraphData): void {
         if (asset.graph) {
             this.layout.hidePanel('left');
             this.resize();
@@ -415,7 +415,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Create data
         const name = await Dialog.CreateWithTextInput('Graph Name');
-        const data: Graph = {
+        const data: GraphData = {
             name: name,
             id: BabylonTools.RandomId(),
             graph: new LGraph().serialize()

@@ -1664,11 +1664,13 @@ declare module 'babylonjs-editor/editor/components/stats' {
 
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
-    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
+    import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     export default class EditorAssets {
             protected editor: Editor;
             tabs: W2UI.W2Tabs;
             components: IAssetComponent[];
+            contextMenu: ContextMenu;
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;
             /**
@@ -1694,6 +1696,13 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param id the id of the tab to show
                 */
             showTab(id: string): void;
+            /**
+                * Processes the context menu for the clicked item
+                * @param ev the mouse event object
+                * @param component the component being modified
+                * @param asset the target asset
+                */
+            protected processContextMenu(ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void;
     }
 }
 
@@ -1851,6 +1860,49 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/context-menu' {
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Tree from 'babylonjs-editor/editor/gui/tree';
+    export interface ContextMenuOptions {
+            width: number;
+            height: number;
+            search: boolean;
+    }
+    export default class ContextMenu {
+            name: string;
+            mainDiv: HTMLDivElement;
+            layout: Layout;
+            search: HTMLInputElement;
+            tree: Tree;
+            protected mouseUpCallback: (ev: MouseEvent) => void;
+            /**
+                * Constructor
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            constructor(name: string, options: ContextMenuOptions);
+            /**
+                * Shows the context menu where the user right clicks
+                * @param event the mouse event
+                */
+            show(event: MouseEvent): void;
+            /**
+                * Hides the context menu
+                */
+            hide(): void;
+            /**
+                * Removes the context menu elements
+                */
+            remove(): void;
+            /**
+                * Builds the context menu
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            protected build(name: string, options: ContextMenuOptions): void;
+    }
+}
+
 declare module 'babylonjs-editor/extensions/typings/asset' {
     export interface AssetElement<T> {
         img?: string;
@@ -1861,6 +1913,8 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
         id?: string;
         assetsCaption?: string;
         onGetAssets?<T>(): AssetElement<T>[] | Promise<AssetElement<T>[]>;
+        onRemoveAsset?<T>(asset: AssetElement<T>): void;
+        onAddAsset?<T>(asset: AssetElement<T>): void;
     }
 }
 

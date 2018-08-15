@@ -71,13 +71,58 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     /**
      * On get all the assets to be drawn in the assets component
      */
-    public onGetAssets<BehaviorCode> (): AssetElement<BehaviorCode>[] {
+    public onGetAssets (): AssetElement<any>[] {
         const result: AssetElement<BehaviorCode>[] = [];
         const data = this.onSerialize();
 
-        data.scripts.forEach(s => result.push({ name: s.name, data: <any> s }));
+        data.scripts.forEach(s => result.push({ name: s.name, data: s }));
 
         return result;
+    }
+
+    /**
+     * On the user wants to remove the asset
+     * @param asset the asset to remove
+     */
+    public onRemoveAsset (asset: AssetElement<any>): void {
+        const data = <BehaviorCode> asset.data;
+
+        // Remove links
+        const remove = (objects: (Scene | Node | IParticleSystem)[]) => {
+            objects.forEach(o => {
+                if (!o['metadata'] || !o['metadata'].behavior)
+                    return;
+                
+                const codes = <BehaviorNodeMetadata> o['metadata'].behavior;
+                const links = codes.metadatas;
+                for (let i  =0; i < links.length; i++) {
+                    if (links[i].codeId === data.id) {
+                        links.splice(i, 1);
+                        i--;
+                    }
+                }
+            });
+        };
+
+        remove(this.scene.meshes);
+        remove(this.scene.lights);
+        remove(this.scene.cameras);
+        remove([this.scene]);
+        remove(this.scene.particleSystems);
+
+        // Remove data
+        const index = this.scene.metadata.behaviorScripts.indexOf(data);
+
+        if (index !== -1)
+            this.scene.metadata.behaviorScripts.splice(index, 1);
+    }
+
+    /**
+     * On the user adds an asset
+     * @param asset the asset to add
+     */
+    public onAddAsset (asset: AssetElement<any>): void {
+        this.scene.metadata.behaviorScripts.push(asset.data);
     }
 
     /**

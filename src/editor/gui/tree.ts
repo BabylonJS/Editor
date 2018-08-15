@@ -163,7 +163,16 @@ export default class Tree {
      * Destroys the tree
      */
     public destroy (): void {
-        this.element.jstree().destroy(false);
+        this.element.jstree('destroy');
+
+        this.onClick = null;
+        this.onDblClick = null;
+
+        this.onContextMenu = null;
+        this.onMenuClick = null;
+
+        this.onCanDrag = null;
+        this.onDrag = null;
     }
 
     /**
