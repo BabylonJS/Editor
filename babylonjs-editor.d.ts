@@ -341,6 +341,7 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
     export interface W2Item extends W2UI.W2Item {
             html?: string;
             selected?: string[];
+            hidden?: boolean;
     }
     export default class Toolbar {
             name: string;
@@ -371,6 +372,11 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 * @param data the new item
                 */
             updateItem(id: string, data: W2Item): void;
+            /**
+                * Notifies the given message on the right
+                * @param message the message to notify
+                */
+            notifyMessage(message: string): void;
             /**
                 * Builds the graph
                 * @param parentId the parent id

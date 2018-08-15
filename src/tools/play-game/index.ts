@@ -1,5 +1,7 @@
-import { Scene, Observer } from 'babylonjs';
+import { Scene, Observer, Tools as BabylonTools } from 'babylonjs';
 import Editor, { EditorPlugin, Toolbar, Layout } from 'babylonjs-editor';
+
+import { CCapture } from 'ccapture.js';
 
 export default class PlayGame extends EditorPlugin {
     // Public members
@@ -8,6 +10,10 @@ export default class PlayGame extends EditorPlugin {
 
     public iframe: JQuery<HTMLIFrameElement> = null;
     public contentWindow: Window = null;
+
+    public capturer: CCapture = null;
+    public isCapturing: boolean = false;
+    public captureBlob: Blob = null;
 
     // Protected members
     protected changeValueObserver: Observer<any> = null;
@@ -28,6 +34,10 @@ export default class PlayGame extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
 
+        // Capturer
+        if (this.capturer)
+            this.capturer.stop();
+
         // Callbacks
         this.editor.core.onGlobalPropertyChange.remove(this.changeValueObserver);
         this.editor.core.onResize.remove(this.resizeObserver);
@@ -43,14 +53,18 @@ export default class PlayGame extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PLAY-GAME-TOOLBAR" style="width: 100%; height: 100%"></div>' },
-            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%;"></iframe>' }
+            { type: 'main', resizable: false, content: '<iframe id="PLAY-GAME-IFRAME" sandbox="allow-same-origin allow-scripts allow-pointer-lock" style="width: 100%; height: 100%;"></iframe>' },
+            { type: 'left', resizable: false, size: 0, content: `<video id="PLAY-GAME-VIDEO" controls></video>` }
         ];
         this.layout.build(this.divElement.id);
 
         // Create toolbar
         this.toolbar = new Toolbar('PLAY-GAME-TOOLBAR');
         this.toolbar.items = [
-            { type: 'button', id: 'reload', img: 'w2ui-icon-reload', text: 'Reload' }
+            { type: 'button', id: 'reload', img: 'w2ui-icon-reload', text: 'Reload' },
+            { type: 'break' },
+            { type: 'button', id: 'record', img: 'icon-record', text: 'Record' },
+            { type: 'button', id: 'download-record', img: 'icon-export', text: 'Save Record' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('PLAY-GAME-TOOLBAR');
@@ -67,14 +81,16 @@ export default class PlayGame extends EditorPlugin {
      * On hide the plugin (do not render scene)
      */
     public async onHide (): Promise<void> {
-        this.contentWindow['renderScene'] = false;
+        if (!this.capturer)
+            this.contentWindow['renderScene'] = false;
     }
 
     /**
      * On show the plugin (render scene)
      */
     public async onShow (): Promise<void> {
-        this.contentWindow['renderScene'] = true;
+        if (!this.capturer)
+            this.contentWindow['renderScene'] = true;
     }
 
     /**
@@ -90,7 +106,22 @@ export default class PlayGame extends EditorPlugin {
      */
     protected async toolbarClicked (id: string): Promise<void> {
         switch (id) {
-            case 'reload': await this.createIFrame();
+            // Common
+            case 'reload':
+                await this.createIFrame();
+                break;
+            
+            // Video recorder
+            case 'record':
+                this.record();
+                this.toolbar.updateItem('record', {
+                    checked: this.isCapturing,
+                    img: this.isCapturing ? 'icon-error' : 'icon-record'
+                });
+                break;
+            case 'download-record':
+                BabylonTools.Download(this.captureBlob, 'capture.webm');
+                break;
             default: break;
         }
     }
@@ -99,6 +130,22 @@ export default class PlayGame extends EditorPlugin {
      * Creates the iFrame
      */
     protected async createIFrame (): Promise<void> {
+        // Misc.
+        this.capturer = null;
+
+        // Setup layout panels
+        this.layout.setPanelSize('left', 0);
+        this.layout.hidePanel('left');
+
+        this.layout.setPanelSize('main', this.layout.getPanelSize('top').width);
+        this.layout.showPanel('main');
+
+        // Setup toolbar
+        this.toolbar.updateItem('download-record', {
+            hidden: true
+        })
+
+        // Iframe
         this.iframe = <JQuery<HTMLIFrameElement>> $('#PLAY-GAME-IFRAME');
         this.iframe[0].src = './preview.html';
 
@@ -107,13 +154,86 @@ export default class PlayGame extends EditorPlugin {
                 this.contentWindow = this.iframe[0].contentWindow;
 
                 // Manage content window
-                this.contentWindow.addEventListener('blur', () => this.contentWindow['renderScene'] = false);
-                this.contentWindow.addEventListener('focus', () => this.contentWindow['renderScene'] = true);
+                this.contentWindow.addEventListener('blur', () => !(this.capturer) && (this.contentWindow['renderScene'] = false));
+                this.contentWindow.addEventListener('focus', () => !(this.capturer) && (this.contentWindow['renderScene'] = true));
 
                 // Resolve
                 resolve();
             };
         });
+    }
+
+    /**
+     * Record the game
+     */
+    protected async record (): Promise<void> {
+        this.isCapturing = !this.isCapturing;
+
+        // Stop capture
+        if (!this.isCapturing) {
+            this.capturer.stop();
+            this.toolbar.notifyMessage('');
+
+            // Layout
+            this.layout.showPanel('left');
+            this.layout.setPanelSize('left', this.layout.getPanelSize('top').width);
+
+            this.layout.setPanelSize('main', 0);
+            this.layout.hidePanel('main');
+
+            // Toolbar
+            this.toolbar.updateItem('download-record', {
+                hidden: false
+            })
+
+            // Set video
+            const video = <JQuery<HTMLVideoElement>> $('#PLAY-GAME-VIDEO');
+            video[0].src = this.capturer.save(blob => {
+                this.captureBlob = blob;
+                video[0].src = URL.createObjectURL(blob, { oneTimeOnly: true });
+            });
+
+            return;
+        }
+
+        // Capture
+        await this.createIFrame();
+        this.capturer = this.contentWindow['capturer'];
+
+        // Scene
+        this.contentWindow['gotScene'] = (scene: Scene) => {
+            const engine = scene.getEngine();
+            this.contentWindow['BABYLON'].Tools.QueueNewFrame(engine._renderLoop.bind(engine));
+
+            // Capture
+            const start = Date.now();
+            scene.onAfterRenderObservable.add(() => {
+                this.capturer.capture(scene.getEngine().getRenderingCanvas());
+
+                if (this.isCapturing) {
+                    const diff = new Date(Date.now() - start);
+                    const minutes = diff.getMinutes();
+                    const seconds = diff.getSeconds();
+                    const mseconds = diff.getMilliseconds();
+
+                    const message = (minutes < 10 ? '0' + minutes : minutes) + ':'
+                                + (seconds < 10 ? '0' + seconds : seconds) + ':'
+                                + (mseconds < 10 ? '00' + mseconds : mseconds < 100 ? '0' + mseconds : mseconds);
+                    
+                    this.toolbar.notifyMessage(`<h2>${message}</h2> Recording...`);
+                }
+            });
+
+            // Start capture
+            this.capturer.start();
+        };
+    }
+
+    /**
+     * Shows the previously recorded video
+     */
+    protected showVideo (): void {
+
     }
 
     /**

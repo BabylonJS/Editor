@@ -3,6 +3,7 @@ import Tools from "../tools/tools";
 export interface W2Item extends W2UI.W2Item {
     html?: string;
     selected?: string[];
+    hidden?: boolean;
 }
 
 export default class Toolbar {
@@ -55,6 +56,15 @@ export default class Toolbar {
         Object.assign(item, data);
 
         this.element.refresh(id);
+    }
+
+    /**
+     * Notifies the given message on the right
+     * @param message the message to notify
+     */
+    public notifyMessage (message: string): void {
+        this.element.right = message;
+        this.element.render();
     }
 
     /**
