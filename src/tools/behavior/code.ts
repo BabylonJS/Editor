@@ -220,9 +220,12 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param asset the selected asset
      */
     protected selectAsset (asset: BehaviorCode): void {
+        this.node = null;
+        if (!asset)
+            return this.selectObject(null);
+        
         if (asset.code) {
             this.layout.hidePanel('left');
-            this.node = null;
 
             this.datas = {
                 node: 'Unknown',
@@ -233,6 +236,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             };
 
             this.selectCode(0);
+
+            this.layout.unlockPanel('left');
+            this.layout.unlockPanel('main');
         }
     }
 
@@ -241,8 +247,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected selectObject (node: Node | Scene | IParticleSystem): void {
-        if (!node)
+        if (!node) {
+            this.layout.lockPanel('left', 'No object selected');
+            this.layout.lockPanel('main', 'No code selected');
             return;
+        }
         
         this.node = node;
         node['metadata'] = node['metadata'] || { };
@@ -284,6 +293,14 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Refresh right text
         this._updateToolbarText();
+
+        // Unlock / lock
+        this.layout.unlockPanel('left');
+
+        if (this.datas.metadatas.length === 0)
+            this.layout.lockPanel('main', 'No code selected');
+        else
+            this.layout.unlockPanel('main');
     }
 
     /**
@@ -346,7 +363,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.selectAsset(data);
         }
 
+        // Focus code directly
         this.code.focus();
+
+        // Unlock
+        this.layout.unlockPanel('main');
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);

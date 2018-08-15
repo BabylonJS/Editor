@@ -296,11 +296,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param asset the selected asset
      */
     protected assetSelected (asset: GraphData): void {
+        this.node = null;
+        if (!asset)
+            return this.objectSelected(null);
+
         if (asset.graph) {
             this.layout.hidePanel('left');
             this.resize();
-            
-            this.node = null;
 
             this.datas = {
                 node: 'Unknown',

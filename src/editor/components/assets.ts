@@ -219,11 +219,14 @@ export default class EditorAssets {
             if (component.onAddAsset) {
                 UndoRedo.Push({
                     fn: (type) => {
-                        if (type === 'from')
+                        if (type === 'from') {
                             component.onAddAsset(asset);
-                        else
+                        }
+                        else {
                             component.onRemoveAsset(asset);
-                        
+                            this.editor.core.onSelectAsset.notifyObservers(null);
+                        }
+
                         this.refresh();
                         this.showTab(component.id);
                     }
@@ -232,6 +235,8 @@ export default class EditorAssets {
 
             // Remove asset
             component.onRemoveAsset(asset);
+            this.editor.core.onSelectAsset.notifyObservers(null);
+
             this.refresh();
 
             // Remove context menu
