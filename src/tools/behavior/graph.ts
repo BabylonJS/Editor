@@ -299,6 +299,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         if (asset.graph) {
             this.layout.hidePanel('left');
             this.resize();
+            
+            this.node = null;
 
             this.datas = {
                 node: 'Unknown',
@@ -407,9 +409,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * When the user adds a new graph
      */
     protected async add (): Promise<void> {
-        if (!this.node)
-            return;
-        
         // Configure
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes(this.node);
@@ -424,22 +423,27 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.editor.core.scene.metadata.behaviorGraphs.push(data);
 
-        // Add metadata to node
-        this.datas.metadatas.push({
-            active: true,
-            graphId: data.id
-        });
+        if (this.node) {
+            // Add metadata to node
+            this.datas.metadatas.push({
+                active: true,
+                graphId: data.id
+            });
 
-        // Add to grid
-        this.grid.addRow({
-            recid: this.datas.metadatas.length - 1,
-            name: data.name,
-            active: true
-        });
+            // Add to grid
+            this.grid.addRow({
+                recid: this.datas.metadatas.length - 1,
+                name: data.name,
+                active: true
+            });
 
-        // Select latest script
-        this.grid.select([this.datas.metadatas.length - 1]);
-        this.selectGraph(this.datas.metadatas.length - 1);
+            // Select latest script
+            this.grid.select([this.datas.metadatas.length - 1]);
+            this.selectGraph(this.datas.metadatas.length - 1);
+        }
+        else {
+            this.assetSelected(data);
+        }
 
         // Unlock
         this.layout.unlockPanel('main');
@@ -765,7 +769,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Updates the toolbar text (attached object + edited objec)
     private _updateToolbarText (): void {
-        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node.name}"`;
+        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
         this.toolbar.element.render();
     }
     
@@ -808,7 +812,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             picker.addItems(metadatas.graphs);
             picker.open(items => {
                 items.forEach(i => {
-                    debugger;
                     // Add script
                     const graph = importFromFile ? metadatas.graphs[i.id] : graphs[i.id];
                     const id = importFromFile ? BabylonTools.RandomId() : graph.id;

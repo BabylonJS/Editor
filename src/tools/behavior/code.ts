@@ -222,6 +222,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected selectAsset (asset: BehaviorCode): void {
         if (asset.code) {
             this.layout.hidePanel('left');
+            this.node = null;
 
             this.datas = {
                 node: 'Unknown',
@@ -272,8 +273,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         this.grid.element.refresh();
 
-        let currentNodeName = "";
-
         // Select first behavior
         if (this.datas.metadatas.length > 0) {
             this.selectCode(0);
@@ -305,14 +304,16 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * The user clicks on "Add"
      */
     protected async add (): Promise<void> {
-        if (!this.node)
-            return;
-        
-        let ctor = Tools.GetConstructorName(this.node).toLowerCase();
-        if (this.node instanceof DirectionalLight)
-            ctor = "dirlight";
-        else if (this.node instanceof HemisphericLight)
-            ctor = "hemlight";
+        let ctor = 'scene';
+
+        if (this.node) {
+            ctor = Tools.GetConstructorName(this.node).toLowerCase();
+
+            if (this.node instanceof DirectionalLight)
+                ctor = "dirlight";
+            else if (this.node instanceof HemisphericLight)
+                ctor = "hemlight";
+        }
 
         // Add script
         const name = await Dialog.CreateWithTextInput('Script Name');
@@ -324,21 +325,27 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         this.editor.core.scene.metadata.behaviorScripts.push(data);
 
-        // Add metadata to node
-        this.datas.metadatas.push({
-            active: true,
-            codeId: data.id
-        });
+        if (this.node) {
+            // Add metadata to node
+            this.datas.metadatas.push({
+                active: true,
+                codeId: data.id
+            });
 
-        this.grid.addRow({
-            recid: this.datas.metadatas.length - 1,
-            name: data.name,
-            active: true
-        });
+            this.grid.addRow({
+                recid: this.datas.metadatas.length - 1,
+                name: data.name,
+                active: true
+            });
 
-        // Select latest script
-        this.grid.select([this.datas.metadatas.length - 1]);
-        this.selectCode(this.datas.metadatas.length - 1);
+            // Select latest script
+            this.grid.select([this.datas.metadatas.length - 1]);
+            this.selectCode(this.datas.metadatas.length - 1);
+        }
+        else {
+            this.selectAsset(data);
+        }
+
         this.code.focus();
 
         // Update assets
@@ -448,7 +455,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Updates the toolbar text (attached object + edited objec)
     private _updateToolbarText (): void {
-        this.toolbar.element.right = `<h2 id="currentNodeNameCode">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node.name}"`;
+        this.toolbar.element.right = `<h2 id="currentNodeNameCode">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
         this.toolbar.element.render();
     }
 

@@ -158,11 +158,10 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
                 od.metadatas.forEach(m => {
                     // Add graph
-                    const graph = data.graphs.find(g => g.name === m.name);
-                    const id = graph ? graph.id : Tools.RandomId();
-
-                    if (!graph)
-                        data.graphs.push({ name: m.name, id: id, graph: m.graph });   
+                    const id = Tools.RandomId();
+                    
+                    // Add graph asset
+                    data.graphs.push({ name: m.name, id: id, graph: m.graph });   
                     
                     // Add node metadata
                     node.metadatas.push({
