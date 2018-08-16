@@ -65,11 +65,15 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'view', text: 'View', img: 'icon-helpers', items: [
+                    { id: 'textures', img: 'icon-dynamic-texture', text: 'Textures Viewer...' },
+                    { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
+                ]
+            },
+            { type: 'break' },
+            {
+                type: 'menu', id: 'tools', text: 'Tools', img: 'icon-scenario', items: [
                     { id: 'animations', img: 'icon-animators', text: 'Animations Editor...' },
                     { type: 'break' },
-                    { id: 'textures', img: 'icon-copy', text: 'Textures Viewer...' },
-                    { id: 'materials', img: 'icon-effects', text: 'Materials Viewer...' },
-                    { type: 'break ' },
                     { id: 'code-editor', img: 'icon-behavior-editor', text: 'Code Editor...' },
                     { id: 'graph-editor', img: 'icon-graph', text: 'Graph Editor...' },
                     { type: 'break' },
@@ -203,31 +207,33 @@ export default class EditorToolbar {
                 break;
 
             // View
-            case 'view:animations':
-                await this.loadTool('animation-editor', 'Animations Editor');
-                break;
             case 'view:textures':
                 await this.loadTool('texture-viewer', 'Textures Viewer');
                 break;
             case 'view:materials':
                 await this.loadTool('material-viewer', 'Materials Viewer');
                 break;
-            case 'view:code-editor':
+
+            // Tools
+            case 'tools:animations':
+                await this.loadTool('animation-editor', 'Animations Editor');
+                break;
+            case 'tools:code-editor':
                 await this.loadTool('behavior-editor', 'Code Editor');
                 break;
-            case 'view:graph-editor':
+            case 'tools:graph-editor':
                 await this.loadTool('graph-editor', 'Graph Editor');
                 break;
-            case 'view:material-editor':
+            case 'tools:material-editor':
                 await this.loadTool('material-editor', 'Material Editor');
                 break;
-            case 'view:post-process-editor':
+            case 'tools:post-process-editor':
                 await this.loadTool('post-process-editor', 'Post-Process Editor');
                 break;
-            case 'view:particles-creator':
+            case 'tools:particles-creator':
                 await this.loadTool('particles-creator', 'Particles Creator');
                 break;
-            case 'view:path-finder':
+            case 'tools:path-finder':
                 await this.loadTool('path-finder', 'Path Finder');
                 break;
 

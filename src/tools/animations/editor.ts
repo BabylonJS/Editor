@@ -451,6 +451,9 @@ export default class AnimationEditor extends EditorPlugin {
         this.frameInput.val('');
         this.valueInput.val('');
 
+        if (!object)
+            return;
+
         // Refresh right text
         this.toolbar.element.right = `Selected object: "${(object instanceof Scene ? 'Scene' : object['name'])}"`;
         this.toolbar.element.render();

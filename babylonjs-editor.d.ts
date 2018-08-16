@@ -1703,6 +1703,12 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 */
             showTab(id: string): void;
             /**
+                * Returns the drag end event function
+                * @param component the source component
+                * @param asset the dropped asset
+                */
+            protected dragEnd(component: IAssetComponent, asset: AssetElement<any>): (ev: DragEvent) => void;
+            /**
                 * Processes the context menu for the clicked item
                 * @param ev the mouse event object
                 * @param component the component being modified
@@ -1910,6 +1916,7 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
 }
 
 declare module 'babylonjs-editor/extensions/typings/asset' {
+    import { AbstractMesh } from 'babylonjs';
     export interface AssetElement<T> {
         img?: string;
         name?: string;
@@ -1921,6 +1928,7 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
         onGetAssets?<T>(): AssetElement<T>[] | Promise<AssetElement<T>[]>;
         onRemoveAsset?<T>(asset: AssetElement<T>): void;
         onAddAsset?<T>(asset: AssetElement<T>): void;
+        onDragAndDropAsset?<T>(targetMesh: AbstractMesh, asset: AssetElement<T>): void;
     }
 }
 

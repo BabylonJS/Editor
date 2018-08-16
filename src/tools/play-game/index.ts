@@ -209,23 +209,11 @@ export default class PlayGame extends EditorPlugin {
             const start = Date.now();
             scene.onAfterRenderObservable.add(() => {
                 this.capturer.capture(scene.getEngine().getRenderingCanvas());
-
-                if (this.isCapturing) {
-                    const diff = new Date(Date.now() - start);
-                    const minutes = diff.getMinutes();
-                    const seconds = diff.getSeconds();
-                    const mseconds = diff.getMilliseconds();
-
-                    const message = (minutes < 10 ? '0' + minutes : minutes) + ':'
-                                + (seconds < 10 ? '0' + seconds : seconds) + ':'
-                                + (mseconds < 10 ? '00' + mseconds : mseconds < 100 ? '0' + mseconds : mseconds);
-                    
-                    this.toolbar.notifyMessage(`<h2>${message}</h2> Recording...`);
-                }
             });
 
             // Start capture
             this.capturer.start();
+            this.toolbar.notifyMessage(`<h2>Recording...</h2>`);
         };
     }
 
