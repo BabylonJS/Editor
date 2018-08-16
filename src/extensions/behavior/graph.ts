@@ -115,6 +115,28 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
     }
 
     /**
+     * On the user drops an asset
+     * @param targetMesh the target mesh under the pointer
+     * @param asset the asset being dropped
+     */
+    public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<any>): void {
+        targetMesh.metadata = targetMesh.metadata || { };
+
+        if (!targetMesh.metadata.behaviorGraph) {
+            targetMesh.metadata.behaviorGraph = {
+                node: targetMesh.name,
+                metadatas: []
+            };
+        }
+
+        // Add asset
+        targetMesh.metadata.behaviorGraph.metadatas.push({
+            graphId: asset.data.id,
+            active: true
+        });
+    }
+
+    /**
      * On apply the extension
      */
     public onApply (data: BehaviorGraphMetadata): void {

@@ -245,8 +245,7 @@ export default class AnimationEditor extends EditorPlugin {
         });
 
         // Drag'n'drop
-        let dropListener = this.dragEnd(material);
-
+        const dropListener = this.dragEnd(material);
         img.addEventListener('dragstart', () => {
             this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener);
         });

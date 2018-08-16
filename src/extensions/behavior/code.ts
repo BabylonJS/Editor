@@ -1,4 +1,9 @@
-import { Scene, Node, DirectionalLight, HemisphericLight, Tools as BabylonTools, IParticleSystem, Vector4, Vector3, Vector2, Color4, Color3, Tools, GroundMesh } from 'babylonjs';
+import {
+    Scene, Node, DirectionalLight, HemisphericLight,
+    Tools as BabylonTools, IParticleSystem, Vector4,
+    Vector3, Vector2, Color4, Color3, Tools, GroundMesh,
+    AbstractMesh
+} from 'babylonjs';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
@@ -78,6 +83,28 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         data.scripts.forEach(s => result.push({ name: s.name, data: s }));
 
         return result;
+    }
+
+    /**
+     * On the user drops an asset
+     * @param targetMesh the target mesh under the pointer
+     * @param asset the asset being dropped
+     */
+    public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<any>): void {
+        targetMesh.metadata = targetMesh.metadata || { };
+
+        if (!targetMesh.metadata.behavior) {
+            targetMesh.metadata.behavior = {
+                node: targetMesh.name,
+                metadatas: []
+            };
+        }
+
+        // Add asset
+        targetMesh.metadata.behavior.metadatas.push({
+            codeId: asset.data.id,
+            active: true
+        });
     }
 
     /**

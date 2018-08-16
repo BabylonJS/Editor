@@ -148,6 +148,18 @@ export default class EditorAssets {
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
                 });
 
+                // Drag'n'drop
+                if (c.onDragAndDropAsset) {
+                    const dropListener = this.dragEnd(c, a);
+                    img.addEventListener('dragstart', () => {
+                        this.editor.core.engine.getRenderingCanvas().addEventListener('drop', dropListener);
+                    });
+            
+                    img.addEventListener('dragend', () => {
+                        this.editor.core.engine.getRenderingCanvas().removeEventListener('drop', dropListener);
+                    });
+                }
+
                 // Add
                 parent.appendChild(img);
                 parent.appendChild(text);
@@ -197,6 +209,24 @@ export default class EditorAssets {
         this.currentComponent = this.components.find(c => c.id === id);
         $('#' + this.currentComponent.id).show();
         this.tabs.select(id);
+    }
+
+    /**
+     * Returns the drag end event function
+     * @param component the source component
+     * @param asset the dropped asset
+     */
+    protected dragEnd (component: IAssetComponent, asset: AssetElement<any>): (ev: DragEvent) => void {
+        return (ev: DragEvent) => {
+            const scene = this.editor.core.scene;
+            const pick = scene.pick(ev.offsetX, ev.offsetY);
+
+            if (!pick.pickedMesh)
+                return;
+
+            component.onDragAndDropAsset(pick.pickedMesh, asset);
+            this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
+        };
     }
 
     /**
