@@ -57,6 +57,7 @@ export default class OneDriveStorage extends Storage {
      */
     public async getFiles (folder: any): Promise<GetFiles[]> {
         await this.login();
+
         const files = await Request.Get<any>('https://Api.Onedrive.com/v1.0/drive/' + (folder ? 'items/' + folder : 'root') + '/children', {
             'Authorization': 'Bearer ' + OneDriveStorage._TOKEN
         });
@@ -65,6 +66,7 @@ export default class OneDriveStorage extends Storage {
         files.value.forEach(v => {
             result.push({ name: v.name, folder: v.folder ? v.id : null });
         });
+
         return result;
     }
 
@@ -75,6 +77,7 @@ export default class OneDriveStorage extends Storage {
         await Tools.ImportScript('build/src/editor/storage/oauth.js');
 
         const now = (Date.now() - OneDriveStorage._TOKEN_EXPIRES_NOW) / 1000;
+        
         return new Promise<void>(resolve => {
             if (OneDriveStorage._TOKEN === '' || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
                 //const clientID = '000000004C18353E'; // editor.babylonjs.com

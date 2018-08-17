@@ -121,14 +121,15 @@ export default class DefaultScene {
         skybox.infiniteDistance = true;
 
         // Plane
-        const floor = await this.LoadTexture('assets/textures/mahogfloor_basecolor.png', scene);
-        floor.uScale = floor.vScale = 45;
+        let floor: Texture = null;
+        let floorBump: Texture = null;
+        let floorAmbient: Texture = null;
 
-        const floorBump = await this.LoadTexture('assets/textures/mahogfloor_normal.jpg', scene);
-        floorBump.uScale = floorBump.vScale = 45;
-
-        const floorAmbient = await this.LoadTexture('assets/textures/mahogfloor_AO.jpg', scene);
-        floorAmbient.uScale = floorAmbient.vScale = 45;
+        await Promise.all([
+            this.LoadTexture('assets/textures/mahogfloor_basecolor.png', scene).then(t => { t.uScale = t.vScale = 45; floor = t }),
+            this.LoadTexture('assets/textures/mahogfloor_normal.jpg', scene).then(t => { t.uScale = t.vScale = 45; floorBump = t }),
+            this.LoadTexture('assets/textures/mahogfloor_AO.jpg', scene).then(t => { t.uScale = t.vScale = 45; floorAmbient = t })
+        ]);
 
         //const floorReflectivity = await this.LoadTexture('assets/textures/mahogfloor_roughness.jpg', scene);
         //floorReflectivity.uScale = floorReflectivity.vScale = 45;
@@ -150,10 +151,17 @@ export default class DefaultScene {
         ground.material = groundMaterial;
 
         // Sphere PBR
-        const metal = await this.LoadTexture('assets/textures/rustediron2_basecolor.png', scene);
-        const metalBump = await this.LoadTexture('assets/textures/rustediron2_normal.png', scene);
-        const metalReflectivity = await this.LoadTexture('assets/textures/rustediron2_roughness.png', scene);
-        const metalMetallic = await this.LoadTexture('assets/textures/rustediron2_metallic.png', scene);
+        let metal: Texture = null;
+        let metalBump: Texture = null;
+        let metalReflectivity: Texture = null;
+        let metalMetallic: Texture = null;
+
+        await Promise.all([
+            this.LoadTexture('assets/textures/rustediron2_basecolor.png', scene).then(t => metal = t),
+            this.LoadTexture('assets/textures/rustediron2_normal.png', scene).then(t => metalBump = t),
+            this.LoadTexture('assets/textures/rustediron2_roughness.png', scene).then(t => metalReflectivity = t),
+            this.LoadTexture('assets/textures/rustediron2_metallic.png', scene).then(t => metalMetallic = t)
+        ]);
 
         const sphereMaterialPBR = new PBRMaterial('SpherePBR', scene);
         sphereMaterialPBR.albedoTexture = metal;
@@ -167,8 +175,13 @@ export default class DefaultScene {
         spherePBR.material = sphereMaterialPBR;
 
         // Sphere Standard
-        const wood = await this.LoadTexture('assets/textures/albedo.png', scene);
-        const woodReflectivity = await this.LoadTexture('assets/textures/reflectivity.png', scene);
+        let wood: Texture = null;
+        let woodReflectivity: Texture = null;
+
+        await Promise.all([
+            this.LoadTexture('assets/textures/albedo.png', scene).then(t => wood = t),
+            this.LoadTexture('assets/textures/reflectivity.png', scene).then(t => woodReflectivity = t)
+        ]);
 
         const sphereMaterialStd = new StandardMaterial('SphereStandard', scene);
         sphereMaterialStd.diffuseTexture = wood;
