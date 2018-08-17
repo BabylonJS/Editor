@@ -17,8 +17,7 @@ export default class PathFinder {
 
     /**
      * Constructor
-     * @param width the graph width
-     * @param height the graph height
+     * @param size the path finder grid size
      */
     constructor (size: number) {
         this.rebuildBuffers(size);
@@ -27,8 +26,7 @@ export default class PathFinder {
     /**
      * Rebuilds the path's finder buffer
      * NOTE: should be done before creating the graph
-     * @param width the buffer width
-     * @param height the buffer height
+     * @param size the path finder grid size
      */
     public rebuildBuffers (size: number): void {
         this.width = this.height = size >> 0;
@@ -46,6 +44,7 @@ export default class PathFinder {
      * end position
      * @param from the start position (typically the position of the object to move)
      * @param to the end position (typically already known or pre-programmed)
+     * @param optimize if the extension should optimize the animation to be linear
      */
     public fromTo (from: Vector3, to: Vector3, optimize: boolean = false): Vector3[] {
         // Compute coordinates to grid's coordinates
@@ -103,7 +102,9 @@ export default class PathFinder {
 
     /**
      * Creates a new animation from the given path
-     * @param path the path to set keys
+     * @param name the animation name being created
+     * @param path the path containing the path points
+     * @param framesPerSecond frames per second for the animation
      */
     public createAnimation (name: string, path: Vector3[], framesPerSecond: number = 60): Animation {
         const a = new Animation(name, 'position', framesPerSecond, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_RELATIVE, false);
@@ -143,7 +144,9 @@ export default class PathFinder {
     /**
      * Fills the graph with the given mesh surface geometry using ray
      * casting method.
-     * @param mesh: surface mesh (holes are supported)
+     * @param castMeshes: surface meshes (holes are supported)
+     * @param rayHeight the height of the rays to test collisions
+     * @param rayLength the length of the rays to test collisions
      */
     public fill (castMeshes: AbstractMesh[], rayHeight?: number, rayLength?: number): void {
         // Rebuild buffers
