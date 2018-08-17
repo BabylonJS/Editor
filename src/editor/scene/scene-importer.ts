@@ -207,6 +207,13 @@ export default class SceneImporter {
             }
         }
 
+        // Notes
+        if (project.customMetadatas.notes) {
+            editor.core.scene.metadata = editor.core.scene.metadata || { };
+            editor.core.scene.metadata.notes = project.customMetadatas.notes;
+            editor.addEditPanelPlugin('notes', true);
+        }
+
         // Post-processes
         const ppExtension = <PostProcessesExtension> Extensions.Instances['PostProcess'];
         if (ppExtension) {

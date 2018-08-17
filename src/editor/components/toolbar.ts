@@ -81,7 +81,9 @@ export default class EditorToolbar {
                     { id: 'post-process-editor', img: 'icon-shaders', text: 'Post-Process Editor...' },
                     // { id: 'particles-creator', img: 'icon-particles', text: 'Particles Creator' },
                     { type: 'break' },
-                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' }
+                    { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' },
+                    { type: 'break' },
+                    { id: 'notes', img: 'icon-behavior-editor', text: 'Notes...' }
                 ]
             },
             { type: 'break' },
@@ -235,6 +237,9 @@ export default class EditorToolbar {
                 break;
             case 'tools:path-finder':
                 await this.loadTool('path-finder', 'Path Finder');
+                break;
+            case 'tools:notes':
+                await this.loadTool('notes', 'Notes');
                 break;
 
             // Add

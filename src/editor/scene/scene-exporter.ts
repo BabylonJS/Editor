@@ -257,7 +257,11 @@ export default class SceneExporter {
      * Serializes the custom metadatas
      */
     private static _SerializeCustomMetadatas (editor: Editor): IStringDictionary<any> {
-        const result = { };
+        const result = <any> { };
+
+        // Notes
+        if (editor.core.scene.metadata && editor.core.scene.metadata.notes)
+            result.notes = editor.core.scene.metadata.notes;
 
         // Instances have been
         for (const e in Extensions.Instances)
