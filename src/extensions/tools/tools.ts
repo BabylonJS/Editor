@@ -79,7 +79,7 @@ export default class Tools {
         if (Extensions.RoolUrl && Extensions.RoolUrl !== 'file:')
             return Extensions.RoolUrl + filename;
         
-        return URL.createObjectURL(this.getFileByName(filename), { oneTimeOnly: oneTimeOnly });
+        return URL.createObjectURL(this.getFileByName(filename));
     }
 
     /**

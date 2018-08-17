@@ -1725,7 +1725,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             NONE = 0,
             POSITION = 1,
             ROTATION = 2,
-            SCALING = 3,
+            SCALING = 3
     }
     export default class ScenePicker {
             editor: Editor;
@@ -1749,8 +1749,8 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
             /**
-                * Sets if the scene picker is enabled
-                */
+             * Sets if the scene picker is enabled
+             */
             enabled: boolean;
             /**
                 * Sets the gizmo type

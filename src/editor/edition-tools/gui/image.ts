@@ -57,7 +57,7 @@ export default class GuiImageTool extends AbstractEditionTool<Image> {
         this.tool.addTexture(texture, this.editor, '_texture', this, false, false, (tex) => {
             let blobURL = '';
             try {
-                blobURL = URL.createObjectURL(BABYLON.FilesInput.FilesToLoad[tex['url']], { oneTimeOnly: true });
+                blobURL = URL.createObjectURL(BABYLON.FilesInput.FilesToLoad[tex['url']]);
             }
             catch (ex) {
                 // Chrome doesn't support oneTimeOnly parameter

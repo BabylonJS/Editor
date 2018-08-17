@@ -190,7 +190,7 @@ export default class PlayGame extends EditorPlugin {
             const video = <JQuery<HTMLVideoElement>> $('#PLAY-GAME-VIDEO');
             video[0].src = this.capturer.save(blob => {
                 this.captureBlob = blob;
-                video[0].src = URL.createObjectURL(blob, { oneTimeOnly: true });
+                video[0].src = URL.createObjectURL(blob);
             });
 
             return;
