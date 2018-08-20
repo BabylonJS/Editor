@@ -1,7 +1,7 @@
 import {
     Mesh, AbstractMesh, PickingInfo, Tags,
     Tools as BabylonTools, Vector3, Quaternion,
-    InstancedMesh, Animation
+    InstancedMesh, Animation, Engine
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -9,8 +9,10 @@ import SceneFactory from '../scene/scene-factory';
 
 import { IAssetComponent, AssetElement } from '../../shared/asset';
 import { IStringDictionary } from '../typings/typings';
+import Tools from '../tools/tools';
 
 import { Prefab } from './prefab';
+import PrefabsHelpers from './helpers';
 
 export default class PrefabAssetComponent implements IAssetComponent {
     // Public members
@@ -18,6 +20,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
     public assetsCaption: string = 'Prefabs';
 
     public datas: AssetElement<Prefab>[] = [];
+
+    public previewCanvas: HTMLCanvasElement = null;
+    public previewEngine: Engine = null;
 
     /**
      * Constructor
@@ -36,7 +41,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
         // Default asset
         const asset = <AssetElement<Prefab>> {
-            name: 'New Prefab ' + sourceMeshes[0].name,
+            name: 'Prefab ' + sourceMesh.name,
             data: {
                 nodes: sourceMeshes.map(m => m.name),
                 nodeIds: sourceMeshes.map(m => m.id),
@@ -101,6 +106,10 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
         SceneFactory.AddToGraph(this.editor, parent);
         Tags.RemoveTagsFrom(parent, 'added');
+
+        // Select
+        this.editor.scenePicker.setGizmoAttachedMesh(parent);
+        this.editor.core.onSelectObject.notifyObservers(parent);
     }
 
     /**
@@ -178,7 +187,36 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * On the assets panel requires the assets stored in this
      * asset component
      */
-    public onGetAssets (): AssetElement<Prefab>[] {
+    public async onGetAssets (): Promise<AssetElement<Prefab>[]> {
+        // Create engine
+        if (!this.previewCanvas) {
+            this.previewCanvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'PrefabAssetComponentCanvas', {
+                'width': '50px',
+                'height': '50px',
+                'visibility': 'hidden'
+            });
+            document.body.appendChild(this.previewCanvas);
+        }
+
+        if (!this.previewEngine)
+            this.previewEngine = new Engine(this.previewCanvas);
+        
+        // Create previews
+        for (const d of this.datas) {
+            await PrefabsHelpers.CreatePreview(d, this.previewEngine);
+        }
+
+        // Dispose
+        if (this.previewEngine) {
+            this.previewEngine.dispose();
+            this.previewEngine = null;
+        }
+
+        if (this.previewCanvas) {
+            this.previewCanvas.remove();
+            this.previewCanvas = null;
+        }
+
         return this.datas;
     }
 

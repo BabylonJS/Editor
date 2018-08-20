@@ -133,7 +133,7 @@ export default class ScenePicker {
      * Sets the attached mesh for position, rotaiton and scaling gizmos
      * @param mesh the mesh to attach
      */
-    public setGizmoAttachedMesh (mesh: Mesh): void {
+    public setGizmoAttachedMesh (mesh: AbstractMesh): void {
         if (!(mesh instanceof AbstractMesh))
             return;
         

@@ -140,6 +140,7 @@ export default class EditorAssets {
                     'float': 'left',
                     'width': '50px',
                     'left': '50%',
+                    'top': '8px',
                     'transform': 'translate(-50%, -50%)',
                     'text-overflow': 'ellipsis',
                     'white-space': 'nowrap',

@@ -1733,7 +1733,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh, Mesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
+    import { Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export enum GizmoType {
             NONE = 0,
@@ -1774,7 +1774,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * Sets the attached mesh for position, rotaiton and scaling gizmos
                 * @param mesh the mesh to attach
                 */
-            setGizmoAttachedMesh(mesh: Mesh): void;
+            setGizmoAttachedMesh(mesh: AbstractMesh): void;
             /**
                 * Adds the events to the canvas
                 */
@@ -1949,7 +1949,7 @@ declare module 'babylonjs-editor/shared/asset' {
 }
 
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
-    import { Mesh, AbstractMesh, PickingInfo } from 'babylonjs';
+    import { Mesh, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
     import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
@@ -1958,6 +1958,8 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
             id: string;
             assetsCaption: string;
             datas: AssetElement<Prefab>[];
+            previewCanvas: HTMLCanvasElement;
+            previewEngine: Engine;
             /**
                 * Constructor
                 * @param editor the editor reference
@@ -1993,7 +1995,7 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * On the assets panel requires the assets stored in this
                 * asset component
                 */
-            onGetAssets(): AssetElement<Prefab>[];
+            onGetAssets(): Promise<AssetElement<Prefab>[]>;
     }
 }
 
