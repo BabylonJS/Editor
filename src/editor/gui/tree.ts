@@ -247,7 +247,7 @@ export default class Tree {
                 if (!this.onDrag || this.moving)
                     return;
                 
-                const node = this.getSelected();
+                const node = data.node;
                 const parent = this.get(data.parent);
 
                 if (!node || !parent)
