@@ -79,7 +79,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * @param asset the asset being dropped
      * @param pickInfo the pick info once the user dropped the asset
      */
-    public onDragAndDropAsset? (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
+    public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
         // Parent
         const parent = asset.data.sourceMesh.createInstance(asset.name);
         parent.id = BabylonTools.RandomId();

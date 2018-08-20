@@ -12,7 +12,7 @@ import { Prefab } from './prefab';
 
 export default class PrefabsHelpers {
     /**
-     * Creates a preview of the prefab
+     * Creates a preview of the prefab (base64 image)
      * @param d the asset element
      * @param engine the babylonjs engine
      */
