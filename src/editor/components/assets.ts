@@ -3,17 +3,19 @@ import { Tools as BabylonTools } from 'babylonjs';
 import Editor from '../editor';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
-
 import ContextMenu from '../gui/context-menu';
 
 import { IAssetComponent, AssetElement } from '../../shared/asset';
+
+import PrefabAssetComponent from '../prefabs/asset-component';
 
 export default class EditorAssets {
     // Public members
     public tabs: W2UI.W2Tabs;
     public components: IAssetComponent[] = [];
-
     public contextMenu: ContextMenu;
+
+    public prefabs: PrefabAssetComponent;
 
     // Protected members
     protected currentComponent: IAssetComponent = null;
@@ -38,6 +40,12 @@ export default class EditorAssets {
             height: 55,
             search: false
         });
+
+        // Create components
+        this.prefabs = new PrefabAssetComponent(editor);
+
+        // Add components tabs
+        this.addTab(this.prefabs);
 
         // Finalize
         this.refresh();
@@ -224,7 +232,7 @@ export default class EditorAssets {
             if (!pick.pickedMesh)
                 return;
 
-            component.onDragAndDropAsset(pick.pickedMesh, asset);
+            component.onDragAndDropAsset(pick.pickedMesh, asset, pick);
             this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
         };
     }

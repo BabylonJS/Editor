@@ -1,5 +1,5 @@
 import {
-    Scene, Node, AbstractMesh, Light, Camera,
+    Scene, Node, AbstractMesh, Light, Camera, Mesh,
     Sound,
     ParticleSystem, GPUParticleSystem,
     PostProcess,
@@ -53,6 +53,9 @@ export default class EditorGraph {
 
             if (data.globalPosition || data.getAbsolutePosition)
                 result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: () => this.onMenuClick('focus') });
+            
+            if (data instanceof Mesh)
+                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', separatorBefore: true, callback: () => this.onMenuClick('create-prefab') });
             
             if (data instanceof AbstractMesh)
                 result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: () => this.onMenuClick('set-material') });
@@ -449,6 +452,10 @@ export default class EditorGraph {
                 ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), node.data.globalPosition || node.data.getAbsolutePosition(), this.editor.camera);
                 break;
 
+            // Create prefab
+            case 'create-prefab':
+                this.editor.assets.prefabs.createPrefab(node.data);
+                break;
             // Add Material
             case 'set-material':
                 await this.editor.addEditPanelPlugin('material-viewer', false, 'Materials Viewer', node.data, true);

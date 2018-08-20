@@ -1,4 +1,4 @@
-import { AbstractMesh } from 'babylonjs';
+import { AbstractMesh, PickingInfo } from 'babylonjs';
 
 export interface AssetElement<T> {
     img?: string;
@@ -9,8 +9,11 @@ export interface AssetElement<T> {
 export interface IAssetComponent {
     id?: string;
     assetsCaption?: string;
-    onGetAssets?<T> (): AssetElement<T>[] | Promise<AssetElement<T>[]>;
-    onRemoveAsset?<T> (asset: AssetElement<T>): void;
-    onAddAsset?<T> (asset: AssetElement<T>): void;
-    onDragAndDropAsset?<T> (targetMesh: AbstractMesh, asset: AssetElement<T>): void;
+    onGetAssets? (): AssetElement<any>[] | Promise<AssetElement<any>[]>;
+    onRemoveAsset? (asset: AssetElement<any>): void;
+    onAddAsset? (asset: AssetElement<any>): void;
+    onDragAndDropAsset? (targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+
+    onSerializeAssets? (): AssetElement<any>[];
+    onParseAssets? (data: AssetElement<any>[]): void;
 }
