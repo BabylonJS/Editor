@@ -268,7 +268,7 @@ export default class SceneExporter {
 
         // Instances have been
         for (const e in Extensions.Instances)
-            result[e] = Extensions.Instances[e].onSerializeAssets();
+            result[e] = Extensions.Instances[e].onSerialize();
 
         return result;
     }

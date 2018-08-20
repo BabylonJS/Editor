@@ -1,10 +1,12 @@
 import { Mesh, InstancedMesh } from 'babylonjs';
+import { IStringDictionary } from '../typings/typings';
 
-export interface Prefab {
-    node: string;
-    nodeId: string;
-    instances: any[];
+export class Prefab {
+    nodes: string[];
+    nodeIds: string[];
+    instances: IStringDictionary<any[]>;
 
+    sourceMeshes?: Mesh[];
     sourceMesh?: Mesh;
-    sourceInstances?: InstancedMesh[];
+    sourceInstances?: IStringDictionary<InstancedMesh[]>;
 }

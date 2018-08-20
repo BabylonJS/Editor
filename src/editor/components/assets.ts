@@ -45,7 +45,7 @@ export default class EditorAssets {
         this.prefabs = new PrefabAssetComponent(editor);
 
         // Add components tabs
-        this.addTab(this.prefabs);
+        this.addDefaultComponents();
 
         // Finalize
         this.refresh();
@@ -67,6 +67,15 @@ export default class EditorAssets {
             this.emptyTextNode.remove();
             this.emptyTextNode = null;
         }
+
+        this.addDefaultComponents();
+    }
+
+    /**
+     * Adds the default components
+     */
+    public addDefaultComponents (): void {
+        this.addTab(this.prefabs);
     }
 
     /**

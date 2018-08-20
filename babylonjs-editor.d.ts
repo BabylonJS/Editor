@@ -1699,6 +1699,10 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 */
             clear(): void;
             /**
+                * Adds the default components
+                */
+            addDefaultComponents(): void;
+            /**
                 * Refreshes the tabs
                 */
             refresh(id?: string): Promise<void>;
@@ -2025,12 +2029,14 @@ declare module 'babylonjs-editor/extensions/extension' {
 
 declare module 'babylonjs-editor/editor/prefabs/prefab' {
     import { Mesh, InstancedMesh } from 'babylonjs';
-    export interface Prefab {
-        node: string;
-        nodeId: string;
-        instances: any[];
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export class Prefab {
+        nodes: string[];
+        nodeIds: string[];
+        instances: IStringDictionary<any[]>;
+        sourceMeshes?: Mesh[];
         sourceMesh?: Mesh;
-        sourceInstances?: InstancedMesh[];
+        sourceInstances?: IStringDictionary<InstancedMesh[]>;
     }
 }
 

@@ -5,7 +5,8 @@ import {
     PostProcess,
     Animation,
     Tools as BabylonTools,
-    Skeleton
+    Skeleton,
+    Tags
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
@@ -213,7 +214,7 @@ export default class EditorGraph {
      * @param root: the root node
      */
     public fill(scene: Scene = this.editor.core.scene, root?: Node): void {
-        let nodes = root ? root.getDescendants() : [];
+        let nodes = root ? /*root.getDescendants()*/root.getChildren() : [];
 
         if (!root) {
             this.tree.add({
@@ -245,6 +246,10 @@ export default class EditorGraph {
 
         // Add nodes
         nodes.forEach(n => {
+            // Hide prefabs, keep only masters
+            if (Tags.MatchesQuery(n, 'prefab'))
+                return;
+            
             // Create a random ID if not defined
             if (!n.id)
                 n.id = BabylonTools.RandomId();

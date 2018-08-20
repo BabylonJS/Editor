@@ -134,7 +134,7 @@ export default class ScenePicker {
      * @param mesh the mesh to attach
      */
     public setGizmoAttachedMesh (mesh: Mesh): void {
-        if (!(mesh instanceof Mesh))
+        if (!(mesh instanceof AbstractMesh))
             return;
         
         this.positionGizmo && (this.positionGizmo.attachedMesh = mesh);
