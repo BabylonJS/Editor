@@ -15,7 +15,8 @@ import {
     Tools as BabylonTools,
     RenderTargetTexture,
     InstancedMesh,
-    EnvironmentHelper
+    EnvironmentHelper,
+    Color3
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -194,8 +195,9 @@ export default class SceneImporter {
         // Environment
         if (project.environmentHelper) {
             SceneManager.EnvironmentHelper = editor.core.scene.createDefaultEnvironment({
-                groundColor: project.environmentHelper.groundColor,
-                skyboxColor: project.environmentHelper.skyboxColor
+                groundColor: new Color3().copyFrom(project.environmentHelper.groundColor),
+                skyboxColor: new Color3().copyFrom(project.environmentHelper.skyboxColor),
+                enableGroundMirror: project.environmentHelper.enableGroundMirror
             });
         }
 

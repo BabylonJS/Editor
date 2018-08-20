@@ -43,6 +43,8 @@ import WoodProceduralTool from '../edition-tools/procedural-textures/wood-tool';
 
 import GroundTool from '../edition-tools/meshes/ground-tool';
 
+import EnvironmentHelperTool from '../edition-tools/environment-helper-tool';
+
 /**
  * Editor
  */
@@ -77,6 +79,8 @@ export default class EditorInspector {
         });
 
         // Add tools
+        this.addTool(new EnvironmentHelperTool());
+        
         this.addTool(new SceneTool());
         this.addTool(new NodeTool());
         this.addTool(new PhysicsTool());
