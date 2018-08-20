@@ -1160,6 +1160,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
         actions: any;
         physicsEnabled: boolean;
         effectLayers: EffectLayer[];
+        defaultEnvironment: any;
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
@@ -1167,7 +1168,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-manager' {
-    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, IAnimatable, GlowLayer, HighlightLayer } from 'babylonjs';
+    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import PostProcessesExtension from 'babylonjs-editor/extensions/post-process/post-processes';
     export default class SceneManager {
@@ -1177,6 +1178,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
             static SSAO2RenderingPipeline: SSAO2RenderingPipeline;
             static GlowLayer: GlowLayer;
             static HighLightLayer: HighlightLayer;
+            static EnvironmentHelper: EnvironmentHelper;
             static PostProcessExtension: PostProcessesExtension;
             /**
                 * Clears the scene manager
@@ -1227,7 +1229,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-factory' {
-    import { Mesh, ParticleSystem, GroundMesh, Light } from 'babylonjs';
+    import { Mesh, ParticleSystem, GroundMesh, Light, EnvironmentHelper } from 'babylonjs';
     import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
     import { WaterMaterial } from 'babylonjs-materials';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1238,6 +1240,11 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param node the node to add
                 */
             static AddToGraph(editor: Editor, node: any): void;
+            /**
+                * Creates a new default environment
+                * @param editor the editor reference
+                */
+            static CreateDefaultEnvironment(editor: Editor): EnvironmentHelper;
             /**
                 * Creates a new default particle system
                 * @param editor: the editor reference

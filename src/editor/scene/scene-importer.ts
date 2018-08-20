@@ -14,7 +14,8 @@ import {
     MultiMaterial,
     Tools as BabylonTools,
     RenderTargetTexture,
-    InstancedMesh
+    InstancedMesh,
+    EnvironmentHelper
 } from 'babylonjs';
 
 import * as Export from '../typings/project';
@@ -189,6 +190,14 @@ export default class SceneImporter {
             const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
             scene.customRenderTargets.push(texture);
         });
+
+        // Environment
+        if (project.environmentHelper) {
+            SceneManager.EnvironmentHelper = editor.core.scene.createDefaultEnvironment({
+                groundColor: project.environmentHelper.groundColor,
+                skyboxColor: project.environmentHelper.skyboxColor
+            });
+        }
 
         // Clear assets
         editor.assets.clear();

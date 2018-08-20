@@ -213,7 +213,8 @@ export default class SceneExporter {
             shadowGenerators: this._SerializeShadowGenerators(editor),
             sounds: this._SerializeSounds(editor),
             gui: editor.core.uiTextures.map(ut => ut.serialize()),
-            effectLayers: this._SerializeEffectLayers(editor)
+            effectLayers: this._SerializeEffectLayers(editor),
+            environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null
         };
 
         // Finish

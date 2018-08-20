@@ -6,7 +6,8 @@ import {
     ParticleSystem,
     GlowLayer,
     HighlightLayer,
-    Animatable
+    Animatable,
+    EnvironmentHelper
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -21,6 +22,8 @@ export default class SceneManager {
 
     public static GlowLayer: GlowLayer = null;
     public static HighLightLayer: HighlightLayer = null;
+
+    public static EnvironmentHelper: EnvironmentHelper = null;
 
     public static PostProcessExtension: PostProcessesExtension = null;
 
@@ -38,6 +41,8 @@ export default class SceneManager {
         this.StandardRenderingPipeline = null;
         this.SSAO2RenderingPipeline = null;
         this.SSAORenderingPipeline = null;
+
+        this.EnvironmentHelper = null;
     }
 
     /**

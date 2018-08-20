@@ -140,6 +140,7 @@ export interface ProjectRoot {
     actions: any;
     physicsEnabled: boolean;
     effectLayers: EffectLayer[];
+    environmentHelper: any;
 
     requestedMaterials?: string[];
     customMetadatas?: IStringDictionary<any>;

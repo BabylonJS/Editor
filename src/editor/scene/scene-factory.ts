@@ -8,10 +8,13 @@ import {
     Tags, Tools as BabylonTools,
     Sound,
     FilesInput,
-    Light, PointLight, DirectionalLight, SpotLight, HemisphericLight
+    Light, PointLight, DirectionalLight, SpotLight, HemisphericLight,
+    EnvironmentHelper
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
+
+import SceneManager from './scene-manager';
 
 import Editor from '../editor';
 import Tools from '../tools/tools';
@@ -67,6 +70,25 @@ export default class SceneFactory {
         editor.graph.select(selected ? selected.id : editor.graph.root);
         editor.graph.select(node.id);
     }
+
+    /**
+     * Creates a new default environment
+     * @param editor the editor reference
+     */
+    public static CreateDefaultEnvironment (editor: Editor): EnvironmentHelper {
+        // Remove existing
+        if (SceneManager.EnvironmentHelper)
+            SceneManager.EnvironmentHelper.dispose();
+        
+        SceneManager.EnvironmentHelper = editor.core.scene.createDefaultEnvironment({
+            // Empty for now
+        });
+
+        this.AddToGraph(editor, SceneManager.EnvironmentHelper);
+
+        return SceneManager.EnvironmentHelper;
+    }
+
     /**
      * Creates a new default particle system
      * @param editor: the editor reference
