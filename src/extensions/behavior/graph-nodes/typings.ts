@@ -24,6 +24,7 @@ export abstract class LiteGraphNode {
     // Static members
     public static desc: string;
     public static LastCtor: new (addExecute?: boolean) => LiteGraphNode = null;
+    public static Loaded: boolean = false;
 
     /**
      * Constructor
@@ -41,6 +42,9 @@ export abstract class LiteGraphNode {
      * @param added if the connection is newly added
      */
     public onConnectionsChange (type, slot, added): void {
+        if (!LiteGraphNode.Loaded)
+            return;
+        
         if (this.mode === LiteGraph.NEVER)
             return;
         

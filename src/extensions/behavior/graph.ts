@@ -160,8 +160,15 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                 graph.scriptObject = node;
                 graph.scriptScene = this.scene;
 
+                LiteGraphNode.Loaded = false;
                 graph.configure(this.datas.graphs.find(s => s.id === m.graphId).graph);
+                LiteGraphNode.Loaded = true;
 
+                // On ready
+                this.scene.onReadyObservable.addOnce(() => {
+                    graph.start();
+                });
+                
                 // Render loop
                 const nodes = <LiteGraphNode[]> graph._nodes;
                 nodes.forEach(n => {
@@ -171,11 +178,6 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
                     else if (n instanceof RenderStart) {
                         this.scene.onAfterRenderObservable.addOnce(() => n.onExecute());
                     }
-                });
-
-                // On ready
-                this.scene.onReadyObservable.addOnce(() => {
-                    graph.start();
                 });
             });
         });
