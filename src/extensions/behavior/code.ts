@@ -9,7 +9,7 @@ import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
 
 import { IStringDictionary } from '../typings/typings';
-import { IAssetComponent, AssetElement } from '../typings/asset';
+import { IAssetComponent, AssetElement } from '../../shared/asset';
 
 import Extensions from '../extensions';
 import Extension from '../extension';

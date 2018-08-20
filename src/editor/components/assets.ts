@@ -6,7 +6,7 @@ import UndoRedo from '../tools/undo-redo';
 
 import ContextMenu from '../gui/context-menu';
 
-import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
+import { IAssetComponent, AssetElement } from '../../shared/asset';
 
 export default class EditorAssets {
     // Public members

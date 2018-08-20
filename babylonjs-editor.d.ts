@@ -1160,7 +1160,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
         actions: any;
         physicsEnabled: boolean;
         effectLayers: EffectLayer[];
-        defaultEnvironment: any;
+        environmentHelper: any;
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
@@ -1678,7 +1678,7 @@ declare module 'babylonjs-editor/editor/components/stats' {
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
     import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
-    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
     export default class EditorAssets {
             protected editor: Editor;
             tabs: W2UI.W2Tabs;
@@ -1922,7 +1922,7 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
     }
 }
 
-declare module 'babylonjs-editor/extensions/typings/asset' {
+declare module 'babylonjs-editor/shared/asset' {
     import { AbstractMesh } from 'babylonjs';
     export interface AssetElement<T> {
         img?: string;
@@ -1971,7 +1971,7 @@ declare module 'babylonjs-editor/extensions/extension' {
 
 declare module 'babylonjs-editor/extensions/typings/extension' {
     import { Scene } from 'babylonjs';
-    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
+    import { IAssetComponent } from 'babylonjs-editor/shared/asset';
     /**
         * Interface representing an editor extension
         */

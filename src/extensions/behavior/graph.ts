@@ -4,7 +4,7 @@ import { LGraph, LiteGraph } from 'litegraph.js';
 import Extensions from '../extensions';
 import Extension from '../extension';
 
-import { AssetElement } from '../typings/asset';
+import { AssetElement } from '../../shared/asset';
 
 import { GetPosition, SetPosition } from './graph-nodes/node/position';
 import { GetRotation, SetRotation } from './graph-nodes/node/rotation';
