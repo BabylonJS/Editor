@@ -74,7 +74,7 @@ export default class Editor implements IUpdatable {
     private _canvasFocused: boolean = true;
 
     // Static members
-    public static LayoutVersion: string = '2.1.0';
+    public static LayoutVersion: string = '2.1.1';
 
     /**
      * Constructor
@@ -128,11 +128,11 @@ export default class Editor implements IUpdatable {
                         ] },
                     ] },
                     { type: 'component', componentName: 'Assets', width: 20, isClosable: false, html: `
-                        <div id="ASSETS" style="width: 100%; height: 100%"></div>`
+                        <div id="ASSETS" style="width: 100%; height: 100%;"></div>`
                     },
                     { type: 'component', componentName: 'Graph', width: 20, isClosable: false, html: `
                         <input id="SCENE-GRAPH-SEARCH" type="text" placeHolder="Search" style="width: 100%; height: 40px;" />
-                        <div id="SCENE-GRAPH" style="width: 100%; height: 100%; overflow: auto;"></div>`
+                        <div id="SCENE-GRAPH" style="width: 100%; height: calc(100% - 40px); overflow: auto;"></div>`
                     }
                 ]
             }]
