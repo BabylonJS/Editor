@@ -1264,6 +1264,11 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 */
             static CreateWaterEffect(editor: Editor, createGround?: boolean): WaterMaterial;
             /**
+                * Creates a new dummy node (transform node)
+                * @param editor the editor reference
+                */
+            static CreateDummyNode(editor: Editor): Mesh;
+            /**
                 * Creates a new ground mesh
                 * @param editor: the editor reference
                 */
@@ -1969,19 +1974,24 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * Creates a new prefab
                 * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
                 */
-            createPrefab(sourceMesh: Mesh): AssetElement<Prefab>;
+            createPrefab(sourceMesh: Mesh): Promise<AssetElement<Prefab>>;
             /**
                 * On the user adds a new prefab asset
                 * @param asset the asset to add in the collection
                 */
             onAddAsset(asset: AssetElement<Prefab>): void;
             /**
+                * On the user removes a prefab from his library
+                * @param asset the asset to remove
+                */
+            onRemoveAsset(asset: AssetElement<Prefab>): void;
+            /**
                 * On the user drops an asset in the scene
                 * @param targetMesh the mesh under the pointer
                 * @param asset the asset being dropped
                 * @param pickInfo the pick info once the user dropped the asset
                 */
-            onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
+            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
             /**
                 * On the user saves the editor project
                 */
@@ -2032,7 +2042,8 @@ declare module 'babylonjs-editor/extensions/extension' {
 declare module 'babylonjs-editor/editor/prefabs/prefab' {
     import { Mesh, InstancedMesh } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export class Prefab {
+    export interface Prefab {
+        isPrefab: boolean;
         nodes: string[];
         nodeIds: string[];
         instances: IStringDictionary<any[]>;

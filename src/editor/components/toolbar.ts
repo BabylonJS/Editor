@@ -97,6 +97,7 @@ export default class EditorToolbar {
                     { id: 'sky', img: 'icon-shaders', text: 'Sky Effect' },
                     { id: 'water', img: 'icon-water', text: 'Water Effect' },
                     { type: 'break' },
+                    { id: 'dummy-node', img: 'icon-clone', text: 'Dummy' },
                     { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
                     { id: 'cube', img: 'icon-box-mesh', text: 'Cube Mesh' },
                     { id: 'sphere', img: 'icon-sphere-mesh', text: 'Sphere Mesh' },
@@ -262,6 +263,9 @@ export default class EditorToolbar {
                 SceneFactory.CreateWaterEffect(this.editor);
                 break;
             
+            case 'add:dummy-node':
+                SceneFactory.CreateDummyNode(this.editor);
+                break;
             case 'add:ground':
                 SceneFactory.CreateGroundMesh(this.editor);
                 break;

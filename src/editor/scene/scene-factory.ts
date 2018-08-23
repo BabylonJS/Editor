@@ -195,6 +195,18 @@ export default class SceneFactory {
     }
 
     /**
+     * Creates a new dummy node (transform node)
+     * @param editor the editor reference
+     */
+    public static CreateDummyNode (editor: Editor): Mesh {
+        const dummy = new Mesh('New Dummy Node', editor.core.scene);
+        dummy.id = BabylonTools.RandomId();
+        this.AddToGraph(editor, dummy);
+
+        return dummy;
+    }
+
+    /**
      * Creates a new ground mesh
      * @param editor: the editor reference
      */
