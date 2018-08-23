@@ -146,4 +146,5 @@ export interface ProjectRoot {
     customMetadatas?: IStringDictionary<any>;
 
     gui: any[];
+    assets: any;
 }

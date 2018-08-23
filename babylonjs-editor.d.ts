@@ -1160,10 +1160,11 @@ declare module 'babylonjs-editor/editor/typings/project' {
         actions: any;
         physicsEnabled: boolean;
         effectLayers: EffectLayer[];
-        defaultEnvironment: any;
+        environmentHelper: any;
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
+        assets: any;
     }
 }
 
@@ -1678,12 +1679,14 @@ declare module 'babylonjs-editor/editor/components/stats' {
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
     import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
-    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
+    import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     export default class EditorAssets {
             protected editor: Editor;
             tabs: W2UI.W2Tabs;
             components: IAssetComponent[];
             contextMenu: ContextMenu;
+            prefabs: PrefabAssetComponent;
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;
             /**
@@ -1695,6 +1698,10 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * Clears the assets components
                 */
             clear(): void;
+            /**
+                * Adds the default components
+                */
+            addDefaultComponents(): void;
             /**
                 * Refreshes the tabs
                 */
@@ -1726,7 +1733,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh, Mesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
+    import { Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export enum GizmoType {
             NONE = 0,
@@ -1767,7 +1774,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * Sets the attached mesh for position, rotaiton and scaling gizmos
                 * @param mesh the mesh to attach
                 */
-            setGizmoAttachedMesh(mesh: Mesh): void;
+            setGizmoAttachedMesh(mesh: AbstractMesh): void;
             /**
                 * Adds the events to the canvas
                 */
@@ -1922,8 +1929,8 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
     }
 }
 
-declare module 'babylonjs-editor/extensions/typings/asset' {
-    import { AbstractMesh } from 'babylonjs';
+declare module 'babylonjs-editor/shared/asset' {
+    import { AbstractMesh, PickingInfo } from 'babylonjs';
     export interface AssetElement<T> {
         img?: string;
         name?: string;
@@ -1932,10 +1939,63 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
     export interface IAssetComponent {
         id?: string;
         assetsCaption?: string;
-        onGetAssets?<T>(): AssetElement<T>[] | Promise<AssetElement<T>[]>;
-        onRemoveAsset?<T>(asset: AssetElement<T>): void;
-        onAddAsset?<T>(asset: AssetElement<T>): void;
-        onDragAndDropAsset?<T>(targetMesh: AbstractMesh, asset: AssetElement<T>): void;
+        onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
+        onRemoveAsset?(asset: AssetElement<any>): void;
+        onAddAsset?(asset: AssetElement<any>): void;
+        onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+        onSerializeAssets?(): AssetElement<any>[];
+        onParseAssets?(data: AssetElement<any>[]): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/prefabs/asset-component' {
+    import { Mesh, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
+    import Editor from 'babylonjs-editor/editor/editor';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
+    import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
+    export default class PrefabAssetComponent implements IAssetComponent {
+            editor: Editor;
+            id: string;
+            assetsCaption: string;
+            datas: AssetElement<Prefab>[];
+            previewCanvas: HTMLCanvasElement;
+            previewEngine: Engine;
+            /**
+                * Constructor
+                * @param editor the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Creates a new prefab
+                * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
+                */
+            createPrefab(sourceMesh: Mesh): AssetElement<Prefab>;
+            /**
+                * On the user adds a new prefab asset
+                * @param asset the asset to add in the collection
+                */
+            onAddAsset(asset: AssetElement<Prefab>): void;
+            /**
+                * On the user drops an asset in the scene
+                * @param targetMesh the mesh under the pointer
+                * @param asset the asset being dropped
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
+            /**
+                * On the user saves the editor project
+                */
+            onSerializeAssets(): AssetElement<Prefab>[];
+            /**
+                * On the user loads the editor project
+                * @param data the previously saved data
+                */
+            onParseAssets(data: AssetElement<Prefab>[]): void;
+            /**
+                * On the assets panel requires the assets stored in this
+                * asset component
+                */
+            onGetAssets(): Promise<AssetElement<Prefab>[]>;
     }
 }
 
@@ -1969,9 +2029,22 @@ declare module 'babylonjs-editor/extensions/extension' {
     }
 }
 
+declare module 'babylonjs-editor/editor/prefabs/prefab' {
+    import { Mesh, InstancedMesh } from 'babylonjs';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export class Prefab {
+        nodes: string[];
+        nodeIds: string[];
+        instances: IStringDictionary<any[]>;
+        sourceMeshes?: Mesh[];
+        sourceMesh?: Mesh;
+        sourceInstances?: IStringDictionary<InstancedMesh[]>;
+    }
+}
+
 declare module 'babylonjs-editor/extensions/typings/extension' {
     import { Scene } from 'babylonjs';
-    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
+    import { IAssetComponent } from 'babylonjs-editor/shared/asset';
     /**
         * Interface representing an editor extension
         */

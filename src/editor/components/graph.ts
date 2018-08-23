@@ -1,11 +1,12 @@
 import {
-    Scene, Node, AbstractMesh, Light, Camera,
+    Scene, Node, AbstractMesh, Light, Camera, Mesh,
     Sound,
     ParticleSystem, GPUParticleSystem,
     PostProcess,
     Animation,
     Tools as BabylonTools,
-    Skeleton
+    Skeleton,
+    Tags
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
@@ -53,6 +54,9 @@ export default class EditorGraph {
 
             if (data.globalPosition || data.getAbsolutePosition)
                 result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: () => this.onMenuClick('focus') });
+            
+            if (data instanceof Mesh)
+                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', separatorBefore: true, callback: () => this.onMenuClick('create-prefab') });
             
             if (data instanceof AbstractMesh)
                 result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: () => this.onMenuClick('set-material') });
@@ -210,7 +214,7 @@ export default class EditorGraph {
      * @param root: the root node
      */
     public fill(scene: Scene = this.editor.core.scene, root?: Node): void {
-        let nodes = root ? root.getDescendants() : [];
+        let nodes = root ? /*root.getDescendants()*/root.getChildren() : [];
 
         if (!root) {
             this.tree.add({
@@ -242,6 +246,10 @@ export default class EditorGraph {
 
         // Add nodes
         nodes.forEach(n => {
+            // Hide prefabs, keep only masters
+            if (Tags.MatchesQuery(n, 'prefab'))
+                return;
+            
             // Create a random ID if not defined
             if (!n.id)
                 n.id = BabylonTools.RandomId();
@@ -449,6 +457,10 @@ export default class EditorGraph {
                 ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), node.data.globalPosition || node.data.getAbsolutePosition(), this.editor.camera);
                 break;
 
+            // Create prefab
+            case 'create-prefab':
+                await this.editor.assets.prefabs.createPrefab(node.data);
+                break;
             // Add Material
             case 'set-material':
                 await this.editor.addEditPanelPlugin('material-viewer', false, 'Materials Viewer', node.data, true);
@@ -471,6 +483,12 @@ export default class EditorGraph {
                 const clone = node && node.data && node.data['clone'] && node.data['clone']();
                 clone.name = node.data.name + ' Cloned';
                 clone.id = BabylonTools.RandomId();
+
+                if (node.data['skeleton']) {
+                    clone.skeleton = node.data['skeleton'].clone();
+                    clone.skeleton.name = node.data['skeleton'].name;
+                    clone.skeleton.id = node.data['skeleton'].id;
+                }
 
                 const parent = clone.parent ? clone.parent.id :this.root;
                 this.tree.add({ id: clone.id, text: clone.name, img: this.getIcon(clone), data: clone }, parent);

@@ -22,6 +22,7 @@ import Storage, { CreateFiles } from '../storage/storage';
 
 import * as Export from '../typings/project';
 import { IStringDictionary } from '../typings/typings';
+import Extension from '../../extensions/extension';
 
 const randomId = BabylonTools.RandomId();
 
@@ -214,7 +215,8 @@ export default class SceneExporter {
             sounds: this._SerializeSounds(editor),
             gui: editor.core.uiTextures.map(ut => ut.serialize()),
             effectLayers: this._SerializeEffectLayers(editor),
-            environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null
+            environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null,
+            assets: this._SerializeAssets(editor)
         };
 
         // Finish
@@ -267,6 +269,24 @@ export default class SceneExporter {
         // Instances have been
         for (const e in Extensions.Instances)
             result[e] = Extensions.Instances[e].onSerialize();
+
+        return result;
+    }
+
+    /**
+     * Serializes the assets of the project being exported
+     */
+    private static _SerializeAssets (editor: Editor): IStringDictionary<any> {
+        const result = <any> { };
+        
+        editor.assets.components.forEach(c => {
+            // Extensions have their own import and export methods
+            if (c instanceof Extension)
+                return;
+
+            if (c.onSerializeAssets)
+                result[c.id] = c.onSerializeAssets();
+        });
 
         return result;
     }

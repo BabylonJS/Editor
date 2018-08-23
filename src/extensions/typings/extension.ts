@@ -1,6 +1,6 @@
 import { Scene } from 'babylonjs';
 
-import { IAssetComponent } from './asset';
+import { IAssetComponent } from '../../shared/asset';
 
 /**
  * Interface representing an editor extension

@@ -201,8 +201,16 @@ export default class SceneImporter {
             });
         }
 
-        // Clear assets
+        // Assets
         editor.assets.clear();
+
+        for (const a in project.assets) {
+            const component = editor.assets.components.find(c => c.id === a);
+            if (!component)
+                continue;
+
+            component.onParseAssets && component.onParseAssets(project.assets[a]);
+        }
 
         // Metadatas
         Extensions.ClearExtensions();
@@ -249,6 +257,7 @@ export default class SceneImporter {
         project.physicsEnabled = project.physicsEnabled || false;
         project.effectLayers = project.effectLayers || [];
         project.globalConfiguration = project.globalConfiguration || { };
+        project.assets = project.assets || { };
     }
 
     /**

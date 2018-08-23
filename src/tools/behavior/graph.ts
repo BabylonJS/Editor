@@ -401,7 +401,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         GraphExtension.RegisterNodes(this.node);
 
         this.graphData.clear();
+
+        LiteGraphNode.Loaded = false;
         this.graphData.configure(this.data.graph);
+        LiteGraphNode.Loaded = true;
 
         // Refresh right text
         this._updateToolbarText();
