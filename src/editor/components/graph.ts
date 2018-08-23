@@ -459,7 +459,7 @@ export default class EditorGraph {
 
             // Create prefab
             case 'create-prefab':
-                this.editor.assets.prefabs.createPrefab(node.data);
+                await this.editor.assets.prefabs.createPrefab(node.data);
                 break;
             // Add Material
             case 'set-material':
@@ -483,6 +483,12 @@ export default class EditorGraph {
                 const clone = node && node.data && node.data['clone'] && node.data['clone']();
                 clone.name = node.data.name + ' Cloned';
                 clone.id = BabylonTools.RandomId();
+
+                if (node.data['skeleton']) {
+                    clone.skeleton = node.data['skeleton'].clone();
+                    clone.skeleton.name = node.data['skeleton'].name;
+                    clone.skeleton.id = node.data['skeleton'].id;
+                }
 
                 const parent = clone.parent ? clone.parent.id :this.root;
                 this.tree.add({ id: clone.id, text: clone.name, img: this.getIcon(clone), data: clone }, parent);

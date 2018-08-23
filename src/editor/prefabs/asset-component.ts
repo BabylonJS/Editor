@@ -10,6 +10,7 @@ import SceneFactory from '../scene/scene-factory';
 import { IAssetComponent, AssetElement } from '../../shared/asset';
 import { IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
+import Dialog from '../gui/dialog';
 
 import { Prefab } from './prefab';
 import PrefabsHelpers from './helpers';
@@ -35,14 +36,15 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * Creates a new prefab
      * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
      */
-    public createPrefab (sourceMesh: Mesh): AssetElement<Prefab> {
+    public async createPrefab (sourceMesh: Mesh): Promise<AssetElement<Prefab>> {
         const descendants = <Mesh[]> sourceMesh.getDescendants(false, n => n instanceof Mesh);
-        const sourceMeshes = descendants.length > 1 ? [sourceMesh].concat(descendants) : [sourceMesh];
+        const sourceMeshes = (descendants.length > 1 || descendants[0] !== sourceMesh) ? [sourceMesh].concat(descendants) : [sourceMesh];
 
         // Default asset
         const asset = <AssetElement<Prefab>> {
-            name: 'Prefab ' + sourceMesh.name,
+            name: await Dialog.CreateWithTextInput('Prefab name?'),
             data: {
+                isPrefab: true,
                 nodes: sourceMeshes.map(m => m.name),
                 nodeIds: sourceMeshes.map(m => m.id),
                 instances: { },
@@ -71,6 +73,25 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onAddAsset (asset: AssetElement<Prefab>): void {
         this.datas.push(asset);
+    }
+
+    /**
+     * On the user removes a prefab from his library
+     * @param asset the asset to remove
+     */
+    public onRemoveAsset (asset: AssetElement<Prefab>): void {
+        const instancesDictionary = asset.data.sourceInstances;
+        for (const key in instancesDictionary) {
+            const instances = instancesDictionary[key];
+            instances.forEach(i => i.dispose(true, false));
+            
+            instancesDictionary[key] = [];
+        }
+
+        // Remove from library
+        const index = this.datas.indexOf(asset);
+        if (index !== -1)
+            this.datas.splice(index, 1);
     }
 
     /**
@@ -126,6 +147,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             return {
                 name: d.name,
                 data: {
+                    isPrefab: true,
                     nodes: d.data.sourceMeshes.map(m => m.name),
                     nodeIds: d.data.sourceMeshes.map(m => m.id),
                     instances: instances

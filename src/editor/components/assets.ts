@@ -127,6 +127,23 @@ export default class EditorAssets {
             while (div[0].children.length > 0)
                 div[0].children[0].remove();
 
+            // Empty or not
+            if (assets.length === 0) {
+                this.emptyTextNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
+                    'float': 'left',
+                    'left': '50%',
+                    'top': '50%',
+                    'transform': 'translate(-50%, -50%)',
+                    'overflow': 'hidden',
+                    'position': 'relative',
+                    'font-family': 'Roboto,sans-serif !important',
+                    'opacity': '0.5'
+                });
+                this.emptyTextNode.textContent = 'Empty';
+    
+                $('#' + c.id).append(this.emptyTextNode);
+            }
+
             // Add elements
             assets.forEach(a => {
                 const parent = Tools.CreateElement<HTMLDivElement>('div', c.id + a.name + 'div', {
@@ -162,6 +179,10 @@ export default class EditorAssets {
                 img.addEventListener('contextmenu', ev => this.processContextMenu(ev, c, a));
 
                 img.addEventListener('dblclick', async (ev) => {
+                    const config = System.getConfig();
+                    if (!config.paths[c.id])
+                        return;
+                    
                     await this.editor.addEditPanelPlugin(c.id, false);
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
                 });
