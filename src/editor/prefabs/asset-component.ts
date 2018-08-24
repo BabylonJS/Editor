@@ -19,6 +19,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
     // Public members
     public id: string = 'prefabs';
     public assetsCaption: string = 'Prefabs';
+    public size: number = 100;
 
     public datas: AssetElement<Prefab>[] = [];
 
@@ -92,6 +93,10 @@ export default class PrefabAssetComponent implements IAssetComponent {
         const index = this.datas.indexOf(asset);
         if (index !== -1)
             this.datas.splice(index, 1);
+
+        // Update graph
+        this.editor.graph.clear();
+        this.editor.graph.fill();
     }
 
     /**
@@ -148,6 +153,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
             return {
                 name: d.name,
+                img: d.img,
                 data: {
                     isPrefab: true,
                     nodes: d.data.sourceMeshes.map(m => m.name),
@@ -227,8 +233,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
         // Create engine
         if (!this.previewCanvas) {
             this.previewCanvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'PrefabAssetComponentCanvas', {
-                'width': '50px',
-                'height': '50px',
+                'width': '100px',
+                'height': '100px',
                 'visibility': 'hidden'
             });
             document.body.appendChild(this.previewCanvas);
@@ -239,7 +245,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
         
         // Create previews
         for (const d of this.datas) {
-            await PrefabsHelpers.CreatePreview(d, this.previewEngine);
+            if (!d.img)
+                await PrefabsHelpers.CreatePreview(d, this.previewEngine);
         }
 
         // Dispose

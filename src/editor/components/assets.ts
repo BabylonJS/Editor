@@ -145,17 +145,18 @@ export default class EditorAssets {
             }
 
             // Add elements
+            const assetSize = (c.size || 50) + 'px';
             assets.forEach(a => {
                 const parent = Tools.CreateElement<HTMLDivElement>('div', c.id + a.name + 'div', {
-                    'width': '50px',
-                    'height': '50px',
+                    'width': assetSize,
+                    'height': assetSize,
                     'float': 'left',
                     'margin': '10px'
                 });
 
                 const text = Tools.CreateElement<HTMLElement>('small', a.name + 'text', {
                     'float': 'left',
-                    'width': '50px',
+                    'width': assetSize,
                     'left': '50%',
                     'top': '8px',
                     'transform': 'translate(-50%, -50%)',
@@ -166,8 +167,8 @@ export default class EditorAssets {
                 });
 
                 const img = Tools.CreateElement<HTMLImageElement>('img', a.name, {
-                    'width': '50px',
-                    'height': '50px'
+                    'width': assetSize,
+                    'height': assetSize
                 });
 
                 // Configure

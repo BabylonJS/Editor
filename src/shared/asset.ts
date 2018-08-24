@@ -9,6 +9,7 @@ export interface AssetElement<T> {
 export interface IAssetComponent {
     id?: string;
     assetsCaption?: string;
+    size?: number;
     onGetAssets? (): AssetElement<any>[] | Promise<AssetElement<any>[]>;
     onRemoveAsset? (asset: AssetElement<any>): void;
     onAddAsset? (asset: AssetElement<any>): void;

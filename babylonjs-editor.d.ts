@@ -1947,6 +1947,7 @@ declare module 'babylonjs-editor/shared/asset' {
     export interface IAssetComponent {
         id?: string;
         assetsCaption?: string;
+        size?: number;
         onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
         onRemoveAsset?(asset: AssetElement<any>): void;
         onAddAsset?(asset: AssetElement<any>): void;
@@ -1965,6 +1966,7 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
             editor: Editor;
             id: string;
             assetsCaption: string;
+            size: number;
             datas: AssetElement<Prefab>[];
             previewCanvas: HTMLCanvasElement;
             previewEngine: Engine;
