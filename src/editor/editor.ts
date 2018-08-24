@@ -593,10 +593,25 @@ export default class Editor implements IUpdatable {
         (remaining: number) => {
             // Loading textures
         },
-        () => {
+        (files) => {
+            // Check if a scene has been dropped
+            let foundScene: boolean = false;
+            for (const f of files) {
+                const ext = Tools.GetFileExtension(f.name).toLowerCase();
+                foundScene = ext === 'babylon' || ext === 'gltf' || ext === 'glb' || ext === 'obj' || ext === 'stl';
+
+                if (foundScene)
+                    break;
+            }
+
+            if (!foundScene)
+                return;
+
             // Starting process
             this.projectFile = null;
             this.sceneFile = null;
+
+            FilesInput.FilesToLoad = { };
         },
         (file) => {
             // Callback

@@ -102,9 +102,10 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
         // Parent
-        const parent = asset.data.sourceMesh.createInstance(asset.name);
+        const parent = asset.data.sourceMesh.createInstance(asset.name + ' (Prefab)');
         parent.id = BabylonTools.RandomId();
         parent.position.copyFrom(pickInfo.pickedPoint);
+        parent.doNotSerialize = true;
 
         Tags.AddTagsTo(parent, 'prefab-master');
         asset.data.sourceInstances[asset.data.sourceMesh.name].push(parent);
@@ -118,6 +119,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 
                 const instance = m.createInstance(asset.name);
                 instance.parent = parent;
+                instance.doNotSerialize = true;
 
                 // Register instance
                 Tags.AddTagsTo(instance, 'prefab');
@@ -178,7 +180,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceMeshes.push(source);
 
             // Create master instance
-            const parent = source.createInstance(d.data.instances[source.name][0].name);
+            const parent = source.createInstance(d.data.instances[source.name][0].name + '(Prefab)');
+            parent.doNotSerialize = true;
+
             d.data.sourceInstances[source.name] = [parent];
             this._configureInstance(d.data.instances[source.name][0], parent);
             Tags.AddTagsTo(parent, 'prefab-master');
@@ -195,6 +199,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 d.data.instances[mesh.name].forEach(inst => {
                     const instance = mesh.createInstance(inst.name);
                     instance.parent = parent;
+                    instance.doNotSerialize = true;
+                    
                     this._configureInstance(inst, instance);
                     Tags.AddTagsTo(instance, 'prefab');
                 });

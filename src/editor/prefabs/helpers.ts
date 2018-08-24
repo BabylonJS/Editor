@@ -3,7 +3,8 @@ import {
     Scene, Engine,
     FreeCamera, PointLight,
     Vector3,
-    AbstractMesh
+    AbstractMesh,
+    Mesh
 } from 'babylonjs';
 
 import { AssetElement } from '../../shared/asset';
@@ -34,23 +35,29 @@ export default class PrefabsHelpers {
                 
                 if (scene.getWaitingItemsCount() === 0) {
                     // Find camera position
-                    let boundingInfo = d.data.sourceMesh.getBoundingInfo();
-                    const descendants = d.data.sourceMesh.getDescendants();
+                    const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+                    const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+                    const descendants = [d.data.sourceMesh].concat(<Mesh[]> d.data.sourceMesh.getDescendants(false, n => n instanceof Mesh));
 
                     descendants.forEach(d => {
-                        if (!(d instanceof AbstractMesh))
+                        if (!(d instanceof Mesh))
                             return;
                         
-                        d.getBoundingInfo().update(d.getWorldMatrix());
-                        const da = Vector3.Distance(d.getBoundingInfo().minimum, d.getBoundingInfo().maximum);
-                        const db = Vector3.Distance(boundingInfo.minimum, boundingInfo.maximum);
+                        const b = d._boundingInfo;
+                        maximum.x = Math.max(b.maximum.x, maximum.x);
+                        maximum.y = Math.max(b.maximum.y, maximum.y);
+                        maximum.z = Math.max(b.maximum.z, maximum.z);
 
-                        if (da > db)
-                            boundingInfo = d.getBoundingInfo();
+                        minimum.x = Math.min(b.minimum.x, minimum.x);
+                        minimum.y = Math.min(b.minimum.y, minimum.y);
+                        minimum.z = Math.min(b.minimum.z, minimum.z);
                     });
 
-                    camera.position = boundingInfo.maximum.clone();
-                    camera.setTarget(d.data.sourceMesh.absolutePosition);
+                    const center = Vector3.Center(minimum, maximum);
+                    const distance = Vector3.Distance(minimum, maximum) * 0.5;
+
+                    camera.position = d.data.sourceMesh.position.add(maximum).add(new Vector3(distance, distance, distance));
+                    camera.setTarget(d.data.sourceMesh.position.add(center));
                     light.position = camera.position.clone();
 
                     // Render
