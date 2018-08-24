@@ -5,6 +5,9 @@ export interface FormField {
     required?: boolean;
     options?: {
         items?: string[];
+    };
+    html?: {
+        caption?: string;
     }
 }
 
