@@ -2009,6 +2009,11 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * asset component
                 */
             onGetAssets(): Promise<AssetElement<Prefab>[]>;
+            /**
+                * Sets all the instances serializable or not
+                * @param serializable if the instances are serializable
+                */
+            setSerializable(serializable: boolean): void;
     }
 }
 

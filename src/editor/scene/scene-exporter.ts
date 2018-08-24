@@ -37,7 +37,10 @@ export default class SceneExporter {
      */
     public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
         // Scene
+        editor.assets.prefabs.setSerializable(true);
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
+        editor.assets.prefabs.setSerializable(false);
+
         if (editor.playCamera)
             serializedScene.activeCameraID = editor.playCamera.id;
         

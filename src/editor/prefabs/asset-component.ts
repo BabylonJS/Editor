@@ -179,15 +179,21 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceMesh = source;
             d.data.sourceMeshes.push(source);
 
-            // Create master instance
-            const parent = source.createInstance(d.data.instances[source.name][0].name + '(Prefab)');
-            parent.doNotSerialize = true;
+            // Create master instances
+            const parents = d.data.instances[source.name];
+            d.data.sourceInstances[source.name] = [];
 
-            d.data.sourceInstances[source.name] = [parent];
-            this._configureInstance(d.data.instances[source.name][0], parent);
-            Tags.AddTagsTo(parent, 'prefab-master');
+            parents.forEach(p => {
+                const parent = source.createInstance(p.name);
+                parent.id = p.id;
+                parent.doNotSerialize = true;
 
-            // Recreate instances
+                d.data.sourceInstances[source.name].push(parent);
+                this._configureInstance(p, parent);
+                Tags.AddTagsTo(parent, 'prefab-master');
+            });
+
+            // Recreate children instances
             for (let i = 1; i < d.data.nodeIds.length; i++) {
                 const mesh = <Mesh> (scene.getMeshByID(d.data.nodeIds[i]) || scene.getMeshByName(d.data.nodes[i]));
                 if (!mesh)
@@ -198,9 +204,11 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
                 d.data.instances[mesh.name].forEach(inst => {
                     const instance = mesh.createInstance(inst.name);
-                    instance.parent = parent;
+                    instance.id = inst.id;
+                    instance.parent = d.data.sourceInstances[source.name].find(p => p.id === inst.parentId); //scene.getNodeByID(inst.parentId);
                     instance.doNotSerialize = true;
-                    
+
+                    d.data.sourceInstances[mesh.name].push(instance);
                     this._configureInstance(inst, instance);
                     Tags.AddTagsTo(instance, 'prefab');
                 });
@@ -248,9 +256,22 @@ export default class PrefabAssetComponent implements IAssetComponent {
         return this.datas;
     }
 
+    /**
+     * Sets all the instances serializable or not
+     * @param serializable if the instances are serializable
+     */
+    public setSerializable (serializable: boolean): void {
+        this.datas.forEach(d => {
+            for (const key in d.data.sourceInstances) {
+                const instances = d.data.sourceInstances[key];
+                instances.forEach(i => i.doNotSerialize = !serializable);
+            }
+        });
+    }
+
     // Configures the given instance
     private _configureInstance (data: any, instance: InstancedMesh): void {
-        instance.id = BabylonTools.RandomId();
+        instance.id = instance.id || BabylonTools.RandomId();
         instance.position = Vector3.FromArray(data.position || data._position);
         instance.scaling = Vector3.FromArray(data.scaling || data._scaling);
         instance.checkCollisions = instance.sourceMesh.checkCollisions;
