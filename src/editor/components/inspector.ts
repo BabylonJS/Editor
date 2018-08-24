@@ -178,7 +178,7 @@ export default class EditorInspector {
      */
     public setObject(object: any): void {
         this.currentTools = [];
-        let firstTool: IEditionTool<any> = null;
+        let lastTool: IEditionTool<any> = null;
 
         this.tools.forEach(t => {
             if (t.isSupported(object)) {
@@ -188,10 +188,8 @@ export default class EditorInspector {
                 this.tabs.show(t.divId);
                 t.update(object);
 
-                if (t.tabName === this.lastTabName)
-                    firstTool = t;
-                else if (!firstTool)
-                    firstTool = t;
+                if (t.divId === this.lastTabName)
+                    lastTool = t;
 
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
@@ -206,9 +204,12 @@ export default class EditorInspector {
             }
         });
 
-        if (firstTool) {
-            this.changeTab(firstTool.divId);
-            this.tabs.select(firstTool.divId);
+        // Last tool
+        lastTool = lastTool || this.currentTools[0];
+
+        if (lastTool) {
+            this.changeTab(lastTool.divId);
+            this.tabs.select(lastTool.divId);
         }
 
         // Current object

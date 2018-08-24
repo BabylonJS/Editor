@@ -726,6 +726,9 @@ declare module 'babylonjs-editor/editor/gui/form' {
             options?: {
                     items?: string[];
             };
+            html?: {
+                    caption?: string;
+            };
     }
     export default class Form {
             element: W2UI.W2Form;
