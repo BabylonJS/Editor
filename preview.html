@@ -185,9 +185,7 @@
                 return requests.Get('http://localhost:1337/devTools');
             }
         }).then(function () {
-            if (!tools.isFileApiSupported(true)) {
-                return;
-            }
+            tools.isFileApiSupported(true);
 
             if (opener) {
                 BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;

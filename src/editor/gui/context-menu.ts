@@ -7,6 +7,9 @@ export interface ContextMenuOptions {
     width: number;
     height: number;
     search: boolean;
+
+    borderRadius?: number;
+    opacity?: number;
 }
 
 export default class ContextMenu {
@@ -96,6 +99,7 @@ export default class ContextMenu {
     protected build (name: string, options: ContextMenuOptions): void {
         // Main div
         const mainDivId = `${name}_mainDiv`;
+        const borderRadius = (options.borderRadius || 8) + 'px';
         this.mainDiv = Tools.CreateElement('div', mainDivId, {
             'width': options.width + 'px',
             'height': options.height + 'px',
@@ -103,9 +107,9 @@ export default class ContextMenu {
             'overflow': 'hidden',
             'zoom': '0.8',
             'visibility': 'hidden',
-            'opacity': '0.9',
+            'opacity': (options.opacity || 1).toString(),
             'box-shadow': '1px 2px 4px rgba(0, 0, 0, .5)',
-            'border-radius': '25px'
+            'border-radius': borderRadius
         });
         document.body.appendChild(this.mainDiv);
 

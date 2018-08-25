@@ -18,6 +18,7 @@ import Dialog from './gui/dialog';
 import ResizableLayout from './gui/resizable-layout';
 import { TreeNode } from './gui/tree';
 import Window from './gui/window';
+import CodeEditor from './gui/code';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -502,7 +503,7 @@ export default class Editor implements IUpdatable {
         // Undo
         UndoRedo.onUndo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
         document.addEventListener('keyup', (ev) => {
-            if (this._canvasFocused && ev.ctrlKey && ev.key === 'z') {
+            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.edition.updateDisplay();
             }
@@ -511,7 +512,7 @@ export default class Editor implements IUpdatable {
         // Redo
         UndoRedo.onRedo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
         document.addEventListener('keyup', (ev) => {
-            if (this._canvasFocused && ev.ctrlKey && ev.key === 'y') {
+            if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();
                 this.edition.updateDisplay();
             }
@@ -530,8 +531,8 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
-        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 't' && this.preview.setToolClicked('position'));
-        document.addEventListener('keyup', ev => this._canvasFocused && ev.key === 'r' && this.preview.setToolClicked('rotation'));
+        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 't' && this.preview.setToolClicked('position'));
+        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 
         document.addEventListener('keyup', ev => {
             if (this._canvasFocused && ev.key === 'f') {

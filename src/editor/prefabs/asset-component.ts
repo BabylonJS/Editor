@@ -74,6 +74,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onAddAsset (asset: AssetElement<Prefab>): void {
         this.datas.push(asset);
+        this.buildInstances([asset]);
     }
 
     /**
@@ -81,6 +82,15 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * @param asset the asset to remove
      */
     public onRemoveAsset (asset: AssetElement<Prefab>): void {
+        // Serialize assets to save instances configuration
+        // and allow the undo/redo
+        const saved = this.onSerializeAssets();
+        const assetIndex = this.datas.indexOf(asset);
+
+        if (assetIndex !== -1)
+            asset.data.instances = saved[assetIndex].data.instances;
+        
+        // Remove all instances in the scene
         const instancesDictionary = asset.data.sourceInstances;
         for (const key in instancesDictionary) {
             const instances = instancesDictionary[key];
@@ -169,60 +179,13 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * @param data the previously saved data
      */
     public onParseAssets (data: AssetElement<Prefab>[]): void {
-        const scene = this.editor.core.scene;
-
         this.datas = data;
-        this.datas.forEach(d => {
-            // Misc.
-            d.data.sourceMeshes = [];
-            d.data.sourceInstances = { };
 
-            // Get source mesh
-            const source = <Mesh> (scene.getMeshByID(d.data.nodeIds[0]) || scene.getMeshByName(d.data.nodes[0]));
-            if (!source)
-                return;
-
-            d.data.sourceMesh = source;
-            d.data.sourceMeshes.push(source);
-
-            // Create master instances
-            const parents = d.data.instances[source.name];
-            d.data.sourceInstances[source.name] = [];
-
-            parents.forEach(p => {
-                const parent = source.createInstance(p.name);
-                parent.id = p.id;
-                parent.doNotSerialize = true;
-
-                d.data.sourceInstances[source.name].push(parent);
-                this._configureInstance(p, parent);
-                Tags.AddTagsTo(parent, 'prefab-master');
-            });
-
-            // Recreate children instances
-            for (let i = 1; i < d.data.nodeIds.length; i++) {
-                const mesh = <Mesh> (scene.getMeshByID(d.data.nodeIds[i]) || scene.getMeshByName(d.data.nodes[i]));
-                if (!mesh)
-                    return;
-
-                d.data.sourceMeshes.push(mesh);
-                d.data.sourceInstances[mesh.name] = [];
-
-                d.data.instances[mesh.name].forEach(inst => {
-                    const instance = mesh.createInstance(inst.name);
-                    instance.id = inst.id;
-                    instance.parent = d.data.sourceInstances[source.name].find(p => p.id === inst.parentId); //scene.getNodeByID(inst.parentId);
-                    instance.doNotSerialize = true;
-
-                    d.data.sourceInstances[mesh.name].push(instance);
-                    this._configureInstance(inst, instance);
-                    Tags.AddTagsTo(instance, 'prefab');
-                });
-            }
-
-            // Clean data
-            d.data.instances = { };
-        });
+        const count = this.buildInstances(this.datas);
+        if (count) {
+            this.editor.graph.clear();
+            this.editor.graph.fill();
+        }
     }
 
     /**
@@ -261,6 +224,74 @@ export default class PrefabAssetComponent implements IAssetComponent {
         }
 
         return this.datas;
+    }
+
+    /**
+     * Builds the instances of the given data
+     * @param data the given data
+     */
+    public buildInstances (data: AssetElement<Prefab>[]): number {
+        const scene = this.editor.core.scene;
+        let count = 0;
+
+        data.forEach(d => {
+            // Misc.
+            d.data.sourceMeshes = [];
+            d.data.sourceInstances = { };
+
+            // Get source mesh
+            const source = <Mesh> (scene.getMeshByID(d.data.nodeIds[0]) || scene.getMeshByName(d.data.nodes[0]));
+            if (!source)
+                return;
+
+            d.data.sourceMesh = source;
+            d.data.sourceMeshes.push(source);
+
+            // Create master instances
+            const parents = d.data.instances[source.name];
+            d.data.sourceInstances[source.name] = [];
+
+            parents.forEach(p => {
+                const parent = source.createInstance(p.name);
+                parent.id = p.id;
+                parent.doNotSerialize = true;
+
+                d.data.sourceInstances[source.name].push(parent);
+                this._configureInstance(p, parent);
+                Tags.AddTagsTo(parent, 'prefab-master');
+
+                count++;
+            });
+
+            // Recreate children instances
+            for (let i = 1; i < d.data.nodeIds.length; i++) {
+                const mesh = <Mesh> (scene.getMeshByID(d.data.nodeIds[i]) || scene.getMeshByName(d.data.nodes[i]));
+                if (!mesh)
+                    return;
+
+                d.data.sourceMeshes.push(mesh);
+                d.data.sourceInstances[mesh.name] = [];
+
+                d.data.instances[mesh.name].forEach(inst => {
+                    const instance = mesh.createInstance(inst.name);
+                    instance.id = inst.id;
+                    instance.parent = d.data.sourceInstances[source.name].find(p => p.id === inst.parentId); //scene.getNodeByID(inst.parentId);
+                    instance.doNotSerialize = true;
+
+                    d.data.sourceInstances[mesh.name].push(instance);
+                    this._configureInstance(inst, instance);
+                    Tags.AddTagsTo(instance, 'prefab');
+
+                    count++;
+                });
+            }
+
+            // Clean data
+            d.data.instances = { };
+        });
+
+        // Return number of instances created
+        return count;
     }
 
     /**

@@ -13,7 +13,7 @@ export default class UndoRedo {
     public static Stack: StackElement[] = [];
     public static CurrentIndex: number = 0;
 
-    public static StackSize: number = 200;
+    public static StackSize: number = 2000;
 
     public static onUndo: (element: StackElement) => void;
     public static onRedo: (element: StackElement) => void;

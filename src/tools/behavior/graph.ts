@@ -564,7 +564,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             overflow: 'hidden',
             zoom: '0.8',
             visibility: 'hidden',
-            opacity: '0.9',
+            opacity: '0.95',
             'box-shadow': '1px 2px 4px rgba(0, 0, 0, .5)',
             'border-radius': '25px',
         });

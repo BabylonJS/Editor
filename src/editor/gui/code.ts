@@ -29,6 +29,7 @@ export default class CodeEditor {
     // Static members
     public static ExternalLibraries: string = null;
     public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
+    public static Instances: MonacoDisposable[] = [];
 
     /**
      * Remove extra lib from the registered callers
@@ -40,6 +41,18 @@ export default class CodeEditor {
 
         if (index !== -1)
             this.ExtraLibs.splice(index, 1);
+    }
+
+    /**
+     * Returns if at least one code editor is focused
+     */
+    public static HasOneFocused (): boolean {
+        for (const i of this.Instances) {
+            if (i.isFocused())
+                return true;
+        }
+
+        return false;
     }
     
     /**
@@ -144,6 +157,9 @@ export default class CodeEditor {
             if (this.onChange)
                 this.onChange(this.editor.getValue());
         });
+
+        // Register
+        CodeEditor.Instances.push(this.editor);
     }
 
     /**
