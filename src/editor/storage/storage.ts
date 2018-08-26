@@ -11,6 +11,7 @@ export interface CreateFiles {
 
     data?: FileType | Promise<FileType>;
     folder?: CreateFiles[];
+    doNotOverride?: boolean;
 }
 
 export interface GetFiles {
@@ -112,10 +113,15 @@ export default abstract class Storage {
         const promises: Promise<void>[] = [];
 
         // Create files
+        const existingFiles = await this.getFiles(folder);
+
         for (const f of files) {
             if (f.folder)
                 folders.push(f);
             else {
+                if (f.doNotOverride && existingFiles.find(ef => ef.name === f.name))
+                    continue;
+                
                 promises.push(this.createFiles(folder, [f]).then(() => {
                     this.uploadedCount++;
                 }));

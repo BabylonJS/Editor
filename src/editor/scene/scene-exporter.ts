@@ -133,7 +133,7 @@ export default class SceneExporter {
 
             // Src files
             const srcFiles: CreateFiles[] = [
-                { name: 'game.ts', data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
+                { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
             ];
 
             const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
