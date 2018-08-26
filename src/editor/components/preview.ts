@@ -44,7 +44,8 @@ export default class EditorPreview {
             { type: 'break' },
             { type: 'button', id: 'position', text: '', img: 'icon-position', checked: false },
             { type: 'button', id: 'rotation', text: '', img: 'icon-rotation', checked: false },
-            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false }
+            { type: 'button', id: 'scaling', text: '', img: 'icon-scaling', checked: false },
+            { type: 'button', id: 'bounding-box', text :'', img: 'icon-bounding-box', checked: false }
         ];
         this.toolbar.build('PREVIEW-TOOLBAR');
     }
@@ -85,11 +86,13 @@ export default class EditorPreview {
             case 'camera:arc': this.editor.createEditorCamera('arc'); break;
 
             // Gizmos
+            case 'bounding-box':
             case 'position':
             case 'rotation':
             case 'scaling':
                 const active = this.toolbar.isChecked(id, true);
 
+                this.toolbar.setChecked('bounding-box', false);
                 this.toolbar.setChecked('position', false);
                 this.toolbar.setChecked('rotation', false);
                 this.toolbar.setChecked('scaling', false);
@@ -103,6 +106,7 @@ export default class EditorPreview {
                 }
 
                 switch (id) {
+                    case 'bounding-box': this.editor.scenePicker.gizmoType = GizmoType.BOUNDING_BOX; break;
                     case 'position': this.editor.scenePicker.gizmoType = GizmoType.POSITION; break;
                     case 'rotation': this.editor.scenePicker.gizmoType = GizmoType.ROTATION; break;
                     case 'scaling': this.editor.scenePicker.gizmoType = GizmoType.SCALING; break;

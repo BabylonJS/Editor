@@ -531,6 +531,7 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => ev.key === 'Shift' && (shiftDown = false));
 
         // Shotcuts
+        document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 'b' && this.preview.setToolClicked('bounding-box'));
         document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 't' && this.preview.setToolClicked('position'));
         document.addEventListener('keyup', ev => !CodeEditor.HasOneFocused() && ev.key === 'r' && this.preview.setToolClicked('rotation'));
 

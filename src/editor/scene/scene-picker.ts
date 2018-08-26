@@ -1,7 +1,7 @@
 import {
     Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
-    PointerInfo, PointerEventTypes, Vector3, Camera
+    PointerInfo, PointerEventTypes, Vector3, Camera, BoundingBoxGizmo, Color3
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -10,6 +10,7 @@ import UndoRedo from '../tools/undo-redo';
 
 export enum GizmoType {
     NONE = 0,
+    BOUNDING_BOX,
     POSITION,
     ROTATION,
     SCALING
@@ -33,10 +34,11 @@ export default class ScenePicker {
     
     protected onCanvasPointer: Observer<PointerInfo> = null;
 
+    protected boundingBoxGizmo: BoundingBoxGizmo;
     protected positionGizmo: PositionGizmo;
     protected rotationGizmo: RotationGizmo;
     protected scalingGizmo: ScaleGizmo;
-    protected currentGizmo: PositionGizmo | RotationGizmo | ScaleGizmo = null;
+    protected currentGizmo: BoundingBoxGizmo | PositionGizmo | RotationGizmo | ScaleGizmo = null;
 
     // Private members
     private _enabled: boolean = true;
@@ -96,14 +98,20 @@ export default class ScenePicker {
         this._gizmoType = value;
 
         // Dispose and clear
+        this.boundingBoxGizmo && this.boundingBoxGizmo.dispose();
         this.positionGizmo && this.positionGizmo.dispose();
         this.rotationGizmo && this.rotationGizmo.dispose();
         this.scalingGizmo && this.scalingGizmo.dispose();
 
-        this.positionGizmo = this.rotationGizmo = this.scalingGizmo = null;
+        this.boundingBoxGizmo = this.positionGizmo = this.rotationGizmo = this.scalingGizmo = null;
 
         // Create gizmo
         switch (value) {
+            case GizmoType.BOUNDING_BOX:
+                this.currentGizmo = this.boundingBoxGizmo = new BoundingBoxGizmo(new Color3(1, 1, 1), this.gizmosLayer);
+                this.boundingBoxGizmo.rotationSphereSize = 0.25;
+                this.boundingBoxGizmo.scaleBoxSize = 0.4;
+                break;
             case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
             case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
             case GizmoType.SCALING: this.currentGizmo = this.scalingGizmo = new ScaleGizmo(this.gizmosLayer); break;
@@ -114,19 +122,20 @@ export default class ScenePicker {
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
 
         // Events
-        // TODO: access public members
-        this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-        this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-        this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+        if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {
+            this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+            this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+            this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
 
-        // Undo redo
-        this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.x);
-        this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.y);
-        this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.z);
+            // Undo redo
+            this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.x);
+            this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.y);
+            this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.z);
 
-        this.currentGizmo.xGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('x'));
-        this.currentGizmo.yGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('y'));
-        this.currentGizmo.zGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('z'));
+            this.currentGizmo.xGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('x'));
+            this.currentGizmo.yGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('y'));
+            this.currentGizmo.zGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('z'));
+        }
     }
 
     /**
@@ -137,6 +146,7 @@ export default class ScenePicker {
         if (!(mesh instanceof AbstractMesh))
             return;
         
+        this.boundingBoxGizmo && (this.boundingBoxGizmo.attachedMesh = mesh);
         this.positionGizmo && (this.positionGizmo.attachedMesh = mesh);
         this.rotationGizmo && (this.rotationGizmo.attachedMesh = mesh);
         this.scalingGizmo && (this.scalingGizmo.attachedMesh = mesh);
