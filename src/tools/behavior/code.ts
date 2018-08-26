@@ -229,6 +229,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
             this.datas = {
                 node: 'Unknown',
+                nodeId: 'Unknown',
                 metadatas: [{
                     active: true,
                     codeId: asset.id
@@ -258,8 +259,16 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Add all codes
         this.datas = node['metadata'].behavior;
-        if (!this.datas)
-            this.datas = node['metadata'].behavior = { node: (node instanceof Scene) ? 'Scene' : node.name, metadatas: [] }
+        if (!this.datas) {
+            this.datas = node['metadata'].behavior = {
+                node: (node instanceof Scene) ? 'Scene' : node.name,
+                nodeId: (node instanceof Scene) ? 'Scene' : node.id,
+                metadatas: []
+            }
+        }
+
+        if (!this.datas.nodeId)
+            this.datas.nodeId = (node instanceof Scene) ? 'Scene' : node.id;
 
         // Clear existing data
         this.data = null;

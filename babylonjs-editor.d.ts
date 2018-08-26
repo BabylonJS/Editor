@@ -672,11 +672,16 @@ declare module 'babylonjs-editor/editor/gui/code' {
                     lib: MonacoDisposable;
                     caller: Window;
             }[];
+            static Instances: MonacoDisposable[];
             /**
                 * Remove extra lib from the registered callers
                 * @param caller the caller reference (Window)
                 */
             static RemoveExtraLib(caller: Window): void;
+            /**
+                * Returns if at least one code editor is focused
+                */
+            static HasOneFocused(): boolean;
             /**
                 * Constructor
                 */
@@ -1901,6 +1906,8 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
             width: number;
             height: number;
             search: boolean;
+            borderRadius?: number;
+            opacity?: number;
     }
     export default class ContextMenu {
             name: string;
@@ -2011,6 +2018,11 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * asset component
                 */
             onGetAssets(): Promise<AssetElement<Prefab>[]>;
+            /**
+                * Builds the instances of the given data
+                * @param data the given data
+                */
+            buildInstances(data: AssetElement<Prefab>[]): number;
             /**
                 * Sets all the instances serializable or not
                 * @param serializable if the instances are serializable

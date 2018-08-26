@@ -462,6 +462,16 @@ export default class Editor implements IUpdatable {
                 get: () => { return this.camera.getTarget() },
                 set: (v: Vector3) => (<FreeCamera> this.camera).setTarget(v)
             });
+
+            // Traditional WASD controls
+            this.camera.keysUp.push(87); // "W"
+            this.camera.keysUp.push(90); // "Z"
+
+            this.camera.keysLeft.push(65); //"A"
+            this.camera.keysLeft.push(81); // "Q"
+            
+            this.camera.keysDown.push(83); //"S"
+            this.camera.keysRight.push(68); //"D"
         }
         else if (type === 'arc') {
             this.camera = new ArcRotateCamera('Editor Camera', Math.PI / 2, Math.PI / 2, 15, target, this.core.scene);
@@ -481,16 +491,6 @@ export default class Editor implements IUpdatable {
         // Update graph node
         if (graphNode)
             graphNode.data = this.camera;
-
-        // Traditional WASD controls
-        this.camera.keysUp.push(87); // "W"
-        this.camera.keysUp.push(90); // "Z"
-
-        this.camera.keysLeft.push(65); //"A"
-        this.camera.keysLeft.push(81); // "Q"
-        
-        this.camera.keysDown.push(83); //"S"
-        this.camera.keysRight.push(68) //"D"
 
         // Set as active camera
         this.core.scene.activeCamera = this.camera;
@@ -652,7 +652,7 @@ export default class Editor implements IUpdatable {
 
                 // Graph
                 this.graph.clear();
-                this.graph.fill(scene);
+                this.graph.fill();
 
                 // Restart plugins
                 this.restartPlugins();

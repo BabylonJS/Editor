@@ -133,6 +133,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                     return;
                 
                 const instance = m.createInstance(asset.name);
+                instance.id = BabylonTools.RandomId();
                 instance.parent = parent;
                 instance.doNotSerialize = true;
 

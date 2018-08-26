@@ -306,6 +306,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
             this.datas = {
                 node: 'Unknown',
+                nodeId: 'Unknown',
                 metadatas: [{ active: true, graphId: asset.id }]
             };
 
@@ -336,8 +337,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Add all graphs
         this.datas = node.metadata.behaviorGraph;
-        if (!this.datas)
-            this.datas = node.metadata.behaviorGraph = { node: node instanceof Scene ? 'Scene' : node.name, metadatas: [] };
+        if (!this.datas) {
+            this.datas = node.metadata.behaviorGraph = {
+                node: node instanceof Scene ? 'Scene' : node.name,
+                nodeId: node instanceof Scene ? 'Scene': node.id,
+                metadatas: []
+            };
+        }
 
         // Clear existing data
         this.data = null;

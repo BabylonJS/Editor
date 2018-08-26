@@ -35,6 +35,7 @@ export interface NodeGraph {
 
 export interface GraphNodeMetadata {
     node: string;
+    nodeId: string;
     metadatas: NodeGraph[];
 }
 
@@ -147,7 +148,10 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
         // For each node
         this.datas.nodes.forEach(d => {
-            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            const node = d.node === 'Scene'
+                ? this.scene
+                : (this.scene.getNodeByID(d.nodeId) || this.scene.getNodeByName(d.node));
+            
             if (!node)
                 return;
 
@@ -194,8 +198,15 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
         const add = (objects: (AbstractMesh | Light | Camera | Scene)[]) => {
             objects.forEach(o => {
-                if (o.metadata && o.metadata.behaviorGraph)
-                    result.nodes.push(o.metadata.behaviorGraph);
+                if (o.metadata && o.metadata.behaviorGraph) {
+                    const behavior = <GraphNodeMetadata> o.metadata.behaviorGraph;
+                    behavior.node = o instanceof Scene ? 'Scene' :
+                                    o instanceof Node ? o.name :
+                                    o.id;
+                    behavior.nodeId = o instanceof Scene ? 'Scene' : o.id;
+
+                    result.nodes.push(behavior);
+                }
             });
         };
 
@@ -222,7 +233,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
             };
 
             oldData.forEach(od => {
-                const node = { node: od.node, metadatas: [] };
+                const node = { node: od.node, nodeId: od.node, metadatas: [] };
 
                 od.metadatas.forEach(m => {
                     // Add graph
@@ -251,7 +262,10 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
 
         // For each node
         this.datas.nodes.forEach(d => {
-            const node = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            const node = 
+                d.node === 'Scene' ? this.scene :
+                (this.scene.getNodeByID(d.nodeId) || this.scene.getNodeByName(d.node));
+            
             if (!node)
                 return;
 

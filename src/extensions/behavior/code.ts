@@ -29,6 +29,7 @@ export interface BehaviorNodeCode {
 
 export interface BehaviorNodeMetadata {
     node: string;
+    nodeId: string;
     metadatas: BehaviorNodeCode[];
 }
 
@@ -160,7 +161,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         // For each node
         this.datas.nodes.forEach(d => {
-            let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            let node: Scene | Node | IParticleSystem = d.node === 'Scene'
+                ? this.scene
+                : (this.scene.getNodeByID(d.nodeId) || this.scene.getNodeByName(d.node))
 
             if (!node)
                 this.scene.particleSystems.forEach(ps => ps.name === d.node && (node = ps));
@@ -217,6 +220,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                     behavior.node = o instanceof Scene ? 'Scene' :
                                     o instanceof Node ? o.name :
                                     o.id;
+                    behavior.nodeId = o instanceof Scene ? 'Scene' : o.id;
 
                     result.nodes.push(behavior);
                 }
@@ -247,7 +251,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             };
 
             oldData.forEach(od => {
-                const node = { node: od.node, metadatas: [] };
+                const node = { node: od.node, nodeId: od.node, metadatas: [] };
 
                 od.metadatas.forEach(m => {
                     const id = Tools.RandomId();
@@ -276,7 +280,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         // For each node
         this.datas.nodes.forEach(d => {
-            let node: Scene | Node | IParticleSystem = d.node === 'Scene' ? this.scene : this.scene.getNodeByName(d.node);
+            let node: Scene | Node | IParticleSystem = 
+                d.node === 'Scene' ? this.scene :
+                (this.scene.getNodeByID(d.nodeId) || this.scene.getNodeByName(d.node));
 
             if (!node)
                 node = this.scene.getParticleSystemByID(d.node);
@@ -357,6 +363,19 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             return 'Unknown Constructor Name';
 
         return tokenizer.identifier;
+    }
+
+    /**
+     * Returns the final typescript code
+     * @param code: the behavior code metadata
+     * @param node: the attached node
+     */
+    public getFinalTypeScriptCode (code: BehaviorCode, node: any): string {
+        const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '');
+
+        return template.replace('{{name}}', fnName)
+            .replace('{{node}}', this._getEffectiveConstructorName(node))
+            .replace('{{code}}', code.code);
     }
 
     // Return the effective constructor name used by scripts

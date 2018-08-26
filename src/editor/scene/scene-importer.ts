@@ -201,28 +201,6 @@ export default class SceneImporter {
             });
         }
 
-        // Waiting parent ids
-        editor.core.scene.meshes.forEach(m => {
-            if (m._waitingParentId) {
-                m.parent = editor.core.scene.getNodeByID(m._waitingParentId);
-                m._waitingParentId = undefined;
-            }
-        });
-
-        editor.core.scene.lights.forEach(l => {
-            if (l._waitingParentId) {
-                l.parent = editor.core.scene.getNodeByID(l._waitingParentId);
-                l._waitingParentId = undefined;
-            }
-        });
-
-        editor.core.scene.cameras.forEach(c => {
-            if (c._waitingParentId) {
-                c.parent = editor.core.scene.getNodeByID(c._waitingParentId);
-                c._waitingParentId = undefined;
-            }
-        })
-
         // Assets
         editor.assets.clear();
 
@@ -264,6 +242,28 @@ export default class SceneImporter {
 
         // Refresh assets
         editor.assets.refresh();
+
+        // Waiting parent ids
+        editor.core.scene.meshes.forEach(m => {
+            if (m._waitingParentId) {
+                m.parent = editor.core.scene.getNodeByID(m._waitingParentId);
+                m._waitingParentId = undefined;
+            }
+        });
+
+        editor.core.scene.lights.forEach(l => {
+            if (l._waitingParentId) {
+                l.parent = editor.core.scene.getNodeByID(l._waitingParentId);
+                l._waitingParentId = undefined;
+            }
+        });
+
+        editor.core.scene.cameras.forEach(c => {
+            if (c._waitingParentId) {
+                c.parent = editor.core.scene.getNodeByID(c._waitingParentId);
+                c._waitingParentId = undefined;
+            }
+        });
 
         // Finish
         scene.materials.forEach(m => m['maxSimultaneousLights'] = scene.lights.length * 2);
