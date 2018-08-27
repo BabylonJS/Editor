@@ -32,13 +32,14 @@ export default class EditorGraph {
      */
     constructor (protected editor: Editor) {
         this.tree = new Tree('SceneTree');
+        this.tree.multipleSelection = true;
         this.tree.build('SCENE-GRAPH');
 
         // Events
         this.tree.onClick = (id, data: any) => {
             this.currentObject = data;
             this.editor.scenePicker.setGizmoAttachedMesh(data);
-            this.editor.core.onSelectObject.notifyObservers(data);
+            this.editor.core.onSelectObject.notifyObservers(data, undefined, this);
         };
 
         this.tree.onDblClick = (id, data: any) => {
@@ -148,7 +149,7 @@ export default class EditorGraph {
         });
 
         // Observer
-        this.editor.core.onSelectObject.add((node: Node) => node && this.tree.select(node.id));
+        this.editor.core.onSelectObject.add((node: Node, ev) => ev.target !== this && node && this.tree.select(node.id));
     }
 
     /**

@@ -25,6 +25,7 @@ export default class Tree {
     public name: string;
     public wholerow: boolean = false;
     public keyboard: boolean = false;
+    public multipleSelection: boolean = false;
     public element: JSTree = null;
 
     public onClick: <T>(id: string, data: T) => void;
@@ -194,7 +195,7 @@ export default class Tree {
         this.element = $('#' + parentId).jstree({
             core: {
                 check_callback: true,
-                multiple: false
+                multiple: this.multipleSelection
             },
             dnd : {
                 use_html5 : true,
