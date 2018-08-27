@@ -15,6 +15,7 @@ import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
 import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
 import Dialog from './editor/gui/dialog';
+import ContextMenu, { ContextMenuOptions } from './editor/gui/context-menu';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
 
@@ -51,6 +52,7 @@ export {
     Edition,
     Tree, ContextMenuItem, TreeNode,
     Dialog,
+    ContextMenu, ContextMenuOptions,
 
     AbstractEditionTool,
 

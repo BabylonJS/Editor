@@ -6,7 +6,6 @@ import {
     Vector3,
     Tags
 } from 'babylonjs';
-import * as BABYLON from 'babylonjs';
 
 import Editor, {
     Tools,
@@ -14,6 +13,7 @@ import Editor, {
     Layout,
     Toolbar,
     Picker,
+    ContextMenu,
 
     EditorPlugin,
     UndoRedo
@@ -39,6 +39,7 @@ export default class AnimationEditor extends EditorPlugin {
 
     // Protected members
     protected canvas: HTMLCanvasElement = null;
+    protected contextMenu: ContextMenu = null;
 
     protected engines: Engine[] = [];
     protected onResizePreview = () => this.resize();
@@ -106,6 +107,14 @@ export default class AnimationEditor extends EditorPlugin {
         this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_materials';
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
+
+        // Context menu
+        this.contextMenu = new ContextMenu('MaterialsViewerContextMenu', {
+            search: false,
+            height: 54,
+            width: 200
+        });
+        this.contextMenu.tree.add({ id: 'clone', img: 'icon-clone', text: 'Clone' });
 
         // Add preview
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
@@ -221,6 +230,20 @@ export default class AnimationEditor extends EditorPlugin {
         const img = Tools.CreateElement<HTMLImageElement>('img', material.id, {
             'width': '100px',
             'height': '100px'
+        });
+        img.addEventListener('contextmenu', ev => {
+            this.contextMenu.show(ev);
+            this.contextMenu.tree.onClick = (id) => {
+                // Only clone
+                const newMaterial = material.clone(material.name + ' Cloned');
+                newMaterial.id = BabylonTools.RandomId();
+                Tags.AddTagsTo(newMaterial, 'added');
+                
+                this.createPreviewNode(div, canvas, preview, newMaterial);
+
+                // Hide
+                this.contextMenu.hide();
+            };
         });
 
         // Add

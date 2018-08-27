@@ -16,8 +16,10 @@ import {
 } from 'babylonjs-gui';
 
 import Editor from '../editor';
-import Tools from './tools';
 import SceneFactory from '../scene/scene-factory';
+import SceneExporter from '../scene/scene-exporter';
+
+import Tools from './tools';
 
 export default class DefaultScene {
     /**
@@ -313,6 +315,8 @@ export default class DefaultScene {
         const serializedScene = SceneSerializer.Serialize(scene);
         const serializedSceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
         FilesInput.FilesToLoad['scene.babylon'] = serializedSceneFile;
+
+        SceneExporter.CreateFiles(editor);
 
         // Pickable
         scene.meshes.forEach(m => m.isPickable = true);

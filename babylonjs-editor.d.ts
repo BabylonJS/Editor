@@ -22,6 +22,7 @@ declare module 'babylonjs-editor' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
     import Dialog from 'babylonjs-editor/editor/gui/dialog';
+    import ContextMenu, { ContextMenuOptions } from 'babylonjs-editor/editor/gui/context-menu';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
@@ -29,7 +30,7 @@ declare module 'babylonjs-editor' {
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
     export default Editor;
-    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
+    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -954,6 +955,51 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/context-menu' {
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Tree from 'babylonjs-editor/editor/gui/tree';
+    export interface ContextMenuOptions {
+            width: number;
+            height: number;
+            search: boolean;
+            borderRadius?: number;
+            opacity?: number;
+    }
+    export default class ContextMenu {
+            name: string;
+            mainDiv: HTMLDivElement;
+            layout: Layout;
+            search: HTMLInputElement;
+            tree: Tree;
+            protected mouseUpCallback: (ev: MouseEvent) => void;
+            /**
+                * Constructor
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            constructor(name: string, options: ContextMenuOptions);
+            /**
+                * Shows the context menu where the user right clicks
+                * @param event the mouse event
+                */
+            show(event: MouseEvent): void;
+            /**
+                * Hides the context menu
+                */
+            hide(): void;
+            /**
+                * Removes the context menu elements
+                */
+            remove(): void;
+            /**
+                * Builds the context menu
+                * @param name the name of the context menu
+                * @param options the context menu options (width, height, etc.)
+                */
+            protected build(name: string, options: ContextMenuOptions): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1746,13 +1792,14 @@ declare module 'babylonjs-editor/editor/components/assets' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera } from 'babylonjs';
+    import { Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera, BoundingBoxGizmo } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export enum GizmoType {
             NONE = 0,
-            POSITION = 1,
-            ROTATION = 2,
-            SCALING = 3
+            BOUNDING_BOX = 1,
+            POSITION = 2,
+            ROTATION = 3,
+            SCALING = 4
     }
     export default class ScenePicker {
             editor: Editor;
@@ -1765,10 +1812,11 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             protected lastX: number;
             protected lastY: number;
             protected onCanvasPointer: Observer<PointerInfo>;
+            protected boundingBoxGizmo: BoundingBoxGizmo;
             protected positionGizmo: PositionGizmo;
             protected rotationGizmo: RotationGizmo;
             protected scalingGizmo: ScaleGizmo;
-            protected currentGizmo: PositionGizmo | RotationGizmo | ScaleGizmo;
+            protected currentGizmo: BoundingBoxGizmo | PositionGizmo | RotationGizmo | ScaleGizmo;
             /**
                 * Constructor
                 * @param editor: the editor reference
@@ -1896,51 +1944,6 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
                 * loading a scene)
                 */
             onLoad(data: PostProcessMetadata): void;
-    }
-}
-
-declare module 'babylonjs-editor/editor/gui/context-menu' {
-    import Layout from 'babylonjs-editor/editor/gui/layout';
-    import Tree from 'babylonjs-editor/editor/gui/tree';
-    export interface ContextMenuOptions {
-            width: number;
-            height: number;
-            search: boolean;
-            borderRadius?: number;
-            opacity?: number;
-    }
-    export default class ContextMenu {
-            name: string;
-            mainDiv: HTMLDivElement;
-            layout: Layout;
-            search: HTMLInputElement;
-            tree: Tree;
-            protected mouseUpCallback: (ev: MouseEvent) => void;
-            /**
-                * Constructor
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
-                */
-            constructor(name: string, options: ContextMenuOptions);
-            /**
-                * Shows the context menu where the user right clicks
-                * @param event the mouse event
-                */
-            show(event: MouseEvent): void;
-            /**
-                * Hides the context menu
-                */
-            hide(): void;
-            /**
-                * Removes the context menu elements
-                */
-            remove(): void;
-            /**
-                * Builds the context menu
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
-                */
-            protected build(name: string, options: ContextMenuOptions): void;
     }
 }
 
