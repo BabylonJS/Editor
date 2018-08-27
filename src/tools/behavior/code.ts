@@ -1,5 +1,5 @@
 import {
-    Node,
+    Node, GroundMesh, InstancedMesh,
     DirectionalLight, HemisphericLight,
     Scene,
     Tools as BabylonTools,
@@ -339,6 +339,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 ctor = "dirlight";
             else if (this.node instanceof HemisphericLight)
                 ctor = "hemlight";
+            else if (this.node instanceof GroundMesh || this.node instanceof InstancedMesh)
+                ctor = 'mesh';
         }
 
         // Add script

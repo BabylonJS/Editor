@@ -858,6 +858,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             name: string;
             wholerow: boolean;
             keyboard: boolean;
+            multipleSelection: boolean;
             element: JSTree;
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;

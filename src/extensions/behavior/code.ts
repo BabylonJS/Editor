@@ -2,7 +2,7 @@ import {
     Scene, Node, DirectionalLight, HemisphericLight,
     Tools as BabylonTools, IParticleSystem, Vector4,
     Vector3, Vector2, Color4, Color3, Tools, GroundMesh,
-    AbstractMesh
+    AbstractMesh, InstancedMesh
 } from 'babylonjs';
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
@@ -386,7 +386,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         if (obj instanceof HemisphericLight)
             return 'hemlight';
 
-        if (obj instanceof GroundMesh)
+        if (obj instanceof GroundMesh || obj instanceof InstancedMesh)
             return 'mesh';
 
         let ctrName = (obj && obj.constructor) ? (<any>obj.constructor).name : '';
