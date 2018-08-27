@@ -1,7 +1,7 @@
 import {
     Scene, Material, StandardMaterial, BaseTexture, RenderTargetTexture,
     ActionManager,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline,
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline,
     IAnimatable,
     ParticleSystem,
     GlowLayer,
@@ -17,6 +17,7 @@ export default class SceneManager {
     // Public members
     public static ActionManagers: IStringDictionary<ActionManager> = { };
     public static StandardRenderingPipeline: StandardRenderingPipeline = null;
+    public static DefaultRenderingPipeline: DefaultRenderingPipeline = null;
     public static SSAORenderingPipeline: SSAORenderingPipeline = null;
     public static SSAO2RenderingPipeline: SSAO2RenderingPipeline = null;
 
@@ -39,6 +40,7 @@ export default class SceneManager {
         this.HighLightLayer = null;
 
         this.StandardRenderingPipeline = null;
+        this.DefaultRenderingPipeline = null;
         this.SSAO2RenderingPipeline = null;
         this.SSAORenderingPipeline = null;
 

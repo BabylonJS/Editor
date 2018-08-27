@@ -21,6 +21,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
 
     // Private members
     private _standardEnabled: boolean = false;
+    private _defaultEnabled: boolean = false;
     private _ssaoEnabled: boolean = false;
     private _ssao2Enabled: boolean = false;
 
@@ -39,7 +40,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
     public update(scene: Scene): void {
         super.update(scene);
 
-        // Default
+        // Standard
         const standardPipeline = this.tool.addFolder('Standard');
         standardPipeline.open();
 
@@ -148,6 +149,96 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightBlurScale').min(0).max(64).step(1).name('Blur scale');
                 vls.add(SceneManager.StandardRenderingPipeline, 'volumetricLightStepsCount').min(0).max(512).step(1).name('Steps count');
             }
+        }
+
+        // Default
+        const def = this.tool.addFolder('Default');
+        def.open();
+
+        this._defaultEnabled = SceneManager.DefaultRenderingPipeline !== null;
+        def.add(this, '_defaultEnabled').name('Enable').onChange(r => {
+            if (!r) {
+                SceneManager.DefaultRenderingPipeline.dispose();
+                SceneManager.DefaultRenderingPipeline = null;
+            }
+            else {
+                SceneManager.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline('Default', true, scene, scene.cameras, true);
+                var curve = new BABYLON.ColorCurves();
+                curve.globalHue = 200;
+                curve.globalDensity = 80;
+                curve.globalSaturation = 80;
+                curve.highlightsHue = 20;
+                curve.highlightsDensity = 80;
+                curve.highlightsSaturation = -80;
+                curve.shadowsHue = 2;
+                curve.shadowsDensity = 80;
+                curve.shadowsSaturation = 40;
+                SceneManager.DefaultRenderingPipeline.imageProcessing.colorCurves = curve;
+                SceneManager.DefaultRenderingPipeline.depthOfField.focalLength = 150;
+                SceneManager.DefaultRenderingPipeline.chromaticAberration.direction.x = Math.PI * 2;
+                SceneManager.DefaultRenderingPipeline.chromaticAberration.direction.y = Math.PI * 2;
+            }
+
+            // Update tool
+            this.update(scene);
+
+            // Check if extension is created
+            this._checkExtension();
+        });
+
+        if (this._defaultEnabled) {
+            // Anti aliasing
+            const antialiasing = def.addFolder('Anti Aliasing');
+            antialiasing.open();
+
+            antialiasing.add(SceneManager.DefaultRenderingPipeline, 'samples').min(1).max(32).name('Multisample Anti-Aliasing');
+            antialiasing.add(SceneManager.DefaultRenderingPipeline, 'fxaaEnabled').name('Fast Approximate Anti-Aliasing');
+
+            // Image processing
+            const imageProcessing = def.addFolder('Image Processing');
+            imageProcessing.open();
+
+            imageProcessing.add(SceneManager.DefaultRenderingPipeline.imageProcessing, 'toneMappingEnabled').name('Tone Mapping');
+            imageProcessing.add(SceneManager.DefaultRenderingPipeline.imageProcessing, 'contrast').min(0).max(4).name('Contrast');
+            imageProcessing.add(SceneManager.DefaultRenderingPipeline.imageProcessing, 'exposure').min(0).max(10).name('Exposure');
+
+            // Bloom
+            const bloom = def.addFolder('Bloom');
+            bloom.open();
+
+            bloom.add(SceneManager.DefaultRenderingPipeline, 'bloomEnabled').name('Enable Bloom');
+            bloom.add(SceneManager.DefaultRenderingPipeline, 'bloomKernel').min(0).max(500).name('Kernel');
+            bloom.add(SceneManager.DefaultRenderingPipeline, 'bloomWeight').min(0).max(10).name('Weight');
+            bloom.add(SceneManager.DefaultRenderingPipeline, 'bloomThreshold').min(0).max(10).name('Threshold');
+            bloom.add(SceneManager.DefaultRenderingPipeline, 'bloomScale').min(0).max(10).name('Scale');
+
+            // Chromatic aberration
+            const chromatic = def.addFolder('Chromatic Aberration');
+            chromatic.open();
+
+            chromatic.add(SceneManager.DefaultRenderingPipeline, 'chromaticAberrationEnabled').name('Enable Chromatic Aberration');
+            chromatic.add(SceneManager.DefaultRenderingPipeline.chromaticAberration, 'aberrationAmount').min(-1000).max(1000).name('Amount');
+            chromatic.add(SceneManager.DefaultRenderingPipeline.chromaticAberration, 'radialIntensity').min(0.1).max(15).step(0.01).name('Radial Intensity');
+            chromatic.add(SceneManager.DefaultRenderingPipeline.chromaticAberration.direction, 'x').min(0).max(Math.PI * 2).step(0.01).name('Direction').onChange(r => {
+                SceneManager.DefaultRenderingPipeline.chromaticAberration.direction.x = Math.sin(r);
+                SceneManager.DefaultRenderingPipeline.chromaticAberration.direction.y = Math.cos(r);
+            });
+
+            // Sharpen
+            const sharpen = def.addFolder('Sharpen');
+            sharpen.open();
+
+            sharpen.add(SceneManager.DefaultRenderingPipeline, 'sharpenEnabled').name('Enable Sharpen');
+            sharpen.add(SceneManager.DefaultRenderingPipeline.sharpen, 'edgeAmount').min(0).max(4).step(0.01).name('Edge Amount');
+            sharpen.add(SceneManager.DefaultRenderingPipeline.sharpen, 'colorAmount').min(0).max(2).step(0.01).name('Color Amount');
+
+            // Grain
+            const grain = def.addFolder('Grain');
+            grain.open();
+
+            grain.add(SceneManager.DefaultRenderingPipeline, 'grainEnabled').name('Enable Grain');
+            grain.add(SceneManager.DefaultRenderingPipeline.grain, 'intensity').min(0).max(100).step(0.1).name('Intensity');
+            grain.add(SceneManager.DefaultRenderingPipeline.grain, 'animated').name('Animated');
         }
 
         // SSAO

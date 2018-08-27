@@ -1224,12 +1224,13 @@ declare module 'babylonjs-editor/editor/typings/project' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-manager' {
-    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
+    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import PostProcessesExtension from 'babylonjs-editor/extensions/post-process/post-processes';
     export default class SceneManager {
             static ActionManagers: IStringDictionary<ActionManager>;
             static StandardRenderingPipeline: StandardRenderingPipeline;
+            static DefaultRenderingPipeline: DefaultRenderingPipeline;
             static SSAORenderingPipeline: SSAORenderingPipeline;
             static SSAO2RenderingPipeline: SSAO2RenderingPipeline;
             static GlowLayer: GlowLayer;
@@ -1929,14 +1930,16 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
 }
 
 declare module 'babylonjs-editor/extensions/post-process/post-processes' {
-    import { Scene, StandardRenderingPipeline, SSAO2RenderingPipeline } from 'babylonjs';
+    import { Scene, StandardRenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline } from 'babylonjs';
     import Extension from 'babylonjs-editor/extensions/extension';
     export interface PostProcessMetadata {
             standard?: any;
+            default?: any;
             ssao2?: any;
     }
     export default class PostProcessesExtension extends Extension<PostProcessMetadata> {
             standard: StandardRenderingPipeline;
+            default: DefaultRenderingPipeline;
             ssao2: SSAO2RenderingPipeline;
             /**
                 * Constructor
