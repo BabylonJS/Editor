@@ -9,6 +9,12 @@ import { IAssetComponent, AssetElement } from '../../shared/asset';
 
 import PrefabAssetComponent from '../prefabs/asset-component';
 
+export interface AssetPreviewData {
+    asset: AssetElement<any>;
+    img: HTMLImageElement;
+    parent: HTMLDivElement;
+}
+
 export default class EditorAssets {
     // Public members
     public tabs: W2UI.W2Tabs;
@@ -16,6 +22,7 @@ export default class EditorAssets {
     public contextMenu: ContextMenu;
 
     public prefabs: PrefabAssetComponent;
+    public assetPreviewDatas: AssetPreviewData[] = [];
 
     // Protected members
     protected currentComponent: IAssetComponent = null;
@@ -61,6 +68,7 @@ export default class EditorAssets {
         });
 
         this.components = [];
+        this.assetPreviewDatas = [];
         this.currentComponent = null;
 
         if (this.emptyTextNode) {
@@ -148,6 +156,7 @@ export default class EditorAssets {
             const assetSize = (c.size || 50) + 'px';
             assets.forEach(a => {
                 const parent = Tools.CreateElement<HTMLDivElement>('div', c.id + a.name + 'div', {
+                    'position': 'relative',
                     'width': assetSize,
                     'height': assetSize,
                     'float': 'left',
@@ -204,6 +213,13 @@ export default class EditorAssets {
                 parent.appendChild(img);
                 parent.appendChild(text);
                 div.append(parent);
+
+                // Register
+                this.assetPreviewDatas.push({
+                    asset: a,
+                    img: img,
+                    parent: parent
+                });
             });
         });
     }
@@ -249,6 +265,14 @@ export default class EditorAssets {
         this.currentComponent = this.components.find(c => c.id === id);
         $('#' + this.currentComponent.id).show();
         this.tabs.select(id);
+    }
+
+    /**
+     * Returns the asset preview data from the given asset element
+     * @param asset the source asset
+     */
+    public getAssetPreviewData (asset: AssetElement<any>): AssetPreviewData {
+        return this.assetPreviewDatas.find(apd => apd.asset === asset);
     }
 
     /**

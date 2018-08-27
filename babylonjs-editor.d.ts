@@ -1740,12 +1740,18 @@ declare module 'babylonjs-editor/editor/components/assets' {
     import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    export interface AssetPreviewData {
+            asset: AssetElement<any>;
+            img: HTMLImageElement;
+            parent: HTMLDivElement;
+    }
     export default class EditorAssets {
             protected editor: Editor;
             tabs: W2UI.W2Tabs;
             components: IAssetComponent[];
             contextMenu: ContextMenu;
             prefabs: PrefabAssetComponent;
+            assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
             protected emptyTextNode: HTMLHeadElement;
             /**
@@ -1775,6 +1781,11 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param id the id of the tab to show
                 */
             showTab(id: string): void;
+            /**
+                * Returns the asset preview data from the given asset element
+                * @param asset the source asset
+                */
+            getAssetPreviewData(asset: AssetElement<any>): AssetPreviewData;
             /**
                 * Returns the drag end event function
                 * @param component the source component

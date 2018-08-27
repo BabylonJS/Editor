@@ -208,21 +208,40 @@ export default class PrefabAssetComponent implements IAssetComponent {
             this.previewEngine = new Engine(this.previewCanvas);
         
         // Create previews
+        const promises: Promise<void>[] = [];
+
         for (const d of this.datas) {
-            if (!d.img)
-                await PrefabsHelpers.CreatePreview(d, this.previewEngine);
+            if (!d.img) {
+                promises.push(PrefabsHelpers.CreatePreview(d, this.previewEngine).then(() => {
+                    const adp = this.editor.assets.getAssetPreviewData(d);
+                    if (adp) {
+                        adp.img.src = d.img;
+                        w2utils.unlock(adp.parent);
+                    }
+                }));
+
+                setTimeout(() => {
+                    const adp = this.editor.assets.getAssetPreviewData(d);
+                    if (adp) {
+                        adp.img.src = '';
+                        w2utils.lock(adp.parent, '', true);
+                    }
+                }, 0);
+            }
         }
 
         // Dispose
-        if (this.previewEngine) {
-            this.previewEngine.dispose();
-            this.previewEngine = null;
-        }
+        Promise.all(promises).then(() => {
+            if (this.previewEngine) {
+                this.previewEngine.dispose();
+                this.previewEngine = null;
+            }
 
-        if (this.previewCanvas) {
-            this.previewCanvas.remove();
-            this.previewCanvas = null;
-        }
+            if (this.previewCanvas) {
+                this.previewCanvas.remove();
+                this.previewCanvas = null;
+            }
+        });
 
         return this.datas;
     }
