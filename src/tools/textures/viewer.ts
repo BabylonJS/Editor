@@ -541,8 +541,9 @@ export default class TextureViewer extends EditorPlugin {
 
                 texture.name = texture['url'] = f.name;
 
-                // Add preview node
+                // Add preview node and update tools
                 await this.addPreviewNode(f, texture);
+                this.editor.edition.refresh();
             };
 
             this.layout.unlockPanel('top');
@@ -557,6 +558,7 @@ export default class TextureViewer extends EditorPlugin {
         this.editor.core.scene.customRenderTargets.push(rt);
 
         this.addRenderTargetTexturePreviewNode(rt);
+        this.editor.edition.refresh();
 
         // Tags
         Tags.AddTagsTo(rt, 'added');
@@ -568,6 +570,7 @@ export default class TextureViewer extends EditorPlugin {
     protected addMirrorTexture (): void {
         const rt = new MirrorTexture('New Mirror Texture', 512, this.editor.core.scene, true);
         this.addRenderTargetTexturePreviewNode(rt);
+        this.editor.edition.refresh();
     }
 
     /**
@@ -598,6 +601,7 @@ export default class TextureViewer extends EditorPlugin {
                 texture.onGenerated = () => {
                     texture.onGenerated = undefined;
                     this.addProceduralTexturePreviewNode(texture);
+                    this.editor.edition.refresh();
                 };
             });
         });
