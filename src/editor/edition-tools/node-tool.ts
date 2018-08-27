@@ -1,4 +1,4 @@
-import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3 } from 'babylonjs';
+import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3, ArcRotateCamera } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
@@ -136,10 +136,12 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 scene.activeCamera = r ? node : this.editor.camera;
             });
 
-            if (node['panningSensibility'] !== undefined) {
+            if (node instanceof ArcRotateCamera) {
                 camera.add(node, 'panningSensibility').step(1).name('Panning Sensibility');
+                camera.add(node.inputs.attached.mousewheel, 'wheelPrecision').step(0.01).name('Zoom Factor');
             }
-            else if (node['speed'] !== undefined) {
+            
+            if (node['speed'] !== undefined) {
                 camera.add(node, 'speed').step(0.01).name('Speed');
             }
             

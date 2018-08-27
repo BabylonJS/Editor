@@ -629,6 +629,10 @@ export default class Editor implements IUpdatable {
 
                 this.playCamera = scene.activeCamera;
 
+                const existingCamera = scene.getCameraByName('Editor Camera');
+                if (existingCamera)
+                    existingCamera.dispose();
+                
                 this.createEditorCamera();
 
                 // Clear scene manager
