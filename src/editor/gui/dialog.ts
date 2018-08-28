@@ -37,7 +37,7 @@ export default class Dialog {
      * @param title the title of the dialog
      */
     public static CreateWithTextInput (title: string): Promise<string> {
-        return new Promise<string>((resolve) => {
+        return new Promise<string>((resolve, reject) => {
             // Window
             const popin = new Window('AskName');
             popin.title = title;
@@ -56,7 +56,10 @@ export default class Dialog {
             form.build('ASK-NAME-CREATE-DIALOG');
 
             // Events
-            popin.onClose = () => form.element.destroy();
+            popin.onClose = () => {
+                form.element.destroy();
+                reject('User decided to not give an input');
+            };
 
             popin.onButtonClick = id => {
                 if (!form.isValid())

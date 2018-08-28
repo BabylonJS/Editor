@@ -218,17 +218,17 @@ export default class PostProcessEditor extends EditorPlugin {
      * @param id the id of the selected item
      */
     protected deletePostProcess (id: number): void {
-        const data = this.datas[id];
-
-        const p = this.createOrUpdatePostProcess(data.name);
-        p.dispose();
+        const p = this.createOrUpdatePostProcess(this.datas[id].name);
+        if (p)
+            p.dispose();
 
         // Remove data
         this.datas.splice(id, 1);
         this.data = this.datas[0];
 
-        // Check if empty
-        if (this.datas.length === 0) {
+        if (this.data)
+            this.selectPostProcess(0);
+        else {
             this.code.setValue('');
             this.pixel.setValue('');
             this.config.setValue('');
@@ -297,7 +297,6 @@ export default class PostProcessEditor extends EditorPlugin {
             
             if (p.name === name) {
                 p.setConfig(JSON.parse(this.data.config));
-                p.userConfig = { };
                 this.editor.core.onSelectObject.notifyObservers(p);
                 return p;
             }

@@ -137,7 +137,7 @@ export default class EditorAssets {
 
             // Empty or not
             if (assets.length === 0) {
-                this.emptyTextNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
+                const emptyTextNode = Tools.CreateElement<HTMLHeadElement>('h1', BabylonTools.RandomId(), {
                     'float': 'left',
                     'left': '50%',
                     'top': '50%',
@@ -147,9 +147,9 @@ export default class EditorAssets {
                     'font-family': 'Roboto,sans-serif !important',
                     'opacity': '0.5'
                 });
-                this.emptyTextNode.textContent = 'Empty';
+                emptyTextNode.textContent = 'Empty';
     
-                $('#' + c.id).append(this.emptyTextNode);
+                $('#' + c.id).append(emptyTextNode);
             }
 
             // Add elements
@@ -250,8 +250,9 @@ export default class EditorAssets {
         else
             $('#' + component.id).hide();
 
-        // Save component
+        // Save component and refresh
         this.components.push(component);
+        this.refresh(component.id);
     }
 
     /**
