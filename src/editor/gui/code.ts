@@ -96,7 +96,7 @@ export default class CodeEditor {
         if (!CodeEditor.ExternalLibraries) {
             const libs = [
                 'assets/typings/babylon.d.ts',
-                'assets/typings/babylon.gui.d.ts',
+                'assets/typings/babylon.gui.module.d.ts',
                 'assets/typings/babylonjs.materials.module.d.ts',
                 'assets/typings/babylonjs.proceduralTextures.module.d.ts',
                 'assets/templates/material-creator/custom-material.d.ts',

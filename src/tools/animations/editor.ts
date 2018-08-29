@@ -691,6 +691,8 @@ export default class AnimationEditor extends EditorPlugin {
 
                 if (isNaN(x)) x = 0;
                 if (isNaN(y)) y = 0;
+                if (keyIndex === 0) x = 6;
+                if (keyIndex === keys.length - 1) x -= 6;
 
                 const point = this.paper.circle(x, y, 6);
                 point.attr('fill', Raphael.rgb(color.r, color.g, color.b));
