@@ -196,7 +196,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
         this.selectedObjectObserver = this.editor.core.onSelectObject.add(data => this.objectSelected(data));
         this.selectedAssetObserver = this.editor.core.onSelectAsset.add(data => this.assetSelected(data));
-
+        
         // Select object
         if (this.editor.core.currentSelectedObject)
             this.objectSelected(this.editor.core.currentSelectedObject);

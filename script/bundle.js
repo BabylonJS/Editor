@@ -35,6 +35,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'texture-viewer': './build/src/tools/textures/viewer.js',
             'material-editor': './build/src/tools/material-editor/index.js',
             'post-process-editor': './build/src/tools/post-process-editor/index.js',
+            'metadatas': './build/src/tools/metadata/editor.js',
             'notes': './build/src/tools/notes/notes.js'
         }
     });
@@ -160,6 +161,13 @@ build('./build/src/', './build/src/tools/play-game/index.js', './dist/play-game.
 
 build('./build/src/', './build/src/tools/path-finder/index.js', './dist/path-finder.js', {
     globalName: 'PathFinder',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
+
+build('./build/src/', './build/src/tools/metadata/editor.js', './dist/metadata-editor.js', {
+    globalName: 'MetadataEditor',
     format: 'cjs',
     externals: externals,
     minify: true
