@@ -164,7 +164,8 @@ export default class Editor implements IUpdatable {
             canvas.addEventListener('contextmenu', ev => ev.preventDefault());
             
             this.core.engine = new Engine(canvas, true, {
-                antialias: true
+                antialias: true,
+                premultipliedAlpha: false
             });
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);

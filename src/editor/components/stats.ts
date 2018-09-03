@@ -31,8 +31,8 @@ export default class Stats {
         // Layout
         this.layout = new Layout('STATS');
         this.layout.panels = [
-            { type: 'left', size: '50%', content: '<div id="STATS-RENDERING" style="width: 100%; height: 100%"></div>' },
-            { type: 'main', size: '50%', content: '<div id="SCENE-RENDERING" style="width: 100%; height: 100%"></div>' }
+            { type: 'left', size: '50%', content: '<div id="STATS-RENDERING" style="width: 100%; height: calc(100% - 100px);"></div>' },
+            { type: 'main', size: '50%', content: '<div id="SCENE-RENDERING" style="width: 100%; height: calc(100% - 100px);"></div>' }
         ];
         this.layout.build('STATS');
 

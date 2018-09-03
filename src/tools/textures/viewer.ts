@@ -9,7 +9,8 @@ import {
     RenderTargetTexture,
     Observer,
     DynamicTexture,
-    MirrorTexture
+    MirrorTexture,
+    EnvironmentTextureTools
 } from 'babylonjs';
 import 'babylonjs-procedural-textures';
 
@@ -19,6 +20,7 @@ import Editor, {
     Layout,
     Toolbar,
     Picker,
+    Dialog,
 
     EditorPlugin,
     UndoRedo
@@ -114,10 +116,14 @@ export default class TextureViewer extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('TextureViewerToolbar');
         this.toolbar.items = [
-            { id: 'add', text: 'Add...', caption: 'Add...', img: 'icon-add' },
-            { id: 'add-procedural', text: 'Add Procedural...', img: 'icon-add' },
-            { id: 'add-render-target', text: 'Add Render Target...', img: 'icon-add' },
-            { id: 'add-mirror', text: 'Add Mirror...', img: 'icon-add' },
+            { id: 'add', type: 'menu', text: 'Add', caption: 'Add', img: 'icon-add', items: [
+                { id: 'from-file', text: 'Add From File...', img: 'icon-add' },
+                { id: 'procedural', text: 'Add Procedural...', img: 'icon-add' },
+                { id: 'render-target', text: 'Add Render Target...', img: 'icon-add' },
+                { id: 'mirror', text: 'Add Mirror...', img: 'icon-add' },
+            ] },
+            { type: 'break' },
+            { id: 'convert-cube-texture', text: 'Convert Cube Texture...', img: 'icon-export' },
             { type: 'break' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
@@ -173,17 +179,21 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected toolbarClicked (target: string): void {
         switch (target) {
-            case 'add':
+            case 'add:from-file':
                 this.createFileDialog();
                 break;
-            case 'add-procedural':
+            case 'add:procedural':
                 this.addProceduralTexture();
                 break;
-            case 'add-render-target':
+            case 'add:render-target':
                 this.addRenderTargetTexture();
                 break;
-            case 'add-mirror':
+            case 'add:mirror':
                 this.addMirrorTexture();
+                break;
+
+            case 'convert-cube-texture':
+                this.convertCubeTexture();
                 break;
 
             case 'refresh':
@@ -258,7 +268,7 @@ export default class TextureViewer extends EditorPlugin {
      * @param extension: the extension of the file
      */
     protected async addPreviewNode (file: File, originalTexture: BaseTexture): Promise<void> {
-        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds'];
+        const availableExtensions = ['jpg', 'png', 'jpeg', 'bmp', 'dds', 'env'];
         const ext = Tools.GetFileExtension(file.name).toLowerCase();
 
         const texturesList = $('#TEXTURE-VIEWER-LIST');
@@ -273,7 +283,7 @@ export default class TextureViewer extends EditorPlugin {
             'margin': '10px'
         });
 
-        if (ext === 'dds') {
+        if (ext === 'dds' || ext === 'env') {
             // Canvas
             const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
                 width: '100px',
@@ -322,6 +332,44 @@ export default class TextureViewer extends EditorPlugin {
         });
         text.innerText = originalTexture.name;
         parent.appendChild(text);
+    }
+
+    /**
+     * Convets a cube texture to 
+     */
+    protected async convertCubeTexture (): Promise<void> {
+        const files = await Tools.OpenFileDialog();
+        const results: File[] = [];
+
+        // Notify user
+        this.layout.lockPanel('top', 'Converting', true);
+
+        // For each file, create the generated env file
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const ext = Tools.GetFileExtension(f.name);
+
+            if (ext === 'dds') {
+                // Notify converted texture
+                this.layout.lockPanel('top', 'Converting ' + f.name, true);
+
+                const id = f.name + BabylonTools.RandomId();
+                FilesInput.FilesToLoad[id] = f;
+
+                const baseTexture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
+
+                const envTextureBuffer = await EnvironmentTextureTools.CreateEnvTextureAsync(baseTexture);
+                results.push(Tools.CreateFile(new Uint8Array(envTextureBuffer), f.name.replace('.dds', '.env')));
+
+                delete FilesInput[id];
+            }
+        }
+
+        // Download
+        results.forEach(r => BabylonTools.Download(r, r.name));
+
+        // Unlock
+        this.layout.unlockPanel('top');
     }
 
     /**
@@ -451,6 +499,10 @@ export default class TextureViewer extends EditorPlugin {
                 this.texture = this.material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + name, this.scene);
                 this.sphere.setEnabled(true);
                 break;
+            case 'env':
+                this.texture = this.material.reflectionTexture = new CubeTexture('file:' + name, this.scene);
+                this.sphere.setEnabled(true);
+                break;
             case 'procedural':
                 this.camera.attachPostProcess(this.postProcess);
                 this.texture = ProceduralTexture.Parse(originalTexture.serialize(), this.scene, '');
@@ -533,6 +585,9 @@ export default class TextureViewer extends EditorPlugin {
                 switch (ext) {
                     case 'dds':
                         texture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
+                        break;
+                    case 'env':
+                        texture = new CubeTexture('file:' + f.name, this.editor.core.scene);
                         break;
                     default:
                         texture = new Texture('file:' + f.name, this.editor.core.scene);

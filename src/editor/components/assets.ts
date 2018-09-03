@@ -310,7 +310,7 @@ export default class EditorAssets {
         this.contextMenu.options.height = 55;
         this.contextMenu.tree.clear();
 
-        const items = (component.onContextMenu && component.onContextMenu()).concat([{ id: 'remove', text: 'Remove' }]);
+        const items = ((component.onContextMenu && component.onContextMenu()) || []).concat([{ id: 'remove', text: 'Remove' }]);
         items.forEach(i => {
             this.contextMenu.tree.add({ id: i.id, text: i.text, img: i.img });
             this.contextMenu.options.height += 12.5;
