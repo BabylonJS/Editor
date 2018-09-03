@@ -123,7 +123,7 @@ export default class TextureViewer extends EditorPlugin {
                 { id: 'mirror', text: 'Add Mirror...', img: 'icon-add' },
             ] },
             { type: 'break' },
-            { id: 'convert-cube-texture', text: 'Convert Cube Texture...', img: 'icon-export' },
+            { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },
             { type: 'break' },
             { id: 'refresh', text: 'Refresh', caption: 'Refresh', img: 'w2ui-icon-reload' }
         ];
@@ -349,20 +349,25 @@ export default class TextureViewer extends EditorPlugin {
             const f = files[i];
             const ext = Tools.GetFileExtension(f.name);
 
-            if (ext === 'dds') {
-                // Notify converted texture
-                this.layout.lockPanel('top', 'Converting ' + f.name, true);
+            if (ext !== 'dds')
+                continue;
+            
+            // Notify converted texture
+            this.layout.lockPanel('top', 'Converting ' + f.name, true);
 
-                const id = f.name + BabylonTools.RandomId();
-                FilesInput.FilesToLoad[id] = f;
+            // Load and convert
+            const id = f.name + BabylonTools.RandomId();
+            FilesInput.FilesToLoad[id] = f;
 
+            try {
                 const baseTexture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
 
                 const envTextureBuffer = await EnvironmentTextureTools.CreateEnvTextureAsync(baseTexture);
                 results.push(Tools.CreateFile(new Uint8Array(envTextureBuffer), f.name.replace('.dds', '.env')));
-
-                delete FilesInput[id];
+            } catch (e) {
+                // Catch silently
             }
+            delete FilesInput[id];
         }
 
         // Download
