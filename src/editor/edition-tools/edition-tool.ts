@@ -10,8 +10,9 @@ export interface IEditionTool<T> {
     object: T;
     tool: Edition;
 
-    update(object: T): void;
-    isSupported(object: any): boolean;
+    update (object: T): void;
+    clear (): void;
+    isSupported (object: any): boolean;
 }
 
 export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
@@ -27,13 +28,14 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
     /**
      * Constructor
      */
-    constructor() { }
+    constructor ()
+    { }
 
     /**
      * Updates the edition tool
      * @param object: the object to edit
      */
-    public update(object: T): void {
+    public update (object: T): void {
         this.object = object;
 
         // Reset edition element
@@ -48,10 +50,17 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
     }
 
     /**
+     * Called once the user selects a new object in
+     * the scene of the graph
+     */
+    public clear (): void
+    { }
+
+    /**
      * Sets the name of the tool's tab
      * @param name the new name of the tab
      */
-    protected setTabName(name: string): void {
+    protected setTabName (name: string): void {
         const tab = <any> this.editor.edition.tabs.get(this.divId);
         tab.caption = name;
 
@@ -62,5 +71,5 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
      * Returns if the object is supported by the edition tool
      * @param object: the object to test
      */
-    public abstract isSupported(object: any): boolean;
+    public abstract isSupported (object: any): boolean;
 }

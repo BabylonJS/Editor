@@ -181,6 +181,11 @@ export default class EditorInspector {
         let lastTool: IEditionTool<any> = null;
 
         this.tools.forEach(t => {
+            // Clear tool
+            t.clear();
+
+            // Check if supported then draw the tool, or hide if
+            // not supported
             if (t.isSupported(object)) {
                 // Show
                 $('#' + t.divId).show();
