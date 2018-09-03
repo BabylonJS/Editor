@@ -7,7 +7,7 @@ import {
 import Editor from '../editor';
 import SceneFactory from '../scene/scene-factory';
 
-import { IAssetComponent, AssetElement } from '../../shared/asset';
+import { IAssetComponent, AssetElement, AssetContextMenu } from '../../shared/asset';
 import { IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
 import Dialog from '../gui/dialog';
@@ -244,6 +244,27 @@ export default class PrefabAssetComponent implements IAssetComponent {
         });
 
         return this.datas;
+    }
+
+    /**
+     * On the user wants to show the context menu on the asset
+     */
+    public onContextMenu (): AssetContextMenu[] {
+        return [
+            {
+                // Rename
+                id: 'rename',
+                text: 'Rename...',
+                img: 'icon-export',
+                callback: async (asset: AssetElement<Prefab>) => {
+                    const name = await Dialog.CreateWithTextInput('Asset name...');
+                    asset.name = name;
+
+                    const adp = this.editor.assets.getAssetPreviewData(asset);
+                    adp.title.innerText = name;
+                }
+            }
+        ];
     }
 
     /**

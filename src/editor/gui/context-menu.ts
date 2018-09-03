@@ -21,6 +21,8 @@ export default class ContextMenu {
     public search: HTMLInputElement;
     public tree: Tree;
 
+    public options: ContextMenuOptions = null;
+
     // Protected members
     protected mouseUpCallback = (ev: MouseEvent) => {
         let parent = <HTMLDivElement> ev.target;
@@ -45,6 +47,7 @@ export default class ContextMenu {
     constructor (name: string, options: ContextMenuOptions) {
         // Misc.
         this.name = name;
+        this.options = options;
 
         // Build
         this.build(name, options);
@@ -60,6 +63,13 @@ export default class ContextMenu {
         this.mainDiv.style.left = (event.pageX + 10) / zoom + 'px';
         this.mainDiv.style.top = (event.pageY + 300 > window.innerHeight) ? (window.innerHeight - 300) / zoom + 'px' : event.pageY / zoom + 'px';
         this.mainDiv.style.visibility = '';
+
+        // Size
+        this.mainDiv.style.height = this.options.height + 'px';
+        this.mainDiv.style.width = this.options.width + 'px';
+
+        // Layout
+        this.layout.element.resize();
 
         // Mouse up (close or not the context menu)
         window.addEventListener('mousedown', this.mouseUpCallback);

@@ -12,6 +12,7 @@ import PrefabAssetComponent from '../prefabs/asset-component';
 export interface AssetPreviewData {
     asset: AssetElement<any>;
     img: HTMLImageElement;
+    title: HTMLElement;
     parent: HTMLDivElement;
 }
 
@@ -163,7 +164,7 @@ export default class EditorAssets {
                     'margin': '10px'
                 });
 
-                const text = Tools.CreateElement<HTMLElement>('small', a.name + 'text', {
+                const title = Tools.CreateElement<HTMLElement>('small', a.name + 'text', {
                     'float': 'left',
                     'width': assetSize,
                     'left': '50%',
@@ -181,7 +182,7 @@ export default class EditorAssets {
                 });
 
                 // Configure
-                text.innerText = a.name;
+                title.innerText = a.name;
                 img.src = a.img || EditorAssets._DefaultImageSource;
 
                 // Events
@@ -211,13 +212,14 @@ export default class EditorAssets {
 
                 // Add
                 parent.appendChild(img);
-                parent.appendChild(text);
+                parent.appendChild(title);
                 div.append(parent);
 
                 // Register
                 this.assetPreviewDatas.push({
                     asset: a,
                     img: img,
+                    title: title,
                     parent: parent
                 });
             });
@@ -305,12 +307,25 @@ export default class EditorAssets {
             return;
 
         // Configure
+        this.contextMenu.options.height = 55;
         this.contextMenu.tree.clear();
-        this.contextMenu.tree.add({ id: 'remove', text: 'Remove' });
+
+        const items = (component.onContextMenu && component.onContextMenu()).concat([{ id: 'remove', text: 'Remove' }]);
+        items.forEach(i => {
+            this.contextMenu.tree.add({ id: i.id, text: i.text, img: i.img });
+            this.contextMenu.options.height += 12.5;
+        });
 
         // Events
-        this.contextMenu.tree.onClick = () => {
-            // Undo redo
+        this.contextMenu.tree.onClick = (id) => {
+            // Custom callback?
+            const customItem = items.find(i => i.callback && i.id === id);
+            if (customItem) {
+                customItem.callback(asset);
+                return this.contextMenu.hide();
+            }
+
+            // Remove button, so manage undo/redo
             if (component.onAddAsset) {
                 UndoRedo.Push({
                     fn: (type) => {

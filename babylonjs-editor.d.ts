@@ -972,6 +972,7 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
             layout: Layout;
             search: HTMLInputElement;
             tree: Tree;
+            options: ContextMenuOptions;
             protected mouseUpCallback: (ev: MouseEvent) => void;
             /**
                 * Constructor
@@ -1745,6 +1746,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
     export interface AssetPreviewData {
             asset: AssetElement<any>;
             img: HTMLImageElement;
+            title: HTMLElement;
             parent: HTMLDivElement;
     }
     export default class EditorAssets {
@@ -1969,6 +1971,12 @@ declare module 'babylonjs-editor/shared/asset' {
         name?: string;
         data?: T;
     }
+    export interface AssetContextMenu {
+        id: string;
+        text: string;
+        img?: string;
+        callback?: (asset?: AssetElement<any>) => void;
+    }
     export interface IAssetComponent {
         id?: string;
         assetsCaption?: string;
@@ -1977,6 +1985,7 @@ declare module 'babylonjs-editor/shared/asset' {
         onRemoveAsset?(asset: AssetElement<any>): void;
         onAddAsset?(asset: AssetElement<any>): void;
         onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+        onContextMenu?(): AssetContextMenu[];
         onSerializeAssets?(): AssetElement<any>[];
         onParseAssets?(data: AssetElement<any>[]): void;
     }
@@ -1985,7 +1994,7 @@ declare module 'babylonjs-editor/shared/asset' {
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
     import { Mesh, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
-    import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
+    import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/shared/asset';
     import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
     export default class PrefabAssetComponent implements IAssetComponent {
             editor: Editor;
@@ -2036,6 +2045,10 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * asset component
                 */
             onGetAssets(): Promise<AssetElement<Prefab>[]>;
+            /**
+                * On the user wants to show the context menu on the asset
+                */
+            onContextMenu(): AssetContextMenu[];
             /**
                 * Builds the instances of the given data
                 * @param data the given data

@@ -732,8 +732,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             // Add and close context menu
             this.graphData.add(node);
             this._contextMenu.mainDiv.style.visibility = 'hidden';
-
-
         };
 
         // Focus on search
