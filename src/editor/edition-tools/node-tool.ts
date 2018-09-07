@@ -158,6 +158,53 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         }
 
         // Scripts
+        this.addScriptsConfiguration(node);
+    }
+
+    /**
+     * Creates a new instance
+     */
+    protected createInstance (): void {
+        const instance = (<Mesh>this.object).createInstance('New instance ' + BabylonTools.RandomId());
+        instance.id = BabylonTools.RandomId();
+
+        this.editor.graph.add({
+            id: instance.id,
+            img: this.editor.graph.getIcon(instance),
+            text: instance.name,
+            data: instance
+        }, this.object.id);
+
+        this.editor.edition.setObject(instance);
+        this.editor.graph.select(instance.id);
+    }
+
+    /**
+     * Plays the animations of the current node
+     * (including skeleton if exists)
+     */
+    protected playAnimations (): void {
+        const scene = this.editor.core.scene;
+
+        if (this.object.animations && this.object.animations.length > 0) {
+            const bounds = SceneManager.GetAnimationFrameBounds([this.object]);
+
+            scene.stopAnimation(this.object);
+            scene.beginAnimation(this.object, bounds.min, bounds.max, false, 1.0);
+        }
+
+        if (this.object instanceof Mesh && this.object.skeleton) {
+            const bounds = SceneManager.GetAnimationFrameBounds(this.object.skeleton.bones);
+
+            scene.stopAnimation(this.object.skeleton);
+            scene.beginAnimation(this.object.skeleton, bounds.min, bounds.max, false, 1.0);
+        }
+    }
+
+    /**
+     * Adds all the scripts metadatas to configure custom user values
+     */
+    protected addScriptsConfiguration (node: Node): void {
         const scripts = this.tool.addFolder('Scripts');
         scripts.open();
 
@@ -165,6 +212,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         if (behaviorExtension && node.metadata && node.metadata.behavior) {
             const data = <BehaviorNodeMetadata> node.metadata.behavior;
 
+            // For each metadata, get parameters
             data.metadatas.forEach(m => {
                 const code = this.editor.core.scene.metadata.behaviorScripts.find(s => s.id === m.codeId);
                 let params: any = null;
@@ -216,46 +264,6 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                     }
                 }
             });
-        }
-    }
-
-    /**
-     * Creates a new instance
-     */
-    protected createInstance (): void {
-        const instance = (<Mesh>this.object).createInstance('New instance ' + BabylonTools.RandomId());
-        instance.id = BabylonTools.RandomId();
-
-        this.editor.graph.add({
-            id: instance.id,
-            img: this.editor.graph.getIcon(instance),
-            text: instance.name,
-            data: instance
-        }, this.object.id);
-
-        this.editor.edition.setObject(instance);
-        this.editor.graph.select(instance.id);
-    }
-
-    /**
-     * Plays the animations of the current node
-     * (including skeleton if exists)
-     */
-    protected playAnimations (): void {
-        const scene = this.editor.core.scene;
-
-        if (this.object.animations && this.object.animations.length > 0) {
-            const bounds = SceneManager.GetAnimationFrameBounds([this.object]);
-
-            scene.stopAnimation(this.object);
-            scene.beginAnimation(this.object, bounds.min, bounds.max, false, 1.0);
-        }
-
-        if (this.object instanceof Mesh && this.object.skeleton) {
-            const bounds = SceneManager.GetAnimationFrameBounds(this.object.skeleton.bones);
-
-            scene.stopAnimation(this.object.skeleton);
-            scene.beginAnimation(this.object.skeleton, bounds.min, bounds.max, false, 1.0);
         }
     }
 }
