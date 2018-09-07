@@ -28,7 +28,7 @@ export interface PreviewScene {
     light: PointLight;
 }
 
-export default class AnimationEditor extends EditorPlugin {
+export default class MaterialsViewer extends EditorPlugin {
     // Public members
     public images: JQuery[] = [];
     public layout: Layout = null;

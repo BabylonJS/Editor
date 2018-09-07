@@ -508,9 +508,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      */
     protected playStop (stop: boolean = false): void {
         if (stop || this.graphData.status === LGraph.STATUS_RUNNING) {
-            for (const obj in this._savedState)
-                this.node[obj] = this._savedState[obj];
-            
+            // Reset node
+            if (this.node) {
+                this.editor.core.scene.stopAnimation(this.node);
+
+                if (this._savedState.material && this.node.material)
+                    this.node.material.dispose();
+
+                for (const obj in this._savedState)
+                    this.node[obj] = this._savedState[obj];
+            }
+
+            // Clear
             this._savedState = { };
             this.graphData.stop();
 
@@ -526,14 +535,35 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.position && (this._savedState.position = this.node.position.clone());
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
-            this.node.material && (this._savedState.material = this.node.material.clone(this.node.material.name));
+            this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
 
             const keys = Object.keys(this.node);
             keys.forEach(k => {
+                // No private members
+                if (k[0] === '_')
+                    return;
+                
+                // Primitive type
                 const type = typeof this.node[k];
 
-                if (type === 'number' || type === 'string' || type === 'boolean')
+                if (type === 'number' || type === 'string' || type === 'boolean') {
                     this._savedState[k] = this.node[k];
+                    return;
+                }
+
+                // Constructor
+                const ctor = Tools.GetConstructorName(this.node[k]);
+                
+                if (ctor === 'Vector3' || ctor === 'Vector3' || ctor === 'Vector4') {
+                    this._savedState[k] = this.node[k].clone();
+                    return;
+                } 
+
+
+                if (ctor === 'Color3' || ctor === 'Color4') {
+                    this._savedState[k] = this.node[k].clone();
+                    return;
+                }
             });
 
             // Start

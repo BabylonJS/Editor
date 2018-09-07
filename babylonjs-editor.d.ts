@@ -1012,6 +1012,7 @@ declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
             object: T;
             tool: Edition;
             update(object: T): void;
+            clear(): void;
             isSupported(object: any): boolean;
     }
     export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
@@ -1029,6 +1030,11 @@ declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
                 * @param object: the object to edit
                 */
             update(object: T): void;
+            /**
+                * Called once the user selects a new object in
+                * the scene of the graph
+                */
+            clear(): void;
             /**
                 * Sets the name of the tool's tab
                 * @param name the new name of the tab
