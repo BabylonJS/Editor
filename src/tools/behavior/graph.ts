@@ -198,8 +198,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.selectedAssetObserver = this.editor.core.onSelectAsset.add(data => this.assetSelected(data));
         
         // Select object
-        if (this.editor.core.currentSelectedObject)
-            this.objectSelected(this.editor.core.currentSelectedObject);
+        this.objectSelected(this.editor.core.currentSelectedObject);
         
         // Request extension
         this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
@@ -302,6 +301,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         if (asset.graph) {
             this.layout.hidePanel('left');
+
+            this.toolbar.updateItem('paste', { hidden: true });
+            this.toolbar.updateItem('play-stop', { hidden: true });
+
             this.resize();
 
             this.datas = {
@@ -322,9 +325,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param data the selected node
      */
     protected objectSelected (node: Node | Scene): void {
-        if (!(node instanceof Node) && !(node instanceof Scene)) {
+        if (!node || !(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
             this.layout.lockPanel('main', 'No Node Selected');
+
+            this.toolbar.updateItem('paste', { hidden: true });
+            this.toolbar.updateItem('play-stop', { hidden: true });
+
             return;
         }
 
@@ -389,6 +396,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.layout.lockPanel('main', 'No Graph Selected');
         else
             this.layout.unlockPanel('main');
+
+        this.toolbar.updateItem('paste', { hidden: false });
+        this.toolbar.updateItem('play-stop', { hidden: false });
     }
 
     /**
