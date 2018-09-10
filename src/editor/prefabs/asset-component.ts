@@ -1,5 +1,5 @@
 import {
-    Mesh, AbstractMesh, PickingInfo, Tags,
+    Node, Mesh, AbstractMesh, PickingInfo, Tags,
     Tools as BabylonTools, Vector3, Quaternion,
     InstancedMesh, Animation, Engine
 } from 'babylonjs';
@@ -12,7 +12,7 @@ import { IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
 import Dialog from '../gui/dialog';
 
-import { Prefab } from './prefab';
+import { Prefab, PrefabNodeType } from './prefab';
 import PrefabsHelpers from './helpers';
 
 export default class PrefabAssetComponent implements IAssetComponent {
@@ -37,8 +37,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * Creates a new prefab
      * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
      */
-    public async createPrefab (sourceMesh: Mesh): Promise<AssetElement<Prefab>> {
-        const descendants = <Mesh[]> sourceMesh.getDescendants(false, n => n instanceof Mesh);
+    public async createPrefab (sourceMesh: Node): Promise<AssetElement<Prefab>> {
+        const descendants = <Mesh[]> sourceMesh.getDescendants(false, n => n instanceof Node);
         const sourceMeshes = (descendants.length > 1 || descendants[0] !== sourceMesh) ? [sourceMesh].concat(descendants) : [sourceMesh];
 
         // Default asset
@@ -94,7 +94,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         const instancesDictionary = asset.data.sourceInstances;
         for (const key in instancesDictionary) {
             const instances = instancesDictionary[key];
-            instances.forEach(i => i.dispose(true, false));
+            instances.forEach(i => i.dispose());
             
             instancesDictionary[key] = [];
         }
@@ -117,7 +117,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
         // Parent
-        const parent = asset.data.sourceMesh.createInstance(asset.name + ' (Prefab)');
+        const parent = asset.data.sourceMesh instanceof Mesh ? asset.data.sourceMesh.createInstance(asset.name + ' (Prefab)') : this._cloneNode(asset.data.sourceMesh);
         parent.id = BabylonTools.RandomId();
         parent.position.copyFrom(pickInfo.pickedPoint);
         parent.doNotSerialize = true;
@@ -132,7 +132,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 if (index === 0)
                     return;
                 
-                const instance = m.createInstance(asset.name);
+                const instance = m instanceof Mesh ? m.createInstance(asset.name) : this._cloneNode(m);
                 instance.id = BabylonTools.RandomId();
                 instance.parent = parent;
                 instance.doNotSerialize = true;
@@ -147,7 +147,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
         Tags.RemoveTagsFrom(parent, 'added');
 
         // Select
-        this.editor.scenePicker.setGizmoAttachedMesh(parent);
+        if (parent instanceof AbstractMesh)
+            this.editor.scenePicker.setGizmoAttachedMesh(parent);
+        
         this.editor.core.onSelectObject.notifyObservers(parent);
     }
 
@@ -159,7 +161,15 @@ export default class PrefabAssetComponent implements IAssetComponent {
             const instances: IStringDictionary<any[]> = { };
             d.data.sourceMeshes.forEach(m => {
                 instances[m.name] = [];
-                m.instances.forEach(i => (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master')) && instances[m.name].push(i.serialize()));
+                if (m instanceof Mesh) {
+                    m.instances.forEach(i => {
+                        if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master'))
+                            instances[m.name].push(i.serialize());
+                    });
+                }
+                else {
+                    instances[m.name].push(m.serialize());
+                }
             });
 
             return {
@@ -281,7 +291,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceInstances = { };
 
             // Get source mesh
-            const source = <Mesh> (scene.getMeshByID(d.data.nodeIds[0]) || scene.getMeshByName(d.data.nodes[0]));
+            const source = <PrefabNodeType> (scene.getNodeByID(d.data.nodeIds[0]) || scene.getNodeByName(d.data.nodes[0]));
             if (!source)
                 return;
 
@@ -293,35 +303,39 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceInstances[source.name] = [];
 
             parents.forEach(p => {
-                const parent = source.createInstance(p.name);
+                const parent = source instanceof Mesh ? source.createInstance(p.name) : this._cloneNode(source);
                 parent.id = p.id;
                 parent.doNotSerialize = true;
 
                 d.data.sourceInstances[source.name].push(parent);
-                this._configureInstance(p, parent);
                 Tags.AddTagsTo(parent, 'prefab-master');
+
+                if (parent instanceof InstancedMesh)
+                    this._configureInstance(p, parent);
 
                 count++;
             });
 
             // Recreate children instances
             for (let i = 1; i < d.data.nodeIds.length; i++) {
-                const mesh = <Mesh> (scene.getMeshByID(d.data.nodeIds[i]) || scene.getMeshByName(d.data.nodes[i]));
-                if (!mesh)
-                    return;
+                const node = <PrefabNodeType> (scene.getNodeByID(d.data.nodeIds[i]) || scene.getNodeByName(d.data.nodes[i]));
+                if (!node)
+                    continue;
 
-                d.data.sourceMeshes.push(mesh);
-                d.data.sourceInstances[mesh.name] = [];
+                d.data.sourceMeshes.push(node);
+                d.data.sourceInstances[node.name] = [];
 
-                d.data.instances[mesh.name].forEach(inst => {
-                    const instance = mesh.createInstance(inst.name);
+                d.data.instances[node.name].forEach(inst => {
+                    const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node);
                     instance.id = inst.id;
-                    instance.parent = d.data.sourceInstances[source.name].find(p => p.id === inst.parentId); //scene.getNodeByID(inst.parentId);
+                    instance.parent = this.editor.core.scene.getNodeByID(inst.parentId);
                     instance.doNotSerialize = true;
 
-                    d.data.sourceInstances[mesh.name].push(instance);
-                    this._configureInstance(inst, instance);
+                    d.data.sourceInstances[node.name].push(instance);
                     Tags.AddTagsTo(instance, 'prefab');
+
+                    if (instance instanceof InstancedMesh)
+                        this._configureInstance(inst, instance);
 
                     count++;
                 });
@@ -346,6 +360,14 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 instances.forEach(i => i.doNotSerialize = !serializable);
             }
         });
+    }
+
+    // Clones the given node
+    private _cloneNode (node: any): PrefabNodeType {
+        if (node.clone)
+            return node.clone(node.name + ' Cloned', node.parent);
+
+        return null;
     }
 
     // Configures the given instance

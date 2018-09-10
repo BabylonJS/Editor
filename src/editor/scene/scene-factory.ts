@@ -32,8 +32,10 @@ export default class SceneFactory {
     public static AddToGraph (editor: Editor, node: any): void {
         // Add tags
         Tags.AddTagsTo(node, 'added');
-        
-        const selected = editor.graph.getSelected();
+
+        // Id
+        if (!node.id || node.id === node.name)
+            node.id = BabylonTools.RandomId();
 
         // TODO: add dynamically instead of rebuilding graph
         if (node instanceof Control) {
@@ -67,6 +69,7 @@ export default class SceneFactory {
             editor.graph.fill();
         }
 
+        const selected = editor.graph.getSelected();
         editor.graph.select(selected ? selected.id : editor.graph.root);
         editor.graph.select(node.id);
     }
