@@ -18,7 +18,7 @@ export default class PrefabsHelpers {
      * @param engine the babylonjs engine
      */
     public static async CreatePreview (d: AssetElement<Prefab>, engine: Engine): Promise<void> {
-        const serialization = SceneSerializer.SerializeMesh(d.data.sourceMesh, false, true);
+        const serialization = SceneSerializer.SerializeMesh(d.data.sourceNode, false, true);
         const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name + '.babylon');
         const canvas = engine.getRenderingCanvas();
 
@@ -37,7 +37,7 @@ export default class PrefabsHelpers {
                         // Find camera position
                         const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                         const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-                        const descendants = [d.data.sourceMesh].concat(<Mesh[]> d.data.sourceMesh.getDescendants(false, n => n instanceof Mesh));
+                        const descendants = [d.data.sourceNode].concat(<Mesh[]> d.data.sourceNode.getDescendants(false, n => n instanceof Mesh));
 
                         descendants.forEach(d => {
                             if (!(d instanceof Mesh))
@@ -56,8 +56,8 @@ export default class PrefabsHelpers {
                         const center = Vector3.Center(minimum, maximum);
                         const distance = Vector3.Distance(minimum, maximum) * 0.5;
 
-                        camera.position = d.data.sourceMesh.position.add(maximum).add(new Vector3(distance, distance, distance));
-                        camera.setTarget(d.data.sourceMesh.position.add(center));
+                        camera.position = d.data.sourceNode.position.add(maximum).add(new Vector3(distance, distance, distance));
+                        camera.setTarget(d.data.sourceNode.position.add(center));
                         light.position = camera.position.clone();
 
                         // Render
