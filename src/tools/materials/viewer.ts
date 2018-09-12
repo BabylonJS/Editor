@@ -39,7 +39,6 @@ export default class MaterialsViewer extends EditorPlugin {
 
     // Protected members
     protected canvas: HTMLCanvasElement = null;
-    protected contextMenu: ContextMenu = null;
 
     protected engines: Engine[] = [];
     protected onResizePreview = () => this.resize();
@@ -48,6 +47,9 @@ export default class MaterialsViewer extends EditorPlugin {
     protected onAddObject = (material) => this.waitingMaterials.push(material);
 
     protected targetObject: AbstractMesh;
+
+    // Static members
+    public static ContextMenu: ContextMenu = null;
 
     /**
      * Constructor
@@ -109,12 +111,12 @@ export default class MaterialsViewer extends EditorPlugin {
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
 
         // Context menu
-        this.contextMenu = new ContextMenu('MaterialsViewerContextMenu', {
+        MaterialsViewer.ContextMenu = MaterialsViewer.ContextMenu || new ContextMenu('MaterialsViewerContextMenu', {
             search: false,
             height: 54,
             width: 200
         });
-        this.contextMenu.tree.add({ id: 'clone', img: 'icon-clone', text: 'Clone' });
+        MaterialsViewer.ContextMenu.tree.add({ id: 'clone', img: 'icon-clone', text: 'Clone' });
 
         // Add preview
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
@@ -232,8 +234,8 @@ export default class MaterialsViewer extends EditorPlugin {
             'height': '100px'
         });
         img.addEventListener('contextmenu', ev => {
-            this.contextMenu.show(ev);
-            this.contextMenu.tree.onClick = (id) => {
+            MaterialsViewer.ContextMenu.show(ev);
+            MaterialsViewer.ContextMenu.tree.onClick = (id) => {
                 // Only clone
                 const newMaterial = material.clone(material.name + ' Cloned');
                 newMaterial.id = BabylonTools.RandomId();
@@ -242,7 +244,7 @@ export default class MaterialsViewer extends EditorPlugin {
                 this.createPreviewNode(div, canvas, preview, newMaterial);
 
                 // Hide
-                this.contextMenu.hide();
+                MaterialsViewer.ContextMenu.hide();
             };
         });
 

@@ -91,14 +91,14 @@ export default class ContextMenu {
      */
     public remove (): void {
         window.removeEventListener('mousedown', this.mouseUpCallback);
-        
-        this.layout.element.destroy();
 
         if (this.search)
             this.search.remove();
         
-        this.tree.destroy();
+        this.tree.element.destroy();
         this.mainDiv.remove();
+
+        this.layout.element.destroy();
     }
 
     /**
@@ -124,7 +124,7 @@ export default class ContextMenu {
         document.body.appendChild(this.mainDiv);
 
         // Layout
-        this.layout = new Layout(name);
+        this.layout = new Layout(mainDivId);
         this.layout.panels = [{
             title: 'Options',
             type: 'main',
@@ -136,7 +136,7 @@ export default class ContextMenu {
         this.layout.build(mainDivId);
 
         // Tree
-        this.tree = new Tree(`${name}_tree`);
+        this.tree = new Tree(name);
         this.tree.wholerow = true;
         this.tree.keyboard = true;
         this.tree.build(name);
