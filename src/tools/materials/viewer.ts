@@ -368,6 +368,8 @@ export default class MaterialsViewer extends EditorPlugin {
         const materials: string[] = [
             'StandardMaterial',
             'PBRMaterial',
+            'PBRMetallicRoughnessMaterial',
+            'PBRSpecularGlossinessMaterial',
             'FireMaterial',
             'CellMaterial',
             'GridMaterial',

@@ -15,6 +15,8 @@ import SkeletonTool from '../edition-tools/skeleton-tool';
 
 import StandardMaterialTool from '../edition-tools/materials/standard-tool';
 import PBRMaterialTool from '../edition-tools/materials/pbr-tool';
+import PBRMetallicRoughnessMaterialTool from '../edition-tools/materials/pbr-metallic-roughness-tool';
+import PBRSpecularGlossinessMaterialTool from '../edition-tools/materials/pbr-specular-glossiness-tool';
 import WaterMaterialTool from '../edition-tools/materials/water-tool';
 import CustomMaterialTool from '../edition-tools/materials/custom-tool';
 import SkyMaterialTool from '../edition-tools/materials/sky-tool';
@@ -94,6 +96,8 @@ export default class EditorInspector {
         
         this.addTool(new StandardMaterialTool());
         this.addTool(new PBRMaterialTool());
+        this.addTool(new PBRMetallicRoughnessMaterialTool());
+        this.addTool(new PBRSpecularGlossinessMaterialTool());
         this.addTool(new WaterMaterialTool());
         this.addTool(new CustomMaterialTool());
         this.addTool(new SkyMaterialTool());

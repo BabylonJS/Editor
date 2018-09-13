@@ -1998,7 +1998,7 @@ declare module 'babylonjs-editor/shared/asset' {
 }
 
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
-    import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
+    import { Mesh, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/shared/asset';
     import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
@@ -2019,7 +2019,7 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 * Creates a new prefab
                 * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
                 */
-            createPrefab(sourceNode: Node): Promise<AssetElement<Prefab>>;
+            createPrefab(sourceMesh: Mesh): Promise<AssetElement<Prefab>>;
             /**
                 * On the user adds a new prefab asset
                 * @param asset the asset to add in the collection
@@ -2099,17 +2099,16 @@ declare module 'babylonjs-editor/extensions/extension' {
 }
 
 declare module 'babylonjs-editor/editor/prefabs/prefab' {
-    import { InstancedMesh, SpotLight, PointLight, DirectionalLight, Mesh } from 'babylonjs';
+    import { Mesh, InstancedMesh } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export type PrefabNodeType = SpotLight | PointLight | DirectionalLight | InstancedMesh;
     export interface Prefab {
         isPrefab: boolean;
         nodes: string[];
         nodeIds: string[];
         instances: IStringDictionary<any[]>;
-        sourceNodes?: (Mesh | PrefabNodeType)[];
-        sourceNode?: Mesh | PrefabNodeType;
-        sourceInstances?: IStringDictionary<PrefabNodeType[]>;
+        sourceMeshes?: Mesh[];
+        sourceMesh?: Mesh;
+        sourceInstances?: IStringDictionary<InstancedMesh[]>;
     }
 }
 

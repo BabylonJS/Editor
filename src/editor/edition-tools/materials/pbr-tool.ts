@@ -1,7 +1,6 @@
 import { PBRMaterial }  from 'babylonjs';
 
 import MaterialTool from './material-tool';
-import Tools from '../../tools/tools';
 
 export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
     // Public members
