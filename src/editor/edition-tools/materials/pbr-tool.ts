@@ -22,6 +22,14 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
     public update(object: any): void {
         super.update(object);
         
+        // Options
+        const pbrOptions = this.tool.addFolder('PBR Options');
+        pbrOptions.open();
+        pbrOptions.add(this.object, 'forceIrradianceInFragment').name('Force Irradiance In Fragment');
+        pbrOptions.add(this.object, 'forceNormalForward').name('Force Normal Forward');
+        pbrOptions.add(this.object, 'enableSpecularAntiAliasing').name('Force Specular Anti-Aliasing');
+        pbrOptions.add(this.object, 'usePhysicalLightFalloff').name('Use Physical Light Falloff');
+
         // Albedo
         const albedo = this.tool.addFolder('Albedo');
         albedo.open();
