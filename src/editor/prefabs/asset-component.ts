@@ -173,8 +173,11 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 // Lights, etc.
                 else {
                     d.data.sourceInstances[m.name].forEach(i => {
-                        if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master'))
-                            instances[m.name].push(i.serialize());
+                        if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master')) {
+                            const serializationObject = i.serialize();
+                            serializationObject.customType = Tools.GetConstructorName(i);
+                            instances[m.name].push(serializationObject);
+                        }
                     });
                 }
             });
@@ -310,7 +313,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceInstances[source.name] = [];
 
             parents.forEach(p => {
-                const parent = source instanceof Mesh ? source.createInstance(p.name) : this._cloneNode(source);
+                const parent = source instanceof Mesh ? source.createInstance(p.name) : this._cloneNode(source, p);
                 parent.id = p.id;
                 parent.doNotSerialize = true;
 
@@ -333,7 +336,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 d.data.sourceInstances[node.name] = [];
 
                 d.data.instances[node.name].forEach(inst => {
-                    const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node);
+                    const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node, inst);
                     instance.id = inst.id;
                     instance.parent = this.editor.core.scene.getNodeByID(inst.parentId);
                     instance.doNotSerialize = true;
@@ -370,7 +373,12 @@ export default class PrefabAssetComponent implements IAssetComponent {
     }
 
     // Clones the given node
-    private _cloneNode (node: any): PrefabNodeType {
+    private _cloneNode (node: any, prefab?: any): PrefabNodeType {
+        if (prefab && prefab.customType) {
+            const clone = BABYLON[prefab.customType].Parse(prefab, this.editor.core.scene, 'file:');
+            return clone;
+        }
+
         if (node.clone)
             return node.clone(node.name + ' Cloned', node.parent);
 
