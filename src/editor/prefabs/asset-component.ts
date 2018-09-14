@@ -1,7 +1,7 @@
 import {
     Node, Mesh, AbstractMesh, PickingInfo, Tags,
     Tools as BabylonTools, Vector3, Quaternion,
-    InstancedMesh, Animation, Engine
+    InstancedMesh, Animation, Engine, ParticleSystem
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -39,7 +39,16 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public async createPrefab (sourceNode: Node): Promise<AssetElement<Prefab>> {
         const descendants = <Mesh[]> sourceNode.getDescendants(false, n => n instanceof Node);
-        const sourceNodes = (descendants.length > 1 || descendants[0] !== sourceNode) ? [sourceNode].concat(descendants) : [sourceNode];
+        const sourceNodes: (Node | ParticleSystem)[] = (descendants.length > 1 || descendants[0] !== sourceNode) ? [sourceNode].concat(descendants) : [sourceNode];
+
+        // Check particle systems
+        const scene = this.editor.core.scene;
+
+        for (const ps of scene.particleSystems) {
+            const emitter = sourceNodes.find(n => n === ps.emitter);
+            if (emitter)
+                sourceNodes.push(<ParticleSystem> ps);
+        }
 
         // Default asset
         const asset = <AssetElement<Prefab>> {
@@ -119,7 +128,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
         // Parent
         const parent = asset.data.sourceNode instanceof Mesh ? asset.data.sourceNode.createInstance(asset.name + ' (Prefab)') : this._cloneNode(asset.data.sourceNode);
         parent.id = BabylonTools.RandomId();
-        parent.position.copyFrom(pickInfo.pickedPoint);
+        
+        if (parent['position'])
+            parent['position'].copyFrom(pickInfo.pickedPoint);
         parent.doNotSerialize = true;
 
         Tags.AddTagsTo(parent, 'prefab-master');
@@ -134,7 +145,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 
                 const instance = m instanceof Mesh ? m.createInstance(asset.name) : this._cloneNode(m);
                 instance.id = BabylonTools.RandomId();
-                instance.parent = parent;
+                instance['parent'] = instance['emitter'] = parent;
                 instance.doNotSerialize = true;
 
                 // Register instance
@@ -270,26 +281,24 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * On the user wants to show the context menu on the asset
      */
     public onContextMenu (): AssetContextMenu[] {
-        return [
-            {
-                // Rename
-                id: 'rename',
-                text: 'Rename...',
-                img: 'icon-export',
-                callback: async (asset: AssetElement<Prefab>) => {
-                    const name = await Dialog.CreateWithTextInput('Asset name...');
-                    asset.name = name;
+        return [{
+            // Rename
+            id: 'rename',
+            text: 'Rename...',
+            img: 'icon-export',
+            callback: async (asset: AssetElement<Prefab>) => {
+                const name = await Dialog.CreateWithTextInput('Asset name...');
+                asset.name = name;
 
-                    const adp = this.editor.assets.getAssetPreviewData(asset);
-                    adp.title.innerText = name;
-                }
+                const adp = this.editor.assets.getAssetPreviewData(asset);
+                adp.title.innerText = name;
             }
-        ];
+        }];
     }
 
     /**
-     * Builds the instances of the given data
-     * @param data the given data
+     * Builds the instances of the given asset
+     * @param data the asset's data
      */
     public buildInstances (data: AssetElement<Prefab>[]): number {
         const scene = this.editor.core.scene;
@@ -301,7 +310,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceInstances = { };
 
             // Get source mesh
-            const source = <PrefabNodeType> (scene.getNodeByID(d.data.nodeIds[0]) || scene.getNodeByName(d.data.nodes[0]));
+            const source = this._getNode(d.data.nodeIds[0], d.data.nodes[0]);
             if (!source)
                 return;
 
@@ -328,7 +337,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
             // Recreate children instances
             for (let i = 1; i < d.data.nodeIds.length; i++) {
-                const node = <PrefabNodeType> (scene.getNodeByID(d.data.nodeIds[i]) || scene.getNodeByName(d.data.nodes[i]));
+                const node = this._getNode(d.data.nodeIds[i], d.data.nodes[i]);
                 if (!node)
                     continue;
 
@@ -338,7 +347,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 d.data.instances[node.name].forEach(inst => {
                     const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node, inst);
                     instance.id = inst.id;
-                    instance.parent = this.editor.core.scene.getNodeByID(inst.parentId);
+                    instance['parent'] = instance['emitter'] = this.editor.core.scene.getNodeByID(inst.parentId);
                     instance.doNotSerialize = true;
 
                     d.data.sourceInstances[node.name].push(instance);
@@ -379,10 +388,26 @@ export default class PrefabAssetComponent implements IAssetComponent {
             return clone;
         }
 
-        if (node.clone)
-            return node.clone(node.name + ' Cloned', node.parent);
+        if (node.clone) {
+            const clone = node.clone(node.name + ' Cloned', node.parent);
+
+            // Fix particle texture
+            if (clone instanceof ParticleSystem) {
+                clone.particleTexture && clone.particleTexture.dispose();
+                clone.particleTexture = node.particleTexture;
+            }
+
+            return clone;
+        }
 
         return null;
+    }
+
+    // Returns the node identified by the given id or name
+    private _getNode (id: string, name: string): PrefabNodeType {
+        const scene = this.editor.core.scene;
+
+        return <PrefabNodeType> (scene.getNodeByID(id) || scene.getNodeByName(name) || scene.getParticleSystemByID(id));
     }
 
     // Configures the given instance

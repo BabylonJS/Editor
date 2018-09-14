@@ -1,9 +1,10 @@
-import { Light, InstancedMesh, SpotLight, PointLight, HemisphericLight, DirectionalLight, Mesh } from 'babylonjs';
+import { InstancedMesh, SpotLight, PointLight, DirectionalLight, Mesh, ParticleSystem } from 'babylonjs';
 import { IStringDictionary } from '../typings/typings';
 
 export type PrefabNodeType = 
     SpotLight | PointLight | DirectionalLight |
-    InstancedMesh;
+    InstancedMesh |
+    ParticleSystem;
 
 export interface Prefab {
     isPrefab: boolean; // Used to edition tools to check isPrefab

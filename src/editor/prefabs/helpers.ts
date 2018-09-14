@@ -3,8 +3,8 @@ import {
     Scene, Engine,
     FreeCamera, PointLight,
     Vector3,
-    AbstractMesh,
-    Mesh
+    Mesh,
+    ParticleSystem
 } from 'babylonjs';
 
 import { AssetElement } from '../../shared/asset';
@@ -18,6 +18,7 @@ export default class PrefabsHelpers {
      * @param engine the babylonjs engine
      */
     public static async CreatePreview (d: AssetElement<Prefab>, engine: Engine): Promise<void> {
+        // Create preview
         const serialization = SceneSerializer.SerializeMesh(d.data.sourceNode, false, true);
         const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name + '.babylon');
         const canvas = engine.getRenderingCanvas();
@@ -34,6 +35,10 @@ export default class PrefabsHelpers {
                     scene.render();
                     
                     if (scene.getWaitingItemsCount() === 0) {
+                        // Exclude particle systems for instance
+                        if (d.data.sourceNode instanceof ParticleSystem)
+                            return;
+
                         // Find camera position
                         const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                         const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
