@@ -1,7 +1,8 @@
 import {
     Engine, Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
-    PointerInfo, PointerEventTypes, Vector3, Camera, BoundingBoxGizmo, Color3
+    PointerInfo, PointerEventTypes, Vector3, Camera,
+    BoundingBoxGizmo, Color3, Quaternion
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -46,7 +47,11 @@ export default class ScenePicker {
     // Private members
     private _enabled: boolean = true;
     private _gizmoType: GizmoType = GizmoType.NONE;
+
     private _gizmoDelta: number = 0;
+    private _gizmoScaleDelta: Vector3 = null;
+    private _gizmoPositionDelta: Vector3 = null;
+    private _gizmoRotationDelta: Quaternion = null;
 
     /**
      * Constructor
@@ -126,18 +131,34 @@ export default class ScenePicker {
 
         // Events
         if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {
-            this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-            this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
-            this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.editor.core.currentSelectedObject));
+            this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+            this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
+            this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(() => this.onUpdateMesh && this.onUpdateMesh(this.currentGizmo.attachedMesh));
 
             // Undo redo
             this.currentGizmo.xGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.x);
             this.currentGizmo.yGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.y);
             this.currentGizmo.zGizmo.dragBehavior.onDragObservable.add(g => this._gizmoDelta += g.delta.z);
 
-            this.currentGizmo.xGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('x'));
-            this.currentGizmo.yGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('y'));
-            this.currentGizmo.zGizmo.dragBehavior.onDragEndObservable.add(g => this.undoRedo('z'));
+            this.currentGizmo.xGizmo.dragBehavior.onDragEndObservable.add(_ => this.undoRedo('x'));
+            this.currentGizmo.yGizmo.dragBehavior.onDragEndObservable.add(_ => this.undoRedo('y'));
+            this.currentGizmo.zGizmo.dragBehavior.onDragEndObservable.add(_ => this.undoRedo('z'));
+        }
+        else {
+            this.currentGizmo.onScaleBoxDragObservable.add(_ => {
+                if (this._gizmoScaleDelta === null) {
+                    this._gizmoScaleDelta = Vector3.Zero().copyFrom(this.boundingBoxGizmo.attachedMesh.scaling);
+                    this._gizmoPositionDelta = Vector3.Zero().copyFrom(this.boundingBoxGizmo.attachedMesh.position);
+                }
+            });
+
+            this.currentGizmo.onRotationSphereDragObservable.add(_ => {
+                if (this._gizmoRotationDelta === null)
+                    this._gizmoRotationDelta = new Quaternion().copyFrom(this.boundingBoxGizmo.attachedMesh.rotationQuaternion);
+            });
+
+            this.currentGizmo.onScaleBoxDragEndObservable.add(_ => this.undoRedo('boundingbox'));
+            this.currentGizmo.onRotationSphereDragEndObservable.add(_ => this.undoRedo('boundingbox'));
         }
     }
 
@@ -199,7 +220,7 @@ export default class ScenePicker {
      * @param delta the delta value (from / to)
      * @param axis the moved axis
      */
-    protected undoRedo (axis: 'x' | 'y' | 'z'): void {
+    protected undoRedo (axis: 'x' | 'y' | 'z' | 'boundingbox'): void {
         let vector: Vector3 = null;
         switch (this._gizmoType) {
             case GizmoType.POSITION: vector = this.positionGizmo.xGizmo.attachedMesh.position; break;
@@ -212,9 +233,40 @@ export default class ScenePicker {
             case 'x': UndoRedo.Push({ object: vector, property: 'x', from: vector.x - this._gizmoDelta, to: vector.x }); break;
             case 'y': UndoRedo.Push({ object: vector, property: 'y', from: vector.y - this._gizmoDelta, to: vector.y }); break;
             case 'z': UndoRedo.Push({ object: vector, property: 'z', from: vector.z - this._gizmoDelta, to: vector.z }); break;
+            case 'boundingbox':
+                if (this._gizmoScaleDelta) {
+                    const lastScale = this._gizmoScaleDelta.clone();
+                    const lastPosition = this._gizmoPositionDelta.clone();
+                    
+                    const newScale = this.boundingBoxGizmo.attachedMesh.scaling.clone();
+                    const newPosition = this.boundingBoxGizmo.attachedMesh.position.clone();
+
+                    UndoRedo.Push({
+                        fn: type => {
+                            if (type === 'from') {
+                                this.boundingBoxGizmo.attachedMesh.scaling = lastScale;
+                                this.boundingBoxGizmo.attachedMesh.position = lastPosition;
+                            }
+                            else {
+                                this.boundingBoxGizmo.attachedMesh.scaling = newScale;
+                                this.boundingBoxGizmo.attachedMesh.position = newPosition;
+                            }
+                        }
+                    });
+                }
+                else {
+                    const lastRotation = this._gizmoRotationDelta.clone();
+                    const newRotation = this.boundingBoxGizmo.attachedMesh.rotationQuaternion.clone();
+
+                    UndoRedo.Push({ object: this.boundingBoxGizmo.attachedMesh, property: 'rotationQuaternion', from: lastRotation, to: newRotation });
+                }
+                break;
         }
 
         this._gizmoDelta = 0;
+        this._gizmoScaleDelta = null;
+        this._gizmoPositionDelta = null;
+        this._gizmoRotationDelta = null;
     }
 
     /**
