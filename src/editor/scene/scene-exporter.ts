@@ -45,7 +45,8 @@ export default class SceneExporter {
             serializedScene.activeCameraID = editor.playCamera.id;
         
         if (format === 'babylon') {
-            editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
+            editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene' + randomId + '.babylon');
+            FilesInput.FilesToLoad[editor.sceneFile.name] = editor.sceneFile;
         }
 
         // Gui
@@ -59,6 +60,7 @@ export default class SceneExporter {
         const name = 'scene' + randomId + '.editorproject';
         const project = this.Export(editor);
         editor.projectFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
+        FilesInput.FilesToLoad[editor.projectFile.name] = editor.projectFile;
     }
 
     /**

@@ -4,7 +4,8 @@ import {
     FreeCamera, PointLight,
     Vector3,
     Mesh,
-    ParticleSystem
+    ParticleSystem,
+    FilesInput
 } from 'babylonjs';
 
 import { AssetElement } from '../../shared/asset';
@@ -20,7 +21,7 @@ export default class PrefabsHelpers {
     public static async CreatePreview (d: AssetElement<Prefab>, engine: Engine): Promise<void> {
         // Create preview
         const serialization = SceneSerializer.SerializeMesh(d.data.sourceNode, false, true);
-        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name + '.babylon');
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name.toLowerCase() + '.babylon');
         const canvas = engine.getRenderingCanvas();
 
         const scene = new Scene(engine);
@@ -28,6 +29,9 @@ export default class PrefabsHelpers {
 
         const camera = new FreeCamera('PrefabAssetCamera', Vector3.Zero(), scene);
         const light = new PointLight('PrefabAssetLight', Vector3.Zero(), scene);
+
+        // Add file
+        FilesInput.FilesToLoad[file.name] = file;
 
         await new Promise<void>((resolve) => {
             SceneLoader.Append('file:', file.name, scene, () => {
@@ -76,6 +80,9 @@ export default class PrefabsHelpers {
 
             engine.hideLoadingUI();
         });
+
+        // Remove file
+        delete FilesInput.FilesToLoad[file.name];
 
         // Dispose
         scene.dispose();
