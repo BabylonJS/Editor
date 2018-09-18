@@ -216,7 +216,7 @@ export default class ScenePicker {
         if (Math.abs(this.lastX - ev.offsetX) > 5 || Math.abs(this.lastY - ev.offsetY) > 5)
             return;
         
-        const pick = this.scene.pick(ev.offsetX, ev.offsetY);
+        const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY) || this.scene.pick(ev.offsetX, ev.offsetY);
 
         if (pick.pickedMesh && this.onPickedMesh) {
             this.onPickedMesh(pick.pickedMesh);
@@ -237,7 +237,7 @@ export default class ScenePicker {
         if (this.lastMesh)
             this.lastMesh.showBoundingBox = false;
 
-        const pick = this.scene.pick(ev.offsetX, ev.offsetY);
+        const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY, false) || this.scene.pick(ev.offsetX, ev.offsetY);
         if (pick.pickedMesh) {
             this.lastMesh = pick.pickedMesh;
             pick.pickedMesh.showBoundingBox = true;
@@ -256,7 +256,7 @@ export default class ScenePicker {
         if (!(camera instanceof TargetCamera))
             return;
 
-        const pick = this.scene.pick(ev.offsetX, ev.offsetY);
+        const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY) || this.scene.pick(ev.offsetX, ev.offsetY);
 
         if (pick.pickedMesh)
             ScenePicker.CreateAndPlayFocusAnimation(camera.getTarget(), pick.pickedMesh.getAbsolutePosition(), camera);
