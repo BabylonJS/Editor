@@ -1813,7 +1813,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-picker' {
-    import { Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera, BoundingBoxGizmo } from 'babylonjs';
+    import { Engine, Scene, AbstractMesh, PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer, PointerInfo, Vector3, Camera, BoundingBoxGizmo } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export enum GizmoType {
             NONE = 0,
@@ -1830,9 +1830,12 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
             onPickedMesh: (mesh: AbstractMesh) => void;
             onUpdateMesh: (mesh: AbstractMesh) => void;
             protected lastMesh: AbstractMesh;
+            protected lastClickedMesh: AbstractMesh;
             protected lastX: number;
             protected lastY: number;
             protected onCanvasPointer: Observer<PointerInfo>;
+            protected onCanvasBlur: Observer<PointerEvent>;
+            protected onCanvasFocus: Observer<Engine>;
             protected boundingBoxGizmo: BoundingBoxGizmo;
             protected positionGizmo: PositionGizmo;
             protected rotationGizmo: RotationGizmo;
@@ -1902,15 +1905,19 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-icons' {
-    import { Scene, Mesh, Texture, StandardMaterial, SubMesh, _InstancesBatch } from 'babylonjs';
+    import { Scene, Mesh, Texture, StandardMaterial, Vector3, PickingInfo } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
     export default class SceneIcons {
             scene: Scene;
             cameraTexture: Texture;
             lightTexture: Texture;
             particleTexture: Texture;
-            plane: Mesh;
-            material: StandardMaterial;
+            camerasPlanes: Mesh[];
+            lightsPlanes: Mesh[];
+            particleSystemsPlanes: Mesh[];
+            camerasMaterial: StandardMaterial;
+            lightsMaterial: StandardMaterial;
+            particleSystemsMaterial: StandardMaterial;
             protected editor: Editor;
             /**
                 * Constructor
@@ -1918,17 +1925,33 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
                 */
             constructor(editor: Editor);
             /**
+                * On before render the scene
+                */
+            onPreUpdate(): void;
+            /**
                 * On post update the scenes
                 */
             onPostUpdate(): void;
             /**
-                * Render the given objects
-                * @param batch: the instances render list
-                * @param subMesh: the submesh to render
-                * @param nodes: the nodes to render
-                * @param configure: callback to know if render or not the node
+                * Launch a ray to try to pick a mesh in the icons scene
+                * @param offsetX the x position of the mouse
+                * @param offsetY the y position of the mouse
+                * @param getSourceObject if the pick result should set the picked mesh as the source plane mesh
                 */
-            protected renderPlane(batch: _InstancesBatch, subMesh: SubMesh, nodes: any[], configure: (node: any) => boolean): void;
+            pickIcon(offsetX: number, offsetY: number, getSourceObject?: boolean): PickingInfo;
+            /**
+                * Creates all the (count) planes and applies the given material
+                * @param planes the array containing the existing planes
+                * @param material the material to apply to the new planes
+                * @param count number of planes to create
+                */
+            protected createPlanes(planes: Mesh[], material: StandardMaterial, count: number): void;
+            /**
+                * Configures the given plane according to the given source object position
+                * @param plane: the plane to configure to draw in the helper's scene
+                * @param sourcePosition: the position of the object to draw the helper in the scene
+                */
+            protected configurePlane(plane: Mesh, sourcePosition: Vector3): void;
             /**
                 * Creates a new texture
                 * @param url: the url of the texture
