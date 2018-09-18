@@ -80,13 +80,11 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         if (this._standardEnabled) {
             standardPipeline.add(this, '_editStandardAnimations').name('Edit animations...');
 
-            /*
             const antialiasing = standardPipeline.addFolder('Anti Aliasing');
             antialiasing.open();
             antialiasing.add(SceneManager.StandardRenderingPipeline, 'fxaaEnabled').name('Enable FXAA');
             antialiasing.add(SceneManager.StandardRenderingPipeline, 'samples').min(1).max(32).name('Multisample Anti-Aliasing');
-            */
-           
+
             const bloom = standardPipeline.addFolder('Bloom');
             bloom.open();
             bloom.add(SceneManager.StandardRenderingPipeline, 'BloomEnabled').name('Bloom Enabled');

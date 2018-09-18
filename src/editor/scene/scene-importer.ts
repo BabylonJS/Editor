@@ -325,7 +325,7 @@ export default class SceneImporter {
             picker.open(items => {
                 // Import meshes
                 const names = items.map(i => i.name);
-                SceneLoader.ImportMesh(names, 'file:', babylonFile, editor.core.scene, (meshes) => {
+                SceneLoader.ImportMesh(names, 'file:', babylonFile.name, editor.core.scene, (meshes) => {
                     // Configure
                     meshes.forEach(m => {
                         // Tags

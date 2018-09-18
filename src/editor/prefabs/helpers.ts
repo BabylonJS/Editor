@@ -30,7 +30,7 @@ export default class PrefabsHelpers {
         const light = new PointLight('PrefabAssetLight', Vector3.Zero(), scene);
 
         await new Promise<void>((resolve) => {
-            SceneLoader.Append('file:', file, scene, () => {
+            SceneLoader.Append('file:', file.name, scene, () => {
                 engine.runRenderLoop(() => {
                     scene.render();
                     
