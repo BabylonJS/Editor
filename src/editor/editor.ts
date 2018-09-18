@@ -723,9 +723,9 @@ export default class Editor implements IUpdatable {
                 
                 // Load scene
                 if (doNotAppend)
-                    SceneLoader.Load('file:', file, this.core.engine, (scene) => callback(scene, true));
+                    SceneLoader.Load('file:', file.name, this.core.engine, (scene) => callback(scene, true));
                 else
-                    SceneLoader.Append('file:', file, this.core.scene, (scene) => callback(scene, false));
+                    SceneLoader.Append('file:', file.name, this.core.scene, (scene) => callback(scene, false));
 
                 // Lock panel and hide loading UI
                 this.core.engine.hideLoadingUI();

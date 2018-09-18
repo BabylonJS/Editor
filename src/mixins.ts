@@ -16,5 +16,6 @@ declare module BABYLON {
 
     interface ParticleSystem {
         editorMetadatas: any;
+        doNotSerialize: boolean;
     }
 }

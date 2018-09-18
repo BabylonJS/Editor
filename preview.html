@@ -95,7 +95,7 @@
 
             Promise.all(promises).then(function () {
                 // Import scene
-                BABYLON.SceneLoader.Load('file:', sceneFile, engine, function (scene) {
+                BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
                     effectiveScene = scene;
                     
                     System.import('./build/src/extensions/extensions.js').then(function (extensions) {

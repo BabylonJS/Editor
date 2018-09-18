@@ -3,8 +3,9 @@ import {
     Scene, Engine,
     FreeCamera, PointLight,
     Vector3,
-    AbstractMesh,
-    Mesh
+    Mesh,
+    ParticleSystem,
+    FilesInput
 } from 'babylonjs';
 
 import { AssetElement } from '../../shared/asset';
@@ -18,8 +19,9 @@ export default class PrefabsHelpers {
      * @param engine the babylonjs engine
      */
     public static async CreatePreview (d: AssetElement<Prefab>, engine: Engine): Promise<void> {
-        const serialization = SceneSerializer.SerializeMesh(d.data.sourceMesh, false, true);
-        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name + '.babylon');
+        // Create preview
+        const serialization = SceneSerializer.SerializeMesh(d.data.sourceNode, false, true);
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name.toLowerCase() + '.babylon');
         const canvas = engine.getRenderingCanvas();
 
         const scene = new Scene(engine);
@@ -28,16 +30,23 @@ export default class PrefabsHelpers {
         const camera = new FreeCamera('PrefabAssetCamera', Vector3.Zero(), scene);
         const light = new PointLight('PrefabAssetLight', Vector3.Zero(), scene);
 
+        // Add file
+        FilesInput.FilesToLoad[file.name] = file;
+
         await new Promise<void>((resolve) => {
-            SceneLoader.Append('file:', file, scene, () => {
+            SceneLoader.Append('file:', file.name, scene, () => {
                 engine.runRenderLoop(() => {
                     scene.render();
                     
                     if (scene.getWaitingItemsCount() === 0) {
+                        // Exclude particle systems for instance
+                        if (d.data.sourceNode instanceof ParticleSystem)
+                            return;
+
                         // Find camera position
                         const minimum = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
                         const maximum = new Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-                        const descendants = [d.data.sourceMesh].concat(<Mesh[]> d.data.sourceMesh.getDescendants(false, n => n instanceof Mesh));
+                        const descendants = [d.data.sourceNode].concat(<Mesh[]> d.data.sourceNode.getDescendants(false, n => n instanceof Mesh));
 
                         descendants.forEach(d => {
                             if (!(d instanceof Mesh))
@@ -56,8 +65,8 @@ export default class PrefabsHelpers {
                         const center = Vector3.Center(minimum, maximum);
                         const distance = Vector3.Distance(minimum, maximum) * 0.5;
 
-                        camera.position = d.data.sourceMesh.position.add(maximum).add(new Vector3(distance, distance, distance));
-                        camera.setTarget(d.data.sourceMesh.position.add(center));
+                        camera.position = d.data.sourceNode.position.add(maximum).add(new Vector3(distance, distance, distance));
+                        camera.setTarget(d.data.sourceNode.position.add(center));
                         light.position = camera.position.clone();
 
                         // Render
@@ -71,6 +80,9 @@ export default class PrefabsHelpers {
 
             engine.hideLoadingUI();
         });
+
+        // Remove file
+        delete FilesInput.FilesToLoad[file.name];
 
         // Dispose
         scene.dispose();

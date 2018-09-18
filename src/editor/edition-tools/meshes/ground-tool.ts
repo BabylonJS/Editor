@@ -112,7 +112,8 @@ export default class GroundTool extends AbstractEditionTool<GroundMesh> {
             colorFilter: options.colorFilter,
             buffer: buffer,
             bufferWidth: bufferWidth,
-            bufferHeight: bufferHeight
+            bufferHeight: bufferHeight,
+            alphaFilter: 0
         }));
 
         // Update height map and options
