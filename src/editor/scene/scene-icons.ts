@@ -1,10 +1,7 @@
 import {
-    Scene,
-    Mesh, Node,
-    Texture, StandardMaterial, Material,
-    Color3, Vector3,
-    Effect,
-    SubMesh, _InstancesBatch, IParticleSystem, PickingInfo
+    Scene, Mesh,
+    Texture, StandardMaterial,
+    Color3, Vector3, PickingInfo
 } from 'babylonjs';
 
 import Editor from '../editor';
