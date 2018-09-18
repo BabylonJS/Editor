@@ -1873,7 +1873,7 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * @param delta the delta value (from / to)
                 * @param axis the moved axis
                 */
-            protected undoRedo(axis: 'x' | 'y' | 'z'): void;
+            protected undoRedo(axis: 'x' | 'y' | 'z' | 'boundingbox'): void;
             /**
                 * Called when canvas mouse is down
                 * @param ev the mouse event
