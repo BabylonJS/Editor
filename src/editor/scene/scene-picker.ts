@@ -1,5 +1,5 @@
 import {
-    Scene, AbstractMesh, TargetCamera, Animation, Mesh,
+    Engine, Scene, AbstractMesh, TargetCamera, Animation, Mesh,
     PositionGizmo, RotationGizmo, ScaleGizmo, UtilityLayerRenderer, Observer,
     PointerInfo, PointerEventTypes, Vector3, Camera, BoundingBoxGizmo, Color3
 } from 'babylonjs';
@@ -29,10 +29,13 @@ export default class ScenePicker {
 
     // Protected members
     protected lastMesh: AbstractMesh = null;
+    protected lastClickedMesh: AbstractMesh = null;
     protected lastX: number = 0;
     protected lastY: number = 0;
     
     protected onCanvasPointer: Observer<PointerInfo> = null;
+    protected onCanvasBlur: Observer<PointerEvent> = null;
+    protected onCanvasFocus: Observer<Engine> = null;
 
     protected boundingBoxGizmo: BoundingBoxGizmo;
     protected positionGizmo: PositionGizmo;
@@ -164,6 +167,22 @@ export default class ScenePicker {
                 case PointerEventTypes.POINTERDOUBLETAP: this.canvasDblClick(ev.event); break;
             }
         });
+
+        this.onCanvasBlur = this.scene.getEngine().onCanvasPointerOutObservable.add(ev => {
+            if (this.lastMesh)
+                this.lastMesh.showBoundingBox = false;
+
+            if (this.lastClickedMesh)
+                this.lastClickedMesh.showBoundingBox = true;
+        });
+
+        this.onCanvasFocus = this.scene.getEngine().onCanvasBlurObservable.add(ev => {
+            if (this.lastClickedMesh)
+                this.lastClickedMesh.showBoundingBox = false;
+            
+            if (this.lastMesh)
+                this.lastMesh.showBoundingBox = true;
+        });
     }
 
     /**
@@ -171,6 +190,8 @@ export default class ScenePicker {
      */
     public removeEvents (): void {
         this.scene.onPointerObservable.remove(this.onCanvasPointer);
+        this.scene.getEngine().onCanvasPointerOutObservable.remove(this.onCanvasBlur);
+        this.scene.getEngine().onCanvasFocusObservable.remove(this.onCanvasFocus);
     }
 
     /**
@@ -218,11 +239,15 @@ export default class ScenePicker {
         
         const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY) || this.scene.pick(ev.offsetX, ev.offsetY);
 
-        if (pick.pickedMesh && this.onPickedMesh) {
-            this.onPickedMesh(pick.pickedMesh);
+        if (pick.pickedMesh) {
+            if (this.onPickedMesh)
+                this.onPickedMesh(pick.pickedMesh);
 
             // Attach mesh
             this.setGizmoAttachedMesh(<Mesh> pick.pickedMesh);
+
+            // Save last clicked mesh
+            this.lastClickedMesh = pick.pickedMesh;
         }
     }
 
@@ -236,6 +261,9 @@ export default class ScenePicker {
         
         if (this.lastMesh)
             this.lastMesh.showBoundingBox = false;
+
+        if (this.lastClickedMesh)
+            this.lastClickedMesh.showBoundingBox = false;
 
         const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY, false) || this.scene.pick(ev.offsetX, ev.offsetY);
         if (pick.pickedMesh) {
@@ -258,8 +286,12 @@ export default class ScenePicker {
 
         const pick = this.editor.sceneIcons.pickIcon(ev.offsetX, ev.offsetY) || this.scene.pick(ev.offsetX, ev.offsetY);
 
-        if (pick.pickedMesh)
+        if (pick.pickedMesh) {
             ScenePicker.CreateAndPlayFocusAnimation(camera.getTarget(), pick.pickedMesh.getAbsolutePosition(), camera);
+
+            // Save last clicked mesh
+            this.lastClickedMesh = pick.pickedMesh;
+        }
     }
 
     /**
