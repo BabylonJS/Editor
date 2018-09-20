@@ -67,6 +67,7 @@ export default class Editor implements IUpdatable {
     public sceneFile: File = null;
     public guiFiles: File[] = [];
     public projectFile: File = null;
+    public projectFileName: string = 'scene.editorproject';
 
     public _showReloadDialog: boolean = true;
 
@@ -646,6 +647,9 @@ export default class Editor implements IUpdatable {
                 for (const f in FilesInput.FilesToLoad) {
                     const file = FilesInput.FilesToLoad[f];
                     if (Tools.GetFileExtension(file.name) === 'editorproject') {
+                        this.projectFileName = file.name;
+                        Tools.SetWindowTitle(file.name);
+                        
                         const content = await Tools.ReadFileAsText(file);
                         await SceneImporter.Import(this, JSON.parse(content));
                         break;

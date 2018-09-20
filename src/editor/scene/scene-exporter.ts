@@ -16,13 +16,14 @@ import Form from '../gui/form';
 
 import Tools from '../tools/tools';
 import Editor from '../editor';
-import Extensions from '../../extensions/extensions';
 
 import Storage, { CreateFiles } from '../storage/storage';
 
 import * as Export from '../typings/project';
 import { IStringDictionary } from '../typings/typings';
+
 import Extension from '../../extensions/extension';
+import Extensions from '../../extensions/extensions';
 
 const randomId = BabylonTools.RandomId();
 
@@ -164,7 +165,7 @@ export default class SceneExporter {
         // Project
         const content = JSON.stringify(this.Export(editor));
         const storage = await this.GetStorage(editor);
-        const files: CreateFiles[] = [{ name: 'scene.editorproject', data: content }];
+        const files: CreateFiles[] = [{ name: editor.projectFileName, data: content }];
 
         storage.onCreateFiles = folder => this.ProjectPath = folder;
         await storage.openPicker('Export Editor Project...', files, this.ProjectPath);
@@ -181,9 +182,26 @@ export default class SceneExporter {
     public static async DownloadProjectFile (editor: Editor): Promise<void> {
         // Project
         const content = JSON.stringify(this.Export(editor));
-        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(content), 'scene.editorproject');
+        const files: CreateFiles[] = [{ name: editor.projectFileName, data: content }];
 
-        BabylonTools.Download(file, file.name);
+        // Save
+        if (Tools.IsElectron()) {
+            const storage = await this.GetStorage(editor);
+            storage.onCreateFiles = folder => this.ProjectPath = folder;
+            
+            const result = await storage.openPicker('Export Editor Project...', files, null, true);
+
+            // Update project's informations
+            if (result) {
+                this.ProjectPath = result.path;
+                editor.projectFileName = result.filename;
+                Tools.SetWindowTitle(result.filename);
+            }
+        }
+        else {
+            const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(content), 'scene.editorproject');
+            BabylonTools.Download(file, editor.projectFileName);
+        }
     }
 
     /**

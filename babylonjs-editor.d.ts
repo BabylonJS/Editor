@@ -69,6 +69,7 @@ declare module 'babylonjs-editor/editor/editor' {
             sceneFile: File;
             guiFiles: File[];
             projectFile: File;
+            projectFileName: string;
             _showReloadDialog: boolean;
             static LayoutVersion: string;
             /**
@@ -147,6 +148,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param height the height of the popup
                 */
             static OpenPopup(url: string, name: string, width: number, height: number): Window;
+            /**
+                * Set window's title
+                * @param title the title of the window
+                */
+            static SetWindowTitle(title: string): void;
             /**
              * Returns the file extension
              * @param filename: the file's name

@@ -41,18 +41,22 @@ export default abstract class Storage {
     /**
      * Opens the folder picker
      * @param title the title of the picker
+     * @param filesToWrite the array of files to write on the HDD
+     * @param folder the current working directory to browse
+     * @param overrideFilename if the file browser should override the filename
      */
-    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string): Promise<void> {
-        if (folder)
-            return await this.uploadFiles(folder, filesToWrite);
-        
+    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string, overrideFilename?: boolean): Promise<any> {
+        if (folder) {
+            await this.uploadFiles(folder, filesToWrite);
+            return folder;
+        }
+
         let files = await this.getFiles(folder);
         let current: GetFiles = { folder: 'root', name: 'root' };
         let previous: GetFiles[] = [];
 
         this.picker = new Picker('Export...');
         this.picker.addItems(files);
-        this.picker.open(async (items) => await this.uploadFiles(current.folder, filesToWrite));
 
         this.picker.grid.onClick = async (ids) => {
             const id = ids[0];
@@ -76,6 +80,13 @@ export default abstract class Storage {
                 this.picker.refreshGrid();
             }
         };
+
+        return await new Promise<string>((resolve, reject) => {
+            this.picker.open(async (items) => {
+                await this.uploadFiles(current.folder, filesToWrite);
+                resolve(current.folder);
+            });
+        });
     }
 
     /**
