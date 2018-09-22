@@ -144,12 +144,17 @@ export default class SceneManager {
         const used: Material[] = [];
         scene.meshes.forEach(m => m.material && used.indexOf(m.material) === -1 && used.push(m.material));
 
-        scene.materials.forEach(m => {
-            if (m instanceof StandardMaterial && used.indexOf(m) === -1) {
+        for (let i = 0; i < scene.materials.length; i++) {
+            const m = scene.materials[i];
+            if (m.name === 'colorShader')
+                continue;
+
+            if (used.indexOf(m) === -1) {
                 m.dispose(true, false);
                 count++;
+                i--;
             }
-        });
+        }
         
         return count;
     }
@@ -172,12 +177,16 @@ export default class SceneManager {
                     used.push(m[thing]);
             }
         });
-        scene.textures.forEach(t => {
+        
+        for (let i = 0; i < scene.textures.length; i++) {
+            const t = scene.textures[i];
+
             if (!(t instanceof RenderTargetTexture) && used.indexOf(t) === -1) {
                 t.dispose();
                 count++;
+                i--;
             }
-        });
+        }
 
         return count;
     }
