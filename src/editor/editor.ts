@@ -31,9 +31,11 @@ import EditorAssets from './components/assets';
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
-import SceneImporter from './scene/scene-importer';
 import SceneIcons from './scene/scene-icons';
 import SceneExporter from './scene/scene-exporter';
+
+import ProjectImporter from './project/project-importer';
+import ProjectExporter from './project/project-exporter';
 
 import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
@@ -503,7 +505,10 @@ export default class Editor implements IUpdatable {
     // Handles the events of the editor
     private _handleEvents (): void {
         // Undo
-        UndoRedo.onUndo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
+        UndoRedo.onUndo = (e) => {
+            this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
+            Tools.SetWindowTitle(this.projectFileName + ' *');
+        };
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
@@ -512,7 +517,10 @@ export default class Editor implements IUpdatable {
         });
 
         // Redo
-        UndoRedo.onRedo = (e) => this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
+        UndoRedo.onRedo = (e) => {
+            this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
+            Tools.SetWindowTitle(this.projectFileName + ' *');
+        };
         document.addEventListener('keyup', (ev) => {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();
@@ -548,8 +556,8 @@ export default class Editor implements IUpdatable {
         });
 
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && SceneExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && SceneExporter.DownloadProjectFile(this));
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.DownloadProjectFile(this));
 
         // Save state
         window.addEventListener('beforeunload', () => {
@@ -651,7 +659,7 @@ export default class Editor implements IUpdatable {
                         Tools.SetWindowTitle(file.name);
                         
                         const content = await Tools.ReadFileAsText(file);
-                        await SceneImporter.Import(this, JSON.parse(content));
+                        await ProjectImporter.Import(this, JSON.parse(content));
                         break;
                     }
                 }

@@ -58,34 +58,34 @@ export default abstract class Storage {
         this.picker = new Picker('Export...');
         this.picker.addItems(files);
 
-        this.picker.grid.onClick = async (ids) => {
-            const id = ids[0];
-            let file = (id === 0 && current) ? previous.pop() : files[id];
-
-            if (file === current)
-                file = previous.pop();
-
-            if (!file || file.folder) {
-                if (file)
-                    previous.push(file);
-                
-                current = file;
-
-                this.picker.window.lock('Loading ' + (file ? file.name : 'Root') + '...');
-                files = (!Tools.IsElectron() ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(Tools.IsElectron() ? files[id].folder : (file ? file.folder : null)));
-                this.picker.window.unlock();
-
-                this.picker.clear();
-                this.picker.addItems(files);
-                this.picker.refreshGrid();
-            }
-        };
-
         return await new Promise<string>((resolve, reject) => {
             this.picker.open(async (items) => {
                 await this.uploadFiles(current.folder, filesToWrite);
                 resolve(current.folder);
             });
+
+            this.picker.grid.onClick = async (ids) => {
+                const id = ids[0];
+                let file = (id === 0 && current) ? previous.pop() : files[id];
+    
+                if (file === current)
+                    file = previous.pop();
+    
+                if (!file || file.folder) {
+                    if (file)
+                        previous.push(file);
+                    
+                    current = file;
+    
+                    this.picker.window.lock('Loading ' + (file ? file.name : 'Root') + '...');
+                    files = (!Tools.IsElectron() ? [{ name: '..', folder: null }] : []).concat(await this.getFiles(Tools.IsElectron() ? files[id].folder : (file ? file.folder : null)));
+                    this.picker.window.unlock();
+    
+                    this.picker.clear();
+                    this.picker.addItems(files);
+                    this.picker.refreshGrid();
+                }
+            };
         });
     }
 
