@@ -15,6 +15,9 @@ import SceneImporter from '../scene/scene-importer';
 import SceneManager from '../scene/scene-manager';
 import SceneSerializer from '../scene/scene-serializer';
 
+import ProjectImporter from '../project/project-importer';
+import ProjectExporter from '../project/project-exporter';
+
 export default class EditorToolbar {
     // Public members
     public main: Toolbar;
@@ -151,7 +154,7 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:import-project':
-                SceneImporter.ImportProject(this.editor);
+                ProjectImporter.ImportProject(this.editor);
                 break;
 
             case 'project:reload-project':
@@ -168,14 +171,14 @@ export default class EditorToolbar {
                 break;
 
             case 'project:download-project':
-                SceneExporter.DownloadProjectFile(this.editor);
+                ProjectExporter.DownloadProjectFile(this.editor);
                 break;
             case 'project:export-project':
-                await SceneExporter.ExportProject(this.editor);
+                await ProjectExporter.ExportProject(this.editor);
                 break;
 
             case 'project:export-template':
-                await SceneExporter.ExportTemplate(this.editor);
+                await ProjectExporter.ExportTemplate(this.editor);
                 break;
 
             // Scene

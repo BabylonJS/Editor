@@ -176,7 +176,7 @@ export default class SceneIcons {
      * @param sourcePosition: the position of the object to draw the helper in the scene
      */
     protected configurePlane (plane: Mesh, sourcePosition: Vector3): void {
-        const distance = Vector3.Distance(this.editor.core.scene.activeCamera.position, sourcePosition) * 0.05;
+        const distance = Vector3.Distance(this.editor.core.scene.activeCamera.position, sourcePosition) * 0.04;
         plane.scaling = new Vector3(distance, distance, distance);
         plane.position.copyFrom(sourcePosition);
         plane.computeWorldMatrix(true);

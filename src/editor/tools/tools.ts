@@ -89,6 +89,14 @@ export default class Tools {
     }
 
     /**
+     * Set window's title
+     * @param title the title of the window
+     */
+    public static SetWindowTitle (title: string): void {
+        document.title = `Babylon.js Editor - (${title})`;
+    }
+
+    /**
     * Returns the file extension
     * @param filename: the file's name
     */

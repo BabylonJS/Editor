@@ -16,14 +16,43 @@ export default class ElectronStorage extends Storage {
     /**
      * Opens the folder picker (override default behavior)
      * @param title the title of the picker
+     * @param filesToWrite the array of files to write on the HDD
+     * @param folder the current working directory to browse
+     * @param overrideFilename if the file browser should override the filename
      */
-    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string): Promise<void> {
-        const paths = folder ? [folder] : await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
+    public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string, overrideFilename?: boolean): Promise<any> {
+        const paths = (folder) ? [folder] :
+            (filesToWrite.length === 1 && overrideFilename) ? await Request.Get<string[]>(`http://localhost:1337/files:/newfilepath`) :
+            await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
+
+        if (!paths)
+            return;
+
+        // Working directory and upload file
+        let filename = '';
+        if (filesToWrite.length === 1 && overrideFilename) {
+            if (paths[0].indexOf('.editorproject') === -1)
+                paths[0] += '.editorproject';
+            
+            filename = Tools.GetFilename(paths[0]);
+            filesToWrite[0].name = filename;
+
+            paths[0] = paths[0].replace(filename, '');
+        }
+
+        const path = paths[0];
 
         await Request.Post('http://localhost:1337/files:/workingDirectory', JSON.stringify({
-            name: paths[0]
+            name: path
         }));
-        await this.uploadFiles(paths[0], filesToWrite);
+
+        await this.uploadFiles(path, filesToWrite);
+
+        // Finish
+        return {
+            path: path,
+            filename: filename
+        }
     }
 
     /**

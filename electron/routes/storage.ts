@@ -29,6 +29,7 @@ export default class StorageRouter {
         this.readFile();
         this.createFolder();
         this.getPaths();
+        this.getNewFilePath();
         
         this.application.use(this.router.routes());
     }
@@ -130,6 +131,23 @@ export default class StorageRouter {
                     title: ctx.query && ctx.query.title ? ctx.query.title : undefined,
                     defaultPath: ctx.query && ctx.query.folder ? ctx.query.folder : undefined,
                     properties: [ctx.query && ctx.query.type || 'openDirectory']
+                }, paths => resolve(paths));
+            });
+
+            ctx.body = paths;
+        });
+    }
+
+    /**
+     * Get a full file name
+     */
+    protected getNewFilePath (): void {
+        this.router.get('/files:/newfilepath', async (ctx, next) => {
+            const paths = await new Promise<string[]>((resolve, reject) => {
+                dialog.showOpenDialog({
+                    title: ctx.query && ctx.query.title ? ctx.query.title : undefined,
+                    defaultPath: ctx.query && ctx.query.folder ? ctx.query.folder : undefined,
+                    properties: ['promptToCreate']
                 }, paths => resolve(paths));
             });
 
