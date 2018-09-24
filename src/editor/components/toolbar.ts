@@ -88,7 +88,8 @@ export default class EditorToolbar {
                     { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' },
                     { type: 'break' },
                     { id: 'metadatas', img: 'icon-behavior-editor', text: 'Metadatas Editor...' },
-                    { id: 'notes', img: 'icon-behavior-editor', text: 'Notes...' }
+                    { id: 'notes', img: 'icon-behavior-editor', text: 'Notes...' },
+                    { id: 'prefab-editor', img: 'icon-mesh', text: 'Prefab Editor...' }
                 ]
             },
             { type: 'break' },
@@ -252,6 +253,9 @@ export default class EditorToolbar {
                 break;
             case 'tools:notes':
                 await this.loadTool('notes', 'Notes');
+                break;
+            case 'tools:prefab-editor':
+                await this.loadTool('prefab-editor', 'Prefab Editor');
                 break;
 
             // Add

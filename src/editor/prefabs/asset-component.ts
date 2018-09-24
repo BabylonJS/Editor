@@ -78,6 +78,25 @@ export default class PrefabAssetComponent implements IAssetComponent {
     }
 
     /**
+     * Returns the asset containing the given node instance reference
+     * @param node the node reference stored into the prefab instances
+     */
+    public getAssetFromNode (node: PrefabNodeType): AssetElement<Prefab> {
+        for (const p of this.datas) {
+            for (const si in p.data.sourceInstances) {
+                const instances = p.data.sourceInstances[si];
+                
+                for (const i of instances) {
+                    if (node === i)
+                        return p;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * On the user adds a new prefab asset
      * @param asset the asset to add in the collection
      */
@@ -301,7 +320,6 @@ export default class PrefabAssetComponent implements IAssetComponent {
      * @param data the asset's data
      */
     public buildInstances (data: AssetElement<Prefab>[]): number {
-        const scene = this.editor.core.scene;
         let count = 0;
 
         data.forEach(d => {
