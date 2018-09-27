@@ -83,6 +83,12 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public getAssetFromNode (node: PrefabNodeType): AssetElement<Prefab> {
         for (const p of this.datas) {
+            if (p.data.sourceNode === node)
+                return p;
+
+            if (p.data.sourceNodes.indexOf(node) !== -1)
+                return p;
+
             for (const si in p.data.sourceInstances) {
                 const instances = p.data.sourceInstances[si];
                 
@@ -135,6 +141,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
         // Update graph
         this.editor.graph.clear();
         this.editor.graph.fill();
+
+        // Update assets
+        this.editor.assets.refresh(this.id);
     }
 
     /**
