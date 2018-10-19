@@ -1,4 +1,4 @@
-import { IDisposable } from '../typings/typings';
+import { IDisposable, IStringDictionary } from '../typings/typings';
 
 import Tools from '../tools/tools';
 import ThemeSwitcher from '../tools/theme';
@@ -29,6 +29,7 @@ export default class CodeEditor {
     // Static members
     public static ExternalLibraries: string = null;
     public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
+    public static CustomLibs: IStringDictionary<MonacoDisposable> = { };
     public static Instances: MonacoDisposable[] = [];
 
     /**

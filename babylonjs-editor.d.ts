@@ -664,7 +664,7 @@ declare module 'babylonjs-editor/editor/gui/window' {
 }
 
 declare module 'babylonjs-editor/editor/gui/code' {
-    import { IDisposable } from 'babylonjs-editor/editor/typings/typings';
+    import { IDisposable, IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface MonacoDisposable extends IDisposable {
             [index: string]: any;
     }
@@ -679,6 +679,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
                     lib: MonacoDisposable;
                     caller: Window;
             }[];
+            static CustomLibs: IStringDictionary<MonacoDisposable>;
             static Instances: MonacoDisposable[];
             /**
                 * Remove extra lib from the registered callers
