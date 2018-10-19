@@ -154,7 +154,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
      */
     public onDragAndDropAsset (targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void {
         // Parent
-        const parent = asset.data.sourceNode instanceof Mesh ? asset.data.sourceNode.createInstance(asset.name + ' (Prefab)') : this._cloneNode(asset.data.sourceNode);
+        const parent = asset.data.sourceNode instanceof Mesh ? asset.data.sourceNode.createInstance(asset.data.sourceNode.name + ' (Prefab)') : this._cloneNode(asset.data.sourceNode);
         parent.id = BabylonTools.RandomId();
         
         if (parent['position'])
@@ -171,7 +171,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 if (index === 0)
                     return;
                 
-                const instance = m instanceof Mesh ? m.createInstance(asset.name) : this._cloneNode(m);
+                const instance = m instanceof Mesh ? m.createInstance(m.name + 'inst') : this._cloneNode(m);
                 instance.id = BabylonTools.RandomId();
                 instance['parent'] = instance['emitter'] = parent;
                 instance.doNotSerialize = true;
