@@ -108,7 +108,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
                 const code = this.Instance.datas.scripts.find(s => s.name === name);
                 if (!code)
-                    return null;
+                    throw new Error(`Cannot find custom module named "${name}"`);
 
                 ctor = this.Instance.getConstructor(code, null);
                 return ctor;
