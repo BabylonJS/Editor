@@ -51,6 +51,18 @@ export default class Tools {
     }
     
     /**
+     * Returns the constructor of a script which has the given name
+     * @param name the name of the script
+     */
+    public getConstructor (name: string): any {
+        const ext = <CodeExtension> Extensions.Instances['BehaviorExtension'];
+        if (!ext)
+            return null;
+
+        return ext.scriptsConstructors[name];
+    }
+
+    /**
      * Returns the post-process by giving its name
      * @param name the name of the post-process
      */

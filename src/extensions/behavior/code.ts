@@ -64,6 +64,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     public assetsCaption: string = 'Scripts';
 
     public instances: IStringDictionary<any> = { };
+    public scriptsConstructors: IStringDictionary<any> = { };
     
     /**
      * Constructor
@@ -160,6 +161,11 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         this.datas = data;
 
         // For each node
+        this.datas.scripts.forEach(s => {
+            const ctor = this.getConstructor(s, null);
+            this.scriptsConstructors[s.name] = ctor;
+        });
+
         this.datas.nodes.forEach(d => {
             let node: Scene | Node | IParticleSystem = d.node === 'Scene'
                 ? this.scene
@@ -336,9 +342,14 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      */
     public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         let url = window.location.href;
-        url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/' + (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + code.name.replace(/ /g, '') + '.js';
+        url = url.replace(BabylonTools.GetFilename(url), '') + 'behaviors/';
+        
+        if (node)
+            url += (node instanceof Scene ? 'scene/' : node.name.replace(/ /g, '') + '/') + code.name.replace(/ /g, '') + '.js';
+        else
+            url += code.name + '.js';
 
-        const fnName = (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '');
+        const fnName = node ? (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '') : code.name.replace(/ /g, '');
         const effectiveCode = template.replace('{{name}}', fnName)
                                       .replace('{{node}}', this._getEffectiveConstructorName(node))
                                       .replace('{{code}}', code.compiledCode || code.code);

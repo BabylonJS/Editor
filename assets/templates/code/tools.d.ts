@@ -27,6 +27,7 @@ interface BehaviorCodeTools {
     getCustomScript (objectName: string | BABYLON.Node | BABYLON.Scene | BABYLON.ParticleSystem, name: string): IScript;
     getCustomMaterial (name: string): ICustomMaterial;
     getCustomPostProcess (name: string): ICustomPostProcess;
+    getConstructor (name: string): any;
     getFileByName (name: string): File;
     getFileUrl (filename: string, oneTimeOnly?: boolean): string;
     getPathFinder (name: string): PathFinder;
