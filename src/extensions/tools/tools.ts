@@ -124,12 +124,12 @@ const exportScriptBodyString = `
             returnValue[keys[i]] = params[keys[i]];
         }
     }
-`.replace(/\n/g, '').replace(/ /g, '');
+`.replace(/\n/g, '').replace(/\t/g, '');
 
 const exportScriptReturnString = `
 if (returnValue) {return returnValue;}
 if (exports) {return exports;}
-`;
+`.replace(/\n/g, '').replace(/\t/g, '');
 
 export const exportScriptString = `
 function exportScript (value, params) {${exportScriptBodyString}};

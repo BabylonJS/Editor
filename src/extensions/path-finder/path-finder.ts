@@ -178,7 +178,6 @@ export default class PathFinder {
         average.x /= castMeshes.length;
         average.y /= castMeshes.length;
         average.z /= castMeshes.length;
-        b.boundingBox.centerWorld = average;
 
         this.boundingInfo = b;
 
@@ -186,7 +185,7 @@ export default class PathFinder {
         const xd = Math.abs(b.maximum.x) + Math.abs(b.minimum.x);
         const yd = Math.abs(b.maximum.z) + Math.abs(b.minimum.z);
 
-        const s = b.boundingBox.centerWorld.subtract(new Vector3(xd / 2, 0, yd / 2));
+        const s = average.subtract(new Vector3(xd / 2, 0, yd / 2));
 
         for (let x = 0; x < this.width; x++) {
             const rx = (x * xd) / this.width;

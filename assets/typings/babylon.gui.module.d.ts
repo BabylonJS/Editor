@@ -39,11 +39,14 @@ declare module 'babylonjs-gui/2D/controls' {
     export * from "babylonjs-gui/2D/controls/multiLine";
     export * from "babylonjs-gui/2D/controls/radioButton";
     export * from "babylonjs-gui/2D/controls/stackPanel";
+    export * from "babylonjs-gui/2D/controls/selector";
     export * from "babylonjs-gui/2D/controls/textBlock";
     export * from "babylonjs-gui/2D/controls/virtualKeyboard";
-    export * from "babylonjs-gui/2D/controls/slider";
     export * from "babylonjs-gui/2D/controls/rectangle";
     export * from "babylonjs-gui/2D/controls/displayGrid";
+    export * from "babylonjs-gui/2D/controls/baseSlider";
+    export * from "babylonjs-gui/2D/controls/slider";
+    export * from "babylonjs-gui/2D/controls/imageBasedSlider";
     export * from "babylonjs-gui/2D/controls/statics";
 }
 
@@ -69,6 +72,11 @@ declare module 'babylonjs-gui/2D/advancedDynamicTexture' {
                 * @param evt defines the current keyboard event
                 */
             processKeyboard(evt: KeyboardEvent): void;
+            /**
+                * Function called to get the list of controls that should not steal the focus from this control
+                * @returns an array of controls
+                */
+            keepsFocusWith(): Nullable<Control[]>;
     }
     /**
         * Class used to create texture to support 2D GUI elements
@@ -386,6 +394,14 @@ declare module 'babylonjs-gui/2D/measure' {
                 */
             copyFrom(other: Measure): void;
             /**
+                * Copy from a group of 4 floats
+                * @param left defines left coordinate
+                * @param top defines top coordinate
+                * @param width defines width dimension
+                * @param height defines height dimension
+                */
+            copyFromFloats(left: number, top: number, width: number, height: number): void;
+            /**
                 * Check equality between this measure and another one
                 * @param other defines the other measures
                 * @returns true if both measures are equals
@@ -423,6 +439,8 @@ declare module 'babylonjs-gui/2D/multiLinePoint' {
             control: Nullable<Control>;
             /** Gets or sets the mesh associated with this point */
             mesh: Nullable<AbstractMesh>;
+            /** Resets links */
+            resetLinks(): void;
             /**
                 * Gets a translation vector
                 * @returns the translation vector
@@ -644,7 +662,9 @@ declare module 'babylonjs-gui/3D/vector3WithInfo' {
 declare module 'babylonjs-gui/2D/controls/button' {
     import { Rectangle } from "babylonjs-gui/2D/controls/rectangle";
     import { Control } from "babylonjs-gui/2D/controls/control";
-    import { Vector2 } from "babylonjs";
+    import { TextBlock } from "babylonjs-gui/2D/controls/textBlock";
+    import { Image } from "babylonjs-gui/2D/controls/image";
+    import { Vector2, Nullable } from "babylonjs";
     /**
         * Class used to create 2D buttons
         */
@@ -666,6 +686,14 @@ declare module 'babylonjs-gui/2D/controls/button' {
                 * Function called to generate a pointer up animation
                 */
             pointerUpAnimation: () => void;
+            /**
+                * Returns the image part of the button (if any)
+                */
+            readonly image: Nullable<Image>;
+            /**
+                * Returns the image part of the button (if any)
+                */
+            readonly textBlock: Nullable<TextBlock>;
             /**
                 * Creates a new Button
                 * @param name defines the name of the button
@@ -825,6 +853,7 @@ declare module 'babylonjs-gui/2D/controls/container' {
                 */
             constructor(name?: string | undefined);
             protected _getTypeName(): string;
+            _flagDescendantsAsMatrixDirty(): void;
             /**
                 * Gets a child using its name
                 * @param name defines the child name to look for
@@ -863,8 +892,6 @@ declare module 'babylonjs-gui/2D/controls/container' {
             removeControl(control: Control): Container;
             /** @hidden */
             _reOrderControl(control: Control): void;
-            /** @hidden */
-            _markMatrixAsDirty(): void;
             /** @hidden */
             _markAllAsDirty(): void;
             /** @hidden */
@@ -945,6 +972,8 @@ declare module 'babylonjs-gui/2D/controls/control' {
             isPointerBlocker: boolean;
             /** Gets or sets a boolean indicating if the control can be focusable */
             isFocusInvisible: boolean;
+            /** Gets or sets a boolean indicating if the children are clipped to the current control bounds */
+            clipChildren: boolean;
             /** Gets or sets a value indicating the offset to apply on X axis to render the shadow */
             shadowOffsetX: number;
             /** Gets or sets a value indicating the offset to apply on Y axis to render the shadow */
@@ -1079,6 +1108,10 @@ declare module 'babylonjs-gui/2D/controls/control' {
             /** Gets a boolean indicating that the control needs to update its rendering */
             readonly isDirty: boolean;
             /**
+                * Gets the current linked mesh (or null if none)
+                */
+            readonly linkedMesh: Nullable<AbstractMesh>;
+            /**
                 * Gets or sets a value indicating the padding to use on the left of the control
                 * @see http://doc.babylonjs.com/how_to/gui#position-and-size
                 */
@@ -1178,6 +1211,12 @@ declare module 'babylonjs-gui/2D/controls/control' {
             /** @hidden */
             _resetFontCache(): void;
             /**
+                * Determines if a container is an ascendant of the current control
+                * @param container defines the container to look for
+                * @returns true if the container is one of the ascendant of the control
+                */
+            isAscendant(container: Control): boolean;
+            /**
                 * Gets coordinates in local control space
                 * @param globalCoordinates defines the coordinates to transform
                 * @returns the new coordinates in local space
@@ -1213,7 +1252,9 @@ declare module 'babylonjs-gui/2D/controls/control' {
             /** @hidden */
             _markMatrixAsDirty(): void;
             /** @hidden */
-            _markAsDirty(): void;
+            _flagDescendantsAsMatrixDirty(): void;
+            /** @hidden */
+            _markAsDirty(force?: boolean): void;
             /** @hidden */
             _markAllAsDirty(): void;
             /** @hidden */
@@ -1399,13 +1440,21 @@ declare module 'babylonjs-gui/2D/controls/grid' {
 
 declare module 'babylonjs-gui/2D/controls/image' {
     import { Control } from "babylonjs-gui/2D/controls/control";
-    import { Nullable } from "babylonjs";
+    import { Nullable, Observable } from "babylonjs";
     import { Measure } from "babylonjs-gui/2D/measure";
     /**
         * Class used to create 2D images
         */
     export class Image extends Control {
             name?: string | undefined;
+            /**
+                * Observable notified when the content is loaded
+                */
+            onImageLoadedObservable: Observable<Image>;
+            /**
+                * Gets a boolean indicating that the content is loaded
+                */
+            readonly isLoaded: boolean;
             /**
                 * Gets or sets the left coordinate in the source image
                 */
@@ -1462,6 +1511,7 @@ declare module 'babylonjs-gui/2D/controls/image' {
             /** Force the control to synchronize with its content */
             synchronizeSizeWithContent(): void;
             _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+            dispose(): void;
             /** STRETCH_NONE */
             static readonly STRETCH_NONE: number;
             /** STRETCH_FILL */
@@ -1476,13 +1526,16 @@ declare module 'babylonjs-gui/2D/controls/image' {
 declare module 'babylonjs-gui/2D/controls/inputText' {
     import { Control } from "babylonjs-gui/2D/controls/control";
     import { IFocusableControl } from "babylonjs-gui/2D/advancedDynamicTexture";
-    import { Observable, Vector2 } from "babylonjs";
+    import { Nullable, Observable, Vector2 } from "babylonjs";
     import { Measure } from "babylonjs-gui/2D/measure";
+    import { VirtualKeyboard } from "babylonjs-gui/2D/controls/virtualKeyboard";
     /**
         * Class used to create input text control
         */
     export class InputText extends Control implements IFocusableControl {
             name?: string | undefined;
+            /** @hidden */
+            _connectedVirtualKeyboard: Nullable<VirtualKeyboard>;
             /** Gets or sets a string representing the message displayed on mobile when the control gets the focus */
             promptMessage: string;
             /** Observable raised when the text changes */
@@ -1534,6 +1587,11 @@ declare module 'babylonjs-gui/2D/controls/inputText' {
             /** @hidden */
             onFocus(): void;
             protected _getTypeName(): string;
+            /**
+                * Function called to get the list of controls that should not steal the focus from this control
+                * @returns an array of controls
+                */
+            keepsFocusWith(): Nullable<Control[]>;
             /** @hidden */
             processKey(keyCode: number, key?: string): void;
             /** @hidden */
@@ -1654,6 +1712,14 @@ declare module 'babylonjs-gui/2D/controls/multiLine' {
                 * @param value defines the value or point to remove
                 */
             remove(value: number | MultiLinePoint): void;
+            /**
+                * Resets this object to initial state (no point)
+                */
+            reset(): void;
+            /**
+                * Resets all links
+                */
+            resetLinks(): void;
             /** Gets or sets line width */
             lineWidth: number;
             horizontalAlignment: number;
@@ -1719,9 +1785,15 @@ declare module 'babylonjs-gui/2D/controls/stackPanel' {
             name?: string | undefined;
             /** Gets or sets a boolean indicating if the stack panel is vertical or horizontal*/
             isVertical: boolean;
-            /** Gets or sets panel width */
+            /**
+                * Gets or sets panel width.
+                * This value should not be set when in horizontal mode as it will be computed automatically
+                */
             width: string | number;
-            /** Gets or sets panel height */
+            /**
+                * Gets or sets panel height.
+                * This value should not be set when in vertical mode as it will be computed automatically
+                */
             height: string | number;
             /**
                 * Creates a new StackPanel
@@ -1730,6 +1802,183 @@ declare module 'babylonjs-gui/2D/controls/stackPanel' {
             constructor(name?: string | undefined);
             protected _getTypeName(): string;
             protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+    }
+}
+
+declare module 'babylonjs-gui/2D/controls/selector' {
+    import { Rectangle } from "babylonjs-gui/2D/controls/rectangle";
+    import { StackPanel } from "babylonjs-gui/2D/controls/stackPanel";
+    /** Class used to create a RadioGroup
+        * which contains groups of radio buttons
+     */
+    export class SelectorGroup {
+            /** name of SelectorGroup */
+            name: string;
+            /**
+                * Creates a new SelectorGroup
+                * @param name of group, used as a group heading
+                */
+            constructor(
+            /** name of SelectorGroup */
+            name: string);
+            /** Gets the groupPanel of the SelectorGroup  */
+            readonly groupPanel: StackPanel;
+            /** Gets the selectors array */
+            readonly selectors: StackPanel[];
+            /** Gets and sets the group header */
+            header: string;
+            /** @hidden*/
+            _getSelector(selectorNb: number): StackPanel | undefined;
+            /** Removes the selector at the given position
+             * @param selectorNb the position of the selector within the group
+            */
+            removeSelector(selectorNb: number): void;
+    }
+    /** Class used to create a CheckboxGroup
+        * which contains groups of checkbox buttons
+     */
+    export class CheckboxGroup extends SelectorGroup {
+            /** Adds a checkbox as a control
+                * @param text is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addCheckbox(text: string, func?: (s: boolean) => void, checked?: boolean): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to create a RadioGroup
+        * which contains groups of radio buttons
+     */
+    export class RadioGroup extends SelectorGroup {
+            /** Adds a radio button as a control
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addRadio(label: string, func?: (n: number) => void, checked?: boolean): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to create a SliderGroup
+        * which contains groups of slider buttons
+     */
+    export class SliderGroup extends SelectorGroup {
+            /**
+                * Adds a slider to the SelectorGroup
+                * @param label is the label for the SliderBar
+                * @param func is the function called when the Slider moves
+                * @param unit is a string describing the units used, eg degrees or metres
+                * @param min is the minimum value for the Slider
+                * @param max is the maximum value for the Slider
+                * @param value is the start value for the Slider between min and max
+                * @param onValueChange is the function used to format the value displayed, eg radians to degrees
+                */
+            addSlider(label: string, func?: (v: number) => void, unit?: string, min?: number, max?: number, value?: number, onValueChange?: (v: number) => number): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to hold the controls for the checkboxes, radio buttons and sliders
+        * @see http://doc.babylonjs.com/how_to/selector
+     */
+    export class SelectionPanel extends Rectangle {
+            /** name of SelectionPanel */
+            name: string;
+            /** an array of SelectionGroups */
+            groups: SelectorGroup[];
+            /**
+             * Creates a new SelectionPanel
+             * @param name of SelectionPanel
+             * @param groups is an array of SelectionGroups
+             */
+            constructor(
+            /** name of SelectionPanel */
+            name: string, 
+            /** an array of SelectionGroups */
+            groups?: SelectorGroup[]);
+            protected _getTypeName(): string;
+            /** Gets or sets the headerColor */
+            headerColor: string;
+            /** Gets or sets the button color */
+            buttonColor: string;
+            /** Gets or sets the label color */
+            labelColor: string;
+            /** Gets or sets the button background */
+            buttonBackground: string;
+            /** Gets or sets the color of separator bar */
+            barColor: string;
+            /** Gets or sets the height of separator bar */
+            barHeight: string;
+            /** Gets or sets the height of spacers*/
+            spacerHeight: string;
+            /** Add a group to the selection panel
+                * @param group is the selector group to add
+                */
+            addGroup(group: SelectorGroup): void;
+            /** Remove the group from the given position
+                * @param groupNb is the position of the group in the list
+                */
+            removeGroup(groupNb: number): void;
+            /** Change a group header label
+                * @param label is the new group header label
+                * @param groupNb is the number of the group to relabel
+                * */
+            setHeaderName(label: string, groupNb: number): void;
+            /** Change selector label to the one given
+                * @param label is the new selector label
+                * @param groupNb is the number of the groupcontaining the selector
+                * @param selectorNb is the number of the selector within a group to relabel
+                * */
+            relabel(label: string, groupNb: number, selectorNb: number): void;
+            /** For a given group position remove the selector at the given position
+                * @param groupNb is the number of the group to remove the selector from
+                * @param selectorNb is the number of the selector within the group
+                */
+            removeFromGroupSelector(groupNb: number, selectorNb: number): void;
+            /** For a given group position of correct type add a checkbox button
+                * @param groupNb is the number of the group to remove the selector from
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addToGroupCheckbox(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+            /** For a given group position of correct type add a radio button
+                * @param groupNb is the number of the group to remove the selector from
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addToGroupRadio(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+            /**
+                * For a given slider group add a slider
+                * @param groupNb is the number of the group to add the slider to
+                * @param label is the label for the Slider
+                * @param func is the function called when the Slider moves
+                * @param unit is a string describing the units used, eg degrees or metres
+                * @param min is the minimum value for the Slider
+                * @param max is the maximum value for the Slider
+                * @param value is the start value for the Slider between min and max
+                * @param onVal is the function used to format the value displayed, eg radians to degrees
+                */
+            addToGroupSlider(groupNb: number, label: string, func?: () => void, unit?: string, min?: number, max?: number, value?: number, onVal?: (v: number) => number): void;
     }
 }
 
@@ -1900,71 +2149,31 @@ declare module 'babylonjs-gui/2D/controls/virtualKeyboard' {
                 * @param shiftState defines the new shift state
                 */
             applyShiftState(shiftState: number): void;
-            /** Gets the input text control attached with the keyboard */
+            /** Gets the input text control currently attached to the keyboard */
             readonly connectedInputText: Nullable<InputText>;
             /**
                 * Connects the keyboard with an input text control
+                *
                 * @param input defines the target control
                 */
             connect(input: InputText): void;
             /**
-                * Disconnects the keyboard from an input text control
+                * Disconnects the keyboard from connected InputText controls
+                *
+                * @param input optionally defines a target control, otherwise all are disconnected
                 */
-            disconnect(): void;
+            disconnect(input?: InputText): void;
+            /**
+                * Release all resources
+                */
+            dispose(): void;
             /**
                 * Creates a new keyboard using a default layout
+                *
+                * @param name defines control name
                 * @returns a new VirtualKeyboard
                 */
-            static CreateDefaultLayout(): VirtualKeyboard;
-    }
-}
-
-declare module 'babylonjs-gui/2D/controls/slider' {
-    import { Control } from "babylonjs-gui/2D/controls/control";
-    import { Observable, Vector2 } from "babylonjs";
-    import { Measure } from "babylonjs-gui/2D/measure";
-    /**
-        * Class used to create slider controls
-        */
-    export class Slider extends Control {
-            name?: string | undefined;
-            /** Observable raised when the sldier value changes */
-            onValueChangedObservable: Observable<number>;
-            /** Gets or sets border color */
-            borderColor: string;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets or sets main bar offset */
-            barOffset: string | number;
-            /** Gets main bar offset in pixels*/
-            readonly barOffsetInPixels: number;
-            /** Gets or sets thumb width */
-            thumbWidth: string | number;
-            /** Gets thumb width in pixels */
-            readonly thumbWidthInPixels: number;
-            /** Gets or sets minimum value */
-            minimum: number;
-            /** Gets or sets maximum value */
-            maximum: number;
-            /** Gets or sets current value */
-            value: number;
-            /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
-            isVertical: boolean;
-            /** Gets or sets a boolean indicating if the thumb should be round or square */
-            isThumbCircle: boolean;
-            /** Gets or sets a value indicating if the thumb can go over main bar extends */
-            isThumbClamped: boolean;
-            /**
-                * Creates a new Slider
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _getThumbThickness(type: string, backgroundLength: number): number;
-            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            _onPointerDown(target: Control, coordinates: Vector2, pointerId: number, buttonIndex: number): boolean;
-            _onPointerMove(target: Control, coordinates: Vector2): void;
-            _onPointerUp(target: Control, coordinates: Vector2, pointerId: number, buttonIndex: number, notifyClick: boolean): void;
+            static CreateDefaultLayout(name?: string): VirtualKeyboard;
     }
 }
 
@@ -2023,6 +2232,117 @@ declare module 'babylonjs-gui/2D/controls/displayGrid' {
             constructor(name?: string | undefined);
             _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
             protected _getTypeName(): string;
+    }
+}
+
+declare module 'babylonjs-gui/2D/controls/baseSlider' {
+    import { Control } from "babylonjs-gui/2D/controls/control";
+    import { ValueAndUnit } from "babylonjs-gui/2D/valueAndUnit";
+    import { Observable, Vector2 } from "babylonjs";
+    /**
+        * Class used to create slider controls
+        */
+    export class BaseSlider extends Control {
+            name?: string | undefined;
+            protected _thumbWidth: ValueAndUnit;
+            protected _barOffset: ValueAndUnit;
+            protected _effectiveBarOffset: number;
+            protected _renderLeft: number;
+            protected _renderTop: number;
+            protected _renderWidth: number;
+            protected _renderHeight: number;
+            protected _backgroundBoxLength: number;
+            protected _backgroundBoxThickness: number;
+            protected _effectiveThumbThickness: number;
+            /** Observable raised when the sldier value changes */
+            onValueChangedObservable: Observable<number>;
+            /** Gets or sets main bar offset (ie. the margin applied to the value bar) */
+            barOffset: string | number;
+            /** Gets main bar offset in pixels*/
+            readonly barOffsetInPixels: number;
+            /** Gets or sets thumb width */
+            thumbWidth: string | number;
+            /** Gets thumb width in pixels */
+            readonly thumbWidthInPixels: number;
+            /** Gets or sets minimum value */
+            minimum: number;
+            /** Gets or sets maximum value */
+            maximum: number;
+            /** Gets or sets current value */
+            value: number;
+            /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
+            isVertical: boolean;
+            /** Gets or sets a value indicating if the thumb can go over main bar extends */
+            isThumbClamped: boolean;
+            /**
+                * Creates a new BaseSlider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            protected _getThumbPosition(): number;
+            protected _getThumbThickness(type: string): number;
+            protected _prepareRenderingData(type: string): void;
+            _onPointerDown(target: Control, coordinates: Vector2, pointerId: number, buttonIndex: number): boolean;
+            _onPointerMove(target: Control, coordinates: Vector2): void;
+            _onPointerUp(target: Control, coordinates: Vector2, pointerId: number, buttonIndex: number, notifyClick: boolean): void;
+    }
+}
+
+declare module 'babylonjs-gui/2D/controls/slider' {
+    import { Measure } from "babylonjs-gui/2D/measure";
+    import { BaseSlider } from "babylonjs-gui/2D/controls/baseSlider";
+    /**
+        * Class used to create slider controls
+        */
+    export class Slider extends BaseSlider {
+            name?: string | undefined;
+            /** Gets or sets a boolean indicating if the thumb must be rendered */
+            displayThumb: boolean;
+            /** Gets or sets border color */
+            borderColor: string;
+            /** Gets or sets background color */
+            background: string;
+            /** Gets or sets a boolean indicating if the thumb should be round or square */
+            isThumbCircle: boolean;
+            /**
+                * Creates a new Slider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+    }
+}
+
+declare module 'babylonjs-gui/2D/controls/imageBasedSlider' {
+    import { BaseSlider } from "babylonjs-gui/2D/controls/baseSlider";
+    import { Measure } from "babylonjs-gui/2D/measure";
+    import { Image } from "babylonjs-gui/2D/controls/image";
+    /**
+        * Class used to create slider controls based on images
+        */
+    export class ImageBasedSlider extends BaseSlider {
+            name?: string | undefined;
+            /**
+                * Gets or sets the image used to render the background
+                */
+            backgroundImage: Image;
+            /**
+                * Gets or sets the image used to render the value bar
+                */
+            valueBarImage: Image;
+            /**
+                * Gets or sets the image used to render the thumb
+                */
+            thumbImage: Image;
+            /**
+                * Creates a new ImageBasedSlider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
     }
 }
 
@@ -2633,6 +2953,11 @@ declare module BABYLON.GUI {
                 * @param evt defines the current keyboard event
                 */
             processKeyboard(evt: KeyboardEvent): void;
+            /**
+                * Function called to get the list of controls that should not steal the focus from this control
+                * @returns an array of controls
+                */
+            keepsFocusWith(): BABYLON.Nullable<Control[]>;
     }
     /**
         * Class used to create texture to support 2D GUI elements
@@ -2947,6 +3272,14 @@ declare module BABYLON.GUI {
                 */
             copyFrom(other: Measure): void;
             /**
+                * Copy from a group of 4 floats
+                * @param left defines left coordinate
+                * @param top defines top coordinate
+                * @param width defines width dimension
+                * @param height defines height dimension
+                */
+            copyFromFloats(left: number, top: number, width: number, height: number): void;
+            /**
                 * Check equality between this measure and another one
                 * @param other defines the other measures
                 * @returns true if both measures are equals
@@ -2980,6 +3313,8 @@ declare module BABYLON.GUI {
             control: BABYLON.Nullable<Control>;
             /** Gets or sets the mesh associated with this point */
             mesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
+            /** Resets links */
+            resetLinks(): void;
             /**
                 * Gets a translation vector
                 * @returns the translation vector
@@ -3193,6 +3528,14 @@ declare module BABYLON.GUI {
                 */
             pointerUpAnimation: () => void;
             /**
+                * Returns the image part of the button (if any)
+                */
+            readonly image: BABYLON.Nullable<Image>;
+            /**
+                * Returns the image part of the button (if any)
+                */
+            readonly textBlock: BABYLON.Nullable<TextBlock>;
+            /**
                 * Creates a new Button
                 * @param name defines the name of the button
                 */
@@ -3337,6 +3680,7 @@ declare module BABYLON.GUI {
                 */
             constructor(name?: string | undefined);
             protected _getTypeName(): string;
+            _flagDescendantsAsMatrixDirty(): void;
             /**
                 * Gets a child using its name
                 * @param name defines the child name to look for
@@ -3375,8 +3719,6 @@ declare module BABYLON.GUI {
             removeControl(control: Control): Container;
             /** @hidden */
             _reOrderControl(control: Control): void;
-            /** @hidden */
-            _markMatrixAsDirty(): void;
             /** @hidden */
             _markAllAsDirty(): void;
             /** @hidden */
@@ -3449,6 +3791,8 @@ declare module BABYLON.GUI {
             isPointerBlocker: boolean;
             /** Gets or sets a boolean indicating if the control can be focusable */
             isFocusInvisible: boolean;
+            /** Gets or sets a boolean indicating if the children are clipped to the current control bounds */
+            clipChildren: boolean;
             /** Gets or sets a value indicating the offset to apply on X axis to render the shadow */
             shadowOffsetX: number;
             /** Gets or sets a value indicating the offset to apply on Y axis to render the shadow */
@@ -3583,6 +3927,10 @@ declare module BABYLON.GUI {
             /** Gets a boolean indicating that the control needs to update its rendering */
             readonly isDirty: boolean;
             /**
+                * Gets the current linked mesh (or null if none)
+                */
+            readonly linkedMesh: BABYLON.Nullable<BABYLON.AbstractMesh>;
+            /**
                 * Gets or sets a value indicating the padding to use on the left of the control
                 * @see http://doc.babylonjs.com/how_to/gui#position-and-size
                 */
@@ -3682,6 +4030,12 @@ declare module BABYLON.GUI {
             /** @hidden */
             _resetFontCache(): void;
             /**
+                * Determines if a container is an ascendant of the current control
+                * @param container defines the container to look for
+                * @returns true if the container is one of the ascendant of the control
+                */
+            isAscendant(container: Control): boolean;
+            /**
                 * Gets coordinates in local control space
                 * @param globalCoordinates defines the coordinates to transform
                 * @returns the new coordinates in local space
@@ -3717,7 +4071,9 @@ declare module BABYLON.GUI {
             /** @hidden */
             _markMatrixAsDirty(): void;
             /** @hidden */
-            _markAsDirty(): void;
+            _flagDescendantsAsMatrixDirty(): void;
+            /** @hidden */
+            _markAsDirty(force?: boolean): void;
             /** @hidden */
             _markAllAsDirty(): void;
             /** @hidden */
@@ -3900,6 +4256,14 @@ declare module BABYLON.GUI {
     export class Image extends Control {
             name?: string | undefined;
             /**
+                * BABYLON.Observable notified when the content is loaded
+                */
+            onImageLoadedObservable: BABYLON.Observable<Image>;
+            /**
+                * Gets a boolean indicating that the content is loaded
+                */
+            readonly isLoaded: boolean;
+            /**
                 * Gets or sets the left coordinate in the source image
                 */
             sourceLeft: number;
@@ -3955,6 +4319,7 @@ declare module BABYLON.GUI {
             /** Force the control to synchronize with its content */
             synchronizeSizeWithContent(): void;
             _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+            dispose(): void;
             /** STRETCH_NONE */
             static readonly STRETCH_NONE: number;
             /** STRETCH_FILL */
@@ -3971,6 +4336,8 @@ declare module BABYLON.GUI {
         */
     export class InputText extends Control implements IFocusableControl {
             name?: string | undefined;
+            /** @hidden */
+            _connectedVirtualKeyboard: BABYLON.Nullable<VirtualKeyboard>;
             /** Gets or sets a string representing the message displayed on mobile when the control gets the focus */
             promptMessage: string;
             /** BABYLON.Observable raised when the text changes */
@@ -4022,6 +4389,11 @@ declare module BABYLON.GUI {
             /** @hidden */
             onFocus(): void;
             protected _getTypeName(): string;
+            /**
+                * Function called to get the list of controls that should not steal the focus from this control
+                * @returns an array of controls
+                */
+            keepsFocusWith(): BABYLON.Nullable<Control[]>;
             /** @hidden */
             processKey(keyCode: number, key?: string): void;
             /** @hidden */
@@ -4131,6 +4503,14 @@ declare module BABYLON.GUI {
                 * @param value defines the value or point to remove
                 */
             remove(value: number | MultiLinePoint): void;
+            /**
+                * Resets this object to initial state (no point)
+                */
+            reset(): void;
+            /**
+                * Resets all links
+                */
+            resetLinks(): void;
             /** Gets or sets line width */
             lineWidth: number;
             horizontalAlignment: number;
@@ -4188,9 +4568,15 @@ declare module BABYLON.GUI {
             name?: string | undefined;
             /** Gets or sets a boolean indicating if the stack panel is vertical or horizontal*/
             isVertical: boolean;
-            /** Gets or sets panel width */
+            /**
+                * Gets or sets panel width.
+                * This value should not be set when in horizontal mode as it will be computed automatically
+                */
             width: string | number;
-            /** Gets or sets panel height */
+            /**
+                * Gets or sets panel height.
+                * This value should not be set when in vertical mode as it will be computed automatically
+                */
             height: string | number;
             /**
                 * Creates a new StackPanel
@@ -4199,6 +4585,180 @@ declare module BABYLON.GUI {
             constructor(name?: string | undefined);
             protected _getTypeName(): string;
             protected _preMeasure(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+    }
+}
+declare module BABYLON.GUI {
+    /** Class used to create a RadioGroup
+        * which contains groups of radio buttons
+     */
+    export class SelectorGroup {
+            /** name of SelectorGroup */
+            name: string;
+            /**
+                * Creates a new SelectorGroup
+                * @param name of group, used as a group heading
+                */
+            constructor(
+            /** name of SelectorGroup */
+            name: string);
+            /** Gets the groupPanel of the SelectorGroup  */
+            readonly groupPanel: StackPanel;
+            /** Gets the selectors array */
+            readonly selectors: StackPanel[];
+            /** Gets and sets the group header */
+            header: string;
+            /** @hidden*/
+            _getSelector(selectorNb: number): StackPanel | undefined;
+            /** Removes the selector at the given position
+             * @param selectorNb the position of the selector within the group
+            */
+            removeSelector(selectorNb: number): void;
+    }
+    /** Class used to create a CheckboxGroup
+        * which contains groups of checkbox buttons
+     */
+    export class CheckboxGroup extends SelectorGroup {
+            /** Adds a checkbox as a control
+                * @param text is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addCheckbox(text: string, func?: (s: boolean) => void, checked?: boolean): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to create a RadioGroup
+        * which contains groups of radio buttons
+     */
+    export class RadioGroup extends SelectorGroup {
+            /** Adds a radio button as a control
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addRadio(label: string, func?: (n: number) => void, checked?: boolean): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to create a SliderGroup
+        * which contains groups of slider buttons
+     */
+    export class SliderGroup extends SelectorGroup {
+            /**
+                * Adds a slider to the SelectorGroup
+                * @param label is the label for the SliderBar
+                * @param func is the function called when the Slider moves
+                * @param unit is a string describing the units used, eg degrees or metres
+                * @param min is the minimum value for the Slider
+                * @param max is the maximum value for the Slider
+                * @param value is the start value for the Slider between min and max
+                * @param onValueChange is the function used to format the value displayed, eg radians to degrees
+                */
+            addSlider(label: string, func?: (v: number) => void, unit?: string, min?: number, max?: number, value?: number, onValueChange?: (v: number) => number): void;
+            /** @hidden */
+            _setSelectorLabel(selectorNb: number, label: string): void;
+            /** @hidden */
+            _setSelectorLabelColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonColor(selectorNb: number, color: string): void;
+            /** @hidden */
+            _setSelectorButtonBackground(selectorNb: number, color: string): void;
+    }
+    /** Class used to hold the controls for the checkboxes, radio buttons and sliders
+        * @see http://doc.babylonjs.com/how_to/selector
+     */
+    export class SelectionPanel extends Rectangle {
+            /** name of SelectionPanel */
+            name: string;
+            /** an array of SelectionGroups */
+            groups: SelectorGroup[];
+            /**
+             * Creates a new SelectionPanel
+             * @param name of SelectionPanel
+             * @param groups is an array of SelectionGroups
+             */
+            constructor(
+            /** name of SelectionPanel */
+            name: string, 
+            /** an array of SelectionGroups */
+            groups?: SelectorGroup[]);
+            protected _getTypeName(): string;
+            /** Gets or sets the headerColor */
+            headerColor: string;
+            /** Gets or sets the button color */
+            buttonColor: string;
+            /** Gets or sets the label color */
+            labelColor: string;
+            /** Gets or sets the button background */
+            buttonBackground: string;
+            /** Gets or sets the color of separator bar */
+            barColor: string;
+            /** Gets or sets the height of separator bar */
+            barHeight: string;
+            /** Gets or sets the height of spacers*/
+            spacerHeight: string;
+            /** Add a group to the selection panel
+                * @param group is the selector group to add
+                */
+            addGroup(group: SelectorGroup): void;
+            /** Remove the group from the given position
+                * @param groupNb is the position of the group in the list
+                */
+            removeGroup(groupNb: number): void;
+            /** Change a group header label
+                * @param label is the new group header label
+                * @param groupNb is the number of the group to relabel
+                * */
+            setHeaderName(label: string, groupNb: number): void;
+            /** Change selector label to the one given
+                * @param label is the new selector label
+                * @param groupNb is the number of the groupcontaining the selector
+                * @param selectorNb is the number of the selector within a group to relabel
+                * */
+            relabel(label: string, groupNb: number, selectorNb: number): void;
+            /** For a given group position remove the selector at the given position
+                * @param groupNb is the number of the group to remove the selector from
+                * @param selectorNb is the number of the selector within the group
+                */
+            removeFromGroupSelector(groupNb: number, selectorNb: number): void;
+            /** For a given group position of correct type add a checkbox button
+                * @param groupNb is the number of the group to remove the selector from
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addToGroupCheckbox(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+            /** For a given group position of correct type add a radio button
+                * @param groupNb is the number of the group to remove the selector from
+                * @param label is the label for the selector
+                * @param func is the function called when the Selector is checked
+                * @param checked is true when Selector is checked
+                */
+            addToGroupRadio(groupNb: number, label: string, func?: () => void, checked?: boolean): void;
+            /**
+                * For a given slider group add a slider
+                * @param groupNb is the number of the group to add the slider to
+                * @param label is the label for the Slider
+                * @param func is the function called when the Slider moves
+                * @param unit is a string describing the units used, eg degrees or metres
+                * @param min is the minimum value for the Slider
+                * @param max is the maximum value for the Slider
+                * @param value is the start value for the Slider between min and max
+                * @param onVal is the function used to format the value displayed, eg radians to degrees
+                */
+            addToGroupSlider(groupNb: number, label: string, func?: () => void, unit?: string, min?: number, max?: number, value?: number, onVal?: (v: number) => number): void;
     }
 }
 declare module BABYLON.GUI {
@@ -4361,67 +4921,31 @@ declare module BABYLON.GUI {
                 * @param shiftState defines the new shift state
                 */
             applyShiftState(shiftState: number): void;
-            /** Gets the input text control attached with the keyboard */
+            /** Gets the input text control currently attached to the keyboard */
             readonly connectedInputText: BABYLON.Nullable<InputText>;
             /**
                 * Connects the keyboard with an input text control
+                *
                 * @param input defines the target control
                 */
             connect(input: InputText): void;
             /**
-                * Disconnects the keyboard from an input text control
+                * Disconnects the keyboard from connected InputText controls
+                *
+                * @param input optionally defines a target control, otherwise all are disconnected
                 */
-            disconnect(): void;
+            disconnect(input?: InputText): void;
+            /**
+                * Release all resources
+                */
+            dispose(): void;
             /**
                 * Creates a new keyboard using a default layout
+                *
+                * @param name defines control name
                 * @returns a new VirtualKeyboard
                 */
-            static CreateDefaultLayout(): VirtualKeyboard;
-    }
-}
-declare module BABYLON.GUI {
-    /**
-        * Class used to create slider controls
-        */
-    export class Slider extends Control {
-            name?: string | undefined;
-            /** BABYLON.Observable raised when the sldier value changes */
-            onValueChangedObservable: BABYLON.Observable<number>;
-            /** Gets or sets border color */
-            borderColor: string;
-            /** Gets or sets background color */
-            background: string;
-            /** Gets or sets main bar offset */
-            barOffset: string | number;
-            /** Gets main bar offset in pixels*/
-            readonly barOffsetInPixels: number;
-            /** Gets or sets thumb width */
-            thumbWidth: string | number;
-            /** Gets thumb width in pixels */
-            readonly thumbWidthInPixels: number;
-            /** Gets or sets minimum value */
-            minimum: number;
-            /** Gets or sets maximum value */
-            maximum: number;
-            /** Gets or sets current value */
-            value: number;
-            /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
-            isVertical: boolean;
-            /** Gets or sets a boolean indicating if the thumb should be round or square */
-            isThumbCircle: boolean;
-            /** Gets or sets a value indicating if the thumb can go over main bar extends */
-            isThumbClamped: boolean;
-            /**
-                * Creates a new Slider
-                * @param name defines the control name
-                */
-            constructor(name?: string | undefined);
-            protected _getTypeName(): string;
-            protected _getThumbThickness(type: string, backgroundLength: number): number;
-            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
-            _onPointerDown(target: Control, coordinates: BABYLON.Vector2, pointerId: number, buttonIndex: number): boolean;
-            _onPointerMove(target: Control, coordinates: BABYLON.Vector2): void;
-            _onPointerUp(target: Control, coordinates: BABYLON.Vector2, pointerId: number, buttonIndex: number, notifyClick: boolean): void;
+            static CreateDefaultLayout(name?: string): VirtualKeyboard;
     }
 }
 declare module BABYLON.GUI {
@@ -4474,6 +4998,106 @@ declare module BABYLON.GUI {
             constructor(name?: string | undefined);
             _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
             protected _getTypeName(): string;
+    }
+}
+declare module BABYLON.GUI {
+    /**
+        * Class used to create slider controls
+        */
+    export class BaseSlider extends Control {
+            name?: string | undefined;
+            protected _thumbWidth: ValueAndUnit;
+            protected _barOffset: ValueAndUnit;
+            protected _effectiveBarOffset: number;
+            protected _renderLeft: number;
+            protected _renderTop: number;
+            protected _renderWidth: number;
+            protected _renderHeight: number;
+            protected _backgroundBoxLength: number;
+            protected _backgroundBoxThickness: number;
+            protected _effectiveThumbThickness: number;
+            /** BABYLON.Observable raised when the sldier value changes */
+            onValueChangedObservable: BABYLON.Observable<number>;
+            /** Gets or sets main bar offset (ie. the margin applied to the value bar) */
+            barOffset: string | number;
+            /** Gets main bar offset in pixels*/
+            readonly barOffsetInPixels: number;
+            /** Gets or sets thumb width */
+            thumbWidth: string | number;
+            /** Gets thumb width in pixels */
+            readonly thumbWidthInPixels: number;
+            /** Gets or sets minimum value */
+            minimum: number;
+            /** Gets or sets maximum value */
+            maximum: number;
+            /** Gets or sets current value */
+            value: number;
+            /**Gets or sets a boolean indicating if the slider should be vertical or horizontal */
+            isVertical: boolean;
+            /** Gets or sets a value indicating if the thumb can go over main bar extends */
+            isThumbClamped: boolean;
+            /**
+                * Creates a new BaseSlider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            protected _getThumbPosition(): number;
+            protected _getThumbThickness(type: string): number;
+            protected _prepareRenderingData(type: string): void;
+            _onPointerDown(target: Control, coordinates: BABYLON.Vector2, pointerId: number, buttonIndex: number): boolean;
+            _onPointerMove(target: Control, coordinates: BABYLON.Vector2): void;
+            _onPointerUp(target: Control, coordinates: BABYLON.Vector2, pointerId: number, buttonIndex: number, notifyClick: boolean): void;
+    }
+}
+declare module BABYLON.GUI {
+    /**
+        * Class used to create slider controls
+        */
+    export class Slider extends BaseSlider {
+            name?: string | undefined;
+            /** Gets or sets a boolean indicating if the thumb must be rendered */
+            displayThumb: boolean;
+            /** Gets or sets border color */
+            borderColor: string;
+            /** Gets or sets background color */
+            background: string;
+            /** Gets or sets a boolean indicating if the thumb should be round or square */
+            isThumbCircle: boolean;
+            /**
+                * Creates a new Slider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
+    }
+}
+declare module BABYLON.GUI {
+    /**
+        * Class used to create slider controls based on images
+        */
+    export class ImageBasedSlider extends BaseSlider {
+            name?: string | undefined;
+            /**
+                * Gets or sets the image used to render the background
+                */
+            backgroundImage: Image;
+            /**
+                * Gets or sets the image used to render the value bar
+                */
+            valueBarImage: Image;
+            /**
+                * Gets or sets the image used to render the thumb
+                */
+            thumbImage: Image;
+            /**
+                * Creates a new ImageBasedSlider
+                * @param name defines the control name
+                */
+            constructor(name?: string | undefined);
+            protected _getTypeName(): string;
+            _draw(parentMeasure: Measure, context: CanvasRenderingContext2D): void;
     }
 }
 declare module BABYLON.GUI {
