@@ -5,6 +5,10 @@ import {
     AbstractMesh, InstancedMesh
 } from 'babylonjs';
 
+import * as BABYLON from 'babylonjs';
+import * as CANNON from 'cannon';
+import * as EARCUT from 'earcut';
+
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
 
@@ -41,6 +45,7 @@ export interface BehaviorMetadata {
 const template = `
 EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
 var returnValue = null;
+var exports = { };
 
 {{code}}
 
@@ -65,6 +70,50 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
     public instances: IStringDictionary<any> = { };
     public scriptsConstructors: IStringDictionary<any> = { };
+
+    // Static members
+    public static Instance: CodeExtension = null;
+    public static CurrentDatas: BehaviorMetadata = null;
+
+    /**
+     * Overrides the "require" method on window to return the given lib
+     * object. Allows to type, for example, "import { Mesh } from 'babylonjs';"
+     * @param name the name of the lib to require
+     */
+    public static Require (name: string): any {
+        switch (name) {
+            // Babylon.js
+            case 'babylonjs':
+            case 'babylonjs-procedural-textures':
+            case 'babylonjs-loaders':
+            case 'babylonjs-materials':
+                return BABYLON;
+            case 'babylonjs-gui':
+                return BABYLON.GUI;
+            // Physics
+            case 'cannon':
+                return CANNON;
+            // Tools
+            case 'earcut':
+                return EARCUT;
+            // Custom script
+            default:
+                let ctor = EDITOR.BehaviorCode.Constructors[name];
+                if (ctor)
+                    return ctor();
+
+                ctor = EDITOR.BehaviorCode.Constructors[name.replace(/ /g, '')];
+                if (ctor)
+                    return ctor();
+
+                const code = this.Instance.datas.scripts.find(s => s.name === name);
+                if (!code)
+                    return null;
+
+                ctor = this.Instance.getConstructor(code, null);
+                return ctor;
+        }
+    }
     
     /**
      * Constructor
@@ -73,6 +122,13 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     constructor (scene: Scene) {
         super(scene);
         this.datas = null;
+
+        // Instance
+        CodeExtension.Instance = this;
+
+        // require polyfill
+        if (!window['require'])
+            window['require'] = name => CodeExtension.Require(name);
     }
 
     /**
@@ -162,6 +218,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         // For each node
         this.datas.scripts.forEach(s => {
+            if (EDITOR.BehaviorCode.Constructors[s.name.replace(/ /g, '')])
+                return;
+            
             const ctor = this.getConstructor(s, null);
             this.scriptsConstructors[s.name] = ctor;
         });

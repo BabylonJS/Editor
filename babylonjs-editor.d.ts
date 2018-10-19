@@ -715,7 +715,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * Transpiles the given TS source to JS source
                 * @param source the source to transpile
                 */
-            transpileTypeScript(source: string, moduleName: string): string;
+            transpileTypeScript(source: string, moduleName: string, config?: any): string;
             /**
                 * Creates a windowed editor
                 * @param options: the editor's configuration

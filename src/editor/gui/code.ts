@@ -166,8 +166,8 @@ export default class CodeEditor {
      * Transpiles the given TS source to JS source
      * @param source the source to transpile
      */
-    public transpileTypeScript (source: string, moduleName: string): string {
-        return ts.transpile(source, {
+    public transpileTypeScript (source: string, moduleName: string, config?: any): string {
+        return ts.transpile(source, config || {
             module: 'none',
             target: 'es5',
             experimentalDecorators: true,
