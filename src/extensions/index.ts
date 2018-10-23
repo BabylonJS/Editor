@@ -27,3 +27,7 @@ export {
 
     IExtension, ExtensionConstructor
 }
+
+// Polyfills
+import { defineRequire } from './tools/require';
+defineRequire();

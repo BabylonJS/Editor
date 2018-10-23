@@ -4,9 +4,9 @@ import * as EARCUT from 'earcut';
 
 import CodeExtension from '../behavior/code';
 
-export module EDITOR {
-    export class BehaviorCode {
-        public static Constructors: any = { };
+declare module EDITOR {
+    class BehaviorCode {
+        public static Constructors: any;
     }
 }
 

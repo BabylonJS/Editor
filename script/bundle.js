@@ -54,8 +54,11 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     format: 'global',
     globalDeps: {
       'babylonjs': 'BABYLON',
-      'spectorjs': 'SPECTOR'
+      'spectorjs': 'SPECTOR',
+      'cannon': 'CANNON',
+      'earcut': 'Earcut'
     },
+    externals: ['babylonjs', 'cannon', 'earcut'],
     minify: true
 });
 
@@ -64,9 +67,11 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     format: 'cjs',
     globalDeps: {
       'babylonjs': 'BABYLON',
-      'spectorjs': 'SPECTOR'
+      'spectorjs': 'SPECTOR',
+      'cannon': 'CANNON',
+      'earcut': 'Earcut'
     },
-    externals: ['javascript-astar', 'litegraph.js'],
+    externals: ['javascript-astar', 'litegraph.js', 'babylonjs', 'cannon', 'earcut'],
     minify: true
 });
 

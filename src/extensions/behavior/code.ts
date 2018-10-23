@@ -7,7 +7,6 @@ import {
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
-import { defineRequire } from '../tools/require';
 
 import { IStringDictionary } from '../typings/typings';
 import { IAssetComponent, AssetElement } from '../../shared/asset';
@@ -82,9 +81,6 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         // Instance
         CodeExtension.Instance = this;
-
-        // require polyfill
-        defineRequire();
     }
 
     /**
