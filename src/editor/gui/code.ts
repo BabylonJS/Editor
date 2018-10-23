@@ -1,4 +1,4 @@
-import { IDisposable } from '../typings/typings';
+import { IDisposable, IStringDictionary } from '../typings/typings';
 
 import Tools from '../tools/tools';
 import ThemeSwitcher from '../tools/theme';
@@ -29,6 +29,7 @@ export default class CodeEditor {
     // Static members
     public static ExternalLibraries: string = null;
     public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
+    public static CustomLibs: IStringDictionary<MonacoDisposable> = { };
     public static Instances: MonacoDisposable[] = [];
 
     /**
@@ -166,8 +167,8 @@ export default class CodeEditor {
      * Transpiles the given TS source to JS source
      * @param source the source to transpile
      */
-    public transpileTypeScript (source: string, moduleName: string): string {
-        return ts.transpile(source, {
+    public transpileTypeScript (source: string, moduleName: string, config?: any): string {
+        return ts.transpile(source, config || {
             module: 'none',
             target: 'es5',
             experimentalDecorators: true,

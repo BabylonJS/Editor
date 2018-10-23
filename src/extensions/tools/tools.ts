@@ -108,11 +108,10 @@ export default class Tools {
 }
 
 /**
- * String used by dynamic scripts to write "exportScript" instead of "return Script" etc.
+ * Strings used by dynamic scripts to write "exportScript" instead of "return Script" etc.
  * This makes TypeScript compliant
  */
-export const exportScriptString = `
-function exportScript (value, params) {
+const exportScriptBodyString = `
     if (!params) {
         returnValue = value;
     } else {
@@ -125,9 +124,14 @@ function exportScript (value, params) {
             returnValue[keys[i]] = params[keys[i]];
         }
     }
-};
+`.replace(/\n/g, '').replace(/\t/g, '');
 
-if (returnValue) {
-    return returnValue;
-}
+const exportScriptReturnString = `
+if (returnValue) {return returnValue;}
+if (exports) {return exports;}
+`.replace(/\n/g, '').replace(/\t/g, '');
+
+export const exportScriptString = `
+function exportScript (value, params) {${exportScriptBodyString}};
+${exportScriptReturnString}
 `;

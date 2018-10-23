@@ -7,6 +7,7 @@ import {
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
+import { defineRequire } from '../tools/require';
 
 import { IStringDictionary } from '../typings/typings';
 import { IAssetComponent, AssetElement } from '../../shared/asset';
@@ -41,6 +42,7 @@ export interface BehaviorMetadata {
 const template = `
 EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
 var returnValue = null;
+var exports = { };
 
 {{code}}
 
@@ -65,6 +67,10 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
     public instances: IStringDictionary<any> = { };
     public scriptsConstructors: IStringDictionary<any> = { };
+
+    // Static members
+    public static Instance: CodeExtension = null;
+    public static CurrentDatas: BehaviorMetadata = null;
     
     /**
      * Constructor
@@ -73,6 +79,12 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     constructor (scene: Scene) {
         super(scene);
         this.datas = null;
+
+        // Instance
+        CodeExtension.Instance = this;
+
+        // require polyfill
+        defineRequire();
     }
 
     /**
@@ -162,6 +174,9 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         // For each node
         this.datas.scripts.forEach(s => {
+            if (EDITOR.BehaviorCode.Constructors[s.name.replace(/ /g, '')])
+                return;
+            
             const ctor = this.getConstructor(s, null);
             this.scriptsConstructors[s.name] = ctor;
         });

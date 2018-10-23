@@ -317,9 +317,34 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param index the index of the 
      */
     protected selectCode (index: number): void {
+        // Get data
         const scripts = this.editor.core.scene.metadata.behaviorScripts;
         this.data = scripts.find(s => s.id === this.datas.metadatas[index].codeId);
 
+        // Manage extra libs
+        for (const k in CodeEditor.CustomLibs) {
+            const lib = CodeEditor.CustomLibs[k];
+            lib.dispose();
+        }
+
+        CodeEditor.CustomLibs = { };
+        
+        scripts.forEach(s => {
+            if (s === this.data)
+                return;
+
+            // Check if attached, then don't share declaration
+            const datas = this.extension.onSerialize();
+            const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
+
+            if (isAttached)
+                return;
+
+            const code = `declare module "${s.name}" {${s.code}}`;
+            CodeEditor.CustomLibs[s.name] = window['monaco'].languages.typescript.typescriptDefaults.addExtraLib(code, s.name);
+        });
+
+        // Update editor
         this.code.setValue(this.data.code);
 
         // Refresh right text
@@ -427,6 +452,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param caller: the window attached to the editor
      */
     protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
+        caller = caller || window;
+
         const code = new CodeEditor('typescript');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
@@ -434,10 +461,20 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             // Compile typescript
             clearTimeout(this._timeoutId);
             this._timeoutId = setTimeout(() => {
+                if (!data && !this.data)
+                    return;
+                
+                const config = {
+                    module: 'cjs',
+                    target: 'es5',
+                    experimentalDecorators: true,
+                };
+                
+                // Store compiled code
                 if (data)
-                    data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''));
+                    data.compiledCode = code.transpileTypeScript(data.code, this.data.name.replace(/ /, ''), config);
                 else if (this.data)
-                    this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''));
+                    this.data.compiledCode = this.code.transpileTypeScript(this.data.code, this.data.name.replace(/ /, ''), config);
             }, 500);
 
             // Update metadata

@@ -584,7 +584,7 @@ export default class Editor implements IUpdatable {
         const instance = new (Function.prototype.bind.apply(plugin.default, args));
 
         // Create DOM elements
-        const id = instance.name.replace(/ /, '');
+        const id = instance.name.replace(/ /g, '');
         instance.divElement = <HTMLDivElement> document.getElementById(id) || Tools.CreateElement('div', id, {
             width: '100%',
             height: '100%'
@@ -605,7 +605,7 @@ export default class Editor implements IUpdatable {
         (remaining: number) => {
             // Loading textures
         },
-        (files) => {
+        (files: File[]) => {
             // Check if a scene has been dropped
             let foundScene: boolean = false;
             for (const f of files) {
