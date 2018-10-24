@@ -18,6 +18,9 @@ export interface IAssetComponent {
     assetsCaption?: string;
     size?: number;
 
+    onCreateAsset? (name: string): AssetElement<any> | Promise<AssetElement<any>>;
+    onRenameAsset? (asset: AssetElement<any>, name: string): void;
+
     onGetAssets? (): AssetElement<any>[] | Promise<AssetElement<any>[]>;
     
     onRemoveAsset? (asset: AssetElement<any>): void;

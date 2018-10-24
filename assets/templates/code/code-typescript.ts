@@ -1,6 +1,8 @@
+import { Color4 } from 'babylonjs';
+
 class Script implements IScript {
     // Public members
-    public blackColor = new BABYLON.Color4(0, 0, 0, 1);
+    public blackColor = new Color4(0, 0, 0, 1);
 
     /**
      * Constructor
@@ -28,4 +30,6 @@ class Script implements IScript {
     }
 }
 
+// Export the script as an attached script
+// (attached to a node or scene)
 exportScript(Script);

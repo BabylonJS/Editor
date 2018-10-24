@@ -1754,6 +1754,8 @@ declare module 'babylonjs-editor/editor/components/stats' {
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
     import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
+    import Layout from 'babylonjs-editor/editor/gui/layout';
+    import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     export interface AssetPreviewData {
@@ -1765,6 +1767,8 @@ declare module 'babylonjs-editor/editor/components/assets' {
     export default class EditorAssets {
             protected editor: Editor;
             tabs: W2UI.W2Tabs;
+            layout: Layout;
+            toolbar: Toolbar;
             components: IAssetComponent[];
             contextMenu: ContextMenu;
             prefabs: PrefabAssetComponent;
@@ -1809,6 +1813,11 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param asset the dropped asset
                 */
             protected dragEnd(component: IAssetComponent, asset: AssetElement<any>): (ev: DragEvent) => void;
+            /**
+                * On the user clicks on the toolbar
+                * @param id the id of the clicked item
+                */
+            protected toolbarClicked(id: string): Promise<void>;
             /**
                 * Processes the context menu for the clicked item
                 * @param ev the mouse event object
@@ -2017,6 +2026,8 @@ declare module 'babylonjs-editor/shared/asset' {
         id?: string;
         assetsCaption?: string;
         size?: number;
+        onCreateAsset?(name: string): AssetElement<any> | Promise<AssetElement<any>>;
+        onRenameAsset?(asset: AssetElement<any>, name: string): void;
         onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
         onRemoveAsset?(asset: AssetElement<any>): void;
         onAddAsset?(asset: AssetElement<any>): void;

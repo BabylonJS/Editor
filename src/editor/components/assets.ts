@@ -1,13 +1,18 @@
 import { Tools as BabylonTools } from 'babylonjs';
 
 import Editor from '../editor';
+
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
+
 import ContextMenu from '../gui/context-menu';
+import Layout from '../gui/layout';
+import Toolbar from '../gui/toolbar';
 
 import { IAssetComponent, AssetElement } from '../../shared/asset';
 
 import PrefabAssetComponent from '../prefabs/asset-component';
+import { Dialog } from 'babylonjs-editor';
 
 export interface AssetPreviewData {
     asset: AssetElement<any>;
@@ -19,6 +24,9 @@ export interface AssetPreviewData {
 export default class EditorAssets {
     // Public members
     public tabs: W2UI.W2Tabs;
+    public layout: Layout;
+    public toolbar: Toolbar;
+
     public components: IAssetComponent[] = [];
     public contextMenu: ContextMenu;
 
@@ -37,16 +45,32 @@ export default class EditorAssets {
      * @param editor the editore reference
      */
     constructor (protected editor: Editor) {
-        // Tabs
-        this.tabs = $('#ASSETS').w2tabs({
-            name: 'ASSETS'
-        });
-
         // Context menu
         this.contextMenu = new ContextMenu('AssetContextMenu', {
             width: 200,
             height: 55,
             search: false
+        });
+
+        // Layout
+        this.layout = new Layout('ASSETS-LAYOUT');
+        this.layout.panels = [
+            { type: 'top', size: 30, content: '<div id="ASSETS-TOOLBAR" style="width: 100%; height: 100%;"></div>', resizable: false },
+            { type: 'main', content: '<div id="ASSETS-CONTENT" style="width: 100%; height: 100%;"></div>' }
+        ];
+        this.layout.build('ASSETS');
+
+        // Toolbar
+        this.toolbar = new Toolbar('ASSETS-TOOLBAR');
+        this.toolbar.items = [
+            { type: 'button', id: 'add', text: 'Add', img: 'icon-add' }
+        ];
+        this.toolbar.onClick = id => this.toolbarClicked(id);
+        this.toolbar.build('ASSETS-TOOLBAR');
+
+        // Tabs
+        this.tabs = $('#ASSETS-CONTENT').w2tabs({
+            name: 'ASSETS-CONTENT'
         });
 
         // Create components
@@ -111,7 +135,7 @@ export default class EditorAssets {
             });
             this.emptyTextNode.textContent = 'Empty';
 
-            $('#ASSETS').append(this.emptyTextNode);
+            $('#ASSETS-CONTENT').append(this.emptyTextNode);
 
             return;
         }
@@ -186,7 +210,19 @@ export default class EditorAssets {
                 img.src = a.img || EditorAssets._DefaultImageSource;
 
                 // Events
-                img.addEventListener('click', ev => this.editor.core.onSelectAsset.notifyObservers(a.data));
+                img.addEventListener('click', ev => {
+                    this.assetPreviewDatas.forEach(apd => {
+                        if (apd.img) {
+                            apd.img.style.backgroundColor = '';
+                            apd.img.style.borderRadius = '';
+                        }
+                    });
+
+                    img.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
+                    img.style.borderRadius = '10px';
+
+                    this.editor.core.onSelectAsset.notifyObservers(a.data);
+                });
                 img.addEventListener('contextmenu', ev => this.processContextMenu(ev, c, a));
 
                 img.addEventListener('dblclick', async (ev) => {
@@ -237,7 +273,7 @@ export default class EditorAssets {
             return;
         
         // Add tab's div
-        $('#ASSETS').append('<div id="' + component.id + '" style="width: 100%; height: 100%; overflow: auto;"></div>');
+        $('#ASSETS-CONTENT').append('<div id="' + component.id + '" style="width: 100%; height: 100%; overflow: auto;"></div>');
 
         // Add tab
         this.tabs.add({
@@ -297,6 +333,24 @@ export default class EditorAssets {
     }
 
     /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    protected async toolbarClicked (id: string): Promise<void> {
+        switch (id) {
+            case 'add':
+                if (this.currentComponent.onCreateAsset) {
+                    const name = await Dialog.CreateWithTextInput('New asset name');
+                    await this.currentComponent.onCreateAsset(name);
+                    this.refresh(this.currentComponent.id);
+                }
+
+                break;
+            default: break;
+        }
+    }
+
+    /**
      * Processes the context menu for the clicked item
      * @param ev the mouse event object
      * @param component the component being modified
@@ -310,14 +364,17 @@ export default class EditorAssets {
         this.contextMenu.options.height = 55;
         this.contextMenu.tree.clear();
 
-        const items = ((component.onContextMenu && component.onContextMenu()) || []).concat([{ id: 'remove', text: 'Remove' }]);
+        const items = ((component.onContextMenu && component.onContextMenu()) || []);
+        component.onRenameAsset && items.push({ id: 'rename', text: 'Rename...', img: 'icon-export' });
+        items.push({ id: 'remove', text: 'Remove' });
+
         items.forEach(i => {
             this.contextMenu.tree.add({ id: i.id, text: i.text, img: i.img });
             this.contextMenu.options.height += 12.5;
         });
 
         // Events
-        this.contextMenu.tree.onClick = (id) => {
+        this.contextMenu.tree.onClick = async (id) => {
             // Custom callback?
             const customItem = items.find(i => i.callback && i.id === id);
             if (customItem) {
@@ -325,28 +382,56 @@ export default class EditorAssets {
                 return this.contextMenu.hide();
             }
 
-            // Remove button, so manage undo/redo
-            if (component.onAddAsset) {
-                UndoRedo.Push({
-                    fn: (type) => {
-                        if (type === 'from') {
-                            component.onAddAsset(asset);
-                        }
-                        else {
-                            component.onRemoveAsset(asset);
-                            this.editor.core.onSelectAsset.notifyObservers(null);
-                        }
+            switch (id) {
+                // Rename the asset
+                case 'rename':
+                    if (!component.onRenameAsset)
+                        return;
+                    
+                    const oldName = asset.name;
+                    const newName = await Dialog.CreateWithTextInput('New asset name');
 
-                        this.refresh();
-                        this.showTab(component.id);
+                    asset.name = newName;
+                    component.onRenameAsset(asset, newName);
+
+                    UndoRedo.Push({
+                        fn: (type) => {
+                            if (type === 'from')
+                                component.onRenameAsset(asset, oldName);
+                            else
+                                component.onRenameAsset(asset, newName);
+
+                            this.refresh();
+                            this.showTab(component.id);
+                        }
+                    });
+                    break;
+                // Remove button, so manage undo/redo
+                case 'remove':
+                    if (component.onAddAsset) {
+                        UndoRedo.Push({
+                            fn: (type) => {
+                                if (type === 'from') {
+                                    component.onAddAsset(asset);
+                                }
+                                else {
+                                    component.onRemoveAsset(asset);
+                                    this.editor.core.onSelectAsset.notifyObservers(null);
+                                }
+
+                                this.refresh();
+                                this.showTab(component.id);
+                            }
+                        });
                     }
-                });
+
+                    // Remove asset
+                    component.onRemoveAsset(asset);
+                    this.editor.core.onSelectAsset.notifyObservers(null);
+                    break;
             }
 
-            // Remove asset
-            component.onRemoveAsset(asset);
-            this.editor.core.onSelectAsset.notifyObservers(null);
-
+            // Refresh assets
             this.refresh();
 
             // Remove context menu

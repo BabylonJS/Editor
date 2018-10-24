@@ -84,6 +84,39 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
     }
 
     /**
+     * Creates a new code asset
+     */
+    public async onCreateAsset (name: string): Promise<AssetElement<any>> {
+        const code = await new Promise<string>((resolve) => {
+            Tools.LoadFile('assets/templates/code/custom-code-typescript.ts', (data) => resolve(<string> data));
+        });
+
+        const asset = {
+            name: name,
+            data: <BehaviorCode> {
+                code: code,
+                id: Tools.RandomId(),
+                name: name
+            }
+        };
+
+        this.scene.metadata = this.scene.metadata || { };
+        this.scene.metadata.behaviorScripts = this.scene.metadata.behaviorScripts || [];
+        this.scene.metadata.behaviorScripts.push(asset.data);
+
+        return asset;
+    }
+
+    /**
+     * On the user renames the asset
+     * @param asset the asset being renamed
+     * @param name the new name of the asset
+     */
+    public onRenameAsset (asset: AssetElement<BehaviorCode>, name: string): void {
+        asset.data.name = name;
+    }
+
+    /**
      * On get all the assets to be drawn in the assets component
      */
     public onGetAssets (): AssetElement<any>[] {
@@ -171,6 +204,10 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         // For each node
         this.datas.scripts.forEach(s => {
             if (EDITOR.BehaviorCode.Constructors[s.name.replace(/ /g, '')])
+                return;
+
+            const isAttached = this.datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
+            if (isAttached)
                 return;
             
             const ctor = this.getConstructor(s, null);
