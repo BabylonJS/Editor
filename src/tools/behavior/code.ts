@@ -156,13 +156,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
         this.editor.core.scene.metadata.behaviorScripts = this.editor.core.scene.metadata.behaviorScripts || [];
 
-        // Select object
-        if (this.targetNode || this.editor.core.currentSelectedObject)
-            this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
-
         // Request extension and register asset
         this.extension = <CodeExtension> Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
         this.editor.assets.addTab(this.extension);
+        
+        // Select object
+        if (this.targetNode || this.editor.core.currentSelectedObject)
+            this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
 
         // Add new script
         if (this.targetNodeAddScript)
