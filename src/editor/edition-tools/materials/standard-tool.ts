@@ -1,4 +1,4 @@
-import { StandardMaterial, PBRMaterial, MultiMaterial } from 'babylonjs';
+import { StandardMaterial, PBRMaterial, MultiMaterial, Tags } from 'babylonjs';
 
 import MaterialTool from './material-tool';
 import Tools from '../../tools/tools';
@@ -115,6 +115,9 @@ export default class StandardMaterialTool extends MaterialTool<StandardMaterial>
         
         pbr.ambientColor = this.object.ambientColor;
         pbr.ambientTexture = this.object.ambientTexture;
+
+        // Add tags to pbr
+        Tags.AddTagsTo(pbr, 'added');
 
         // Reassign
         this.object.getBindedMeshes().forEach(m => m.material = pbr);

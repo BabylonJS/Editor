@@ -819,7 +819,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Updates the toolbar text (attached object + edited objec)
     private _updateToolbarText (): void {
-        this.toolbar.element.right = `<h2 id="currentNodeNameGraph">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
+        this.toolbar.element.right = `<h2>${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
         this.toolbar.element.render();
     }
     

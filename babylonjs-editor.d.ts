@@ -2,14 +2,16 @@
 // Dependencies for this module:
 //   ../../babylonjs
 //   ../../dat-gui
+//   ../../golden-layout
+//   ../../babylonjs-editor-code-editor
 //   ../../babylonjs-gui
 //   ../../babylonjs-materials
-//   ../../golden-layout
 
 declare module 'babylonjs-editor' {
     import Editor from 'babylonjs-editor/editor/editor';
     import Tools from 'babylonjs-editor/editor/tools/tools';
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
+    import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import List from 'babylonjs-editor/editor/gui/list';
@@ -23,14 +25,16 @@ declare module 'babylonjs-editor' {
     import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
     import Dialog from 'babylonjs-editor/editor/gui/dialog';
     import ContextMenu, { ContextMenuOptions } from 'babylonjs-editor/editor/gui/context-menu';
+    import ResizableLayout, { ComponentConfig, ItemConfigType } from 'babylonjs-editor/editor/gui/resizable-layout';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
     import { EditorPlugin } from 'babylonjs-editor/editor/typings/plugin';
     import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
+    import CodeProjectEditorFactory from 'babylonjs-editor/editor/project/project-code-editor';
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
     export default Editor;
-    export { Editor, Tools, UndoRedo, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, AbstractEditionTool, ProjectRoot, SceneManager, SceneFactory };
+    export { Editor, Tools, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -90,6 +94,11 @@ declare module 'babylonjs-editor/editor/editor' {
                 */
             onPostUpdate(): void;
             /**
+                * Returns the extension instance identified by the given name
+                * @param name the name of the extension
+                */
+            getExtension<T>(name: string): T;
+            /**
                 * Adds an "edit panel" plugin
                 * @param url the URL of the plugin
                 * @param restart: if to restart the plugin
@@ -122,6 +131,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export default class Tools {
             static PendingFilesToLoad: number;
+            static IsStandalone: boolean;
             /**
                 * Creates a div element
                 * @param style: the div's style
@@ -282,6 +292,23 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
                 * Redo an action
                 */
             static Redo(): StackElement;
+    }
+}
+
+declare module 'babylonjs-editor/editor/tools/theme' {
+    export type ThemeType = 'Light' | 'Dark';
+    export default class ThemeSwitcher {
+            static LightThemeUrls: string[];
+            static DarkThemeUrls: string[];
+            /**
+                * Returns the theme's name
+                */
+            static ThemeName: ThemeType;
+            /**
+                * Applies the theme dynamically
+                * @param url the url of the theme
+                */
+            static Apply(urls: string[]): Promise<void>;
     }
 }
 
@@ -1009,6 +1036,71 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
     }
 }
 
+declare module 'babylonjs-editor/editor/gui/resizable-layout' {
+    import * as GoldenLayout from 'golden-layout';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export type ComponentConfig = GoldenLayout.ComponentConfig & {
+            html?: HTMLElement | string | (() => HTMLElement);
+            onClose?: () => void;
+            onClick?: () => void;
+    };
+    export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig;
+    export default class ResizableLayout {
+            element: GoldenLayout;
+            name: string;
+            panels: ItemConfigType[];
+            showCloseIcon: boolean;
+            onPanelResize: () => void;
+            protected containers: IStringDictionary<GoldenLayout.Container>;
+            protected configs: IStringDictionary<ComponentConfig>;
+            /**
+                * Constructor
+                * @param name the resizable layout name
+                */
+            constructor(name: string);
+            /**
+                * Returns the size of the given panel
+                * @param type: the component name
+                */
+            getPanelSize(name: string): {
+                    width: number;
+                    height: number;
+            };
+            /**
+                * Sets the given panel size
+                * @param name the panel's name
+                * @param value the new size of the panel
+                */
+            setPanelSize(name: string, value: number): void;
+            /**
+                * Shows the given tab
+                * @param name the tab to show
+                */
+            showPanelTab(name: string): void;
+            /**
+                * Removes the given panel
+                * @param name the name of the panel to remove
+                */
+            removePanel(name: string): void;
+            /**
+                * Adds a panel to the layout
+                * @param stackId: the stack to add component in
+                * @param config: the panel's configuration
+                */
+            addPanelToStack(stackId: string, config: ComponentConfig): void;
+            /**
+                * Returns the tabs count in the given stack id
+                * @param stackId the stack id containing tabs
+                */
+            getTabsCount(stackId: string): number;
+            /**
+                * Builds the resizable layout
+                * @param parentId the parent id
+                */
+            build(parentId: string): Promise<void>;
+    }
+}
+
 declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Editor from 'babylonjs-editor/editor/editor';
@@ -1237,6 +1329,48 @@ declare module 'babylonjs-editor/editor/typings/project' {
     }
 }
 
+declare module 'babylonjs-editor/editor/project/project-code-editor' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    import CodeProjectEditor, { Script } from 'babylonjs-editor-code-editor';
+    /**
+        * Options of the project code editor
+        */
+    export interface Options {
+            /**
+                * The name of the window
+                */
+            name: string;
+            /**
+                * The scripts to edit
+                */
+            scripts: Script[];
+            /**
+                * Once the editor is opened
+                */
+            onOpened?: () => void;
+            /**
+                * Once the user closed the code project editor
+                */
+            onClose?: () => void;
+    }
+    export default class CodeProjectEditorFactory {
+            static Instances: {
+                    instance: CodeProjectEditor;
+                    popup: Window;
+            }[];
+            /**
+                * Creates a new project code editor
+                * @param editor the editor reference
+                * @param options the options of the project code editor
+                */
+            static Create(editor: Editor, options: Options): Promise<CodeProjectEditor>;
+            /**
+                * Closes all the code project editors
+                */
+            static CloseAll(): void;
+    }
+}
+
 declare module 'babylonjs-editor/editor/scene/scene-manager' {
     import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
@@ -1402,6 +1536,7 @@ declare module 'babylonjs-editor/editor/core' {
             onSelectAsset: Observable<any>;
             onResize: Observable<{}>;
             onAddObject: Observable<{}>;
+            onRemoveObject: Observable<{}>;
             onGlobalPropertyChange: Observable<{
                     baseObject?: any;
                     object: any;
@@ -1428,71 +1563,6 @@ declare module 'babylonjs-editor/editor/core' {
                 * Updates the rendering + notify updaters
                 */
             update(): void;
-    }
-}
-
-declare module 'babylonjs-editor/editor/gui/resizable-layout' {
-    import * as GoldenLayout from 'golden-layout';
-    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export type ComponentConfig = GoldenLayout.ComponentConfig & {
-            html?: HTMLElement | string | (() => HTMLElement);
-            onClose?: () => void;
-            onClick?: () => void;
-    };
-    export type ItemConfigType = GoldenLayout.ItemConfig | ComponentConfig;
-    export default class ResizableLayout {
-            element: GoldenLayout;
-            name: string;
-            panels: ItemConfigType[];
-            showCloseIcon: boolean;
-            onPanelResize: () => void;
-            protected containers: IStringDictionary<GoldenLayout.Container>;
-            protected configs: IStringDictionary<ComponentConfig>;
-            /**
-                * Constructor
-                * @param name the resizable layout name
-                */
-            constructor(name: string);
-            /**
-                * Returns the size of the given panel
-                * @param type: the component name
-                */
-            getPanelSize(name: string): {
-                    width: number;
-                    height: number;
-            };
-            /**
-                * Sets the given panel size
-                * @param name the panel's name
-                * @param value the new size of the panel
-                */
-            setPanelSize(name: string, value: number): void;
-            /**
-                * Shows the given tab
-                * @param name the tab to show
-                */
-            showPanelTab(name: string): void;
-            /**
-                * Removes the given panel
-                * @param name the name of the panel to remove
-                */
-            removePanel(name: string): void;
-            /**
-                * Adds a panel to the layout
-                * @param stackId: the stack to add component in
-                * @param config: the panel's configuration
-                */
-            addPanelToStack(stackId: string, config: ComponentConfig): void;
-            /**
-                * Returns the tabs count in the given stack id
-                * @param stackId the stack id containing tabs
-                */
-            getTabsCount(stackId: string): number;
-            /**
-                * Builds the resizable layout
-                * @param parentId the parent id
-                */
-            build(parentId: string): Promise<void>;
     }
 }
 

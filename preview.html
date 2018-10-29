@@ -43,8 +43,9 @@
         var requests = null;
 
         // Opener or Parent ?
-        if (!opener && parent !== window)
+        if (!opener && parent !== window) {
             opener = parent;
+        }
         
         System.config({
             paths: {

@@ -7,14 +7,17 @@ import Editor, {
     CodeEditor,
     Dialog,
     EditorPlugin,
-    Picker
+    Picker,
+    CodeProjectEditorFactory
 } from 'babylonjs-editor';
+import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
 import Extensions from '../../extensions/extensions';
 import PostProcessCreatorExtension, { PostProcessCreatorMetadata } from '../../extensions/post-process-editor/post-process-editor';
+import CodeExtension from '../../extensions/behavior/code';
 
 import '../../extensions/post-process-editor/post-process-editor';
-import AbstractPostProcessEditor, { CustomPostProcessConfig } from '../../extensions/post-process-editor/post-process';
+import AbstractPostProcessEditor from '../../extensions/post-process-editor/post-process';
 
 export interface PostProcessGrid extends GridRow {
     name: string;
@@ -45,6 +48,8 @@ export default class PostProcessEditor extends EditorPlugin {
     public static DefaultCode: string = '';
     public static DefaultPixel: string = '';
     public static DefaultConfig: string = '';
+
+    public static CodeProjectEditor: CodeProjectEditor = null;
 
     /**
      * Constructor
@@ -141,7 +146,8 @@ export default class PostProcessEditor extends EditorPlugin {
             { id: 'project', type: 'menu', caption: 'Project', img: 'icon-folder', items: [
                 { id: 'add', caption: 'Add Existing Project...', img: 'icon-export' },
                 { id: 'download', caption: 'Download Project...', img: 'icon-export' }
-            ] }
+            ] },
+            { id: 'open-code-editor', text: 'Open Code Editor', caption: 'Open Code Editor', img: 'icon-edit' }
         ];
         this.toolbar.onClick = id => this.onToolbarClick(id);
         this.toolbar.build('POST-PROCESS-CREATOR-TOOLBAR');
@@ -177,9 +183,13 @@ export default class PostProcessEditor extends EditorPlugin {
 
         // UI
         if (!this.data)
-            this.layout.lockPanel('main', 'No Post-Process Selected');
+            this.layout.lockPanel('main');
         else
             setTimeout(() => this.selectPostProcess(0), 500);
+
+        // Opened in editor?
+        if (PostProcessEditor.CodeProjectEditor)
+            this.layout.lockPanel('main');
     }
 
     /**
@@ -202,12 +212,18 @@ export default class PostProcessEditor extends EditorPlugin {
      */
     protected onToolbarClick (id: string): void {
         switch (id) {
+            // Project
             case 'project:add':
                 Tools.OpenFileDialog(files => this._addPostProcessesFromFiles(files[0]));
                 break;
             case 'project:download':
                 const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(this.datas)), 'post-processes.json');
                 BabylonTools.Download(file, file.name);
+                break;
+
+            // Code Editor
+            case 'open-code-editor':
+                this.editCode();
                 break;
             default: break;
         }
@@ -233,7 +249,7 @@ export default class PostProcessEditor extends EditorPlugin {
             this.pixel.setValue('');
             this.config.setValue('');
 
-            this.layout.lockPanel('main', 'No Post-Process Selected');
+            this.layout.lockPanel('main');
         }
     }
 
@@ -255,7 +271,8 @@ export default class PostProcessEditor extends EditorPlugin {
                 floats: [],
                 vectors2: [],
                 vectors3: []
-            }
+            },
+            id: BabylonTools.RandomId()
         };
 
         // Collect and add to the list
@@ -372,6 +389,41 @@ export default class PostProcessEditor extends EditorPlugin {
         this.code.setValue(this.data.code);
         this.pixel.setValue(this.data.pixel);
         this.config.setValue(this.data.config);
+
+        // Manage extra libs
+        const scripts = this.editor.core.scene.metadata.behaviorScripts;
+        const extension = <CodeExtension> Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
+
+        if (scripts && extension) {
+            const datas = extension.onSerialize();
+
+            // Remove libraries
+            for (const k in CodeEditor.CustomLibs) {
+                const lib = CodeEditor.CustomLibs[k];
+                lib.dispose();
+            }
+
+            CodeEditor.CustomLibs = { };
+        
+            // Add libraries
+            scripts.forEach(s => {
+                if (s === this.data)
+                    return;
+
+                // Check if attached, then don't share declaration
+                const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
+
+                if (isAttached)
+                    return;
+
+                const code = `declare module "${s.name}" {${s.code}}`;
+                CodeEditor.CustomLibs[s.name] = window['monaco'].languages.typescript.typescriptDefaults.addExtraLib(code, s.name);
+            });
+        }
+
+        // Finish
+        if (PostProcessEditor.CodeProjectEditor)
+            this.layout.lockPanel('main');
     }
 
     /**
@@ -424,6 +476,33 @@ export default class PostProcessEditor extends EditorPlugin {
         }
     }
 
+    /**
+     * On edit the code in a new window
+     * @param id: the id of the script
+     */
+    protected async editCode (): Promise<void> {
+        // Check if already opened
+        if (PostProcessEditor.CodeProjectEditor)
+            return;
+
+        // Create
+        const editor = await CodeProjectEditorFactory.Create(this.editor, {
+            name: 'Code Editor - Behaviors',
+            scripts: this.editor.core.scene.metadata['PostProcessCreator'],
+            onOpened: () => {
+                this.layout.lockPanel('main');
+            },
+            onClose: () => {
+                PostProcessEditor.CodeProjectEditor = null;
+
+                if (this.data)
+                    this.layout.unlockPanel('main');
+            }
+        });
+
+        PostProcessEditor.CodeProjectEditor = <any>editor;
+    }
+
     // Create a window and a grid to select post-processes to add
     private async _addPostProcessesFromFiles (file: File): Promise<void> {
         const content = await Tools.ReadFileAsText(file);
@@ -450,7 +529,7 @@ export default class PostProcessEditor extends EditorPlugin {
                 });
             });
 
-            if (selected.length > 0) {
+            if (selected.length > 0 && !PostProcessEditor.CodeProjectEditor) {
                 this.layout.unlockPanel('main');
 
                 this.data = this.datas[this.datas.length - 1];

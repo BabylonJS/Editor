@@ -66,7 +66,10 @@ export default class MaterialsViewer extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
-        this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
+        this.engines.forEach(e => {
+            e.scenes.forEach(s => s.dispose());
+            e.dispose();
+        });
         this.editor.core.onResize.removeCallback(this.onResizePreview);
         this.editor.core.onAddObject.removeCallback(this.onAddObject);
 

@@ -871,7 +871,7 @@ export default class AnimationEditor extends EditorPlugin {
 
         const doAnimatables = (animatables: IAnimatable[], frame: number) => {
             animatables.forEach(a => {
-                if (a === this.animatable)
+                if (!a || a === this.animatable)
                     return;
                 
                 let animatable = this.editor.core.scene.getAnimatableByTarget(a);

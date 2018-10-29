@@ -413,10 +413,12 @@ export default class EditorAssets {
                             fn: (type) => {
                                 if (type === 'from') {
                                     component.onAddAsset(asset);
+                                    this.editor.core.onAddObject.notifyObservers(asset.data);
                                 }
                                 else {
                                     component.onRemoveAsset(asset);
                                     this.editor.core.onSelectAsset.notifyObservers(null);
+                                    this.editor.core.onRemoveObject.notifyObservers(asset.data);
                                 }
 
                                 this.refresh();
@@ -428,6 +430,7 @@ export default class EditorAssets {
                     // Remove asset
                     component.onRemoveAsset(asset);
                     this.editor.core.onSelectAsset.notifyObservers(null);
+                    this.editor.core.onRemoveObject.notifyObservers(asset.data);
                     break;
             }
 

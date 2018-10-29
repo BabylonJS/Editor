@@ -91,7 +91,7 @@ html, body {
     padding: 0;
 }
 
-#renderCanvas {
+#renderCanvasEditor {
     position: absolute;
     width: 100%;
     height: 100%;

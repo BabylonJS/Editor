@@ -74,6 +74,7 @@ export default class EditorApp {
         });
 
         // Menu
+        /*
         var template = <MenuItemConstructorOptions[]> [{
             label: 'Babylon.js Editor',
             submenu: [
@@ -99,6 +100,8 @@ export default class EditorApp {
         ];
     
         Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+        */
+        Menu.setApplicationMenu(null);
     }
 }
 

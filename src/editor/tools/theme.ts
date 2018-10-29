@@ -39,6 +39,9 @@ export default class ThemeSwitcher {
      * @param url the url of the theme
      */
     public static async Apply (urls: string[]): Promise<void> {
+        if (!Tools.IsStandalone)
+            return;
+
         for (const url of urls)
             await Tools.ImportScript('./' + url);
         

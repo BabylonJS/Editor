@@ -9,7 +9,7 @@ import {
     Vector3,
     EffectLayer,
     Sound,
-    RenderTargetTexture,
+    RenderTargetTexture, ReflectionProbe,
     InstancedMesh,
     Color3
 } from 'babylonjs';
@@ -179,8 +179,14 @@ export default class ProjectImporter {
 
         // Render targets
         project.renderTargets.forEach(rt => {
-            const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
-            scene.customRenderTargets.push(texture);
+            if (rt.isProbe) {
+                const probe = ReflectionProbe.Parse(rt.serializationObject, scene, 'file:');
+                Tags.AddTagsTo(probe, 'added');
+            }
+            else {
+                const texture = <RenderTargetTexture> Texture.Parse(rt.serializationObject, scene, 'file:');
+                scene.customRenderTargets.push(texture);
+            }
         });
 
         // Environment

@@ -5,7 +5,8 @@ import {
     Tags,
     Vector3,
     ActionManager,
-    ParticleSystem
+    ParticleSystem,
+    ReflectionProbe
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -291,6 +292,7 @@ export default class ProjectExporter {
     private static _SerializeRenderTargets (editor: Editor): Export.RenderTarget[] {
         const renderTargets: Export.RenderTarget[] = [];
 
+        // Render targets
         editor.core.scene.customRenderTargets.forEach(rt => {
             if (!Tags.HasTags(rt) || !Tags.MatchesQuery(rt, 'added'))
                 return;
@@ -298,6 +300,17 @@ export default class ProjectExporter {
             renderTargets.push({
                 isProbe: false,
                 serializationObject: rt.serialize()
+            });
+        });
+
+        // Reflection probes
+        editor.core.scene.reflectionProbes && editor.core.scene.reflectionProbes.forEach(rp => {
+            if (!Tags.HasTags(rp) || !Tags.MatchesQuery(rp, 'added'))
+                return;
+
+            renderTargets.push({
+                isProbe: true,
+                serializationObject: rp.serialize()
             });
         });
 

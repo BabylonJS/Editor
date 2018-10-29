@@ -36,6 +36,7 @@ import SceneExporter from './scene/scene-exporter';
 
 import ProjectImporter from './project/project-importer';
 import ProjectExporter from './project/project-exporter';
+import CodeProjectEditorFactory from './project/project-code-editor';
 
 import Tools from './tools/tools';
 import DefaultScene from './tools/default-scene';
@@ -85,6 +86,9 @@ export default class Editor implements IUpdatable {
      * @param scene: a scene to edit. If undefined, a default scene will be created
      */
     constructor(scene?: Scene) {
+        // Misc.
+        Tools.IsStandalone = !scene;
+    
         // Create editor div
         const mainDiv = Tools.CreateElement('div', 'BABYLON-EDITOR-MAIN', {
             overflow: 'hidden',
@@ -163,7 +167,7 @@ export default class Editor implements IUpdatable {
 
         // Initialize Babylon.js
         if (!scene) {
-            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvas');
+            const canvas = <HTMLCanvasElement>document.getElementById('renderCanvasEditor');
             canvas.addEventListener('contextmenu', ev => ev.preventDefault());
             
             this.core.engine = new Engine(canvas, true, {
@@ -173,9 +177,35 @@ export default class Editor implements IUpdatable {
             this.core.scene = new Scene(this.core.engine);
             this.core.scenes.push(this.core.scene);
         } else {
+            // On next frame, add canvas etc.
+            scene.onAfterRenderObservable.addOnce(() => {
+                // Add canvas
+                const currentCanvas = <HTMLCanvasElement>document.getElementById('renderCanvasEditor');
+                const newCanvas = scene.getEngine().getRenderingCanvas();
+
+                const parent = currentCanvas.parentElement;
+
+                currentCanvas.remove();
+                newCanvas.id = currentCanvas.id;
+
+                parent.appendChild(scene.getEngine().getRenderingCanvas());
+
+                // Reset
+                this.graph.clear();
+                this.graph.fill();
+
+                this._createScenePicker();
+                this.stats.updateStats();
+                this.assets.refresh();
+            });
+
+            // Configure core
             this.core.engine = scene.getEngine();
             this.core.scenes.push(scene);
             this.core.scene = scene;
+
+            // Configure editor
+            this.camera = <any> scene.activeCamera;
         }
 
         // Create toolbar
@@ -198,11 +228,13 @@ export default class Editor implements IUpdatable {
         // Assets
         this.assets = new EditorAssets(this);
 
-        // Create editor camera
-        this.createEditorCamera();
+        if (Tools.IsStandalone) {
+            // Create editor camera
+            this.createEditorCamera();
 
-        // Create files input
-        this._createFilesInput();
+            // Create files input
+            this._createFilesInput();
+        }
 
         // Create scene icons
         this.sceneIcons = new SceneIcons(this);
@@ -223,8 +255,10 @@ export default class Editor implements IUpdatable {
         }
 
         // Apply theme
-        const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
-        ThemeSwitcher.ThemeName = theme || 'Light';
+        if (Tools.IsStandalone) {
+            const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
+            ThemeSwitcher.ThemeName = theme || 'Light';
+        }
     }
 
     /**
@@ -255,6 +289,9 @@ export default class Editor implements IUpdatable {
         if (tabsCount === 0)
             this.resizableLayout.setPanelSize('edit-panel', 0);
 
+        // Assets
+        this.assets.layout.element.resize();
+
         // Notify
         this.core.onResize.notifyObservers(null);
     }
@@ -276,6 +313,14 @@ export default class Editor implements IUpdatable {
     }
 
     /**
+     * Returns the extension instance identified by the given name
+     * @param name the name of the extension
+     */
+    public getExtension<T> (name: string): T {
+        return <any> Extensions.Instances[name];
+    }
+
+    /**
      * Adds an "edit panel" plugin
      * @param url the URL of the plugin
      * @param restart: if to restart the plugin
@@ -283,6 +328,11 @@ export default class Editor implements IUpdatable {
      * @param params: the params to give to the plugin's constructor
      */
     public async addEditPanelPlugin (url: string, restart: boolean = false, name?: string, ...params: any[]): Promise<IEditorPlugin> {
+        if (!Tools.IsStandalone) {
+            Window.CreateAlert('Cannot run plugins when using the Editor as scene inspector', 'Error');
+            return null;
+        }
+
         if (this.plugins[url]) {
             if (restart)
                 await this.removePlugin(this.plugins[url]);
@@ -402,6 +452,7 @@ export default class Editor implements IUpdatable {
         Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
             if (result === 'Yes') {
                 UndoRedo.Clear();
+                CodeProjectEditorFactory.CloseAll();
 
                 this.core.scene.dispose();
                 this.core.removeScene(this.core.scene);
@@ -561,12 +612,16 @@ export default class Editor implements IUpdatable {
 
         // Save state
         window.addEventListener('beforeunload', () => {
-            const state = JSON.stringify(this.resizableLayout.element.toConfig());
-            localStorage.setItem('babylonjs-editor-layout-state', state);
+            CodeProjectEditorFactory.CloseAll();
 
-            localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
-            localStorage.setItem('babylonjs-editor-theme-name', ThemeSwitcher.ThemeName);
-            localStorage.setItem('babylonjs-editor-layout-version', Editor.LayoutVersion);
+            if (Tools.IsStandalone) {
+                const state = JSON.stringify(this.resizableLayout.element.toConfig());
+                localStorage.setItem('babylonjs-editor-layout-state', state);
+
+                localStorage.setItem('babylonjs-editor-plugins', JSON.stringify(Object.keys(this.plugins)));
+                localStorage.setItem('babylonjs-editor-theme-name', ThemeSwitcher.ThemeName);
+                localStorage.setItem('babylonjs-editor-layout-version', Editor.LayoutVersion);
+            }
         });
     }
 
@@ -649,9 +704,11 @@ export default class Editor implements IUpdatable {
                 SceneManager.Clear();
 
                 // Editor project
-                if (disposePreviousScene)
+                if (disposePreviousScene) {
                     Extensions.ClearExtensions();
-                
+                    CodeProjectEditorFactory.CloseAll();
+                }
+
                 for (const f in FilesInput.FilesToLoad) {
                     const file = FilesInput.FilesToLoad[f];
                     if (Tools.GetFileExtension(file.name) === 'editorproject') {
@@ -760,7 +817,7 @@ export default class Editor implements IUpdatable {
             Dialog.Create('Error when loading scene', message, null);
         });
 
-        this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvas'));
+        this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvasEditor'));
     }
 
     // Creates the scene picker

@@ -44,7 +44,6 @@ var returnValue = null;
 var exports = { };
 
 {{code}}
-
 ${exportScriptString}
 }
 `;
@@ -231,6 +230,12 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
                 const code = this.datas.scripts.find(s => s.id === m.codeId);
                 const ctor = this.getConstructor(code, node);
+
+                // Warn?
+                if (!ctor.ctor && typeof(ctor) !== 'function') {
+                    const nodeName = node instanceof Scene ? 'Scene' : node.name;
+                    return Tools.Warn(`Script named "${code.name}" has been ignored on object "${nodeName}" as there is no exported script. Please use "exportScript(ctor);"`);
+                }
 
                 // Instance
                 const instance = new (ctor.ctor || ctor)();

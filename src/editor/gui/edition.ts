@@ -1,11 +1,12 @@
 import {
     Color3, Color4,
     Vector2, Vector3, Vector4,
-    Scene, BaseTexture, CubeTexture
+    BaseTexture, CubeTexture
 } from 'babylonjs';
 import * as dat from 'dat-gui';
 
 import Editor from '../editor';
+
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
@@ -131,7 +132,8 @@ export default class Edition {
         this.element.useLocalStorage = true;
         this.element.width = parent.width();
 
-        Tools.ImportScript('./css/dat.gui.css');
+        if (Tools.IsStandalone)
+            Tools.ImportScript('./css/dat.gui.css');
     }
 
     /**
