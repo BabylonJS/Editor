@@ -2,6 +2,7 @@ import Editor from './editor/editor';
 
 import Tools from './editor/tools/tools';
 import UndoRedo from './editor/tools/undo-redo';
+import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
 
 import Layout from './editor/gui/layout';
 import Toolbar from './editor/gui/toolbar';
@@ -16,6 +17,7 @@ import Edition from './editor/gui/edition';
 import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
 import Dialog from './editor/gui/dialog';
 import ContextMenu, { ContextMenuOptions } from './editor/gui/context-menu';
+import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
 
@@ -23,6 +25,7 @@ import { IStringDictionary, IDisposable, INumberDictionary } from './editor/typi
 import { EditorPlugin } from './editor/typings/plugin';
 
 import { ProjectRoot } from './editor/typings/project';
+import CodeProjectEditorFactory from './editor/project/project-code-editor';
 
 import SceneManager from './editor/scene/scene-manager';
 import SceneFactory from './editor/scene/scene-factory';
@@ -33,6 +36,7 @@ export {
     
     Tools,
     UndoRedo,
+    ThemeSwitcher, ThemeType,
 
     IStringDictionary,
     INumberDictionary,
@@ -53,10 +57,12 @@ export {
     Tree, ContextMenuItem, TreeNode,
     Dialog,
     ContextMenu, ContextMenuOptions,
+    ResizableLayout, ComponentConfig, ItemConfigType,
 
     AbstractEditionTool,
 
     ProjectRoot,
+    CodeProjectEditorFactory,
 
     SceneManager,
     SceneFactory

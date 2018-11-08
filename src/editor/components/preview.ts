@@ -19,7 +19,7 @@ export default class EditorPreview {
         this.layout = new Layout('PREVIEW');
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="PREVIEW-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', resizable: false, content: '<canvas id="renderCanvas"></canvas>' }
+            { type: 'main', resizable: false, content: '<canvas id="renderCanvasEditor"></canvas>' }
         ];
         this.layout.build('PREVIEW');
 

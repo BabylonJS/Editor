@@ -5,7 +5,6 @@ import {
     Tools as BabylonTools,
     IParticleSystem
 } from 'babylonjs';
-import * as BABYLON from 'babylonjs';
 
 import Editor, {
     Tools,
@@ -14,15 +13,15 @@ import Editor, {
     Toolbar,
     Grid, GridRow,
     CodeEditor,
-    Tree,
-    Window as Popin,
     Dialog,
     Picker,
 
     EditorPlugin,
 
-    ProjectRoot
+    ProjectRoot,
+    CodeProjectEditorFactory
 } from 'babylonjs-editor';
+import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
 import Extensions from '../../extensions/extensions';
 import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior/code';
@@ -47,6 +46,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected template: string = '// Some code';
 
     protected node: Node | Scene | IParticleSystem = null;
+    protected asset: BehaviorCode = null;
 
     protected datas: BehaviorNodeMetadata = null;
     protected data: BehaviorCode = null;
@@ -61,6 +61,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Private members
     private _timeoutId: number = -1;
+
+    // Static members
+    public static CodeProjectEditor: CodeProjectEditor = null;
 
     /**
      * Constructor
@@ -116,9 +119,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
         this.toolbar.items = [
-            { id: 'add-new', text: 'Add New Script', caption: 'Add New Script', img: 'icon-add' },
+            { id: 'add-new', text: 'Add New Script', caption: 'Attach New Script', img: 'icon-add' },
             { type: 'break' },
-            { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
+            { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' },
+            { id: 'open-code-editor', text: 'Open Code Editor', caption: 'Open Code Editor', img: 'icon-edit' }
         ];
         this.toolbar.right = 'No object selected';
         this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/custom_scripts';
@@ -128,7 +132,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add grid
         this.grid = new Grid<CodeGrid>('CodeGrid', {
             toolbarReload: false,
-            toolbarSearch: false
+            toolbarSearch: false,
+            toolbarEdit: false
         });
         this.grid.columns = [
             { field: 'name', caption: 'Name', size: '80%', editable: { type: 'string' } },
@@ -138,7 +143,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.grid.onAdd = () => this._importFrom([this._getSerializedMetadatasFile()]);
         this.grid.onDelete = (ids) => this.delete(ids);
         this.grid.onChange = (id, value) => this.change(id, value);
-        this.grid.onEdit = (id) => this.editCode(id);
         this.grid.build('CODE-BEHAVIOR-LIST');
 
         // Add code editor
@@ -159,10 +163,15 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Request extension and register asset
         this.extension = <CodeExtension> Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
         this.editor.assets.addTab(this.extension);
-        
+
         // Select object
-        if (this.targetNode || this.editor.core.currentSelectedObject)
+        if (this.targetNode || this.editor.core.currentSelectedObject) {
             this.selectObject(this.targetNode || this.editor.core.currentSelectedObject);
+            this.layout.unlockPanel('left');
+        }
+        else {
+            this.layout.lockPanel('left', 'No object selected');
+        }
 
         // Add new script
         if (this.targetNodeAddScript)
@@ -172,8 +181,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         if (this.targetNodeSetScript)
             this._importFrom([this._getSerializedMetadatasFile()]);
 
-        // Unlock
-        this.layout.unlockPanel('left');
+        // Opened in editor?
+        if (BehaviorCodeEditor.CodeProjectEditor || !this.node || !this.asset)
+            this.layout.lockPanel('main');
     }
 
     /**
@@ -195,6 +205,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Set script
         if (targetNodeSetScript)
             this._importFrom([this._getSerializedMetadatasFile()]);
+
+        // Lock?
+        if (BehaviorCodeEditor.CodeProjectEditor)
+            this.layout.lockPanel('main');
     }
 
     /**
@@ -211,6 +225,10 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             case 'import':
                 await this._importFrom();
                 break;
+            // Code Editor
+            case 'open-code-editor':
+                this.editCode();
+                break;
             default: break;
         }
     }
@@ -221,6 +239,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      */
     protected selectAsset (asset: BehaviorCode): void {
         this.node = null;
+        this.asset = asset;
+        
         if (!asset)
             return this.selectObject(null);
         
@@ -239,7 +259,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.selectCode(0);
 
             this.layout.unlockPanel('left');
-            this.layout.unlockPanel('main');
+
+            if (!BehaviorCodeEditor.CodeProjectEditor)
+                this.layout.unlockPanel('main');
         }
     }
 
@@ -250,12 +272,14 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected selectObject (node: Node | Scene | IParticleSystem): void {
         if (!node) {
             this.layout.lockPanel('left', 'No object selected');
-            this.layout.lockPanel('main', 'No code selected');
+            this.layout.lockPanel('main');
             return;
         }
         
         this.node = node;
         node['metadata'] = node['metadata'] || { };
+
+        this.asset = null;
 
         // Add all codes
         this.datas = node['metadata'].behavior;
@@ -306,10 +330,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Unlock / lock
         this.layout.unlockPanel('left');
 
-        if (this.datas.metadatas.length === 0)
-            this.layout.lockPanel('main', 'No code selected');
-        else
+        if (this.datas.metadatas.length === 0) {
+            this.layout.lockPanel('main');
+        } else if (!BehaviorCodeEditor.CodeProjectEditor) {
             this.layout.unlockPanel('main');
+        }
     }
 
     /**
@@ -403,7 +428,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.code.focus();
 
         // Unlock
-        this.layout.unlockPanel('main');
+        if (!BehaviorCodeEditor.CodeProjectEditor)
+            this.layout.unlockPanel('main');
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);
@@ -454,7 +480,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
     protected async createEditor (parent?: HTMLDivElement, data?: BehaviorCode, caller?: Window): Promise<CodeEditor> {
         caller = caller || window;
 
-        const code = new CodeEditor('typescript');
+        const code = new CodeEditor('typescript', '');
         await code.build(parent || 'CODE-BEHAVIOR-EDITOR', caller);
 
         code.onChange = value => {
@@ -496,19 +522,27 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * On edit the code in a new window
      * @param id: the id of the script
      */
-    protected async editCode (id: number): Promise<void> {
-        const name = 'Code Editor - ' + this.data.name;
+    protected async editCode (): Promise<void> {
+        // Check if already opened
+        if (BehaviorCodeEditor.CodeProjectEditor)
+            return;
 
-        // Create popup
-        const popup = Tools.OpenPopup('./code-editor.html#' + name, name, 1280, 800);
-        popup.document.title = name;
-        popup.addEventListener('editorloaded', async () => {
-            const code = await this.createEditor(<HTMLDivElement> popup.document.getElementById('EDITOR-DIV'), this.data, popup);
-            code.setValue(this.data.code);
+        // Create
+        const editor = await CodeProjectEditorFactory.Create(this.editor, {
+            name: 'Code Editor - Behaviors',
+            scripts: this.editor.core.scene.metadata.behaviorScripts,
+            onOpened: () => {
+                this.layout.lockPanel('main');
+            },
+            onClose: () => {
+                BehaviorCodeEditor.CodeProjectEditor = null;
+
+                if (this.node || this.asset)
+                    this.layout.unlockPanel('main');
+            }
         });
-        popup.addEventListener('beforeunload', () => {
-            CodeEditor.RemoveExtraLib(popup);
-        });
+
+        BehaviorCodeEditor.CodeProjectEditor = <any>editor;
     }
 
     // Returns the serialized metadatas file
@@ -524,7 +558,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Updates the toolbar text (attached object + edited objec)
     private _updateToolbarText (): void {
-        this.toolbar.element.right = `<h2 id="currentNodeNameCode">${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
+        this.toolbar.element.right = `<h2>${this.data ? this.data.name : ''}</h2> Attached to "${this.node instanceof Scene ? 'Scene' : this.node ? this.node.name : ''}"`;
         this.toolbar.element.render();
     }
 
@@ -562,16 +596,22 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
                     if (importFromFile) {
                         code.id = id;
-                        scripts.push(code);
+                        this.extension.onAddAsset({
+                            data: code,
+                            name: code.name
+                        });
                     }
 
                     // Add link to current node
-                    this.datas.metadatas.push({
-                        active: true,
-                        codeId: id
-                    });
+                    if (this.datas) {
+                        this.datas.metadatas.push({
+                            active: true,
+                            codeId: id
+                        });
+                    }
                 });
 
+                this.editor.assets.refresh(this.extension.id);
                 this.selectObject(this.node);
             });
         }

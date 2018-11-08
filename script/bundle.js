@@ -4,12 +4,10 @@ const build = function (baseUrl, inFile, outFile, options) {
     options.mangle = false;
 
     const builder = new Builder(baseUrl);
-    builder.config({
+    builder.config(Object.assign(options.config || { }, {
         paths: {
-            '*': '*.js',
-
             'babylonjs': './node_modules/babylonjs/babylon.max.js',
-            'babylonjs-gui': './node_modules/babylonjs-gui/babylon.gui.js',
+            'babylonjs-gui': './node_modules/babylonjs-gui/babylon.gui.min.js',
             'babylonjs-materials': './node_modules/babylonjs-materials/babylonjs.materials.js',
             'babylonjs-loaders': './node_modules/babylonjs-loaders/babylonjs.loaders.js',
             'babylonjs-serializers': './node_modules/babylonjs-serializers/babylonjs.serializers.js',
@@ -22,6 +20,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'earcut': './node_modules/earcut/dist/earcut.min.js',
             'oimo': './node_modules/babylonjs/Oimo.js',
             'jstree': './node_modules/jstree/dist/jstree.js',
+            'jquery': './node_modules/jquery/dist/jquery.js',
             'golden-layout': './node_modules/golden-layout/dist/goldenlayout.js',
             'javascript-astar': './node_modules/javascript-astar/astar.js',
             'litegraph.js': './node_modules/litegraph.js/build/litegraph.js',
@@ -37,8 +36,13 @@ const build = function (baseUrl, inFile, outFile, options) {
             'post-process-editor': './build/src/tools/post-process-editor/index.js',
             'metadatas': './build/src/tools/metadata/editor.js',
             'notes': './build/src/tools/notes/notes.js'
+        },
+        packages: {
+            "./build/src/": {
+                defaultExtension: "js"
+            }
         }
-    });
+    }));
     
     builder.buildStatic(inFile, outFile, options).then(function () {
         console.log('Build complete for: ' + outFile);
@@ -86,17 +90,33 @@ build('./build/src/', './build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
     format: 'cjs',
     externals: externals,
-    minify: true
+    minify: false
 });
 
-/*
-build('./build/src/', './build/src/index.js', './dist/editor-all.js', {
+build('./', './build/src/all.js', './dist/editor-all.js', {
     globalName: 'Editor',
-    format: 'cjs',
+    format: 'global',
+    sourceMaps: false,
     minify: true,
-    externals: ['jquery']
+    runtime: false,
+    normalize: true,
+    externals: [
+        'babylonjs'
+    ],
+    globalDeps: {
+        'babylonjs': 'BABYLON'
+    },
+    config: {
+        map: {
+            css: "./node_modules/systemjs-plugin-css/css.js"
+        },
+        meta: {
+            "*.css": { loader: "css" }
+        },
+        separateCSS: false,
+        buildCSS: true
+    }
 });
-*/
 
 // Editor
 externals = externals.concat(['babylonjs-editor', 'raphael']);
@@ -179,6 +199,14 @@ build('./build/src/', './build/src/tools/metadata/editor.js', './dist/metadata-e
 });
 
 build('./build/src/', './build/src/tools/notes/notes.js', './dist/notes.js', {
+    globalName: 'Notes',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
+
+// Code Editor
+build('./build/src/', './build/src/code-project-editor/index.js', './dist/code-project-editor.js', {
     globalName: 'Notes',
     format: 'cjs',
     externals: externals,

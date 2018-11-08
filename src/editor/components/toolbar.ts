@@ -17,6 +17,7 @@ import SceneSerializer from '../scene/scene-serializer';
 
 import ProjectImporter from '../project/project-importer';
 import ProjectExporter from '../project/project-exporter';
+import CodeProjectEditorFactory from '../project/project-code-editor';
 
 export default class EditorToolbar {
     // Public members
@@ -162,6 +163,7 @@ export default class EditorToolbar {
                     if (result === 'No')
                         return;
                     
+                    CodeProjectEditorFactory.CloseAll();
                     this.editor._showReloadDialog = false;
                     this.editor.filesInput['_processReload']();
                 });

@@ -36,11 +36,10 @@ Builder.build({
             'babylonjs-editor.d.ts',
             'babylonjs-editor-extensions.d.ts',
 
-            'index.html',
             'index-debug.html',
             'redirect.html',
             'preview.html',
-            'code-editor.html'
+            'code-editor-debug.html'
         ]
     }
 });

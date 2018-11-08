@@ -10,7 +10,8 @@ import {
     Observer,
     DynamicTexture,
     MirrorTexture,
-    EnvironmentTextureTools
+    EnvironmentTextureTools,
+    ReflectionProbe
 } from 'babylonjs';
 import 'babylonjs-procedural-textures';
 
@@ -119,8 +120,9 @@ export default class TextureViewer extends EditorPlugin {
             { id: 'add', type: 'menu', text: 'Add', caption: 'Add', img: 'icon-add', items: [
                 { id: 'from-file', text: 'Add From File...', img: 'icon-add' },
                 { id: 'procedural', text: 'Add Procedural...', img: 'icon-add' },
-                { id: 'render-target', text: 'Add Render Target...', img: 'icon-add' },
-                { id: 'mirror', text: 'Add Mirror...', img: 'icon-add' },
+                { id: 'render-target', text: 'Add Render Target', img: 'icon-add' },
+                { id: 'mirror', text: 'Add Mirror', img: 'icon-add' },
+                { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-add' }
             ] },
             { type: 'break' },
             { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },
@@ -191,6 +193,9 @@ export default class TextureViewer extends EditorPlugin {
             case 'add:mirror':
                 this.addMirrorTexture();
                 break;
+            case 'add:reflection-probe':
+                this.addReflectionProbe();
+                break;
 
             case 'convert-cube-texture':
                 this.convertCubeTexture();
@@ -221,7 +226,10 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected async createList (): Promise<void> {
         // Clear
-        this.engines.forEach(e => e.scenes.forEach(s => s.dispose()) && e.dispose());
+        this.engines.forEach(e => {
+            e.scenes.forEach(s => s.dispose());
+            e.dispose();
+        });
 
         const div = $('#TEXTURE-VIEWER-LIST');
         while (div[0].children.length > 0)
@@ -229,8 +237,11 @@ export default class TextureViewer extends EditorPlugin {
 
         this.clearRenderTargetObservers();
 
+        // Misc.
+        const scene = this.editor.core.scene;
+
         // Add HTML nodes for textures
-        for (const tex of this.editor.core.scene.textures) {
+        for (const tex of scene.textures) {
             if (this.allowCubes !== undefined && tex.isCube && !this.allowCubes)
                 continue;
 
@@ -256,8 +267,15 @@ export default class TextureViewer extends EditorPlugin {
         }
 
         // Add render targets
-        for (const tex of this.editor.core.scene.customRenderTargets) {
+        for (const tex of scene.customRenderTargets) {
             this.addRenderTargetTexturePreviewNode(tex);
+        }
+
+        // Reflection probes
+        if (scene.reflectionProbes) {
+            for (const tex of scene.reflectionProbes) {
+                this.addRenderTargetTexturePreviewNode(tex);
+            }
         }
     }
 
@@ -425,7 +443,7 @@ export default class TextureViewer extends EditorPlugin {
      * Adds a render target texture preview
      * @param texture: the render target texture to preview
      */
-    protected addRenderTargetTexturePreviewNode (texture: RenderTargetTexture): void {
+    protected addRenderTargetTexturePreviewNode (texture: RenderTargetTexture | ReflectionProbe): void {
         const parent = Tools.CreateElement<HTMLDivElement>('div', texture.name + 'div', {
             'width': '100px',
             'height': '100px',
@@ -438,7 +456,12 @@ export default class TextureViewer extends EditorPlugin {
             width: '100px',
             height: '100px'
         });
-        canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'rendertarget', texture));
+        canvas.addEventListener('click', (ev) => {
+            if (texture instanceof RenderTargetTexture)
+                this.setTexture(texture.name, 'rendertarget', texture);
+            else
+                this.editor.core.onSelectObject.notifyObservers(texture);
+        });
         parent.appendChild(canvas);
 
         // Add text
@@ -461,6 +484,9 @@ export default class TextureViewer extends EditorPlugin {
         texturesList.append(parent);
 
         // Register render
+        if (!(texture instanceof RenderTargetTexture))
+            return;
+        
         let renderId = 0;
         const context = canvas.getContext('2d');
         
@@ -613,8 +639,9 @@ export default class TextureViewer extends EditorPlugin {
     /**
      * Add a new render target texture
      */
-    protected addRenderTargetTexture (): void {
-        const rt = new RenderTargetTexture('New Render Target', 512, this.editor.core.scene, true, true);
+    protected async addRenderTargetTexture (): Promise<void> {
+        const name = await Dialog.CreateWithTextInput('Render target name');
+        const rt = new RenderTargetTexture(name, 512, this.editor.core.scene, true, true);
         this.editor.core.scene.customRenderTargets.push(rt);
 
         this.addRenderTargetTexturePreviewNode(rt);
@@ -627,10 +654,29 @@ export default class TextureViewer extends EditorPlugin {
     /**
      * Add a new mirror texture
      */
-    protected addMirrorTexture (): void {
-        const rt = new MirrorTexture('New Mirror Texture', 512, this.editor.core.scene, true);
+    protected async addMirrorTexture (): Promise<void> {
+        const name = await Dialog.CreateWithTextInput('Mirror texture name');
+        const rt = new MirrorTexture(name, 512, this.editor.core.scene, true);
+        this.editor.core.scene.customRenderTargets.push(rt);
+        
         this.addRenderTargetTexturePreviewNode(rt);
         this.editor.edition.refresh();
+
+        // Tags
+        Tags.AddTagsTo(rt, 'added');
+    }
+
+    /**
+     * Adds a new reflection probe texture
+     */
+    protected async addReflectionProbe (): Promise<void> {
+        const name = await Dialog.CreateWithTextInput('Reflection probe name');
+        const rt = new ReflectionProbe(name, 512, this.editor.core.scene, true, true);
+        this.addRenderTargetTexturePreviewNode(rt);
+        this.editor.edition.refresh();
+
+        // Tags
+        Tags.AddTagsTo(rt, 'added');
     }
 
     /**

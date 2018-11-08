@@ -4,6 +4,7 @@ import { IStringDictionary } from '../typings/typings';
 export default class Tools {
     // Public members
     public static PendingFilesToLoad: number = 0;
+    public static IsStandalone: boolean = true;
 
     /**
      * Creates a div element
@@ -79,7 +80,9 @@ export default class Tools {
             'resizable=yes',
             'toolbar=no',
             'menubar=no',
+            'menubar=no',
             'scrollbars=yes',
+            'dependent=yes',
             'nodeIntegration=no'];
 
         const popup = window.open(url, name, features.join(','));

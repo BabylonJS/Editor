@@ -14,7 +14,8 @@
         "node_modules/": false,
         "build": true,
         "declaration": true,
-        "electron-packages": true
+        "electron-packages": true,
+        "node_modules": true
     },
 
     "editor.quickSuggestionsDelay": 0,

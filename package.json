@@ -21,8 +21,8 @@
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
     "webserver": "http-server -p 1338",
-    "bundle": "node ./script/dts.js && node ./script/bundle.js && node ./script/electron.js",
-    "bundle-js": "node ./script/bundle.js",
+    "bundle": "node ./script/dts.js && node ./script/css.js && node ./script/bundle.js && node ./script/electron.js",
+    "bundle-js": "node ./script/css.js && node ./script/bundle.js",
     "dts": "node ./script/dts.js"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
@@ -56,6 +56,7 @@
     "dat.gui": "~0.7.2",
     "dat-gui": "~0.5.0",
     "systemjs-plugin-css": "~0.1.35",
+    "base64-css": "~0.0.2",
     "w2ui": "~1.4.3",
     "systemjs": "~0.20.19",
     "es6-promise": "~4.1.0",

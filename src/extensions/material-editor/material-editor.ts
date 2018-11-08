@@ -28,8 +28,10 @@ export interface MaterialCreatorMetadata {
 
 const template = `
 EDITOR.MaterialCreator.Constructors['{{name}}'] = function () {
-{{code}}
+var returnValue = null;
+var exports = { };
 
+{{code}}
 ${exportScriptString}
 }
 `;
@@ -48,6 +50,9 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
     // Public members
     public instances: IStringDictionary<any> = { };
 
+    // Static members
+    public static Instance: MaterialEditorExtension = null;
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -55,6 +60,9 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
     constructor (scene: Scene) {
         super(scene);
         this.datas = [];
+
+        // Instance
+        MaterialEditorExtension.Instance = this;
     }
 
     /**

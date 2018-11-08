@@ -1,5 +1,6 @@
 import * as GoldenLayout from 'golden-layout';
 
+import Tools from '../tools/tools';
 import { IStringDictionary } from '../typings/typings';
 
 export type ComponentConfig = GoldenLayout.ComponentConfig & {
@@ -168,7 +169,8 @@ export default class ResizableLayout {
         // Initialize
         this.element.init();
 
-        await System.import('./node_modules/golden-layout/src/css/goldenlayout-base.css');
+        if (Tools.IsStandalone)
+            await System.import('./node_modules/golden-layout/src/css/goldenlayout-base.css');
     }
 
     // Registers all components

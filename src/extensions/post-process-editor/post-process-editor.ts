@@ -25,12 +25,15 @@ export interface PostProcessCreatorMetadata {
     pixel: string;
     config: string;
     userConfig: PostProcessCreatorUserConfig;
+    id: string;
 }
 
 const template = `
 EDITOR.PostProcessCreator.Constructors['{{name}}'] = function (camera, tools, mobile) {
-{{code}}
+var returnValue = null;
+var exports = { };
 
+{{code}}
 ${exportScriptString}
 }
 `;
@@ -48,6 +51,9 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     // Public members
     public instances: IStringDictionary<any> = { };
 
+    // Static members
+    public static Instance: PostProcessEditorExtension = null;
+
     /**
      * Constructor
      * @param scene: the babylonjs scene
@@ -55,6 +61,9 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
     constructor (scene: Scene) {
         super(scene);
         this.datas = [];
+
+        // Instance
+        PostProcessEditorExtension.Instance = this;
     }
 
     /**
@@ -153,7 +162,10 @@ export default class PostProcessEditorExtension extends Extension<PostProcessCre
         this.scene.metadata['PostProcessCreator'] = [];
 
         // For each material
-        this.datas.forEach(d => this.scene.metadata['PostProcessCreator'].push(d));
+        this.datas.forEach(d => {
+            d.id = d.id || Tools.RandomId();
+            this.scene.metadata['PostProcessCreator'].push(d);
+        });
     }
 }
 
