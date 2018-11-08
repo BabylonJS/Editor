@@ -7,7 +7,7 @@ import {
 import Editor from '../editor';
 import SceneFactory from '../scene/scene-factory';
 
-import { IAssetComponent, AssetElement, AssetContextMenu } from '../../shared/asset';
+import { IAssetComponent, AssetElement, AssetContextMenu } from '../../extensions/typings/asset';
 import { IStringDictionary } from '../typings/typings';
 import Tools from '../tools/tools';
 import Dialog from '../gui/dialog';

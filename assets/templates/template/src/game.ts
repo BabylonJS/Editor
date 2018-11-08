@@ -6,7 +6,7 @@ import {
     CannonJSPlugin
 } from 'babylonjs';
 
-import { Extensions } from 'babylonjs-editor-extensions';
+import { Extensions } from 'babylonjs-editor';
 
 export default class Game {
     // Public members

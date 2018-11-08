@@ -71,7 +71,7 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
       'cannon': 'CANNON',
       'earcut': 'Earcut'
     },
-    externals: ['javascript-astar', 'litegraph.js', 'babylonjs', 'cannon', 'earcut'],
+    externals: ['babylonjs', 'cannon', 'earcut'],
     minify: true
 });
 

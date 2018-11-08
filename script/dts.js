@@ -10,7 +10,7 @@ Bundler.bundle({
 console.log('Declaration complete for: babylonjs-editor.d.ts');
 
 Bundler.bundle({
-	name: 'babylonjs-editor-extensions',
+	name: 'babylonjs-editor',
     main: './declaration/src/extensions/index.d.ts',
     out: '../../../babylonjs-editor-extensions.d.ts'
 });

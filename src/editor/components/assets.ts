@@ -9,7 +9,7 @@ import ContextMenu from '../gui/context-menu';
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
 
-import { IAssetComponent, AssetElement } from '../../shared/asset';
+import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 
 import PrefabAssetComponent from '../prefabs/asset-component';
 import { Dialog } from 'babylonjs-editor';

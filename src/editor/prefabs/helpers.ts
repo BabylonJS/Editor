@@ -8,7 +8,7 @@ import {
     FilesInput
 } from 'babylonjs';
 
-import { AssetElement } from '../../shared/asset';
+import { AssetElement } from '../../extensions/typings/asset';
 import Tools from '../tools/tools';
 import { Prefab } from './prefab';
 

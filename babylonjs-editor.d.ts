@@ -1756,7 +1756,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
     import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
-    import { IAssetComponent, AssetElement } from 'babylonjs-editor/shared/asset';
+    import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
@@ -2009,7 +2009,7 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
     }
 }
 
-declare module 'babylonjs-editor/shared/asset' {
+declare module 'babylonjs-editor/extensions/typings/asset' {
     import { AbstractMesh, PickingInfo } from 'babylonjs';
     export interface AssetElement<T> {
         img?: string;
@@ -2041,7 +2041,7 @@ declare module 'babylonjs-editor/shared/asset' {
 declare module 'babylonjs-editor/editor/prefabs/asset-component' {
     import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
     import Editor from 'babylonjs-editor/editor/editor';
-    import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/shared/asset';
+    import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/extensions/typings/asset';
     import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
     export default class PrefabAssetComponent implements IAssetComponent {
             editor: Editor;
@@ -2156,7 +2156,7 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
 
 declare module 'babylonjs-editor/extensions/typings/extension' {
     import { Scene } from 'babylonjs';
-    import { IAssetComponent } from 'babylonjs-editor/shared/asset';
+    import { IAssetComponent } from 'babylonjs-editor/extensions/typings/asset';
     /**
         * Interface representing an editor extension
         */

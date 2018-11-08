@@ -97,16 +97,10 @@ export default class ProjectExporter {
                 { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
             ];
 
-            const distFiles: CreateFiles[] = [ // To be removed in future in order to use babylonjs-editor module
-                { name: 'editor.extensions.js', data: await Tools.LoadFile<string>('dist/editor.extensions.js') },
-                { name: 'babylonjs-editor-extensions.d.ts', data: await Tools.LoadFile<string>('babylonjs-editor-extensions.d.ts') }
-            ];
-
             const storage = await this.GetStorage(editor);
             storage.openPicker('Create Template...', [
                 { name: 'scene', folder: sceneFiles },
                 { name: 'src', folder: srcFiles },
-                { name: 'libs', folder: distFiles },
                 { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
                 { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
                 { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
