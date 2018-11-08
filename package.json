@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "build/electron/main.js",
   "productName": "Babylon.js Editor",
@@ -83,7 +83,5 @@
     "babylonjs-procedural-textures": "4.0.0-alpha.4",
     "babylonjs-serializers": "4.0.0-alpha.4"
   },
-  "dependencies": {
-
-  }
+  "dependencies": {}
 }
