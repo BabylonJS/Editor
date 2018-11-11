@@ -1,0 +1,90 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js Editor</title>
+    
+        <script src="./node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
+        <script src="./node_modules/systemjs/dist/system.src.js" type="text/javascript"></script>
+
+        <script src="./node_modules/jquery/dist/jquery.js" type="text/javascript"></script>
+        <script src="./node_modules/w2ui/w2ui.js" type="text/javascript"></script>
+
+        <link rel="stylesheet" type="text/css" href="./node_modules/w2ui/w2ui.css" />
+        <link rel="stylesheet" type="text/css" href="./node_modules/jstree/dist/themes/default/style.min.css" />
+        <link rel="stylesheet" type="text/css" href="./css/editor.css" />
+
+        <script src="./node_modules/monaco-editor/min/vs/loader.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <div id="EDITOR-DIV" style="width: 100%; height: 100%; position: fixed; left: 0px; top: 0px; right: 0px; bottom: 0px; z-index: 1;"></div>
+        <div id="LOADING-DIV" style="width: 100%; height: 100%;"></div>
+        
+        <script type="text/javascript">
+            require.config({ paths: { "vs": "./node_modules/monaco-editor/min/vs" }});
+            require(["vs/editor/editor.main"], function() {
+                System.config({
+                    paths: {
+                        "babylonjs": "./node_modules/babylonjs/babylon.max.js",
+                        "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
+                        "babylonjs-gui": "./node_modules/babylonjs-gui/babylon.gui.min.js",
+                        "babylonjs-materials": "./node_modules/babylonjs-materials/babylonjs.materials.js",
+                        "babylonjs-loaders": "./node_modules/babylonjs-loaders/babylonjs.loaders.js",
+                        "babylonjs-serializers": "./node_modules/babylonjs-serializers/babylonjs.serializers.js",
+                        "babylonjs-procedural-textures": "./node_modules/babylonjs-procedural-textures/babylonjs.proceduralTextures.js",
+                        "cannon": "./node_modules/cannon/build/cannon.js",
+                        "dat-gui": "./node_modules/dat.gui/build/dat.gui.js",
+                        "socket.io-client": "./node_modules/socket.io-client/dist/socket.io.js",
+                        "earcut": "./node_modules/earcut/dist/earcut.min.js",
+                        "oimo": "./node_modules/babylonjs/Oimo.js",
+                        "jstree": "./node_modules/jstree/dist/jstree.js",
+                        "golden-layout": "./node_modules/golden-layout/dist/goldenlayout.js",
+                        "typescript": "./node_modules/typescript/lib/typescript.js",
+
+                        // Editor's modules paths
+                        "babylonjs-editor": "./dist/editor.js",
+                        "extensions/extensions.js": "./build/src/extensions/extensions.js",
+                        "code-editor": "./dist/code-project-editor.js"
+                    },
+                    packages: {
+                        "./build/src/": {
+                            defaultExtension: "js"
+                        }
+                    },
+                    map: {
+                        css: "./node_modules/systemjs-plugin-css/css.js"
+                    },
+                    meta: {
+                        "*.css": { loader: "css" },
+                        "cannon": { format: "global" },
+                        "typescript": { format: "global" }
+                    },
+                    pluginFirst: true
+                });
+
+                // Define modules
+                System.set('jquery', System.newModule({ __useDefault: $ }));
+
+                // Lock and import
+                var loadingDiv = document.getElementById('LOADING-DIV');
+                w2utils.lock(loadingDiv, 'Loading Code Editor...', true);
+                
+                System.import("code-editor").then(function (e) {
+                    // Unlock and remove loading div
+                    w2utils.unlock(loadingDiv);
+                    loadingDiv.remove();
+
+                    // Opener or Parent ?
+                    if (!opener && parent !== window) {
+                        opener = parent;
+                    }
+
+                    // Run editor
+                    window.CodeEditor = e.default;
+
+                    window.dispatchEvent(new CustomEvent('editorloaded'));
+                });
+            });
+        </script>
+    </body>
+</html>
