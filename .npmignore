@@ -10,6 +10,7 @@ node_modules
 script
 src
 .gitignore
+babylonjs-editor-code-editor.d.ts
 babylonjs-editor.d.ts
 *.html
 tsconfig.json
