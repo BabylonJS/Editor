@@ -2,17 +2,21 @@ import { Effect, Material } from 'babylonjs';
 
 import Editor, {
     Tools,
-    Layout, Grid, GridRow,
+    Layout, Grid, GridRow, Toolbar,
     Dialog,
     CodeEditor,
-    EditorPlugin
+    EditorPlugin,
+    CodeProjectEditorFactory
 } from 'babylonjs-editor';
+import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
 import Extensions from '../../extensions/extensions';
 import MaterialCreatorExtension, { MaterialCreatorMetadata } from '../../extensions/material-editor/material-editor';
 
 import '../../extensions/material-editor/material-editor';
 import CustomEditorMaterial from '../../extensions/material-editor/material';
+
+import Helpers from '../helpers';
 
 export interface MaterialGrid extends GridRow {
     name: string;
@@ -21,6 +25,7 @@ export interface MaterialGrid extends GridRow {
 export default class MaterialEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
+    public toolbar: Toolbar = null;
     public grid: Grid<MaterialGrid> = null;
 
     // Protected members
@@ -43,6 +48,8 @@ export default class MaterialEditor extends EditorPlugin {
     public static DefaultVertex: string = '';
     public static DefaultPixel: string = '';
     public static DefaultConfig: string = '';
+
+    public static CodeProjectEditor: CodeProjectEditor = null;
 
     /**
      * Constructor
@@ -114,6 +121,7 @@ export default class MaterialEditor extends EditorPlugin {
         // Create layout
         this.layout = new Layout('MaterialCreatorCode');
         this.layout.panels = [
+            { type: 'top', content: '<div id="MATERIAL-CREATOR-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 32, overflow: 'auto', resizable: true },
             { type: 'left', content: '<div id="MATERIAL-CREATOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
             { 
                 type: 'main',
@@ -133,6 +141,14 @@ export default class MaterialEditor extends EditorPlugin {
             }
         ];
         this.layout.build(this.divElement.id);
+
+        // Create toolbar
+        this.toolbar = new Toolbar('MaterialEditorToolbar');
+        this.toolbar.items = [
+            { id: 'open-code-editor', text: 'Open Code Editor', caption: 'Open Code Editor', img: 'icon-edit' }
+        ];
+        this.toolbar.onClick = id => this.onToolbarClick(id);
+        this.toolbar.build('MATERIAL-CREATOR-TOOLBAR');
 
         // Create grid
         this.grid = new Grid<MaterialGrid>('MaterialCreatorGrid', {
@@ -173,6 +189,20 @@ export default class MaterialEditor extends EditorPlugin {
      */
     protected resize (): void {
         this.layout.element.resize();
+    }
+
+    /**
+     * On the user clicks on the toolbar
+     * @param id the id of the clicked item
+     */
+    protected onToolbarClick (id: string): void {
+        switch (id) {
+            // Code Editor
+            case 'open-code-editor':
+                this.editCode();
+                break;
+            default: break;
+        }
     }
 
     /**
@@ -237,6 +267,9 @@ export default class MaterialEditor extends EditorPlugin {
         this.vertex.setValue(this.data.vertex);
         this.pixel.setValue(this.data.pixel);
         this.config.setValue(this.data.config);
+
+        // Manage extra libs
+        Helpers.UpdateMonacoTypings(this.editor, this.data);
     }
 
     /**
@@ -332,5 +365,32 @@ export default class MaterialEditor extends EditorPlugin {
                 } catch (e) { /* Silently */ }
             }
         };
+    }
+
+    /**
+     * On edit the code in a new window
+     * @param id: the id of the script
+     */
+    protected async editCode (): Promise<void> {
+        // Check if already opened
+        if (MaterialEditor.CodeProjectEditor)
+            return;
+
+        // Create
+        const editor = await CodeProjectEditorFactory.Create(this.editor, {
+            name: 'Code Editor - Materials',
+            scripts: this.editor.core.scene.metadata['MaterialCreator'],
+            onOpened: () => {
+                this.layout.lockPanel('main');
+            },
+            onClose: () => {
+                MaterialEditor.CodeProjectEditor = null;
+
+                if (this.data)
+                    this.layout.unlockPanel('main');
+            }
+        });
+
+        MaterialEditor.CodeProjectEditor = <any>editor;
     }
 }

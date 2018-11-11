@@ -27,6 +27,7 @@ import Extensions from '../../extensions/extensions';
 import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } from '../../extensions/behavior/code';
 
 import '../../extensions/behavior/code';
+import Helpers from '../helpers';
 
 export interface CodeGrid extends GridRow {
     name: string;
@@ -346,28 +347,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         const scripts = this.editor.core.scene.metadata.behaviorScripts;
         this.data = scripts.find(s => s.id === this.datas.metadatas[index].codeId);
 
-        // Manage extra libs
-        for (const k in CodeEditor.CustomLibs) {
-            const lib = CodeEditor.CustomLibs[k];
-            lib.dispose();
-        }
-
-        CodeEditor.CustomLibs = { };
-        
-        scripts.forEach(s => {
-            if (s === this.data)
-                return;
-
-            // Check if attached, then don't share declaration
-            const datas = this.extension.onSerialize();
-            const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
-
-            if (isAttached)
-                return;
-
-            const code = `declare module "${s.name}" {${s.code}}`;
-            CodeEditor.CustomLibs[s.name] = window['monaco'].languages.typescript.typescriptDefaults.addExtraLib(code, s.name);
-        });
+        // Manage typings
+        Helpers.UpdateMonacoTypings(this.editor, this.data);
 
         // Update editor
         this.code.setValue(this.data.code);

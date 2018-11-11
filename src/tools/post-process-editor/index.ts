@@ -14,10 +14,11 @@ import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
 import Extensions from '../../extensions/extensions';
 import PostProcessCreatorExtension, { PostProcessCreatorMetadata } from '../../extensions/post-process-editor/post-process-editor';
-import CodeExtension from '../../extensions/behavior/code';
 
 import '../../extensions/post-process-editor/post-process-editor';
 import AbstractPostProcessEditor from '../../extensions/post-process-editor/post-process';
+
+import Helpers from '../helpers';
 
 export interface PostProcessGrid extends GridRow {
     name: string;
@@ -391,35 +392,7 @@ export default class PostProcessEditor extends EditorPlugin {
         this.config.setValue(this.data.config);
 
         // Manage extra libs
-        const scripts = this.editor.core.scene.metadata.behaviorScripts;
-        const extension = <CodeExtension> Extensions.RequestExtension(this.editor.core.scene, 'BehaviorExtension');
-
-        if (scripts && extension) {
-            const datas = extension.onSerialize();
-
-            // Remove libraries
-            for (const k in CodeEditor.CustomLibs) {
-                const lib = CodeEditor.CustomLibs[k];
-                lib.dispose();
-            }
-
-            CodeEditor.CustomLibs = { };
-        
-            // Add libraries
-            scripts.forEach(s => {
-                if (s === this.data)
-                    return;
-
-                // Check if attached, then don't share declaration
-                const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
-
-                if (isAttached)
-                    return;
-
-                const code = `declare module "${s.name}" {${s.code}}`;
-                CodeEditor.CustomLibs[s.name] = window['monaco'].languages.typescript.typescriptDefaults.addExtraLib(code, s.name);
-            });
-        }
+        Helpers.UpdateMonacoTypings(this.editor, this.data);
 
         // Finish
         if (PostProcessEditor.CodeProjectEditor)
@@ -487,7 +460,7 @@ export default class PostProcessEditor extends EditorPlugin {
 
         // Create
         const editor = await CodeProjectEditorFactory.Create(this.editor, {
-            name: 'Code Editor - Behaviors',
+            name: 'Code Editor - Post-Processes',
             scripts: this.editor.core.scene.metadata['PostProcessCreator'],
             onOpened: () => {
                 this.layout.lockPanel('main');
