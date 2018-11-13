@@ -65,6 +65,10 @@ export default class SceneImporter {
                             m.id += BabylonTools.RandomId();
 
                         // Misc.
+                        m.metadata = m.metadata || { };
+                        m.metadata.baseConfiguration = {
+                            isPickable: m.isPickable
+                        };
                         m.isPickable = true;
 
                         // Add to graph

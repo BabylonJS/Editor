@@ -17,14 +17,25 @@ export default class SceneExporter {
      * @param editor: the editor instance
      */
     public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
-        // Scene
+        // Serialize
         editor.assets.prefabs.setSerializable(true);
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
         editor.assets.prefabs.setSerializable(false);
 
         if (editor.playCamera)
             serializedScene.activeCameraID = editor.playCamera.id;
-        
+
+        // Metadatas
+        this._ClearMetadatas(serializedScene.meshes);
+        this._ClearMetadatas(serializedScene.lights);
+        this._ClearMetadatas(serializedScene.cameras);
+        this._ClearMetadatas(serializedScene.particleSystems);
+        this._ClearMetadatas(serializedScene.materials);
+        this._ClearMetadatas(serializedScene.skeletons);
+        this._ClearMetadatas(serializedScene.sounds);
+        this._ClearMetadatas([serializedScene]);
+
+        // Scene "File"
         if (format === 'babylon') {
             editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene' + randomId + '.babylon');
             FilesInput.FilesToLoad[editor.sceneFile.name] = editor.sceneFile;
@@ -51,5 +62,26 @@ export default class SceneExporter {
     public static DownloadBabylonFile (editor: Editor): void {
         this.CreateFiles(editor);
         BabylonTools.Download(editor.sceneFile, editor.sceneFile.name);
+    }
+
+    // Clears the metadatas from the editor and replace by custom metadatas
+    // if exists
+    private static _ClearMetadatas (objects: any[]): void {
+        if (!objects)
+            return;
+        
+        // For each object, replace by custom metadata if exists
+        objects.forEach(m => {
+            if (m.metadata) {
+                if (m.metadata.baseConfiguration)
+                    m.pickable = m.metadata.baseConfiguration.isPickable;
+                
+                if (m.metadata.customMetadatas)
+                    m.metadata = m.metadata.customMetadatas;
+            }
+            else {
+                delete m.metadata;
+            }
+        });
     }
 }

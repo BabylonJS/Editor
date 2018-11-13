@@ -90,6 +90,15 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
         // Abstract mesh
         if (node instanceof AbstractMesh) {
+            // Options
+            const options = this.tool.addFolder('Options');
+            options.open();
+
+            node.metadata = node.metadata || { };
+            node.metadata.baseConfiguration = node.metadata.baseConfiguration || { };
+            node.metadata.baseConfiguration.isPickable = node.metadata.baseConfiguration.isPickable || false;
+            options.add(node.metadata.baseConfiguration, 'isPickable').name('Is Pickable');
+            
             if (!(node instanceof InstancedMesh)) {
                 // Instances
                 const instances = this.tool.addFolder('Instances');
