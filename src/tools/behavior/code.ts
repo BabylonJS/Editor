@@ -120,7 +120,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Add toolbar
         this.toolbar = new Toolbar('CodeToolbar');
         this.toolbar.items = [
-            { id: 'add-new', text: 'Add New Script', caption: 'Attach New Script', img: 'icon-add' },
+            { id: 'add-new', text: 'Attach New Script', caption: 'Attach New Script', img: 'icon-add' },
+            { id: 'add-new-lib', text: 'Add New Lib', caption: 'Add New Lib', img: 'icon-add' },
             { type: 'break' },
             { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' },
             { id: 'open-code-editor', text: 'Open Code Editor', caption: 'Open Code Editor', img: 'icon-edit' }
@@ -221,6 +222,11 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             // Add
             case 'add-new':
                 await this.add();
+                break;
+            case 'add-new-lib':
+                const asset = await this.editor.assets.addAsset(this.extension);
+                if (asset)
+                    this.selectAsset(asset.data);
                 break;
             // Import
             case 'import':

@@ -1971,6 +1971,11 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 */
             getAssetPreviewData(asset: AssetElement<any>): AssetPreviewData;
             /**
+                * Adds a new asset to the assets store
+                * @param component the component used to add an asset
+                */
+            addAsset(component?: IAssetComponent): Promise<AssetElement<any>>;
+            /**
                 * Returns the drag end event function
                 * @param component the source component
                 * @param asset the dropped asset
