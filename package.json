@@ -46,7 +46,9 @@
     "http-server": "^0.9.0",
     "socket.io": "~2.0.4",
     "electron": "~2.0.2",
-    "electron-builder": "~20.15.1",
+    "electron-builder": "~20.15.1"
+  },
+  "dependencies": {
     "yargs": "10.0.3",
     "systemjs-builder": "~0.16.12",
     "dts-bundle": "~0.7.3",
@@ -77,12 +79,11 @@
     "javascript-astar": "~0.4.1",
     "litegraph.js": "~0.6.0",
     "ccapture.js": "~1.1.0",
-    "babylonjs": "4.0.0-alpha.4",
-    "babylonjs-gui": "4.0.0-alpha.4",
-    "babylonjs-loaders": "4.0.0-alpha.4",
-    "babylonjs-materials": "4.0.0-alpha.4",
-    "babylonjs-procedural-textures": "4.0.0-alpha.4",
-    "babylonjs-serializers": "4.0.0-alpha.4"
-  },
-  "dependencies": {}
+    "babylonjs": "4.0.0-alpha.8",
+    "babylonjs-gui": "4.0.0-alpha.8",
+    "babylonjs-loaders": "4.0.0-alpha.8",
+    "babylonjs-materials": "4.0.0-alpha.8",
+    "babylonjs-procedural-textures": "4.0.0-alpha.8",
+    "babylonjs-serializers": "4.0.0-alpha.8"
+  }
 }
