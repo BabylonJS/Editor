@@ -9,6 +9,10 @@ console.log('\nBuilding Electron...');
 Builder.build({
     arch: args.arch || 'x64',
     config: {
+        fileAssociations: {
+            ext: 'editorproject',
+            name: 'Babylon.js Editor Project'
+        },
         appId: 'editor.babylonjs.com',
         productName: 'BabylonJS Editor',
         icon: './css/icons/babylonjs_icon',

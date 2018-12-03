@@ -9,13 +9,78 @@ import {
 import Editor from '../editor';
 
 import Tools from '../tools/tools';
+import Request from '../tools/request';
 
 import Window from '../gui/window';
 import Picker from '../gui/picker';
 
 import SceneFactory from './scene-factory';
 
+import ProjectExporter from '../project/project-exporter';
+import { ProjectRoot } from '../typings/project';
+
 export default class SceneImporter {
+    /**
+     * 
+     */
+    public static async CheckOpenedFile (editor: Editor): Promise<boolean> {
+        // Get path
+        const path = await Request.Get<string>('http://localhost:1337/openedFile');
+        if (!path)
+            return false;
+
+        // Parse project content
+        const content = await Tools.LoadFile<string>(path);
+        if (content === '')
+            return;
+        
+        const project = <ProjectRoot> JSON.parse(content);
+
+        if (!project.filesList)
+            return false;
+
+        // Load files
+        const promises: Promise<void>[] = [];
+        const files: File[] = [];
+        const folder = path.replace(Tools.GetFilename(path), '');
+
+        const filesList = await Request.Get<{ value: { name: string }[] }>('http://localhost:1337/files?path=' + folder);
+        const storage = await ProjectExporter.GetStorage(editor);
+
+        for (const f of project.filesList) {
+            promises.push(new Promise<void>(async (resolve) => {
+                const name = Tools.GetFilename(f);
+                const realFile = filesList.value.find(v => v.name === name || v.name.toLowerCase() === f);
+                const realname = realFile ? realFile.name : name;
+
+                const ext = Tools.GetFileExtension(realname);
+                if (ext === 'babylon') {
+                    FilesInput.FilesToLoad = { };
+                }
+
+                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + name, true);
+                const array = new Uint8Array(buffer);
+
+                files.push(Tools.CreateFile(array, realname));
+
+                resolve();
+            }));
+        }
+
+        editor.layout.lockPanel('main', 'Loading project files...', true);
+        await Promise.all(promises);
+
+        // Setup and load
+        editor._showReloadDialog = false;
+        editor.filesInput.loadFiles({
+            target: {
+                files: files
+            }
+        });
+
+        return true;
+    }
+
     /**
      * Import meshes from
      * @param editor the editor reference

@@ -78,6 +78,7 @@ declare module 'babylonjs-editor/editor/editor' {
             projectFileName: string;
             _showReloadDialog: boolean;
             static LayoutVersion: string;
+            static EditorVersion: string;
             /**
                 * Constructor
                 * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -1328,6 +1329,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
         assets: any;
+        filesList?: string[];
     }
 }
 

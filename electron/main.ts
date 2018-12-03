@@ -1,6 +1,7 @@
 import { app, BrowserWindow, globalShortcut, Menu, MenuItemConstructorOptions } from 'electron';
 import WebServer from './web-server';
 import ScenePreview from './preview-scene';
+import Settings from './settings/settings';
 
 export default class EditorApp {
     // Static members
@@ -34,6 +35,8 @@ export default class EditorApp {
      * Creates a new window
      */
     public static CreateWindow (): Promise<void> {
+        Settings.OpenedFile = process.argv[1];
+        
         return new Promise<void>((resolve) => {
             this.Window = new BrowserWindow({
                 width: 800,

@@ -100,7 +100,9 @@ export default class StorageRouter {
             const filename = ctx.query.path;
             
             ctx.type = path.extname(filename);
-            ctx.body = fs.createReadStream(filename);
+            ctx.body = fs.createReadStream(filename, {
+                encoding: 'utf-8'
+            });
         });
     }
 

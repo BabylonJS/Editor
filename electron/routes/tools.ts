@@ -4,6 +4,8 @@ import { BrowserWindow } from 'electron';
 import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
 
+import Settings from '../settings/settings';
+
 export default class ToolsRouter {
     // Public members
     public router: KoaRouter;
@@ -21,6 +23,9 @@ export default class ToolsRouter {
         this.openDevTools();
         this.getVersion();
         this.getInstallerPath();
+        
+        this.getOpenedFile();
+        this.setOpenedFile();
         
         this.application.use(this.router.routes());
     }
@@ -65,6 +70,28 @@ export default class ToolsRouter {
                 case 'darwin': ctx.body = 'BabylonJS Editor.dmg'; break;
                 default: ctx.body = ''; break;
             }
+        });
+    }
+
+    /**
+     * Returns the opened file path
+     */
+    protected getOpenedFile (): void {
+        this.router.get('/openedFile', async (ctx, next) => {
+            ctx.body = Settings.OpenedFile;
+        })
+    }
+
+    /**
+     * Sets the opened file path
+     */
+    protected setOpenedFile (): void {
+        this.router.post('/openedFile', async (ctx, next) => {
+            Settings.OpenedFile = ctx.body;
+
+            ctx.body = {
+                message: 'success'
+            };
         });
     }
 }
