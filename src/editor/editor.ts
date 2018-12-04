@@ -847,7 +847,7 @@ export default class Editor implements IUpdatable {
     // Checks for updates if electron
     private async _checkUpdates (): Promise<void> {
         // Get versions
-        Editor.EditorVersion = await Request.Get<string>('http://localhost:1337/version');
+        Editor.EditorVersion = await Request.Get<string>('/version');
 
         const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
         const newVersion = JSON.parse(packageJson).version;
@@ -858,10 +858,10 @@ export default class Editor implements IUpdatable {
                 return;
 
             // Select path to save
-            const saveDirectory = await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory`);
+            const saveDirectory = await Request.Get<string[]>(`/files:/paths?type=openDirectory`);
             
             // Download!
-            const path = await Request.Get<string>('http://localhost:1337/installerPath');
+            const path = await Request.Get<string>('/installerPath');
 
             let lastProgress = '';
             const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
@@ -877,7 +877,7 @@ export default class Editor implements IUpdatable {
             this.toolbar.notifyRightMessage('');
 
             // Save!
-            await Request.Put('http://localhost:1337/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
+            await Request.Put('/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
                 'Content-Type': 'application/octet-stream'
             });
             

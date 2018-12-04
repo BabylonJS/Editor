@@ -8,6 +8,7 @@ import Dialog from '../gui/dialog';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 import ThemeSwitcher from '../tools/theme';
+import Request from '../tools/request';
 
 import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
@@ -157,6 +158,8 @@ export default class EditorToolbar {
             // Project
             case 'project:import-project':
                 ProjectImporter.ImportProject(this.editor);
+                if (Tools.IsElectron())
+                    await Request.Post('/openedFile', null);
                 break;
 
             case 'project:reload-project':
@@ -170,7 +173,11 @@ export default class EditorToolbar {
                 });
                 break
             case 'project:new-project':
+                ProjectExporter.ProjectPath = null;
                 await this.editor.createDefaultScene(true);
+                
+                if (Tools.IsElectron())
+                    await Request.Post('/openedFile', null);
                 break;
 
             case 'project:download-project':

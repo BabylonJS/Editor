@@ -25,7 +25,7 @@ export default class SceneImporter {
      */
     public static async CheckOpenedFile (editor: Editor): Promise<boolean> {
         // Get path
-        const path = await Request.Get<string>('http://localhost:1337/openedFile');
+        const path = await Request.Get<string>('/openedFile');
         if (!path)
             return false;
 
@@ -36,17 +36,25 @@ export default class SceneImporter {
         
         const project = <ProjectRoot> JSON.parse(content);
 
-        if (!project.filesList)
-            return false;
-
         // Load files
         const promises: Promise<void>[] = [];
         const files: File[] = [];
         const folder = path.replace(Tools.GetFilename(path), '');
 
-        const filesList = await Request.Get<{ value: { name: string }[] }>('http://localhost:1337/files?path=' + folder);
-        const storage = await ProjectExporter.GetStorage(editor);
+        const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
 
+        // Manage backward compatibility for file list
+        if (!project.filesList) {
+            project.filesList = [];
+            for (const v of filesList.value) {
+                if (v.folder)
+                    continue;
+
+                project.filesList.push(v.name);
+            }
+        }
+
+        // Load all files
         for (const f of project.filesList) {
             promises.push(new Promise<void>(async (resolve) => {
                 const name = Tools.GetFilename(f);
@@ -77,6 +85,9 @@ export default class SceneImporter {
                 files: files
             }
         });
+
+        // Configure exporter
+        ProjectExporter.ProjectPath = folder;
 
         return true;
     }

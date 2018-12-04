@@ -109,12 +109,32 @@ export default class EditorApp {
 }
 
 /**
- * Events
+ * Make single instance
  */
-app.on("window-all-closed", async () => {
-    if (process.platform !== "darwin")
-        app.quit();
+const shouldQuit = app.makeSingleInstance((argv, wd) => {
+    if (EditorApp.Window) {
+        if (EditorApp.Window.isMinimized())
+            EditorApp.Window.restore();
+
+        EditorApp.Window.focus();
+
+        const filename = argv[1];
+        if (filename !== Settings.OpenedFile) {
+            Settings.OpenedFile = filename;
+            EditorApp.Window.reload();
+        }
+    }
 });
 
-app.on("ready", () => EditorApp.Create());
-app.on("activate", () => EditorApp.Window || EditorApp.Create());
+/**
+ * Events
+ */
+if (!shouldQuit) {
+    app.on("window-all-closed", async () => {
+        if (process.platform !== "darwin")
+            app.quit();
+    });
+
+    app.on("ready", () => EditorApp.Create());
+    app.on("activate", () => EditorApp.Window || EditorApp.Create());
+}
