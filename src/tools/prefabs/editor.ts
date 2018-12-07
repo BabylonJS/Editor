@@ -1,7 +1,8 @@
 import {
     Engine, Scene, ArcRotateCamera, PointLight, Vector3, Node,
     Observer, Tags,
-    SceneSerializer, SceneLoader, FilesInput
+    SceneSerializer, SceneLoader, FilesInput, InstancedMesh,
+    ParticleSystem
 } from 'babylonjs';
 
 import Editor, {
@@ -44,16 +45,17 @@ export default class PrefabEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        // Engine
+        this.scene.dispose();
+        this.engine.dispose();
+
         // UI
         this.nodesGrid.element.destroy();
         this.layout.element.destroy();
 
-        this.scene.dispose();
-        this.engine.dispose();
-
         // Events
         this.editor.core.onResize.remove(this.onResize);
-        this.editor.core.onSelectObject.remove(this.onResize);
+        this.editor.core.onSelectObject.remove(this.onObjectSelected);
         this.editor.core.onSelectAsset.remove(this.onAssetSelected);
 
         await super.close();
@@ -81,9 +83,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.nodesGrid.build('PREFAB-EDITOR-GRID');
 
         // Scene
-        this.engine = new Engine(<HTMLCanvasElement> $('#PREFAB-EDITOR-PREVIEW')[0]);
         this._createBaseSceneElements();
-        this.engine.runRenderLoop(() => this.scene.render());
 
         // Events
         this.onResize = this.editor.core.onResize.add(() => this.resize());
@@ -122,7 +122,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.nodesGrid.element.refresh();
 
         // Create new scene
-        this._createNewScene(node['sourceMesh'] || node);
+        this._createNewScene(node['sourceMesh'] || node, <InstancedMesh> node);
     }
 
     /**
@@ -146,7 +146,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.nodesGrid.element.refresh();
 
         // Create new scene
-        this._createNewScene(<Node> prefab.sourceNode);
+        this._createNewScene(<Node> prefab.sourceNode, null);
     }
 
     /**
@@ -157,17 +157,45 @@ export default class PrefabEditor extends EditorPlugin {
         // The user selected an object in scene?
         // So remove nodes only from the selected prefab in the scene
         if (this.selectedPrefab) {
-            const descendants = this.selectedPrefab.getDescendants().concat([this.selectedPrefab]);
+            const descendants = [this.selectedPrefab].concat(this.selectedPrefab.getDescendants());
             const asset = this.editor.assets.prefabs.getAssetFromNode(<PrefabNodeType> this.selectedPrefab);
 
             // Remove each selected prefab instance
-            for (let descendantIndex = 0, offset = 0; descendantIndex < ids.length; descendantIndex++) {
-                // Dispose instance
-                const inst = descendants[ids[descendantIndex - offset]];
-                inst.dispose();
-                
-                // Remove from source instances
+            for (let descendantIndex = 0; descendantIndex < ids.length; descendantIndex++) {
+                // Get instance
+                const inst = descendants[ids[descendantIndex]];
                 const prefabSource = inst['sourceMesh'] || inst;
+
+                // Removed source instance?
+                if (prefabSource === asset.data.sourceNode) {
+                    // Remove all
+                    for (const si in asset.data.sourceInstances) {
+                        const instances = asset.data.sourceInstances[si];
+
+                        for (let instanceIndex = 0; instanceIndex < instances.length; instanceIndex++) {
+                            const i = instances[instanceIndex];
+                            if ((<InstancedMesh> i).parent === inst || (<ParticleSystem> i).emitter === i) {
+                                i.dispose();
+                                instances.splice(instanceIndex, 1);
+                                instanceIndex--;
+                            }
+                        }
+                    }
+
+                    // Dispose instance
+                    inst.dispose();
+                    const sourceInstances = asset.data.sourceInstances[prefabSource.id] || asset.data.sourceInstances[prefabSource.name];
+                    const index = sourceInstances.indexOf(<PrefabNodeType> inst);
+                    sourceInstances.splice(index, 1);
+
+                    this.nodesGrid.element.clear();
+                    break;
+                }
+
+                // Dispose instance
+                inst.dispose();
+
+                // Remove from source instances
                 const sourceInstances = asset.data.sourceInstances[prefabSource.id] || asset.data.sourceInstances[prefabSource.name];
                 const index = sourceInstances.indexOf(<PrefabNodeType> inst);
                 if (index !== -1)
@@ -177,15 +205,16 @@ export default class PrefabEditor extends EditorPlugin {
                 const previewNode = this.scene.getNodeByID(inst.id) || this.scene.getNodeByName(inst.name) || this.scene.getParticleSystemByID(inst.id);
                 if (previewNode)
                     previewNode.dispose();
-                
-                // Offset in ids
-                offset++;
             }
 
             // Remove node from graph?
             if (this.nodesGrid.element.records.length === 0) {
                 this._createNewScene(null);
                 this.editor.graph.tree.remove(this.selectedPrefab.id);
+                this.selectedPrefab = null;
+            }
+            else {
+                this.objectSelected(this.selectedPrefab);
             }
         }
         // The user selected an asset?
@@ -232,11 +261,14 @@ export default class PrefabEditor extends EditorPlugin {
                 this.editor.assets.prefabs.onRemoveAsset(asset);
                 this._createNewScene(null);
             }
+            else {
+                this.assetSelected(this.selectedAsset);
+            }
         }
     }
 
     // Creates a new scene with the selected node prefab
-    private async _createNewScene (node: Node): Promise<void> {
+    private async _createNewScene (node: Node, instance?: InstancedMesh): Promise<void> {
         // Create new scene
         this._createBaseSceneElements();
 
@@ -247,6 +279,10 @@ export default class PrefabEditor extends EditorPlugin {
 
         this.layout.unlockPanel('main');
 
+        // Get meshes names
+        const meshesNames = instance ? [<Node> instance].concat(instance.getDescendants()).map(d => (<InstancedMesh> d).sourceMesh.name):
+                                       [node].concat(node.getDescendants()).map(d => d.name);
+
         // Load scene with prefabs
         const serializedObject = SceneSerializer.SerializeMesh(node, false, true);
         const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedObject)), 'prefab.babylon');
@@ -254,6 +290,16 @@ export default class PrefabEditor extends EditorPlugin {
         FilesInput.FilesToLoad[file.name.toLowerCase()]= file;
         await SceneLoader.ImportMeshAsync(null, 'file:' ,'prefab.babylon', this.scene);
         delete FilesInput.FilesToLoad[file.name.toLowerCase()];
+
+        // Clear unused meshes
+        for (let i = 0; i < this.scene.meshes.length; i++) {
+            const m = this.scene.meshes[i];
+
+            if (meshesNames.indexOf(m.name) === -1) {
+                m.dispose();
+                i--;
+            }
+        }
 
         if (this.scene.lights.length === 0)
             this.pointLight = new PointLight('PrefabEditorLight', new Vector3(15, 15, 15), this.scene);
@@ -265,9 +311,14 @@ export default class PrefabEditor extends EditorPlugin {
 
     // Creates the base scene elements (camera)
     private _createBaseSceneElements (): void {
+        if (this.engine)
+            this.engine.dispose();
+
         if (this.scene)
             this.scene.dispose();
         
+        this.engine = new Engine(<HTMLCanvasElement> $('#PREFAB-EDITOR-PREVIEW')[0]);
+
         this.scene = new Scene(this.engine);
         this.scene.clearColor.set(0, 0, 0, 1);
 
@@ -275,5 +326,8 @@ export default class PrefabEditor extends EditorPlugin {
         this.scene.render();
 
         this.camera.attachControl(this.engine.getRenderingCanvas(), false, false);
+
+        // Render loop
+        this.engine.runRenderLoop(() => this.scene.render());
     }
 }
