@@ -21,7 +21,8 @@ import { ProjectRoot } from '../typings/project';
 
 export default class SceneImporter {
     /**
-     * 
+     * Checks if the user opened a file using the OS file editor. If yes, load the project
+     * @param editor the editor reference
      */
     public static async CheckOpenedFile (editor: Editor): Promise<boolean> {
         // Get path
@@ -35,7 +36,16 @@ export default class SceneImporter {
             return;
         
         const project = <ProjectRoot> JSON.parse(content);
+        return await this.LoadProjectFromFile(editor, path, project);
+    }
 
+    /**
+     * Loads the given project by loading all needed files
+     * @param editor the editor reference
+     * @param path the absolute path of the file
+     * @param project the project previously parsed/read, etc.
+     */
+    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot): Promise<boolean> {
         // Load files
         const promises: Promise<void>[] = [];
         const files: File[] = [];
