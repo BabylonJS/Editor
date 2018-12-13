@@ -29,7 +29,7 @@ export default class CodeEdit {
             componentName: code.id,
             html: `<div id="${code.id}-editor" style="width: 100%; height: 100%;"></div>`,
             onClose: () => {
-                this.code.editor.dispose();
+                this.code.dispose();
                 
                 if (this.onClose)
                     this.onClose();

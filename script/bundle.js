@@ -90,7 +90,7 @@ build('./build/src/', './build/src/index.js', './dist/editor.js', {
     globalName: 'Editor',
     format: 'cjs',
     externals: externals,
-    minify: false
+    minify: true
 });
 
 build('./', './build/src/all.js', './dist/editor-all.js', {
@@ -200,6 +200,13 @@ build('./build/src/', './build/src/tools/metadata/editor.js', './dist/metadata-e
 
 build('./build/src/', './build/src/tools/notes/notes.js', './dist/notes.js', {
     globalName: 'Notes',
+    format: 'cjs',
+    externals: externals,
+    minify: true
+});
+
+build('./build/src/', './build/src/tools/prefabs/editor.js', './dist/prefab-editor.js', {
+    globalName: 'PrefabEditor',
     format: 'cjs',
     externals: externals,
     minify: true

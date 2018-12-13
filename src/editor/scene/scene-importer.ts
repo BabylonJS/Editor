@@ -9,13 +9,99 @@ import {
 import Editor from '../editor';
 
 import Tools from '../tools/tools';
+import Request from '../tools/request';
 
 import Window from '../gui/window';
 import Picker from '../gui/picker';
 
 import SceneFactory from './scene-factory';
 
+import ProjectExporter from '../project/project-exporter';
+import { ProjectRoot } from '../typings/project';
+
 export default class SceneImporter {
+    /**
+     * Checks if the user opened a file using the OS file editor. If yes, load the project
+     * @param editor the editor reference
+     */
+    public static async CheckOpenedFile (editor: Editor): Promise<boolean> {
+        // Get path
+        const path = await Request.Get<string>('/openedFile');
+        if (!path)
+            return false;
+
+        // Parse project content
+        const content = await Tools.LoadFile<string>(path);
+        if (content === '')
+            return;
+        
+        const project = <ProjectRoot> JSON.parse(content);
+        return await this.LoadProjectFromFile(editor, path, project);
+    }
+
+    /**
+     * Loads the given project by loading all needed files
+     * @param editor the editor reference
+     * @param path the absolute path of the file
+     * @param project the project previously parsed/read, etc.
+     */
+    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot): Promise<boolean> {
+        // Load files
+        const promises: Promise<void>[] = [];
+        const files: File[] = [];
+        const folder = path.replace(Tools.GetFilename(path), '');
+
+        const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
+
+        // Manage backward compatibility for file list
+        if (!project.filesList) {
+            project.filesList = [];
+            for (const v of filesList.value) {
+                if (v.folder)
+                    continue;
+
+                project.filesList.push(v.name);
+            }
+        }
+
+        // Load all files
+        for (const f of project.filesList) {
+            promises.push(new Promise<void>(async (resolve) => {
+                const name = Tools.GetFilename(f);
+                const realFile = filesList.value.find(v => v.name === name || v.name.toLowerCase() === f);
+                const realname = realFile ? realFile.name : name;
+
+                const ext = Tools.GetFileExtension(realname);
+                if (ext === 'babylon') {
+                    FilesInput.FilesToLoad = { };
+                }
+
+                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + name, true);
+                const array = new Uint8Array(buffer);
+
+                files.push(Tools.CreateFile(array, realname));
+
+                resolve();
+            }));
+        }
+
+        editor.layout.lockPanel('main', 'Loading project files...', true);
+        await Promise.all(promises);
+
+        // Setup and load
+        editor._showReloadDialog = false;
+        editor.filesInput.loadFiles({
+            target: {
+                files: files
+            }
+        });
+
+        // Configure exporter
+        ProjectExporter.ProjectPath = folder;
+
+        return true;
+    }
+
     /**
      * Import meshes from
      * @param editor the editor reference

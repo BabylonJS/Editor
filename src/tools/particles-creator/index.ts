@@ -48,9 +48,9 @@ export default class ParticlesCreator extends EditorPlugin {
         this.layout.element.destroy();
         this.toolbar.element.destroy();
 
-        this.functionsCode.editor.dispose();
-        this.vertexCode.editor.dispose();
-        this.pixelCode.editor.dispose();
+        this.functionsCode.dispose();
+        this.vertexCode.dispose();
+        this.pixelCode.dispose();
 
         this.editor.core.onResize.remove(this.resizeEvent);
         this.editor.core.onSelectObject.remove(this.selectedObjectEvent);

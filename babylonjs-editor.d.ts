@@ -33,8 +33,10 @@ declare module 'babylonjs-editor' {
     import CodeProjectEditorFactory from 'babylonjs-editor/editor/project/project-code-editor';
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
+    import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
     export default Editor;
-    export { Editor, Tools, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory };
+    export { Editor, Tools, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, PrefabAssetComponent, Prefab, PrefabNodeType };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -76,6 +78,7 @@ declare module 'babylonjs-editor/editor/editor' {
             projectFileName: string;
             _showReloadDialog: boolean;
             static LayoutVersion: string;
+            static EditorVersion: string;
             /**
                 * Constructor
                 * @param scene: a scene to edit. If undefined, a default scene will be created
@@ -735,6 +738,10 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 */
             focus(): void;
             /**
+                * Disposes the editor
+                */
+            dispose(): void;
+            /**
                 * Builds the code editor
                 * @param parentId the parent id of the editor
                 */
@@ -850,6 +857,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param parent the parent folder
                 * @param name the name of the folder
                 * @param color the color reference
+                * @param callback called on the user changes the color
                 */
             addColor(parent: dat.GUI, name: string, color: Color3 | Color4, callback?: () => void): dat.GUI;
             /**
@@ -1326,6 +1334,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
         assets: any;
+        filesList?: string[];
     }
 }
 
@@ -1508,6 +1517,97 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param editor: the editor reference
                 */
             static AddGuiImage(editor: Editor): Image;
+    }
+}
+
+declare module 'babylonjs-editor/editor/prefabs/asset-component' {
+    import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
+    import Editor from 'babylonjs-editor/editor/editor';
+    import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/extensions/typings/asset';
+    import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    export default class PrefabAssetComponent implements IAssetComponent {
+            editor: Editor;
+            id: string;
+            assetsCaption: string;
+            size: number;
+            datas: AssetElement<Prefab>[];
+            previewCanvas: HTMLCanvasElement;
+            previewEngine: Engine;
+            /**
+                * Constructor
+                * @param editor the editor reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Creates a new prefab
+                * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
+                */
+            createPrefab(sourceNode: Node): Promise<AssetElement<Prefab>>;
+            /**
+                * Returns the asset containing the given node instance reference
+                * @param node the node reference stored into the prefab instances
+                */
+            getAssetFromNode(node: PrefabNodeType): AssetElement<Prefab>;
+            /**
+                * On the user adds a new prefab asset
+                * @param asset the asset to add in the collection
+                */
+            onAddAsset(asset: AssetElement<Prefab>): void;
+            /**
+                * On the user removes a prefab from his library
+                * @param asset the asset to remove
+                */
+            onRemoveAsset(asset: AssetElement<Prefab>): void;
+            /**
+                * On the user drops an asset in the scene
+                * @param targetMesh the mesh under the pointer
+                * @param asset the asset being dropped
+                * @param pickInfo the pick info once the user dropped the asset
+                */
+            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
+            /**
+                * On the user saves the editor project
+                */
+            onSerializeAssets(): AssetElement<Prefab>[];
+            /**
+                * On the user loads the editor project
+                * @param data the previously saved data
+                */
+            onParseAssets(data: AssetElement<Prefab>[]): void;
+            /**
+                * On the assets panel requires the assets stored in this
+                * asset component
+                */
+            onGetAssets(): Promise<AssetElement<Prefab>[]>;
+            /**
+                * On the user wants to show the context menu on the asset
+                */
+            onContextMenu(): AssetContextMenu[];
+            /**
+                * Builds the instances of the given asset
+                * @param data the asset's data
+                */
+            buildInstances(data: AssetElement<Prefab>[]): number;
+            /**
+                * Sets all the instances serializable or not
+                * @param serializable if the instances are serializable
+                */
+            setSerializable(serializable: boolean): void;
+    }
+}
+
+declare module 'babylonjs-editor/editor/prefabs/prefab' {
+    import { InstancedMesh, SpotLight, PointLight, DirectionalLight, Mesh, ParticleSystem } from 'babylonjs';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export type PrefabNodeType = SpotLight | PointLight | DirectionalLight | InstancedMesh | ParticleSystem;
+    export interface Prefab {
+        isPrefab: boolean;
+        nodes: string[];
+        nodeIds: string[];
+        instances: IStringDictionary<any[]>;
+        sourceNodes?: (Mesh | PrefabNodeType)[];
+        sourceNode?: Mesh | PrefabNodeType;
+        sourceInstances?: IStringDictionary<PrefabNodeType[]>;
     }
 }
 
@@ -1878,6 +1978,11 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 */
             getAssetPreviewData(asset: AssetElement<any>): AssetPreviewData;
             /**
+                * Adds a new asset to the assets store
+                * @param component the component used to add an asset
+                */
+            addAsset(component?: IAssetComponent): Promise<AssetElement<any>>;
+            /**
                 * Returns the drag end event function
                 * @param component the source component
                 * @param asset the dropped asset
@@ -2108,77 +2213,6 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
     }
 }
 
-declare module 'babylonjs-editor/editor/prefabs/asset-component' {
-    import { Node, AbstractMesh, PickingInfo, Engine } from 'babylonjs';
-    import Editor from 'babylonjs-editor/editor/editor';
-    import { IAssetComponent, AssetElement, AssetContextMenu } from 'babylonjs-editor/extensions/typings/asset';
-    import { Prefab } from 'babylonjs-editor/editor/prefabs/prefab';
-    export default class PrefabAssetComponent implements IAssetComponent {
-            editor: Editor;
-            id: string;
-            assetsCaption: string;
-            size: number;
-            datas: AssetElement<Prefab>[];
-            previewCanvas: HTMLCanvasElement;
-            previewEngine: Engine;
-            /**
-                * Constructor
-                * @param editor the editor reference
-                */
-            constructor(editor: Editor);
-            /**
-                * Creates a new prefab
-                * @param sourceMesh the source mesh for the new prefab asset. Can be a single mesh or a root mesh
-                */
-            createPrefab(sourceNode: Node): Promise<AssetElement<Prefab>>;
-            /**
-                * On the user adds a new prefab asset
-                * @param asset the asset to add in the collection
-                */
-            onAddAsset(asset: AssetElement<Prefab>): void;
-            /**
-                * On the user removes a prefab from his library
-                * @param asset the asset to remove
-                */
-            onRemoveAsset(asset: AssetElement<Prefab>): void;
-            /**
-                * On the user drops an asset in the scene
-                * @param targetMesh the mesh under the pointer
-                * @param asset the asset being dropped
-                * @param pickInfo the pick info once the user dropped the asset
-                */
-            onDragAndDropAsset(targetMesh: AbstractMesh, asset: AssetElement<Prefab>, pickInfo: PickingInfo): void;
-            /**
-                * On the user saves the editor project
-                */
-            onSerializeAssets(): AssetElement<Prefab>[];
-            /**
-                * On the user loads the editor project
-                * @param data the previously saved data
-                */
-            onParseAssets(data: AssetElement<Prefab>[]): void;
-            /**
-                * On the assets panel requires the assets stored in this
-                * asset component
-                */
-            onGetAssets(): Promise<AssetElement<Prefab>[]>;
-            /**
-                * On the user wants to show the context menu on the asset
-                */
-            onContextMenu(): AssetContextMenu[];
-            /**
-                * Builds the instances of the given asset
-                * @param data the asset's data
-                */
-            buildInstances(data: AssetElement<Prefab>[]): number;
-            /**
-                * Sets all the instances serializable or not
-                * @param serializable if the instances are serializable
-                */
-            setSerializable(serializable: boolean): void;
-    }
-}
-
 declare module 'babylonjs-editor/extensions/extension' {
     import { Scene } from 'babylonjs';
     import { IExtension } from 'babylonjs-editor/extensions/typings/extension';
@@ -2206,21 +2240,6 @@ declare module 'babylonjs-editor/extensions/extension' {
                 * @param url: the URL of the script to show in devtools
                 */
             static AddScript(code: string, url: string): HTMLScriptElement;
-    }
-}
-
-declare module 'babylonjs-editor/editor/prefabs/prefab' {
-    import { InstancedMesh, SpotLight, PointLight, DirectionalLight, Mesh, ParticleSystem } from 'babylonjs';
-    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
-    export type PrefabNodeType = SpotLight | PointLight | DirectionalLight | InstancedMesh | ParticleSystem;
-    export interface Prefab {
-        isPrefab: boolean;
-        nodes: string[];
-        nodeIds: string[];
-        instances: IStringDictionary<any[]>;
-        sourceNodes?: (Mesh | PrefabNodeType)[];
-        sourceNode?: Mesh | PrefabNodeType;
-        sourceInstances?: IStringDictionary<PrefabNodeType[]>;
     }
 }
 

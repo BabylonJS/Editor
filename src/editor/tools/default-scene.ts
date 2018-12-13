@@ -110,12 +110,13 @@ export default class DefaultScene {
         await Tools.CreateFileFromURL("assets/textures/environment.dds").then(() => {
             hdrTexture = CubeTexture.CreateFromPrefilteredData("file:environment.dds", scene);
             hdrTexture.gammaSpace = false;
-    
+            
             skyboxMaterial.reflectionTexture = hdrTexture.clone();
             skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
     
             hdrTexture.name = hdrTexture.url = "environment.dds";
-            skyboxMaterial.reflectionTexture.name = skyboxMaterial.reflectionTexture['url'] = "environment.dds";
+            skyboxMaterial.reflectionTexture['url'] = "environment.dds";
+            skyboxMaterial.reflectionTexture.name = "environment.dds";
         });
 
         const skybox = Mesh.CreateBox("hdrSkyBox", 1000, scene);

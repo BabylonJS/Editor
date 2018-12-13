@@ -9,7 +9,7 @@ export default class Request {
     public static Get<T> (url: string, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
-                url: url,
+                url: this._NormalizeUrl(url),
                 type: 'GET',
                 headers: headers,
                 success: (response: T) => resolve(response),
@@ -27,7 +27,7 @@ export default class Request {
     public static Put<T> (url: string, content: any, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
-                url: url,
+                url: this._NormalizeUrl(url),
                 processData: false,
                 data: content,
                 type: 'PUT',
@@ -48,7 +48,7 @@ export default class Request {
     public static Post<T> (url: string, content: any, headers?: IStringDictionary<any>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             $.ajax({
-                url: url,
+                url: this._NormalizeUrl(url),
                 type: 'POST',
                 contentType: 'application/json',
 
@@ -58,5 +58,13 @@ export default class Request {
                 error: (err: any) => reject(err)
             });
         });
+    }
+
+    // Normalizes the Url to http://localhost:1337
+    private static _NormalizeUrl (url: string): string {
+        if (url[0] === '/')
+            return 'http://localhost:1337' + url;
+
+        return url;
     }
 }

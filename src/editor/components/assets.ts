@@ -315,6 +315,27 @@ export default class EditorAssets {
     }
 
     /**
+     * Adds a new asset to the assets store
+     * @param component the component used to add an asset
+     */
+    public async addAsset (component?: IAssetComponent): Promise<AssetElement<any>> {
+        if (!component)
+            component = this.currentComponent;
+
+        if (component && component.onCreateAsset) {
+            const name = await Dialog.CreateWithTextInput('New asset name');
+            const asset = await component.onCreateAsset(name);
+
+            this.showTab(component.id);
+            this.refresh(component.id);
+
+            return asset;
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the drag end event function
      * @param component the source component
      * @param asset the dropped asset
@@ -339,11 +360,7 @@ export default class EditorAssets {
     protected async toolbarClicked (id: string): Promise<void> {
         switch (id) {
             case 'add':
-                if (this.currentComponent.onCreateAsset) {
-                    const name = await Dialog.CreateWithTextInput('New asset name');
-                    await this.currentComponent.onCreateAsset(name);
-                    this.refresh(this.currentComponent.id);
-                }
+                this.addAsset();
 
                 break;
             default: break;

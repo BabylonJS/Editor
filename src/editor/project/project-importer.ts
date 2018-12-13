@@ -14,13 +14,14 @@ import {
     Color3
 } from 'babylonjs';
 
-import * as Export from '../typings/project';
 import Editor from '../editor';
 
 import Tools from '../tools/tools';
+import { ProjectRoot } from '../typings/project';
 
 import Extensions from '../../extensions/extensions';
 import SceneManager from '../scene/scene-manager';
+import SceneImporter from '../scene/scene-importer';
 
 import PostProcessesExtension from '../../extensions/post-process/post-processes';
 
@@ -30,7 +31,7 @@ export default class ProjectImporter {
      * @param editor: the editor reference
      * @param project: the editor project
      */
-    public static async Import (editor: Editor, project: Export.ProjectRoot): Promise<void> {
+    public static async Import (editor: Editor, project: ProjectRoot): Promise<void> {
         const scene = editor.core.scene;
         
         // Clean project (compatibility)
@@ -269,7 +270,7 @@ export default class ProjectImporter {
     /**
     * Cleans an editor project
     */
-    public static CleanProject (project: Export.ProjectRoot): void {
+    public static CleanProject (project: ProjectRoot): void {
         project.renderTargets = project.renderTargets || [];
         project.sounds = project.sounds || [];
         project.customMetadatas = project.customMetadatas || {};
@@ -284,7 +285,18 @@ export default class ProjectImporter {
      * @param editor the editor reference
      */
     public static ImportProject (editor: Editor): void {
-        Tools.OpenFileDialog((files) => {
+        Tools.OpenFileDialog(async (files) => {
+            if (files.length === 1 && Tools.GetFileExtension(files[0].name) === 'editorproject') {
+                if (Tools.IsElectron()) {
+                    await SceneImporter.LoadProjectFromFile(
+                        editor,
+                        (<any> files[0]).path,
+                        <ProjectRoot> JSON.parse(await Tools.ReadFileAsText(files[0]))
+                    );
+                    return;
+                }
+            }
+
             editor.filesInput.loadFiles({
                 target: {
                     files: files

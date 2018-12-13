@@ -183,7 +183,7 @@
             return System.import('./node_modules/jquery/dist/jquery.js');
         }).then(function () {
             if (!window.frameElement && tools.IsElectron()) {
-                return requests.Get('http://localhost:1337/devTools');
+                return requests.Get('/devTools');
             }
         }).then(function () {
             tools.isFileApiSupported(true);

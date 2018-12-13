@@ -8,6 +8,7 @@ import Dialog from '../gui/dialog';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 import ThemeSwitcher from '../tools/theme';
+import Request from '../tools/request';
 
 import SceneExporter from '../scene/scene-exporter';
 import SceneFactory from '../scene/scene-factory';
@@ -88,7 +89,8 @@ export default class EditorToolbar {
                     { id: 'path-finder', img: 'icon-graph', text: 'Path Finder...' },
                     { type: 'break' },
                     { id: 'metadatas', img: 'icon-behavior-editor', text: 'Metadatas Editor...' },
-                    { id: 'notes', img: 'icon-behavior-editor', text: 'Notes...' }
+                    { id: 'notes', img: 'icon-behavior-editor', text: 'Notes...' },
+                    { id: 'prefab-editor', img: 'icon-mesh', text: 'Prefab Editor...' }
                 ]
             },
             { type: 'break' },
@@ -156,6 +158,8 @@ export default class EditorToolbar {
             // Project
             case 'project:import-project':
                 ProjectImporter.ImportProject(this.editor);
+                if (Tools.IsElectron())
+                    await Request.Post('/openedFile', null);
                 break;
 
             case 'project:reload-project':
@@ -169,7 +173,11 @@ export default class EditorToolbar {
                 });
                 break
             case 'project:new-project':
+                ProjectExporter.ProjectPath = null;
                 await this.editor.createDefaultScene(true);
+                
+                if (Tools.IsElectron())
+                    await Request.Post('/openedFile', null);
                 break;
 
             case 'project:download-project':
@@ -252,6 +260,9 @@ export default class EditorToolbar {
                 break;
             case 'tools:notes':
                 await this.loadTool('notes', 'Notes');
+                break;
+            case 'tools:prefab-editor':
+                await this.loadTool('prefab-editor', 'Prefab Editor');
                 break;
 
             // Add

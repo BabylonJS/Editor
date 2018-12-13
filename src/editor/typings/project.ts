@@ -147,4 +147,6 @@ export interface ProjectRoot {
 
     gui: any[];
     assets: any;
+
+    filesList?: string[];
 }

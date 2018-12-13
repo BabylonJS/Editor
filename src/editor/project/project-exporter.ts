@@ -194,8 +194,18 @@ export default class ProjectExporter {
             gui: editor.core.uiTextures.map(ut => ut.serialize()),
             effectLayers: this._SerializeEffectLayers(editor),
             environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null,
-            assets: this._SerializeAssets(editor)
+            assets: this._SerializeAssets(editor),
+            filesList: []
         };
+
+        // Setup filesList
+        for (const f in FilesInput.FilesToLoad) {
+            const file = FilesInput.FilesToLoad[f];
+            if (file === editor.projectFile || file === editor.sceneFile)
+                continue;
+
+            project.filesList.push(f);
+        }
 
         // Finish
         SceneManager.Toggle(editor.core.scene);

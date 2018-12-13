@@ -22,8 +22,8 @@ export default class ElectronStorage extends Storage {
      */
     public async openPicker (title: string, filesToWrite: CreateFiles[], folder?: string, overrideFilename?: boolean): Promise<any> {
         const paths = (folder) ? [folder] :
-            (filesToWrite.length === 1 && overrideFilename) ? await Request.Get<string[]>(`http://localhost:1337/files:/newfilepath`) :
-            await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
+            (filesToWrite.length === 1 && overrideFilename) ? await Request.Get<string[]>(`/files:/newfilepath`) :
+            await Request.Get<string[]>(`/files:/paths?type=openDirectory${folder ? '&folder=' + folder : ''}`);
 
         if (!paths)
             return;
@@ -42,7 +42,7 @@ export default class ElectronStorage extends Storage {
 
         const path = paths[0];
 
-        await Request.Post('http://localhost:1337/files:/workingDirectory', JSON.stringify({
+        await Request.Post('/files:/workingDirectory', JSON.stringify({
             name: path
         }));
 
@@ -62,7 +62,7 @@ export default class ElectronStorage extends Storage {
      */
     public async createFolders (folder: any, names: string[]): Promise<void> {
         for (const n of names) {
-            await Request.Post('http://localhost:1337/files:/folder', JSON.stringify({
+            await Request.Post('/files:/folder', JSON.stringify({
                 name: n
             }));
         }
@@ -75,7 +75,7 @@ export default class ElectronStorage extends Storage {
      */
     public async createFiles (folder: any, files: CreateFiles[]): Promise<void> {
         for (const f of files) {
-            await Request.Put('http://localhost:1337/files:/write?name=' + f.name + '&folder=' + folder, f.data, {
+            await Request.Put('/files:/write?name=' + f.name + '&folder=' + folder, f.data, {
                 'Content-Type': 'application/octet-stream'
             });
         }
@@ -86,7 +86,7 @@ export default class ElectronStorage extends Storage {
      * @param folder the parent folder
      */
     public async getFiles (folder: string): Promise<GetFiles[]> {
-        const files = await Request.Get<any>('http://localhost:1337/files' + (folder ? '?path=' + folder : ''));
+        const files = await Request.Get<any>('/files' + (folder ? '?path=' + folder : ''));
 
         const result: GetFiles[] = [];
         files.value.forEach(v => {

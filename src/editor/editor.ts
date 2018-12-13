@@ -33,6 +33,7 @@ import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneIcons from './scene/scene-icons';
 import SceneExporter from './scene/scene-exporter';
+import SceneImporter from './scene/scene-importer';
 
 import ProjectImporter from './project/project-importer';
 import ProjectExporter from './project/project-exporter';
@@ -80,6 +81,7 @@ export default class Editor implements IUpdatable {
 
     // Static members
     public static LayoutVersion: string = '2.1.1';
+    public static EditorVersion: string = null;
 
     /**
      * Constructor
@@ -252,6 +254,15 @@ export default class Editor implements IUpdatable {
 
             // Check for updates
             this._checkUpdates();
+
+            // Check opened file from OS file explorer
+            SceneImporter.CheckOpenedFile(this).then((hasOpenedFile) => {
+                if (!hasOpenedFile)
+                    return this.createDefaultScene();
+            });
+        }
+        else {
+            this.createDefaultScene();
         }
 
         // Apply theme
@@ -836,21 +847,21 @@ export default class Editor implements IUpdatable {
     // Checks for updates if electron
     private async _checkUpdates (): Promise<void> {
         // Get versions
-        const currentVersion = await Request.Get('http://localhost:1337/version');
+        Editor.EditorVersion = await Request.Get<string>('/version');
 
         const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
         const newVersion = JSON.parse(packageJson).version;
 
-        if (currentVersion < newVersion) {
+        if (Editor.EditorVersion < newVersion) {
             const answer = await Dialog.Create('Update available!', `An update is available! (v${newVersion}). Would you like to download it?`);
             if (answer === 'No')
                 return;
 
             // Select path to save
-            const saveDirectory = await Request.Get<string[]>(`http://localhost:1337/files:/paths?type=openDirectory`);
+            const saveDirectory = await Request.Get<string[]>(`/files:/paths?type=openDirectory`);
             
             // Download!
-            const path = await Request.Get<string>('http://localhost:1337/installerPath');
+            const path = await Request.Get<string>('/installerPath');
 
             let lastProgress = '';
             const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
@@ -866,7 +877,7 @@ export default class Editor implements IUpdatable {
             this.toolbar.notifyRightMessage('');
 
             // Save!
-            await Request.Put('http://localhost:1337/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
+            await Request.Put('/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
                 'Content-Type': 'application/octet-stream'
             });
             

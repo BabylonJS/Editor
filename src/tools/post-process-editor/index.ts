@@ -68,9 +68,9 @@ export default class PostProcessEditor extends EditorPlugin {
         this.toolbar.element.destroy();
         this.grid.element.destroy();
         
-        this.code.editor.dispose();
-        this.pixel.editor.dispose();
-        this.config.editor.dispose();
+        this.code.dispose();
+        this.pixel.dispose();
+        this.config.dispose();
 
         // Events
         this.editor.core.onResize.removeCallback(this.onResize);

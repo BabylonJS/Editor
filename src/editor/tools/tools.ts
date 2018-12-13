@@ -185,9 +185,10 @@ export default class Tools {
      * @param filename the file's name
      */
     public static CreateFile (buffer: Uint8Array, filename: string): File {
-        const blob = new Blob([buffer], { type: Tools.GetFileType(this.GetFileExtension(filename)) });
+        const options = { type: Tools.GetFileType(this.GetFileExtension(filename)) };
+        const blob = new Blob([buffer], options);
         blob['name'] = BabylonTools.GetFilename(filename);
-
+        
         return <File> blob;
     }
 

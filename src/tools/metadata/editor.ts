@@ -25,7 +25,7 @@ export default class MetadataEditor extends EditorPlugin {
      */
     public async close (): Promise<void> {
         // Code
-        this.code.editor.dispose();
+        this.code.dispose();
 
         // Events
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);

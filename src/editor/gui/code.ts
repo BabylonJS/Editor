@@ -87,6 +87,17 @@ export default class CodeEditor {
     }
 
     /**
+     * Disposes the editor
+     */
+    public dispose (): void {
+        this.editor.dispose();
+
+        const index = CodeEditor.Instances.indexOf(this.editor);
+        if (index !== -1)
+            CodeEditor.Instances.splice(index, 1);
+    }
+
+    /**
      * Builds the code editor
      * @param parentId the parent id of the editor
      */
