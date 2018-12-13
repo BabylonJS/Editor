@@ -66,10 +66,10 @@ export default class MaterialEditor extends EditorPlugin {
         this.layout.element.destroy();
         this.grid.element.destroy();
         
-        this.code.editor.dispose();
-        this.vertex.editor.dispose();
-        this.pixel.editor.dispose();
-        this.config.editor.dispose();
+        this.code.dispose();
+        this.vertex.dispose();
+        this.pixel.dispose();
+        this.config.dispose();
 
         // Events
         this.editor.core.onResize.removeCallback(this.onResize);

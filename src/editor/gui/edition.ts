@@ -141,32 +141,27 @@ export default class Edition {
      * @param parent the parent folder
      * @param name the name of the folder
      * @param color the color reference
+     * @param callback called on the user changes the color
      */
     public addColor (parent: dat.GUI, name: string, color: Color3 | Color4, callback?: () => void): dat.GUI {
-        const target = {
-            color: [color.r, color.g, color.b]
-        };
-
         const folder = parent.addFolder(name);
         const picker = {
             callback: () => {
                 const input = document.createElement('input');
                 input.type = 'color';
                 input.value = color.toHexString();
-                input.addEventListener('input', ev => {
-                    const result = Color3.FromHexString(input.value);
-                    color.r = result.r;
-                    color.g = result.g;
-                    color.b = result.b;
-                    this.updateDisplay();
-                });
+
                 input.addEventListener('change', ev => {
                     const result = Color3.FromHexString(input.value);
                     color.r = result.r;
                     color.g = result.g;
                     color.b = result.b;
                     this.updateDisplay();
-                });
+
+                    if (callback)
+                        callback();
+                }, false);
+                input.select();
                 input.click();
             }
         };

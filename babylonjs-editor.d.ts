@@ -738,6 +738,10 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 */
             focus(): void;
             /**
+                * Disposes the editor
+                */
+            dispose(): void;
+            /**
                 * Builds the code editor
                 * @param parentId the parent id of the editor
                 */
@@ -853,6 +857,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param parent the parent folder
                 * @param name the name of the folder
                 * @param color the color reference
+                * @param callback called on the user changes the color
                 */
             addColor(parent: dat.GUI, name: string, color: Color3 | Color4, callback?: () => void): dat.GUI;
             /**

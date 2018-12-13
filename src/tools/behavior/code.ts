@@ -89,7 +89,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.grid.element.destroy();
         this.layout.element.destroy();
 
-        this.code.editor.dispose();
+        this.code.dispose();
 
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
