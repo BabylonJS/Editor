@@ -21,7 +21,7 @@ export default class PrefabsHelpers {
     public static async CreatePreview (d: AssetElement<Prefab>, engine: Engine): Promise<void> {
         // Create preview
         const serialization = SceneSerializer.SerializeMesh(d.data.sourceNode, false, true);
-        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name.toLowerCase() + '.babylon');
+        const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serialization)), d.name.toLowerCase() + '_prefab.babylon');
         const canvas = engine.getRenderingCanvas();
 
         const scene = new Scene(engine);

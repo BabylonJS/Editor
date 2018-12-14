@@ -7,7 +7,7 @@ import {
 
 import Editor, {
     EditorPlugin, Tools,
-    Grid, GridRow, Layout,
+    Grid, GridRow, Layout, Toolbar,
     Prefab, PrefabNodeType,
 } from 'babylonjs-editor';
 
@@ -18,6 +18,7 @@ export interface PrefabRow extends GridRow {
 export default class PrefabEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
+    public toolbar: Toolbar = null;
     public nodesGrid: Grid<PrefabRow> = null;
 
     public engine: Engine = null;
@@ -50,6 +51,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.engine.dispose();
 
         // UI
+        this.toolbar.element.destroy();
         this.nodesGrid.element.destroy();
         this.layout.element.destroy();
 
@@ -68,10 +70,17 @@ export default class PrefabEditor extends EditorPlugin {
         // Layout
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
+            { type: 'top', resizable: false, size: 30, content: '<div id="PREFAB-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
             { type: 'left', resizable: true, size: '50%', content: '<div id="PREFAB-EDITOR-GRID" style="width: 100%; height: 100%;"></div>' },
             { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%;"></canvas>' }
         ];
         this.layout.build(this.divElement.id);
+
+        // Toolbar
+        this.toolbar = new Toolbar('PREFAB-EDITOR-TOOLBAR');
+        this.toolbar.build('PREFAB-EDITOR-TOOLBAR');
+        this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
+        this.toolbar.notifyMessage('No prefab selected');
 
         // Grid
         this.nodesGrid = new Grid<PrefabRow>('PREFAB-EDITOR-GRID', {
@@ -104,8 +113,13 @@ export default class PrefabEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected objectSelected (node: Node): void {
-        if (!Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master'))
+        if (!Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master')) {
+            this.selectedPrefab = null;
+            this.selectedAsset = null;
+            this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
+            this._createNewScene(null);
             return;
+        }
         
         const descendants = [node].concat(node.getDescendants());
 
@@ -123,6 +137,9 @@ export default class PrefabEditor extends EditorPlugin {
 
         // Create new scene
         this._createNewScene(node['sourceMesh'] || node, <InstancedMesh> node);
+
+        // Notify
+        this.toolbar.notifyMessage(`Selected object: <h2>${node.name}</h2>`);
     }
 
     /**
@@ -130,8 +147,13 @@ export default class PrefabEditor extends EditorPlugin {
      * @param asset the selected asset
      */
     protected async assetSelected (prefab: Prefab): Promise<void> {
-        if (!prefab || !prefab.isPrefab)
-            return this._createNewScene(null);
+        if (!prefab || !prefab.isPrefab) {
+            this.selectedPrefab = null;
+            this.selectedAsset = null;
+            this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
+            this._createNewScene(null);
+            return;
+        }
 
         // Misc.
         this.selectedPrefab = null;
@@ -147,6 +169,10 @@ export default class PrefabEditor extends EditorPlugin {
 
         // Create new scene
         this._createNewScene(<Node> prefab.sourceNode, null);
+
+        // Notify
+        const asset = this.editor.assets.prefabs.datas.find(d => d.data === prefab);
+        this.toolbar.notifyMessage(`Selected asset: <h2>${asset.name}</h2>`);
     }
 
     /**
