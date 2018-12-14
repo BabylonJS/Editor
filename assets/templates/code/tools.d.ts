@@ -31,4 +31,5 @@ interface BehaviorCodeTools {
     getFileByName (name: string): File;
     getFileUrl (filename: string, oneTimeOnly?: boolean): string;
     getPathFinder (name: string): PathFinder;
+    instantiatePrefab<T extends BABYLON.Node> (name: string): T;
 }

@@ -1,11 +1,11 @@
 import { Node, Scene, ParticleSystem } from 'babylonjs';
 import Extensions from '../extensions';
 
+import AssetsExtension from '../assets/assets';
 import CodeExtension from '../behavior/code';
 import PostProcessEditorExtension from '../post-process-editor/post-process-editor';
 import MaterialEditorExtension from '../material-editor/material-editor';
 import PathFinderExtension from '../path-finder';
-
 import PathFinder from '../path-finder/path-finder';
 
 export default class Tools {
@@ -104,6 +104,15 @@ export default class Tools {
             return null;
 
         return ext.instances[name];
+    }
+
+    /**
+     * Instantiate a prefab identified by the given name
+     * @param name the name of the prefab to instantiate
+     */
+    public instantiatePrefab<T extends Node> (name: string): T {
+        const ext = <AssetsExtension> Extensions.Instances['AssetsExtension'];
+        return ext.instantiatePrefab(name);
     }
 }
 

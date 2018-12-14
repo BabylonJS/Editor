@@ -7,6 +7,7 @@ import {
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings';
+import { AssetElement } from '../../extensions/typings/asset';
 
 /**
 * File format definitions of the Babylon.js Editor
@@ -146,7 +147,7 @@ export interface ProjectRoot {
     customMetadatas?: IStringDictionary<any>;
 
     gui: any[];
-    assets: any;
+    assets: IStringDictionary<AssetElement<any>[]>;
 
     filesList?: string[];
 }

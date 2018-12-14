@@ -1,6 +1,7 @@
 import Extensions from './extensions';
 import Extension from './extension';
 
+import AssetsExtension from './assets/assets';
 import CodeExtension from './behavior/code';
 import GraphExtension from './behavior/graph';
 import PathFinderExtension from './path-finder/index';
@@ -16,6 +17,7 @@ export {
     Extensions,
     Extension,
 
+    AssetsExtension,
     CodeExtension,
     GraphExtension,
     PostProcessExtension,

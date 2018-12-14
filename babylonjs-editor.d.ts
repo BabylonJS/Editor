@@ -1231,6 +1231,7 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
 declare module 'babylonjs-editor/editor/typings/project' {
     import { Vector2, Vector3, Quaternion, Color3, Scene, Material, RenderTargetTexture, ReflectionProbe } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    import { AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     /**
      * Animations
      */
@@ -1338,7 +1339,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
         requestedMaterials?: string[];
         customMetadatas?: IStringDictionary<any>;
         gui: any[];
-        assets: any;
+        assets: IStringDictionary<AssetElement<any>[]>;
         filesList?: string[];
     }
 }
@@ -2156,6 +2157,35 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
     }
 }
 
+declare module 'babylonjs-editor/extensions/typings/asset' {
+    import { AbstractMesh, PickingInfo } from 'babylonjs';
+    export interface AssetElement<T> {
+        img?: string;
+        name?: string;
+        data?: T;
+    }
+    export interface AssetContextMenu {
+        id: string;
+        text: string;
+        img?: string;
+        callback?: (asset?: AssetElement<any>) => void;
+    }
+    export interface IAssetComponent {
+        id?: string;
+        assetsCaption?: string;
+        size?: number;
+        onCreateAsset?(name: string): AssetElement<any> | Promise<AssetElement<any>>;
+        onRenameAsset?(asset: AssetElement<any>, name: string): void;
+        onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
+        onRemoveAsset?(asset: AssetElement<any>): void;
+        onAddAsset?(asset: AssetElement<any>): void;
+        onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+        onContextMenu?(): AssetContextMenu[];
+        onSerializeAssets?(): AssetElement<any>[];
+        onParseAssets?(data: AssetElement<any>[]): void;
+    }
+}
+
 declare module 'babylonjs-editor/extensions/post-process/post-processes' {
     import { Scene, StandardRenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline } from 'babylonjs';
     import Extension from 'babylonjs-editor/extensions/extension';
@@ -2186,35 +2216,6 @@ declare module 'babylonjs-editor/extensions/post-process/post-processes' {
                 * loading a scene)
                 */
             onLoad(data: PostProcessMetadata): void;
-    }
-}
-
-declare module 'babylonjs-editor/extensions/typings/asset' {
-    import { AbstractMesh, PickingInfo } from 'babylonjs';
-    export interface AssetElement<T> {
-        img?: string;
-        name?: string;
-        data?: T;
-    }
-    export interface AssetContextMenu {
-        id: string;
-        text: string;
-        img?: string;
-        callback?: (asset?: AssetElement<any>) => void;
-    }
-    export interface IAssetComponent {
-        id?: string;
-        assetsCaption?: string;
-        size?: number;
-        onCreateAsset?(name: string): AssetElement<any> | Promise<AssetElement<any>>;
-        onRenameAsset?(asset: AssetElement<any>, name: string): void;
-        onGetAssets?(): AssetElement<any>[] | Promise<AssetElement<any>[]>;
-        onRemoveAsset?(asset: AssetElement<any>): void;
-        onAddAsset?(asset: AssetElement<any>): void;
-        onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
-        onContextMenu?(): AssetContextMenu[];
-        onSerializeAssets?(): AssetElement<any>[];
-        onParseAssets?(data: AssetElement<any>[]): void;
     }
 }
 

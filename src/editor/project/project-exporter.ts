@@ -198,6 +198,21 @@ export default class ProjectExporter {
             filesList: []
         };
 
+        // Usable assets for extensions
+        project.customMetadatas['AssetsExtension'] = { };
+        
+        const usableAssets = ['prefabs'];
+        usableAssets.forEach(ua => {
+            const assets = project.assets[ua];
+            if (!assets)
+                return;
+            
+            project.customMetadatas['AssetsExtension'][ua] = assets.map(a => ({
+                name: a.name,
+                data: a.data
+            }));
+        });
+
         // Setup filesList
         for (const f in FilesInput.FilesToLoad) {
             const file = FilesInput.FilesToLoad[f];
