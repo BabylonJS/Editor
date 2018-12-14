@@ -8,6 +8,7 @@ export interface TreeNode {
     data?: any;
 
     parent?: string;
+    children?: string[];
 }
 
 export interface ContextMenuItem {
@@ -128,6 +129,13 @@ export default class Tree {
      */
     public expand (id: string): void {
         this.element.jstree('open_node', id);
+    }
+
+    /**
+     * Returns nodes count currently drawn
+     */
+    public getNodesCount (): number {
+        return this.element.jstree().get_json('#', { flat: true }).length;
     }
 
     /**

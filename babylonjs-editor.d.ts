@@ -887,6 +887,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             img?: string;
             data?: any;
             parent?: string;
+            children?: string[];
     }
     export interface ContextMenuItem {
             id: string;
@@ -956,6 +957,10 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param id the id of the node to expand
                 */
             expand(id: string): void;
+            /**
+                * Returns nodes count currently drawn
+                */
+            getNodesCount(): number;
             /**
                 * Set parent of the given node (id)
                 * @param id the id of the node

@@ -7,19 +7,15 @@ import {
 
 import Editor, {
     EditorPlugin, Tools,
-    Grid, GridRow, Layout, Toolbar,
+    Layout, Toolbar, Tree,
     Prefab, PrefabNodeType,
 } from 'babylonjs-editor';
-
-export interface PrefabRow extends GridRow {
-    name: string;
-}
 
 export default class PrefabEditor extends EditorPlugin {
     // Public members
     public layout: Layout = null;
     public toolbar: Toolbar = null;
-    public nodesGrid: Grid<PrefabRow> = null;
+    public tree: Tree = null;
 
     public engine: Engine = null;
     public scene: Scene = null;
@@ -33,6 +29,9 @@ export default class PrefabEditor extends EditorPlugin {
     protected onResize: Observer<any> = null;
     protected onObjectSelected: Observer<any> = null;
     protected onAssetSelected: Observer<any> = null;
+
+    // Static members
+    private static _TreeRootId: string = 'prefab_root';
 
     /**
      * Constructor
@@ -52,7 +51,6 @@ export default class PrefabEditor extends EditorPlugin {
 
         // UI
         this.toolbar.element.destroy();
-        this.nodesGrid.element.destroy();
         this.layout.element.destroy();
 
         // Events
@@ -71,7 +69,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', resizable: false, size: 30, content: '<div id="PREFAB-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'left', resizable: true, size: '50%', content: '<div id="PREFAB-EDITOR-GRID" style="width: 100%; height: 100%;"></div>' },
+            { type: 'left', resizable: true, size: '50%', content: '<div id="PREFAB-EDITOR-TREE" style="width: 100%; height: 100%;"></div>' },
             { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%;"></canvas>' }
         ];
         this.layout.build(this.divElement.id);
@@ -83,16 +81,21 @@ export default class PrefabEditor extends EditorPlugin {
         this.toolbar.notifyMessage('No prefab selected');
 
         // Grid
-        this.nodesGrid = new Grid<PrefabRow>('PREFAB-EDITOR-GRID', {
-            toolbarEdit: false,
-            toolbarAdd: false
-        });
-        this.nodesGrid.columns = [{ field: 'name', caption: 'Name', size: '90%' }];
-        this.nodesGrid.onDelete = ids => this.deleteInstances(ids);
-        this.nodesGrid.build('PREFAB-EDITOR-GRID');
+        this.tree = new Tree('PREFAB-EDITOR-TREE');
+        this.tree.wholerow = true;
+        this.tree.multipleSelection = true;
+        this.tree.onCanDrag = (id, data) => false;
+        this.tree.onContextMenu = (id, data: any) => {
+            return (id === PrefabEditor._TreeRootId) ? [] : [{ id: 'delete', text: 'Delete', img: 'icon-error', callback: () => {
+                const node = this.tree.getSelected();
+                const children = node.children.map(c => this.tree.get(c).data.id);
+                this.deleteInstances([node.data.id].concat(children));
+            }}];
+        };
+        this.tree.build('PREFAB-EDITOR-TREE');
 
-        // Scene
-        this._createBaseSceneElements();
+        // Select
+        this.objectSelected(null);
 
         // Events
         this.onResize = this.editor.core.onResize.add(() => this.resize());
@@ -109,31 +112,49 @@ export default class PrefabEditor extends EditorPlugin {
     }
 
     /**
+     * Resets the prefab editor when no prefab selected
+     */
+    protected setNoPrefabSelected (): void {
+        this.selectedPrefab = null;
+        this.selectedAsset = null;
+
+        this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
+        this.layout.lockPanel('left', 'No Prefab Selected');
+
+        this.tree.clear();
+        this._createNewScene(null);
+    }
+
+    /**
      * Once the user selects an object in the scene
      * @param node the selected node
      */
     protected objectSelected (node: Node): void {
-        if (!Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master')) {
-            this.selectedPrefab = null;
-            this.selectedAsset = null;
-            this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
-            this._createNewScene(null);
-            return;
-        }
-        
-        const descendants = [node].concat(node.getDescendants());
+        if (!node || !Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master'))
+            return this.setNoPrefabSelected();
+
+        // Unlock
+        this.layout.unlockPanel('left');
 
         // Misc.
         this.selectedPrefab = node;
         this.selectedAsset = null;
 
         // Update grid
-        this.nodesGrid.element.clear();
-        descendants.forEach((d, index) => this.nodesGrid.addRecord({
-            name: d.name,
-            recid: index
-        }));
-        this.nodesGrid.element.refresh();
+        const descendants = [node].concat(node.getDescendants());
+
+        this.tree.clear();
+        this.tree.add({ id: PrefabEditor._TreeRootId, text: 'Prefab', img: 'icon-scene', data: node });
+
+        descendants.forEach((n, index) => {
+            const parent = n instanceof InstancedMesh ? n.sourceMesh.parent : n.parent;
+            const parentNode = parent ? this.tree.get(parent.id) : null;
+            const parentId = parentNode ? parentNode.id : PrefabEditor._TreeRootId;
+            this.tree.add({ id: n instanceof InstancedMesh ? n.sourceMesh.id : n.id, img: this.editor.graph.getIcon(n), text: n.name, data: { id: index } }, parentId);
+
+            if (parentId)
+                this.tree.expand(parentId);
+        });
 
         // Create new scene
         this._createNewScene(node['sourceMesh'] || node, <InstancedMesh> node);
@@ -147,25 +168,29 @@ export default class PrefabEditor extends EditorPlugin {
      * @param asset the selected asset
      */
     protected async assetSelected (prefab: Prefab): Promise<void> {
-        if (!prefab || !prefab.isPrefab) {
-            this.selectedPrefab = null;
-            this.selectedAsset = null;
-            this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
-            this._createNewScene(null);
-            return;
-        }
+        if (!prefab || !prefab.isPrefab)
+            return this.setNoPrefabSelected();
+
+        // Unlock
+        this.layout.unlockPanel('left');
 
         // Misc.
         this.selectedPrefab = null;
         this.selectedAsset = prefab;
 
         // Update grid
-        this.nodesGrid.element.clear();
-        prefab.nodes.forEach((n, index) => this.nodesGrid.addRecord({
-            name: n,
-            recid: index
-        }));
-        this.nodesGrid.element.refresh();
+        this.tree.clear();
+        this.tree.add({ id: PrefabEditor._TreeRootId, text: 'Prefab', img: 'icon-scene', data: prefab });
+
+        prefab.nodeIds.forEach((id, index) => {
+            const n = this.editor.core.scene.getNodeByID(id);
+            const parent = n.parent ? this.tree.get(n.parent.id) : null;
+            const parentId = parent ? parent.id : PrefabEditor._TreeRootId;
+
+            this.tree.add({ id: n.id, img: this.editor.graph.getIcon(n), text: n.name, data: { id: index } }, parentId);
+            if (parentId)
+                this.tree.expand(parentId);
+        });
 
         // Create new scene
         this._createNewScene(<Node> prefab.sourceNode, null);
@@ -214,7 +239,7 @@ export default class PrefabEditor extends EditorPlugin {
                     const index = sourceInstances.indexOf(<PrefabNodeType> inst);
                     sourceInstances.splice(index, 1);
 
-                    this.nodesGrid.element.clear();
+                    this.tree.clear();
                     break;
                 }
 
@@ -234,7 +259,7 @@ export default class PrefabEditor extends EditorPlugin {
             }
 
             // Remove node from graph?
-            if (this.nodesGrid.element.records.length === 0) {
+            if (this.tree.getNodesCount() === 0) {
                 this._createNewScene(null);
                 this.editor.graph.tree.remove(this.selectedPrefab.id);
                 this.selectedPrefab = null;
@@ -247,7 +272,7 @@ export default class PrefabEditor extends EditorPlugin {
         // So remove all nodes from scene instances of the node in the asset
         else {
             for (let instanceIndex = 0, offset = 0; instanceIndex < ids.length; instanceIndex++) {
-                const index = ids[instanceIndex - offset];
+                const index = ids[instanceIndex] - offset;
                 const source = this.selectedAsset.sourceNodes[index];
 
                 if (source === this.selectedAsset.sourceNode) {
@@ -278,7 +303,7 @@ export default class PrefabEditor extends EditorPlugin {
                     previewNode.dispose();
                 
                 // Offset in ids
-                offset--;
+                offset++;
             }
 
             // Remove node from graph and asset?
@@ -286,6 +311,7 @@ export default class PrefabEditor extends EditorPlugin {
                 const asset = this.editor.assets.prefabs.getAssetFromNode(<PrefabNodeType> this.selectedAsset.sourceNode);
                 this.editor.assets.prefabs.onRemoveAsset(asset);
                 this._createNewScene(null);
+                this.tree.clear();
             }
             else {
                 this.assetSelected(this.selectedAsset);
@@ -306,7 +332,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout.unlockPanel('main');
 
         // Get meshes names
-        const meshesNames = instance ? [<Node> instance].concat(instance.getDescendants()).map(d => (<InstancedMesh> d).sourceMesh.name):
+        const meshesNames = instance ? [<Node> instance].concat(instance.getDescendants()).map(d => d instanceof InstancedMesh ? d.sourceMesh.name : d.name) :
                                        [node].concat(node.getDescendants()).map(d => d.name);
 
         // Load scene with prefabs
