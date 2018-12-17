@@ -119,6 +119,13 @@ declare module 'babylonjs-editor/editor/editor' {
                 */
             restartPlugins(removePanels?: boolean): Promise<void>;
             /**
+                * Notifies a message at the bottom of the editor
+                * @param message the message to show in notification
+                * @param spinner if the notification should have a spinner
+                * @param timeout time in ms to wait before hidding the message
+                */
+            notifyMessage(message: string, spinner?: boolean, timeout?: number): void;
+            /**
                 * Creates the default scene
                 * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
                 */
@@ -261,6 +268,8 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
             to?: any;
             from?: any;
             object?: any;
+            undo?: () => void;
+            redo?: () => void;
             fn?: (type?: 'from' | 'to') => void;
     }
     export default class UndoRedo {
@@ -888,6 +897,9 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             data?: any;
             parent?: string;
             children?: string[];
+            state?: {
+                    checked?: boolean;
+            };
     }
     export interface ContextMenuItem {
             id: string;
@@ -905,12 +917,20 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             element: JSTree;
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;
+            onRename: <T>(id: string, name: string, data: T) => boolean;
             onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
             onMenuClick: <T>(id: string, node: TreeNode) => void;
             onCanDrag: <T>(id: string, data: T) => boolean;
             onDrag: <T, U>(node: T, parent: U) => boolean;
             protected currentSelectedNode: string;
             protected moving: boolean;
+            protected renaming: boolean;
+            protected isFocused: boolean;
+            static Instances: Tree[];
+            /**
+                * Returns if at least one code editor is focused
+                */
+            static HasOneFocused(): boolean;
             /**
                 * Constructor
                 * @param name the tree name
@@ -1787,7 +1807,7 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * @param id the context menu item id
                 * @param node the related tree node
                 */
-            protected onMenuClick(id: string): Promise<void>;
+            onMenuClick(id: string, node?: TreeNode): Promise<void>;
     }
 }
 

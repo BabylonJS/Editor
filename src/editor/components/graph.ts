@@ -3,7 +3,6 @@ import {
     Sound,
     ParticleSystem, GPUParticleSystem,
     PostProcess,
-    Animation,
     Tools as BabylonTools,
     Skeleton,
     Tags
@@ -45,6 +44,28 @@ export default class EditorGraph {
         this.tree.onDblClick = (id, data: any) => {
             if (data.globalPosition || data.getAbsolutePosition)
                 ScenePicker.CreateAndPlayFocusAnimation(this.editor.camera.getTarget(), data.globalPosition || data.getAbsolutePosition(), this.editor.camera);
+        };
+
+        this.tree.onRename = (id, name, data: any) => {
+            if (!data.name)
+                return false;
+
+            const oldName = data.name;
+            data.name = name;
+            this.editor.edition.updateDisplay();
+
+            UndoRedo.Push({
+                object: data,
+                property: 'name',
+				from: oldName,
+				to: name,
+                fn: (type) => {
+                    this.tree.rename(data.id, type === 'from' ? oldName : name);
+					this.editor.edition.updateDisplay();
+                }
+            });
+
+            return true;
         };
 
         this.tree.onContextMenu = (id, data: any) => {
@@ -447,8 +468,8 @@ export default class EditorGraph {
      * @param id the context menu item id
      * @param node the related tree node
      */
-    protected async onMenuClick (id: string): Promise<void> {
-        const node = this.getSelected();
+    public async onMenuClick (id: string, node?: TreeNode): Promise<void> {
+        node = node || this.getSelected();
         if (!node)
             return;
         

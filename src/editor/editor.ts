@@ -16,7 +16,7 @@ import Core, { IUpdatable } from './core';
 import Layout from './gui/layout';
 import Dialog from './gui/dialog';
 import ResizableLayout from './gui/resizable-layout';
-import { TreeNode } from './gui/tree';
+import Tree, { TreeNode } from './gui/tree';
 import Window from './gui/window';
 import CodeEditor from './gui/code';
 
@@ -411,6 +411,21 @@ export default class Editor implements IUpdatable {
     }
 
     /**
+	 * Notifies a message at the bottom of the editor
+	 * @param message the message to show in notification
+	 * @param spinner if the notification should have a spinner
+	 * @param timeout time in ms to wait before hidding the message
+	 */
+	public notifyMessage (message: string, spinner?: boolean, timeout?: number): void {
+		if (!message)
+			return this.layout.unlockPanel('bottom');
+
+		this.layout.lockPanel('bottom', message, spinner);
+		if (timeout)
+			setTimeout(() => this.layout.unlockPanel('bottom'), timeout);
+	}
+
+    /**
      * Creates the default scene
      * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
      */
@@ -620,6 +635,20 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.DownloadProjectFile(this));
+
+        document.addEventListener('keyup', ev => {
+            if (CodeEditor.HasOneFocused() || !Tree.HasOneFocused())
+                return;
+
+            switch (ev.keyCode) {
+				case 46: // Del.
+					const selected = this.graph.getSelected();
+					if (selected)
+						this.graph.onMenuClick('remove');
+					break;
+                default: break;
+            }
+        });
 
         // Save state
         window.addEventListener('beforeunload', () => {

@@ -9,6 +9,10 @@ export interface TreeNode {
 
     parent?: string;
     children?: string[];
+
+    state?: {
+		checked?: boolean;
+	};
 }
 
 export interface ContextMenuItem {
@@ -32,6 +36,8 @@ export default class Tree {
     public onClick: <T>(id: string, data: T) => void;
     public onDblClick: <T>(id: string, data: T) => void;
 
+    public onRename: <T>(id: string, name: string, data: T) => boolean;
+
     public onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
     public onMenuClick: <T>(id: string, node: TreeNode) => void;
 
@@ -41,6 +47,23 @@ export default class Tree {
     // Protected members
     protected currentSelectedNode: string = '';
     protected moving: boolean = false;
+    protected renaming: boolean = false;
+    protected isFocused: boolean = false;
+
+    // Static members
+    public static Instances: Tree[] = [];
+
+    /**
+     * Returns if at least one code editor is focused
+     */
+    public static HasOneFocused (): boolean {
+		for (const i of this.Instances) {
+			if (i.isFocused)
+				return true;
+		}
+
+		return false;
+	}
 
     /**
      * Constructor
@@ -120,7 +143,9 @@ export default class Tree {
      * @param name the new name of the node
      */
     public rename (id: string, name: string): void {
+        this.renaming = true;
         this.element.jstree('rename_node', id, name);
+        this.renaming = false;
     }
 
     /**
@@ -252,6 +277,14 @@ export default class Tree {
                 if (data.action === 'select_node' && this.onClick)
                     this.onClick(data.node.id, data.node.data);
             })
+            .on('rename_node.jstree', (e, data) => {
+                if (data.old === data.text || this.renaming || !this.onRename)
+                    return;
+
+                const renamed = this.onRename(data.node.id, data.text, data.node.data);
+                if (!renamed)
+                    this.rename(data.node.id, data.old);
+            })
             .on('move_node.jstree', (e, data) => {
                 if (!this.onDrag || this.moving)
                     return;
@@ -275,5 +308,11 @@ export default class Tree {
                     this.onDblClick(node.id, node.data);
                 }
             });
+
+        this.element.focusin(() => this.isFocused = true);
+        this.element.focusout(() => this.isFocused = false);
+
+        // Register instance
+        Tree.Instances.push(this);
     }
 }
