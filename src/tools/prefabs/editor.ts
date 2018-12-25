@@ -76,6 +76,7 @@ export default class PrefabEditor extends EditorPlugin {
 
         // Toolbar
         this.toolbar = new Toolbar('PREFAB-EDITOR-TOOLBAR');
+        this.toolbar.helpUrl = 'https://doc.babylonjs.com/resources/editing_prefabs';
         this.toolbar.build('PREFAB-EDITOR-TOOLBAR');
         this.toolbar.notifyMessage('<h2>No prefab selected</h2>');
         this.toolbar.notifyMessage('No prefab selected');
@@ -334,6 +335,16 @@ export default class PrefabEditor extends EditorPlugin {
         // Get meshes names
         const meshesNames = instance ? [<Node> instance].concat(instance.getDescendants()).map(d => d instanceof InstancedMesh ? d.sourceMesh.name : d.name) :
                                        [node].concat(node.getDescendants()).map(d => d.name);
+
+        // If selected an asset, remove the previously removed/unused nodes
+        if (this.selectedAsset) {
+            for (let i = 0; i < meshesNames.length; i++) {
+                if (this.selectedAsset.nodes.indexOf(meshesNames[i]) === -1) {
+                    meshesNames.splice(i, 1);
+                    i--;
+                }
+            }
+        }
 
         // Load scene with prefabs
         const serializedObject = SceneSerializer.SerializeMesh(node, false, true);
