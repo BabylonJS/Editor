@@ -764,10 +764,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // On the user dbl clicks an item
         this._contextMenu.tree.onDblClick = (id) => {
             // Create node
-            const node = LiteGraph.createNode(id);
+            const node = <LiteGraphNode> LiteGraph.createNode(id);
             if (!node)
                 return;
             
+            if (node.size[0] < 100)
+                node.size[0] = 100;
+
             node.pos = [event.offsetX, event.offsetY];
 
             // Add and close context menu
