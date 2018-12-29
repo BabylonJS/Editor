@@ -42,7 +42,7 @@
     "@types/fs-extra": "~4.0.5",
     "@types/socket.io-client": "~1.4.32",
     "@types/jstree": "~3.3.36",
-    "@types/javascript-astar": "~0.0.29",
+    "@types/javascript-astar": "0.0.30",
     "http-server": "0.11.1",
     "socket.io": "2.2.0",
     "electron": "2.0.8",

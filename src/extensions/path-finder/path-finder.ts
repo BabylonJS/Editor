@@ -1,5 +1,6 @@
-import { Vector2, Vector3, Ray, BoundingInfo, Scalar, AbstractMesh, Animation, IAnimationKey } from 'babylonjs';
-import 'javascript-astar';
+import { Vector3, Ray, BoundingInfo, Scalar, AbstractMesh, Animation, IAnimationKey } from 'babylonjs';
+// @ts-ignore
+import * as Astar from 'javascript-astar';
 
 export default class PathFinder {
     // Public members
@@ -75,7 +76,7 @@ export default class PathFinder {
         const ey = (toIndex % this.width) >> 0;
 
         // Get path
-        const path = astar.search(this.graph, this.graph.grid[ex][ey], this.graph.grid[sx][sy], { heuristic: astar.heuristics.diagonal, closest: true });
+        const path = Astar.astar.search(this.graph, this.graph.grid[ex][ey], this.graph.grid[sx][sy], { heuristic: Astar.astar.heuristics.diagonal, closest: true });
         if (optimize) {
             // Optimize animation (linear)
             for (let i = path.length - 3; i >= 0; --i) {
@@ -211,7 +212,7 @@ export default class PathFinder {
         }
 
         // Create grah
-        this.graph = new Graph(this.buffer, {
+        this.graph = new Astar.Graph(this.buffer, {
             diagonal: true
         });
 
