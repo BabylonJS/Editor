@@ -144,6 +144,25 @@ html, body {
 }
 ::-webkit-scrollbar-thumb:hover { background: #999 !important; }
 
+/* ASSETS */
+hr {
+    border: none;
+    border-top: 3px double #ddd;
+    color: #ddd;
+    overflow: visible;
+    text-align: center;
+    height: 5px;
+    top: 13px;
+}
+
+hr:after {
+    background: #fafafa;
+    content: attr(hr-content);
+    padding: 0 4px;
+    position: relative;
+    top: -7px;
+}
+
 /*
 ICONS
 */

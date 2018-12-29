@@ -64,10 +64,20 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      * On get all the assets to be drawn in the assets component
      */
     public onGetAssets (): AssetElement<any>[] {
-        const result: AssetElement<GraphData>[] = [];
         const data = this.onSerialize();
 
-        data.graphs.forEach(g => result.push({ name: g.name, data: <any> g }));
+        const attached: AssetElement<GraphData>[] = [];
+        const unAttached: AssetElement<GraphData>[] = [];
+
+        data.graphs.forEach(s => {
+            const isAttached = data.nodes.find(n => n.metadatas.find(m => m.graphId === s.id) !== undefined);
+            if (isAttached)
+                return attached.push({ name: s.name, data: s });
+            
+            unAttached.push({ name: s.name, data: s });
+        });
+
+        const result = [<AssetElement<GraphData>> { separator: 'Attached' }].concat(attached).concat([{ separator: 'Unattached' }]).concat(unAttached);
 
         return result;
     }

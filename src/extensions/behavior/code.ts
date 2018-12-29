@@ -119,10 +119,20 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      * On get all the assets to be drawn in the assets component
      */
     public onGetAssets (): AssetElement<any>[] {
-        const result: AssetElement<BehaviorCode>[] = [];
         const data = this.onSerialize();
 
-        data.scripts.forEach(s => result.push({ name: s.name, data: s }));
+        const attached: AssetElement<BehaviorCode>[] = [];
+        const unAttached: AssetElement<BehaviorCode>[] = [];
+
+        data.scripts.forEach(s => {
+            const isAttached = data.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
+            if (isAttached)
+                return attached.push({ name: s.name, data: s });
+            
+            unAttached.push({ name: s.name, data: s });
+        });
+
+        const result = [<AssetElement<BehaviorCode>> { separator: 'Attached' }].concat(attached).concat([{ separator: 'Unattached' }]).concat(unAttached);
 
         return result;
     }

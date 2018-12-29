@@ -152,7 +152,6 @@ export default class EditorAssets {
                 return;
             
             const assets = await c.onGetAssets();
-            Tools.SortAlphabetically(assets, 'name');
 
             const div = $('#' + c.id);
 
@@ -180,6 +179,19 @@ export default class EditorAssets {
             // Add elements
             const assetSize = (c.size || 50) + 'px';
             assets.forEach(a => {
+                // Separator?
+                if (a.separator) {
+                    const separator = Tools.CreateElement<HTMLHRElement>('hr', a.separator, {
+                        'float': 'left',
+                        'margin': '10px',
+                        'width': '100%'
+                    });
+                    separator.setAttribute('hr-content', a.separator);
+                    div.append(separator);
+                    return;
+                }
+
+                // Pickable asset
                 const parent = Tools.CreateElement<HTMLDivElement>('div', c.id + a.name + 'div', {
                     'position': 'relative',
                     'width': assetSize,

@@ -2181,6 +2181,7 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
         img?: string;
         name?: string;
         data?: T;
+        separator?: string;
     }
     export interface AssetContextMenu {
         id: string;

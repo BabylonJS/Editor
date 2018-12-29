@@ -4,6 +4,7 @@ export interface AssetElement<T> {
     img?: string;
     name?: string;
     data?: T;
+    separator?: string;
 }
 
 export interface AssetContextMenu {
