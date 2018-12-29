@@ -10,11 +10,12 @@ export abstract class LiteGraphNode {
     public readonly type: string;
     
     public properties: { [index: string]: string | number | boolean };
-    public outputs: any[];
+    public outputs: { name: string; }[];
 
     public pos: number[];
     public size: number[] = [60, 20];
     public shape: string = 'round';
+    public flags: any;
 
     public graph: LGraph;
 
@@ -89,7 +90,21 @@ export abstract class LiteGraphNode {
 
     public addProperty? (name: string, defaultValue: string | number | boolean): void;
 
-    public onDrawBackground? (ctx: CanvasRenderingContext2D): void;
+    /**
+     * On the background is drawn
+     * @param ctx the canvas 2d context reference
+     * @param text the text to draw
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D, text?: string): void {
+        if (this.flags.collapsed || !text)
+		    return;
+
+        ctx.font = '12px Arial';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, this.size[0] * 0.5, this.size[1] * 0.5);
+        ctx.textAlign = 'left';
+    }
 
     public onGetOutputs? (): string[][];
     public onGetInputs? (): string[][];

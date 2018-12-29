@@ -1,4 +1,3 @@
-import { Node } from 'babylonjs';
 import { LiteGraphNode } from '../typings';
 
 export class GetProperty extends LiteGraphNode {
@@ -15,7 +14,15 @@ export class GetProperty extends LiteGraphNode {
         this.addProperty('propertyPath', 'material.name');
         this.addProperty('nodePath', 'self');
 
-        this.addOutput('Value', 'string,number,boolean');
+        this.addOutput('Output', 'string,number,boolean');
+    }
+
+    /**
+     * On the background is drawn
+     * @param ctx the canvas 2d context reference
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D): void {
+        this.title = 'Get ' + this.properties.propertyPath;
     }
 
     /**
@@ -55,8 +62,16 @@ export class SetProperty extends LiteGraphNode {
         this.addProperty('nodePath', 'self');
         this.addProperty('propertyValue', '');
 
-        this.addInput('New Value', 'number,string,boolean');
-        this.addOutput('Value', 'string,number,boolean');
+        this.addInput('Output', 'number,string,boolean');
+        this.addOutput('Input', 'string,number,boolean');
+    }
+
+    /**
+     * On the background is drawn
+     * @param ctx the canvas 2d context reference
+     */
+    public onDrawBackground (ctx: CanvasRenderingContext2D): void {
+        this.title = 'Set ' + this.properties.propertyPath;
     }
 
     /**
