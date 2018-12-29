@@ -745,6 +745,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     break;
                 
                 default:
+                    if (!data)
+                        return;
+
                     // Input
                     if (id.indexOf('graph-inputs') === 0) {
                         node.addInput(data[0], data[1]);
@@ -753,9 +756,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     else if (id.indexOf('graph-outputs') === 0) {
                         node.addOutput(data[0], data[1]);
                     }
-                    else {
+                    else
                         return;
-                    }
             }
 
             this._contextMenu.mainDiv.style.visibility = 'hidden';
