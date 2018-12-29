@@ -24,6 +24,7 @@ export default class OneDriveStorage extends Storage {
      * @param names the folders names
      */
     public async createFolders (folder: any, names: string[]): Promise<void> {
+        await this.login();
         for (const n of names) {
             const content = JSON.stringify({
                 "name": n,
@@ -80,8 +81,7 @@ export default class OneDriveStorage extends Storage {
         
         return new Promise<void>(resolve => {
             if (OneDriveStorage._TOKEN === '' || now >= OneDriveStorage._TOKEN_EXPIRES_IN) {
-                //const clientID = '000000004C18353E'; // editor.babylonjs.com
-                const clientID = '0000000048182B1B';
+                const clientID = location.href.indexOf('editor.babylonjs.com') === -1 ? '0000000048182B1B' : '000000004C18353E';
                 const uri = 'https://login.live.com/oauth20_authorize.srf'
                         + '?client_id=' + clientID
                         + '&redirect_uri=' + Tools.GetBaseURL() + 'redirect.html'
