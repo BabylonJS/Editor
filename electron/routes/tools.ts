@@ -5,29 +5,32 @@ import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
 
 import Settings from '../settings/settings';
+import WebServer from '../web-server';
 
 export default class ToolsRouter {
     // Public members
     public router: KoaRouter;
-    public application: Koa;
+    public webServer: WebServer;
 
     /**
      * Constructor
      * @param application: the KOA application
      */
-    constructor (application: Koa) {
-        this.application = application;
+    constructor (webServer: WebServer) {
+        this.webServer = webServer;
         this.router = new KoaRouter();
 
         // Create routes
         this.openDevTools();
         this.getVersion();
         this.getInstallerPath();
-        
+        this.getAddress();
+
         this.getOpenedFile();
         this.setOpenedFile();
         
-        this.application.use(this.router.routes());
+        webServer.localApplication.use(this.router.routes());
+        webServer.externApplication.use(this.router.routes());
     }
 
     /**
@@ -70,6 +73,15 @@ export default class ToolsRouter {
                 case 'darwin': ctx.body = 'BabylonJS Editor.dmg'; break;
                 default: ctx.body = ''; break;
             }
+        });
+    }
+
+    /**
+     * Gets the current server address
+     */
+    protected getAddress (): void {
+        this.router.get('/address', async (ctx, next) => {
+            ctx.body = this.webServer.address;
         });
     }
 

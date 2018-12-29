@@ -4,6 +4,8 @@ import { FilesInput } from 'babylonjs';
 import Editor from '../editor';
 
 import Tools from '../tools/tools';
+import Request from '../tools/request';
+
 import SceneExporter from './scene-exporter';
 
 export default class ScenePreview {
@@ -12,8 +14,10 @@ export default class ScenePreview {
     /**
      * Creates a scene preview listener
      */
-    public static Create (editor: Editor): void {
-        this.socket = SocketIO('http://localhost:1337/');
+    public static async Create (editor: Editor): Promise<void> {
+        const address = await Request.Get<string>('/address');
+        
+        this.socket = SocketIO(`http://${address}:1337/`);
         this.socket.on('request-scene', () => this.CreateFiles(editor));
     }
 

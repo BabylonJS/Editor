@@ -28,7 +28,7 @@ export default class EditorApp {
         this.CreateShortcutsAndMenu();
 
         // Finish, listen server
-        this.Server.listen(1337, 'localhost');
+        this.Server.listen(1337);
     }
 
     /**

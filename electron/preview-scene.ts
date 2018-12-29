@@ -23,10 +23,10 @@ export default class ScenePreview {
      */
     constructor (server: WebServer) {
         this.server = new IO();
-        this.server.attach(server.application);
+        this.server.attach(server.externApplication);
 
         this.client = new IO('client');
-        this.client.attach(server.application);
+        this.client.attach(server.externApplication);
 
         this.server.on('connection', () => this.serverConnected = true);
         this.client.on('connection', () => {
