@@ -106,68 +106,83 @@ export default class SceneImporter {
      * Import meshes from
      * @param editor the editor reference
      */
-    public static ImportMeshesFromFile (editor: Editor): void {
+    public static async ImportMeshesFromFile (editor: Editor): Promise<void> {
         Tools.OpenFileDialog(async files => {
-            let babylonFile: File = null;
+            let sceneFile: File = null;
+            const extensions = ['babylon', 'gltf', 'glb'];
 
             // Configure files
             for (const f of files) {
                 const name = f.name.toLowerCase();
 
-                if (Tools.GetFileExtension(f.name) === 'babylon')
-                    babylonFile = f;
+                if (extensions.indexOf(Tools.GetFileExtension(f.name)) !== -1)
+                    sceneFile = f;
                 
                 if (!FilesInput.FilesToLoad[name])
                     FilesInput.FilesToLoad[name] = f;
             };
 
             // Check
-            if (!babylonFile)
-                return Window.CreateAlert('Only .babylon files are supported', 'Information')
+            if (!sceneFile)
+                return Window.CreateAlert('No scene file where found. Available formats: .babylon, .gltf, .glb', 'Information');
 
+            // Load external plugin?
+            if (Tools.GetFileExtension(sceneFile.name) !== 'babylon') {
+                editor.layout.lockPanel('main', 'Importing Loaders...', true);
+                await Tools.ImportScript('babylonjs-loaders');
+                editor.layout.unlockPanel('main');
+            }
+            
             // Read file
-            const json = await Tools.ReadFileAsText(babylonFile);
-            const data = JSON.parse(json);
+            try {
+                const assetContainer = await SceneLoader.LoadAssetContainerAsync('file:', sceneFile.name, editor.core.scene);
 
-            // Create picker
-            const picker = new Picker('ImportMeshesFrom');
-            picker.addItems(data.meshes);
-            picker.open(items => {
-                // Import meshes
-                const names = items.map(i => i.name);
-                SceneLoader.ImportMesh(names, 'file:', babylonFile.name, editor.core.scene, (meshes) => {
-                    // Configure
-                    meshes.forEach(m => {
+                // Create picker
+                const picker = new Picker('ImportMeshesFrom');
+                picker.addItems(assetContainer.meshes);
+                picker.open(items => {
+                    // Import meshes
+                    const names = items.map(i => i.name);
+                    assetContainer.meshes.forEach(m => {
+                        if (names.indexOf(m.name) === -1 || editor.core.scene.getMeshByID(m.id))
+                            return;
+
+                        // Add mesh
+                        editor.core.scene.addMesh(m, true);
+
                         // Tags
-                        Tags.AddTagsTo(m, 'added');
+                        [m].concat(m.getChildMeshes()).forEach(c => {
+                            Tags.AddTagsTo(c, 'added');
 
-                        if (m.material) {
-                            Tags.AddTagsTo(m.material, 'added');
+                            if (c.material) {
+                                Tags.AddTagsTo(c.material, 'added');
 
-                            if (m.material instanceof MultiMaterial)
-                                m.material.subMaterials.forEach(m => Tags.AddTagsTo(m, 'added'));
-                        }
+                                if (c.material instanceof MultiMaterial)
+                                    c.material.subMaterials.forEach(m => Tags.AddTagsTo(m, 'added'));
+                            }
 
-                        // Id and name
-                        const id = m.id;
-                        const meshes = editor.core.scene.meshes.filter(m => m.id === id);
-                        if (meshes.length > 1)
-                            m.id += BabylonTools.RandomId();
+                            // Id and name
+                            const id = c.id;
+                            const meshes = editor.core.scene.meshes.filter(m => m.id === id);
+                            if (meshes.length > 1)
+                                c.id += BabylonTools.RandomId();
 
-                        // Misc.
-                        m.metadata = m.metadata || { };
-                        m.metadata.baseConfiguration = {
-                            isPickable: m.isPickable
-                        };
-                        m.isPickable = true;
+                            // Misc.
+                            c.metadata = c.metadata || { };
+                            c.metadata.baseConfiguration = {
+                                isPickable: c.isPickable
+                            };
+                            c.isPickable = true;
+                        });
 
-                        // Add to graph
-                        SceneFactory.AddToGraph(editor, m);
+                        // Re-fill graph
+                        editor.graph.clear();
+                        editor.graph.fill();
                     });
-                }, null, (scene, message) => {
-                    Window.CreateAlert(message, 'Error');
                 });
-            });
+            } catch (e) {
+                Window.CreateAlert(e.message, 'Error');
+            }
         });
     }
 }

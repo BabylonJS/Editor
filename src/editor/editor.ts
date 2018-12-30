@@ -475,7 +475,7 @@ export default class Editor implements IUpdatable {
         if (!showNewSceneDialog)
             return await callback();
 
-        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
+        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', (result) => {
             if (result === 'Yes') {
                 UndoRedo.Clear();
                 CodeProjectEditorFactory.CloseAll();

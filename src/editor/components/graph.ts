@@ -5,7 +5,8 @@ import {
     PostProcess,
     Tools as BabylonTools,
     Skeleton,
-    Tags
+    Tags,
+    TransformNode
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
@@ -273,7 +274,7 @@ export default class EditorGraph {
                 return;
             
             // Create a random ID if not defined
-            if (!n.id)
+            if (!n.id || this.tree.get(n.id))
                 n.id = BabylonTools.RandomId();
 
             // Instance?
@@ -388,6 +389,8 @@ export default class EditorGraph {
             return 'icon-helpers';
         } else if (obj instanceof Sound) {
             return 'icon-sound';
+        } else if (obj instanceof TransformNode) {
+            return 'icon-position';
         } else if (obj instanceof AdvancedDynamicTexture) {
             return 'icon-ground';
         } else if (obj instanceof Image) {
