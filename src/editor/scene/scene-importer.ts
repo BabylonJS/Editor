@@ -121,6 +121,10 @@ export default class SceneImporter {
                     FilesInput.FilesToLoad[name] = f;
             };
 
+            // Check
+            if (!babylonFile)
+                return Window.CreateAlert('Only .babylon files are supported', 'Information')
+
             // Read file
             const json = await Tools.ReadFileAsText(babylonFile);
             const data = JSON.parse(json);
