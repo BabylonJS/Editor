@@ -42,6 +42,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
     protected engines: Engine[] = [];
     protected onResizePreview = () => this.resize();
+    protected onObjectSelected = (obj) => this.selectedObject(obj);
 
     protected waitingMaterials: Material[] = [];
     protected onAddObject = (material) => this.waitingMaterials.push(material);
@@ -72,6 +73,7 @@ export default class MaterialsViewer extends EditorPlugin {
         });
         this.editor.core.onResize.removeCallback(this.onResizePreview);
         this.editor.core.onAddObject.removeCallback(this.onAddObject);
+        this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
 
         this.canvas.remove();
 
@@ -143,6 +145,10 @@ export default class MaterialsViewer extends EditorPlugin {
         
         this.editor.core.onResize.add(this.onResizePreview);
         this.editor.core.onAddObject.add(this.onAddObject);
+        this.editor.core.onSelectObject.add(this.onObjectSelected);
+
+        // Selected object?
+        this.selectedObject(this.targetObject)
     }
 
     /**
@@ -159,6 +165,7 @@ export default class MaterialsViewer extends EditorPlugin {
 
         // Misc.
         this.targetObject = targetObject;
+        this.selectedObject(targetObject);
     }
 
     /**
@@ -170,6 +177,15 @@ export default class MaterialsViewer extends EditorPlugin {
 
         // Responsive
         super.resizeLayout(this.layout, ['left'], ['main']);
+    }
+
+    /**
+     * Once the user selects an object
+     * @param obj the selected object in the graph or the scene
+     */
+    protected selectedObject (obj: any): void {
+        this.targetObject = (obj instanceof AbstractMesh && obj !== this.targetObject) ? null : this.targetObject;
+        this.toolbar.notifyMessage(this.targetObject ? `<h2>${this.targetObject.name}</h2> Selected` : '');
     }
 
     /**
