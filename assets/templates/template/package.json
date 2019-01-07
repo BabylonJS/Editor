@@ -19,13 +19,13 @@
   "dependencies": {
     "systemjs-plugin-css": "~0.1.35",
     "systemjs": "~0.20.19",
-    "es6-promise": "~4.1.0",
+    "es6-promise": "4.1.0",
     "babylonjs": "4.0.0-alpha.16",
     "babylonjs-gui": "4.0.0-alpha.16",
     "babylonjs-loaders": "4.0.0-alpha.16",
     "babylonjs-materials": "4.0.0-alpha.16",
     "babylonjs-procedural-textures": "4.0.0-alpha.16",
-    "babylonjs-editor": "2.5.1",
+    "babylonjs-editor": "2.5.2",
     "cannon": "~0.6.2",
     "earcut": "~2.1.3"
   }
