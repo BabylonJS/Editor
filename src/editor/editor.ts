@@ -893,10 +893,12 @@ export default class Editor implements IUpdatable {
             const saveDirectory = await Request.Get<string[]>(`/files:/paths?type=openDirectory`);
             
             // Download!
-            const path = await Request.Get<string>('/installerPath');
+            const list = await Request.Get<string>('http://editor.babylonjs.com/assets/update/versions.json?' + Date.now());
+            const platform = await Request.Get<string>('/osplatform');
+            const path = list[newVersion][platform];
 
             let lastProgress = '';
-            const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
+            const data = await Tools.LoadFile<ArrayBuffer>(/*'http://editor.babylonjs.com/' + */path, true, data => {
                 const progress = ((data.loaded * 100) / data.total).toFixed(1);
 
                 if (progress !== lastProgress) {
@@ -909,7 +911,7 @@ export default class Editor implements IUpdatable {
             this.toolbar.notifyRightMessage('');
 
             // Save!
-            await Request.Put('/files:/write?name=' + path + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
+            await Request.Put('/files:/write?name=' + Tools.GetFilename(path) + '&folder=' + saveDirectory[0], Tools.CreateFile(new Uint8Array(data), path), {
                 'Content-Type': 'application/octet-stream'
             });
             

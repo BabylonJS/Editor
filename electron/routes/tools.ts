@@ -23,7 +23,7 @@ export default class ToolsRouter {
         // Create routes
         this.openDevTools();
         this.getVersion();
-        this.getInstallerPath();
+        this.getOsPlatform();
         this.getAddress();
 
         this.getOpenedFile();
@@ -66,13 +66,9 @@ export default class ToolsRouter {
     /**
      * Returns the installer path according to the current platform
      */
-    protected getInstallerPath (): void {
-        this.router.get('/installerPath', async (ctx, next) => {
-            switch (os.platform()) {
-                case 'win32': ctx.body = 'BabylonJS Editor.exe'; break;
-                case 'darwin': ctx.body = 'BabylonJS Editor.dmg'; break;
-                default: ctx.body = ''; break;
-            }
+    protected getOsPlatform (): void {
+        this.router.get('/osplatform', async (ctx, next) => {
+            ctx.body = os.platform();
         });
     }
 
