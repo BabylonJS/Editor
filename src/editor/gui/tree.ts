@@ -44,6 +44,8 @@ export default class Tree {
     public onCanDrag: <T>(id: string, data: T) => boolean;
     public onDrag:<T, U>(node: T, parent: U) => boolean;
 
+    public onCopy: <T>(source: TreeNode, target: TreeNode, parent: T) => T;
+
     // Protected members
     protected currentSelectedNode: string = '';
     protected moving: boolean = false;
@@ -284,6 +286,13 @@ export default class Tree {
                 const renamed = this.onRename(data.node.id, data.text, data.node.data);
                 if (!renamed)
                     this.rename(data.node.id, data.old);
+            })
+            .on('copy_node.jstree', (e, data) => {
+                const parent = this.get(data.node.parent);
+                if (!this.onCopy || !this.onCopy(data.original, data.node, parent.data))
+                    this.remove(data.node.id);
+
+                this.element.jstree().set_id(data.node, data.node.id);
             })
             .on('move_node.jstree', (e, data) => {
                 if (!this.onDrag || this.moving)

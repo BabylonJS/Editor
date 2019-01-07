@@ -920,6 +920,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             onMenuClick: <T>(id: string, node: TreeNode) => void;
             onCanDrag: <T>(id: string, data: T) => boolean;
             onDrag: <T, U>(node: T, parent: U) => boolean;
+            onCopy: <T>(source: TreeNode, target: TreeNode, parent: T) => T;
             protected currentSelectedNode: string;
             protected moving: boolean;
             protected renaming: boolean;

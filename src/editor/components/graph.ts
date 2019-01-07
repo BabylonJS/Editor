@@ -164,6 +164,20 @@ export default class EditorGraph {
             return false;
         };
 
+        this.tree.onCopy = (source, target, parent) => {
+            if (source.data.clone) {
+                target.data = source.data.clone();
+                target.data.name = source.data.name;
+                target.data.id = BabylonTools.RandomId();
+
+                if (parent instanceof Node)
+                    target.data.parent = parent;
+
+                return target.data;
+            }
+            return null;
+        };
+
         // Search
         const search = $('#SCENE-GRAPH-SEARCH');
         search.keyup(() => {
