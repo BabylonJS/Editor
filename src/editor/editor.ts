@@ -878,6 +878,9 @@ export default class Editor implements IUpdatable {
         // Get versions
         Editor.EditorVersion = await Request.Get<string>('/version');
 
+        Tools.Version = Editor.EditorVersion;
+        Tools.SetWindowTitle('Untitled');
+
         const packageJson = await Tools.LoadFile<string>('http://editor.babylonjs.com/package.json?' + Date.now());
         const newVersion = JSON.parse(packageJson).version;
 

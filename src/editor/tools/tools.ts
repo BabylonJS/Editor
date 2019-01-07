@@ -5,6 +5,7 @@ export default class Tools {
     // Public members
     public static PendingFilesToLoad: number = 0;
     public static IsStandalone: boolean = true;
+    public static Version: string = '';
 
     /**
      * Creates a div element
@@ -96,7 +97,7 @@ export default class Tools {
      * @param title the title of the window
      */
     public static SetWindowTitle (title: string): void {
-        document.title = `Babylon.js Editor - (${title})`;
+        document.title = `Babylon.js Editor ${this.Version} - (${title})`;
     }
 
     /**

@@ -37,6 +37,9 @@ export default class EditorAssets {
     protected currentComponent: IAssetComponent = null;
     protected emptyTextNode: HTMLHeadElement = null;
 
+    // Private members
+    private _search: string = '';
+
     // Static members
     private static _DefaultImageSource: string = null;
 
@@ -65,8 +68,19 @@ export default class EditorAssets {
         this.toolbar.items = [
             { type: 'button', id: 'add', text: 'Add', img: 'icon-add' }
         ];
+        this.toolbar.right = `
+            <div style="padding: 3px 10px;">
+                <input placeholder=Search size="25" id="ASSETS-SEARCH" style="height: 20px; padding: 3px; border-radius: 2px; border: 1px solid silver;" value="" />
+            </div>`;
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.build('ASSETS-TOOLBAR');
+
+        // Search
+        const search = $('#ASSETS-SEARCH');
+        search.keyup(() => {
+            this._search = <string> search.val();
+            this.refresh();
+        });
 
         // Tabs
         this.tabs = $('#ASSETS-CONTENT').w2tabs({
@@ -179,6 +193,10 @@ export default class EditorAssets {
             // Add elements
             const assetSize = (c.size || 50) + 'px';
             assets.forEach(a => {
+                // Search?
+                if (a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) === -1)
+                    return;
+                
                 // Separator?
                 if (a.separator) {
                     const separator = Tools.CreateElement<HTMLHRElement>('hr', a.separator, {
