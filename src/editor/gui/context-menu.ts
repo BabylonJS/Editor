@@ -95,7 +95,7 @@ export default class ContextMenu {
         if (this.search)
             this.search.remove();
         
-        this.tree.element.destroy();
+        // this.tree.element.destroy();
         this.mainDiv.remove();
 
         this.layout.element.destroy();
