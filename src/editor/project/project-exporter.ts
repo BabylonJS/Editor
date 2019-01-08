@@ -233,7 +233,8 @@ export default class ProjectExporter {
      */
     private static _SerializeGlobalConfiguration (editor: Editor): Export.GlobalConfiguration {
         return {
-            serializedCamera: editor.camera.serialize()
+            serializedCamera: editor.camera.serialize(),
+            environmentTexture: editor.core.scene.environmentTexture ? editor.core.scene.environmentTexture.serialize() : undefined
         }
     }
 

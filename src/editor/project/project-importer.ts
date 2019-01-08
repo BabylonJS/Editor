@@ -41,6 +41,9 @@ export default class ProjectImporter {
         if (project.globalConfiguration.serializedCamera)
             editor.createEditorCamera(project.globalConfiguration.serializedCamera);
 
+        if (project.globalConfiguration.environmentTexture)
+            scene.environmentTexture = Texture.Parse(project.globalConfiguration.environmentTexture, scene, 'file:');
+
         // Physics
         if (!scene.isPhysicsEnabled())
             scene.enablePhysics(scene.gravity, new CannonJSPlugin());

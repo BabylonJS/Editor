@@ -1276,6 +1276,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
     }
     export interface GlobalConfiguration {
         serializedCamera?: any;
+        environmentTexture?: any;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)
