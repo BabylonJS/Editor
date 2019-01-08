@@ -165,7 +165,9 @@ export default class EditorAssets {
             if (id && c.id !== id)
                 return;
             
-            const assets = await c.onGetAssets();
+            const assets = 
+                (await c.onGetAssets())
+                .filter(a => a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) !== -1);
 
             const div = $('#' + c.id);
 
@@ -185,7 +187,7 @@ export default class EditorAssets {
                     'font-family': 'Roboto,sans-serif !important',
                     'opacity': '0.5'
                 });
-                emptyTextNode.textContent = 'Empty';
+                emptyTextNode.textContent = this._search !== '' ? 'No results found' : 'Empty';
     
                 $('#' + c.id).append(emptyTextNode);
             }
@@ -193,10 +195,6 @@ export default class EditorAssets {
             // Add elements
             const assetSize = (c.size || 50) + 'px';
             assets.forEach(a => {
-                // Search?
-                if (a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) === -1)
-                    return;
-                
                 // Separator?
                 if (a.separator) {
                     const separator = Tools.CreateElement<HTMLHRElement>('hr', a.separator, {
