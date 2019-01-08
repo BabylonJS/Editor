@@ -48,11 +48,11 @@ html, body {
 }
 
 .dg li.title:nth-of-type(1) {
-    background: #262626 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat !important;
+    background: #222222 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat !important;
 }
 
 .dg .closed li.title:nth-of-type(1) {
-    background: #262626 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==) 6px 10px no-repeat !important;
+    background: #222222 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==) 6px 10px no-repeat !important;
 }
 
 /* Search / JSTREE*/
@@ -84,15 +84,21 @@ html, body {
   background-color: #6d6d6d;
 }
 
-
 /* GoldenLayout */
 .lm_header .lm_tab {
-    background-color: #606060 !important;
+  background-color: rgb(55, 55, 55) !important;
 }
 
-/* Golden Layout */
+.lm_header .lm_tab.lm_active {
+  background-color: rgb(37, 37, 38) !important;
+}
+
+.lm_header {
+  background-color: #444444 !important;
+}
+
 .lm_content {
-    background: #3e3e3e !important;
+    background: rgb(37, 37, 38) !important;
 }
 
 /* W2UI Dark */
@@ -225,10 +231,10 @@ html, body {
   select,
   textarea {
     padding: 4px;
-    border: 1px solid #777f8c;
+    border: 1px solid #141414;
     border-radius: 3px;
     color: #ffffff;
-    background-color: #5b5b5b;
+    background-color: rgb(37, 37, 38);
     line-height: normal;
   }
   input:not([type=button]):focus,
@@ -814,10 +820,10 @@ html, body {
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     padding-top: 5px !important;
-    background-color: #3e3e3e;
+    background-color: rgb(45, 45, 45);
   }
   .w2ui-form .w2ui-tabs .w2ui-tab.active {
-    background-color: #3e3e3e;
+    background-color: rgb(37, 37, 38);
   }
   .w2ui-form .w2ui-page {
     position: absolute;
@@ -1656,14 +1662,14 @@ html, body {
   }
   .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-odd {
     color: #ffffff;
-    background-color: #3e3e3e;
+    background-color: rgb(47, 47, 48);
   }
   .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-odd:hover {
     color: #dae4f8;
     background-color: #5b5b5b;
   }
   .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-odd.w2ui-empty-record:hover {
-    background-color: #3e3e3e;
+    background-color: rgb(47, 47, 48);
   }
   .w2ui-grid .w2ui-grid-body .w2ui-grid-records table tr.w2ui-even {
     color: #ffffff;
@@ -2464,7 +2470,7 @@ html, body {
   .w2ui-tabs {
     cursor: default;
     overflow: hidden !important;
-    background-color: #3e3e3e;
+    background-color: rgb(37, 37, 38);
     padding: 3px 0px;
     padding-bottom: 0px !important;
   }
@@ -2476,7 +2482,7 @@ html, body {
     padding: 6px 20px;
     text-align: center;
     color: #ffffff;
-    background-color: #606060;
+    background-color: rgb(55, 55, 55);
     border: 1px solid #999999;
     border-bottom: 1px solid silver;
     white-space: nowrap;
@@ -2487,7 +2493,7 @@ html, body {
   }
   .w2ui-tabs .w2ui-tab.active {
     color: #ffffff;
-    background-color: #313947;
+    background-color: rgb(37, 37, 38);
     border: 1px solid #999999;
     border-bottom: 1px solid transparent;
   }
@@ -2527,7 +2533,7 @@ html, body {
     margin: 0px;
     padding: 2px;
     outline: 0px;
-    background-color: #262626;
+    background-color: #222222;
     overflow: hidden !important;
     -webkit-user-select: none;
     -moz-user-select: none;
