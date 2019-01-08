@@ -529,7 +529,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             }
         });
 
-        BehaviorCodeEditor.CodeProjectEditor = <any>editor;
+        BehaviorCodeEditor.CodeProjectEditor = <any> editor;
     }
 
     // Returns the serialized metadatas file

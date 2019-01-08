@@ -142,6 +142,7 @@ declare module 'babylonjs-editor/editor/tools/tools' {
     export default class Tools {
             static PendingFilesToLoad: number;
             static IsStandalone: boolean;
+            static Version: string;
             /**
                 * Creates a div element
                 * @param style: the div's style
