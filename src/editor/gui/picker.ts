@@ -67,7 +67,7 @@ export default class Picker {
      * Builds the object picker
      * @param callback: called when user clicks the button "ok"
      */
-    public open (callback: (items: { id: number, name: string }[], selected?: number[]) => void): void {
+    public async open (callback: (items: { id: number, name: string }[], selected?: number[]) => void): Promise<void> {
         this.window = new Window('Picker');
         this.window.buttons = ['Ok', 'Close'];
         this.window.title = this.title;
@@ -88,7 +88,7 @@ export default class Picker {
             this.close();
             this.window.close();
         };
-        this.window.open();
+        await this.window.open();
 
         // Create grid
         this.grid = new Grid<Row>('PickerGrid');

@@ -37,7 +37,7 @@ export default class Dialog {
      * @param title the title of the dialog
      */
     public static CreateWithTextInput (title: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             // Window
             const popin = new Window('AskName');
             popin.title = title;
@@ -47,7 +47,7 @@ export default class Dialog {
             popin.showMax = false;
             popin.width = 500;
             popin.height = 160;
-            popin.open();
+            await popin.open();
 
             // Form
             const form = new Form('ASK-NAME-CREATE-DIALOG');

@@ -642,9 +642,13 @@ export default class Editor implements IUpdatable {
 
             switch (ev.keyCode) {
 				case 46: // Del.
-					const selected = this.graph.getSelected();
-					if (selected)
-						this.graph.onMenuClick('remove');
+                    const selected = this.graph.getAllSelected();
+                    selected.forEach(s => {
+                        if (!s)
+                            return;
+                        
+                        this.graph.onMenuClick('remove', s);
+                    });
 					break;
                 default: break;
             }

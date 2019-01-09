@@ -597,7 +597,7 @@ declare module 'babylonjs-editor/editor/gui/picker' {
             open(callback: (items: {
                     id: number;
                     name: string;
-            }[], selected?: number[]) => void): void;
+            }[], selected?: number[]) => void): Promise<void>;
             /**
                 * Adds current items to the grid
                 */
@@ -691,7 +691,7 @@ declare module 'babylonjs-editor/editor/gui/window' {
             /**
                 * Opens the window
                 */
-            open(): void;
+            open(): Promise<void>;
             /**
                 * Opens a window alert
                 * @param message: the message to show
@@ -903,7 +903,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
     export interface ContextMenuItem {
             id: string;
             text: string;
-            callback: () => void;
+            callback: (node: TreeNode) => void | Promise<void>;
             separatorBefore?: boolean;
             separatorAfter?: boolean;
             img?: string;
@@ -961,6 +961,10 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * Returns the selected node
                 */
             getSelected(): TreeNode;
+            /**
+                * Returns all the selected nodes
+                */
+            getAllSelected(): TreeNode[];
             /**
                 * Get the given node
                 * @param id the id of the node to get
@@ -1769,9 +1773,13 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 */
             select(id: string): void;
             /**
-                * Returns the selected node id
+                * Returns the selected node
                 */
             getSelected(): TreeNode;
+            /**
+                * Returns all the selected nodes
+                */
+            getAllSelected(): TreeNode[];
             /**
                 * Returns a anode
                 * @param data: the data to search

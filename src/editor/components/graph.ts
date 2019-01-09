@@ -76,24 +76,24 @@ export default class EditorGraph {
             const result: ContextMenuItem[] = [];
 
             if (data.globalPosition || data.getAbsolutePosition)
-                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: () => this.onMenuClick('focus') });
+                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
             
             if (data instanceof Mesh)
-                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', separatorBefore: true, callback: () => this.onMenuClick('create-prefab') });
+                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
             
             if (data instanceof AbstractMesh)
-                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: () => this.onMenuClick('set-material') });
+                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
 
             if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
-                result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: () => this.onMenuClick('attach-script') });
-                result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: () => this.onMenuClick('add-script') });
+                result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: async () => await this.onMenuClick('attach-script') });
+                result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: async () => await this.onMenuClick('add-script') });
             }
 
             if (data.clone)
-                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: () => this.onMenuClick('clone') });
+                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: async (node) => await this.onMenuClick('clone', node) });
 
             result.push.apply(result, [
-                { id: 'delete', text: 'Delete', img: 'icon-error', callback: () => this.onMenuClick('remove') }
+                { id: 'delete', text: 'Delete', img: 'icon-error', callback: async (node) => await this.onMenuClick('remove', node) }
             ]);
             
             return result;
@@ -224,10 +224,17 @@ export default class EditorGraph {
     }
 
     /**
-     * Returns the selected node id
+     * Returns the selected node
      */
     public getSelected (): TreeNode {
         return this.tree.getSelected();
+    }
+
+    /**
+     * Returns all the selected nodes
+     */
+    public getAllSelected (): TreeNode[] {
+        return this.tree.getAllSelected();
     }
 
     /**

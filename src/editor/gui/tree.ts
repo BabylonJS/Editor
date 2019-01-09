@@ -18,7 +18,7 @@ export interface TreeNode {
 export interface ContextMenuItem {
     id: string;
     text: string;
-    callback: () => void;
+    callback: (node: TreeNode) => void | Promise<void>;
 
     separatorBefore?: boolean;
     separatorAfter?: boolean;
@@ -132,6 +132,14 @@ export default class Tree {
     }
 
     /**
+     * Returns all the selected nodes
+     */
+    public getAllSelected (): TreeNode[] {
+        const ids = this.element.jstree().get_selected();
+        return ids.map(id => this.get(id));
+    }
+
+    /**
      * Get the given node
      * @param id the id of the node to get
      */
@@ -178,7 +186,6 @@ export default class Tree {
         const parent = this.get(parentId);
         if (!parent)
             return;
-
 
         this.moving = true;
         this.element.jstree().move_node(node, parent);
@@ -249,25 +256,29 @@ export default class Tree {
                     if (!this.onContextMenu)
                         return null;
 
-                    const id = this.element.jstree().get_selected()[0];
-                    const node = this.element.jstree().get_node(id);
+                    const selected = this.getAllSelected();
+                    const lastSelected = this.getSelected(); // Last selected
 
-                    if (!node)
+                    if (selected.length === 0)
                         return null;
                     
-                    const items = this.onContextMenu(node.id, node.data);
+                    const items = this.onContextMenu(lastSelected.id, lastSelected.data);
                     const result = { };
 
                     items.forEach(i => {
                         result[i.id] = {
                             label: i.text,
                             icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
-                            action: () => i.callback(),
+                            action: async () => {
+                                for (const n of selected) {
+                                    await i.callback(n);
+                                }
+                            },
                             separator_before: i.separatorBefore,
                             separator_after: i.separatorAfter
                         }
                     });
-
+                    
                     return result;
                 }
             }

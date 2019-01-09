@@ -55,12 +55,18 @@ export default class Window {
     /**
      * Opens the window
      */
-    public open (): void {
+    public async open (): Promise<void> {
         const id = 'WindowButtons';
 
         let buttons = '';
         for (var i = 0; i < this.buttons.length; i++) {
             buttons += `<button class="w2ui-btn" id="${id + '-' + this.buttons[i]}">${this.buttons[i]}</button>\n`;
+        }
+
+        if (w2popup.status === 'closing') {
+            await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), 500);
+            });
         }
 
         this.element = <any> w2popup.open({
