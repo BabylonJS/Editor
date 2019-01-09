@@ -1,9 +1,9 @@
-import { Effect, Material } from 'babylonjs';
+import { Effect, Material, StandardMaterial, PBRMaterial } from 'babylonjs';
 
 import Editor, {
     Tools,
     Layout, Grid, GridRow, Toolbar,
-    Dialog,
+    Window, Form,
     CodeEditor,
     EditorPlugin,
     CodeProjectEditorFactory
@@ -45,6 +45,7 @@ export default class MaterialEditor extends EditorPlugin {
 
     // Static members
     public static DefaultCode: string = '';
+    public static DefaultCompleteCode: string = '';
     public static DefaultVertex: string = '';
     public static DefaultPixel: string = '';
     public static DefaultConfig: string = '';
@@ -83,6 +84,7 @@ export default class MaterialEditor extends EditorPlugin {
     public async create(): Promise<void> {
         // Template
         !MaterialEditor.DefaultCode && (MaterialEditor.DefaultCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class.ts'));
+        !MaterialEditor.DefaultCompleteCode && (MaterialEditor.DefaultCompleteCode = await Tools.LoadFile<string>('./assets/templates/material-creator/class-complete.ts'));
         !MaterialEditor.DefaultVertex && (MaterialEditor.DefaultVertex = await Tools.LoadFile<string>('./assets/templates/material-creator/vertex.fx'));
         !MaterialEditor.DefaultPixel && (MaterialEditor.DefaultPixel = await Tools.LoadFile<string>('./assets/templates/material-creator/pixel.fx'));
         !MaterialEditor.DefaultConfig && (MaterialEditor.DefaultConfig = await Tools.LoadFile<string>('./assets/templates/material-creator/config.json'));
@@ -209,8 +211,69 @@ export default class MaterialEditor extends EditorPlugin {
      * Creates a new material
      */
     protected async addMaterial (): Promise<void> {
-        // Create data and material
-        const name = await Dialog.CreateWithTextInput('Material Name');
+        // Create window
+        const window = new Window('Add new material...');
+        window.buttons = ['Ok', 'Cancel'];
+        window.width = 500;
+        window.height = 160;
+        window.body = `<div id="ADD-NEW-MATERIAL-WINDOW" style="width: 100%; height: 100%"></div>`;
+        await window.open();
+
+        // Form
+        const form = new Form('ADD-NEW-MATERIAL-WINDOW');
+        form.fields = [
+            { name: 'name', type: 'text', required: true },
+            { name: 'type', type: 'list', required: true, options: { items: ['Simple', 'Complete from Standard', 'Complete from PBR'] } }
+        ];
+        form.build('ADD-NEW-MATERIAL-WINDOW');
+
+        // Set default values
+        form.element.record['type'] = 'Simple';
+        form.element.refresh();
+
+        // Await choice
+        await new Promise<void>((resolve, reject) => {
+            window.onButtonClick = async (id) => {
+                if (id === 'Cancel') {
+                    window.close();
+                    form.element.destroy();
+                    return reject();
+                }
+
+                if (!form.isValid())
+                    return;
+
+                const name = form.element.record['name'];
+                const type = form.element.record['type'].id;
+
+                window.close();
+                form.element.destroy();
+
+                switch (type) {
+                    case 'Simple':
+                        this.addSimpleMaterial(name);
+                        break;
+                    case 'Complete from Standard':
+                    case 'Complete from PBR':
+                        this.addCompleteMaterial(
+                            name,
+                            type === 'Complete from Standard' ? 'standard' :
+                            type === 'Complete from PBR' ? 'pbr' : 'standard'
+                        );
+                        break;
+                    default: break;
+                }
+
+                resolve();
+            };
+        });
+    }
+
+    /**
+     * Adds a simple material configuration
+     * @param name the name of the material to create
+     */
+    protected addSimpleMaterial (name: string): MaterialCreatorMetadata {
         const data: MaterialCreatorMetadata = {
             name: name,
             code: MaterialEditor.DefaultCode,
@@ -239,6 +302,40 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Notify
         this.editor.core.onAddObject.notifyObservers(material);
+
+        return data;
+    }
+
+    /**
+     * Adds a complete material configuration from the given base (standard or pbr)
+     * @param name the name of the material to create
+     * @param base the base material to extend
+     */
+    protected addCompleteMaterial (name: string, base: 'standard' | 'pbr'): MaterialCreatorMetadata {
+        const data: MaterialCreatorMetadata = {
+            name: name,
+            code: MaterialEditor.DefaultCompleteCode.replace(/{{ctor}}/g, base === 'standard' ? 'StandardMaterial' : 'PBRMaterial'),
+            vertex: base === 'standard' ? Effect.ShadersStore.defaultVertexShader : Effect.ShadersStore.pbrVertexShader,
+            pixel: base === 'standard' ? Effect.ShadersStore.defaultPixelShader : Effect.ShadersStore.pbrPixelShader,
+            config: null,
+            userConfig: null,
+            isComplete: true
+        };
+
+        const material = (base === 'standard') ? new StandardMaterial(data.name, this.editor.core.scene) : new PBRMaterial(data.name, this.editor.core.scene);
+
+        // Collect and add to the list
+        this.datas.push(data);
+
+        this.grid.addRow({
+            name: material.name,
+            recid: this.grid.element.records.length - 1
+        });
+
+        // Notify
+        this.editor.core.onAddObject.notifyObservers(material);
+
+        return data;
     }
 
     /**
@@ -268,6 +365,12 @@ export default class MaterialEditor extends EditorPlugin {
         this.pixel.setValue(this.data.pixel);
         this.config.setValue(this.data.config);
 
+        // Complete?
+        if (this.data.isComplete)
+            this.layout.getPanelFromType('main').tabs.hide('config');
+        else
+            this.layout.getPanelFromType('main').tabs.show('config');
+
         // Manage extra libs
         Helpers.UpdateMonacoTypings(this.editor, this.data);
     }
@@ -278,8 +381,12 @@ export default class MaterialEditor extends EditorPlugin {
      */
     protected removeMaterial (id: number): void {
         const material = this.editor.core.scene.getMaterialByName(this.datas[id].name);
-        if (material)
+
+        // Dispose
+        if (material) {
+            this.editor.core.scene.meshes.forEach(m => m.material === material && (m.material = null));
             material.dispose(true);
+        }
 
         this.datas.splice(id, 1);
     }

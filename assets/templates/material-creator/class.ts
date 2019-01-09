@@ -59,4 +59,4 @@ class Material {
     };
 }
 
-return Material;
+exportScript(Material);

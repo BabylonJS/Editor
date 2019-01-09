@@ -1,4 +1,4 @@
-import { Scene, Effect, Tools, Texture, Vector3, Vector2 } from 'babylonjs';
+import { Scene, Effect, Tools, Texture, Vector3, Vector2, Material } from 'babylonjs';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -24,6 +24,7 @@ export interface MaterialCreatorMetadata {
     pixel: string;
     config: string;
     userConfig: MaterialCreatorUserConfig;
+    isComplete?: boolean;
 }
 
 const template = `
@@ -76,6 +77,7 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
         Effect.ShadersStore[id + 'PixelShader'] = data.pixel;
 
         let code: CustomMaterialCode = null;
+        let material: Material = null;
 
         if (data.code) {
             // Add custom code
@@ -85,31 +87,36 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
             Extension.AddScript(template.replace('{{name}}', id).replace('{{code}}', data.compiledCode || data.code), url);
 
             const ctor = EDITOR.MaterialCreator.Constructors[id]();
-            code = new ctor();
+            if (ctor.prototype instanceof Material)
+                code = material = new ctor(data.name, this.scene);
+            else
+                code = new ctor();
         }
 
-        // Custom config
-        let config: CustomMaterialConfig = null;
-        try {
-            config = JSON.parse(data.config);
-        } catch (e) { /* Silently */ }
+        if (!(code instanceof Material)) {
+            // Custom config
+            let config: CustomMaterialConfig = null;
+            try {
+                config = JSON.parse(data.config);
+            } catch (e) { /* Silently */ }
 
-        // Get or create material
-        let material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
-        if (material) {
-            material.config = config;
-            material._shaderName = id;
-            material.setCustomCode(code);
-        }
-        else
-            material = new CustomEditorMaterial(data.name, this.scene, id, code, config);
+            // Get or create material
+            let customMaterial = material = <CustomEditorMaterial> this.scene.getMaterialByName(data.name);
+            if (customMaterial) {
+                customMaterial.config = config;
+                customMaterial._shaderName = id;
+                customMaterial.setCustomCode(code);
+            }
+            else
+                customMaterial = material = new CustomEditorMaterial(data.name, this.scene, id, code, config);
 
-        // User config
-        if (data.code) {
-            data.userConfig.textures.forEach(t => material.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
-            data.userConfig.floats.forEach(f =>   material.userConfig[f.name] = f.value);
-            data.userConfig.vectors2.forEach(v => material.userConfig[v.name] = Vector2.FromArray(v.value));
-            data.userConfig.vectors3.forEach(v => material.userConfig[v.name] = Vector3.FromArray(v.value));
+            // User config
+            if (data.code) {
+                data.userConfig.textures.forEach(t => customMaterial.userConfig[t.name] = Texture.Parse(t.value, this.scene, rootUrl || 'file:'));
+                data.userConfig.floats.forEach(f =>   customMaterial.userConfig[f.name] = f.value);
+                data.userConfig.vectors2.forEach(v => customMaterial.userConfig[v.name] = Vector2.FromArray(v.value));
+                data.userConfig.vectors3.forEach(v => customMaterial.userConfig[v.name] = Vector3.FromArray(v.value));
+            }
         }
 
         // Save instances
@@ -118,7 +125,7 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
             material: material
         };
         
-        return material;
+        return <CustomEditorMaterial> material;
     }
 
     /**
