@@ -1204,12 +1204,35 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
         * Interface representing an editor plugin
         */
     export interface IEditorPlugin {
+            /**
+                * The div element being available to add custom HTML elements in it
+                * By default width 100% and height: 100%
+                */
             divElement: HTMLDivElement;
+            /**
+                * The name of the extension
+                */
             name: string;
+            /**
+                * Called once creating the plugin
+                */
             create(): Promise<void>;
+            /**
+                * Called once closing the plugin
+                */
             close(): Promise<void>;
+            /**
+                * Called on the user hides the extension (by changing tab, etc.)
+                */
             onHide?(): Promise<void>;
+            /**
+                * Called on the user shows the extension (by focising the tab, etc.)
+                */
             onShow?(...params: any[]): Promise<void>;
+            /**
+                * On the editor asks to reload the extension, this function is called before
+                * reloading definitely the extension
+                */
             onReload?(): Promise<void>;
     }
     /**
@@ -1222,8 +1245,18 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
         * Abstract class representing an editor plugin
         */
     export abstract class EditorPlugin implements IEditorPlugin {
+            /**
+                * The editor reference
+                */
             editor: Editor;
+            /**
+                * The div element being available to add custom HTML elements in it
+                * By default width 100% and height: 100%
+                */
             divElement: HTMLDivElement;
+            /**
+                * The name of the extension
+                */
             name: string;
             /**
                 * Constructor
@@ -1231,11 +1264,11 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 */
             constructor(name: string);
             /**
-                * Creates the plugin
+                * Called once closing the plugin
                 */
             abstract create(): Promise<void>;
             /**
-                * Closes the plugin
+                * Called once closing the plugin
                 */
             close(): Promise<void>;
             /**
