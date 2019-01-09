@@ -79,7 +79,7 @@ export default class EditorGraph {
                 result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
             
             if (data instanceof Mesh)
-                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
+                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
             
             if (data instanceof AbstractMesh)
                 result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
@@ -90,10 +90,10 @@ export default class EditorGraph {
             }
 
             if (data.clone)
-                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', callback: async (node) => await this.onMenuClick('clone', node) });
+                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', multiple: true, callback: async (node) => await this.onMenuClick('clone', node) });
 
             result.push.apply(result, [
-                { id: 'delete', text: 'Delete', img: 'icon-error', callback: async (node) => await this.onMenuClick('remove', node) }
+                { id: 'delete', text: 'Delete', img: 'icon-error', multiple: true, callback: async (node) => await this.onMenuClick('remove', node) }
             ]);
             
             return result;

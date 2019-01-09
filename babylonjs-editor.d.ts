@@ -903,6 +903,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
     export interface ContextMenuItem {
             id: string;
             text: string;
+            multiple?: boolean;
             callback: (node: TreeNode) => void | Promise<void>;
             separatorBefore?: boolean;
             separatorAfter?: boolean;

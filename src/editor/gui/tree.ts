@@ -18,6 +18,7 @@ export interface TreeNode {
 export interface ContextMenuItem {
     id: string;
     text: string;
+    multiple?: boolean;
     callback: (node: TreeNode) => void | Promise<void>;
 
     separatorBefore?: boolean;
@@ -256,10 +257,9 @@ export default class Tree {
                     if (!this.onContextMenu)
                         return null;
 
-                    const selected = this.getAllSelected();
                     const lastSelected = this.getSelected(); // Last selected
 
-                    if (selected.length === 0)
+                    if (!lastSelected)
                         return null;
                     
                     const items = this.onContextMenu(lastSelected.id, lastSelected.data);
@@ -270,6 +270,10 @@ export default class Tree {
                             label: i.text,
                             icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
                             action: async () => {
+                                if (!i.multiple)
+                                    return await i.callback(lastSelected);
+
+                                const selected = this.getAllSelected();
                                 for (const n of selected) {
                                     await i.callback(n);
                                 }
