@@ -11,7 +11,8 @@ import {
     Sound,
     RenderTargetTexture, ReflectionProbe,
     InstancedMesh,
-    Color3
+    Color3,
+    SerializationHelper
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -43,6 +44,9 @@ export default class ProjectImporter {
 
         if (project.globalConfiguration.environmentTexture)
             scene.environmentTexture = Texture.Parse(project.globalConfiguration.environmentTexture, scene, 'file:');
+
+        if (project.globalConfiguration.imageProcessingConfiguration)
+            SerializationHelper.Parse(() => scene.imageProcessingConfiguration, project.globalConfiguration.imageProcessingConfiguration, scene, 'file:');
 
         // Physics
         if (!scene.isPhysicsEnabled())

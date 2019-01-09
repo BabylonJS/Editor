@@ -50,6 +50,7 @@ export interface Animation {
 export interface GlobalConfiguration {
     serializedCamera?: any;
     environmentTexture?: any;
+    imageProcessingConfiguration?: any;
 }
 
 /**
