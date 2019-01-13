@@ -1,7 +1,8 @@
 import {
     Scene, Texture,
     SpotLight, DirectionalLight,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, Light
+    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, Light,
+    DefaultRenderingPipeline, ColorCurves
 } from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
@@ -167,8 +168,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 SceneManager.DefaultRenderingPipeline = null;
             }
             else {
-                SceneManager.DefaultRenderingPipeline = new BABYLON.DefaultRenderingPipeline('Default', true, scene, scene.cameras, true);
-                var curve = new BABYLON.ColorCurves();
+                SceneManager.DefaultRenderingPipeline = new DefaultRenderingPipeline('Default', true, scene, scene.cameras, true);
+                var curve = new ColorCurves();
                 curve.globalHue = 200;
                 curve.globalDensity = 80;
                 curve.globalSaturation = 80;

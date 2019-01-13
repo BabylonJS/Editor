@@ -79,11 +79,11 @@
     "javascript-astar": "~0.4.1",
     "litegraph.js": "~0.6.0",
     "ccapture.js": "~1.1.0",
-    "babylonjs": "4.0.0-alpha.16",
-    "babylonjs-gui": "4.0.0-alpha.16",
-    "babylonjs-loaders": "4.0.0-alpha.16",
-    "babylonjs-materials": "4.0.0-alpha.16",
-    "babylonjs-procedural-textures": "4.0.0-alpha.16",
-    "babylonjs-serializers": "4.0.0-alpha.16"
+    "babylonjs": "4.0.0-alpha.18",
+    "babylonjs-gui": "4.0.0-alpha.18",
+    "babylonjs-loaders": "4.0.0-alpha.18",
+    "babylonjs-materials": "4.0.0-alpha.18",
+    "babylonjs-procedural-textures": "4.0.0-alpha.18",
+    "babylonjs-serializers": "4.0.0-alpha.18"
   }
 }

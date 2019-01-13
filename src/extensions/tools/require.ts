@@ -1,4 +1,5 @@
 import * as BABYLON from 'babylonjs';
+import * as GUI from 'babylonjs-gui';
 import * as CANNON from 'cannon';
 import * as EARCUT from 'earcut';
 
@@ -15,7 +16,7 @@ declare module EDITOR {
  */
 export const defineRequire = () => {
     if (!window['require'])
-        window['require'] = name => editorRequire(name);
+        window['require'] = (name: string) => editorRequire(name);
 };
 
 /**
@@ -32,7 +33,7 @@ export const editorRequire = (moduleName: string) => {
         case 'babylonjs-materials':
             return BABYLON;
         case 'babylonjs-gui':
-            return BABYLON.GUI;
+            return GUI;
         // Physics
         case 'cannon':
             return CANNON;

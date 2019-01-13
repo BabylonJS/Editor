@@ -1,4 +1,4 @@
-import { Node, Scene, ParticleSystem } from 'babylonjs';
+import { Node, Scene, ParticleSystem, FilesInput } from 'babylonjs';
 import Extensions from '../extensions';
 
 import AssetsExtension from '../assets/assets';
@@ -79,7 +79,7 @@ export default class Tools {
      * @param name the name of the file
      */
     public getFileByName (name: string): File {
-        return BABYLON.FilesInput.FilesToLoad[name];
+        return FilesInput.FilesToLoad[name];
     }
 
     /**

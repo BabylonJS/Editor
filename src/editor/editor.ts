@@ -722,6 +722,8 @@ export default class Editor implements IUpdatable {
             this.projectFile = null;
             this.sceneFile = null;
 
+            // TODO: update typings from babylonjs
+            // @ts-ignore
             FilesInput.FilesToLoad = { };
         },
         (file) => {

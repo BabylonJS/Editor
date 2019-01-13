@@ -1,30 +1,38 @@
 {
-    "compilerOptions": {
-      "target": "es5",
-      "module": "commonjs",
-      "sourceMap": true,
-      "declaration": true,
-      "outDir": "./build/src",
-      "declarationDir": "./declaration/src",
-      "typeRoots" : ["node_modules/@types"],
-      "experimentalDecorators": true,
-      "types": [
-        "es6-promise", "w2ui", "jquery", "socket.io-client", "jstree"
-      ],
-      "lib": [
-        "es2015.promise", "es2015", "dom"
-      ]
-    },
-    "exclude": [
-      "./test",
-      "./node_modules",
-      "./build",
-      "./declaration",
-      "./index.d.ts",
-      "./babylonjs-editor-extensions.d.ts",
-      "electron",
-      "electron-packages",
-      "assets"
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "sourceMap": true,
+    "declaration": true,
+    "outDir": "./build/src",
+    "declarationDir": "./declaration/src",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "types": [
+      "es6-promise",
+      "w2ui",
+      "jquery",
+      "socket.io-client",
+      "jstree"
+    ],
+    "lib": [
+      "es2015.promise",
+      "es2015",
+      "dom"
     ]
-  }
-  
+  },
+  "exclude": [
+    "./test",
+    "./node_modules",
+    "./build",
+    "./declaration",
+    "./index.d.ts",
+    "./babylonjs-editor-extensions.d.ts",
+    "electron",
+    "electron-packages",
+    "assets"
+  ]
+}

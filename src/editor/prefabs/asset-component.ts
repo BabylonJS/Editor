@@ -159,7 +159,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         
         if (parent['position'])
             parent['position'].copyFrom(pickInfo.pickedPoint);
-        parent.doNotSerialize = true;
+        parent['doNotSerialize'] = true;
 
         Tags.AddTagsTo(parent, 'prefab-master');
         asset.data.sourceInstances[asset.data.sourceNode.name].push(parent);
@@ -174,7 +174,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 const instance = m instanceof Mesh ? m.createInstance(m.name + 'inst') : this._cloneNode(m);
                 instance.id = BabylonTools.RandomId();
                 instance['parent'] = instance['emitter'] = parent;
-                instance.doNotSerialize = true;
+                instance['doNotSerialize'] = true;
 
                 // Register instance
                 Tags.AddTagsTo(instance, 'prefab');
@@ -351,7 +351,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             parents.forEach(p => {
                 const parent = source instanceof Mesh ? source.createInstance(p.name) : this._cloneNode(source, p);
                 parent.id = p.id;
-                parent.doNotSerialize = true;
+                parent['doNotSerialize'] = true;
 
                 d.data.sourceInstances[source.name].push(parent);
                 Tags.AddTagsTo(parent, 'prefab-master');
@@ -375,7 +375,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                     const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node, inst);
                     instance.id = inst.id;
                     instance['parent'] = instance['emitter'] = this.editor.core.scene.getNodeByID(inst.parentId);
-                    instance.doNotSerialize = true;
+                    instance['doNotSerialize'] = true;
 
                     d.data.sourceInstances[node.name].push(instance);
                     Tags.AddTagsTo(instance, 'prefab');
@@ -403,7 +403,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         this.datas.forEach(d => {
             for (const key in d.data.sourceInstances) {
                 const instances = d.data.sourceInstances[key];
-                instances.forEach(i => i.doNotSerialize = !serializable);
+                instances.forEach(i => i['doNotSerialize'] = !serializable);
             }
         });
     }

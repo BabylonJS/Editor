@@ -73,6 +73,8 @@ export default class SceneImporter {
 
                 const ext = Tools.GetFileExtension(realname);
                 if (ext === 'babylon') {
+                    // TODO: update typings from babylonjs
+                    // @ts-ignore
                     FilesInput.FilesToLoad = { };
                 }
 
