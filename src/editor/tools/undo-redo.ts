@@ -6,6 +6,8 @@ export interface StackElement {
     from?: any;
     object?: any;
     fn?: (type?: 'from' | 'to') => void;
+    undo?: () => void;
+    redo?: () => void;
 }
 
 export default class UndoRedo {
@@ -37,6 +39,9 @@ export default class UndoRedo {
 
         if (this.Stack.length > this.StackSize)
             this.Stack.splice(0, 1);
+
+        // Callback
+        element.redo && element.redo();
 
         // Event
         this.onRedo && this.onRedo(element);
@@ -84,8 +89,8 @@ export default class UndoRedo {
         const element = this.Stack[this.CurrentIndex];
         this._SetEffectivePropertyValue(element.object, element.property, element.from);
 
-        if (element.fn)
-            element.fn('from');
+        element.fn && element.fn('from');
+        element.undo && element.undo();
 
         this.CurrentIndex--;
 
@@ -108,8 +113,8 @@ export default class UndoRedo {
         const element = this.Stack[this.CurrentIndex];
         this._SetEffectivePropertyValue(element.object, element.property, element.to);
 
-        if (element.fn)
-            element.fn('to');
+        element.fn && element.fn('to');
+        element.redo && element.redo();
 
         // Event
         this.onRedo && this.onRedo(element);

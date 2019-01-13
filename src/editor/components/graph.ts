@@ -546,9 +546,59 @@ export default class EditorGraph {
 
             // Remove
             case 'remove':
-                // TODO: implement undo-redo and do not dispose objects
-                node.data && node.data.dispose && node.data.dispose(false);
-                this.tree.remove(node.id);
+                // Undo / redo
+                const scene = this.editor.core.scene;
+                const descendants = (!node.data.getDescendants ? [node.data] : [node.data].concat(node.data.getDescendants())).map(n => {
+                    const array: any[] = n instanceof AbstractMesh ? scene.meshes : 
+                                          n instanceof Light ? scene.lights :
+                                          n instanceof Camera ? scene.cameras :
+                                          n instanceof TransformNode ? scene.transformNodes :
+                                          n instanceof Sound ? scene.mainSoundTrack.soundCollection :
+                                          [];
+                    const particleSystems = scene.particleSystems.filter(p => p.emitter === n);
+
+                    return {
+                        node: n,
+                        array: array,
+                        particleSystems: particleSystems.map(p => ({
+                            system: p,
+                            treeNode: this.getByData(p)
+                        })),
+                    };
+                });
+
+                UndoRedo.Push({
+                    undo: () => {
+                        // Re-add in tree graph
+                        this.tree.add(Object.assign({ }, node, { img: this.getIcon(node.data) }), node.parent);
+
+                        // Re-add descendants
+                        descendants.forEach(d => {
+                            d.array.push(d.node);
+                            d.particleSystems.forEach(p => {
+                                scene.particleSystems.push(p.system);
+                                this.tree.add(Object.assign({ }, p.treeNode, { img: this.getIcon(p.system) }), node.id);
+                            });
+                        });
+
+                        // Fill children
+                        if (node.data instanceof Node)
+                            this.fill(scene, node.data);
+                    },
+                    redo: () => {
+                        descendants.forEach((d) => {
+                            if (d.node instanceof Sound)
+                                d.node.stop();
+                            
+                            d.array.splice(d.array.indexOf(d.node), 1);
+                            d.particleSystems.forEach(p => {
+                                scene.particleSystems.splice(scene.particleSystems.indexOf(p.system), 1);
+                            });
+                        });
+
+                        this.tree.remove(node.id);
+                    }
+                });
 
                 // Gui
                 if (node.data instanceof AdvancedDynamicTexture) {
