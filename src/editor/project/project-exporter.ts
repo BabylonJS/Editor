@@ -1,12 +1,12 @@
 import {
-    FilesInput, Tools as BabylonTools,
+    Tools as BabylonTools,
     SceneSerializer,
     Node, AbstractMesh, Light, Camera,
     Tags,
     Vector3,
     ActionManager,
     ParticleSystem,
-    ReflectionProbe
+    FilesInputStore
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -91,7 +91,7 @@ export default class ProjectExporter {
                 }
             }
 
-            Object.keys(FilesInput.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInput.FilesToLoad[k]) }));
+            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInputStore.FilesToLoad[k]) }));
 
             // Src files
             const srcFiles: CreateFiles[] = [
@@ -214,8 +214,8 @@ export default class ProjectExporter {
         });
 
         // Setup filesList
-        for (const f in FilesInput.FilesToLoad) {
-            const file = FilesInput.FilesToLoad[f];
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
             if (file === editor.projectFile || file === editor.sceneFile)
                 continue;
 

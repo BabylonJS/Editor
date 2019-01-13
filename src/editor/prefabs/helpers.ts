@@ -5,7 +5,7 @@ import {
     Vector3,
     Mesh,
     ParticleSystem,
-    FilesInput
+    FilesInputStore
 } from 'babylonjs';
 
 import { AssetElement } from '../../extensions/typings/asset';
@@ -31,7 +31,7 @@ export default class PrefabsHelpers {
         const light = new PointLight('PrefabAssetLight', Vector3.Zero(), scene);
 
         // Add file
-        FilesInput.FilesToLoad[file.name] = file;
+        FilesInputStore.FilesToLoad[file.name] = file;
 
         await new Promise<void>((resolve) => {
             SceneLoader.Append('file:', file.name, scene, () => {
@@ -82,7 +82,7 @@ export default class PrefabsHelpers {
         });
 
         // Remove file
-        delete FilesInput.FilesToLoad[file.name];
+        delete FilesInputStore.FilesToLoad[file.name];
 
         // Dispose
         scene.dispose();

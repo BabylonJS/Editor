@@ -1,8 +1,8 @@
 import {
     Engine, Scene, ArcRotateCamera, PointLight, Vector3, Node,
     Observer, Tags,
-    SceneSerializer, SceneLoader, FilesInput, InstancedMesh,
-    ParticleSystem
+    SceneSerializer, SceneLoader, InstancedMesh,
+    ParticleSystem, FilesInputStore
 } from 'babylonjs';
 
 import Editor, {
@@ -350,9 +350,9 @@ export default class PrefabEditor extends EditorPlugin {
         const serializedObject = SceneSerializer.SerializeMesh(node, false, true);
         const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedObject)), 'prefab.babylon');
 
-        FilesInput.FilesToLoad[file.name.toLowerCase()]= file;
+        FilesInputStore.FilesToLoad[file.name.toLowerCase()]= file;
         await SceneLoader.ImportMeshAsync(null, 'file:' ,'prefab.babylon', this.scene);
-        delete FilesInput.FilesToLoad[file.name.toLowerCase()];
+        delete FilesInputStore.FilesToLoad[file.name.toLowerCase()];
 
         // Clear unused meshes
         for (let i = 0; i < this.scene.meshes.length; i++) {

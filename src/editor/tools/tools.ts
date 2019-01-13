@@ -1,4 +1,4 @@
-import { Tools as BabylonTools, FilesInput } from 'babylonjs';
+import { Tools as BabylonTools, FilesInputStore } from 'babylonjs';
 import { IStringDictionary } from '../typings/typings';
 
 export default class Tools {
@@ -186,7 +186,7 @@ export default class Tools {
      * @param filename the file's name
      */
     public static CreateFile (buffer: Uint8Array, filename: string): File {
-        const options = { type: Tools.GetFileType(this.GetFileExtension(filename)) };
+        const options = { type: Tools.GetFileType(this.GetFileExtension(filename)), lastModified: new Date(Date.now()) };
         const blob = new Blob([buffer], options);
         blob['name'] = BabylonTools.GetFilename(filename);
         
@@ -222,14 +222,14 @@ export default class Tools {
     public static async CreateFileFromURL (url: string): Promise<File> {
         const filename = BabylonTools.GetFilename(url).toLowerCase();
 
-        if (FilesInput.FilesToLoad[filename])
-            return FilesInput.FilesToLoad[filename];
+        if (FilesInputStore.FilesToLoad[filename])
+            return FilesInputStore.FilesToLoad[filename];
 
         try {
             const data = await this.LoadFile<ArrayBuffer>(url, true);
             const file = this.CreateFile(new Uint8Array(data), filename);
 
-            FilesInput.FilesToLoad[filename] = file;
+            FilesInputStore.FilesToLoad[filename] = file;
             return file;
         }
         catch (e) {

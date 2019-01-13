@@ -285,6 +285,11 @@ export default class ProjectImporter {
         project.effectLayers = project.effectLayers || [];
         project.globalConfiguration = project.globalConfiguration || { };
         project.assets = project.assets || { };
+
+        // Importer errors
+        project.effectLayers.forEach(el => {
+            delete el.serializationObject.renderingGroupId;
+        });
     }
 
     /**

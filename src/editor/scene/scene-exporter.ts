@@ -1,4 +1,4 @@
-import { FilesInput, Tools as BabylonTools, SceneSerializer } from 'babylonjs';
+import { Tools as BabylonTools, SceneSerializer, FilesInputStore, ShaderMaterial } from 'babylonjs';
 
 import ProjectExporter from '../project/project-exporter';
 
@@ -17,6 +17,9 @@ export default class SceneExporter {
      * @param editor: the editor instance
      */
     public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
+        // Do not export shader materials
+        editor.core.scene.materials.forEach(m => m instanceof ShaderMaterial && (m.doNotSerialize = true));
+
         // Serialize
         editor.assets.prefabs.setSerializable(true);
         const serializedScene = SceneSerializer.Serialize(editor.core.scene);
@@ -38,7 +41,7 @@ export default class SceneExporter {
         // Scene "File"
         if (format === 'babylon') {
             editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene' + randomId + '.babylon');
-            FilesInput.FilesToLoad[editor.sceneFile.name] = editor.sceneFile;
+            FilesInputStore.FilesToLoad[editor.sceneFile.name] = editor.sceneFile;
         }
 
         // Gui
@@ -52,7 +55,7 @@ export default class SceneExporter {
         const name = 'scene' + randomId + '.editorproject';
         const project = ProjectExporter.Export(editor);
         editor.projectFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
-        FilesInput.FilesToLoad[editor.projectFile.name] = editor.projectFile;
+        FilesInputStore.FilesToLoad[editor.projectFile.name] = editor.projectFile;
     }
 
     /**

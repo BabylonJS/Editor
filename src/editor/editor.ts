@@ -3,6 +3,7 @@ import {
     FreeCamera, Camera,
     Vector3,
     FilesInput,
+    FilesInputStore,
     ArcRotateCamera
 } from 'babylonjs';
 
@@ -722,9 +723,7 @@ export default class Editor implements IUpdatable {
             this.projectFile = null;
             this.sceneFile = null;
 
-            // TODO: update typings from babylonjs
-            // @ts-ignore
-            FilesInput.FilesToLoad = { };
+            FilesInputStore.FilesToLoad = { };
         },
         (file) => {
             // Callback
@@ -755,8 +754,8 @@ export default class Editor implements IUpdatable {
                     CodeProjectEditorFactory.CloseAll();
                 }
 
-                for (const f in FilesInput.FilesToLoad) {
-                    const file = FilesInput.FilesToLoad[f];
+                for (const f in FilesInputStore.FilesToLoad) {
+                    const file = FilesInputStore.FilesToLoad[f];
                     if (Tools.GetFileExtension(file.name) === 'editorproject') {
                         this.projectFileName = file.name;
                         Tools.SetWindowTitle(file.name);
@@ -847,8 +846,8 @@ export default class Editor implements IUpdatable {
                 this.layout.lockPanel('main', 'Loading Scene...', true);
 
                 // Delete start scene (when starting the editor) and add new scene
-                delete FilesInput.FilesToLoad['scene.babylon'];
-                FilesInput.FilesToLoad[file.name] = file;
+                delete FilesInputStore.FilesToLoad['scene.babylon'];
+                FilesInputStore.FilesToLoad[file.name] = file;
             };
 
             if (this._showReloadDialog)

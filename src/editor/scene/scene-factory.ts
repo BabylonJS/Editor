@@ -7,9 +7,9 @@ import {
     GroundMesh,
     Tags, Tools as BabylonTools,
     Sound,
-    FilesInput,
     Light, PointLight, DirectionalLight, SpotLight, HemisphericLight,
-    EnvironmentHelper
+    EnvironmentHelper,
+    FilesInputStore
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Control, Image } from 'babylonjs-gui';
 import { SkyMaterial, WaterMaterial } from 'babylonjs-materials';
@@ -275,7 +275,7 @@ export default class SceneFactory {
             if (ext !== 'mp3')
                 return Window.CreateAlert('Supports only MP3 files', 'Cannot add sound');
 
-            FilesInput.FilesToLoad[name] = files[0];
+            FilesInputStore.FilesToLoad[name] = files[0];
 
             const sound = new Sound(name, 'file:' + name, editor.core.scene);
             sound['id'] = BabylonTools.RandomId();

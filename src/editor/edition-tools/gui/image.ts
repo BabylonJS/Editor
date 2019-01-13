@@ -1,4 +1,4 @@
-import { Texture, FilesInput } from 'babylonjs';
+import { Texture, FilesInputStore } from 'babylonjs';
 import { Image } from 'babylonjs-gui';
 
 import AbstractEditionTool from '../edition-tool';
@@ -57,11 +57,11 @@ export default class GuiImageTool extends AbstractEditionTool<Image> {
         this.tool.addTexture(texture, this.editor, '_texture', this, false, false, (tex) => {
             let blobURL = '';
             try {
-                blobURL = URL.createObjectURL(FilesInput.FilesToLoad[tex['url']]);
+                blobURL = URL.createObjectURL(FilesInputStore.FilesToLoad[tex['url']]);
             }
             catch (ex) {
                 // Chrome doesn't support oneTimeOnly parameter
-                blobURL = URL.createObjectURL(FilesInput.FilesToLoad[tex['url']]);
+                blobURL = URL.createObjectURL(FilesInputStore.FilesToLoad[tex['url']]);
             }
 
             object.source = blobURL;

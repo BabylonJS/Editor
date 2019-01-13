@@ -270,6 +270,8 @@ declare module 'babylonjs-editor/editor/tools/undo-redo' {
             from?: any;
             object?: any;
             fn?: (type?: 'from' | 'to') => void;
+            undo?: () => void;
+            redo?: () => void;
     }
     export default class UndoRedo {
             static Stack: StackElement[];

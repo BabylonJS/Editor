@@ -129,14 +129,14 @@
                         //     reader.onload = function (data) {
                         //         System.import("babylonjs-gui").then(function (e) {
                         //             e.AdvancedDynamicTexture.Parse(data.target.result);
-                        //             getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject', function (project) {
+                        //             getFileByExtension(BABYLON.FilesInputStore.FilesToLoad, 'editorproject', function (project) {
                         //                 readProject(project);
                         //             });
                         //         });
                         //     };
                         //     reader.readAsText(gf);
                         // });
-                        var project = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'editorproject');
+                        var project = getFileByExtension(BABYLON.FilesInputStore.FilesToLoad, 'editorproject');
                         readProject(project);
                     });
                 });
@@ -190,9 +190,9 @@
             tools.isFileApiSupported(true);
 
             if (opener) {
-                BABYLON.FilesInput.FilesToLoad = opener.BABYLON.FilesInput.FilesToLoad;
+                BABYLON.FilesInputStore.FilesToLoad = opener.BABYLON.FilesInputStore.FilesToLoad;
 
-                var sceneFile = getFileByExtension(BABYLON.FilesInput.FilesToLoad, 'babylon');
+                var sceneFile = getFileByExtension(BABYLON.FilesInputStore.FilesToLoad, 'babylon');
                 loadScene(sceneFile);
             }
             else {
@@ -201,7 +201,7 @@
                     // Import Editor tools
                     for (var thing in files) {
                         var file = tools.CreateFile(files[thing], thing);
-                        BABYLON.FilesInput.FilesToLoad[thing] = file;
+                        BABYLON.FilesInputStore.FilesToLoad[thing] = file;
                     }
 
                     var sceneFile = getFileByExtension(files, 'babylon');

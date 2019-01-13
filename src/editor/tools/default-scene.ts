@@ -1,12 +1,12 @@
 import {
-    Scene,
-    PointLight, Mesh, MeshBuilder,
+    Scene, Mesh,
     PBRMaterial, Texture, CubeTexture, StandardMaterial,
-    Vector3, Color3,
-    ActionManager, StateCondition, SwitchBooleanAction,
+    Vector3,
+    ActionManager,
     Animation,
-    SceneSerializer, FilesInput, SpotLight, ShadowGenerator, DirectionalLight, ExecuteCodeAction, Color4,
-    Tags
+    SceneSerializer, SpotLight, ShadowGenerator,
+    ExecuteCodeAction, Color4,
+    Tags, FilesInputStore
 } from 'babylonjs';
 
 import {
@@ -315,7 +315,7 @@ export default class DefaultScene {
         // Scene file
         const serializedScene = SceneSerializer.Serialize(scene);
         const serializedSceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene.babylon');
-        FilesInput.FilesToLoad['scene.babylon'] = serializedSceneFile;
+        FilesInputStore.FilesToLoad['scene.babylon'] = serializedSceneFile;
 
         SceneExporter.CreateFiles(editor);
 

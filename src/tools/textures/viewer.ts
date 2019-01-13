@@ -1,5 +1,4 @@
 import {
-    FilesInput,
     Engine, Scene, BaseTexture, Texture, CubeTexture, Mesh, PBRMaterial,
     PassPostProcess,
     Camera, ArcRotateCamera,
@@ -11,7 +10,8 @@ import {
     DynamicTexture,
     MirrorTexture,
     EnvironmentTextureTools,
-    ReflectionProbe
+    ReflectionProbe,
+    FilesInputStore
 } from 'babylonjs';
 import 'babylonjs-procedural-textures';
 
@@ -268,10 +268,10 @@ export default class TextureViewer extends EditorPlugin {
             if (url.indexOf('file:') === 0)
                 url = url.replace('file:', '').toLowerCase();
             
-            let file = FilesInput.FilesToLoad[url];
+            let file = FilesInputStore.FilesToLoad[url];
 
             if (!file)
-                file = FilesInput.FilesToLoad[url.toLowerCase()];
+                file = FilesInputStore.FilesToLoad[url.toLowerCase()];
             
             if (file)
                 this.addPreviewNode(file, tex);
@@ -388,7 +388,7 @@ export default class TextureViewer extends EditorPlugin {
 
             // Load and convert
             const id = f.name + BabylonTools.RandomId();
-            FilesInput.FilesToLoad[id] = f;
+            FilesInputStore.FilesToLoad[id] = f;
 
             try {
                 const baseTexture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
@@ -398,7 +398,7 @@ export default class TextureViewer extends EditorPlugin {
             } catch (e) {
                 // Catch silently
             }
-            delete FilesInput[id];
+            delete FilesInputStore[id];
         }
 
         // Download
@@ -622,7 +622,7 @@ export default class TextureViewer extends EditorPlugin {
             this.layout.lockPanel('top', 'Loading...', true);
             
             for (const f of files) {
-                FilesInput.FilesToLoad[f.name.toLowerCase()] = f;
+                FilesInputStore.FilesToLoad[f.name.toLowerCase()] = f;
 
                 // Create texture
                 const ext = Tools.GetFileExtension(f.name).toLowerCase();

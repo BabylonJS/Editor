@@ -167,7 +167,7 @@ export default class EditorAssets {
             
             const assets = 
                 (await c.onGetAssets())
-                .filter(a => a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) !== -1);
+                .filter(a => a.name && a.name.toLowerCase().indexOf(this._search.toLowerCase()) !== -1 || a.separator);
 
             const div = $('#' + c.id);
 

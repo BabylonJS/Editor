@@ -1,5 +1,5 @@
 import * as SocketIO from 'socket.io-client';
-import { FilesInput } from 'babylonjs';
+import { FilesInputStore } from 'babylonjs';
 
 import Editor from '../editor';
 
@@ -28,11 +28,11 @@ export default class ScenePreview {
         const datas = { };
 
         // Data from files to load
-        for (const name in FilesInput.FilesToLoad) {
+        for (const name in FilesInputStore.FilesToLoad) {
             if (Tools.GetFileExtension(name) === 'babylon')
                 continue;
             
-            const file = FilesInput.FilesToLoad[name];
+            const file = FilesInputStore.FilesToLoad[name];
             const data = await Tools.ReadFileAsArrayBuffer(file);
             datas[name] = data;
         }

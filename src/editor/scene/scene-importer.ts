@@ -4,6 +4,7 @@ import {
     FilesInput,
     MultiMaterial,
     Tools as BabylonTools,
+    FilesInputStore,
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -13,8 +14,6 @@ import Request from '../tools/request';
 
 import Window from '../gui/window';
 import Picker from '../gui/picker';
-
-import SceneFactory from './scene-factory';
 
 import ProjectExporter from '../project/project-exporter';
 import { ProjectRoot } from '../typings/project';
@@ -73,9 +72,7 @@ export default class SceneImporter {
 
                 const ext = Tools.GetFileExtension(realname);
                 if (ext === 'babylon') {
-                    // TODO: update typings from babylonjs
-                    // @ts-ignore
-                    FilesInput.FilesToLoad = { };
+                    FilesInputStore.FilesToLoad = { };
                 }
 
                 const buffer = await Tools.LoadFile<ArrayBuffer>(folder + name, true);
@@ -120,8 +117,8 @@ export default class SceneImporter {
                 if (extensions.indexOf(Tools.GetFileExtension(f.name)) !== -1)
                     sceneFile = f;
                 
-                if (!FilesInput.FilesToLoad[name])
-                    FilesInput.FilesToLoad[name] = f;
+                if (!FilesInputStore.FilesToLoad[name])
+                    FilesInputStore.FilesToLoad[name] = f;
             };
 
             // Check
@@ -176,11 +173,11 @@ export default class SceneImporter {
                             };
                             c.isPickable = true;
                         });
-
-                        // Re-fill graph
-                        editor.graph.clear();
-                        editor.graph.fill();
                     });
+
+                    // Re-fill graph
+                    editor.graph.clear();
+                    editor.graph.fill();
                 });
             } catch (e) {
                 Window.CreateAlert(e.message, 'Error');
