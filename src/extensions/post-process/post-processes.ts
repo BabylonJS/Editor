@@ -59,7 +59,7 @@ export default class PostProcessesExtension extends Extension<PostProcessMetadat
      * loading a scene)
      */
     public onLoad (data: PostProcessMetadata): void {
-        // this._applyPostProcesses(data, 'file:');
+        this._applyPostProcesses(data, 'file:');
     }
 
     // Applies the post-processes on the scene
