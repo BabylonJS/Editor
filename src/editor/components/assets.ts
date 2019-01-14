@@ -131,7 +131,7 @@ export default class EditorAssets {
     public async refresh (id?: string): Promise<void> {
         // Check default image source
         if (!EditorAssets._DefaultImageSource) {
-            const file = await Tools.CreateFileFromURL('assets/textures/waitlogo.png');
+            const file = await Tools.GetFile('assets/textures/waitlogo.png');
             EditorAssets._DefaultImageSource = await Tools.ReadFileAsBase64(file);
         }
 

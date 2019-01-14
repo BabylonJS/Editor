@@ -126,8 +126,8 @@ export default class ProjectExporter {
         // Notify
         Tools.SetWindowTitle(editor.projectFileName);
 
-        editor.toolbar.notifyRightMessage('Saved Project');
-        setTimeout(() => editor.toolbar.notifyRightMessage(''), 1000);
+        editor.layout.lockPanel('bottom', 'Saved.', false);
+        setTimeout(() => editor.layout.unlockPanel('bottom'), 1000);
     }
 
     /**

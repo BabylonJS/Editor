@@ -106,7 +106,7 @@ export default class SceneFactory {
         system.id = BabylonTools.RandomId();
 
         if (!emitter) {
-            Tools.CreateFileFromURL('assets/textures/flare.png').then(async (f) => {
+            Tools.GetFile('assets/textures/flare.png').then(async (f) => {
                 const b64 = await Tools.ReadFileAsBase64(f);
                 system.particleTexture = Texture.CreateFromBase64String(b64, 'flare.png', scene);
                 system.particleTexture.name = system.particleTexture.url = 'flare.png';
@@ -180,8 +180,8 @@ export default class SceneFactory {
         const material = new WaterMaterial('New Water Material', editor.core.scene);
         editor.core.scene.meshes.forEach(m => material.addToRenderList(m));
 
-        Tools.CreateFileFromURL('assets/textures/normal.png').then(() => {
-            material.bumpTexture = new Texture('file:normal.png', editor.core.scene);
+        Tools.GetFile('assets/textures/normal.png').then(async (file) => {
+            material.bumpTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(file), 'normal.png', editor.core.scene);
             material.bumpTexture.name = material.bumpTexture['url'] = 'normal.png';
         });
 

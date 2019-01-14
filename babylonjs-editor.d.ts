@@ -223,6 +223,11 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static CreateFileFromURL(url: string): Promise<File>;
             /**
+                * Loads a file and creates a new File
+                * @param url the URLof the file
+                */
+            static GetFile(url: string): Promise<File>;
+            /**
              * Converts a string to an UInt8Array
             $ @param str: the string to convert
              */

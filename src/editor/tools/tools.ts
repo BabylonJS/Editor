@@ -238,6 +238,25 @@ export default class Tools {
     }
 
     /**
+     * Loads a file and creates a new File
+     * @param url the URLof the file
+     */
+    public static async GetFile (url: string): Promise<File> {
+        const filename = BabylonTools.GetFilename(url).toLowerCase();
+
+        try {
+            const data = await this.LoadFile<ArrayBuffer>(url, true);
+            const file = this.CreateFile(new Uint8Array(data), filename);
+
+            FilesInputStore.FilesToLoad[filename] = file;
+            return file;
+        }
+        catch (e) {
+            return Promise.reject(e);
+        }
+    }
+
+    /**
     * Converts a string to an UInt8Array
     $ @param str: the string to convert
     */

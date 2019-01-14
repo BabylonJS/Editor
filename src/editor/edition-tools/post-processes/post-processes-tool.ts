@@ -55,18 +55,18 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
                 const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
                 pipeline.depthOfFieldDistance = 0.05;
                 
-                await Tools.CreateFileFromURL('assets/textures/lensflaredirt.png');
-                pipeline.lensTexture = pipeline.lensFlareDirtTexture = new Texture('file:lensflaredirt.png', scene);
+                const lensflaredirt = await Tools.GetFile('assets/textures/lensflaredirt.png');
+                pipeline.lensTexture = pipeline.lensFlareDirtTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lensflaredirt), 'lensflaredirt.png', scene);
 
-                await Tools.CreateFileFromURL('assets/textures/lensstar.png');
-                pipeline.lensStarTexture = new Texture('file:lensstar.png', scene);
+                const lensstar = await Tools.GetFile('assets/textures/lensstar.png');
+                pipeline.lensStarTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lensstar), 'lensstar.png', scene);
 
-                await Tools.CreateFileFromURL('assets/textures/lenscolor.png');
-                pipeline.lensColorTexture = new Texture('file:lenscolor.png', scene);
+                const lenscolor = await Tools.GetFile('assets/textures/lenscolor.png');
+                pipeline.lensColorTexture = Texture.CreateFromBase64String(await Tools.ReadFileAsBase64(lenscolor), 'lenscolor.png', scene);
 
-                pipeline.lensTexture.url = pipeline.lensTexture.name = pipeline.lensTexture.url.replace('file:', '');
-                pipeline.lensStarTexture.url = pipeline.lensStarTexture.name = pipeline.lensStarTexture.url.replace('file:', '');
-                pipeline.lensColorTexture.url = pipeline.lensColorTexture.name = pipeline.lensColorTexture.url.replace('file:', '');
+                pipeline.lensTexture.url = pipeline.lensTexture.name = pipeline.lensTexture.url.replace('data:', '');
+                pipeline.lensStarTexture.url = pipeline.lensStarTexture.name = pipeline.lensStarTexture.url.replace('data:', '');
+                pipeline.lensColorTexture.url = pipeline.lensColorTexture.name = pipeline.lensColorTexture.url.replace('data:', '');
 
                 SceneManager.StandardRenderingPipeline = pipeline;
             }
