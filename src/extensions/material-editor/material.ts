@@ -7,11 +7,9 @@ import {
     BaseTexture, Texture,
     Color3, Matrix, Vector2, Vector3,
     AbstractMesh, SubMesh, Mesh, IAnimatable,
-    StandardMaterial, Effect,
+    Effect,
     SerializationHelper
 } from 'babylonjs';
-
-import Extension from '../extension';
 
 /**
  * Custom Material class
