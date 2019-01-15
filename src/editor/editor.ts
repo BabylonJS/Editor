@@ -257,10 +257,7 @@ export default class Editor implements IUpdatable {
             this._checkUpdates();
 
             // Check opened file from OS file explorer
-            SceneImporter.CheckOpenedFile(this).then((hasOpenedFile) => {
-                if (!hasOpenedFile)
-                    return this.createDefaultScene();
-            });
+            this._checkOpenedFile();
         }
         else {
             this.createDefaultScene();
@@ -406,8 +403,10 @@ export default class Editor implements IUpdatable {
         // Restart plugins
         for (const p in this.plugins) {
             const plugin = this.plugins[p];
-            await this.removePlugin(plugin, removePanels);
-            await this.addEditPanelPlugin(p, false, plugin.name);
+            if (plugin)
+                await this.removePlugin(plugin, removePanels);
+
+            await this.addEditPanelPlugin(p, false, plugin ? plugin.name : p);
         }
     }
 
@@ -691,6 +690,17 @@ export default class Editor implements IUpdatable {
         });
 
         return instance;
+    }
+
+    // Checks if the user opened a file
+    private async _checkOpenedFile (): Promise<void> {
+        const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
+
+        if (!hasOpenedFile)
+            return this.createDefaultScene();
+
+        const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+        pluginsToLoad.forEach(p => this.plugins[p] = null);
     }
 
     // Creates the files input class and handlers

@@ -32,7 +32,7 @@ export default class SceneImporter {
         // Parse project content
         const content = await Tools.LoadFile<string>(path);
         if (content === '')
-            return;
+            return false;
         
         const project = <ProjectRoot> JSON.parse(content);
         return await this.LoadProjectFromFile(editor, path, project);

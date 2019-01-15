@@ -67,7 +67,6 @@ export default class CodeGraph {
                 metadatas.nodes.forEach(n => {
                     const attached = n.metadatas.find(m => m.codeId === script.id);
                     if (attached) {
-                        debugger;
                         this.tree.add({
                             id: n.nodeId + (CodeGraph.Uid++).toString(),
                             text: n.node,
