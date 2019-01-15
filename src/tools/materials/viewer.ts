@@ -4,7 +4,8 @@ import {
     InstancedMesh, AbstractMesh,
     ArcRotateCamera,
     Vector3,
-    Tags
+    Tags,
+    ShaderMaterial
 } from 'babylonjs';
 
 import Editor, {
@@ -222,12 +223,15 @@ export default class MaterialsViewer extends EditorPlugin {
 
     /**
      * Adds a preview node
-     * @param div 
-     * @param canvas 
-     * @param preview 
-     * @param material 
+     * @param div the div element where to add the preview
+     * @param canvas the canvas being used to render mesh with material
+     * @param preview the preview structure
+     * @param material the material being viewed
      */
     protected async createPreviewNode (div: JQuery, canvas: HTMLCanvasElement, preview: PreviewScene, material: Material): Promise<void> {
+        if (material instanceof ShaderMaterial)
+            return;
+        
         const parent = Tools.CreateElement<HTMLDivElement>('div', material.id + 'div', {
             'width': '100px',
             'height': '100px',
