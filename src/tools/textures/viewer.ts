@@ -62,6 +62,7 @@ export default class TextureViewer extends EditorPlugin {
     // Private members
     private _renderTargetObservers: Observer<any>[] = [];
     private _lastRenderTargetObserver: Observer<any> = null;
+    private _dropFilesObserver: Observer<any> = null;
 
     /**
      * Constructor
@@ -88,6 +89,9 @@ export default class TextureViewer extends EditorPlugin {
 
         // Render targets
         this.clearRenderTargetObservers();
+
+        // Drag'n'drop
+        this.editor.core.onDropFiles.remove(this._dropFilesObserver);
 
         // Dispose
         this.postProcess.dispose(this.camera);
@@ -153,6 +157,12 @@ export default class TextureViewer extends EditorPlugin {
         // Add existing textures in list
         this.createList();
 
+        // Drop files
+        this._dropFilesObserver = this.editor.core.onDropFiles.add(d => {
+            if (Tools.IsElementChildOf(d.target, div[0]))
+                this.addFromFiles(<any> d.files);
+        });
+        
         // Context menu
         this.contextMenu = new ContextMenu('TexturesViewerContextMenu', {
             width: 200,
@@ -193,7 +203,7 @@ export default class TextureViewer extends EditorPlugin {
     protected toolbarClicked (target: string): void {
         switch (target) {
             case 'add:from-file':
-                this.createFileDialog();
+                Tools.OpenFileDialog((files) => this.addFromFiles(files));
                 break;
             case 'add:procedural':
                 this.addProceduralTexture();
@@ -615,40 +625,39 @@ export default class TextureViewer extends EditorPlugin {
     }
 
     /**
-     * Creates a file selector dialog
+     * Adds textures from the given files
+     * @param files the files array containing the textures
      */
-    protected createFileDialog (): void {
-        Tools.OpenFileDialog(async (files) => {
-            this.layout.lockPanel('top', 'Loading...', true);
+    protected async addFromFiles (files: File[]): Promise<void> {
+        this.layout.lockPanel('top', 'Loading...', true);
             
-            for (const f of files) {
-                FilesInputStore.FilesToLoad[f.name.toLowerCase()] = f;
+        for (const f of files) {
+            FilesInputStore.FilesToLoad[f.name.toLowerCase()] = f;
 
-                // Create texture
-                const ext = Tools.GetFileExtension(f.name).toLowerCase();
-                let texture: BaseTexture = null;
+            // Create texture
+            const ext = Tools.GetFileExtension(f.name).toLowerCase();
+            let texture: BaseTexture = null;
 
-                switch (ext) {
-                    case 'dds':
-                        texture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
-                        break;
-                    case 'env':
-                        texture = new CubeTexture('file:' + f.name, this.editor.core.scene);
-                        break;
-                    default:
-                        texture = new Texture('file:' + f.name, this.editor.core.scene);
-                        break;
-                }
+            switch (ext) {
+                case 'dds':
+                    texture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
+                    break;
+                case 'env':
+                    texture = new CubeTexture('file:' + f.name, this.editor.core.scene);
+                    break;
+                default:
+                    texture = new Texture('file:' + f.name, this.editor.core.scene);
+                    break;
+            }
 
-                texture.name = texture['url'] = f.name;
+            texture.name = texture['url'] = f.name;
 
-                // Add preview node and update tools
-                await this.addPreviewNode(f, texture);
-                this.editor.edition.refresh();
-            };
+            // Add preview node and update tools
+            await this.addPreviewNode(f, texture);
+            this.editor.edition.refresh();
+        };
 
-            this.layout.unlockPanel('top');
-        });
+        this.layout.unlockPanel('top');
     }
 
     /**

@@ -581,6 +581,14 @@ export default class Editor implements IUpdatable {
 
     // Handles the events of the editor
     private _handleEvents (): void {
+        // Prevent drag'n'drop on document
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files)
+                this.core.onDropFiles.notifyObservers({ target: <HTMLElement> e.target, files: e.dataTransfer.files });
+        });
+
         // Undo
         UndoRedo.onUndo = (e) => {
             this.core.onGlobalPropertyChange.notifyObservers({ baseObject: e.baseObject, object: e.object, property: e.property, value: e.to, initialValue: e.from });
@@ -736,6 +744,9 @@ export default class Editor implements IUpdatable {
             FilesInputStore.FilesToLoad = { };
         },
         (file) => {
+            if (!file)
+                return this.notifyMessage('No scene file found.', false, 3000);
+            
             // Callback
             const callback = async (scene: Scene, disposePreviousScene: boolean) => {
                 // Configure editor

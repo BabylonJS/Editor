@@ -149,6 +149,12 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static CreateElement<T extends HTMLElement>(type: string, id: string, style?: IStringDictionary<string>): T;
             /**
+                * Returns if the given element is a child (recursively) of the given parent
+                * @param element the element being possibily a child of the given parent
+                * @param parent the parent to check
+                */
+            static IsElementChildOf(element: HTMLElement, parent: HTMLElement): boolean;
+            /**
              * Returns the constructor name of the given object
              * @param obj the object
              */
@@ -1716,6 +1722,10 @@ declare module 'babylonjs-editor/editor/core' {
                     property: string;
                     value: any;
                     initialValue: any;
+            }>;
+            onDropFiles: Observable<{
+                    target: HTMLElement;
+                    files: FileList;
             }>;
             renderScenes: boolean;
             /**

@@ -24,6 +24,22 @@ export default class Tools {
     }
 
     /**
+     * Returns if the given element is a child (recursively) of the given parent
+     * @param element the element being possibily a child of the given parent
+     * @param parent the parent to check
+     */
+    public static IsElementChildOf (element: HTMLElement, parent: HTMLElement): boolean {
+        while (element.parentElement) {
+            if (element === parent)
+                return true;
+            
+            element = element.parentElement;
+        }
+
+        return false;
+    }
+
+    /**
     * Returns the constructor name of the given object
     * @param obj the object
     */

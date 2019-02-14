@@ -32,6 +32,7 @@ export default class Core {
     public onAddObject: Observable<{ }> = new Observable<{ }>();
     public onRemoveObject: Observable<{ }> = new Observable<{ }>();
     public onGlobalPropertyChange = new Observable<{ baseObject?: any; object: any; property: string; value: any; initialValue: any; }>();
+    public onDropFiles = new Observable<{ target: HTMLElement; files: FileList }>();
 
     public renderScenes: boolean = true;
     
