@@ -584,6 +584,9 @@ export default class EditorGraph {
                         // Fill children
                         if (node.data instanceof Node)
                             this.fill(scene, node.data);
+
+                        // Select node
+                        this.tree.onClick(node.id, node.data);
                     },
                     redo: () => {
                         descendants.forEach((d) => {

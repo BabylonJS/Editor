@@ -1,5 +1,5 @@
 import {
-    Scene, Material, StandardMaterial, BaseTexture, RenderTargetTexture,
+    Scene, Material, BaseTexture, RenderTargetTexture,
     ActionManager,
     StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline,
     IAnimatable,
@@ -57,7 +57,8 @@ export default class SceneManager {
             const savedActionManager = this.ActionManagers[m.id] || null;
             const currentActionManager = m.actionManager;
 
-            this.ActionManagers[m.id] = currentActionManager;
+            // TODO: wait for babylonjs to export AbstractActionManager
+            this.ActionManagers[m.id] = <any> currentActionManager;
             m.actionManager = savedActionManager;
         });
     }
