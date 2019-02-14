@@ -130,11 +130,11 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.toolbar.items = [
             { id: 'add-new', text: 'Add New Graph', caption: 'Add New Graph', img: 'icon-add' },
             { type: 'break' },
-            { id: 'save', text: 'Save', caption: 'Save', img: 'icon-export', },
             { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
-            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' }            //{ type: 'break' },
-            //{ id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
+            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' }
+            // { type: 'break' },
+            // { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.right = 'No object selected';
@@ -178,6 +178,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (ev.button !== 2 && this._contextMenu.mainDiv)
                 this._contextMenu.mainDiv.style.visibility = 'hidden';
         });
+        this.graph.canvas.addEventListener('mousemove', () => this.data && (this.data.graph = this.graphData.serialize()));
         this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
         this.graph.processContextMenu = (node, event) => this.processContextMenu(node, event);
@@ -231,7 +232,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected toolbarClicked (id: string): void {
         switch (id) {
             case 'add-new': this.add(); break;
-            case 'save': this.data && (this.data.graph = this.graphData.serialize()); break;
             case 'paste':
                 if (BehaviorGraphEditor._CopiedGraph) {
                     const graphs = this.editor.core.scene.metadata.behaviorGraphs;
