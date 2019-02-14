@@ -597,6 +597,9 @@ export default class EditorGraph {
                         });
 
                         this.tree.remove(node.id);
+
+                        // Reset gizmo
+                        this.editor.scenePicker.setGizmoAttachedMesh(null);
                     }
                 });
 

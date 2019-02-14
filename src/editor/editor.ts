@@ -637,7 +637,7 @@ export default class Editor implements IUpdatable {
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.DownloadProjectFile(this));
 
         document.addEventListener('keyup', ev => {
-            if (CodeEditor.HasOneFocused() || !Tree.HasOneFocused())
+            if (CodeEditor.HasOneFocused() || !(Tree.HasOneFocused() || this._canvasFocused))
                 return;
 
             switch (ev.keyCode) {
