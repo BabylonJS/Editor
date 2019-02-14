@@ -132,9 +132,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             { type: 'break' },
             { id: 'paste', text: 'Paste', caption: 'Paste', img: 'icon-export' },
             { type: 'break' },
-            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' }
-            // { type: 'break' },
-            // { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
+            { id: 'play-stop', text: 'Start / Stop', caption: 'Start / Stop', img: 'icon-play-game' },
+            { type: 'break' },
+            { id: 'import', text: 'Import from...', caption: 'Import from...', img: 'icon-add' }
         ];
         this.toolbar.onClick = id => this.toolbarClicked(id);
         this.toolbar.right = 'No object selected';
@@ -254,6 +254,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 }
                 break;
             case 'play-stop': this.playStop(); break;
+            case 'import': this._importFrom(); break;
         }
     }
 
@@ -862,7 +863,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             const metadatas = <BehaviorGraphMetadata> project.customMetadatas.BehaviorGraphExtension;
             const graphs = this.editor.core.scene.metadata.behaviorGraphs;
 
-            const picker = new Picker('Import Scripts From...');
+            const picker = new Picker('Import Scripts From ' + f.name + '...');
             picker.search = true;
             picker.addItems(metadatas.graphs);
             picker.open(items => {
@@ -877,12 +878,16 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     }
 
                     // Add link to current node
-                    this.datas.metadatas.push({
-                        active: true,
-                        graphId: id
-                    });
+                    if (this.datas) {
+                        this.datas.metadatas.push({
+                            active: true,
+                            graphId: id
+                        });
+                    }
                 });
 
+                // Refresh assets
+                this.editor.assets.refresh();
                 this.objectSelected(this.node);
             });
         }
