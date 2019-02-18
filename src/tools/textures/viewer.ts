@@ -127,10 +127,10 @@ export default class TextureViewer extends EditorPlugin {
         this.toolbar.items = [
             { id: 'add', type: 'menu', text: 'Add', caption: 'Add', img: 'icon-add', items: [
                 { id: 'from-file', text: 'Add From File...', img: 'icon-add' },
-                { id: 'procedural', text: 'Add Procedural...', img: 'icon-add' },
+                { id: 'procedural', text: 'Add Procedural...', img: 'icon-shaders' },
                 { id: 'render-target', text: 'Add Render Target', img: 'icon-add' },
-                { id: 'mirror', text: 'Add Mirror', img: 'icon-add' },
-                { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-add' }
+                { id: 'mirror', text: 'Add Mirror', img: 'icon-reflection' },
+                { id: 'reflection-probe', text: 'Reflection Probe', img: 'icon-reflection' }
             ] },
             { type: 'break' },
             { id: 'convert-cube-texture', text: 'Convert .dds to .env...', img: 'icon-export' },

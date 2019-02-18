@@ -1580,6 +1580,11 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 */
             static CreateSphere(editor: Editor): Mesh;
             /**
+                * Creates a new plane mesh
+                * @param editor: the editor reference
+                */
+            static CreatePlane(editor: Editor): Mesh;
+            /**
                 * Creates a new light
                 * @param editor: the editor reference
                 * @param type: the light type

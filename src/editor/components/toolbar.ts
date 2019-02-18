@@ -108,6 +108,7 @@ export default class EditorToolbar {
                     { id: 'ground', img: 'icon-mesh', text: 'Ground Mesh' },
                     { id: 'cube', img: 'icon-box-mesh', text: 'Cube Mesh' },
                     { id: 'sphere', img: 'icon-sphere-mesh', text: 'Sphere Mesh' },
+                    { id: 'plane', img: 'icon-mesh', text: 'Plane Mesh' },
                     { type: 'break' },
                     { id: 'point-light', img: 'icon-light', text: 'Point Light' },
                     { id: 'directional-light', img: 'icon-directional-light', text: 'Directional Light' },
@@ -294,6 +295,9 @@ export default class EditorToolbar {
                 break;
             case 'add:sphere':
                 SceneFactory.CreateSphere(this.editor);
+                break;
+            case 'add:plane':
+                SceneFactory.CreatePlane(this.editor);
                 break;
 
 

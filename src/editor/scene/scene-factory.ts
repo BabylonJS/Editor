@@ -243,6 +243,18 @@ export default class SceneFactory {
     }
 
     /**
+     * Creates a new plane mesh
+     * @param editor: the editor reference
+     */
+    public static CreatePlane (editor: Editor): Mesh {
+        const mesh = Mesh.CreatePlane('New Plane', 32, editor.core.scene);
+        mesh.rotation.x = Math.PI / 2;
+        this.AddToGraph(editor, mesh);
+
+        return mesh;
+    }
+
+    /**
      * Creates a new light
      * @param editor: the editor reference
      * @param type: the light type
