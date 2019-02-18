@@ -285,6 +285,7 @@ export default class PostProcessEditor extends EditorPlugin {
             recid: this.grid.element.records.length - 1
         });
 
+        this.grid.selectNone();
         this.grid.select([this.datas.length - 1]);
 
         // Select new post-process to edit

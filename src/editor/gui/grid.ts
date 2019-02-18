@@ -117,6 +117,13 @@ export default class Grid<T extends GridRow> {
     }
 
     /**
+     * Unselects all selected items
+     */
+    public selectNone (): void {
+        this.element.selectNone();
+    }
+
+    /**
      * Returns the selected rows
      */
     public getSelected (): number[] {

@@ -404,6 +404,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             });
 
             // Select latest script
+            this.grid.selectNone();
             this.grid.select([this.datas.metadatas.length - 1]);
             this.selectCode(this.datas.metadatas.length - 1);
         }

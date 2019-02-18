@@ -460,6 +460,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             });
 
             // Select latest script
+            this.grid.selectNone();
             this.grid.select([this.datas.metadatas.length - 1]);
             this.selectGraph(this.datas.metadatas.length - 1);
         }

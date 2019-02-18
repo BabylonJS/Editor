@@ -553,6 +553,10 @@ declare module 'babylonjs-editor/editor/gui/grid' {
                 */
             select(selected: number[]): void;
             /**
+                * Unselects all selected items
+                */
+            selectNone(): void;
+            /**
                 * Returns the selected rows
                 */
             getSelected(): number[];
