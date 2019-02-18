@@ -94,6 +94,7 @@ export default class EditorAssets {
         this.addDefaultComponents();
 
         // Finalize
+        this.showTab(this.currentComponent.id);
         this.refresh();
     }
 
@@ -332,6 +333,9 @@ export default class EditorAssets {
         this.currentComponent = this.components.find(c => c.id === id);
         $('#' + this.currentComponent.id).show();
         this.tabs.select(id);
+
+        // Toolbar
+        this.currentComponent.onCreateAsset ? this.toolbar.element.show('add') : this.toolbar.element.hide('add');
     }
 
     /**
