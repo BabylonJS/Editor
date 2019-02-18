@@ -1,4 +1,4 @@
-import { Color4 } from 'babylonjs';
+import { Color4, {{class}} } from 'babylonjs';
 
 export default class Script implements IScript {
     // Public members
@@ -7,7 +7,7 @@ export default class Script implements IScript {
     /**
      * Constructor
      */
-    constructor () {
+    constructor (public {{type}}: {{class}}) {
 
     }
 
@@ -19,7 +19,7 @@ export default class Script implements IScript {
         scene.clearColor = this.blackColor;
 
         // You can access the attached object everywhere
-        console.log({{type}});
+        console.log(this.{{type}});
     }
 
     /**

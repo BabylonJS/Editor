@@ -386,6 +386,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             name: name,
             id: BabylonTools.RandomId(),
             code: this.template.replace(/{{type}}/g, ctor)
+                               .replace(/{{class}}/g, this.node.constructor.name)
         };
 
         this.editor.core.scene.metadata.behaviorScripts.push(data);

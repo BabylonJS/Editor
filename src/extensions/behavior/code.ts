@@ -248,7 +248,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 }
 
                 // Instance
-                const instance = new (ctor.ctor || ctor)();
+                const instance = new (ctor.ctor || ctor)(node);
                 if (m.params)
                     this.setCustomParams(m, instance);
 
@@ -402,6 +402,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
      * Return the constructor
      * @param code the code metadata
      * @param node the attached node
+     * @param evaluate if the script should just be evaluated instead of injected in DOM
      */
     public getConstructor (code: BehaviorCode, node: any, evaluate?: boolean): any {
         let url = window.location.href;
@@ -413,9 +414,10 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             url += code.name + '.js';
 
         const fnName = node ? (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '') : code.name.replace(/ /g, '');
-        const effectiveCode = template.replace('{{name}}', fnName)
-                                      .replace('{{node}}', this._getEffectiveConstructorName(node))
-                                      .replace('{{code}}', code.compiledCode || code.code);
+        const effectiveCode = template.replace(/{{name}}/g, fnName)
+                                      .replace(/{{class}}/g, node.constructor.name)
+                                      .replace(/{{node}}/g, this._getEffectiveConstructorName(node))
+                                      .replace(/{{code}}/g, code.compiledCode || code.code);
         // Evaluate?
         if (evaluate)
             (new Function(effectiveCode))();
