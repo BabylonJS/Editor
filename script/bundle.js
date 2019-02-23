@@ -30,7 +30,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'babylonjs-editor-extensions': './build/src/extensions/index.js',
             'animation-editor': './build/src/tools/animations/editor.js',
             'material-viewer': './build/src/tools/materials/viewer.js',
-            'behavior-editor': './build/src/tools/behavior/code.js',
+            'behavior-editor': './build/src/tools/code-behavior/code.js',
             'texture-viewer': './build/src/tools/textures/viewer.js',
             'material-editor': './build/src/tools/material-editor/index.js',
             'post-process-editor': './build/src/tools/post-process-editor/index.js',
@@ -128,14 +128,14 @@ build('./build/src/', './build/src/tools/animations/editor.js', './dist/animatio
     minify: true
 });
 
-build('./build/src/', './build/src/tools/behavior/code.js', './dist/behavior-editor.js', {
+build('./build/src/', './build/src/tools/code-behavior/code.js', './dist/behavior-editor.js', {
     globalName: 'BehaviorEditor',
     format: 'cjs',
     externals: externals,
     minify: true
 });
 
-build('./build/src/', './build/src/tools/behavior/graph.js', './dist/graph-editor.js', {
+build('./build/src/', './build/src/tools/graph-behavior/graph.js', './dist/graph-editor.js', {
     globalName: 'GraphEditor',
     format: 'cjs',
     externals: externals,
