@@ -10,17 +10,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode_1 = require("vscode");
 const fetch = require("node-fetch");
+const path = require("path");
+const socket_1 = require("./socket");
 class CodeBehaviorDependency extends vscode_1.TreeItem {
     /**
      * Constructor
-     * @param name
-     * @param collapsibleState
+     * @param name the name of the item
+     * @param collapsibleState the collapsible state of the item
      */
     constructor(label, collapsibleState, command) {
         super(label, collapsibleState);
         this.label = label;
         this.collapsibleState = collapsibleState;
         this.command = command;
+        /**
+         * Gets the icon path according to the current item type
+         */
+        this.iconPath = {
+            light: path.join(__filename, '..', '..', 'assets', 'light', this.command ? 'document.svg' : 'folder.svg'),
+            dark: path.join(__filename, '..', '..', 'assets', 'dark', this.command ? 'document.svg' : 'folder.svg')
+        };
     }
 }
 exports.CodeBehaviorDependency = CodeBehaviorDependency;
@@ -30,19 +39,31 @@ class CodeBehaviorTreeProvider {
      */
     constructor() {
         // Public members
-        this.tree = vscode_1.window.createTreeView('behavior-code', { treeDataProvider: this });
         this.root = new CodeBehaviorDependency('Code Behavior Editor', vscode_1.TreeItemCollapsibleState.Expanded);
         this._onDidChangeTreeData = new vscode_1.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
         // Private members
         this._codes = [];
+        // Register
+        vscode_1.window.registerTreeDataProvider('behaviorCode', this);
+        // Sockets
+        socket_1.default.onGotBehaviorCodes = (s => {
+            this._codes = s;
+            this.refresh();
+        });
+        // Register commands
+        vscode_1.commands.registerCommand('behaviorCode.refresh', () => {
+            this._codes = [];
+            this.refresh();
+        });
         vscode_1.commands.registerCommand('behaviorCode.openScript', (id) => __awaiter(this, void 0, void 0, function* () {
             // Get effective code reference
             const code = this._codes.find(c => c.id === id);
             if (!code)
                 return;
             // Create document
-            const doc = yield vscode_1.workspace.openTextDocument({ language: 'typescript', content: code.code });
+            const uri = vscode_1.Uri.parse('babylonjs-editor:' + code.name);
+            const doc = yield vscode_1.workspace.openTextDocument(uri);
             yield vscode_1.window.showTextDocument(doc);
         }));
     }
@@ -63,9 +84,11 @@ class CodeBehaviorTreeProvider {
             // Return root
             if (!element)
                 return Promise.resolve([this.root]);
-            // Return by requesting
-            const result = yield fetch('http://localhost:1337/behaviorCodes');
-            this._codes = (yield result.json());
+            // If empty, request existing
+            if (this._codes.length === 0) {
+                const result = yield fetch('http://localhost:1337/behaviorCodes');
+                this._codes = (yield result.json());
+            }
             return Promise.resolve(this._codes.map(d => {
                 const command = { command: 'behaviorCode.openScript', title: 'Open Script', arguments: [d.id] };
                 return new CodeBehaviorDependency(d.name, vscode_1.TreeItemCollapsibleState.None, command);
@@ -79,5 +102,5 @@ class CodeBehaviorTreeProvider {
         this._onDidChangeTreeData.fire();
     }
 }
-exports.CodeBehaviorTreeProvider = CodeBehaviorTreeProvider;
+exports.default = CodeBehaviorTreeProvider;
 //# sourceMappingURL=code-behavior.js.map

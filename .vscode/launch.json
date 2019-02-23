@@ -63,5 +63,11 @@
                 "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"
             ]
         }
+    ],
+    "compounds": [
+        {
+            "name": "VSCode Extension Debug",
+            "configurations": ["Electron Server", "VSCode Extension"]
+        }
     ]
 }

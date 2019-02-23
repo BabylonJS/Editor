@@ -1,4 +1,4 @@
-import { TreeView, TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Command, Event } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Command, Event } from 'vscode';
 export interface BehaviorCode {
     name: string;
     id: string;
@@ -10,16 +10,22 @@ export declare class CodeBehaviorDependency extends TreeItem {
     readonly command?: Command;
     /**
      * Constructor
-     * @param name
-     * @param collapsibleState
+     * @param name the name of the item
+     * @param collapsibleState the collapsible state of the item
      */
     constructor(label: string, collapsibleState: TreeItemCollapsibleState, command?: Command);
+    /**
+     * Gets the icon path according to the current item type
+     */
+    iconPath: {
+        light: string;
+        dark: string;
+    };
 }
-export declare class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBehaviorDependency> {
-    tree: TreeView<CodeBehaviorDependency>;
+export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBehaviorDependency> {
     readonly root: CodeBehaviorDependency;
-    readonly _onDidChangeTreeData: EventEmitter<any>;
-    readonly onDidChangeTreeData: Event<any>;
+    readonly _onDidChangeTreeData: EventEmitter<CodeBehaviorDependency | undefined>;
+    readonly onDidChangeTreeData: Event<CodeBehaviorDependency | undefined>;
     private _codes;
     /**
      * Constructor

@@ -12,7 +12,8 @@
         "rootDir": "src",
         "types": [
             "node",
-            "vscode"
+            "vscode",
+            "socket.io-client"
         ],
     },
     "exclude": [

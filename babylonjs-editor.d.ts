@@ -10,6 +10,7 @@
 declare module 'babylonjs-editor' {
     import Editor from 'babylonjs-editor/editor/editor';
     import Tools from 'babylonjs-editor/editor/tools/tools';
+    import Request from 'babylonjs-editor/editor/tools/request';
     import UndoRedo from 'babylonjs-editor/editor/tools/undo-redo';
     import ThemeSwitcher, { ThemeType } from 'babylonjs-editor/editor/tools/theme';
     import Layout from 'babylonjs-editor/editor/gui/layout';
@@ -33,10 +34,11 @@ declare module 'babylonjs-editor' {
     import CodeProjectEditorFactory from 'babylonjs-editor/editor/project/project-code-editor';
     import SceneManager from 'babylonjs-editor/editor/scene/scene-manager';
     import SceneFactory from 'babylonjs-editor/editor/scene/scene-factory';
+    import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
     export default Editor;
-    export { Editor, Tools, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, PrefabAssetComponent, Prefab, PrefabNodeType };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -269,6 +271,32 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * is supported
                 */
             static isFileApiSupported(showAlert?: boolean): boolean;
+    }
+}
+
+declare module 'babylonjs-editor/editor/tools/request' {
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export default class Request {
+            /**
+                * Sends a GET request
+                * @param url: url of the request
+                * @param headers: the request headers
+                */
+            static Get<T>(url: string, headers?: IStringDictionary<any>): Promise<T>;
+            /**
+                * Sends a PUT request
+                * @param url the url of the request
+                * @param content the content to put
+                * @param headers the request headers
+                */
+            static Put<T>(url: string, content: any, headers?: IStringDictionary<any>): Promise<T>;
+            /**
+                * Sends a POST request
+                * @param url the url of the request
+                * @param content the content to post
+                * @param headers the request headers
+                */
+            static Post<T>(url: string, content: any, headers?: IStringDictionary<any>): Promise<T>;
     }
 }
 
@@ -1605,6 +1633,21 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
                 * @param editor: the editor reference
                 */
             static AddGuiImage(editor: Editor): Image;
+    }
+}
+
+declare module 'babylonjs-editor/editor/scene/scene-preview' {
+    import Editor from 'babylonjs-editor/editor/editor';
+    export default class ScenePreview {
+            static socket: SocketIOClient.Socket;
+            /**
+                * Creates a scene preview listener
+                */
+            static Create(editor: Editor): Promise<void>;
+            /**
+                * Creates the files
+                */
+            static CreateFiles(editor: Editor): Promise<void>;
     }
 }
 

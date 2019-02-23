@@ -1,6 +1,7 @@
 import Editor from './editor/editor';
 
 import Tools from './editor/tools/tools';
+import Request from './editor/tools/request';
 import UndoRedo from './editor/tools/undo-redo';
 import ThemeSwitcher, { ThemeType } from './editor/tools/theme';
 
@@ -29,6 +30,7 @@ import CodeProjectEditorFactory from './editor/project/project-code-editor';
 
 import SceneManager from './editor/scene/scene-manager';
 import SceneFactory from './editor/scene/scene-factory';
+import ScenePreview from './editor/scene/scene-preview';
 
 import PrefabAssetComponent from './editor/prefabs/asset-component';
 import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
@@ -38,6 +40,7 @@ export {
     Editor,
     
     Tools,
+    Request,
     UndoRedo,
     ThemeSwitcher, ThemeType,
 
@@ -69,6 +72,7 @@ export {
 
     SceneManager,
     SceneFactory,
+    ScenePreview,
 
     PrefabAssetComponent,
     Prefab, PrefabNodeType

@@ -19,7 +19,7 @@
             "activitybar": [
                 {
                     "id": "babylonjs-editor-explorer",
-                    "title": "Babylon.JS Editor Explorer",
+                    "title": "Babylon.JS Editor",
                     "icon": "assets/logo.svg"
                 }
             ]
@@ -27,11 +27,35 @@
         "views": {
             "babylonjs-editor-explorer": [
                 {
-                    "id": "behavior-code",
-                    "name": "Behavior Code"
+                    "id": "behaviorCode",
+                    "name": "Code Explorer"
                 }
             ]
-        }
+        },
+        "commands": [
+            {
+                "command": "behaviorCode.refresh",
+                "title": "Refresh",
+                "icon": {
+                    "light": "assets/light/refresh.svg",
+                    "dark": "assets/dark/refresh.svg"
+                }
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "behaviorCode.refresh",
+                    "when": "view == behaviorCode",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "configuration": [
+            {
+                "title": "Babylon.JS Editor"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
@@ -40,10 +64,12 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "node-fetch": "2.3.0"
+        "node-fetch": "2.3.0",
+        "socket.io-client": "2.2.0"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
+        "@types/socket.io-client": "1.4.32",
         "typescript": "~3.0.1",
         "vscode": "1.1.30"
     }

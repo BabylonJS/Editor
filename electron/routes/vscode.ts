@@ -8,7 +8,11 @@ export default class VSCodeRouter {
     public router: KoaRouter;
     public webServer: WebServer;
 
-    public socket: IO = null;
+    public server: IO = null;
+    public client: IO = null;
+
+    // Private members
+    private _scripts: any[] = [];
 
     /**
      * Constructor
@@ -19,12 +23,7 @@ export default class VSCodeRouter {
         this.router = new KoaRouter();
 
         // Socket
-        this.socket = new IO();
-        this.socket.attach(webServer.localApplication);
-
-        this.socket.on('behavior-codes', (codes) => {
-            debugger;
-        });
+        this.createSocket();
 
         // Create routes
         this.getBehaviorCodes();
@@ -32,12 +31,30 @@ export default class VSCodeRouter {
         webServer.localApplication.use(this.router.routes());
     }
 
+    // Creates the sockets
+    protected createSocket (): void {
+        // Server
+        this.server = new IO('vscode');
+        this.server.attach(this.webServer.localApplication);
+
+        // Client
+        this.client = new IO('vscode-extension');
+        this.client.attach(this.webServer.localApplication);
+        
+        this.server.on('connection', () => {
+            this.server.on('behavior-codes', (codes) => {
+                this._scripts = codes.data;
+                this.client.broadcast('behavior-codes', this._scripts);
+            });
+        });
+    }
+
     /**
      * Gets all the behavior codes
      */
     protected getBehaviorCodes (): void {
         this.router.get('/behaviorCodes', async (ctx, next) => {
-            ctx.body = [{ name: 'test', id: 'idtest', code: 'import * from "you"' }];
+            ctx.body = this._scripts;
         });
     }
 }

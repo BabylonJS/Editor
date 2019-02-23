@@ -28,6 +28,7 @@ import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } f
 
 import '../../extensions/behavior/code';
 import Helpers from '../helpers';
+import BehaviorCodeSocket from './socket';
 
 export interface CodeGrid extends GridRow {
     name: string;
@@ -65,6 +66,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Static members
     public static CodeProjectEditor: CodeProjectEditor = null;
+
+    /**
+     * On load the extension for the first time
+     */
+    public static OnLoaded (editor: Editor): void {
+        BehaviorCodeSocket.Create();
+    }
 
     /**
      * Constructor
@@ -389,7 +397,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                                .replace(/{{class}}/g, this.node.constructor.name)
         };
 
-        this.editor.core.scene.metadata.behaviorScripts.push(data);
+        const scripts = this.editor.core.scene.metadata.behaviorScripts;
+        scripts.push(data);
 
         if (this.node) {
             // Add metadata to node
@@ -422,6 +431,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);
+
+        // Update vscode extension
+        BehaviorCodeSocket.Refresh(scripts);
     }
 
     /**
