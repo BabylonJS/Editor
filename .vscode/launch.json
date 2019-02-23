@@ -53,6 +53,15 @@
                 "build/**/*.js"
             ],
             "sourceMaps": true
+        },
+        {
+            "name": "VSCode Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"
+            ]
         }
     ]
 }

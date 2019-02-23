@@ -1,0 +1,50 @@
+{
+    "name": "babylonjs-editor",
+    "displayName": "Babylon.JS Editor",
+    "description": "Babylon.JS Editor extension used to develop scripts using VSCode",
+    "version": "0.0.1",
+    "repository": "https://github.com/BabylonJS/Editor/",
+    "engines": {
+        "vscode": "^1.25.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./.build/extension.js",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "babylonjs-editor-explorer",
+                    "title": "Babylon.JS Editor Explorer",
+                    "icon": "assets/logo.svg"
+                }
+            ]
+        },
+        "views": {
+            "babylonjs-editor-explorer": [
+                {
+                    "id": "behavior-code",
+                    "name": "Behavior Code"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p .",
+        "watch": "tsc -watch -p .",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "dependencies": {
+        "node-fetch": "2.3.0"
+    },
+    "devDependencies": {
+        "@types/node": "^8.10.25",
+        "typescript": "~3.0.1",
+        "vscode": "1.1.30"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "outDir": ".build",
+        "declaration": true,
+        "declarationDir": ".declaration",
+        "lib": [
+            "es6"
+        ],
+        "sourceMap": true,
+        "rootDir": "src",
+        "types": [
+            "node",
+            "vscode"
+        ],
+    },
+    "exclude": [
+        "./node_modules",
+        "../build",
+        "../declaration",
+    ]
+}

@@ -6,9 +6,7 @@ import Settings from './settings/settings';
 export default class EditorApp {
     // Static members
     public static Window: BrowserWindow = null;
-
     public static Server: WebServer = null;
-
     public static ScenePreview: ScenePreview = null;
 
     /**

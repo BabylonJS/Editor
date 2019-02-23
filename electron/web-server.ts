@@ -6,6 +6,7 @@ import * as KoaStatic from 'koa-static';
 
 import StorageRouter from './routes/storage';
 import ToolsRouter from './routes/tools';
+import VSCodeRouter from './routes/vscode';
 
 export default class WebServer {
     // Public members
@@ -41,6 +42,7 @@ export default class WebServer {
 
         new StorageRouter(this.localApplication);
         new ToolsRouter(this);
+        new VSCodeRouter(this);
     }
 
     /**
