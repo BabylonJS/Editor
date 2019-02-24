@@ -9,6 +9,7 @@ import * as fetch from 'node-fetch';
 import * as path from 'path';
 
 import Sockets from './socket';
+import CustomFileSystem from './file-system';
 
 export interface BehaviorCode {
     name: string;
@@ -45,9 +46,6 @@ export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBe
     public readonly _onDidChangeTreeData: EventEmitter<CodeBehaviorDependency | undefined> = new EventEmitter<CodeBehaviorDependency | undefined>();
 	public readonly onDidChangeTreeData: Event<CodeBehaviorDependency | undefined> = this._onDidChangeTreeData.event;
 
-    // Private members
-    private _codes: BehaviorCode[] = [];
-
     /**
      * Constructor
      */
@@ -55,21 +53,15 @@ export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBe
         // Register
         window.registerTreeDataProvider('behaviorCode', this);
 
-        // Sockets
-        Sockets.onGotBehaviorCodes = (s => {
-            this._codes = s;
-            this.refresh();
-        });
-
         // Register commands
         commands.registerCommand('behaviorCode.refresh', () => {
-            this._codes = [];
+            Sockets.codeScripts = [];
             this.refresh();
         });
 
         commands.registerCommand('behaviorCode.openScript', async (id: string) => {
             // Get effective code reference
-            const code = this._codes.find(c => c.id === id);
+            const code = Sockets.codeScripts.find(c => c.id === id);
             if (!code)
                 return;
             
@@ -77,7 +69,7 @@ export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBe
             const uri = Uri.parse('babylonjs-editor:' + code.name);
             const doc = await workspace.openTextDocument(uri);
 
-            const tab = await window.showTextDocument(doc, 1, false);
+            const tab = await window.showTextDocument(doc);
             languages.setTextDocumentLanguage(doc, 'typescript');
         });
     }
@@ -101,12 +93,12 @@ export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBe
             return Promise.resolve([this.root]);
 
         // If empty, request existing
-        if (this._codes.length === 0) {
+        if (Sockets.codeScripts.length === 0) {
             const result = await fetch('http://localhost:1337/behaviorCodes');
-            this._codes = <BehaviorCode[]> await result.json();
+            Sockets.codeScripts = <BehaviorCode[]> await result.json();
         }
 
-        return Promise.resolve(this._codes.map(d => {
+        return Promise.resolve(Sockets.codeScripts.map(d => {
             const command: Command = { command: 'behaviorCode.openScript', title: 'Open Script', arguments: [d.id] }
             return new CodeBehaviorDependency(d.name, TreeItemCollapsibleState.None, command);
         }));

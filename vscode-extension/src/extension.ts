@@ -1,7 +1,7 @@
-import { ExtensionContext, workspace } from 'vscode';
+import { ExtensionContext, workspace, Uri, window } from 'vscode';
 
 import Sockets from './socket';
-import CustomTextDocument from './document';
+import CustomFileSystem from './file-system';
 import CodeBehaviorTreeProvider from './code-behavior';
 
 /**
@@ -11,17 +11,12 @@ export function activate (context: ExtensionContext) {
     // Connect sockets
     Sockets.Connect();
 
-    // Events
-    workspace.onDidChangeTextDocument(e => {
-
-    });
-
-    // Text provider
-    const textProvider = new CustomTextDocument();
-    workspace.registerTextDocumentContentProvider('babylonjs-editor', textProvider);
+    // Providers
+    workspace.registerFileSystemProvider('babylonjs-editor', new CustomFileSystem(), { isCaseSensitive: true, isReadonly: false });
+    workspace.updateWorkspaceFolders(0, 0, { uri: Uri.parse('babylonjs-editor:/'), name: "BabylonJS Editor" });
 
     // Create behavior code tree provider
-    new CodeBehaviorTreeProvider();
+    // new CodeBehaviorTreeProvider();
 }
 
 /**
