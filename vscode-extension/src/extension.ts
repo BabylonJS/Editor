@@ -1,8 +1,8 @@
-import { ExtensionContext, workspace, window } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 
-import CodeBehaviorTreeProvider from './code-behavior';
 import Sockets from './socket';
 import CustomTextDocument from './document';
+import CodeBehaviorTreeProvider from './code-behavior';
 
 /**
  * Activtes the extension
@@ -10,6 +10,11 @@ import CustomTextDocument from './document';
 export function activate (context: ExtensionContext) {
     // Connect sockets
     Sockets.Connect();
+
+    // Events
+    workspace.onDidChangeTextDocument(e => {
+
+    });
 
     // Text provider
     const textProvider = new CustomTextDocument();

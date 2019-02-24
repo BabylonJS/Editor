@@ -1,7 +1,9 @@
 import {
     TreeDataProvider, TreeItem, TreeItemCollapsibleState,
     window, EventEmitter, commands, Command, workspace, Event,
-    Uri
+    Uri,
+    languages,
+    WorkspaceEdit
 } from 'vscode';
 import * as fetch from 'node-fetch';
 import * as path from 'path';
@@ -75,7 +77,8 @@ export default class CodeBehaviorTreeProvider implements TreeDataProvider<CodeBe
             const uri = Uri.parse('babylonjs-editor:' + code.name);
             const doc = await workspace.openTextDocument(uri);
 
-            await window.showTextDocument(doc);
+            const tab = await window.showTextDocument(doc, 1, false);
+            languages.setTextDocumentLanguage(doc, 'typescript');
         });
     }
 
