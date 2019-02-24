@@ -37,8 +37,9 @@ declare module 'babylonjs-editor' {
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
+    import VSCodeSocket from 'babylonjs-editor/editor/vscode/socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -1739,6 +1740,22 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
         sourceNodes?: (Mesh | PrefabNodeType)[];
         sourceNode?: Mesh | PrefabNodeType;
         sourceInstances?: IStringDictionary<PrefabNodeType[]>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/vscode/socket' {
+    export default class VSCodeSocket {
+            static Socket: SocketIOClient.Socket;
+            static OnUpdateBehaviorCode: (s: any) => void;
+            /**
+                * Creates a scene preview listener
+                */
+            static Create(): Promise<void>;
+            /**
+                * Refreshes the scripts
+                * @param scripts the scripts to send
+                */
+            static Refresh(scripts: any): void;
     }
 }
 

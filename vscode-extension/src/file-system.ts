@@ -4,8 +4,10 @@ import {
 } from 'vscode';
 import * as fetch from 'node-fetch';
 import * as path from 'path';
+import * as uuid from 'uuid';
 
 import Sockets from './socket';
+import { debug } from 'util';
 
 export interface CustomCode {
     name: string;
@@ -13,7 +15,7 @@ export interface CustomCode {
     code: string;
 }
 
-export class CustomFile implements FileStat {
+export class CustomEntry implements FileStat {
     /**
      * Constructor
      */
@@ -22,30 +24,36 @@ export class CustomFile implements FileStat {
         public type: FileType = FileType.File,
         public ctime: number = Date.now(),
         public mtime: number = Date.now(),
-        public size: number = 0,
-        public data: Uint8Array = null
+        public size: number = 0
     ) {
         // Empty
     }
 }
 
-export class CustomDirectory implements FileStat {
+export class CustomFile extends CustomEntry {
+    // Public members
+    public data: Uint8Array = null;
+    public id: string;
+
     /**
      * Constructor
      */
-    constructor(
-        public name: string,
-        public type: FileType = FileType.Directory,
-        public ctime: number = Date.now(),
-        public mtime: number = Date.now(),
-        public size: number = 0,
-        public entries: Map<string, CustomFile | CustomDirectory> = new Map()
-    ) {
-        // Empty
+    constructor(name: string, id: string) {
+        super(name, FileType.File);
+        this.id = id;
     }
 }
 
-export type Entry = CustomFile | CustomDirectory;
+export class CustomDirectory extends CustomEntry {
+    public entries: Map<string, CustomEntry> = new Map();
+
+    /**
+     * Constructor
+     */
+    constructor(name: string) {
+        super(name, FileType.Directory);
+    }
+}
 
 export default class CustomFileSystem implements FileSystemProvider {
     // Public members
@@ -60,7 +68,20 @@ export default class CustomFileSystem implements FileSystemProvider {
     constructor () {
         // Register events
         Sockets.onGotBehaviorCodes = (scripts => {
-            scripts.forEach(s => this.writeFile(Uri.parse('babylonjs-editor:/' + s.name + '.ts'), Buffer.from(s.code), { create: true, overwrite: true }));
+            // Refresh, so clear if array is passed
+            if (Array.isArray(scripts)) {
+                for (const [name] of this.readDirectory(Uri.parse('babylonjs-editor:/'))) {
+                    this.delete(Uri.parse(`babylonjs-editor:/${name}`));
+                }
+            } else {
+                // Transform to an array
+                scripts = [scripts];
+            }
+
+            scripts.forEach(s => {
+                const uri = Uri.parse('babylonjs-editor:/' + s.name + '.ts');
+                this.writeFile(uri, Buffer.from(s.code), { create: true, overwrite: true }, s.id);
+            });
         });
 
         // Init
@@ -73,7 +94,11 @@ export default class CustomFileSystem implements FileSystemProvider {
     public async init (): Promise<void> {
         const result = await fetch('http://localhost:1337/behaviorCodes');
         const scripts = <CustomCode[]> await result.json();
-        scripts.forEach(s => this.writeFile(Uri.parse('babylonjs-editor:/' + s.name + '.ts'), Buffer.from(s.code), { create: true, overwrite: true }));
+
+        scripts.forEach(s => {
+            const uri = Uri.parse('babylonjs-editor:/' + s.name + '.ts');
+            this.writeFile(uri, Buffer.from(s.code), { create: true, overwrite: true }, s.id);
+        });
     }
 
     /**
@@ -112,27 +137,34 @@ export default class CustomFileSystem implements FileSystemProvider {
      * @param content: the content of the file
      * @param options: the options of the file when creating
      */
-    public writeFile(uri: Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): void {
+    public writeFile(uri: Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }, id?: string): void {
         // Get values
         const basename = path.posix.basename(uri.path);
         const parent = this._lookupParentDirectory(uri);
 
-        let entry = parent.entries.get(basename);
+        let entry = <CustomFile> parent.entries.get(basename);
         if (entry instanceof CustomDirectory) throw FileSystemError.FileIsADirectory(uri);
         if (!entry && !options.create) throw FileSystemError.FileNotFound(uri);
         if (entry && options.create && !options.overwrite) throw FileSystemError.FileExists(uri);
 
         if (!entry) {
-            entry = new CustomFile(basename);
+            entry = new CustomFile(basename, id || uuid.v4());
             parent.entries.set(basename, entry);
             this._emitter.fire([{ type: FileChangeType.Created, uri }]);
         }
+
         entry.mtime = Date.now();
         entry.size = content.byteLength;
         entry.data = content;
 
         // Event
         this._emitter.fire([{ type: FileChangeType.Changed, uri }]);
+
+        // Update
+        if (!id) {
+            const name = uri.path.replace('.ts', '').replace('/', '');
+            Sockets.UpdateBehaviorCode({ name: name, id: entry.id, code: content.toString() });
+        }
     }
 
     /**
@@ -145,10 +177,20 @@ export default class CustomFileSystem implements FileSystemProvider {
 
     /**
      * Deletes the given file
+     * @param uri: the uri of the file to delete
      */
     public delete(uri: Uri): void {
-        // Not supported
-        debugger;
+        const dirname = uri.with({ path: path.posix.dirname(uri.path) });
+        const basename = path.posix.basename(uri.path);
+        const parent = this._lookupAsDirectory(dirname, false);
+        if (!parent.entries.has(basename))  throw FileSystemError.FileNotFound(uri);
+
+        parent.entries.delete(basename);
+        parent.mtime = Date.now();
+        parent.size -= 1;
+
+        // Event
+        this._emitter.fire([{ type: FileChangeType.Changed, uri: dirname }, { uri, type: FileChangeType.Deleted }]);
     }
 
     /**
@@ -168,14 +210,14 @@ export default class CustomFileSystem implements FileSystemProvider {
     }
 
     // Looks up for an entry identified by its 
-    private _lookup (uri: Uri, silent: boolean = false): Entry | undefined {
+    private _lookup (uri: Uri, silent: boolean = false): CustomEntry | undefined {
         let parts = uri.path.split('/');
-        let entry: Entry = this.root;
+        let entry: CustomEntry = this.root;
         for (const part of parts) {
             if (!part) {
                 continue;
             }
-            let child: Entry | undefined;
+            let child: CustomEntry | undefined;
             if (entry instanceof CustomDirectory) {
                 child = entry.entries.get(part);
             }

@@ -46,6 +46,8 @@ import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
 
+import VSCodeSocket from './vscode/vscode-socket';
+
 export default class Editor implements IUpdatable {
     // Public members
     public core: Core;
@@ -258,6 +260,9 @@ export default class Editor implements IUpdatable {
 
             // Check opened file from OS file explorer
             this._checkOpenedFile();
+
+            // Connect to VSCode extension
+            VSCodeSocket.Create(this);
         }
         else {
             this.createDefaultScene();
@@ -815,6 +820,9 @@ export default class Editor implements IUpdatable {
 
                 // Select scene
                 this.core.onSelectObject.notifyObservers(this.core.scene);
+
+                // Refresh vscode
+                VSCodeSocket.Refresh(this.core.scene.metadata.behaviorScripts);
             };
 
             const dialogCallback = async (doNotAppend: boolean) => {

@@ -189,6 +189,22 @@ export default class CodeEditor {
     }
 
     /**
+     * Transpiles the given TS source to JS source
+     * @param source the source to transpile
+     */
+    public static async TranspileTypeScript (source: string, moduleName: string, config?: any): Promise<string> {
+        await Tools.ImportScript('typescript');
+
+        return ts.transpile(source, config || {
+            module: 'none',
+            target: 'es5',
+            experimentalDecorators: true,
+            // sourceMap: true,
+            // inlineSourceMap: true
+        }, moduleName + '.ts', undefined, moduleName + '.ts');
+    }
+
+    /**
      * Creates a windowed editor
      * @param options: the editor's configuration
      */

@@ -35,6 +35,8 @@ import ScenePreview from './editor/scene/scene-preview';
 import PrefabAssetComponent from './editor/prefabs/asset-component';
 import { Prefab, PrefabNodeType } from './editor/prefabs/prefab';
 
+import VSCodeSocket from './editor/vscode/vscode-socket';
+
 export default Editor;
 export {
     Editor,
@@ -75,5 +77,7 @@ export {
     ScenePreview,
 
     PrefabAssetComponent,
-    Prefab, PrefabNodeType
+    Prefab, PrefabNodeType,
+
+    VSCodeSocket
 }

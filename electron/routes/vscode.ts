@@ -46,6 +46,10 @@ export default class VSCodeRouter {
                 this._scripts = codes.data;
                 this.client.broadcast('behavior-codes', this._scripts);
             });
+
+            this.client.on('update-behavior-code', (script) => {
+                this.server.broadcast('update-behavior-code', script.data);
+            });
         });
     }
 

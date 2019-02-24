@@ -14,6 +14,8 @@ import { IAssetComponent, AssetElement } from '../../extensions/typings/asset';
 import PrefabAssetComponent from '../prefabs/asset-component';
 import { Dialog } from 'babylonjs-editor';
 
+import VSCodeSocket from '../vscode/vscode-socket';
+
 export interface AssetPreviewData {
     asset: AssetElement<any>;
     img: HTMLImageElement;
@@ -289,6 +291,10 @@ export default class EditorAssets {
                 });
             });
         });
+
+        // Update VSCode extension as it is designed to edit
+        // assets from the editor project
+        VSCodeSocket.Refresh();
     }
 
     /**

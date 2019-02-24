@@ -19,7 +19,8 @@ import Editor, {
     EditorPlugin,
 
     ProjectRoot,
-    CodeProjectEditorFactory
+    CodeProjectEditorFactory,
+    VSCodeSocket
 } from 'babylonjs-editor';
 import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
@@ -28,7 +29,6 @@ import CodeExtension, { BehaviorMetadata, BehaviorCode, BehaviorNodeMetadata } f
 
 import '../../extensions/behavior/code';
 import Helpers from '../helpers';
-import BehaviorCodeSocket from './socket';
 
 export interface CodeGrid extends GridRow {
     name: string;
@@ -66,13 +66,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     // Static members
     public static CodeProjectEditor: CodeProjectEditor = null;
-
-    /**
-     * On load the extension for the first time
-     */
-    public static OnLoaded (editor: Editor): void {
-        BehaviorCodeSocket.Create();
-    }
 
     /**
      * Constructor
@@ -194,6 +187,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Opened in editor?
         if (BehaviorCodeEditor.CodeProjectEditor || !this.node || !this.asset)
             this.layout.lockPanel('main');
+
+        // Sockets
+        VSCodeSocket.OnUpdateBehaviorCode = (d) => {
+            if (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id) {
+                this.code.setValue(d.code);
+            }
+        };
     }
 
     /**
@@ -433,7 +433,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         this.editor.assets.refresh(this.extension.id);
 
         // Update vscode extension
-        BehaviorCodeSocket.Refresh(scripts);
+        VSCodeSocket.Refresh(data);
     }
 
     /**
@@ -513,6 +513,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             }
             else if (this.data) {
                 this.data.code = this.code.getValue();
+                VSCodeSocket.Refresh([this.data]);
             }
         };
 
