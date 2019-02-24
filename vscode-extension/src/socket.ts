@@ -17,6 +17,13 @@ export default class Sockets {
     }
 
     /**
+     * Closes the sockets from the editor
+     */
+    public static Close (): void {
+        this.socket.close();
+    }
+
+    /**
      * Updates the given behavior code
      * @param s the script to update
      */

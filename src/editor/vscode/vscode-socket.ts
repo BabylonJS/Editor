@@ -5,7 +5,7 @@ import CodeEditor from '../gui/code';
 export default class VSCodeSocket {
     // Public members
     public static Socket: SocketIOClient.Socket = null;
-    public static OnUpdateBehaviorCode: (s: any[]) => void;
+    public static OnUpdateBehaviorCode: (s: any) => void;
 
     // Private members
     private static _Editor: Editor = null;

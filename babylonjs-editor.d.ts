@@ -37,7 +37,7 @@ declare module 'babylonjs-editor' {
     import ScenePreview from 'babylonjs-editor/editor/scene/scene-preview';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
-    import VSCodeSocket from 'babylonjs-editor/editor/vscode/socket';
+    import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
     export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
 }
@@ -805,6 +805,11 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * @param source the source to transpile
                 */
             transpileTypeScript(source: string, moduleName: string, config?: any): string;
+            /**
+                * Transpiles the given TS source to JS source
+                * @param source the source to transpile
+                */
+            static TranspileTypeScript(source: string, moduleName: string, config?: any): Promise<string>;
             /**
                 * Creates a windowed editor
                 * @param options: the editor's configuration
@@ -1743,19 +1748,20 @@ declare module 'babylonjs-editor/editor/prefabs/prefab' {
     }
 }
 
-declare module 'babylonjs-editor/editor/vscode/socket' {
+declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
+    import Editor from 'babylonjs-editor/editor/editor';
     export default class VSCodeSocket {
             static Socket: SocketIOClient.Socket;
             static OnUpdateBehaviorCode: (s: any) => void;
             /**
                 * Creates a scene preview listener
                 */
-            static Create(): Promise<void>;
+            static Create(editor: Editor): Promise<void>;
             /**
                 * Refreshes the scripts
-                * @param scripts the scripts to send
+                * @param scripts the scripts to send (alone or as an array)
                 */
-            static Refresh(scripts: any): void;
+            static Refresh(scripts?: any | any[]): void;
     }
 }
 
