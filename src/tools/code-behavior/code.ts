@@ -189,7 +189,28 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             this.layout.lockPanel('main');
 
         // Sockets
-        VSCodeSocket.OnUpdateBehaviorCode = (d) => {
+        VSCodeSocket.OnUpdateBehaviorCode = async (d: BehaviorCode) => {
+            // Get effective script modified in the vscode editor
+            const scripts = <BehaviorCode[]> this.editor.core.scene.metadata.behaviorScripts;
+            const effective = <BehaviorCode> scripts.find(s => s.id === d.id);
+
+            const compiledCode = await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
+                module: 'cjs',
+                target: 'es5',
+                experimentalDecorators: true,
+            });
+
+            if (!effective) {
+                // Just refresh
+                VSCodeSocket.RefreshBehavior(scripts);
+                return;
+            }
+            else {
+                // Just update
+                effective.code = d.code;
+                effective.compiledCode = compiledCode;
+            }
+
             if (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id) {
                 this.code.setValue(d.code);
             }
@@ -431,9 +452,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);
-
-        // Update vscode extension
-        VSCodeSocket.Refresh(data);
     }
 
     /**
@@ -486,8 +504,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
         code.onChange = value => {
             // Compile typescript
-            clearTimeout(this._timeoutId);
-            this._timeoutId = setTimeout(() => {
+            clearTimeout(<any> this._timeoutId);
+            this._timeoutId = <any> setTimeout(() => {
                 if (!data && !this.data)
                     return;
                 
@@ -513,7 +531,7 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             }
             else if (this.data) {
                 this.data.code = this.code.getValue();
-                VSCodeSocket.Refresh([this.data]);
+                VSCodeSocket.RefreshBehavior(this.data);
             }
         };
 

@@ -20,7 +20,7 @@
                 {
                     "id": "babylonjs-editor-explorer",
                     "title": "Babylon.JS Editor",
-                    "icon": "assets/logo.svg"
+                    "icon": "assets/logo.png"
                 }
             ]
         },
@@ -65,12 +65,12 @@
     },
     "dependencies": {
         "node-fetch": "2.3.0",
-        "socket.io-client": "2.2.0",
+        "socket.io": "2.2.0",
         "uuid": "3.3.2"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
-        "@types/socket.io-client": "1.4.32",
+        "@types/socket.io": "2.1.2",
         "typescript": "~3.0.1",
         "vscode": "1.1.30"
     }

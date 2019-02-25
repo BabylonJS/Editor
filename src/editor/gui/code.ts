@@ -17,6 +17,12 @@ export interface TypescriptDisposable extends IDisposable {
 }
 declare var ts: TypescriptDisposable;
 
+export interface Typings {
+    name: string;
+    id: string;
+    content: string;
+}
+
 export default class CodeEditor {
     // Public members
     public editor: MonacoDisposable = null;
@@ -31,6 +37,18 @@ export default class CodeEditor {
     public static ExtraLibs: { lib: MonacoDisposable, caller: Window; }[] = [];
     public static CustomLibs: IStringDictionary<MonacoDisposable> = { };
     public static Instances: MonacoDisposable[] = [];
+
+    public static Libs: string[] = [
+        'assets/typings/babylon.module.d.ts',
+        'assets/typings/babylon.gui.module.d.ts',
+        'assets/typings/babylonjs.materials.module.d.ts',
+        'assets/typings/babylonjs.proceduralTextures.module.d.ts',
+        'assets/templates/material-creator/custom-material.d.ts',
+        'assets/templates/post-process-creator/custom-post-process.d.ts',
+        'assets/templates/code/path-finder.d.ts',
+        'assets/templates/code/tools.d.ts',
+        'assets/templates/code/mobile.d.ts'
+    ];
 
     /**
      * Remove extra lib from the registered callers
@@ -106,19 +124,7 @@ export default class CodeEditor {
             parentId = '#' + parentId;
         
         if (!CodeEditor.ExternalLibraries) {
-            const libs = [
-                'assets/typings/babylon.module.d.ts',
-                'assets/typings/babylon.gui.module.d.ts',
-                'assets/typings/babylonjs.materials.module.d.ts',
-                'assets/typings/babylonjs.proceduralTextures.module.d.ts',
-                'assets/templates/material-creator/custom-material.d.ts',
-                'assets/templates/post-process-creator/custom-post-process.d.ts',
-                'assets/templates/code/path-finder.d.ts',
-                'assets/templates/code/tools.d.ts',
-                'assets/templates/code/mobile.d.ts'
-            ];
-
-            const promises = libs.map(l => Tools.LoadFile(l, false));
+            const promises = CodeEditor.Libs.map(l => Tools.LoadFile(l, false));
             const results = await Promise.all(promises);
 
             let content = '';
@@ -202,6 +208,18 @@ export default class CodeEditor {
             // sourceMap: true,
             // inlineSourceMap: true
         }, moduleName + '.ts', undefined, moduleName + '.ts');
+    }
+
+    /**
+     * Gets all the typings and returns its result
+     */
+    public static async GetTypings (): Promise<Typings[]> {
+        const result = [];
+
+        for (const l of this.Libs)
+            result.push({ name: `typings/${Tools.GetFilename(l)}`, id: l, content: await Tools.LoadFile(l, false) });
+
+        return result;
     }
 
     /**

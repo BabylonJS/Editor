@@ -1,4 +1,4 @@
-import { Effect, Material } from 'babylonjs';
+import { Effect, Material, Tools as BabylonTools } from 'babylonjs';
 
 import Editor, {
     Tools,
@@ -6,7 +6,8 @@ import Editor, {
     Dialog,
     CodeEditor,
     EditorPlugin,
-    CodeProjectEditorFactory
+    CodeProjectEditorFactory,
+    VSCodeSocket
 } from 'babylonjs-editor';
 import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
@@ -95,6 +96,7 @@ export default class MaterialEditor extends EditorPlugin {
         if (!this.editor.core.scene.metadata['MaterialCreator']) {
             this.datas = this.editor.core.scene.metadata['MaterialCreator'] = [{
                 name: 'Custom material',
+                id: BabylonTools.RandomId(),
                 code: MaterialEditor.DefaultCode,
                 vertex: MaterialEditor.DefaultVertex,
                 pixel: MaterialEditor.DefaultPixel,
@@ -175,6 +177,35 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Events
         this.editor.core.onResize.add(this.onResize);
+
+        // Sockets
+        VSCodeSocket.OnUpdateMaterialCode = async (d: MaterialCreatorMetadata) => {
+            // Get effective script modified in the vscode editor
+            const effective = this.datas.find(s => s.id === d.id);
+            const compiledCode = d.code ? await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
+                module: 'cjs',
+                target: 'es5',
+                experimentalDecorators: true,
+            }) : null;
+
+            if (!effective) {
+                // Just refresh
+                VSCodeSocket.RefreshMaterial(this.datas);
+                return;
+            }
+            else {
+                // Just update
+                d.code && (effective.code = d.code);
+                d.pixel && (effective.pixel = d.pixel);
+                d.vertex && (effective.vertex = d.vertex);
+                d.config && (effective.config = d.config);
+                compiledCode && (effective.compiledCode = compiledCode);
+            }
+
+            if (this.data && this.data.id === d.id) {
+                this.selectMaterial(this.datas.indexOf(this.data));
+            }
+        };
     }
 
     /**
@@ -213,6 +244,7 @@ export default class MaterialEditor extends EditorPlugin {
         const name = await Dialog.CreateWithTextInput('Material Name');
         const data: MaterialCreatorMetadata = {
             name: name,
+            id: BabylonTools.RandomId(),
             code: MaterialEditor.DefaultCode,
             vertex: MaterialEditor.DefaultVertex,
             pixel: MaterialEditor.DefaultPixel,
@@ -239,6 +271,9 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Notify
         this.editor.core.onAddObject.notifyObservers(material);
+
+        // Update socket
+        VSCodeSocket.RefreshMaterial(data);
     }
 
     /**
@@ -254,6 +289,9 @@ export default class MaterialEditor extends EditorPlugin {
             material.name = value;
         
         data.name = value;
+
+        // Update socket
+        VSCodeSocket.RefreshMaterial(this.datas);
     }
 
     /**
@@ -282,6 +320,9 @@ export default class MaterialEditor extends EditorPlugin {
             material.dispose(true);
 
         this.datas.splice(id, 1);
+
+        // Update socket
+        VSCodeSocket.RefreshMaterial(this.datas);
     }
 
     /**
@@ -328,6 +369,8 @@ export default class MaterialEditor extends EditorPlugin {
             if (this.data) {
                 this.data.code = value;
                 this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
+
+                VSCodeSocket.RefreshMaterial(this.data);
             }
         };
 
@@ -337,6 +380,8 @@ export default class MaterialEditor extends EditorPlugin {
             
             this.data.vertex = value;
             this.updateShaders();
+
+            VSCodeSocket.RefreshMaterial(this.data);
         };
 
         this.pixel.onChange = (value) => {
@@ -345,6 +390,8 @@ export default class MaterialEditor extends EditorPlugin {
             
             this.data.pixel = value;
             this.updateShaders();
+
+            VSCodeSocket.RefreshMaterial(this.data);
         };
 
         this.config.onChange = (value) => {
@@ -364,6 +411,8 @@ export default class MaterialEditor extends EditorPlugin {
                     this.updateShaders();
                 } catch (e) { /* Silently */ }
             }
+
+            VSCodeSocket.RefreshMaterial(this.data);
         };
     }
 

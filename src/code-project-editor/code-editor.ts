@@ -46,7 +46,7 @@ export default class CodeEdit {
         this.code.onChange = value => {
             // Set a timeout before transpilation until the user
             // finished typings his code
-            clearTimeout(compileTimeoutId);
+            clearTimeout(<any> compileTimeoutId);
 
             compileTimeoutId = setTimeout(() => {
                 const config = {

@@ -755,6 +755,11 @@ declare module 'babylonjs-editor/editor/gui/code' {
     export interface TypescriptDisposable extends IDisposable {
             [index: string]: any;
     }
+    export interface Typings {
+            name: string;
+            id: string;
+            content: string;
+    }
     export default class CodeEditor {
             editor: MonacoDisposable;
             onChange: (value: string) => void;
@@ -765,6 +770,7 @@ declare module 'babylonjs-editor/editor/gui/code' {
             }[];
             static CustomLibs: IStringDictionary<MonacoDisposable>;
             static Instances: MonacoDisposable[];
+            static Libs: string[];
             /**
                 * Remove extra lib from the registered callers
                 * @param caller the caller reference (Window)
@@ -810,6 +816,10 @@ declare module 'babylonjs-editor/editor/gui/code' {
                 * @param source the source to transpile
                 */
             static TranspileTypeScript(source: string, moduleName: string, config?: any): Promise<string>;
+            /**
+                * Gets all the typings and returns its result
+                */
+            static GetTypings(): Promise<Typings[]>;
             /**
                 * Creates a windowed editor
                 * @param options: the editor's configuration
@@ -1753,6 +1763,7 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
     export default class VSCodeSocket {
             static Socket: SocketIOClient.Socket;
             static OnUpdateBehaviorCode: (s: any) => void;
+            static OnUpdateMaterialCode: (s: any) => void;
             /**
                 * Creates a scene preview listener
                 */
@@ -1761,7 +1772,17 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
                 * Refreshes the scripts
                 * @param scripts the scripts to send (alone or as an array)
                 */
-            static Refresh(scripts?: any | any[]): void;
+            static Refresh(): void;
+            /**
+                * Refrehses the given behavior (single or array)
+                * @param data: the behavior datas to update (single or array)
+                */
+            static RefreshBehavior(data: any | any[]): void;
+            /**
+                * Refrehses the given materials (single or array)
+                * @param data: the materials datas to update (single or array)
+                */
+            static RefreshMaterial(data: any | any[]): void;
     }
 }
 

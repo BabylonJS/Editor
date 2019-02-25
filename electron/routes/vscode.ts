@@ -8,8 +8,8 @@ export default class VSCodeRouter {
     public router: KoaRouter;
     public webServer: WebServer;
 
-    public server: IO = null;
-    public client: IO = null;
+    public editorSocket: IO = null;
+    public vsCodeSocket: IO = null;
 
     // Private members
     private _scripts: any[] = [];
@@ -24,41 +24,25 @@ export default class VSCodeRouter {
 
         // Socket
         this.createSocket();
-
-        // Create routes
-        this.getBehaviorCodes();
-        
-        webServer.localApplication.use(this.router.routes());
     }
 
     // Creates the sockets
     protected createSocket (): void {
         // Server
-        this.server = new IO('vscode');
-        this.server.attach(this.webServer.localApplication);
+        this.editorSocket = new IO('vscode');
+        this.editorSocket.attach(this.webServer.localApplication);
 
         // Client
-        this.client = new IO('vscode-extension');
-        this.client.attach(this.webServer.localApplication);
+        this.vsCodeSocket = new IO('vscode-extension');
+        this.vsCodeSocket.attach(this.webServer.localApplication);
         
-        this.server.on('connection', () => {
-            this.server.on('behavior-codes', (codes) => {
-                this._scripts = codes.data;
-                this.client.broadcast('behavior-codes', this._scripts);
-            });
+        this.editorSocket.on('connection', () => {
+            // Work as mirror
+            this.editorSocket.on('behavior-codes', (c) => this.vsCodeSocket.broadcast('behavior-codes', c.data));
+            this.vsCodeSocket.on('update-behavior-code', (s) => this.editorSocket.broadcast('update-behavior-code', s.data));
 
-            this.client.on('update-behavior-code', (script) => {
-                this.server.broadcast('update-behavior-code', script.data);
-            });
-        });
-    }
-
-    /**
-     * Gets all the behavior codes
-     */
-    protected getBehaviorCodes (): void {
-        this.router.get('/behaviorCodes', async (ctx, next) => {
-            ctx.body = this._scripts;
+            this.editorSocket.on('material-codes', (c) => this.vsCodeSocket.broadcast('material-codes', c.data));
+            this.vsCodeSocket.on('update-material-code', (c) => this.editorSocket.broadcast('update-material-code', c.data));
         });
     }
 }

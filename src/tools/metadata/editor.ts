@@ -75,7 +75,7 @@ export default class MetadataEditor extends EditorPlugin {
                 this.toolbar.notifyMessage('');
             } catch (e) {
                 //  Check JSON validation after 1s
-                this._checkTimeout = setTimeout(() => {
+                this._checkTimeout = <any> setTimeout(() => {
                     this.toolbar.notifyMessage(`<h4 style="color: rgb(255, 0, 0);">${e.message}</h4>Error`);
                     this._checkTimeout = -1;
                 }, 1000);

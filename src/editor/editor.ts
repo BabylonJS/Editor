@@ -822,7 +822,7 @@ export default class Editor implements IUpdatable {
                 this.core.onSelectObject.notifyObservers(this.core.scene);
 
                 // Refresh vscode
-                VSCodeSocket.Refresh(this.core.scene.metadata.behaviorScripts);
+                VSCodeSocket.Refresh();
             };
 
             const dialogCallback = async (doNotAppend: boolean) => {

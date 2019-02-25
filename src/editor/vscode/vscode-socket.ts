@@ -6,6 +6,7 @@ export default class VSCodeSocket {
     // Public members
     public static Socket: SocketIOClient.Socket = null;
     public static OnUpdateBehaviorCode: (s: any) => void;
+    public static OnUpdateMaterialCode: (s: any) => void;
 
     // Private members
     private static _Editor: Editor = null;
@@ -20,49 +21,37 @@ export default class VSCodeSocket {
             return;
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
-        this.Socket.on('update-behavior-code', d => this._UpdateBehaviorCodes(d));
+        this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
+        this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
     }
 
     /**
      * Refreshes the scripts
      * @param scripts the scripts to send (alone or as an array)
      */
-    public static Refresh (scripts?: any | any[]): void {
+    public static Refresh (): void {
         const metadatas = this._Editor.core.scene.metadata;
         if (!metadatas)
             return;
         
-        this.Socket.emit('behavior-codes', scripts || metadatas.behaviorScripts || []);
+        this.Socket.emit('behavior-codes', metadatas.behaviorScripts || []);
+        this.Socket.emit('material-codes', metadatas.MaterialCreator || []);
+        this.Socket.emit('post-process-codes', metadatas.PostProcessCreator || []);
     }
 
-    // Updates the behavior codes. Will update the found script. Else, will
-    // create a new script and add to the scripts collection for behavior editor
-    private static async _UpdateBehaviorCodes (d: any): Promise<void> {
-        // Get effective script modified in the vscode editor
-        const scripts = this._Editor.core.scene.metadata.behaviorScripts;
-        const effective = scripts.find(s => s.id === d.id);
+    /**
+     * Refrehses the given behavior (single or array)
+     * @param data: the behavior datas to update (single or array)
+     */
+    public static RefreshBehavior (data: any | any[]): void {
+        this.Socket.emit('behavior-codes', data);
+    }
 
-        if (!effective) {
-            // Created file from editor
-            scripts.push({
-                name: d.name,
-                id: d.id,
-                code: d.code,
-                compiledCode: await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
-                    module: 'cjs',
-                    target: 'es5',
-                    experimentalDecorators: true,
-                })
-            });
-            this._Editor.assets.refresh();
-            return;
-        }
-        else {
-            // Just update
-            effective.code = d.code;
-        }
-
-        // Notify
-        this.OnUpdateBehaviorCode(d);
+    /**
+     * Refrehses the given materials (single or array)
+     * @param data: the materials datas to update (single or array)
+     */
+    public static RefreshMaterial (data: any | any[]): void {
+        this.Socket.emit('material-codes', data);
     }
 }

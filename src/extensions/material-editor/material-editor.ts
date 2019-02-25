@@ -18,6 +18,7 @@ export interface MaterialCreatorUserConfig {
 
 export interface MaterialCreatorMetadata {
     name: string;
+    id?: string;
     code: string;
     compiledCode?: string;
     vertex: string;
@@ -173,7 +174,10 @@ export default class MaterialEditorExtension extends Extension<MaterialCreatorMe
         this.scene.metadata['MaterialCreator'] = [];
 
         // For each material
-        this.datas.forEach(d => this.scene.metadata['MaterialCreator'].push(d));
+        this.datas.forEach(d => {
+            d.id = d.id || Tools.RandomId(); // Now need an id
+            this.scene.metadata['MaterialCreator'].push(d);
+        });
     }
 }
 
