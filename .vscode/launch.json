@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch (source maps)",
+            "name": "Chrome Launch (source maps)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
@@ -11,7 +11,7 @@
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
         {
-            "name": "Launch (without source maps)",
+            "name": "Chrome Launch (without source maps)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:1338/index-debug.html",
@@ -20,22 +20,7 @@
             "userDataDir": "${workspaceRoot}/.tempChromeProfileForDebug"
         },
         {
-            "name": "Electron Web",
-            "type": "chrome",
-            "request": "launch",
-            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
-            "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
-            },
-            "runtimeArgs": [
-                "${workspaceRoot}/.build/electron/main.js",
-                "--remote-debugging-port=9222"
-            ],
-            "webRoot": "${workspaceRoot}",
-            "sourceMaps": true
-        },
-        {
-            "name": "Electron Server",
+            "name": "Launch Electron With Devtools",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceRoot}",
@@ -47,6 +32,37 @@
                 "DEBUG": "true"
             },
             "args": [
+                "--remote-debugging-port=9223",
+                "."
+            ],
+            "outFiles": [
+                "build/**/*.js"
+            ],
+            "sourceMaps": true
+        },
+        {
+            "name": "Attach Electron Renderer",
+            "type": "chrome",
+            "request": "attach",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "port": 9223,
+            "sourceMapPathOverrides": {
+				"file://*": "${workspaceRoot}/src/*",
+				"file://./*": "${workspaceRoot}/src/*",
+			}
+        },
+        {
+            "name": "Launch Electron",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
+            "args": [
+                "--remote-debugging-port=9223",
                 "."
             ],
             "outFiles": [
@@ -66,8 +82,12 @@
     ],
     "compounds": [
         {
+            "name": "Editor",
+            "configurations": ["Launch Electron", "Attach Electron Renderer"],
+        },
+        {
             "name": "Editor & VSCode Extension Debug",
-            "configurations": ["Electron Server", "VSCode Extension"]
+            "configurations": ["Launch Electron", "Attach Electron Renderer", "VSCode Extension"]
         }
     ]
 }
