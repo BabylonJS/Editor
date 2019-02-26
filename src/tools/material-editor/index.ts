@@ -65,6 +65,7 @@ export default class MaterialEditor extends EditorPlugin {
      */
     public async close (): Promise<void> {
         this.layout.element.destroy();
+        this.toolbar.element.destroy();
         this.grid.element.destroy();
         
         this.code.dispose();
@@ -300,6 +301,13 @@ export default class MaterialEditor extends EditorPlugin {
      */
     protected selectMaterial (id: number): void {
         this.data = this.datas[id];
+        if (!this.data) {
+            this.code.setValue('');
+            this.vertex.setValue('');
+            this.pixel.setValue('');
+            this.config.setValue('');
+            return this.layout.lockPanel('main', 'No Material Selected');
+        }
 
         this.code.setValue(this.data.code);
         this.vertex.setValue(this.data.vertex);
@@ -308,6 +316,9 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Manage extra libs
         Helpers.UpdateMonacoTypings(this.editor, this.data);
+
+        // Unlock
+        this.layout.unlockPanel('main');
     }
 
     /**
@@ -323,6 +334,9 @@ export default class MaterialEditor extends EditorPlugin {
 
         // Update socket
         VSCodeSocket.RefreshMaterial(this.datas);
+
+        // Select first material
+        this.selectMaterial(0);
     }
 
     /**
@@ -346,16 +360,16 @@ export default class MaterialEditor extends EditorPlugin {
      */
     protected async createEditors (): Promise<void> {
         // Create editors
-        this.code = new CodeEditor('typescript', this.data.code);
+        this.code = new CodeEditor('typescript', '');
         await this.code.build('MATERIAL-CREATOR-EDITOR-CODE');
 
-        this.vertex = new CodeEditor('cpp', this.data.vertex);
+        this.vertex = new CodeEditor('cpp', '');
         await this.vertex.build('MATERIAL-CREATOR-EDITOR-VERTEX');
 
-        this.pixel = new CodeEditor('cpp', this.data.pixel);
+        this.pixel = new CodeEditor('cpp', '');
         await this.pixel.build('MATERIAL-CREATOR-EDITOR-PIXEL');
 
-        this.config = new CodeEditor('json', this.data.config);
+        this.config = new CodeEditor('json', '');
         await this.config.build('MATERIAL-CREATOR-EDITOR-CONFIG');
 
         // Events
