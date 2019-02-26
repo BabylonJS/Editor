@@ -18,30 +18,20 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "babylonjs-editor-explorer",
+                    "id": "babylonjs-editor-preview",
                     "title": "Babylon.JS Editor",
                     "icon": "assets/logo.png"
                 }
             ]
         },
         "views": {
-            "babylonjs-editor-explorer": [
+            "babylonjs-editor-preview": [
                 {
                     "id": "behaviorCode",
-                    "name": "Code Explorer"
+                    "name": "Preview"
                 }
             ]
         },
-        "commands": [
-            {
-                "command": "behaviorCode.refresh",
-                "title": "Refresh",
-                "icon": {
-                    "light": "assets/light/refresh.svg",
-                    "dark": "assets/dark/refresh.svg"
-                }
-            }
-        ],
         "menus": {
             "view/title": [
                 {

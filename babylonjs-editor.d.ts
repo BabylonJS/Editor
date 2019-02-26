@@ -1764,6 +1764,7 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
             static Socket: SocketIOClient.Socket;
             static OnUpdateBehaviorCode: (s: any) => void;
             static OnUpdateMaterialCode: (s: any) => void;
+            static OnUpdatePostProcessCode: (s: any) => void;
             /**
                 * Creates a scene preview listener
                 */
@@ -1783,6 +1784,11 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
                 * @param data: the materials datas to update (single or array)
                 */
             static RefreshMaterial(data: any | any[]): void;
+            /**
+                * Refreshes the given post-processes (single or array)
+                * @param data: the post-processes datas to update (single or array)
+                */
+            static RefreshPostProcess(data: any | any[]): void;
     }
 }
 

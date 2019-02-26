@@ -1,12 +1,13 @@
 import * as SocketIO from 'socket.io-client';
+
 import Editor from '../editor';
-import CodeEditor from '../gui/code';
 
 export default class VSCodeSocket {
     // Public members
     public static Socket: SocketIOClient.Socket = null;
     public static OnUpdateBehaviorCode: (s: any) => void;
     public static OnUpdateMaterialCode: (s: any) => void;
+    public static OnUpdatePostProcessCode: (s: any) => void;
 
     // Private members
     private static _Editor: Editor = null;
@@ -21,8 +22,10 @@ export default class VSCodeSocket {
             return;
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
+        this.Socket.on('refresh', () => this.Refresh());
         this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
         this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
+        this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
     }
 
     /**
@@ -53,5 +56,13 @@ export default class VSCodeSocket {
      */
     public static RefreshMaterial (data: any | any[]): void {
         this.Socket.emit('material-codes', data);
+    }
+
+    /**
+     * Refreshes the given post-processes (single or array)
+     * @param data: the post-processes datas to update (single or array)
+     */
+    public static RefreshPostProcess (data: any | any[]): void {
+        this.Socket.emit('post-process-codes', data);
     }
 }

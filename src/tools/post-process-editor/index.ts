@@ -8,7 +8,8 @@ import Editor, {
     Dialog,
     EditorPlugin,
     Picker,
-    CodeProjectEditorFactory
+    CodeProjectEditorFactory,
+    VSCodeSocket
 } from 'babylonjs-editor';
 import CodeProjectEditor from 'babylonjs-editor-code-editor';
 
@@ -191,6 +192,34 @@ export default class PostProcessEditor extends EditorPlugin {
         // Opened in editor?
         if (PostProcessEditor.CodeProjectEditor)
             this.layout.lockPanel('main');
+
+        // Sockets
+        VSCodeSocket.OnUpdatePostProcessCode = async (d: PostProcessCreatorMetadata) => {
+            // Get effective script modified in the vscode editor
+            const effective = this.datas.find(s => s.id === d.id);
+            const compiledCode = d.code ? await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
+                module: 'cjs',
+                target: 'es5',
+                experimentalDecorators: true,
+            }) : null;
+
+            if (!effective) {
+                // Just refresh
+                VSCodeSocket.RefreshPostProcess(this.datas);
+                return;
+            }
+            else {
+                // Just update
+                d.code && (effective.code = d.code);
+                d.pixel && (effective.pixel = d.pixel);
+                d.config && (effective.config = d.config);
+                compiledCode && (effective.compiledCode = compiledCode);
+            }
+
+            if (this.data && this.data.id === d.id) {
+                this.selectPostProcess(this.datas.indexOf(this.data));
+            }
+        };
     }
 
     /**
@@ -252,6 +281,9 @@ export default class PostProcessEditor extends EditorPlugin {
 
             this.layout.lockPanel('main');
         }
+
+        // Update socket
+        VSCodeSocket.RefreshPostProcess(this.datas);
     }
 
     /**
@@ -299,6 +331,9 @@ export default class PostProcessEditor extends EditorPlugin {
 
         // UI
         this.layout.unlockPanel('main');
+
+        // Update socket
+        VSCodeSocket.RefreshPostProcess(data);
     }
 
     /**
@@ -379,6 +414,9 @@ export default class PostProcessEditor extends EditorPlugin {
             
             return;
         }
+
+        // Update socket
+        VSCodeSocket.RefreshMaterial(this.datas);
     }
 
     /**
@@ -425,6 +463,8 @@ export default class PostProcessEditor extends EditorPlugin {
             if (this.data) {
                 this.data.code = value;
                 this.data.compiledCode = this.code.transpileTypeScript(value, this.data.name.replace(/ /, ''));
+
+                VSCodeSocket.RefreshPostProcess(this.data);
             }  
         };
 
@@ -435,6 +475,8 @@ export default class PostProcessEditor extends EditorPlugin {
             this.data.pixel = value;
             Effect.ShadersStore[this.data.name + 'PixelShader'] = this.data.pixel;
             this.createOrUpdatePostProcess(this.data.name);
+
+            VSCodeSocket.RefreshPostProcess(this.data);
         };
         
         this.config.onChange = (value) => {
@@ -447,6 +489,8 @@ export default class PostProcessEditor extends EditorPlugin {
                 const config = JSON.parse(value);
                 const p = this.createOrUpdatePostProcess(this.data.name);
             } catch (e) { /* Catch silently */ }
+
+            VSCodeSocket.RefreshPostProcess(this.data);
         }
     }
 

@@ -107,6 +107,24 @@ export default class CustomFileSystem implements FileSystemProvider {
                 this.writeFile(Uri.parse(`${root}${s.name}/config.json`), Buffer.from(s.config), { create: true, overwrite: true }, s.id);
             });
         });
+
+        Sockets.OnGotPostProcessCodes = (scripts => {
+            // Clear
+            Array.isArray(scripts) && this._clearDirectory('post-processes');
+            // Transform to array
+            scripts = Array.isArray(scripts) ? scripts : [scripts];
+
+            // Write scripts
+            scripts.forEach(s => {
+                const root = 'babylonjs-editor:/post-processes/';
+                // Create folder
+                this.createDirectory(Uri.parse(root + s.name));
+
+                this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.ts`), Buffer.from(s.code), { create: true, overwrite: true }, s.id);
+                this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.fragment.fx`), Buffer.from(s.pixel), { create: true, overwrite: true }, s.id);
+                this.writeFile(Uri.parse(`${root}${s.name}/config.json`), Buffer.from(s.config), { create: true, overwrite: true }, s.id);
+            });
+        });
     }
 
     /**
@@ -184,6 +202,7 @@ export default class CustomFileSystem implements FileSystemProvider {
             switch (root.name || parent.name) {
                 case 'behaviors': Sockets.UpdateBehaviorCode(result); break;
                 case 'materials': Sockets.UpdateMaterialCode(result); break;
+                case 'post-processes': Sockets.UpdatePostProcessCode(result); break;
                 default: throw FileSystemError.FileNotFound(uri);
             }
         }
