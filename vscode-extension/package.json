@@ -19,26 +19,17 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "babylonjs-editor-preview",
+                    "id": "babylonjs-editor-plugin",
                     "title": "Babylon.JS Editor",
                     "icon": "assets/logo.png"
                 }
             ]
         },
         "views": {
-            "babylonjs-editor-preview": [
+            "babylonjs-editor-plugin": [
                 {
-                    "id": "behaviorCode",
-                    "name": "Preview"
-                }
-            ]
-        },
-        "menus": {
-            "view/title": [
-                {
-                    "command": "behaviorCode.refresh",
-                    "when": "view == behaviorCode",
-                    "group": "navigation"
+                    "id": "babylonjsEditorPlugin",
+                    "name": "Babylon.JS Editor"
                 }
             ]
         }
