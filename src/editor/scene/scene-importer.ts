@@ -63,6 +63,9 @@ export default class SceneImporter {
             }
         }
 
+        // Add the .editorproject
+        project.filesList.push(Tools.GetFilename(path));
+
         // Load all files
         for (const f of project.filesList) {
             promises.push(new Promise<void>(async (resolve) => {

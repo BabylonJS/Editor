@@ -780,16 +780,13 @@ export default class Editor implements IUpdatable {
                     CodeProjectEditorFactory.CloseAll();
                 }
 
-                for (const f in FilesInputStore.FilesToLoad) {
-                    const file = FilesInputStore.FilesToLoad[f];
-                    if (Tools.GetFileExtension(file.name) === 'editorproject') {
-                        this.projectFileName = file.name;
-                        Tools.SetWindowTitle(file.name);
-                        
-                        const content = await Tools.ReadFileAsText(file);
-                        await ProjectImporter.Import(this, JSON.parse(content));
-                        break;
-                    }
+                const projectFile = this._getProjectFileFromFilesInputStore();
+                if (projectFile) {
+                    this.projectFileName = projectFile.name;
+                    Tools.SetWindowTitle(projectFile.name);
+                    
+                    const content = await Tools.ReadFileAsText(projectFile);
+                    await ProjectImporter.Import(this, JSON.parse(content));
                 }
 
                 // Default light
@@ -892,6 +889,17 @@ export default class Editor implements IUpdatable {
         });
 
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvasEditor'));
+    }
+
+    // Returns the project file looking from the files input store
+    private _getProjectFileFromFilesInputStore (): File {
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
+            if (Tools.GetFileExtension(file.name) === 'editorproject')
+                return file;
+        }
+
+        return null;
     }
 
     // Creates the scene picker

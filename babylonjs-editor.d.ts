@@ -1655,7 +1655,8 @@ declare module 'babylonjs-editor/editor/scene/scene-factory' {
 declare module 'babylonjs-editor/editor/scene/scene-preview' {
     import Editor from 'babylonjs-editor/editor/editor';
     export default class ScenePreview {
-            static socket: SocketIOClient.Socket;
+            static externSocket: SocketIOClient.Socket;
+            static localSocket: SocketIOClient.Socket;
             /**
                 * Creates a scene preview listener
                 */
@@ -1663,7 +1664,7 @@ declare module 'babylonjs-editor/editor/scene/scene-preview' {
             /**
                 * Creates the files
                 */
-            static CreateFiles(editor: Editor): Promise<void>;
+            static CreateFiles(editor: Editor, socket: SocketIOClient.Socket): Promise<void>;
     }
 }
 
