@@ -415,7 +415,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
         const fnName = node ? (node instanceof Scene ? 'scene' : node.name.replace(/ /g, '')) + code.name.replace(/ /g, '') : code.name.replace(/ /g, '');
         const effectiveCode = template.replace(/{{name}}/g, fnName)
-                                      .replace(/{{class}}/g, node.constructor.name)
+                                      .replace(/{{class}}/g, node ? node.constructor.name : '')
                                       .replace(/{{node}}/g, this._getEffectiveConstructorName(node))
                                       .replace(/{{code}}/g, code.compiledCode || code.code);
         // Evaluate?

@@ -1,5 +1,5 @@
-var capturer = new CCapture({ format: 'webm', framerate: 60, display: true });
 var vscode = acquireVsCodeApi();
+var renderScene = true;
 
 /**
  * Returns the extension of the file
@@ -49,9 +49,10 @@ var createFile = function (buffer, filename) {
  */
 var loadScene = function (sceneFile) {
     var engine = new BABYLON.Engine(document.getElementById('renderCanvas'));
-    window.addEventListener("resize", function () {
-        engine.resize();
-    });
+
+    window.addEventListener("resize", function () { engine.resize(); });
+    window.addEventListener("blur", function () { renderScene = false });
+    window.addEventListener("focus", function () { renderScene = true });
 
     // Import scene
     BABYLON.SceneLoader.Load('file:', sceneFile.name, engine, function (scene) {
@@ -84,7 +85,9 @@ var runScene = function (engine, scene) {
     scene.executeWhenReady(function () {
         scene.activeCamera.attachControl(engine.getRenderingCanvas());
         engine.runRenderLoop(function () {
-            scene.render();
+            if (renderScene) {
+                scene.render();
+            }
         });
     });
 }
@@ -125,6 +128,9 @@ socket.on('request-scene', (files) => {
     loadScene(sceneFile);
 });
 
+/**
+ * Refreshes the page
+ */
 var refresh = function () {
     vscode.postMessage({ command: 'refresh' });
 };
