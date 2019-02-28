@@ -5,6 +5,8 @@ import {
 import * as path from 'path';
 import * as fs from 'fs';
 
+import { getIp } from './utils';
+
 export class Item extends TreeItem {
     // Public members
     public contextValue: string = 'item';
@@ -39,12 +41,16 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
     public readonly onDidChangeTreeData: Event<Item | undefined> = this._onDidChangeTreeData.event;
 
     // Private members
+    private _extensionPath: string;
     private _currentPreview: WebviewPanel = null;
     
     /**
      * Constructor
      */
     constructor (extensionPath: string) {
+        // Misc.
+        this._extensionPath = extensionPath;
+
         // Register commands
         commands.registerCommand('babylonjsEditorPlugin.openPreview', async () => {
             if (this._currentPreview)
@@ -54,11 +60,22 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             this._currentPreview = window.createWebviewPanel('babylonjsEditorPreview', 'Preview', ViewColumn.One, {
                 enableScripts: true,
                 localResourceRoots: [
-                    Uri.file(path.join(extensionPath, 'assets/preview'))
+                    Uri.parse(this._extensionPath)
                 ]
             });
             this._currentPreview.onDidDispose(() => this._currentPreview = null);
-            this._currentPreview.webview.html = fs.readFileSync(path.join(extensionPath, 'assets/preview/index.html')).toString();
+
+            this._currentPreview.webview.onDidReceiveMessage(m => {
+                switch (m.command) {
+                    case 'notify': return window.showInformationMessage(m.text);
+                    case 'notifyError': return window.showInformationMessage(m.text);
+
+                    case 'refresh': return this._setHtml();
+                    default: break;
+                }
+            });
+
+            this._setHtml();
         });
     }
 
@@ -77,5 +94,33 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
         return [
             new Item('Preview Scene', TreeItemCollapsibleState.None, { command: 'babylonjsEditorPlugin.openPreview', title: 'Open Preview' })
         ];
-	}
+    }
+    
+    // Returns a random nonce
+    private _getNonce (): string {
+        let text = "";
+        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for (let i = 0; i < 32; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+
+        return text;
+    }
+
+    // Sets html of the panel
+    private async _setHtml (): Promise<void> {
+        const basePath = Uri.parse(path.join(this._extensionPath)).with({ scheme: 'vscode-resource' });
+        const content = await new Promise<string>((resolve, reject) => {
+            fs.readFile(path.join(this._extensionPath, 'assets/preview/index.html'), (err, buffer) => {
+                if (err) return reject(err);
+                resolve(buffer.toString()
+                              .replace(/{{base}}/g, basePath.toString())
+                              .replace(/{{nonce}}/g, this._getNonce())
+                              .replace(/{{ip}}/g, getIp())
+                );
+            });
+        });
+        this._currentPreview.webview.html = content;
+    }
 }

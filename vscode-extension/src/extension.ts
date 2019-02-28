@@ -2,7 +2,7 @@ import { ExtensionContext, workspace, Uri, window } from 'vscode';
 
 import Sockets from './socket';
 import CustomFileSystem from './file-system';
-import BabylonJSEditorPlugin from './tree-view';
+import BabylonJSEditorPlugin from './plugin';
 
 /**
  * Activtes the extension

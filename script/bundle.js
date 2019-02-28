@@ -59,10 +59,9 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
     globalDeps: {
       'babylonjs': 'BABYLON',
       'spectorjs': 'SPECTOR',
-      'cannon': 'CANNON',
-      'earcut': 'Earcut'
+      'cannon': 'CANNON'
     },
-    externals: ['babylonjs', 'cannon', 'earcut'],
+    externals: ['babylonjs', 'cannon'],
     minify: true
 });
 
