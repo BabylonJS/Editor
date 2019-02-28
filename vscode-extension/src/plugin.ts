@@ -80,7 +80,7 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
     }
 
     /**
-     * 
+     * Returns the item as a tree item
      */
 	public getTreeItem(element: Item): TreeItem {
         // Element already an item, just return the element
@@ -88,7 +88,7 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
     }
     
     /**
-     * 
+     * Returns the children of the given tree item
      */
     public getChildren(element?: Item): Item[] {
         return [
@@ -108,7 +108,7 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
         return text;
     }
 
-    // Sets html of the panel
+    // Sets html of the webview
     private async _setHtml (): Promise<void> {
         const basePath = Uri.parse(path.join(this._extensionPath)).with({ scheme: 'vscode-resource' });
         const content = await new Promise<string>((resolve, reject) => {
