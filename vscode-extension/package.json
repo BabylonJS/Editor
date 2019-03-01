@@ -60,7 +60,10 @@
         "javascript-astar": "~0.4.1",
         "litegraph.js": "~0.6.0",
         "spectorjs": "~0.9.2",
-        "cannon": "~0.6.2"
+        "cannon": "~0.6.2",
+        "w2ui": "~1.4.3",
+        "jquery": "~3.2.1",
+        "jquery-contextmenu": "2.8.0"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",

@@ -227,9 +227,18 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             }
 
             if (this.data && this.data.id === d.id) {
+                const scale = this.graph.scale;
+                const offset = this.graph.offset.slice();
+
                 LiteGraphNode.Loaded = false;
                 this.graphData.configure(this.data.graph);
                 LiteGraphNode.Loaded = true;
+
+                this.graph.offset = offset;
+                this.graph.scale = scale;
+
+                this.graph.dirty_canvas = true;
+                this.graph.dirty_bgcanvas = true;
             }
         };
     }

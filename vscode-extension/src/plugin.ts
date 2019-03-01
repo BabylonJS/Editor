@@ -113,17 +113,27 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             // Create panel
             panel = window.createWebviewPanel('babylonjsEditorGraph' + id, g.name, ViewColumn.One, {
                 enableScripts: true,
+                retainContextWhenHidden: true,
                 localResourceRoots: [Uri.parse(this._extensionPath)]
             });
-            panel.onDidDispose(() => delete this._behaviorGraphs[id]);
-            this._behaviorGraphs[id] = panel;
+            panel.onDidDispose(() => delete this._graphPanels[id]);
+            this._graphPanels[id] = panel;
 
             const url = 'assets/graph/index.html';
             this._bindMessageEvents(panel, url);
             await this._setHtml(panel, url);
 
-            // Set graph
-            panel.webview.postMessage({ command: 'set-graph', graph: g });
+            // Events
+            panel.webview.onDidReceiveMessage(m => {
+                switch (m.command) {
+                    case 'require-graph': return panel.webview.postMessage({ command: 'set-graph', graph: g });
+                    case 'set-graph':
+                        const effective = this._behaviorGraphs.find(b => b.id === m.graph.id);
+                        effective.graph = m.graph.graph;
+                        return Socket.UpdateBehaviorGraph(m.graph);
+                    default: break;
+                }
+            });
         });
 
         // Events
@@ -132,6 +142,15 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             if (Array.isArray(g)) {
                 this._behaviorGraphs = g;
                 this._onDidChangeTreeData.fire();
+
+                // Clean panels
+                for (const id in this._graphPanels) {
+                    const b = this._behaviorGraphs.find(b => b.id === id);
+                    if (!b) {
+                        this._graphPanels[id].dispose();
+                        delete this._graphPanels[id];
+                    }
+                }
                 return;
             }
 
@@ -140,8 +159,8 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             effective.name = g.name;
             effective.graph = g.graph;
             
-            if (this._behaviorGraphs[g.id])
-                this._behaviorGraphs[g.id].webview.postMessage({ command: 'set-graph', graph: g });
+            if (this._graphPanels[g.id])
+                this._graphPanels[g.id].webview.postMessage({ command: 'set-graph', graph: g });
         });
     }
 
@@ -204,13 +223,7 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             switch (m.command) {
                 case 'notify': return window.showInformationMessage(m.text);
                 case 'notifyError': return window.showInformationMessage(m.text);
-
                 case 'refresh': return this._setHtml(panel, url);
-
-                case 'set-graph':
-                    const effective = this._behaviorGraphs.find(b => b.id === m.graph.id);
-                    effective.graph = m.graph.graph;
-                    return Socket.UpdateBehaviorGraph(m.graph);
                 default: break;
             }
         });

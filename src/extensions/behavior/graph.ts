@@ -1,5 +1,5 @@
 import { Scene, AbstractMesh, Light, Camera, Vector3, Tools } from 'babylonjs';
-import { LGraph, LiteGraph } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -21,6 +21,8 @@ import { Number, String, Boolean } from './graph-nodes/basic/const';
 import { Color } from './graph-nodes/basic/color';
 
 import { LiteGraphNode } from './graph-nodes/typings';
+
+export { LGraph, LGraphCanvas, LiteGraph }
 
 // Interfaces
 export interface GraphData {
