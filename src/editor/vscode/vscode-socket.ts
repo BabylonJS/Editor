@@ -9,6 +9,8 @@ export default class VSCodeSocket {
     public static OnUpdateMaterialCode: (s: any) => void;
     public static OnUpdatePostProcessCode: (s: any) => void;
 
+    public static OnUpdateBehaviorGraph: (g: any) => void;
+
     // Private members
     private static _Editor: Editor = null;
 
@@ -26,6 +28,7 @@ export default class VSCodeSocket {
         this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
         this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
         this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
+        this.Socket.on('update-behavior-graph', d => this.OnUpdateBehaviorGraph && this.OnUpdateBehaviorGraph(d));
     }
 
     /**
@@ -40,6 +43,7 @@ export default class VSCodeSocket {
         this.Socket.emit('behavior-codes', metadatas.behaviorScripts || []);
         this.Socket.emit('material-codes', metadatas.MaterialCreator || []);
         this.Socket.emit('post-process-codes', metadatas.PostProcessCreator || []);
+        this.Socket.emit('behavior-graphs', metadatas.behaviorGraphs || []);
     }
 
     /**
@@ -64,5 +68,13 @@ export default class VSCodeSocket {
      */
     public static RefreshPostProcess (data: any | any[]): void {
         this.Socket.emit('post-process-codes', data);
+    }
+
+    /**
+     * Refreshes the given graphs (single or array)
+     * @param data: the graphs datas to update (single or array)
+     */
+    public static RefreshBehaviorGraph (data: any | any[]): void {
+        this.Socket.emit('behavior-graphs', data);
     }
 }

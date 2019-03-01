@@ -9,6 +9,8 @@ export default class Sockets {
     public static OnGotMaterialCodes: (scripts: any) => void;
     public static OnGotPostProcessCodes: (scripts: any) => void;
 
+    public static OnGotBehaviorGraphs: (graphs: any) => void;
+
     // Private members
     private static _Closed: boolean = false;
 
@@ -32,6 +34,7 @@ export default class Sockets {
         this.Socket.on('behavior-codes', (s) => this.OnGotBehaviorCodes(s));
         this.Socket.on('material-codes', (s) => this.OnGotMaterialCodes(s));
         this.Socket.on('post-process-codes', (s) => this.OnGotPostProcessCodes(s));
+        this.Socket.on('behavior-graphs', (g) => this.OnGotBehaviorGraphs(g));
 
         this._Closed = false;
     }
@@ -66,5 +69,13 @@ export default class Sockets {
      */
     public static UpdatePostProcessCode (s: any): void {
         this.Socket.emit('update-post-process-code', s);
+    }
+
+    /**
+     * Updates the given behavior graph
+     * @param g the graph to update
+     */
+    public static UpdateBehaviorGraph (g: any): void {
+        this.Socket.emit('update-behavior-graph', g);
     }
 }

@@ -17,6 +17,7 @@ import Editor, {
     Tree,
     Picker,
     ProjectRoot,
+    VSCodeSocket
 } from 'babylonjs-editor';
 
 import GraphNodeTool from './graph-tool';
@@ -178,7 +179,12 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (ev.button !== 2 && this._contextMenu.mainDiv)
                 this._contextMenu.mainDiv.style.visibility = 'hidden';
         });
-        this.graph.canvas.addEventListener('mousemove', () => this.data && (this.data.graph = this.graphData.serialize()));
+        this.graph.canvas.addEventListener('mousemove', () => {
+            if (this.data) {
+                this.data.graph = this.graphData.serialize();
+                VSCodeSocket.RefreshBehaviorGraph(this.data);
+            }
+        });
         this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
         this.graph.processContextMenu = (node, event) => this.processContextMenu(node, event);
@@ -204,6 +210,28 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Request extension
         this.extension = Extensions.RequestExtension(this.editor.core.scene, 'BehaviorGraphExtension');
         this.editor.assets.addTab(this.extension);
+
+        // Sockets
+        VSCodeSocket.OnUpdateBehaviorGraph = async (d: GraphData) => {
+            const graphs = <GraphData[]> this.editor.core.scene.metadata.behaviorGraphs;
+            const effective = graphs.find(g => g.id === d.id);
+
+            if (!effective) {
+                // Just refresh
+                VSCodeSocket.RefreshBehaviorGraph(graphs);
+                return;
+            }
+            else {
+                // Just update
+                effective.graph = d.graph;
+            }
+
+            if (this.data && this.data.id === d.id) {
+                LiteGraphNode.Loaded = false;
+                this.graphData.configure(this.data.graph);
+                LiteGraphNode.Loaded = true;
+            }
+        };
     }
 
     /**

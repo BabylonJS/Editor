@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Babylon.js Editor - Graph Editor</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!-- <meta
+        http-equiv="Content-Security-Policy"
+        content="
+            default-src vscode-resource:;
+            img-src vscode-resource: https:;
+            script-src vscode-resource: nonce-{{nonce}};
+            style-src vscode-resource: inline;
+            connect-src http://192.168.185.184:1337/client;
+        "
+    /> -->
+    
+    <script nonce="{{nonce}}" src="{{base}}/node_modules/es6-promise/dist/es6-promise.auto.js" type="text/javascript"></script>
+    <script nonce="{{nonce}}" src="{{base}}/node_modules/socket.io-client/dist/socket.io.js" type="text/javascript"></script>
+    <script nonce="{{nonce}}" src="{{base}}/node_modules/litegraph.js/build/litegraph.js" type="text/javascript"></script>
+
+    <!-- <script nonce="{{nonce}}" src="{{base}}/node_modules/babylonjs-editor/dist/editor.extensions.standalone.js" type="text/javascript"></script> -->
+
+    <link nonce="{{nonce}}" rel="stylesheet" type="text/css" href="{{base}}/assets/preview/style.css" />
+    <link nonce="{{nonce}}" rel="stylesheet" type="text/css" href="{{base}}/node_modules/litegraph.js/css/litegraph.css" />
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script nonce="{{nonce}}" src="{{base}}/assets/graph/main.js" type="text/javascript"></script>
+</body>
+</html>
