@@ -38,6 +38,7 @@
         "postinstall": "node ./node_modules/vscode/bin/install",
         "compile": "tsc -p .",
         "watch": "tsc -watch -p .",
+        "build": "npm run compile && npm run package",
         "vscode:prepublish": "npm run compile",
         "package": "vsce package"
     },
