@@ -21,6 +21,7 @@
     "rebuild": "npm run clean && npm run build",
     "watch": "tsc -p . --watch",
     "watch-electron": "tsc -p ./electron --watch",
+    "watch-vscode-extension": "tsc -p ./vscode-extension --watch",
     "webserver": "http-server -p 1338",
     "bundle": "node ./script/dts.js && node ./script/css.js && node ./script/bundle.js && node ./script/electron.js",
     "bundle-js": "node ./script/css.js && node ./script/bundle.js",
