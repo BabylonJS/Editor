@@ -8,3 +8,8 @@ html, body {
     touch-action: none;
     -ms-touch-action: none;
 }
+
+.dg.main .close-button {
+    background-color: #ccc;
+    visibility: hidden;
+}

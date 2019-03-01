@@ -59,7 +59,6 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
             LiteGraphNode.SetColor(node);
         });
 
-
         // Properties
         if (Object.keys(node.properties).length === 0) {
             this.tool.addFolder('No properties');

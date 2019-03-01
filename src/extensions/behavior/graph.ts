@@ -22,7 +22,7 @@ import { Color } from './graph-nodes/basic/color';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
-export { LGraph, LGraphCanvas, LiteGraph }
+export { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode }
 
 // Interfaces
 export interface GraphData {

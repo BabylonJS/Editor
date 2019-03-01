@@ -63,7 +63,8 @@
         "cannon": "~0.6.2",
         "w2ui": "~1.4.3",
         "jquery": "~3.2.1",
-        "jquery-contextmenu": "2.8.0"
+        "jquery-contextmenu": "2.8.0",
+        "dat.gui": "0.7.5"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",

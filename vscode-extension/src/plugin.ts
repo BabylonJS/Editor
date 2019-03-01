@@ -75,6 +75,8 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
     private _graphPanels: { [id: string]: WebviewPanel } = { };
 
     private _behaviorGraphs: any[] = [];
+    private _sceneInfos: any = { };
+    private _selectedObject: any = { };
     
     /**
      * Constructor
@@ -126,7 +128,10 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             // Events
             panel.webview.onDidReceiveMessage(m => {
                 switch (m.command) {
-                    case 'require-graph': return panel.webview.postMessage({ command: 'set-graph', graph: g });
+                    case 'require-graph':
+                        panel.webview.postMessage({ command: 'set-scene-infos', infos: this._sceneInfos });
+                        panel.webview.postMessage({ command: 'set-selected-object', infos: this._selectedObject });
+                        return panel.webview.postMessage({ command: 'set-graph', graph: g });
                     case 'set-graph':
                         const effective = this._behaviorGraphs.find(b => b.id === m.graph.id);
                         effective.graph = m.graph.graph;
@@ -161,6 +166,18 @@ export default class BabylonJSEditorPlugin implements TreeDataProvider<Item> {
             
             if (this._graphPanels[g.id])
                 this._graphPanels[g.id].webview.postMessage({ command: 'set-graph', graph: g });
+        });
+
+        Socket.OnGotSceneInfos = (i => {
+            this._sceneInfos = i;
+            for (const id in this._graphPanels)
+                this._graphPanels[id].webview.postMessage({ command: 'set-scene-infos', infos: i });
+        });
+
+        Socket.OnGotSelectedObject = (s => {
+            this._selectedObject = s;
+            for (const id in this._graphPanels)
+                this._graphPanels[id].webview.postMessage({ command: 'set-selected-object', object: s });
         });
     }
 

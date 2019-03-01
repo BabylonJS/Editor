@@ -8,8 +8,10 @@ export default class Sockets {
     public static OnGotBehaviorCodes: (scripts: any) => void;
     public static OnGotMaterialCodes: (scripts: any) => void;
     public static OnGotPostProcessCodes: (scripts: any) => void;
-
     public static OnGotBehaviorGraphs: (graphs: any) => void;
+
+    public static OnGotSceneInfos: (infos: any) => void;
+    public static OnGotSelectedObject: (obj: any) => void;
 
     // Private members
     private static _Closed: boolean = false;
@@ -35,6 +37,9 @@ export default class Sockets {
         this.Socket.on('material-codes', (s) => this.OnGotMaterialCodes(s));
         this.Socket.on('post-process-codes', (s) => this.OnGotPostProcessCodes(s));
         this.Socket.on('behavior-graphs', (g) => this.OnGotBehaviorGraphs(g));
+
+        this.Socket.on('scene-infos', (i) => this.OnGotSceneInfos(i));
+        this.Socket.on('set-selected-object', (s) => this.OnGotSelectedObject(s));
 
         this._Closed = false;
     }

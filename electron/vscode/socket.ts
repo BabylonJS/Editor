@@ -65,5 +65,8 @@ export default class VSCodeSocket {
 
         this.editorSocket.on('behavior-graphs', (c) => this.vsCodeSocket.broadcast('behavior-graphs', c.data));
         this.vsCodeSocket.on('update-behavior-graph', (c) => this.editorSocket.broadcast('update-behavior-graph', c.data));
+        
+        this.editorSocket.on('scene-infos', (i) => this.vsCodeSocket.broadcast('scene-infos', i.data));
+        this.editorSocket.on('set-selected-object', (i) => this.vsCodeSocket.broadcast('set-selected-object', i.data));
     }
 }
