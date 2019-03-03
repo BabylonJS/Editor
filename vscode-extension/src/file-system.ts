@@ -5,7 +5,7 @@ import {
 import * as path from 'path';
 import * as uuid from 'uuid';
 
-import Sockets from './socket';
+import Sockets from './utils/socket';
 
 export interface CustomCode {
     name: string;

@@ -1796,6 +1796,15 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
                 * @param data: the graphs datas to update (single or array)
                 */
             static RefreshBehaviorGraph(data: any | any[]): void;
+            /**
+                * Refreshes the scene infos
+                */
+            static RefreshSceneInfos(): void;
+            /**
+                * Refreshes the selected object in the editor
+                * @param object the object being selected in the editor
+                */
+            static RefreshSelectedObject(object: any): void;
     }
 }
 

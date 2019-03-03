@@ -1,19 +1,24 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es6",
+        "target": "es5",
         "outDir": ".build",
         "declaration": true,
         "declarationDir": ".declaration",
+        "downlevelIteration": true,
         "lib": [
-            "es6"
+            "es2015.promise",
+            "es2015",
+            "dom",
         ],
         "sourceMap": true,
-        "rootDir": "src",
+        "rootDir": "./",
         "types": [
             "node",
             "vscode",
-            "socket.io-client"
+            "socket.io-client",
+            "javascript-astar",
+            "w2ui"
         ],
     },
     "exclude": [

@@ -14,7 +14,7 @@
     "activationEvents": [
         "*"
     ],
-    "main": "./.build/extension.js",
+    "main": "./.build/src/extension.js",
     "contributes": {
         "viewsContainers": {
             "activitybar": [
@@ -38,7 +38,7 @@
         "postinstall": "node ./node_modules/vscode/bin/install",
         "compile": "tsc -p .",
         "watch": "tsc -watch -p .",
-        "build": "npm run compile && npm run package",
+        "build": "npm run compile && node ./scripts/bundle.js && npm run package",
         "vscode:prepublish": "npm run compile",
         "package": "vsce package"
     },
@@ -69,6 +69,8 @@
     "devDependencies": {
         "@types/node": "^8.10.25",
         "@types/socket.io": "2.1.2",
+        "@types/javascript-astar": "0.0.29",
+        "@types/w2ui": "~1.4.32",
         "typescript": "~3.0.1",
         "vscode": "1.1.30",
         "vsce": "1.57.1"

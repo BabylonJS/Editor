@@ -5,8 +5,8 @@ import {
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { getIp } from './utils';
-import Socket from './socket';
+import { getIp } from './utils/utils';
+import Socket from './utils/socket';
 
 enum FileIcon {
     Document = 'document.svg',
@@ -50,8 +50,8 @@ export class Item extends TreeItem {
      */
     public get iconPath () {
         return {
-            light: path.join(__filename, '..', '..', 'assets', 'light', this._fileIcon),
-            dark: path.join(__filename, '..', '..', 'assets', 'dark', this._fileIcon)
+            light: path.join(__filename, '..', '..', '..', 'assets', 'light', this._fileIcon),
+            dark: path.join(__filename, '..', '..', '..', 'assets', 'dark', this._fileIcon)
         };
     }
 
