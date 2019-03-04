@@ -1,4 +1,5 @@
 import { commands, WebviewPanel, ViewColumn, Uri, window } from "vscode";
+import { join } from 'path';
 
 import BabylonJSEditorPlugin from "../plugin";
 import Utils from "../utils/utils";
@@ -40,6 +41,10 @@ export default class GraphItem {
                 retainContextWhenHidden: true,
                 localResourceRoots: [Uri.parse(Utils.ExtensionPath)]
             });
+            panel.iconPath = {
+                light: Uri.file(join(Utils.ExtensionPath, 'assets', 'light', 'dependency.svg')),
+                dark: Uri.file(join(Utils.ExtensionPath, 'assets', 'dark', 'dependency.svg'))
+            };
             panel.onDidDispose(() => delete this.panels[id]);
             this.panels[id] = panel;
 
@@ -93,7 +98,7 @@ export default class GraphItem {
 
         Sockets.OnGotSelectedObject = (s => {
             this.selectedObject = s;
-            this.postMessageToPanels({ command: 'set-selected-object', object: s });
+            this.postMessageToPanels({ command: 'set-selected-object', name: s });
         });
     }
 

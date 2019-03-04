@@ -103,16 +103,11 @@ export default class VSCodeSocket {
      */
     public static RefreshSelectedObject (object: any): void {
         if (object instanceof Scene) {
-            this.Socket.emit('set-selected-object', SceneSerializer.Serialize(object));
-            return;
-        }
-
-        if (object instanceof AbstractMesh) {
-            this.Socket.emit('set-selected-object', SceneSerializer.SerializeMesh(object, false, false).meshes[0]);
+            this.Socket.emit('set-selected-object', 'Scene');
             return;
         }
 
         if (object instanceof Node)
-            this.Socket.emit('set-selected-object', object['serialize']());
+            this.Socket.emit('set-selected-object', object.name);
     }
 }

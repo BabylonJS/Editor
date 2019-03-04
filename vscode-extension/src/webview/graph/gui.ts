@@ -19,7 +19,7 @@ export default class GUI {
      * Refreshes the GUI
      * @param node the selected node
      */
-    public refresh (node: any): void {
+    public refresh (node: LiteGraphNode): void {
         // Remove?
         if (this.tool) {
             console.log('remove');
@@ -28,7 +28,6 @@ export default class GUI {
         }
 
         // Create
-        console.log('create');
         this.tool = new dat.GUI({
             autoPlace: false,
             scrollable: true
@@ -49,15 +48,13 @@ export default class GUI {
         }
 
         // Common
-        var temp = {
-            _mode: node.mode
-        };
-
         var common = this.tool.addFolder('Common');
         common.open();
         common.add(node, 'title').name('Title');
 
-        var modes = ['ALWAYS', 'ON_EVENT', 'NEVER', 'ON_TRIGGER'];
+        const modes = ['ALWAYS', 'ON_EVENT', 'NEVER', 'ON_TRIGGER'];
+        const temp = { _mode: modes[node.mode] };
+
         temp._mode = modes[node.mode];
         common.add(temp, '_mode', modes).name('Mode').onChange(function (r) {
             node.mode = LiteGraph[r];
@@ -93,7 +90,7 @@ export default class GUI {
                     const path = <string> node.properties['nodePath'];
 
                     if (path === 'self')
-                        return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
+                        return properties.add(node.properties, k, this._getPropertiesPaths(node, '', this.editor.selectedObject)).name(k);
 
                     const scene = this.editor.scene;
                     const target = path === 'Scene' ? scene : scene.getNodeByName(path);

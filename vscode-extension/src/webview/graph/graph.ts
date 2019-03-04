@@ -1,5 +1,5 @@
 import { Node, NullEngine, Scene, SceneLoader, FilesInputStore } from 'babylonjs';
-import { GraphExtension, LiteGraph, LGraphCanvas, LGraph } from 'babylonjs-editor';
+import { GraphExtension, LiteGraph, LGraphCanvas, LGraph, LiteGraphNode } from 'babylonjs-editor';
 
 import GUI from './gui';
 import Tools from '../tool';
@@ -18,8 +18,8 @@ export class GraphEditor {
     public graph: any;
     public gui: GUI;
 
-    public selectedObject: Node = null;
-    public selectedNode: any = null;
+    public selectedObject: Scene | Node = null;
+    public selectedNode: LiteGraphNode = null;
     public sceneInfos: any = null;
 
     public engine: NullEngine;
@@ -194,14 +194,14 @@ export class GraphEditor {
                     FilesInputStore.FilesToLoad['scene.babylon'] = Tools.CreateFile(arr, 'scene.babylon');
                     this.scene = await SceneLoader.LoadAsync('file:', 'scene.babylon', this.engine);
 
-                    if (this.selectedObject)
-                        this.graph.onNodeSelected(this.selectedObject);
+                    if (this.selectedNode)
+                        this.graph.onNodeSelected(this.selectedNode);
                     
                     break;
                 case 'set-selected-object':
-                    this.selectedObject = m.object;
-                    if (this.selectedObject)
-                        this.graph.onNodeSelected(this.selectedObject);
+                    this.selectedObject = m.name === 'Scene' ? this.scene : this.scene.getNodeByName(m.name);
+                    if (this.selectedObject && this.selectedNode)
+                        this.graph.onNodeSelected(this.selectedNode);
                     break;
             }
         });
