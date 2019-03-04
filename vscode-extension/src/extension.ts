@@ -4,10 +4,15 @@ import Sockets from './utils/socket';
 import CustomFileSystem from './file-system';
 import BabylonJSEditorPlugin from './plugin';
 
+import Utils from './utils/utils';
+
 /**
  * Activtes the extension
  */
 export function activate (context: ExtensionContext): void {
+    // Misc.
+    Utils.ExtensionPath = context.extensionPath;
+
     // Connect sockets
     Sockets.Connect();
 
@@ -16,7 +21,7 @@ export function activate (context: ExtensionContext): void {
     workspace.updateWorkspaceFolders(0, 0, { uri: Uri.parse('babylonjs-editor:/'), name: "BabylonJSEditor" });
 
     // Plugin
-    window.createTreeView('babylonjsEditorPlugin', { treeDataProvider: new BabylonJSEditorPlugin(context.extensionPath) });
+    context.subscriptions.push(window.createTreeView('babylonjsEditorPlugin', { treeDataProvider: new BabylonJSEditorPlugin() }));
 }
 
 /**

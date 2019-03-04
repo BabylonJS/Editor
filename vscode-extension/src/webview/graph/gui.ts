@@ -83,7 +83,7 @@ export default class GUI {
                     if (path === 'self')
                         return properties.add(node.properties, k, this._getPropertiesPaths(node, '', this.editor.selectedObject)).name(k);
 
-                    var target = (path === 'Scene') ? this.editor.selectedNode : this._getNodeByName(path);
+                    const target = (path === 'Scene') ? this.editor.sceneInfos : this._getNodeByName(path);
                     return properties.add(node.properties, k, this._getPropertiesPaths(node, '', target)).name(k);
                 }
                 
