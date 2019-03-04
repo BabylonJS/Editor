@@ -46,15 +46,19 @@ const build = function (baseUrl, inFile, outFile, options) {
     });
 };
 
+
+// Notify
+console.log('Building resources for VSCode extension')
+
 // Preview
-// build('./.build/src/webview/', './.build/src/webview/preview.js', './dist/preview.js', {
-//     globalName: 'EditorPreview',
-//     format: 'global',
-//     minify: true
-// });
+build('./.build/src/webview/', './.build/src/webview/preview.js', './dist/preview.js', {
+    globalName: 'EditorPreview',
+    format: 'global',
+    minify: true
+});
 
 // Graph
-build('./.build/src/webview/', './.build/src/webview/graph.js', './dist/graph.js', {
+build('./.build/src/webview/', './.build/src/webview/graph/graph.js', './dist/graph.js', {
     globalName: 'EditorGraph',
     format: 'global',
     minify: true
