@@ -348,13 +348,27 @@ export default class Editor implements IUpdatable {
         }
 
         if (this.plugins[url]) {
-            if (restart)
-                await this.removePlugin(this.plugins[url]);
+            if (restart) {
+                try {
+                    await this.removePlugin(this.plugins[url]);
+                } catch (e) {
+                    console.error(`Error while removing plugin "${url}"`, e);
+                }
+            }
             else {
-                if (this.plugins[url].onReload)
-                    await this.plugins[url].onReload();
-                
-                await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                if (this.plugins[url].onReload) {
+                    try {
+                        await this.plugins[url].onReload();
+                    } catch (e) {
+                        console.error(`Error while calling .onReload on plugin "${url}"`, e);
+                    }
+                }
+
+                try {
+                    await this.editPanel.showPlugin.apply(this.editPanel, [this.plugins[url]].concat(params));
+                } catch (e) {
+                    console.error(`Error while calling .showPlugin on plugin "${url}"`, e);
+                }
                 return this.plugins[url];
             }
         }
@@ -362,21 +376,26 @@ export default class Editor implements IUpdatable {
         // Lock panel and load plugin
         this.layout.lockPanel('main', `Loading ${name || url} ...`, true);
 
-        const plugin = await this._runPlugin.apply(this, [url].concat(params));
-        this.plugins[url] = plugin;
+        try {
+            const plugin = await this._runPlugin.apply(this, [url].concat(params));
+            this.plugins[url] = plugin;
 
-        // Add tab in edit panel and unlock panel
-        this.editPanel.addPlugin(url);
+            // Add tab in edit panel and unlock panel
+            this.editPanel.addPlugin(url);
+            this.layout.unlockPanel('main');
 
-        this.layout.unlockPanel('main');
+            // Create and store plugin
+            await plugin.create();
 
-        // Create plugin
-        await plugin.create();
+            // Resize and unlock panel
+            this.resize();
 
-        // Resize and unlock panel
-        this.resize();
-
-        return plugin;
+            return plugin;
+        } catch (e) {
+            delete this.plugins[url];
+            console.error(`Error while loading plugin "${url}"`, e);
+            throw e;
+        }
     }
 
     /**
