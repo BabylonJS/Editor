@@ -46,7 +46,6 @@ const build = function (baseUrl, inFile, outFile, options) {
     });
 };
 
-
 // Notify
 console.log('Building resources for VSCode extension')
 

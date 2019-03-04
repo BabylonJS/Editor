@@ -1,7 +1,9 @@
+import { Material } from 'babylonjs';
 import { LiteGraph, LiteGraphNode } from 'babylonjs-editor';
 import * as dat from 'dat.gui';
 
 import { GraphEditor } from './graph';
+import Tools from '../tool';
 
 export default class GUI {
     // Public members
@@ -35,6 +37,17 @@ export default class GUI {
         $('#edition')[0].appendChild(this.tool.domElement);
         this.tool.width = this.editor.layout.get('right')['width'];
 
+        // Description
+        const ctor = Tools.GetConstructorName(node);
+        for (const key in LiteGraph.registered_node_types) {
+            if (LiteGraph.registered_node_types[key].name === ctor) {
+                const desc = LiteGraph.registered_node_types[key].desc || LiteGraph.registered_node_types[key].Desc;
+
+                this.tool.addFolder(desc);
+                break;
+            }
+        }
+
         // Common
         var temp = {
             _mode: node.mode
@@ -64,26 +77,27 @@ export default class GUI {
         keys.forEach((k) => {
             // Node path?
             if (k === 'nodePath') {
-                const result = ['self'];
-                this.editor.sceneInfos.meshes.forEach((m) => result.push(m.name));
-                this.editor.sceneInfos.lights.forEach((l) => result.push(l.name));
-                this.editor.sceneInfos.cameras.forEach((c) => result.push(c.name));
-                this.editor.sceneInfos.particleSystems.forEach(ps => result.push(ps.name));
+                const result: string[] = ['self'];
+                this.editor.scene.meshes.forEach(m => result.push(m.name));
+                this.editor.scene.lights.forEach(l => result.push(l.name));
+                this.editor.scene.cameras.forEach(c => result.push(c.name));
 
-                // Sort
+                Tools.SortAlphabetically(result);
 
-                return properties.add(node.properties, k, result).name('Target Node').onChange(() => this.tool.graph.onNodeSelected(node));
+                return properties.add(node.properties, k, result).name('Target Node').onChange(() => this.refresh(node));
             }
 
             // Property path?
             if (k === 'propertyPath') {
                 if (node.hasProperty('nodePath')) {
-                    const path = node.properties['nodePath'];
+                    const path = <string> node.properties['nodePath'];
 
                     if (path === 'self')
-                        return properties.add(node.properties, k, this._getPropertiesPaths(node, '', this.editor.selectedObject)).name(k);
+                        return properties.add(node.properties, k, this._getPropertiesPaths(node)).name(k);
 
-                    const target = (path === 'Scene') ? this.editor.sceneInfos : this._getNodeByName(path);
+                    const scene = this.editor.scene;
+                    const target = path === 'Scene' ? scene : scene.getNodeByName(path);
+
                     return properties.add(node.properties, k, this._getPropertiesPaths(node, '', target)).name(k);
                 }
                 
@@ -100,84 +114,58 @@ export default class GUI {
         });
     }
 
-    // Returns the node identified by its name
-    private _getNodeByName (name: string): any {
-        var m = this.editor.sceneInfos.meshes.find(m => m.name === name);
-        if (m) { return m; }
-
-        var l = this.editor.sceneInfos.lights.find(l => l.name === name);
-        if (l) { return l; }
-
-        var c = this.editor.sceneInfos.cameras.find(c => c.name === name);
-        if (c) { return c; }
-
-        var ps = this.editor.sceneInfos.particleSystems.find(ps => ps.name === name);
-        if (ps) { return ps; }
-
-        return null;
-    }
-
-    // Returns the properties path according to the given 
-    private _getPropertiesPaths (node: any, path = '', root?: any, rootProperties?: string[]): string[] {
-        if (!path) path = '';
-
+    // Returns all the available properties
+    private _getPropertiesPaths (node: LiteGraphNode, path: string = '', root?: any, rootProperties?: string[]): string[] {
         const result = rootProperties || ['Scene'];
         const object = root || node.graph.scriptObject;
 
         for (const k in object) {
-            const key = path === '' ? k : path + '.' + k;
+            const key = path === '' ? k : `${path}.${k}`;
 
             // Bypass _
-            if (k[0] === '_') {
+            if (k[0] === '_')
+                continue;
+
+            // Material?
+            if (object[k] instanceof Material) {
+                this._getPropertiesPaths(node, key, object[k], result);
                 continue;
             }
 
-            // Excluded
-            if (k === 'localMatrix')
-                continue;
-
             // Constructor name
-            const ctor = object[k].constructor.name.toLowerCase();
-            const lowercase = k.toLowerCase();
-
+            const ctor = Tools.GetConstructorName(object[k]).toLowerCase();
             switch (ctor) {
                 case 'boolean':
                 case 'string':
-                case 'number':
-                    result.push(key);
-                    break;
+                case 'number': result.push(key); break;
                 
-                case 'array':
-                    switch (object[k].length) {
-                        case 2:
-                            result.push(key + '.x');
-                            result.push(key + '.y');
-                            break;
-                        case 3:
-                            const exts3 = (lowercase.indexOf('color') === -1) ? ['.x', '.y', '.z'] : ['.r', '.g', '.b'];
-                            result.push(key + exts3[0]);
-                            result.push(key + exts3[1]);
-                            result.push(key + exts3[2]);
-                            break;
-                        case 4:
-                            const exts4 = (lowercase.indexOf('color') === -1) ? ['.x', '.y', '.z', '.w'] : ['.r', '.g', '.b', '.a'];
-                            result.push(key + exts4[0]);
-                            result.push(key + exts4[1]);
-                            result.push(key + exts4[2]);
-                            result.push(key + exts4[3]);
-                            break;
-                    }
+                case 'vector2':
+                    result.push(key + '.x');
+                    result.push(key + '.y');
+                    break;
+                case 'vector3':
+                    result.push(key + '.x');
+                    result.push(key + '.y');
+                    result.push(key + '.z');
                     break;
 
-                case 'object':
-                    this._getPropertiesPaths(node, key, object[k], result);
+                case 'color3':
+                    result.push(key + '.r');
+                    result.push(key + '.g');
+                    result.push(key + '.b');
+                    break;
+                case 'color4':
+                    result.push(key + '.r');
+                    result.push(key + '.g');
+                    result.push(key + '.b');
+                    result.push(key + '.a');
                     break;
 
                 default: break;
             }
         }
 
-        // Sort
+        Tools.SortAlphabetically(result);
         return result;
     }
 }

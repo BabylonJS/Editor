@@ -34,6 +34,20 @@ export default class Tools {
     }
 
     /**
+     * Converts a string to an UInt8Array
+     * @param str: the string to convert
+     */
+    public static ConvertStringToUInt8Array (str: string): Uint8Array {
+        const len = str.length;
+        const array = new Uint8Array(len);
+
+        for (let i = 0; i < len; i++)
+            array[i] = str.charCodeAt(i);
+
+        return array;
+    }
+
+    /**
      * Creates a new File (blob today to fix Edge compatibility)
      * @param buffer the file's buffer
      * @param filename the file's name
@@ -69,5 +83,35 @@ export default class Tools {
         }
 
         return null;
+    }
+
+    /**
+     * Sorts the given string array alphabetically
+     * @param arr: the array to sort
+     * @param property: the property to take
+     */
+    public static SortAlphabetically (arr: any[], property?: string): void {
+        arr.sort((a, b) => {
+            a = property ? a[property] : a;
+            b = property ? b[property] : b;
+
+            a = a.toUpperCase();
+            b = b.toUpperCase();
+
+            return (a < b) ? -1 : (a > b) ? 1 : 0;
+        });
+    }
+
+    /**
+     * Returns the constructor name of the given object
+     * @param obj the object
+     */
+    public static GetConstructorName (obj: any): string {
+        let ctrName = (obj !== undefined && obj !== null && obj.constructor) ? obj.constructor.name : '';
+
+        if (ctrName === '')
+            ctrName = typeof obj;
+
+        return ctrName;
     }
 }

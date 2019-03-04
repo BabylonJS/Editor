@@ -94,12 +94,7 @@ export default class VSCodeSocket {
      */
     public static RefreshSceneInfos (): void {
         const scene = SceneSerializer.Serialize(this._Editor.core.scene);
-        this.Socket.emit('scene-infos', {
-            meshes: scene.meshes,
-            lights: scene.lights,
-            cameras: scene.cameras,
-            particleSystems: scene.particleSystems
-        });
+        this.Socket.emit('scene-infos', scene);
     }
 
     /**

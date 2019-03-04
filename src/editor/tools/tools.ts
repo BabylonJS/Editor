@@ -273,9 +273,9 @@ export default class Tools {
     }
 
     /**
-    * Converts a string to an UInt8Array
-    $ @param str: the string to convert
-    */
+     * Converts a string to an UInt8Array
+     * @param str: the string to convert
+     */
     public static ConvertStringToUInt8Array (str: string): Uint8Array {
         const len = str.length;
         const array = new Uint8Array(len);

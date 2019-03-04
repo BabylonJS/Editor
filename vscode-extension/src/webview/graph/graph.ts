@@ -1,7 +1,8 @@
-import { Node } from 'babylonjs';
+import { Node, NullEngine, Scene, SceneLoader, FilesInputStore } from 'babylonjs';
 import { GraphExtension, LiteGraph, LGraphCanvas, LGraph } from 'babylonjs-editor';
 
 import GUI from './gui';
+import Tools from '../tool';
 
 declare var vscode: {
     postMessage (message: any): void;
@@ -21,6 +22,9 @@ export class GraphEditor {
     public selectedNode: any = null;
     public sceneInfos: any = null;
 
+    public engine: NullEngine;
+    public scene: Scene;
+
     // Private members
     private _data: any = null;
     private _lastData: any = null;
@@ -29,6 +33,10 @@ export class GraphEditor {
      * Constructor
      */
     constructor () {
+        // Babylon.js
+        this.engine = new NullEngine();
+        this.scene = new Scene(this.engine);
+        
         // Create UI
         this.layout = $('#mainLayout').w2layout({
             name: 'mainLayout',
@@ -72,7 +80,6 @@ export class GraphEditor {
         this.graph.canvas.addEventListener('contextmenu', (ev) => { ev.stopPropagation(); ev.preventDefault(); });
         this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => {
-            console.log('selected!');
             this.selectedNode = node;
             this.gui.refresh(node);
         };
@@ -160,7 +167,7 @@ export class GraphEditor {
         document.body.addEventListener('mousemove', () => this.refreshData());
 
         window.addEventListener('resize', () => this.resize());
-        window.addEventListener('message', (e) => {
+        window.addEventListener('message', async (e) => {
             const m = e.data;
         
             switch (m.command) {
@@ -180,6 +187,13 @@ export class GraphEditor {
                     break;
                 case 'set-scene-infos':
                     this.sceneInfos = m.infos;
+
+                    // Load scene
+                    const str = JSON.stringify(this.sceneInfos);
+                    const arr = Tools.ConvertStringToUInt8Array(str);
+                    FilesInputStore.FilesToLoad['scene.babylon'] = Tools.CreateFile(arr, 'scene.babylon');
+                    this.scene = await SceneLoader.LoadAsync('file:', 'scene.babylon', this.engine);
+
                     if (this.selectedObject)
                         this.graph.onNodeSelected(this.selectedObject);
                     
