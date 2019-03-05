@@ -27,14 +27,14 @@ const build = function (baseUrl, inFile, outFile, options) {
             'litegraph.js': './node_modules/litegraph.js/build/litegraph.js'
         },
         packages: {
-            "./.build/src/": {
-                defaultExtension: "js"
+            './.build/src/': {
+                defaultExtension: 'js'
             }
         },
         meta: {
-            "cannon": { format: "global" },
-            "javascript-astar": { format: "global" },
-            "litegraph.js": { format: "global" }
+            'cannon': { format: 'global' },
+            'javascript-astar': { format: 'global' },
+            'litegraph.js': { format: 'global' }
         },
     }));
     
@@ -53,12 +53,28 @@ console.log('Building resources for VSCode extension')
 build('./.build/src/webview/', './.build/src/webview/preview.js', './dist/preview.js', {
     globalName: 'EditorPreview',
     format: 'global',
-    minify: true
+    minify: true,
+    globalDeps: {
+        'babylonjs': 'BABYLON',
+        'babylonjs-gui': 'BABYLON',
+        'babylonjs-materials': 'BABYLON',
+        'babylonjs-loaders': 'BABYLON',
+        'babylonjs-serializers': 'BABYLON',
+        'babylonjs-procedural-textures': 'BABYLON'
+    }
 });
 
 // Graph
 build('./.build/src/webview/', './.build/src/webview/graph/graph.js', './dist/graph.js', {
     globalName: 'EditorGraph',
     format: 'global',
-    minify: true
+    minify: true,
+    globalDeps: {
+        'babylonjs': 'BABYLON',
+        'babylonjs-gui': 'BABYLON',
+        'babylonjs-materials': 'BABYLON',
+        'babylonjs-loaders': 'BABYLON',
+        'babylonjs-serializers': 'BABYLON',
+        'babylonjs-procedural-textures': 'BABYLON'
+    }
 });
