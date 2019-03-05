@@ -8,15 +8,10 @@ import {
 import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
 
 import Editor, {
-    Layout,
-    Toolbar,
-    Grid, GridRow,
-    Dialog,
-    EditorPlugin,
-    Tools,
-    Tree,
-    Picker,
-    ProjectRoot,
+    Layout, Toolbar, Grid, GridRow,
+    Dialog, EditorPlugin, Tools,
+    Tree, Picker, ProjectRoot,
+    ContextMenu, ContextMenuItem,
     VSCodeSocket
 } from 'babylonjs-editor';
 
@@ -175,6 +170,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         };
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
+        this.graph.canvas.classList.add('ctxmenu');
         this.graph.canvas.addEventListener('mousedown', (ev: MouseEvent) => {
             if (ev.button !== 2 && this._contextMenu.mainDiv)
                 this._contextMenu.mainDiv.style.visibility = 'hidden';
@@ -187,7 +183,25 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         });
         this.graph.render_canvas_area = false;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
-        this.graph.processContextMenu = (node, event) => this.processContextMenu(node, event);
+        this.graph.processContextMenu = ((node, event) => {
+            if (!node)
+                return this.processContextMenu(node, event);
+
+            ContextMenu.Show(event, {
+                clone: { name: 'Clone', callback: () => {
+                    const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
+                    clone.pos = [event.offsetX, event.offsetY];
+
+                    Object.assign(clone.properties, node.properties);
+                    Object.assign(clone.outputs, node.outputs);
+
+                    this.graphData.add(clone);
+                } },
+                remove: { name: 'Remove', callback: () => {
+                    this.graphData.remove(node);
+                } },
+            });
+        });
 
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes();
