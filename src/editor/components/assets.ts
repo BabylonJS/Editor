@@ -5,7 +5,7 @@ import Editor from '../editor';
 import Tools from '../tools/tools';
 import UndoRedo from '../tools/undo-redo';
 
-import ContextMenu from '../gui/context-menu';
+import ContextMenu, { ContextMenuItem } from '../gui/context-menu';
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
 
@@ -15,6 +15,7 @@ import PrefabAssetComponent from '../prefabs/asset-component';
 import { Dialog } from 'babylonjs-editor';
 
 import VSCodeSocket from '../vscode/vscode-socket';
+import { IStringDictionary } from '../typings/typings';
 
 export interface AssetPreviewData {
     asset: AssetElement<any>;
@@ -30,7 +31,6 @@ export default class EditorAssets {
     public toolbar: Toolbar;
 
     public components: IAssetComponent[] = [];
-    public contextMenu: ContextMenu;
 
     public prefabs: PrefabAssetComponent;
     public assetPreviewDatas: AssetPreviewData[] = [];
@@ -50,13 +50,6 @@ export default class EditorAssets {
      * @param editor the editore reference
      */
     constructor (protected editor: Editor) {
-        // Context menu
-        this.contextMenu = new ContextMenu('AssetContextMenu', {
-            width: 200,
-            height: 55,
-            search: false
-        });
-
         // Layout
         this.layout = new Layout('ASSETS-LAYOUT');
         this.layout.panels = [
@@ -235,6 +228,7 @@ export default class EditorAssets {
                     'width': assetSize,
                     'height': assetSize
                 });
+                img.classList.add('ctxmenu');
 
                 // Configure
                 title.innerText = a.name;
@@ -254,7 +248,8 @@ export default class EditorAssets {
 
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
                 });
-                img.addEventListener('contextmenu', ev => this.processContextMenu(ev, c, a));
+
+                ContextMenu.ConfigureElement(img, this.getContextMenuItems(c, a));
 
                 img.addEventListener('dblclick', async (ev) => {
                     const config = System.getConfig();
@@ -412,92 +407,68 @@ export default class EditorAssets {
      * @param component the component being modified
      * @param asset the target asset
      */
-    protected processContextMenu (ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void {
+    protected getContextMenuItems (component: IAssetComponent, asset: AssetElement<any>): IStringDictionary<ContextMenuItem> {
         if (!component.onRemoveAsset)
             return;
-
+        
         // Configure
-        this.contextMenu.options.height = 55;
-        this.contextMenu.tree.clear();
+        const items: IStringDictionary<ContextMenuItem> = { };
 
-        const items = ((component.onContextMenu && component.onContextMenu()) || []);
-        component.onRenameAsset && items.push({ id: 'rename', text: 'Rename...', img: 'icon-export' });
-        items.push({ id: 'remove', text: 'Remove' });
+        const assetItems = ((component.onContextMenu && component.onContextMenu()) || []);
+        assetItems.forEach(i => items[i.id] = { name: i.text, callback: () => i.callback(asset) });
+        
+        component.onRenameAsset && (items.rename = { name: 'Rename...', callback: async () => {
+            if (!component.onRenameAsset)
+                return;
+            
+            const oldName = asset.name;
+            const newName = await Dialog.CreateWithTextInput('New asset name');
 
-        items.forEach(i => {
-            this.contextMenu.tree.add({ id: i.id, text: i.text, img: i.img });
-            this.contextMenu.options.height += 12.5;
-        });
+            asset.name = newName;
+            component.onRenameAsset(asset, newName);
 
-        // Events
-        this.contextMenu.tree.onClick = async (id) => {
-            // Custom callback?
-            const customItem = items.find(i => i.callback && i.id === id);
-            if (customItem) {
-                customItem.callback(asset);
-                return this.contextMenu.hide();
-            }
+            UndoRedo.Push({
+                fn: (type) => {
+                    if (type === 'from')
+                        component.onRenameAsset(asset, oldName);
+                    else
+                        component.onRenameAsset(asset, newName);
 
-            switch (id) {
-                // Rename the asset
-                case 'rename':
-                    if (!component.onRenameAsset)
-                        return;
-                    
-                    const oldName = asset.name;
-                    const newName = await Dialog.CreateWithTextInput('New asset name');
+                    this.refresh();
+                    this.showTab(component.id);
+                }
+            });
 
-                    asset.name = newName;
-                    component.onRenameAsset(asset, newName);
-
-                    UndoRedo.Push({
-                        fn: (type) => {
-                            if (type === 'from')
-                                component.onRenameAsset(asset, oldName);
-                            else
-                                component.onRenameAsset(asset, newName);
-
-                            this.refresh();
-                            this.showTab(component.id);
-                        }
-                    });
-                    break;
-                // Remove button, so manage undo/redo
-                case 'remove':
-                    if (component.onAddAsset) {
-                        UndoRedo.Push({
-                            fn: (type) => {
-                                if (type === 'from') {
-                                    component.onAddAsset(asset);
-                                    this.editor.core.onAddObject.notifyObservers(asset.data);
-                                }
-                                else {
-                                    component.onRemoveAsset(asset);
-                                    this.editor.core.onSelectAsset.notifyObservers(null);
-                                    this.editor.core.onRemoveObject.notifyObservers(asset.data);
-                                }
-
-                                this.refresh();
-                                this.showTab(component.id);
-                            }
-                        });
-                    }
-
-                    // Remove asset
-                    component.onRemoveAsset(asset);
-                    this.editor.core.onSelectAsset.notifyObservers(null);
-                    this.editor.core.onRemoveObject.notifyObservers(asset.data);
-                    break;
-            }
-
-            // Refresh assets
             this.refresh();
+        } });
+        component.onRemoveAsset && (items.remove = { name: 'Remove', callback: () => {
+            if (component.onAddAsset) {
+                UndoRedo.Push({
+                    fn: (type) => {
+                        if (type === 'from') {
+                            component.onAddAsset(asset);
+                            this.editor.core.onAddObject.notifyObservers(asset.data);
+                        }
+                        else {
+                            component.onRemoveAsset(asset);
+                            this.editor.core.onSelectAsset.notifyObservers(null);
+                            this.editor.core.onRemoveObject.notifyObservers(asset.data);
+                        }
 
-            // Remove context menu
-            this.contextMenu.hide();
-        };
+                        this.refresh();
+                        this.showTab(component.id);
+                    }
+                });
+            }
 
-        // Show
-        this.contextMenu.show(ev);
+            // Remove asset
+            component.onRemoveAsset(asset);
+            this.editor.core.onSelectAsset.notifyObservers(null);
+            this.editor.core.onRemoveObject.notifyObservers(asset.data);
+
+            this.refresh();
+        } });
+
+        return items;
     }
 }

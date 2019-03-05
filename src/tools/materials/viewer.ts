@@ -50,9 +50,6 @@ export default class MaterialsViewer extends EditorPlugin {
 
     protected targetObject: AbstractMesh;
 
-    // Static members
-    public static ContextMenu: ContextMenu = null;
-
     /**
      * Constructor
      * @param name: the name of the plugin
@@ -115,14 +112,6 @@ export default class MaterialsViewer extends EditorPlugin {
         this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_materials';
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('MATERIAL-VIEWER-TOOLBAR');
-
-        // Context menu
-        MaterialsViewer.ContextMenu = MaterialsViewer.ContextMenu || new ContextMenu('MaterialsViewerContextMenu', {
-            search: false,
-            height: 54,
-            width: 200
-        });
-        MaterialsViewer.ContextMenu.tree.add({ id: 'clone', img: 'icon-clone', text: 'Clone' });
 
         // Add preview
         this.preview = this.createPreview(<HTMLCanvasElement> $('#MATERIAL-VIEWER-CANVAS')[0]);
@@ -256,20 +245,20 @@ export default class MaterialsViewer extends EditorPlugin {
             'width': '100px',
             'height': '100px'
         });
-        img.addEventListener('contextmenu', ev => {
-            MaterialsViewer.ContextMenu.show(ev);
-            MaterialsViewer.ContextMenu.tree.onClick = (id) => {
-                // Only clone
+        img.classList.add('ctxmenu');
+        ContextMenu.ConfigureElement(img, {
+            clone: { name: 'Clone', callback: () => {
                 const newMaterial = material.clone(material.name + ' Cloned');
                 newMaterial.id = BabylonTools.RandomId();
                 Tags.AddTagsTo(newMaterial, 'added');
                 
                 this.createPreviewNode(div, canvas, preview, newMaterial);
-
-                // Hide
-                MaterialsViewer.ContextMenu.hide();
-            };
-        });
+            } },
+            remove: { name: 'Remove', callback: () => {
+                material.dispose(true, false, false);
+                parent.remove();
+            } }
+        })
 
         // Add
         parent.appendChild(img);

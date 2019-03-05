@@ -13,7 +13,7 @@ import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 import Editor from '../editor';
 import Tools from '../tools/tools';
 
-import Tree, { TreeNode, ContextMenuItem } from '../gui/tree';
+import Tree, { TreeNode, TreeContextMenuItem } from '../gui/tree';
 import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
@@ -73,7 +73,7 @@ export default class EditorGraph {
             if (!data.clone)
                 return [];
             
-            const result: ContextMenuItem[] = [];
+            const result: TreeContextMenuItem[] = [];
 
             if (data.globalPosition || data.getAbsolutePosition)
                 result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });

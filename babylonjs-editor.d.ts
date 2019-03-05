@@ -23,9 +23,9 @@ declare module 'babylonjs-editor' {
     import CodeEditor from 'babylonjs-editor/editor/gui/code';
     import Form from 'babylonjs-editor/editor/gui/form';
     import Edition from 'babylonjs-editor/editor/gui/edition';
-    import Tree, { ContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
+    import Tree, { TreeContextMenuItem, TreeNode } from 'babylonjs-editor/editor/gui/tree';
     import Dialog from 'babylonjs-editor/editor/gui/dialog';
-    import ContextMenu, { ContextMenuOptions } from 'babylonjs-editor/editor/gui/context-menu';
+    import ContextMenu, { ContextMenuItem } from 'babylonjs-editor/editor/gui/context-menu';
     import ResizableLayout, { ComponentConfig, ItemConfigType } from 'babylonjs-editor/editor/gui/resizable-layout';
     import AbstractEditionTool from 'babylonjs-editor/editor/edition-tools/edition-tool';
     import { IStringDictionary, IDisposable, INumberDictionary } from 'babylonjs-editor/editor/typings/typings';
@@ -39,7 +39,7 @@ declare module 'babylonjs-editor' {
     import { Prefab, PrefabNodeType } from 'babylonjs-editor/editor/prefabs/prefab';
     import VSCodeSocket from 'babylonjs-editor/editor/vscode/vscode-socket';
     export default Editor;
-    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, ContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuOptions, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
+    export { Editor, Tools, Request, UndoRedo, ThemeSwitcher, ThemeType, IStringDictionary, INumberDictionary, IDisposable, EditorPlugin, Layout, Toolbar, List, Grid, GridRow, Picker, Graph, GraphNode, Window, CodeEditor, Form, Edition, Tree, TreeContextMenuItem, TreeNode, Dialog, ContextMenu, ContextMenuItem, ResizableLayout, ComponentConfig, ItemConfigType, AbstractEditionTool, ProjectRoot, CodeProjectEditorFactory, SceneManager, SceneFactory, ScenePreview, PrefabAssetComponent, Prefab, PrefabNodeType, VSCodeSocket };
 }
 
 declare module 'babylonjs-editor/editor/editor' {
@@ -237,9 +237,9 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static GetFile(url: string): Promise<File>;
             /**
-             * Converts a string to an UInt8Array
-            $ @param str: the string to convert
-             */
+                * Converts a string to an UInt8Array
+                * @param str: the string to convert
+                */
             static ConvertStringToUInt8Array(str: string): Uint8Array;
             /**
                 * Reads the given file
@@ -961,7 +961,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                     checked?: boolean;
             };
     }
-    export interface ContextMenuItem {
+    export interface TreeContextMenuItem {
             id: string;
             text: string;
             multiple?: boolean;
@@ -979,7 +979,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             onClick: <T>(id: string, data: T) => void;
             onDblClick: <T>(id: string, data: T) => void;
             onRename: <T>(id: string, name: string, data: T) => boolean;
-            onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+            onContextMenu: <T>(id: string, data: T) => TreeContextMenuItem[];
             onMenuClick: <T>(id: string, node: TreeNode) => void;
             onCanDrag: <T>(id: string, data: T) => boolean;
             onDrag: <T, U>(node: T, parent: U) => boolean;
@@ -1090,48 +1090,30 @@ declare module 'babylonjs-editor/editor/gui/dialog' {
 }
 
 declare module 'babylonjs-editor/editor/gui/context-menu' {
-    import Layout from 'babylonjs-editor/editor/gui/layout';
-    import Tree from 'babylonjs-editor/editor/gui/tree';
-    export interface ContextMenuOptions {
-            width: number;
-            height: number;
-            search: boolean;
-            borderRadius?: number;
-            opacity?: number;
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export interface ContextMenuItem {
+            name: string;
+            callback?: (itemId?: string) => void;
     }
     export default class ContextMenu {
-            name: string;
-            mainDiv: HTMLDivElement;
-            layout: Layout;
-            search: HTMLInputElement;
-            tree: Tree;
-            options: ContextMenuOptions;
-            protected mouseUpCallback: (ev: MouseEvent) => void;
+            static Items: IStringDictionary<ContextMenuItem>;
+            static OnItemClicked: (itemId?: string) => void;
             /**
-                * Constructor
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
+                * Inits the context menu
                 */
-            constructor(name: string, options: ContextMenuOptions);
+            static Init(): Promise<void>;
             /**
-                * Shows the context menu where the user right clicks
-                * @param event the mouse event
+                * Configures the given element .oncontextmenu event
+                * @param element the element to configure
+                * @param items the items to draw once
                 */
-            show(event: MouseEvent): void;
+            static ConfigureElement(element: HTMLElement, items: IStringDictionary<ContextMenuItem>): void;
             /**
-                * Hides the context menu
+                * Shows the context menu
+                * @param mouseEvent the mouse event that fires the context menu
+                * @param items the items to show on the user wants to show the context menu
                 */
-            hide(): void;
-            /**
-                * Removes the context menu elements
-                */
-            remove(): void;
-            /**
-                * Builds the context menu
-                * @param name the name of the context menu
-                * @param options the context menu options (width, height, etc.)
-                */
-            protected build(name: string, options: ContextMenuOptions): void;
+            static Show(mouseEvent: MouseEvent, items?: IStringDictionary<ContextMenuItem>): void;
     }
 }
 
@@ -2128,11 +2110,12 @@ declare module 'babylonjs-editor/editor/components/stats' {
 
 declare module 'babylonjs-editor/editor/components/assets' {
     import Editor from 'babylonjs-editor/editor/editor';
-    import ContextMenu from 'babylonjs-editor/editor/gui/context-menu';
+    import { ContextMenuItem } from 'babylonjs-editor/editor/gui/context-menu';
     import Layout from 'babylonjs-editor/editor/gui/layout';
     import Toolbar from 'babylonjs-editor/editor/gui/toolbar';
     import { IAssetComponent, AssetElement } from 'babylonjs-editor/extensions/typings/asset';
     import PrefabAssetComponent from 'babylonjs-editor/editor/prefabs/asset-component';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface AssetPreviewData {
             asset: AssetElement<any>;
             img: HTMLImageElement;
@@ -2145,7 +2128,6 @@ declare module 'babylonjs-editor/editor/components/assets' {
             layout: Layout;
             toolbar: Toolbar;
             components: IAssetComponent[];
-            contextMenu: ContextMenu;
             prefabs: PrefabAssetComponent;
             assetPreviewDatas: AssetPreviewData[];
             protected currentComponent: IAssetComponent;
@@ -2204,7 +2186,7 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param component the component being modified
                 * @param asset the target asset
                 */
-            protected processContextMenu(ev: MouseEvent, component: IAssetComponent, asset: AssetElement<any>): void;
+            protected getContextMenuItems(component: IAssetComponent, asset: AssetElement<any>): IStringDictionary<ContextMenuItem>;
     }
 }
 

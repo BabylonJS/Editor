@@ -15,9 +15,9 @@ import Window from './editor/gui/window';
 import CodeEditor from './editor/gui/code';
 import Form from './editor/gui/form';
 import Edition from './editor/gui/edition';
-import Tree, { ContextMenuItem, TreeNode } from './editor/gui/tree';
+import Tree, { TreeContextMenuItem, TreeNode } from './editor/gui/tree';
 import Dialog from './editor/gui/dialog';
-import ContextMenu, { ContextMenuOptions } from './editor/gui/context-menu';
+import ContextMenu, { ContextMenuItem } from './editor/gui/context-menu';
 import ResizableLayout, { ComponentConfig, ItemConfigType } from './editor/gui/resizable-layout';
 
 import AbstractEditionTool from './editor/edition-tools/edition-tool';
@@ -62,9 +62,9 @@ export {
     CodeEditor,
     Form,
     Edition,
-    Tree, ContextMenuItem, TreeNode,
+    Tree, TreeContextMenuItem, TreeNode,
     Dialog,
-    ContextMenu, ContextMenuOptions,
+    ContextMenu, ContextMenuItem,
     ResizableLayout, ComponentConfig, ItemConfigType,
 
     AbstractEditionTool,

@@ -25,7 +25,9 @@ import Editor, {
     ContextMenu,
 
     EditorPlugin,
-    UndoRedo
+    UndoRedo,
+    IStringDictionary,
+    ContextMenuItem
 } from 'babylonjs-editor';
 
 export interface PreviewScene {
@@ -41,7 +43,6 @@ export default class TextureViewer extends EditorPlugin {
     public images: JQuery[] = [];
     public layout: Layout = null;
     public toolbar: Toolbar = null;
-    public contextMenu: ContextMenu = null;
 
     public engine: Engine = null;
     public scene: Scene = null;
@@ -101,8 +102,6 @@ export default class TextureViewer extends EditorPlugin {
         this.toolbar.element.destroy();
         this.layout.element.destroy();
 
-        this.contextMenu.remove();
-
         await super.close();
     }
 
@@ -161,13 +160,6 @@ export default class TextureViewer extends EditorPlugin {
         this._dropFilesObserver = this.editor.core.onDropFiles.add(d => {
             if (Tools.IsElementChildOf(d.target, div[0]))
                 this.addFromFiles(<any> d.files);
-        });
-        
-        // Context menu
-        this.contextMenu = new ContextMenu('TexturesViewerContextMenu', {
-            width: 200,
-            height: 55,
-            search: false
         });
 
         // Events
@@ -329,7 +321,8 @@ export default class TextureViewer extends EditorPlugin {
                 height: '100px'
             });
             canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
-            canvas.addEventListener('contextmenu', (ev) => this.processContextMenu(ev, originalTexture));
+            ContextMenu.ConfigureElement(canvas, this.getContextMenuItems(originalTexture));
+            canvas.classList.add('ctxmenu');
             parent.appendChild(canvas);
 
             texturesList.append(parent);
@@ -346,8 +339,9 @@ export default class TextureViewer extends EditorPlugin {
                 height: '100px'
             });
             img.src = data;
+            img.classList.add('ctxmenu');
             img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
-            img.addEventListener('contextmenu', (ev) => this.processContextMenu(ev, originalTexture));
+            ContextMenu.ConfigureElement(img, this.getContextMenuItems(originalTexture));
             parent.appendChild(img);
 
             texturesList.append(parent);
@@ -435,7 +429,8 @@ export default class TextureViewer extends EditorPlugin {
             height: '100px'
         });
         canvas.addEventListener('click', (ev) => this.setTexture(texture.name, 'procedural', texture));
-        canvas.addEventListener('contextmenu', (ev) => this.processContextMenu(ev, texture));
+        canvas.classList.add('ctxmenu');
+        ContextMenu.ConfigureElement(canvas, this.getContextMenuItems(texture));
         parent.appendChild(canvas);
 
         const pixels = texture.readPixels();
@@ -486,7 +481,8 @@ export default class TextureViewer extends EditorPlugin {
             else
                 this.editor.core.onSelectObject.notifyObservers(texture);
         });
-        canvas.addEventListener('contextmenu', (ev) => this.processContextMenu(ev, texture));
+        canvas.classList.add('ctxmenu');
+        ContextMenu.ConfigureElement(canvas, this.getContextMenuItems(texture));
         parent.appendChild(canvas);
 
         // Add text
@@ -742,44 +738,23 @@ export default class TextureViewer extends EditorPlugin {
      * @param ev the mouse event object
      * @param texture the texture being clicked
      */
-    protected processContextMenu (ev: MouseEvent, texture: BaseTexture | ReflectionProbe): void {
-        // Configure
-        this.contextMenu.options.height = 55;
-        this.contextMenu.tree.clear();
+    protected getContextMenuItems (texture: BaseTexture | ReflectionProbe): IStringDictionary<ContextMenuItem> {
+        return {
+            remove: { name: 'Remove', callback: async () => {
+                const objects = this.editor.core.scene.materials
+                                .concat(<any> this.editor.core.scene)
+                                .concat(<any> this.editor.core.scene.postProcesses);
 
-        const items = [{ id: 'remove', text: 'Remove' }];
-        items.forEach(i => {
-            this.contextMenu.tree.add({ id: i.id, text: i.text });
-            this.contextMenu.options.height += 12.5;
-        });
+                objects.forEach(obj => {
+                    for (const key in obj) {
+                        if (key[0] !== '_' && obj[key] === texture)
+                            obj[key] = null;
+                    }
+                });
 
-        // Events
-        this.contextMenu.tree.onClick = async (id) => {
-            switch (id) {
-                // Remove
-                case 'remove':
-                    const objects = this.editor.core.scene.materials
-                                    .concat(<any> this.editor.core.scene)
-                                    .concat(<any> this.editor.core.scene.postProcesses);
-
-                    objects.forEach(obj => {
-                        for (const key in obj) {
-                            if (key[0] !== '_' && obj[key] === texture)
-                                obj[key] = null;
-                        }
-                    });
-
-                    texture.dispose();
-                    await this.createList();
-                    break;
-
-                default: break;
-            }
-            // Remove context menu
-            this.contextMenu.hide();
-        };
-
-        // Show
-        this.contextMenu.show(ev);
+                texture.dispose();
+                await this.createList();
+            } }
+        }
     }
 }

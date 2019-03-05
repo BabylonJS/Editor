@@ -20,6 +20,7 @@ import ResizableLayout from './gui/resizable-layout';
 import Tree, { TreeNode } from './gui/tree';
 import Window from './gui/window';
 import CodeEditor from './gui/code';
+import ContextMenu from './gui/context-menu';
 
 import EditorToolbar from './components/toolbar';
 import EditorGraph from './components/graph';
@@ -273,6 +274,9 @@ export default class Editor implements IUpdatable {
             const theme = <ThemeType> localStorage.getItem('babylonjs-editor-theme-name');
             ThemeSwitcher.ThemeName = theme || 'Light';
         }
+
+        // Initialize context menu
+        ContextMenu.Init();
     }
 
     /**

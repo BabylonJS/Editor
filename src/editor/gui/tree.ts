@@ -15,7 +15,7 @@ export interface TreeNode {
 	};
 }
 
-export interface ContextMenuItem {
+export interface TreeContextMenuItem {
     id: string;
     text: string;
     multiple?: boolean;
@@ -39,7 +39,7 @@ export default class Tree {
 
     public onRename: <T>(id: string, name: string, data: T) => boolean;
 
-    public onContextMenu: <T>(id: string, data: T) => ContextMenuItem[];
+    public onContextMenu: <T>(id: string, data: T) => TreeContextMenuItem[];
     public onMenuClick: <T>(id: string, node: TreeNode) => void;
 
     public onCanDrag: <T>(id: string, data: T) => boolean;
