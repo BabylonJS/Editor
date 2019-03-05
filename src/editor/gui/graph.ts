@@ -2,6 +2,7 @@ export interface GraphNode {
     id: string;
     text: string;
 
+    group?: boolean;
     img?: string;
     data?: any;
     count?: number;
@@ -22,6 +23,7 @@ export default class Graph {
     public bottomContent: string;
 
     public onClick: <T>(id: string, data: T) => void;
+    public onDbleClick: <T>(id: string, data: T) => void;
     public onMenuClick: <T>(id: string, node: GraphNode) => void;
 
     /**
@@ -64,11 +66,26 @@ export default class Graph {
     }
 
     /**
-     * Builds the graph
-     * @param parentId the parent id
+     * Selects the node which has the given id
+     * @param id the id of the node to select
      */
-    public build (parentId: string): void {
-        this.element = $('#' + parentId).w2sidebar({
+    public setSelected (id: string): void {
+        this.element.select(id);
+    }
+
+    /**
+     * Returns the selected item
+     */
+    public getSelected (): GraphNode {
+        return <GraphNode> this.element.get(this.element.selected);
+    }
+
+    /**
+     * Builds the graph
+     * @param parent the parent id
+     */
+    public build (parent: HTMLDivElement | string): void {
+        this.element = (typeof parent === 'string' ? $('#' + parent) : $(parent)).w2sidebar({
             name: this.name,
             img: 'icon-container',
             keyboard: false,
@@ -82,7 +99,15 @@ export default class Graph {
                 if (this.onClick && event.node)
                     this.onClick(event.node.id, event.node.data);
             },
-
+            // On the user double clicks on a node
+            dblClick: (event) => {
+                if (!this.onDbleClick)
+                    return;
+                
+                const node = <GraphNode> this.element.get(event);
+                if (node)
+                    this.onDbleClick(event, node.data);
+            },
             // On the user clicks on a context menu item
             onMenuClick: (event) => {
                 if (this.onMenuClick) {

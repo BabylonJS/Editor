@@ -523,10 +523,11 @@ export default class EditorGraph {
             
             // Clone
             case 'clone':
-                if (!node || !(node.data instanceof Node))
+                if (!node || !(node.data instanceof Node) || !node.data['clone'])
                     return;
                 
-                const clone = node && node.data && node.data['clone'] && node.data['clone']();
+                const clone = node.data['clone']();
+                clone.position && (clone.position.y += 2);
                 clone.name = node.data.name + ' Cloned';
                 clone.id = BabylonTools.RandomId();
 

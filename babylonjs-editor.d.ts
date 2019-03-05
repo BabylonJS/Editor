@@ -655,6 +655,7 @@ declare module 'babylonjs-editor/editor/gui/graph' {
     export interface GraphNode {
             id: string;
             text: string;
+            group?: boolean;
             img?: string;
             data?: any;
             count?: number;
@@ -670,6 +671,7 @@ declare module 'babylonjs-editor/editor/gui/graph' {
             topContent: string;
             bottomContent: string;
             onClick: <T>(id: string, data: T) => void;
+            onDbleClick: <T>(id: string, data: T) => void;
             onMenuClick: <T>(id: string, node: GraphNode) => void;
             /**
                 * Constructor
@@ -693,10 +695,19 @@ declare module 'babylonjs-editor/editor/gui/graph' {
                 */
             addMenu(menu: GraphMenu): void;
             /**
-                * Builds the graph
-                * @param parentId the parent id
+                * Selects the node which has the given id
+                * @param id the id of the node to select
                 */
-            build(parentId: string): void;
+            setSelected(id: string): void;
+            /**
+                * Returns the selected item
+                */
+            getSelected(): GraphNode;
+            /**
+                * Builds the graph
+                * @param parent the parent id
+                */
+            build(parent: HTMLDivElement | string): void;
     }
 }
 
