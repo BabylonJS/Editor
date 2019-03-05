@@ -40,8 +40,9 @@ export default class ContextMenu {
      * @param element the element to configure
      * @param items the items to draw once
      */
-    public static ConfigureElement (element: HTMLElement, items: IStringDictionary<ContextMenuItem>): void {
+    public static ConfigureElement (element: HTMLElement, items: IStringDictionary<ContextMenuItem>, callback?: (event: MouseEvent) => void): void {
         element.addEventListener('contextmenu', (ev) => {
+            callback && callback(ev);
             this.Items = items;
             this.Show(ev);
         });

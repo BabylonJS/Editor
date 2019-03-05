@@ -1107,7 +1107,7 @@ declare module 'babylonjs-editor/editor/gui/context-menu' {
                 * @param element the element to configure
                 * @param items the items to draw once
                 */
-            static ConfigureElement(element: HTMLElement, items: IStringDictionary<ContextMenuItem>): void;
+            static ConfigureElement(element: HTMLElement, items: IStringDictionary<ContextMenuItem>, callback?: (event: MouseEvent) => void): void;
             /**
                 * Shows the context menu
                 * @param mouseEvent the mouse event that fires the context menu
@@ -2256,22 +2256,22 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 * Called when canvas mouse is down
                 * @param ev the mouse event
                 */
-            protected canvasDown(ev: MouseEvent): void;
+            onCanvasDown(ev: MouseEvent): void;
             /**
                 * Called when canvas mouse is up
                 * @param ev the mouse event
                 */
-            protected canvasClick(ev: MouseEvent): void;
+            onCanvasClick(ev: MouseEvent): void;
             /**
                 * Called when mouse moves on canvas
                 * @param ev the mouse event
                 */
-            protected canvasMove(ev: MouseEvent): void;
+            onCanvasMove(ev: MouseEvent): void;
             /**
                 * Called when double click on the canvas
                 * @param ev: the mouse event
                 */
-            protected canvasDblClick(ev: MouseEvent): void;
+            onCanvasDblClick(ev: MouseEvent): void;
             /**
                 * Creates an starts an animation that targets the given "end" position
                 * @param start the start target position

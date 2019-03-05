@@ -188,10 +188,10 @@ export default class ScenePicker {
     public addEvents (): void {
         this.onCanvasPointer = this.scene.onPointerObservable.add(ev => {
             switch (ev.type) {
-                case PointerEventTypes.POINTERDOWN: this.canvasDown(ev.event); break;
-                case PointerEventTypes.POINTERTAP: this.canvasClick(ev.event); break;
-                case PointerEventTypes.POINTERMOVE: this.canvasMove(ev.event); break;
-                case PointerEventTypes.POINTERDOUBLETAP: this.canvasDblClick(ev.event); break;
+                case PointerEventTypes.POINTERDOWN: this.onCanvasDown(ev.event); break;
+                case PointerEventTypes.POINTERTAP: this.onCanvasClick(ev.event); break;
+                case PointerEventTypes.POINTERMOVE: this.onCanvasMove(ev.event); break;
+                case PointerEventTypes.POINTERDOUBLETAP: this.onCanvasDblClick(ev.event); break;
             }
         });
 
@@ -279,7 +279,7 @@ export default class ScenePicker {
      * Called when canvas mouse is down
      * @param ev the mouse event
      */
-    protected canvasDown(ev: MouseEvent): void {
+    public onCanvasDown(ev: MouseEvent): void {
         this.lastX = ev.offsetX;
         this.lastY = ev.offsetY;
     }
@@ -288,7 +288,7 @@ export default class ScenePicker {
      * Called when canvas mouse is up
      * @param ev the mouse event
      */
-    protected canvasClick (ev: MouseEvent): void {
+    public onCanvasClick (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         
@@ -313,7 +313,7 @@ export default class ScenePicker {
      * Called when mouse moves on canvas
      * @param ev the mouse event
      */
-    protected canvasMove (ev: MouseEvent): void {
+    public onCanvasMove (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         
@@ -334,7 +334,7 @@ export default class ScenePicker {
      * Called when double click on the canvas
      * @param ev: the mouse event
      */
-    protected canvasDblClick (ev: MouseEvent): void {
+    public onCanvasDblClick (ev: MouseEvent): void {
         if (!this._enabled)
             return;
         
