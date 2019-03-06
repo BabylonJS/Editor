@@ -202,6 +202,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         GraphExtension.ClearNodes();
         GraphExtension.RegisterNodes();
 
+        // Node creator widget
+        GraphNodeCreator.InitItems();
+
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
         this.editor.core.scene.metadata.behaviorGraphs = this.editor.core.scene.metadata.behaviorGraphs || [];

@@ -5,7 +5,7 @@ export interface GraphNode {
     group?: boolean;
     img?: string;
     data?: any;
-    count?: number;
+    count?: string;
 }
 
 export interface GraphMenu {

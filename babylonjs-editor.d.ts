@@ -658,7 +658,7 @@ declare module 'babylonjs-editor/editor/gui/graph' {
             group?: boolean;
             img?: string;
             data?: any;
-            count?: number;
+            count?: string;
     }
     export interface GraphMenu {
             id: string;
@@ -2191,6 +2191,11 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param id the id of the clicked item
                 */
             protected toolbarClicked(id: string): Promise<void>;
+            /**
+                * Hightlights the given image element
+                * @param img the image element to highlight
+                */
+            protected highlight(img: HTMLImageElement): void;
             /**
                 * Processes the context menu for the clicked item
                 * @param ev the mouse event object

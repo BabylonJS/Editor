@@ -1,5 +1,7 @@
-import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
+import { LiteGraph } from 'litegraph.js';
 import { Tools, IStringDictionary, Graph } from 'babylonjs-editor';
+
+import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
 export default class GraphNodeCreator {
     // Public members
@@ -53,10 +55,18 @@ export default class GraphNodeCreator {
     private static _SearchTimeout: number = null;
     private static _ReturnEvent: (ev: KeyboardEvent) => void;
 
+    private static _SearchStr: string = '';
+    private static _Sorted: IStringDictionary<string[]> = { };
+
     /**
      * Shows the node creator widget
      */
     public static Show (): void {
+        // Focus search
+        this._Search.value = '';
+        this._SearchStr = '';
+        setTimeout(() => this._Search.focus(), 1);
+
         // First, hide and reset
         this.Hide();
         this.Reset();
@@ -79,10 +89,6 @@ export default class GraphNodeCreator {
 
         // Show
         document.body.appendChild(this._Root);
-
-        // Focus search
-        this._Search.value = '';
-        setTimeout(() => this._Search.focus(), 1);
     }
 
     /**
@@ -100,47 +106,33 @@ export default class GraphNodeCreator {
     /**
      * Resets the node creator widget
      */
-    public static Reset (search: string = ''): void {
+    public static Reset (): void {
+        // Hide all
         const nodes = LiteGraph.registered_node_types;
-
-        // Sort
-        const sorted: IStringDictionary<string[]> = { };
-        for (const n in nodes) {
-            const split = n.split('/');
-
-            const value = sorted[split[0]] || (sorted[split[0]] = []);
-            if (split[1].toLowerCase().indexOf(search.toLowerCase()) !== -1)
-                value.push(split[1]);
-        }
-
-        // Clear sidebar
-        this._Graph.clear();
-
+        for (const n in nodes)
+            this._Graph.element.hide(n);
+        
         // Add
-        for (const s in sorted) {
-            const value = sorted[s];
-            if (value.length === 0)
-                continue;
+        const toShow: string[] = [];
 
-            // Add group
-            this._Graph.add({ id: s, text: s, group: true });
-
-            // Add children
-            value.forEach(v => this._Graph.add({ id: s + '/' + v, text: v, data: v }));
+        for (const s in this._Sorted) {
+            const value = this._Sorted[s];
+            
+            const visible = value.filter(v => v.toLowerCase().indexOf(this._SearchStr.toLowerCase()) !== -1);
+            visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
+            visible.forEach(v => toShow.push(s + '/' + v));
         }
+
+        toShow.forEach(ts => this._Graph.element.show(ts));
+        this._Graph.element.refresh();
         
        setTimeout(() => {
             this._Graph.element.refresh();
             
             // Select first
-            for (const s in sorted) {
-                const value = sorted[s];
-                if (value.length === 0)
-                    continue;
-
-                this._Graph.setSelected(s + '/' + value[0]);
+            if (toShow.length > 0) {
+                this._Graph.setSelected(toShow[0]);
                 this._Empty.style.visibility = 'hidden';
-                return;
             }
 
             this._Empty.style.visibility = '';
@@ -163,7 +155,9 @@ export default class GraphNodeCreator {
                 clearTimeout(this._SearchTimeout);
             
             this._SearchTimeout = setTimeout(() => {
-                this.Reset(this._Search.value);
+                this._SearchStr = this._Search.value;
+                this.Reset();
+
                 this._SearchTimeout = null;
             }, 100);
         });
@@ -185,5 +179,42 @@ export default class GraphNodeCreator {
 
             this.Hide();
         });
+    }
+
+    /**
+     * Inits the items to draw in graph
+     */
+    public static InitItems (): void {
+        // Clear
+        this._Graph.clear();
+        this._Sorted = { };
+
+        // Get
+        const nodes = LiteGraph.registered_node_types;
+        for (const n in nodes) {
+            const split = n.split('/');
+
+            const value = this._Sorted[split[0]] || (this._Sorted[split[0]] = []);
+            value.push(split[1]);
+        }
+
+        // Add
+        for (const s in this._Sorted) {
+            const value = this._Sorted[s];
+
+            // Add group
+            this._Graph.add({ id: s, text: s, group: true });
+
+            // Add children
+            value.forEach(v => {
+                const id = s + '/' + v;
+                const ctor = LiteGraph.registered_node_types[id];
+                const title = ctor.title || ctor.Title || v;
+                const desc = <string> (ctor.desc || ctor.Desc);
+                const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
+
+                this._Graph.add({ id: id, text: title, data: v, img: 'icon-help', count: description });
+            });
+        }
     }
 }
