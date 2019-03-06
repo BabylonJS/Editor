@@ -1,3 +1,5 @@
+import { Vector2 } from 'babylonjs';
+
 import Layout from '../gui/layout';
 import Toolbar from '../gui/toolbar';
 import ContextMenu from '../gui/context-menu';
@@ -51,12 +53,23 @@ export default class EditorPreview {
         this.toolbar.build('PREVIEW-TOOLBAR');
 
         // Context menu
-        ContextMenu.ConfigureElement($('#renderCanvasEditor')[0], {
-            focus: { name: 'Focus', callback: () => this.editor.graph.onMenuClick('focus', this.editor.graph.getSelected()) },
-            clone: { name: 'Clone', callback: () => this.editor.graph.onMenuClick('clone', this.editor.graph.getSelected()) },
-            remove: { name: 'Remove', callback: () => this.editor.graph.onMenuClick('remove', this.editor.graph.getSelected()) }
-        }, (ev) => {
+        const canvas = <HTMLCanvasElement> $('#renderCanvasEditor')[0];
+        const lastPosition = Vector2.Zero();
+
+        canvas.addEventListener('pointerdown', (ev) => {
+            lastPosition.set(ev.offsetX, ev.offsetY);
+        });
+        canvas.addEventListener('contextmenu', (ev) => {
+            if (Math.abs(ev.offsetX - lastPosition.x) > 10 || Math.abs(ev.offsetY - lastPosition.y) > 10)
+                return;
+
             this.editor.scenePicker.onCanvasClick(ev);
+
+            ContextMenu.Show(ev, {
+                focus: { name: 'Focus', callback: () => this.editor.graph.onMenuClick('focus', this.editor.graph.getSelected()) },
+                clone: { name: 'Clone', callback: () => this.editor.graph.onMenuClick('clone', this.editor.graph.getSelected()) },
+                remove: { name: 'Remove', callback: () => this.editor.graph.onMenuClick('remove', this.editor.graph.getSelected()) }
+            });
         });
     }
 
