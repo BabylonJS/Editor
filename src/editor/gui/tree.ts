@@ -1,4 +1,5 @@
 import 'jstree';
+import ContextMenu from './context-menu';
 
 export interface TreeNode {
     id: string;
@@ -266,24 +267,27 @@ export default class Tree {
                     const result = { };
 
                     items.forEach(i => {
-                        result[i.id] = {
-                            label: i.text,
-                            icon: i.img ? ('w2ui-icon ' + i.img) : undefined,
-                            action: async () => {
-                                if (!i.multiple)
-                                    return await i.callback(lastSelected);
+                        if (i.separatorBefore)
+                            result[i.id + 'before'] = '---------';
 
-                                const selected = this.getAllSelected();
-                                for (const n of selected) {
-                                    await i.callback(n);
-                                }
-                            },
-                            separator_before: i.separatorBefore,
-                            separator_after: i.separatorAfter
-                        }
+                        result[i.id] = {
+                            name: i.text,
+                            callback: () => i.callback(lastSelected)
+                        };
+
+                        if (i.separatorAfter)
+                            result[i.id + 'after'] = '---------';
+
                     });
+
+                    const domElement = $('#' + lastSelected.id)[0];
+                    if (!domElement.classList.contains('ctxmenu'))
+                        domElement.classList.add('ctxmenu');
                     
-                    return result;
+                    const box = domElement.getBoundingClientRect();
+                    ContextMenu.Show(<any> { target: domElement, x: box['x'], y: box['y'] + 20 }, result);
+
+                    return null;
                 }
             }
         });

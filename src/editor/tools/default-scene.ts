@@ -1,12 +1,11 @@
 import {
     Scene, Mesh,
     PBRMaterial, Texture, CubeTexture, StandardMaterial,
-    Vector3,
-    ActionManager,
-    Animation,
+    Vector3, ActionManager, Animation,
     SceneSerializer, SpotLight, ShadowGenerator,
     ExecuteCodeAction, Color4,
-    Tags, FilesInputStore
+    Tags, FilesInputStore,
+    Tools as BabylonTools
 } from 'babylonjs';
 
 import {
@@ -120,6 +119,7 @@ export default class DefaultScene {
         });
 
         const skybox = Mesh.CreateBox("hdrSkyBox", 1000, scene);
+        skybox.id = BabylonTools.RandomId();
         skybox.material = skyboxMaterial;
         skybox.infiniteDistance = true;
 
@@ -150,6 +150,7 @@ export default class DefaultScene {
         groundMaterial.reflectionTexture = hdrTexture;
 
         const ground = Mesh.CreateGround('Ground', 512, 512, 32, scene);
+        ground.id = BabylonTools.RandomId();
         ground.receiveShadows = true;
         ground.material = groundMaterial;
 
@@ -174,6 +175,7 @@ export default class DefaultScene {
         sphereMaterialPBR.reflectionTexture = hdrTexture;
 
         const spherePBR = Mesh.CreateSphere('Sphere PBR', 32, 5, scene);
+        spherePBR.id = BabylonTools.RandomId();
         spherePBR.position.set(-5, 3, 0);
         spherePBR.material = sphereMaterialPBR;
 
@@ -191,6 +193,7 @@ export default class DefaultScene {
         sphereMaterialStd.specularTexture = woodReflectivity;
 
         const sphereStd = Mesh.CreateSphere('Sphere Standard', 32, 5, scene);
+        sphereStd.id = BabylonTools.RandomId();
         sphereStd.position.set(5, 3, 0);
         sphereStd.material = sphereMaterialStd;
 
@@ -201,6 +204,7 @@ export default class DefaultScene {
         sphereMaterialAnim.emissiveTexture = amiga;
 
         const sphereAnimated = Mesh.CreateSphere('Sphere Animated', 32, 5, scene);
+        sphereAnimated.id = BabylonTools.RandomId();
         sphereAnimated.position.set(15, 3, 0);
         sphereAnimated.material = sphereMaterialAnim;
 
@@ -234,6 +238,7 @@ export default class DefaultScene {
         planeMaterial.emissiveTexture = documentation;
 
         const plane = Mesh.CreatePlane('Documentation Plane', 100, scene);
+        plane.id = BabylonTools.RandomId();
         plane.rotation.y = Math.PI;
         plane.position.set(0, 55, -135);
         plane.scaling.set((1280 / 800), 1, 1);
@@ -246,10 +251,12 @@ export default class DefaultScene {
 
         // Rain
         const rainEmitter = new Mesh('Rain Particle System Emitter', scene);
+        rainEmitter.id = BabylonTools.RandomId();
         rainEmitter.position.y = 25;
         Tags.AddTagsTo(rainEmitter, 'added_particlesystem');
 
         const rain = SceneFactory.CreateDefaultParticleSystem(editor, false, rainEmitter);
+        rain.id = BabylonTools.RandomId();
         rain.name = 'Rain Particle System';
         rain.minEmitBox.set(-50, 0, -50);
         rain.maxEmitBox.set(50, 0, 50);
@@ -269,10 +276,12 @@ export default class DefaultScene {
 
         // Drop
         const dropEmitter = new Mesh('Drop Particle System Emitter', scene);
+        dropEmitter.id = BabylonTools.RandomId();
         dropEmitter.position.y = 1;
         Tags.AddTagsTo(dropEmitter, 'added_particlesystem');
 
         const drop = SceneFactory.CreateDefaultParticleSystem(editor, true, dropEmitter);
+        drop.id = BabylonTools.RandomId();
         drop.name = 'Rain Particle System';
         drop.minEmitBox.set(-50, 0, -50);
         drop.maxEmitBox.set(50, 0, 50);
@@ -295,6 +304,8 @@ export default class DefaultScene {
 
         // Light
         const spot = new SpotLight('Spot Light', new Vector3(20, 20, 20), new Vector3(-1, -2, 0), 2.4, 2.4, scene);
+        spot.id = BabylonTools.RandomId();
+
         const shadows = new ShadowGenerator(2048, spot, true);
         shadows.usePoissonSampling = true;
         shadows.getShadowMap().renderList = [spherePBR, sphereStd];

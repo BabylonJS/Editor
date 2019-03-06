@@ -236,20 +236,14 @@ export default class EditorAssets {
 
                 // Events
                 img.addEventListener('click', ev => {
-                    this.assetPreviewDatas.forEach(apd => {
-                        if (apd.img) {
-                            apd.img.style.backgroundColor = '';
-                            apd.img.style.borderRadius = '';
-                        }
-                    });
-
-                    img.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
-                    img.style.borderRadius = '10px';
-
+                    this.highlight(img);
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
                 });
 
-                ContextMenu.ConfigureElement(img, this.getContextMenuItems(c, a));
+                ContextMenu.ConfigureElement(img, this.getContextMenuItems(c, a), () => {
+                    this.highlight(img);
+                    this.editor.core.onSelectAsset.notifyObservers(a.data);
+                });
 
                 img.addEventListener('dblclick', async (ev) => {
                     const config = System.getConfig();
@@ -399,6 +393,22 @@ export default class EditorAssets {
                 break;
             default: break;
         }
+    }
+
+    /**
+     * Hightlights the given image element
+     * @param img the image element to highlight
+     */
+    protected highlight (img: HTMLImageElement): void {
+        this.assetPreviewDatas.forEach(apd => {
+            if (apd.img) {
+                apd.img.style.backgroundColor = '';
+                apd.img.style.borderRadius = '';
+            }
+        });
+
+        img.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
+        img.style.borderRadius = '10px';
     }
 
     /**
