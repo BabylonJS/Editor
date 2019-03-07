@@ -40,6 +40,18 @@ export default class Tools {
     }
 
     /**
+     * Returns if the focused element in the DOM is an input
+     */
+    public static IsFocusingInputElement (): boolean {
+        const e = document.activeElement;
+        if (e) {
+            return e.tagName === 'INPUT' || e.tagName === 'TEXTAREA';
+        }
+
+        return false;
+    }
+
+    /**
     * Returns the constructor name of the given object
     * @param obj the object
     */

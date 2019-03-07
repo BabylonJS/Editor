@@ -1,6 +1,6 @@
 import { Material, Scene } from 'babylonjs';
 import { AbstractEditionTool, Tools } from 'babylonjs-editor';
-import { LGraph, LiteGraph } from 'litegraph.js';
+import { LGraph, LiteGraph, LGraphGroup } from 'litegraph.js';
 
 import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
 
@@ -34,6 +34,10 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
      */
     public update(node: LiteGraphNode): void {
         super.update(node);
+
+        // Group?
+        if (node instanceof LGraphGroup)
+            return this._setupGroup(node);
 
         // Description
         const ctor = Tools.GetConstructorName(node);
@@ -165,5 +169,11 @@ export default class GraphNodeTool extends AbstractEditionTool<LiteGraphNode> {
 
         Tools.SortAlphabetically(result);
         return result;
+    }
+
+    // Setups the group node
+    private _setupGroup (node: any): void {
+        this.tool.add(node, 'title').name('Title').onChange(_ => node.graph.setDirtyCanvas(true, true));
+        this.tool.addHexColor(node, 'color').onChange(_ => node.graph.setDirtyCanvas(true, true));
     }
 }

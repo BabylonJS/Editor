@@ -64,6 +64,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             });
         }
 
+        if (node.state !== undefined)
+            common.add(node, 'state').name('State');
+
         // Parenting
         const parenting = this.tool.addFolder('Parenting');
         parenting.open();

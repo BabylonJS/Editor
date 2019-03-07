@@ -5,7 +5,7 @@ import {
     Tools as BabylonTools
 } from 'babylonjs';
 
-import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
 
 import Editor, {
     Layout, Toolbar, Grid, GridRow,
@@ -158,21 +158,51 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.canvas.classList.add('ctxmenu');
         this.graph.canvas.addEventListener('mousemove', () => {
-            if (this.data) {
-                this.data.graph = this.graphData.serialize();
-                VSCodeSocket.RefreshBehaviorGraph(this.data);
-            }
+            if (!this.data)
+                return;
+ 
+            this.data.graph = JSON.parse(JSON.stringify(this.graphData.serialize()));
+            VSCodeSocket.RefreshBehaviorGraph(this.data);
         });
-        this.graph.render_canvas_area = false;
+        this.graph.canvas.addEventListener('click', () => {
+            const canvasPos = this.graph.convertEventToCanvas(event);
+            const node = this.graphData.getNodeOnPos(canvasPos[0], canvasPos[1]);
+            if (node)
+                return;
+            
+            const group = this.graphData.getGroupOnPos(canvasPos[0], canvasPos[1]);
+            if (!group)
+                return;
+
+            this.editor.edition.setObject(group);
+        });
+        
+        this.graph.render_canvas_border = false;
+        this.graph.render_execution_order = true;
         this.graph.onNodeSelected = (node) => this.editor.edition.setObject(node);
+        this.graph.showSearchBox = () => { };
         this.graph.processContextMenu = ((node, event) => {
+            // Add.
             if (!node) {
+                // Group?
+                const group = this.graphData.getGroupOnPos(event.canvasX, event.canvasY);
+                if (group) {
+                    return ContextMenu.Show(event, {
+                        remove: { name: 'Remove', callback: () => {
+                            if (group.removable === false)
+                                return;
+                            
+                            this.graphData.remove(group);
+                        } }
+                    });
+                }
+                
                 GraphNodeCreator.OnConfirmSelection = (id) => {
-                    const node = <LiteGraphNode> LiteGraph.createNode(id);
+                    const node = <LiteGraphNode> (id === 'group' ? new LGraphGroup() : LiteGraph.createNode(id));
                     if (!node)
                         return;
                     
-                    node.pos = [event.offsetX, event.offsetY];
+                    node.pos = this.graph.convertEventToCanvas(event);
                     if (node.size[0] < 100)
                         node.size[0] = 100;
         
@@ -183,17 +213,21 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 return GraphNodeCreator.Show();
             }
 
+            // Node
             ContextMenu.Show(event, {
                 clone: { name: 'Clone', callback: () => {
                     const clone = <LiteGraphNode> LiteGraph.createNode(node.type);
-                    clone.pos = [event.offsetX, event.offsetY];
+                    clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
 
                     Object.assign(clone.properties, node.properties);
-                    Object.assign(clone.outputs, node.outputs);
+                    // Object.assign(clone.outputs, node.outputs);
 
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {
+                    if (node.removable === false)
+                        return;
+                    
                     this.graphData.remove(node);
                 } },
             });
@@ -469,7 +503,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.graphData.clear();
 
         LiteGraphNode.Loaded = false;
-        this.graphData.configure(this.data.graph);
+        this.graphData.configure(JSON.parse(JSON.stringify(this.data.graph)));
         LiteGraphNode.Loaded = true;
 
         // Refresh right text
@@ -489,7 +523,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         const data: GraphData = {
             name: name,
             id: BabylonTools.RandomId(),
-            graph: new LGraph().serialize()
+            graph: JSON.parse(JSON.stringify(new LGraph().serialize()))
         };
 
         this.editor.core.scene.metadata.behaviorGraphs.push(data);

@@ -61,6 +61,7 @@ export class AbstractPointer extends LiteGraphNode {
 export class PointerOver extends AbstractPointer {
     // Static members
     public static Desc = 'Triggers and action on the pointer is over the mesh (only meshes are supported)';
+    public static Title = 'On Pointer Over';
 
     /**
      * Constructor
@@ -73,6 +74,7 @@ export class PointerOver extends AbstractPointer {
 export class PointerDown extends AbstractPointer {
     // Static members
     public static Desc = 'Triggers and action on the pointer is down on the mesh (only meshes are supported)';
+    public static Title = 'On Pointer Down';
 
     /**
      * Constructor
@@ -85,6 +87,7 @@ export class PointerDown extends AbstractPointer {
 export class PointerOut extends AbstractPointer {
     // Static members
     public static Desc = 'Triggers and action on the pointer is out on the mesh (only meshes are supported)';
+    public static Title = 'On Pointer Out';
 
     // Private members
     private _wasOver: boolean = false;

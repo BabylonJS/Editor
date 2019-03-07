@@ -158,6 +158,10 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static IsElementChildOf(element: HTMLElement, parent: HTMLElement): boolean;
             /**
+                * Returns if the focused element in the DOM is an input
+                */
+            static IsFocusingInputElement(): boolean;
+            /**
              * Returns the constructor name of the given object
              * @param obj the object
              */
@@ -932,6 +936,12 @@ declare module 'babylonjs-editor/editor/gui/edition' {
                 * @param parentId the parent id (dom element)
                 */
             build(parentId: string): void;
+            /**
+                * Add a gui controller hexadecimal color
+                * @param target the target object
+                * @param propName the property of the object
+                */
+            addHexColor(target: any, propName: string): dat.GUIController;
             /**
                 * Adds a color element
                 * @param parent the parent folder

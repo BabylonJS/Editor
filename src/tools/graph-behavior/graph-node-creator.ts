@@ -1,8 +1,6 @@
 import { LiteGraph } from 'litegraph.js';
 import { Tools, IStringDictionary, Graph } from 'babylonjs-editor';
 
-import { LiteGraphNode } from '../../extensions/behavior/graph-nodes/typings';
-
 export default class GraphNodeCreator {
     // Public members
     public static Width: number = 400;
@@ -114,11 +112,19 @@ export default class GraphNodeCreator {
         
         // Add
         const toShow: string[] = [];
+        const effectiveSearch = this._SearchStr.replace(/ /g, '');
 
         for (const s in this._Sorted) {
             const value = this._Sorted[s];
             
-            const visible = value.filter(v => v.toLowerCase().indexOf(this._SearchStr.toLowerCase()) !== -1);
+            const visible = value.filter(v => {
+                const ctor = LiteGraph.registered_node_types[s + '/' + v];
+                if (!ctor)
+                    return false;
+                
+                const title = ctor.title || ctor.Title || v;
+                return title.toLowerCase().indexOf(effectiveSearch.toLowerCase()) !== -1;
+            });
             visible.length === 0 ? this._Graph.element.hide(s) : this._Graph.element.show(s);
             visible.forEach(v => toShow.push(s + '/' + v));
         }
@@ -198,7 +204,10 @@ export default class GraphNodeCreator {
             value.push(split[1]);
         }
 
-        // Add
+        // Add group
+        this._Graph.add({ id: 'group', text: 'Group', img: 'icon-folder' });
+
+        // All all
         for (const s in this._Sorted) {
             const value = this._Sorted[s];
 
@@ -209,7 +218,7 @@ export default class GraphNodeCreator {
             value.forEach(v => {
                 const id = s + '/' + v;
                 const ctor = LiteGraph.registered_node_types[id];
-                const title = ctor.title || ctor.Title || v;
+                const title = ctor.Title || ctor.title || v;
                 const desc = <string> (ctor.desc || ctor.Desc);
                 const description = desc ? (desc.length > 30 ? desc.substr(0, 30) + '...' : desc) : '';
 

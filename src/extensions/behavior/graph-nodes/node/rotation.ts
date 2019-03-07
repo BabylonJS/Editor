@@ -1,10 +1,9 @@
-import { AbstractMesh, PointLight, SpotLight, DirectionalLight, Camera } from 'babylonjs';
-import { LGraph, LiteGraph } from 'litegraph.js';
-
 import { LiteGraphNode } from '../typings';
 
 export class GetRotation extends LiteGraphNode {
+    // Static members
     public static Desc = 'Get Object Rotation by Vec3';
+    public static Title = 'Get Rotation';
 
     /**
      * Constructor
@@ -40,7 +39,9 @@ export class GetRotation extends LiteGraphNode {
 }
 
 export class SetRotation extends LiteGraphNode {
+    // Static members
     public static Desc = 'Set Object Rotation by Vec3';
+    public static Title = 'Set Rotation';
     
     /**
      * Constructor

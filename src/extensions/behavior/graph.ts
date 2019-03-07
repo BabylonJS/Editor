@@ -19,6 +19,7 @@ import { SetTimeout, ClearTimeout } from './graph-nodes/event/timeout';
 import { PlayAnimations, StopAnimations } from './graph-nodes/action/animation';
 import { Number, String, Boolean } from './graph-nodes/basic/const';
 import { Color } from './graph-nodes/basic/color';
+import { Time } from './graph-nodes/basic/time';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
@@ -311,7 +312,7 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
      */
     public static RegisterNodes (object?: any): void {
         // Unregister all except:
-        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'graph', 'logic'];
+        const available = ['node', 'scene', 'math', 'math3d', 'basic', 'logic'];
         const keys = Object.keys(LiteGraph.registered_node_types);
 
         keys.forEach(k => {
@@ -324,8 +325,8 @@ export default class GraphExtension extends Extension<BehaviorGraphMetadata> {
         Number.Register('basic/number', Number);
         String.Register('basic/string', String);
         Boolean.Register('basic/boolean', Boolean);
-
         Color.Register('basic/color', Color);
+        Time.Register('basic/time', Time);
 
         RenderStart.Register('render/renderstarts', RenderStart);
         RenderLoop.Register('render/renderloop', RenderLoop);

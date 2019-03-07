@@ -137,6 +137,15 @@ export default class Edition {
     }
 
     /**
+     * Add a gui controller hexadecimal color
+     * @param target the target object
+     * @param propName the property of the object
+     */
+    public addHexColor (target: any, propName: string): dat.GUIController {
+        return this.element.addColor(target, propName);
+    }
+
+    /**
      * Adds a color element
      * @param parent the parent folder
      * @param name the name of the folder

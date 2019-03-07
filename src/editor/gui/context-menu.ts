@@ -42,9 +42,9 @@ export default class ContextMenu {
      */
     public static ConfigureElement (element: HTMLElement, items: IStringDictionary<ContextMenuItem>, callback?: (event: MouseEvent) => void): void {
         element.addEventListener('contextmenu', (ev) => {
-            callback && callback(ev);
             this.Items = items;
             this.Show(ev);
+            callback && callback(ev);
         });
     }
 

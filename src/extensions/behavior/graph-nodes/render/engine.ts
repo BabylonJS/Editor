@@ -6,6 +6,7 @@ import { LiteGraphNode } from '../typings';
 export class RenderLoop extends LiteGraphNode {
     // Static members
     public static Desc = 'On Render Loop';
+    public static Title = 'On Render Loop';
     
     /**
      * Constructor
@@ -30,6 +31,7 @@ export class RenderLoop extends LiteGraphNode {
 export class RenderStart extends LiteGraphNode {
     // Static members
     public static Desc = 'On rendering starts (called once)';
+    public static Title = 'On Render Starts';
 
     // Public members
     public started: boolean = false;

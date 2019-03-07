@@ -4,7 +4,9 @@ import { LiteGraph } from 'litegraph.js';
 import { LiteGraphNode } from '../typings';
 
 export class PlayAnimations extends LiteGraphNode {
+    // Static members
     public static Desc = 'Plays animations of the attached node';
+    public static Title = 'Play Animations';
     
     /**
      * Constructor
@@ -40,7 +42,9 @@ export class PlayAnimations extends LiteGraphNode {
 }
 
 export class StopAnimations extends LiteGraphNode {
+    // Static members
     public static Desc = 'Stops animations of the attached node';
+    public static Title = 'Stop Animations';
     
     /**
      * Constructor

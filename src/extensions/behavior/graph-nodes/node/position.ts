@@ -1,10 +1,9 @@
-import { AbstractMesh, PointLight, SpotLight, DirectionalLight, Camera } from 'babylonjs';
-import { LGraph, LiteGraph } from 'litegraph.js';
-
 import { LiteGraphNode } from '../typings';
 
 export class GetPosition extends LiteGraphNode {
+    // Static members
     public static Desc = 'Get Object Position by Vec3';
+    public static Title = 'Get Position';
 
     /**
      * Constructor
@@ -40,7 +39,9 @@ export class GetPosition extends LiteGraphNode {
 }
 
 export class SetPosition extends LiteGraphNode {
+    // Static members
     public static Desc = 'Set Object Position by Vec3';
+    public static Title = 'Set Position';
     
     /**
      * Constructor

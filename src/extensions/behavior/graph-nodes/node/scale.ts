@@ -1,10 +1,9 @@
-import { AbstractMesh, PointLight, SpotLight, DirectionalLight, Camera } from 'babylonjs';
-import { LGraph, LiteGraph } from 'litegraph.js';
-
 import { LiteGraphNode } from '../typings';
 
 export class GetScale extends LiteGraphNode {
+    // Static members
     public static Desc = 'Get Object Scale by Vec3';
+    public static Title = 'Get Scale';
 
     /**
      * Constructor
@@ -40,7 +39,9 @@ export class GetScale extends LiteGraphNode {
 }
 
 export class SetScale extends LiteGraphNode {
+    // Static members
     public static Desc = 'Set Object Scale by Vec3';
+    public static Title = 'Set Scale';
     
     /**
      * Constructor

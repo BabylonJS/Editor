@@ -119,9 +119,7 @@ html, body {
 .w2ui-sidebar .w2ui-node {
     height: 24px;
 }
-.w2ui-sidebar .w2ui-node-caption {
-    top: -3px;
-}
+
 .w2ui-sidebar .w2ui-node-count {
     top: -3px;
 }

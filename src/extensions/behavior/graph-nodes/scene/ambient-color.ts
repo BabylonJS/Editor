@@ -1,7 +1,9 @@
 import { LiteGraphNode } from '../typings';
 
 export class GetAmbientColor extends LiteGraphNode {
+    // Static members
     public static Desc = 'Get Object Ambient Color';
+    public static Title = 'Get Ambient Color';
 
     /**
      * Constructor
@@ -36,7 +38,9 @@ export class GetAmbientColor extends LiteGraphNode {
 }
 
 export class SetAmbientColor extends LiteGraphNode {
+    // Static members
     public static Desc = 'Set Object Ambient Color';
+    public static Title = 'Set Ambient Color';
     
     /**
      * Constructor
