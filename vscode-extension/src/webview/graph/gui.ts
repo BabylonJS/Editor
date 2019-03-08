@@ -1,8 +1,8 @@
 import { Material } from 'babylonjs';
-import { LiteGraph, LiteGraphNode } from 'babylonjs-editor';
+import { LiteGraph, LiteGraphNode, LGraphGroup } from 'babylonjs-editor';
 import * as dat from 'dat.gui';
 
-import { GraphEditor } from './graph';
+import { GraphEditor } from './graph-canvas';
 import Tools from '../tool';
 
 export default class GUI {
@@ -22,7 +22,6 @@ export default class GUI {
     public refresh (node: LiteGraphNode): void {
         // Remove?
         if (this.tool) {
-            console.log('remove');
             this.tool.destroy();
             this.tool.domElement.parentNode.removeChild(this.tool.domElement);
         }
@@ -33,8 +32,12 @@ export default class GUI {
             scrollable: true
         });
 
-        $('#edition')[0].appendChild(this.tool.domElement);
+        $('#editLayout')[0].appendChild(this.tool.domElement);
         this.tool.width = this.editor.layout.get('right')['width'];
+
+        // Group?
+        if (node instanceof LGraphGroup)
+            return this._setupGroup(node);
 
         // Description
         const ctor = Tools.GetConstructorName(node);
@@ -164,5 +167,11 @@ export default class GUI {
 
         Tools.SortAlphabetically(result);
         return result;
+    }
+
+    // Setups the group node
+    private _setupGroup (node: any): void {
+        this.tool.add(node, 'title').name('Title').onChange(_ => node.graph.setDirtyCanvas(true, true));
+        this.tool.addColor(node, 'color').onChange(_ => node.graph.setDirtyCanvas(true, true));
     }
 }

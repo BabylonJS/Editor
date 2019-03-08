@@ -220,8 +220,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                     clone.pos = [node.pos[0] + 10, node.pos[1] + 10];
 
                     Object.assign(clone.properties, node.properties);
-                    // Object.assign(clone.outputs, node.outputs);
-
                     this.graphData.add(clone);
                 } },
                 remove: { name: 'Remove', callback: () => {

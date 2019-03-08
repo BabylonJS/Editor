@@ -1,5 +1,5 @@
 import { Scene, AbstractMesh, Light, Camera, Vector3, Tools } from 'babylonjs';
-import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
+import { LGraph, LGraphCanvas, LiteGraph, LGraphGroup } from 'litegraph.js';
 
 import Extensions from '../extensions';
 import Extension from '../extension';
@@ -23,7 +23,7 @@ import { Time } from './graph-nodes/basic/time';
 
 import { LiteGraphNode } from './graph-nodes/typings';
 
-export { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode }
+export { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup }
 
 // Interfaces
 export interface GraphData {

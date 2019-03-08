@@ -65,7 +65,7 @@ build('./.build/src/webview/', './.build/src/webview/preview.js', './dist/previe
 });
 
 // Graph
-build('./.build/src/webview/', './.build/src/webview/graph/graph.js', './dist/graph.js', {
+build('./.build/src/webview/', './.build/src/webview/graph/graph-canvas.js', './dist/graph.js', {
     globalName: 'EditorGraph',
     format: 'global',
     minify: true,

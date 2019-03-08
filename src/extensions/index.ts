@@ -3,7 +3,7 @@ import Extension from './extension';
 
 import AssetsExtension from './assets/assets';
 import CodeExtension from './behavior/code';
-import GraphExtension, { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode } from './behavior/graph';
+import GraphExtension, { LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup } from './behavior/graph';
 import PathFinderExtension from './path-finder/index';
 import ParticlesCreatorExtension from './particles-creator/particles-creator';
 import PostProcessEditorExtension from './post-process-editor/post-process-editor';
@@ -19,7 +19,7 @@ export {
 
     AssetsExtension,
     CodeExtension,
-    GraphExtension, LGraph, LGraphCanvas, LiteGraph, LiteGraphNode,
+    GraphExtension, LGraph, LGraphCanvas, LiteGraph, LiteGraphNode, LGraphGroup,
     PostProcessExtension,
     MaterialEditorExtension,
     PathFinderExtension,

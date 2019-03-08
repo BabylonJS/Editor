@@ -81,9 +81,9 @@ export class Preview {
             if (!project)
                 return this.runScene();
 
-            const data = await Tools.ReadFile<string>(project);
+            const data = await Tools.ReadFile<string>(project, false);
             vscode.postMessage({ command: 'notify', text: 'Applying extensions.' });
-            console.log(Extensions);
+
             Extensions.RoolUrl = 'file:';
             Extensions.ApplyExtensions(scene, JSON.parse(data).customMetadatas);
 
