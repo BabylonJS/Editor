@@ -123,8 +123,8 @@ export default class ScenePicker {
         switch (value) {
             case GizmoType.BOUNDING_BOX:
                 this.currentGizmo = this.boundingBoxGizmo = new BoundingBoxGizmo(new Color3(1, 1, 1), this.gizmosLayer);
-                this.boundingBoxGizmo.rotationSphereSize = 0.25;
-                this.boundingBoxGizmo.scaleBoxSize = 0.4;
+                this.boundingBoxGizmo.rotationSphereSize = 1.0;
+                this.boundingBoxGizmo.scaleBoxSize = 1.0;
                 break;
             case GizmoType.POSITION: this.currentGizmo = this.positionGizmo = new PositionGizmo(this.gizmosLayer); break;
             case GizmoType.ROTATION: this.currentGizmo = this.rotationGizmo = new RotationGizmo(this.gizmosLayer); break;
@@ -132,8 +132,9 @@ export default class ScenePicker {
             default: break; // GizmoType.NONE
         }
 
-        // Attach mesh
+        // Attach mesh and configure
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
+        this.currentGizmo.scaleRatio = 2;
 
         // Events
         if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {
@@ -229,10 +230,21 @@ export default class ScenePicker {
     protected undoRedo (axis: 'x' | 'y' | 'z' | 'boundingbox'): void {
         let vector: Vector3 = null;
         switch (this._gizmoType) {
-            case GizmoType.POSITION: vector = this.positionGizmo.xGizmo.attachedMesh.position; break;
-            case GizmoType.ROTATION: vector = this.rotationGizmo.xGizmo.attachedMesh.rotation; break;
-            case GizmoType.SCALING: vector = this.scalingGizmo.xGizmo.attachedMesh.scaling; break;
-            default: break;
+            case GizmoType.POSITION:
+                if (!this.positionGizmo) return;
+                vector = this.positionGizmo.xGizmo.attachedMesh.position;
+                break;
+            case GizmoType.ROTATION:
+                if (!this.rotationGizmo) return;
+                vector = this.rotationGizmo.xGizmo.attachedMesh.rotation;
+                break;
+            case GizmoType.SCALING:
+                if (!this.scalingGizmo) return;
+                vector = this.scalingGizmo.xGizmo.attachedMesh.scaling;
+                break;
+            default:
+                if (!this.boundingBoxGizmo) return;
+                break;
         }
 
         switch (axis) {
