@@ -7,6 +7,7 @@ import {
 
 import Tokenizer, { TokenType } from '../tools/tokenizer';
 import { exportScriptString } from '../tools/tools';
+import { editorRequire } from '../tools/require';
 
 import { IStringDictionary } from '../typings/typings';
 import { IAssetComponent, AssetElement } from '../typings/asset';
@@ -39,7 +40,7 @@ export interface BehaviorMetadata {
 }
 
 const template = `
-EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile) {
+EDITOR.BehaviorCode.Constructors['{{name}}'] = function (scene, {{node}}, tools, mobile, require) {
 var returnValue = null;
 var exports = { };
 
@@ -426,7 +427,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
             Extension.AddScript(effectiveCode, url);
 
         // Constructor
-        return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile);
+        return EDITOR.BehaviorCode.Constructors[fnName](this.scene, node, Extensions.Tools, Extensions.Mobile, editorRequire);
     }
 
     /**

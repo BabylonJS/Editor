@@ -1,4 +1,5 @@
 import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3, ArcRotateCamera } from 'babylonjs';
+import { GUI } from 'dat-gui';
 
 import AbstractEditionTool from './edition-tool';
 import SceneManager from '../scene/scene-manager';
@@ -217,8 +218,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
      * Adds all the scripts metadatas to configure custom user values
      */
     protected addScriptsConfiguration (node: Node): void {
-        const scripts = this.tool.addFolder('Scripts');
-        scripts.open();
+        let scripts: GUI = null;
 
         const behaviorExtension = Extensions.RequestExtension<CodeExtension>(this.editor.core.scene, 'BehaviorExtension');
         if (behaviorExtension && node.metadata && node.metadata.behavior) {
@@ -235,6 +235,12 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                         return;
                 } catch (e) {
                     return;
+                }
+
+                // Create root folder
+                if (!scripts) {
+                    scripts = this.tool.addFolder('Scripts');
+                    scripts.open();
                 }
                 
                 // Set params
