@@ -55,6 +55,14 @@ html, body {
     background: #222222 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlGIWqMCbWAEAOw==) 6px 10px no-repeat !important;
 }
 
+.dg .c input[type=text] {
+  background: #e9e9e9;
+}
+
+.dg .c .slider {
+  background: grey;
+}
+
 /* Search / JSTREE*/
 #SCENE-GRAPH-SEARCH {
     background-color: #cccccc;

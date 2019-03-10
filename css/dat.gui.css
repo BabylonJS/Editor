@@ -149,3 +149,11 @@
 .dg .c .slider:hover {
     background: #eee;
 }
+
+.dg .cr.string input[type=text] {
+    color: black;
+  }
+  
+  .dg .cr.number input[type=text] {
+    color: black;
+  }
