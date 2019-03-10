@@ -1,7 +1,8 @@
 import * as SocketIO from 'socket.io-client';
-import { SceneSerializer, Node, AbstractMesh, Scene } from 'babylonjs';
+import { SceneSerializer, Node, Scene } from 'babylonjs';
 
 import Editor from '../editor';
+import Tools from '../tools/tools';
 
 export default class VSCodeSocket {
     // Public members
@@ -25,9 +26,13 @@ export default class VSCodeSocket {
             return;
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
+        this.Socket.on('connect', () => this.RefreshProject());
 
         // Common
-        this.Socket.on('refresh', () => this.Refresh());
+        this.Socket.on('refresh', () => {
+            this.RefreshProject();
+            this.Refresh();
+        });
         this.Socket.on('update-behavior-code', d => this.OnUpdateBehaviorCode && this.OnUpdateBehaviorCode(d));
         this.Socket.on('update-material-code', d => this.OnUpdateMaterialCode && this.OnUpdateMaterialCode(d));
         this.Socket.on('update-post-process-code', d => this.OnUpdatePostProcessCode && this.OnUpdatePostProcessCode(d));
@@ -55,6 +60,20 @@ export default class VSCodeSocket {
         
         this.RefreshSceneInfos();
         this.RefreshSelectedObject(this._Editor.core.currentSelectedObject);
+    }
+
+    /**
+     * Refreshes the project
+     */
+    public static async RefreshProject (): Promise<void> {
+        this.Socket.emit('project', {
+            tsconfig: await Tools.LoadFile<string>('assets/templates/vscode/tsconfig.json'),
+            babylonjs: await Tools.LoadFile<string>('assets/typings/babylon.module.d.ts'),
+            babylonjs_materials: await Tools.LoadFile<string>('assets/typings/babylonjs.materials.module.d.ts'),
+            tools: await Tools.LoadFile<string>('assets/templates/code/tools.d.ts'),
+            mobile: await Tools.LoadFile<string>('assets/templates/code/mobile.d.ts'),
+            pathFinder: await Tools.LoadFile<string>('assets/templates/code/path-finder.d.ts'),
+        });
     }
 
     /**

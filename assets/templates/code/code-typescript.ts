@@ -32,4 +32,4 @@ export default class {{name}} implements IScript {
 
 // Export the script as an attached script
 // (attached to a node or scene)
-exportScript(Script);
+exportScript({{name}});

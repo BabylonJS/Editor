@@ -5,6 +5,8 @@ export default class Sockets {
     public static Socket: SocketIOClient.Socket;
 
     public static OnDisconnect: () => void;
+
+    public static OnGotProject: (project: any) => void;
     public static OnGotBehaviorCodes: (scripts: any) => void;
     public static OnGotMaterialCodes: (scripts: any) => void;
     public static OnGotPostProcessCodes: (scripts: any) => void;
@@ -33,6 +35,7 @@ export default class Sockets {
                 this.Connect();
         });
 
+        this.Socket.on('project', (p) => this.OnGotProject(p));
         this.Socket.on('behavior-codes', (s) => this.OnGotBehaviorCodes(s));
         this.Socket.on('material-codes', (s) => this.OnGotMaterialCodes(s));
         this.Socket.on('post-process-codes', (s) => this.OnGotPostProcessCodes(s));

@@ -52,6 +52,8 @@ export default class VSCodeSocket {
      */
     protected listen (): void {
         // Work as mirror
+        this.editorSocket.on('project', (p) => this.vsCodeSocket.broadcast('project', p.data));
+
         this.vsCodeSocket.on('refresh', () => this.editorSocket.broadcast('refresh'));
 
         this.editorSocket.on('behavior-codes', (c) => this.vsCodeSocket.broadcast('behavior-codes', c.data));

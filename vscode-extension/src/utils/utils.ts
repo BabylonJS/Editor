@@ -7,6 +7,8 @@ import { WebviewPanel, Uri, window } from 'vscode';
 export default class Utils {
     // Public members
     public static ExtensionPath: string = '';
+    public static TempWorkspace: string = process.env['APPDATA'];
+    public static TempFolder: string = join(process.env['APPDATA'], 'babylonjs-editor');
 
     /**
      * Returns the current Ip of the user
