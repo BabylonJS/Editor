@@ -414,7 +414,8 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         const data: BehaviorCode = {
             name: name,
             id: BabylonTools.RandomId(),
-            code: this.template.replace(/{{type}}/g, ctor)
+            code: this.template.replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, ''))
+                               .replace(/{{type}}/g, ctor)
                                .replace(/{{class}}/g, this.node.constructor.name)
         };
 

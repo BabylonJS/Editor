@@ -1,6 +1,6 @@
 import { Tools } from 'babylonjs';
 
-export class MyClass {
+export class {{name}} {
 
     /**
      * Constructor

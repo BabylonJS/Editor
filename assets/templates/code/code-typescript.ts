@@ -1,6 +1,6 @@
 import { Color4, {{class}} } from 'babylonjs';
 
-export default class Script implements IScript {
+export default class {{name}} implements IScript {
     // Public members
     public blackColor = new Color4(0, 0, 0, 1);
 

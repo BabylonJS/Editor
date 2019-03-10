@@ -94,7 +94,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
         const asset = {
             name: name,
             data: <BehaviorCode> {
-                code: code,
+                code: code.replace(/{{name}}/g, (name[0].toUpperCase() + name.substr(1, name.length)).replace(/ /g, '')),
                 id: Tools.RandomId(),
                 name: name
             }
