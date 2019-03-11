@@ -33,9 +33,6 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
         collisions.add(node, 'checkCollisions').name('Check Collisions');
         collisions.add(node, 'collisionMask').step(0.01).name('Collision Mask');
 
-        if (node instanceof AbstractMesh)
-            collisions.add(node, 'isBlocker').name('Is Blocker');
-
         if (node instanceof Mesh)
             collisions.add(node, 'useOctreeForCollisions').name('Use Octree For Collisions');
         else

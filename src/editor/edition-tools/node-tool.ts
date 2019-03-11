@@ -102,6 +102,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             node.metadata.baseConfiguration = node.metadata.baseConfiguration || { };
             node.metadata.baseConfiguration.isPickable = node.metadata.baseConfiguration.isPickable || false;
             options.add(node.metadata.baseConfiguration, 'isPickable').name('Is Pickable');
+            options.add(node, 'isBlocker').name('Is Blocker');
             
             if (!(node instanceof InstancedMesh)) {
                 // Instances

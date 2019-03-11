@@ -22,18 +22,26 @@ export async function activate (context: ExtensionContext): Promise<void> {
     // context.subscriptions.push(workspace.registerFileSystemProvider('babylonjs-editor', new CustomFileSystem(), { isCaseSensitive: true, isReadonly: false }));
     // workspace.updateWorkspaceFolders(0, 0, { uri: Uri.parse('babylonjs-editor:/'), name: "BabylonJSEditor" });
 
+    // Workspace
     const fs = new TempFileSystem();
     await fs.init();
     workspace.updateWorkspaceFolders(0, 0, { uri: Uri.parse('file:/' + Utils.TempFolder), name: 'BabylonJSEditor' });
-    context.subscriptions.push({ dispose: () => Watcher.Dispose() });
 
     // Plugin
     context.subscriptions.push(window.createTreeView('babylonjsEditorPlugin', { treeDataProvider: new BabylonJSEditorPlugin() }));
+
+    // Dispose
+    context.subscriptions.push({
+        dispose: async () => {
+            Watcher.Dispose();
+            await fs.clear();
+        }
+    });
 }
 
 /**
  * Deactivates the extension
  */
-export function deactivate (): void {
+export async function deactivate (): Promise<void> {
     Sockets.Close();
 }

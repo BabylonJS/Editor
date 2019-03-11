@@ -33,7 +33,7 @@ export default class EditorApp {
      * Creates a new window
      */
     public static CreateWindow (): Promise<void> {
-        Settings.OpenedFile = 'C:/Users/jmoreaum/OneDrive/ActionBuilderscene.editorproject';//process.argv[1];
+        Settings.OpenedFile = process.argv[1];
         
         return new Promise<void>((resolve) => {
             this.Window = new BrowserWindow({
