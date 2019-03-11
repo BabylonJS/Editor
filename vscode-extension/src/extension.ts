@@ -1,6 +1,7 @@
 import { ExtensionContext, workspace, Uri, window } from 'vscode';
 
 import Sockets from './utils/socket';
+import Watcher from './utils/watcher';
 import CustomFileSystem from './file-system';
 import TempFileSystem from './temp-file-system';
 import BabylonJSEditorPlugin from './plugin';
@@ -24,7 +25,7 @@ export async function activate (context: ExtensionContext): Promise<void> {
     const fs = new TempFileSystem();
     await fs.init();
     workspace.updateWorkspaceFolders(0, 0, { uri: Uri.parse('file:/' + Utils.TempFolder), name: 'BabylonJSEditor' });
-    context.subscriptions.push({ dispose: () => TempFileSystem.Watchers.forEach(f => f.dispose()) });
+    context.subscriptions.push({ dispose: () => Watcher.Dispose() });
 
     // Plugin
     context.subscriptions.push(window.createTreeView('babylonjsEditorPlugin', { treeDataProvider: new BabylonJSEditorPlugin() }));

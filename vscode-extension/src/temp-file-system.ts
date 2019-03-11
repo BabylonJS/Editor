@@ -3,11 +3,9 @@ import { join } from 'path';
 
 import Sockets from './utils/socket';
 import Utils from './utils/utils';
+import Watcher from './utils/watcher';
 
 export default class TempFileSystem {
-    // Static members
-    public static Watchers: { dispose: () => void }[] = [];
-
     /**
      * Constructor
      */
@@ -23,6 +21,7 @@ export default class TempFileSystem {
             // Clear and create directory
             await this._clearDirectory('typings');
             await this._createDirectory('typings');
+
             // Write files
             await fs.writeFile(join(Utils.TempFolder, 'tsconfig.json'), Buffer.from(p.tsconfig));
             await fs.writeFile(join(Utils.TempFolder, 'typings/babylon.module.d.ts'), Buffer.from(p.babylonjs));
@@ -40,58 +39,120 @@ export default class TempFileSystem {
             scripts = Array.isArray(scripts) ? scripts : [scripts];
 
             // Write scripts
-            scripts.forEach(s => {
+            scripts.forEach(async s => {
+                // Write
                 const filename = join(Utils.TempFolder, 'behaviors', s.name + '.ts');
-                fs.writeFile(filename, Buffer.from(s.code));
-                fs.unwatchFile(filename);
-                fs.watchFile(filename, async (curr, prev) => {
-                    if (!prev)
-                        return;
-                    console.log('changed');
+                await fs.writeFile(filename, Buffer.from(s.code));
+
+                // Watch
+                Watcher.WatchFile(filename, async () => {
                     Sockets.UpdateBehaviorCode({
                         id: s.id,
                         name: s.name,
                         code: await fs.readFile(filename, { encoding: 'utf-8' })
                     });
-                })
+                });
             });
         });
 
-        Sockets.OnGotMaterialCodes = (scripts => {
-            // // Clear
-            // Array.isArray(scripts) && this._clearDirectory('materials');
-            // // Transform to array
-            // scripts = Array.isArray(scripts) ? scripts : [scripts];
+        Sockets.OnGotMaterialCodes = (async scripts => {
+            // Clear
+            Array.isArray(scripts) && await this._clearDirectory('materials');
+            // Transform to array
+            scripts = Array.isArray(scripts) ? scripts : [scripts];
 
-            // // Write scripts
-            // scripts.forEach(s => {
-            //     const root = 'babylonjs-editor:/materials/';
-            //     // Create folder
-            //     this.createDirectory(Uri.parse(root + s.name));
+            // Write scripts
+            scripts.forEach(async s => {
+                // Create directory
+                const root = join(Utils.TempFolder, 'materials');
+                const matRoot = join(root, s.name);
+                await this._createDirectory('materials/' + s.name);
 
-            //     this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.ts`), Buffer.from(s.code), { create: true, overwrite: true }, s.id);
-            //     this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.fragment.fx`), Buffer.from(s.pixel), { create: true, overwrite: true }, s.id);
-            //     this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.vertex.fx`), Buffer.from(s.vertex), { create: true, overwrite: true }, s.id);
-            //     this.writeFile(Uri.parse(`${root}${s.name}/config.json`), Buffer.from(s.config), { create: true, overwrite: true }, s.id);
-            // });
+                // Code
+                const code = join(matRoot, s.name + '.ts');
+                await Watcher.WriteAndWatchFile(code, Buffer.from(s.code), async () => {
+                    Sockets.UpdateMaterialCode({
+                        id: s.id,
+                        name: s.name,
+                        code: await fs.readFile(code, { encoding: 'utf-8' })
+                    });
+                });
+
+                // Pixel
+                const pixel = join(matRoot, s.name + '.fragment.fx');
+                await Watcher.WriteAndWatchFile(pixel, Buffer.from(s.pixel), async () => {
+                    Sockets.UpdateMaterialCode({
+                        id: s.id,
+                        name: s.name,
+                        pixel: await fs.readFile(pixel, { encoding: 'utf-8' })
+                    });
+                });
+
+                // Vertex
+                const vertex = join(matRoot, s.name + '.vertex.fx');
+                await Watcher.WriteAndWatchFile(vertex, Buffer.from(s.vertex), async () => {
+                    Sockets.UpdateMaterialCode({
+                        id: s.id,
+                        name: s.name,
+                        vertex: await fs.readFile(vertex, { encoding: 'utf-8' })
+                    });
+                });
+
+                // Config
+                const config = join(matRoot, s.name + '.config.json');
+                await Watcher.WriteAndWatchFile(config, Buffer.from(s.config), async () => {
+                    Sockets.UpdateMaterialCode({
+                        id: s.id,
+                        name: s.name,
+                        config: await fs.readFile(config, { encoding: 'utf-8' })
+                    });
+                });
+            });
         });
 
-        Sockets.OnGotPostProcessCodes = (scripts => {
-            // // Clear
-            // Array.isArray(scripts) && this._clearDirectory('post-processes');
-            // // Transform to array
-            // scripts = Array.isArray(scripts) ? scripts : [scripts];
+        Sockets.OnGotPostProcessCodes = (async scripts => {
+            // Clear
+            Array.isArray(scripts) && await this._clearDirectory('post-processes');
+            // Transform to array
+            scripts = Array.isArray(scripts) ? scripts : [scripts];
 
-            // // Write scripts
-            // scripts.forEach(s => {
-            //     const root = 'babylonjs-editor:/post-processes/';
-            //     // Create folder
-            //     this.createDirectory(Uri.parse(root + s.name));
+            // Write scripts
+            scripts.forEach(async s => {
+                // Create directory
+                const root = join(Utils.TempFolder, 'post-processes');
+                const ppRoot = join(root, s.name);
+                await this._createDirectory('post-processes/' + s.name);
 
-            //     this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.ts`), Buffer.from(s.code), { create: true, overwrite: true }, s.id);
-            //     this.writeFile(Uri.parse(`${root}${s.name}/${s.name}.fragment.fx`), Buffer.from(s.pixel), { create: true, overwrite: true }, s.id);
-            //     this.writeFile(Uri.parse(`${root}${s.name}/config.json`), Buffer.from(s.config), { create: true, overwrite: true }, s.id);
-            // });
+                // Code
+                const code = join(ppRoot, s.name + '.ts');
+                await Watcher.WriteAndWatchFile(code, Buffer.from(s.code), async () => {
+                    Sockets.UpdatePostProcessCode({
+                        id: s.id,
+                        name: s.name,
+                        code: await fs.readFile(code, { encoding: 'utf-8' })
+                    });
+                });
+
+                // Pixel
+                const pixel = join(ppRoot, s.name + '.fragment.fx');
+                await Watcher.WriteAndWatchFile(pixel, Buffer.from(s.pixel), async () => {
+                    Sockets.UpdatePostProcessCode({
+                        id: s.id,
+                        name: s.name,
+                        pixel: await fs.readFile(pixel, { encoding: 'utf-8' })
+                    });
+                });
+
+                // Config
+                const config = join(ppRoot, s.name + '.config.json');
+                await Watcher.WriteAndWatchFile(config, Buffer.from(s.config), async () => {
+                    Sockets.UpdatePostProcessCode({
+                        id: s.id,
+                        name: s.name,
+                        config: await fs.readFile(config, { encoding: 'utf-8' })
+                    });
+                });
+            });
         });
     }
 
@@ -121,8 +182,16 @@ export default class TempFileSystem {
             return;
 
         const files = await fs.readdir(path);
-        for (const f of files)
-            await fs.unlink(join(Utils.TempFolder, dirname, f));
+        for (const f of files) {
+            const filename = join(Utils.TempFolder, dirname, f);
+            const statf = await fs.stat(filename);
+            if (statf.isDirectory()) {
+                this._clearDirectory(join(dirname, f));
+                await fs.remove(filename);
+            } else {
+                await fs.unlink(filename);
+            }
+        }
     }
 
     // Removes the given directory

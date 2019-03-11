@@ -1780,6 +1780,10 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
                 */
             static Refresh(): void;
             /**
+                * Refreshes the project
+                */
+            static RefreshProject(): Promise<void>;
+            /**
                 * Refrehses the given behavior (single or array)
                 * @param data: the behavior datas to update (single or array)
                 */

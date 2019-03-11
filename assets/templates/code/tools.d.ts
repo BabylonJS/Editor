@@ -33,3 +33,20 @@ interface BehaviorCodeTools {
     getPathFinder (name: string): PathFinder;
     instantiatePrefab<T extends BABYLON.Node> (name: string): T;
 }
+
+/**
+ * Declaration
+ */
+declare var scene: BABYLON.Scene;
+declare var mesh: BABYLON.Mesh;
+declare var pointlight: BABYLON.PointLight;
+declare var camera: BABYLON.Camera;
+declare var universalcamera: BABYLON.UniversalCamera;
+declare var spotlight: BABYLON.SpotLight;
+declare var dirlight: BABYLON.DirectionalLight;
+declare var hemlight: BABYLON.HemisphericLight;
+declare var groundmesh: BABYLON.GroundMesh;
+declare var particleSystem: BABYLON.ParticleSystem;
+declare var gpuParticleSystem: BABYLON.GPUParticleSystem;
+
+declare var tools: BehaviorCodeTools;
