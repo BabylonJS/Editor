@@ -50,7 +50,7 @@ const build = function (baseUrl, inFile, outFile, options) {
 console.log('Building resources for VSCode extension')
 
 // Preview
-build('./.build/src/webview/', './.build/src/webview/preview.js', './dist/preview.js', {
+build('./.build/src/webview/', './.build/src/webview/preview/preview.js', './dist/preview.js', {
     globalName: 'EditorPreview',
     format: 'global',
     minify: true,

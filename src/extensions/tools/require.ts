@@ -1,4 +1,5 @@
 import * as BABYLON from 'babylonjs';
+import * as POSTPROCESS from 'babylonjs-post-process';
 import * as GUI from 'babylonjs-gui';
 import * as CANNON from 'cannon';
 import * as EARCUT from 'earcut';
@@ -32,6 +33,8 @@ export const editorRequire = (moduleName: string) => {
         case 'babylonjs-loaders':
         case 'babylonjs-materials':
             return BABYLON;
+        case 'babylonjs-post-process':
+            return POSTPROCESS;
         case 'babylonjs-gui':
             return GUI;
         // Physics

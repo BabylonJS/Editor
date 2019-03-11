@@ -43,6 +43,7 @@ export default class CodeEditor {
         'assets/typings/babylon.gui.module.d.ts',
         'assets/typings/babylonjs.materials.module.d.ts',
         'assets/typings/babylonjs.proceduralTextures.module.d.ts',
+        'assets/typings/babylonjs.postProcess.module.d.ts',
         'assets/templates/material-creator/custom-material.d.ts',
         'assets/templates/post-process-creator/custom-post-process.d.ts',
         'assets/templates/code/path-finder.d.ts',

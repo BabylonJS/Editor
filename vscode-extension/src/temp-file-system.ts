@@ -89,6 +89,7 @@ export default class TempFileSystem {
         await fs.writeFile(join(Utils.TempFolder, 'tsconfig.json'), Buffer.from(p.tsconfig));
         await fs.writeFile(join(Utils.TempFolder, 'typings/babylon.module.d.ts'), Buffer.from(p.babylonjs));
         await fs.writeFile(join(Utils.TempFolder, 'typings/babylonjs.materials.module.d.ts'), Buffer.from(p.babylonjs_materials));
+        await fs.writeFile(join(Utils.TempFolder, 'typings/babylonjs.postProcess.module.d.ts'), Buffer.from(p.babylonjs_postProcess));
         await fs.writeFile(join(Utils.TempFolder, 'typings/tools.d.ts'), Buffer.from(p.tools));
         await fs.writeFile(join(Utils.TempFolder, 'typings/mobile.d.ts'), Buffer.from(p.mobile));
         await fs.writeFile(join(Utils.TempFolder, 'typings/path-finder.d.ts'), Buffer.from(p.pathFinder));

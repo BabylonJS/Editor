@@ -2,7 +2,7 @@ import { Engine, Scene, SceneLoader, Tools as BabylonTools } from 'babylonjs';
 import { Extensions } from 'babylonjs-editor';
 import * as io from 'socket.io-client';
 
-import Tools from './tool';
+import Tools from '../tool';
 
 declare var vscode: {
     postMessage (message: any): void;

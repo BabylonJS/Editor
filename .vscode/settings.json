@@ -16,7 +16,10 @@
         "declaration": true,
         "electron-packages": true,
         "node_modules": true,
-        "vscode-extension/node_modules": true
+        "vscode-extension/node_modules": true,
+        "vscode-extension/.build": true,
+        "vscode-extension/.declaration": true,
+        "vscode-extension/*.vsix": true
     },
 
     "editor.quickSuggestionsDelay": 0,

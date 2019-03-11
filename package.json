@@ -88,6 +88,7 @@
     "babylonjs-loaders": "4.0.0-alpha.32",
     "babylonjs-materials": "4.0.0-alpha.32",
     "babylonjs-procedural-textures": "4.0.0-alpha.32",
+    "babylonjs-post-process": "4.0.0-alpha.32",
     "babylonjs-serializers": "4.0.0-alpha.32"
   }
 }

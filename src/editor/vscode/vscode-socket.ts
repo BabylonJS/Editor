@@ -70,6 +70,7 @@ export default class VSCodeSocket {
             tsconfig: await Tools.LoadFile<string>('assets/templates/vscode/tsconfig.json'),
             babylonjs: await Tools.LoadFile<string>('assets/typings/babylon.module.d.ts'),
             babylonjs_materials: await Tools.LoadFile<string>('assets/typings/babylonjs.materials.module.d.ts'),
+            babylonjs_postProcess: await Tools.LoadFile<string>('assets/typings/babylonjs.postProcess.module.d.ts'),
             tools: await Tools.LoadFile<string>('assets/templates/code/tools.d.ts'),
             mobile: await Tools.LoadFile<string>('assets/templates/code/mobile.d.ts'),
             pathFinder: await Tools.LoadFile<string>('assets/templates/code/path-finder.d.ts'),
