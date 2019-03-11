@@ -551,11 +551,12 @@ export default class EditorGraph {
                 const scene = this.editor.core.scene;
                 const descendants = (!node.data.getDescendants ? [node.data] : [node.data].concat(node.data.getDescendants())).map(n => {
                     const array: any[] = n instanceof AbstractMesh ? scene.meshes : 
-                                          n instanceof Light ? scene.lights :
-                                          n instanceof Camera ? scene.cameras :
-                                          n instanceof TransformNode ? scene.transformNodes :
-                                          n instanceof Sound ? scene.mainSoundTrack.soundCollection :
-                                          [];
+                                         n instanceof Light ? scene.lights :
+                                         n instanceof Camera ? scene.cameras :
+                                         n instanceof TransformNode ? scene.transformNodes :
+                                         n instanceof Sound ? scene.mainSoundTrack.soundCollection :
+                                         n instanceof ParticleSystem ? scene.particleSystems :
+                                         [];
                     const particleSystems = scene.particleSystems.filter(p => p.emitter === n);
 
                     return {

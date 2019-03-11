@@ -626,6 +626,8 @@ export default class Editor implements IUpdatable {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'z') {
                 UndoRedo.Undo();
                 this.edition.updateDisplay();
+                ev.preventDefault();
+                ev.stopPropagation();
             }
         });
 
@@ -638,6 +640,8 @@ export default class Editor implements IUpdatable {
             if (!CodeEditor.HasOneFocused() && ev.ctrlKey && ev.key === 'y') {
                 UndoRedo.Redo();
                 this.edition.updateDisplay();
+                ev.preventDefault();
+                ev.stopPropagation();
             }
         });
 
