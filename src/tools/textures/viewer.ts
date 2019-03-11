@@ -27,7 +27,8 @@ import Editor, {
     EditorPlugin,
     UndoRedo,
     IStringDictionary,
-    ContextMenuItem
+    ContextMenuItem,
+    Window
 } from 'babylonjs-editor';
 
 export interface PreviewScene {
@@ -740,6 +741,22 @@ export default class TextureViewer extends EditorPlugin {
      */
     protected getContextMenuItems (texture: BaseTexture | ReflectionProbe): IStringDictionary<ContextMenuItem> {
         return {
+            clone: { name: 'Clone', callback: () => {
+                const s = texture.serialize();
+                const c = Texture.Parse(s, this.editor.core.scene, 'file:');
+                c.name = c['url'] = texture.name;
+
+                if (c instanceof RenderTargetTexture) {
+                    this.editor.core.scene.customRenderTargets.push(c);
+                    this.addRenderTargetTexturePreviewNode(c);
+                }
+                else if (c instanceof ReflectionProbe) {
+                    this.addRenderTargetTexturePreviewNode(c);
+                }
+                else {
+                    this.addPreviewNode(FilesInputStore.FilesToLoad[c.name.toLowerCase()], c);
+                }
+            } },
             remove: { name: 'Remove', callback: async () => {
                 const objects = this.editor.core.scene.materials
                                 .concat(<any> this.editor.core.scene)

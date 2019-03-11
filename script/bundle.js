@@ -12,6 +12,7 @@ const build = function (baseUrl, inFile, outFile, options) {
             'babylonjs-loaders': './node_modules/babylonjs-loaders/babylonjs.loaders.js',
             'babylonjs-serializers': './node_modules/babylonjs-serializers/babylonjs.serializers.js',
             'babylonjs-procedural-textures': './node_modules/babylonjs-procedural-textures/babylonjs.proceduralTextures.js',
+            'babylonjs-post-process': './node_modules/babylonjs-post-process/babylonjs.postProcess.js',
             'cannon': './node_modules/cannon/build/cannon.js',
             'spectorjs': './node_modules/spectorjs/dist/spector.bundle.js',
             'dat-gui': './node_modules/dat.gui/build/dat.gui.js',
@@ -81,7 +82,7 @@ build('./build/src/', './build/src/extensions/index.js', './dist/editor.extensio
 // Editor
 let externals = [
     'babylonjs', 'socket.io-client', 'babylonjs-gui', 'babylonjs-loaders', 'babylonjs-serializers',
-    'babylonjs-materials', 'dat-gui', 'extensions/extensions',
+    'babylonjs-materials', 'babylonjs-post-process', 'dat-gui', 'extensions/extensions',
     'jstree', 'golden-layout', 'jquery', 'javascript-astar', 'litegraph.js'
 ];
 
