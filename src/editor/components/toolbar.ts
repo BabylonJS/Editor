@@ -41,7 +41,7 @@ export default class EditorToolbar {
                     { id: 'new-project', img: 'icon-copy', text: 'New Project...' },
                     { type: 'break' },
                     { id: 'export-project', img: 'icon-files', text: 'Save Project...' },
-                    { id: 'download-project', img: 'icon-files', text: 'Save Project As...' },
+                    { id: 'export-project-as', img: 'icon-files', text: 'Save Project As...' },
                     { type: 'break' },
                     { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
                 ]
@@ -181,11 +181,11 @@ export default class EditorToolbar {
                     await Request.Post('/openedFile', null);
                 break;
 
-            case 'project:download-project':
-                ProjectExporter.DownloadProjectFile(this.editor);
-                break;
             case 'project:export-project':
                 await ProjectExporter.ExportProject(this.editor);
+                break;
+            case 'project:export-project-as':
+                await ProjectExporter.ExportProject(this.editor, true);
                 break;
 
             case 'project:export-template':

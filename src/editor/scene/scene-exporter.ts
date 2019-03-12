@@ -9,7 +9,6 @@ const randomId = BabylonTools.RandomId();
 
 export default class SceneExporter {
     // Public members
-    public static ProjectPath: string = null;
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
 
     /**

@@ -51,6 +51,7 @@ export default class SceneImporter {
         const folder = path.replace(Tools.GetFilename(path), '');
 
         const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
+        const failedToLoadList: string[] = [];
 
         // Manage backward compatibility for file list
         if (!project.filesList) {
@@ -69,19 +70,19 @@ export default class SceneImporter {
         // Load all files
         for (const f of project.filesList) {
             promises.push(new Promise<void>(async (resolve) => {
-                const name = Tools.GetFilename(f);
-                const realFile = filesList.value.find(v => v.name === name || v.name.toLowerCase() === f);
-                const realname = realFile ? realFile.name : name;
-
-                const ext = Tools.GetFileExtension(realname);
+                const ext = Tools.GetFileExtension(f);
                 if (ext === 'babylon') {
                     FilesInputStore.FilesToLoad = { };
                 }
 
-                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + name, true);
-                const array = new Uint8Array(buffer);
+                const buffer = await Tools.LoadFile<ArrayBuffer>(folder + f, true);
+                if (!buffer) {
+                    failedToLoadList.push(f);
+                    return resolve();
+                }
 
-                files.push(Tools.CreateFile(array, realname));
+                const array = new Uint8Array(buffer);
+                files.push(Tools.CreateFile(array, Tools.GetFilename(f)));
 
                 resolve();
             }));
@@ -100,6 +101,11 @@ export default class SceneImporter {
 
         // Configure exporter
         ProjectExporter.ProjectPath = folder;
+
+        // Notify failed to load?
+        if (failedToLoadList.length > 0) {
+            Window.CreateAlert('<h3>Failed to load files:</h3></br>' + failedToLoadList.join('</br>'));
+        }
 
         return true;
     }

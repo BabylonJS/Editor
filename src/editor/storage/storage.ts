@@ -10,6 +10,7 @@ export interface CreateFiles {
     name: string;
 
     data?: FileType | Promise<FileType>;
+    file?: File;
     folder?: CreateFiles[];
     doNotOverride?: boolean;
 }
@@ -132,9 +133,15 @@ export default abstract class Storage {
             else {
                 if (f.doNotOverride && existingFiles.find(ef => ef.name === f.name))
                     continue;
-                
-                promises.push(this.createFiles(folder, [f]).then(() => {
+              
+                promises.push(new Promise<void>(async (resolve) => {
+                    if (f.file)
+                        f.data = await Tools.ReadFileAsArrayBuffer(f.file);
+
+                    await this.createFiles(folder, [f]);
                     this.uploadedCount++;
+
+                    resolve();
                 }));
             }
         }

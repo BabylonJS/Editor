@@ -32,6 +32,9 @@ export default class ProjectExporter {
     public static ProjectPath: string = null;
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
 
+    // Private members
+    private static _IsSaving: boolean = false;
+
     /**
      * Uploads all scene templates
      * @param editor the editor reference
@@ -114,20 +117,48 @@ export default class ProjectExporter {
      * Exports the editor project into the storage
      * @param editor the editor reference
      */
-    public static async ExportProject (editor: Editor): Promise<void> {
-        // Project
-        const content = JSON.stringify(this.Export(editor));
-        const storage = await this.GetStorage(editor);
-        const files: CreateFiles[] = [{ name: editor.projectFileName, data: content }];
+    public static async ExportProject (editor: Editor, exportAs: boolean = false): Promise<void> {
+        if (this._IsSaving)
+            return;
+        
+        // Saving
+        this._IsSaving = true;
+        editor.layout.lockPanel('bottom', 'Saving...', true);
 
+        // Project
+        const project = this.Export(editor);
+        const content = JSON.stringify(project);
+
+        // Storage
+        const storage = await this.GetStorage(editor);
+
+        // Add files
+        const sceneFolder: CreateFiles = { name: 'scene', folder: [] };
+        const root: CreateFiles[] = [
+            { name: editor.projectFileName, data: content },
+            sceneFolder
+        ];
+
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
+            if (file === editor.projectFile || file === editor.sceneFile)
+                continue;
+            
+            sceneFolder.folder.push({ name: file.name, file: file, doNotOverride: true });
+        }
+
+        // Save
         storage.onCreateFiles = folder => this.ProjectPath = folder;
-        await storage.openPicker('Export Editor Project...', files, this.ProjectPath);
+        await storage.openPicker('Export Editor Project...', root, exportAs ? null : this.ProjectPath);
 
         // Notify
         Tools.SetWindowTitle(editor.projectFileName);
 
         editor.layout.lockPanel('bottom', 'Saved.', false);
         setTimeout(() => editor.layout.unlockPanel('bottom'), 1000);
+
+        // Finish
+        this._IsSaving = false;
     }
 
     /**
@@ -219,7 +250,7 @@ export default class ProjectExporter {
             if (file === editor.projectFile || file === editor.sceneFile)
                 continue;
 
-            project.filesList.push(f);
+            project.filesList.push('scene/' + f);
         }
 
         // Finish

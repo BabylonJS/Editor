@@ -674,7 +674,7 @@ export default class Editor implements IUpdatable {
 
         document.addEventListener('keydown', ev => (ev.ctrlKey || ev.metaKey) && ev.key === 's' && ev.preventDefault());
         document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && !shiftDown && ev.key === 's' && ProjectExporter.ExportProject(this));
-        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.DownloadProjectFile(this));
+        document.addEventListener('keyup', ev => (ev.ctrlKey || ev.metaKey) && shiftDown && ev.key === 'S' && ProjectExporter.ExportProject(this, true));
 
         document.addEventListener('keyup', ev => {
             if (Tools.IsFocusingInputElement() || (!Tree.HasOneFocused() && !this._canvasFocused))
@@ -813,7 +813,12 @@ export default class Editor implements IUpdatable {
                     Tools.SetWindowTitle(projectFile.name);
                     
                     const content = await Tools.ReadFileAsText(projectFile);
-                    await ProjectImporter.Import(this, JSON.parse(content));
+
+                    try {
+                        await ProjectImporter.Import(this, JSON.parse(content));
+                    } catch (e) {
+                        errorCallback('Error while loading project', e.message);
+                    }
                 }
 
                 // Default light
@@ -849,6 +854,10 @@ export default class Editor implements IUpdatable {
                 VSCodeSocket.Refresh();
             };
 
+            const errorCallback = (title: string, message: string) => {
+                Window.CreateAlert(message, title);
+            }
+
             const dialogCallback = async (doNotAppend: boolean) => {
                 // Clear undo / redo
                 UndoRedo.Clear();
@@ -869,6 +878,9 @@ export default class Editor implements IUpdatable {
                 this.layout.lockPanel('main', 'Importing Procedural Textures...', true);
                 await Tools.ImportScript('babylonjs-procedural-textures');
 
+                this.layout.lockPanel('main', 'Importing Post Processes...', true);
+                await Tools.ImportScript('babylonjs-post-process');
+
                 // Import extensions
                 this.layout.lockPanel('main', 'Importing Extensions...', true);
                 await Promise.all([
@@ -886,13 +898,13 @@ export default class Editor implements IUpdatable {
                 this.core.engine.stopRenderLoop();
 
                 // Clear last path
-                SceneExporter.ProjectPath = null;
+                ProjectExporter.ProjectPath = null;
                 
                 // Load scene
                 if (doNotAppend)
-                    SceneLoader.Load('file:', file.name, this.core.engine, (scene) => callback(scene, true));
+                    SceneLoader.Load('file:', file.name, this.core.engine, (scene) => callback(scene, true), null, (scene, message) => errorCallback('Error while loading scene', message));
                 else
-                    SceneLoader.Append('file:', file.name, this.core.scene, (scene) => callback(scene, false));
+                    SceneLoader.Append('file:', file.name, this.core.scene, (scene) => callback(scene, false), null, (scene, message) => errorCallback('Error while loading scene', message));
 
                 // Lock panel and hide loading UI
                 this.core.engine.hideLoadingUI();

@@ -217,6 +217,8 @@ export default class Tools {
         const options = { type: Tools.GetFileType(this.GetFileExtension(filename)), lastModified: new Date(Date.now()) };
         const blob = new Blob([buffer], options);
         blob['name'] = BabylonTools.GetFilename(filename);
+        blob['lastModified'] = Date.now();
+        blob['lastModifiedDate'] = new Date(Date.now());
         
         return <File> blob;
     }
