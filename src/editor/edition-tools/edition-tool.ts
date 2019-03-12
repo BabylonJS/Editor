@@ -39,14 +39,20 @@ export default abstract class AbstractEditionTool<T> implements IEditionTool<T> 
         this.object = object;
 
         // Reset edition element
+        let lastScroll = 0;
+
         if (this.tool) {
+            lastScroll = this.tool.element.domElement.scrollTop;
             this.tool.remove();
         }
 
         this.tool = new Edition();
         this.tool.build(this.divId);
-
         this.tool.element['onResize']();
+
+        setTimeout(() => {
+            this.tool.element.domElement.scrollTop = lastScroll;
+        }, 0);
     }
 
     /**

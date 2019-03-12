@@ -188,11 +188,13 @@ export default class EditorInspector {
             // Clear tool
             t.clear();
 
+            const container = $('#' + t.divId);
+
             // Check if supported then draw the tool, or hide if
             // not supported
             if (t.isSupported(object)) {
                 // Show
-                $('#' + t.divId).show();
+                container.show();
 
                 this.tabs.show(t.divId);
                 t.update(object);
@@ -208,7 +210,7 @@ export default class EditorInspector {
                 this.currentTools.push(t);
             } else {
                 // Hide
-                $('#' + t.divId).hide();
+                container.hide();
                 this.tabs.hide(t.divId);
             }
         });
