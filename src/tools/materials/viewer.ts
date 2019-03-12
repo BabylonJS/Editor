@@ -138,7 +138,7 @@ export default class MaterialsViewer extends EditorPlugin {
         this.editor.core.onSelectObject.add(this.onObjectSelected);
 
         // Selected object?
-        this.selectedObject(this.targetObject)
+        this.selectedObject(this.targetObject);
     }
 
     /**
@@ -146,7 +146,7 @@ export default class MaterialsViewer extends EditorPlugin {
      */
     public async onShow (targetObject?: AbstractMesh): Promise<void> {
         for (const m of this.waitingMaterials)
-            await this.addMaterialPreview(m);
+            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, m);
 
         this.waitingMaterials = [];
 
@@ -334,16 +334,14 @@ export default class MaterialsViewer extends EditorPlugin {
         return new Promise<string>((resolve) => {
             const obj = mat.serialize();
             preview.sphere.material = Material.Parse(obj, preview.scene, 'file:');
+            preview.scene.render();
 
-            preview.engine.runRenderLoop(() => {
+            preview.scene.executeWhenReady(() => {
                 preview.scene.render();
-                
-                if (preview.scene.getWaitingItemsCount() === 0) {
-                    preview.scene.render();
-                    const base64 = canvas.toDataURL('image/png');
-                    preview.engine.stopRenderLoop();
-                    resolve(base64);
-                }
+                preview.scene.onReadyObservable.clear();
+
+                const base64 = canvas.toDataURL('image/png');
+                resolve(base64);
             });
         });
     }
@@ -400,19 +398,7 @@ export default class MaterialsViewer extends EditorPlugin {
             Tags.AddTagsTo(material, 'added');
 
             // Add preview node
-            await this.addMaterialPreview(material);
+            await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, this.tempPreview, material);
         });
-    }
-
-    /**
-     * Adds a new material preview
-     * @param material: the material to preview
-     */
-    protected async addMaterialPreview (material: Material): Promise<void> {
-        const preview = this.createPreview(this.canvas);
-        await this.createPreviewNode($('#MATERIAL-VIEWER-LIST'), this.canvas, preview, material);
-
-        preview.scene.dispose();
-        preview.engine.dispose();
     }
 }
