@@ -260,7 +260,7 @@ export default class Editor implements IUpdatable {
             this._checkUpdates();
 
             // Check opened file from OS file explorer
-            this._checkOpenedFile();
+            this.checkOpenedFile();
 
             // Connect to VSCode extension
             VSCodeSocket.Create(this);
@@ -451,7 +451,18 @@ export default class Editor implements IUpdatable {
 		this.layout.lockPanel('bottom', message, spinner);
 		if (timeout)
 			setTimeout(() => this.layout.unlockPanel('bottom'), timeout);
-	}
+    }
+    
+    // Checks if the user opened a file
+    public async checkOpenedFile (): Promise<void> {
+        const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
+
+        if (!hasOpenedFile)
+            return this.createDefaultScene();
+
+        const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+        pluginsToLoad.forEach(p => this.plugins[p] = null);
+    }
 
     /**
      * Creates the default scene
@@ -730,17 +741,6 @@ export default class Editor implements IUpdatable {
         });
 
         return instance;
-    }
-
-    // Checks if the user opened a file
-    private async _checkOpenedFile (): Promise<void> {
-        const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
-
-        if (!hasOpenedFile)
-            return this.createDefaultScene();
-
-        const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
-        pluginsToLoad.forEach(p => this.plugins[p] = null);
     }
 
     // Creates the files input class and handlers

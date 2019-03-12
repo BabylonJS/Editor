@@ -128,6 +128,7 @@ declare module 'babylonjs-editor/editor/editor' {
                 * @param timeout time in ms to wait before hidding the message
                 */
             notifyMessage(message: string, spinner?: boolean, timeout?: number): void;
+            checkOpenedFile(): Promise<void>;
             /**
                 * Creates the default scene
                 * @param showNewSceneDialog: if to show a dialog to confirm creating default scene

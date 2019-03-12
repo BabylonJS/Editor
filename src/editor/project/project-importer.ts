@@ -18,6 +18,7 @@ import {
 import Editor from '../editor';
 
 import Tools from '../tools/tools';
+import Request from '../tools/request';
 import { ProjectRoot } from '../typings/project';
 
 import Extensions from '../../extensions/extensions';
@@ -296,24 +297,23 @@ export default class ProjectImporter {
      * Imports files + project
      * @param editor the editor reference
      */
-    public static ImportProject (editor: Editor): void {
-        Tools.OpenFileDialog(async (files) => {
-            if (files.length === 1 && Tools.GetFileExtension(files[0].name) === 'editorproject') {
-                if (Tools.IsElectron()) {
-                    await SceneImporter.LoadProjectFromFile(
-                        editor,
-                        (<any> files[0]).path,
-                        <ProjectRoot> JSON.parse(await Tools.ReadFileAsText(files[0]))
-                    );
-                    return;
-                }
-            }
+    public static async ImportProject (editor: Editor): Promise<boolean> {
+        const files = await Tools.OpenFileDialog();
+        if (files.length === 1 && Tools.GetFileExtension(files[0].name) === 'editorproject' && Tools.IsElectron()) {
+            await Request.Post('/openedFile', JSON.stringify({ value: files[0]['path'].replace(/\\/g, '/') }));
+            return await SceneImporter.LoadProjectFromFile(
+                editor,
+                (<any> files[0]).path,
+                <ProjectRoot> JSON.parse(await Tools.ReadFileAsText(files[0]))
+            );
+        }
 
-            editor.filesInput.loadFiles({
-                target: {
-                    files: files
-                }
-            });
+        editor.filesInput.loadFiles({
+            target: {
+                files: files
+            }
         });
+
+        return false;
     }
 }

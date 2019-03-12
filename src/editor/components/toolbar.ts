@@ -158,9 +158,9 @@ export default class EditorToolbar {
         switch (target) {
             // Project
             case 'project:import-project':
-                ProjectImporter.ImportProject(this.editor);
-                if (Tools.IsElectron())
-                    await Request.Post('/openedFile', null);
+                const openedProject = await ProjectImporter.ImportProject(this.editor);
+                if (!openedProject && Tools.IsElectron())
+                    await Request.Post('/openedFile', { value: null });
                 break;
 
             case 'project:reload-project':
@@ -170,7 +170,13 @@ export default class EditorToolbar {
                     
                     CodeProjectEditorFactory.CloseAll();
                     this.editor._showReloadDialog = false;
-                    this.editor.filesInput['_processReload']();
+
+                    if (Tools.IsElectron()) {
+                        this.editor.checkOpenedFile();
+                    }
+                    else {
+                        this.editor.filesInput['_processReload']();
+                    }
                 });
                 break
             case 'project:new-project':
@@ -178,7 +184,7 @@ export default class EditorToolbar {
                 await this.editor.createDefaultScene(true);
                 
                 if (Tools.IsElectron())
-                    await Request.Post('/openedFile', null);
+                    await Request.Post('/openedFile', { value: null });
                 break;
 
             case 'project:export-project':

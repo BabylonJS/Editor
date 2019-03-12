@@ -95,7 +95,7 @@ export default class ToolsRouter {
      */
     protected setOpenedFile (): void {
         this.router.post('/openedFile', async (ctx, next) => {
-            Settings.OpenedFile = ctx.body;
+            Settings.OpenedFile = ctx.request.body.value;
 
             ctx.body = {
                 message: 'success'
