@@ -50,11 +50,11 @@ export default class SceneImporter {
         const files: File[] = [];
         const folder = path.replace(Tools.GetFilename(path), '');
 
-        const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
         const failedToLoadList: string[] = [];
 
         // Manage backward compatibility for file list
         if (!project.filesList) {
+            const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
             project.filesList = [];
             for (const v of filesList.value) {
                 if (v.folder)

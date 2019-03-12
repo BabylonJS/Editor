@@ -766,8 +766,13 @@ export default class Editor implements IUpdatable {
                     break;
             }
 
-            if (!foundScene)
+            if (!foundScene) {
                 return;
+            }
+            else {
+                // Clear last path
+                ProjectExporter.ProjectPath = null;
+            }
 
             // Starting process
             this.projectFile = null;
@@ -896,9 +901,6 @@ export default class Editor implements IUpdatable {
 
                 // Stop render loop
                 this.core.engine.stopRenderLoop();
-
-                // Clear last path
-                ProjectExporter.ProjectPath = null;
                 
                 // Load scene
                 if (doNotAppend)
