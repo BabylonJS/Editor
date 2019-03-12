@@ -11,6 +11,10 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
     // Private members
     private _currentImpostor: string = '';
 
+    private _lastMass: number = null;
+    private _lastFriction: number = null;
+    private _lastRestitution: number = null;
+
 	/**
 	* Returns if the object is supported
 	* @param object the object selected in the graph
@@ -61,7 +65,22 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                 this._currentImpostor = impostors[impostor.type];
 
             physics.add(this, '_currentImpostor', impostors).name('Impostor').onFinishChange(r => {
+                if (r === 'NoImpostor') {
+                    this._lastMass = null;
+                    this._lastFriction = null;
+                    this._lastRestitution = null;
+                } else if (node.physicsImpostor) {
+                    this._lastMass = node.physicsImpostor.mass;
+                    this._lastFriction = node.physicsImpostor.friction;
+                    this._lastRestitution = node.physicsImpostor.restitution;
+                }
+
                 node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
+                node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
+                node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
+                node.physicsImpostor.restitution = this._lastRestitution || node.physicsImpostor.restitution;
+
+                this.editor.core.scene.getPhysicsEngine().setTimeStep(0);
                 this.update(node);
             });
 
