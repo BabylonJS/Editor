@@ -270,6 +270,12 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                         instance.update();
                     });
                 }
+
+                if (instance.dispose && node['onDisposeObservable']) {
+                    node['onDisposeObservable'].add(function () {
+                        instance.dispose();
+                    });
+                }
             });
         });
     }

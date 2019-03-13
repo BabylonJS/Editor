@@ -28,6 +28,13 @@ export default class {{name}} implements IScript {
     public update (): void {
         // Your code...
     }
+
+    /**
+     * Called once the attached object has been disposed
+     */
+    public dispose (): void {
+        // Called once the attached object has been disposed
+    }
 }
 
 // Export the script as an attached script

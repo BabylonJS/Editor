@@ -1,6 +1,7 @@
 interface IScript {
     start?: () => void;
     update?: () => void;
+    dispose?: () => void;
     [index: string]: any;
 }
 
