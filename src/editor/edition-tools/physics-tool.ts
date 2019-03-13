@@ -54,15 +54,21 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                 'PlaneImpostor',
                 'MeshImpostor',
                 'CylinderImpostor',
-                'ParticleImpostor',
                 'HeightmapImpostor'
             ];
 
             const impostor = node.getPhysicsImpostor();
             if (!impostor)
-                this._currentImpostor = impostors[0];
-            else
-                this._currentImpostor = impostors[impostor.type];
+                this._currentImpostor = 'NoImpostor';
+            else {
+                this._currentImpostor = 'NoImpostor';
+                for (const i in PhysicsImpostor) {
+                    if (i.indexOf('Impostor') !== -1 && PhysicsImpostor[i] === impostor.type) {
+                        this._currentImpostor = i;
+                        break;
+                    }
+                }
+            }
 
             physics.add(this, '_currentImpostor', impostors).name('Impostor').onFinishChange(r => {
                 if (r === 'NoImpostor') {
@@ -75,6 +81,9 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                     this._lastRestitution = node.physicsImpostor.restitution;
                 }
 
+                if (node.physicsImpostor)
+                    node.physicsImpostor.dispose();
+                
                 node.physicsImpostor = new PhysicsImpostor(node, PhysicsImpostor[r], { mass: 0 });
                 node.physicsImpostor.mass = this._lastMass || node.physicsImpostor.mass;
                 node.physicsImpostor.friction = this._lastFriction || node.physicsImpostor.friction;
@@ -84,7 +93,7 @@ export default class PhysicsTool extends AbstractEditionTool<Mesh | FreeCamera> 
                 this.update(node);
             });
 
-            if (impostor) {
+            if (impostor && impostor.type !== PhysicsImpostor.NoImpostor) {
                 physics.add(impostor, 'mass').step(0.01).name('Mass');
                 physics.add(impostor, 'friction').step(0.01).name('Friction');
                 physics.add(impostor, 'restitution').step(0.01).name('Restitution');
