@@ -141,7 +141,8 @@ export default class ProjectExporter {
 
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
-            if (file === editor.projectFile || file === editor.sceneFile)
+            const ext = Tools.GetFileExtension(file.name);
+            if (ext === 'editorproject' || file === editor.projectFile || file === editor.sceneFile)
                 continue;
             
             sceneFolder.folder.push({ name: file.name, file: file, doNotOverride: true });
