@@ -68,7 +68,7 @@ export default class DefaultScene {
     public static async Create (editor: Editor): Promise<void> {
         // Project
         const project = JSON.parse(await Tools.LoadFile<string>('assets/defaultScene/scene.editorproject'));
-        await SceneImporter.LoadProjectFromFile(editor, 'assets/defaultScene/scene.editorproject', project);
+        await SceneImporter.LoadProjectFromFile(editor, 'assets/defaultScene/scene.editorproject', project, false);
         ProjectExporter.ProjectPath = null;
 
         // Scene file

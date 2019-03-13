@@ -95,6 +95,9 @@ export default class MetadataEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected objectSelected (node: Node | ParticleSystem): void {
+        if (this.selectedNode === node)
+            return;
+        
         if (!(node instanceof Node) && !(node instanceof ParticleSystem))
             return;
         

@@ -131,6 +131,9 @@ export default class PrefabEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected objectSelected (node: Node): void {
+        if (this.selectedPrefab && this.selectedPrefab === node)
+            return;
+        
         if (!node || !Tags.HasTags(node) || !Tags.MatchesQuery(node, 'prefab-master'))
             return this.setNoPrefabSelected();
 

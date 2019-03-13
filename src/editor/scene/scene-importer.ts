@@ -1,7 +1,6 @@
 import {
     Tags,
     SceneLoader,
-    FilesInput,
     MultiMaterial,
     Tools as BabylonTools,
     FilesInputStore,
@@ -11,6 +10,8 @@ import Editor from '../editor';
 
 import Tools from '../tools/tools';
 import Request from '../tools/request';
+
+import Storage from '../storage/storage';
 
 import Window from '../gui/window';
 import Picker from '../gui/picker';
@@ -43,24 +44,48 @@ export default class SceneImporter {
      * @param editor the editor reference
      * @param path the absolute path of the file
      * @param project the project previously parsed/read, etc.
+     * @param fullLoad sets if the loader should load newly added files in the scene folder
      */
-    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot): Promise<boolean> {
+    public static async LoadProjectFromFile (editor: Editor, path: string, project: ProjectRoot, fullLoad: boolean = true): Promise<boolean> {
         // Load files
         const promises: Promise<void>[] = [];
         const files: File[] = [];
         const folder = path.replace(Tools.GetFilename(path), '');
 
         const failedToLoadList: string[] = [];
+        const newlyAddedList: string[] = [];
+
+        const storage = await Storage.GetStorage(editor);
 
         // Manage backward compatibility for file list
         if (!project.filesList) {
-            const filesList = await Request.Get<{ value: { folder: string; name: string }[] }>('/files?path=' + folder);
+            const filesList = await storage.getFiles(folder);
             project.filesList = [];
-            for (const v of filesList.value) {
+            for (const v of filesList) {
                 if (v.folder)
                     continue;
 
                 project.filesList.push(v.name);
+            }
+        }
+
+        // Full load, reset files list to load newly added files?
+        if (fullLoad) {
+            const filesList = await storage.getFiles(folder);
+            const scene = filesList.find(v => v.name.toLowerCase() === 'scene');
+
+            if (scene) {
+                const sceneFiles = await storage.getFiles(folder + 'scene');
+                const lastFilesList = project.filesList;
+
+                project.filesList = sceneFiles.filter(v => !v.folder).map(v => {
+                    const path = 'scene/' + v.name;
+                    const existingIndex = lastFilesList.find(f => f.toLowerCase() === path);
+                    if (!existingIndex)
+                        newlyAddedList.push(path);
+
+                    return path;
+                });
             }
         }
 
@@ -105,6 +130,8 @@ export default class SceneImporter {
         // Notify failed to load?
         if (failedToLoadList.length > 0) {
             Window.CreateAlert('<h3>Failed to load files:</h3></br>' + failedToLoadList.join('</br>'));
+        } else if (newlyAddedList.length > 0) {
+            Window.CreateAlert('<h3>Loaded new files:</h3></br>' + newlyAddedList.join('</br>'));
         }
 
         return true;

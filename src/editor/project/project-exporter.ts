@@ -101,14 +101,14 @@ export default class ProjectExporter {
                 { name: 'game.ts', doNotOverride: true, data: (await Tools.LoadFile<string>('assets/templates/template/src/game.ts')).replace('{{scene_format}}', this.ProjectExportFormat) }
             ];
 
-            const storage = await this.GetStorage(editor);
+            const storage = await Storage.GetStorage(editor);
             storage.openPicker('Create Template...', [
                 { name: 'scene', folder: sceneFiles },
                 { name: 'src', folder: srcFiles },
-                { name: 'README.md', data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
-                { name: 'index.html', data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
-                { name: 'package.json', data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
-                { name: 'tsconfig.json', data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
+                { name: 'README.md', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/README.md') },
+                { name: 'index.html', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/index.html') },
+                { name: 'package.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/package.json') },
+                { name: 'tsconfig.json', doNotOverride: true, data: await Tools.LoadFile<string>('assets/templates/template/tsconfig.json') }
             ]);
         };
     }
@@ -130,7 +130,7 @@ export default class ProjectExporter {
         const content = JSON.stringify(project);
 
         // Storage
-        const storage = await this.GetStorage(editor);
+        const storage = await Storage.GetStorage(editor);
 
         // Add files
         const sceneFolder: CreateFiles = { name: 'scene', folder: [] };
@@ -172,7 +172,7 @@ export default class ProjectExporter {
 
         // Save
         if (Tools.IsElectron()) {
-            const storage = await this.GetStorage(editor);
+            const storage = await Storage.GetStorage(editor);
             storage.onCreateFiles = folder => this.ProjectPath = folder;
             
             const result = await storage.openPicker('Export Editor Project...', files, null, true);
@@ -188,18 +188,6 @@ export default class ProjectExporter {
             const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(content), 'scene.editorproject');
             BabylonTools.Download(file, editor.projectFileName);
         }
-    }
-
-    /**
-     * Returns the appropriate storage (OneDrive, Electron, etc.)
-     * @param editor the editor reference
-     */
-    public static async GetStorage (editor: Editor): Promise<Storage> {
-        const storage = Tools.IsElectron()
-            ? await Tools.ImportScript<any>('build/src/editor/storage/electron-storage.js')
-            : await Tools.ImportScript<any>('build/src/editor/storage/one-drive-storage.js');
-
-        return new storage.default(editor);
     }
 
     /**

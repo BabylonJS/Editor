@@ -32,6 +32,18 @@ export default abstract class Storage {
     protected _uploadedCount: number = 0;
 
     /**
+     * Returns the appropriate storage (OneDrive, Electron, etc.)
+     * @param editor the editor reference
+     */
+    public static async GetStorage (editor: Editor): Promise<Storage> {
+        const storage = Tools.IsElectron()
+            ? await Tools.ImportScript<any>('build/src/editor/storage/electron-storage.js')
+            : await Tools.ImportScript<any>('build/src/editor/storage/one-drive-storage.js');
+
+        return new storage.default(editor);
+    }
+
+    /**
      * Constructor
      * @param editor: the editor reference
      */

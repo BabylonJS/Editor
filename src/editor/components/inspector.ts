@@ -181,6 +181,9 @@ export default class EditorInspector {
      * @param object the object to edit
      */
     public setObject(object: any): void {
+        if (object === this.currentObject)
+            return;
+        
         this.currentTools = [];
         let lastTool: IEditionTool<any> = null;
 

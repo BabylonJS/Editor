@@ -407,6 +407,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param data the selected node
      */
     protected objectSelected (node: Node | Scene): void {
+        if (this.node === node)
+            return;
+        
         if (!node || !(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
             this.layout.lockPanel('main', 'No Node Selected');

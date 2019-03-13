@@ -34,7 +34,6 @@ import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneIcons from './scene/scene-icons';
-import SceneExporter from './scene/scene-exporter';
 import SceneImporter from './scene/scene-importer';
 
 import ProjectImporter from './project/project-importer';
@@ -453,7 +452,10 @@ export default class Editor implements IUpdatable {
 			setTimeout(() => this.layout.unlockPanel('bottom'), timeout);
     }
     
-    // Checks if the user opened a file
+    /**
+     * Checks if the user opened a file
+     * @param fullLoad sets if the loader should load newly added files in the scene folder
+     */
     public async checkOpenedFile (): Promise<void> {
         const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
 
@@ -951,7 +953,7 @@ export default class Editor implements IUpdatable {
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
         this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
         this.scenePicker.onPickedMesh = (m) => {
-            if (!this.core.disableObjectSelection && m !== this.core.currentSelectedObject)
+            if (!this.core.disableObjectSelection)
                 this.core.onSelectObject.notifyObservers(m);
         };
     }

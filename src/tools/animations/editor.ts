@@ -442,6 +442,9 @@ export default class AnimationEditor extends EditorPlugin {
      * @param object: the IAnimatable object
      */
     protected objectSelected(object: IAnimatable): void {
+        if (this.animatable === object)
+            return;
+
         this.toolbar.element.disable('remove-animation');
 
         // Clean

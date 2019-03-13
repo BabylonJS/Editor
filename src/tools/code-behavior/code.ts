@@ -306,6 +306,9 @@ export default class BehaviorCodeEditor extends EditorPlugin {
      * @param node the selected node
      */
     protected selectObject (node: Node | Scene | IParticleSystem): void {
+        if (this.node === node)
+            return;
+        
         if (!node) {
             this.layout.lockPanel('left', 'No object selected');
             this.layout.lockPanel('main');
