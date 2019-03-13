@@ -96,7 +96,7 @@ export default class SceneImporter {
         for (const f of project.filesList) {
             promises.push(new Promise<void>(async (resolve) => {
                 const ext = Tools.GetFileExtension(f);
-                if (ext === 'babylon') {
+                if (ext === 'babylon' || ext === 'glb' || ext === 'gltf') {
                     FilesInputStore.FilesToLoad = { };
                 }
 
