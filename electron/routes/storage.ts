@@ -73,7 +73,7 @@ export default class StorageRouter {
     protected writeFile (): void {
         this.router.put('/files:/write', async (ctx, next) => {
             if (!ctx.query || !ctx.query.name || !ctx.query.folder)
-                throw new Error('Please provide a folder to wirte file in.');
+                throw new Error('Please provide a folder to write file in.');
 
             const chunks = [];
             ctx.req.on('data', (chunk) => {
