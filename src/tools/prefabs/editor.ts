@@ -70,7 +70,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', resizable: false, size: 30, content: '<div id="PREFAB-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
             { type: 'left', resizable: true, size: '50%', content: '<div id="PREFAB-EDITOR-TREE" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%;"></canvas>' }
+            { type: 'main', resizable: true, size: '50%', content: '<canvas id="PREFAB-EDITOR-PREVIEW" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>' }
         ];
         this.layout.build(this.divElement.id);
 

@@ -48,7 +48,7 @@ export default class MetadataEditor extends EditorPlugin {
         this.layout = new Layout(this.divElement.id);
         this.layout.panels = [
             { type: 'top', size: 30, resizable: false, content: '<div id="METADATA-EDITOR-TOOLBAR" style="width: 100%; height: 100%;"></div>' },
-            { type: 'main', content: '<div id="METADATA-EDITOR-EDITOR" style="width: 100%; height: 100%;"></div>' }
+            { type: 'main', content: '<div id="METADATA-EDITOR-EDITOR" style="width: 100%; height: 100%; overflow: hidden;"></div>' }
         ]
         this.layout.build(this.divElement.id);
 

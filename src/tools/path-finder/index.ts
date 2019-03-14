@@ -94,7 +94,7 @@ export default class PathFinderEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', content: '<div id="PATH-FINDER-TOOLBAR" style="width: 100%; height: 100%;"></div>', size: 30, resizable: false },
             { type: 'left', content: '<div id="PATH-FINDER-MESHES" style="width: 100%; height: 100%;"></div>', size: '50%', resizable: true },
-            { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%;"></canvas>', resizable: true, size: '50%' }
+            { type: 'main', content: '<canvas id="PATH-FINDER-PREVIEW" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>', resizable: true, size: '50%' }
         ];
         this.layout.build(this.divElement.id);
 

@@ -128,9 +128,9 @@ export default class PostProcessEditor extends EditorPlugin {
             { 
                 type: 'main',
                 content: `
-                    <div id="POST-PROCESS-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%;"></div>
-                    <div id="POST-PROCESS-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
-                    <div id="POST-PROCESS-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; display: none;"></div>
+                    <div id="POST-PROCESS-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%; overflow: hidden;"></div>
+                    <div id="POST-PROCESS-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
+                    <div id="POST-PROCESS-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
                 `,
                 resizable: true,
                 tabs: <any>[

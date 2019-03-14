@@ -129,10 +129,10 @@ export default class MaterialEditor extends EditorPlugin {
             { 
                 type: 'main',
                 content: `
-                    <div id="MATERIAL-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%;"></div>
-                    <div id="MATERIAL-CREATOR-EDITOR-VERTEX" style="width: 100%; height: 100%; display: none;"></div>
-                    <div id="MATERIAL-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; display: none;"></div>
-                    <div id="MATERIAL-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; display: none;"></div>
+                    <div id="MATERIAL-CREATOR-EDITOR-CODE" style="width: 100%; height: 100%; overflow: hidden;"></div>
+                    <div id="MATERIAL-CREATOR-EDITOR-VERTEX" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
+                    <div id="MATERIAL-CREATOR-EDITOR-PIXEL" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
+                    <div id="MATERIAL-CREATOR-EDITOR-CONFIG" style="width: 100%; height: 100%; overflow: hidden; display: none;"></div>
                 `,
                 resizable: true,
                 tabs: <any>[

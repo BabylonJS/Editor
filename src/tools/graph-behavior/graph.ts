@@ -103,7 +103,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.layout.panels = [
             { type: 'top', resizable: false, size: 30, content: '<div id="GRAPH-EDITOR-TOOLBAR" style="width: 100%; height: 100%"></div>' },
             { type: 'left', content: '<div id="GRAPH-EDITOR-LIST" style="width: 100%; height: 100%;"></div>', size: 250, overflow: 'auto', resizable: true },
-            { type: 'main', content: '<canvas id="GRAPH-EDITOR-EDITOR" class="graphcanvas" style="width: 100%; height: 100%;"></canvas>', resizable: true }
+            { type: 'main', content: '<canvas id="GRAPH-EDITOR-EDITOR" class="graphcanvas" style="width: 100%; height: 100%; position: absolute; top: 0;"></canvas>', resizable: true }
         ];
         this.layout.build(this.divElement.id);
 
