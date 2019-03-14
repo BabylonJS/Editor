@@ -178,6 +178,12 @@ ICONS
 */
 .w2ui-icon {
     background-repeat: no-repeat !important;
+    height: 22px;
+    background-position-y: center !important;
+}
+
+.w2ui-icon {
+    background-repeat: no-repeat !important;
 }
 
 .w2ui-icon.icon-error {
