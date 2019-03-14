@@ -463,6 +463,12 @@ declare module 'babylonjs-editor/editor/gui/toolbar' {
                 */
             setChecked(id: string, checked: boolean): void;
             /**
+                * Sets an item enabled or disabled
+                * @param id the id of the item
+                * @param enabled if the item is enabled or not
+                */
+            enable(id: string, enabled: boolean): void;
+            /**
                 * Updates the given item
                 * @param id the id of the item to update
                 * @param data the new item

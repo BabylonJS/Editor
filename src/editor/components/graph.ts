@@ -319,9 +319,11 @@ export default class EditorGraph {
                 // Sub meshes
                 if (n.subMeshes && n.subMeshes.length > 1) {
                     n.subMeshes.forEach((sm, index) => {
+                        const smMaterial = sm.getMaterial();
+
                         this.tree.add({
                             id: n.id + 'submesh_' + index,
-                            text: sm.getMaterial().name,
+                            text: smMaterial ? smMaterial.name : sm.getMesh().name + ' (Unnamed submesh)',
                             img: this.getIcon(n),
                             data: sm
                         }, n.id);

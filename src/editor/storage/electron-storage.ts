@@ -46,7 +46,11 @@ export default class ElectronStorage extends Storage {
             name: path
         }));
 
-        await this.uploadFiles(path, filesToWrite);
+        try {
+            await this.uploadFiles(path, filesToWrite);
+        } catch (e) {
+            return this.openPicker(title, filesToWrite, null, overrideFilename);
+        }
 
         // Finish
         return {

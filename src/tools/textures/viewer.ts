@@ -53,7 +53,8 @@ export default class TextureViewer extends EditorPlugin {
     public postProcess: PassPostProcess = null;
 
     // Protected members
-    protected engines: Engine[] = [];
+    protected tempPreview: PreviewScene = null;
+    protected tempPreviewCanvas: HTMLCanvasElement = null;
     protected onResizePreview = () => this.resize();
 
     protected object: any;
@@ -64,6 +65,7 @@ export default class TextureViewer extends EditorPlugin {
     private _renderTargetObservers: Observer<any>[] = [];
     private _lastRenderTargetObserver: Observer<any> = null;
     private _dropFilesObserver: Observer<any> = null;
+    private _refreshing: boolean = false;
 
     /**
      * Constructor
@@ -81,10 +83,10 @@ export default class TextureViewer extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
-        this.engines.forEach(e => {
-            e.scenes.forEach(s => s.dispose());
-            e.dispose();
-        });
+        if (this.tempPreview) {
+            this.tempPreview.scene.dispose();
+            this.tempPreview.engine.dispose();
+        }
 
         this.editor.core.onResize.removeCallback(this.onResizePreview);
 
@@ -139,6 +141,14 @@ export default class TextureViewer extends EditorPlugin {
         this.toolbar.helpUrl = 'http://doc.babylonjs.com/resources/adding_textures';
         this.toolbar.onClick = (target) => this.toolbarClicked(target);
         this.toolbar.build('TEXTURE-VIEWER-TOOLBAR');
+
+        // Temp preview
+        this.tempPreviewCanvas = Tools.CreateElement<HTMLCanvasElement>('canvas', 'TexturesViewerTempCanvas', {
+            width: '100px',
+            height: '100px',
+            visibility: 'hidden'
+        });
+        div.append(this.tempPreviewCanvas);
 
         // Add preview
         const preview = this.createPreview(<HTMLCanvasElement> $('#TEXTURE-VIEWER-CANVAS')[0]);
@@ -238,11 +248,18 @@ export default class TextureViewer extends EditorPlugin {
      * @param div the tool's div element
      */
     protected async createList (): Promise<void> {
+        if (this._refreshing)
+            return;
+        
+        this._refreshing = true;
+        this.toolbar.enable('refresh', false);
+
         // Clear
-        this.engines.forEach(e => {
-            e.scenes.forEach(s => s.dispose());
-            e.dispose();
-        });
+        if (this.tempPreview) {
+            this.tempPreview.scene.dispose();
+            this.tempPreview.engine.dispose();
+            this.tempPreview = null;
+        }
 
         const div = $('#TEXTURE-VIEWER-LIST');
         while (div[0].children.length > 0)
@@ -252,6 +269,7 @@ export default class TextureViewer extends EditorPlugin {
 
         // Misc.
         const scene = this.editor.core.scene;
+        const promises: Promise<void>[] = [];
 
         // Add HTML nodes for textures
         for (const tex of scene.textures) {
@@ -276,7 +294,7 @@ export default class TextureViewer extends EditorPlugin {
                 file = FilesInputStore.FilesToLoad[url.toLowerCase()];
             
             if (file)
-                this.addPreviewNode(file, tex);
+                promises.push(this.addPreviewNode(file, tex));
         }
 
         // Add render targets
@@ -290,6 +308,16 @@ export default class TextureViewer extends EditorPlugin {
                 this.addRenderTargetTexturePreviewNode(tex);
             }
         }
+
+        // Wait to all finished
+        try {
+            await Promise.all(promises);
+        } catch (e) {
+            console.log(e);
+        }
+        
+        this._refreshing = false;
+        this.toolbar.enable('refresh', true);
     }
 
     /**
@@ -316,21 +344,39 @@ export default class TextureViewer extends EditorPlugin {
 
         if (ext === 'dds' || ext === 'env') {
             // Canvas
-            const canvas = Tools.CreateElement<HTMLCanvasElement>('canvas', file.name, {
+            if (!this.tempPreview)
+                this.tempPreview = this.createPreview(this.tempPreviewCanvas);
+            
+            const data = await new Promise<string>((resolve) => {
+                this.tempPreview.material.reflectionTexture = CubeTexture.CreateFromPrefilteredData('file:' + file.name, this.tempPreview.scene);
+                this.tempPreview.scene.render();
+
+                this.tempPreview.scene.executeWhenReady(() => {
+                    this.tempPreview.scene.render();
+                    this.tempPreview.scene.onReadyObservable.clear();
+
+                    const base64 = this.tempPreviewCanvas.toDataURL('image/png');
+                    resolve(base64);
+                });
+            });
+
+            const img = Tools.CreateElement<HTMLImageElement>('img', file.name, {
                 width: '100px',
                 height: '100px'
             });
-            canvas.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
-            ContextMenu.ConfigureElement(canvas, this.getContextMenuItems(originalTexture));
-            canvas.classList.add('ctxmenu');
-            parent.appendChild(canvas);
+            img.src = data;
+            img.classList.add('ctxmenu');
+            img.addEventListener('click', (ev) => this.setTexture(file.name, ext, originalTexture));
+            ContextMenu.ConfigureElement(img, this.getContextMenuItems(originalTexture));
+            parent.appendChild(img);
 
             texturesList.append(parent);
 
-            const preview = this.createPreview(canvas, file);
-            preview.engine.runRenderLoop(() => preview.scene.render());
-
-            this.engines.push(preview.engine);
+            // Create texture in editor scene
+            if (!this.editor.core.scene.textures.find(t => t.name === file.name)) {
+                const texture = new Texture('file:' + file.name, this.editor.core.scene);
+                texture.name = texture.url = texture.name.replace('file:', '');
+            }
         }
         else {
             const data = await Tools.ReadFileAsBase64(file);
@@ -396,8 +442,9 @@ export default class TextureViewer extends EditorPlugin {
 
             try {
                 const baseTexture = CubeTexture.CreateFromPrefilteredData('file:' + f.name, this.editor.core.scene);
-
                 const envTextureBuffer = await EnvironmentTextureTools.CreateEnvTextureAsync(baseTexture);
+
+                baseTexture.dispose();
                 results.push(Tools.CreateFile(new Uint8Array(envTextureBuffer), f.name.replace('.dds', '.env')));
             } catch (e) {
                 // Catch silently

@@ -116,11 +116,7 @@ export default abstract class Storage {
 
         this.onCreateFiles && this.onCreateFiles(folder);
 
-        try {
-            await this.recursivelyCreateFiles(folder, filesToWrite);
-        } catch (e) {
-            Window.CreateAlert('Cannot upload: ' + e, 'Uploading Error');
-        }
+        await this.recursivelyCreateFiles(folder, filesToWrite);
 
         // Unlock
         this.editor.layout.unlockPanel('bottom');

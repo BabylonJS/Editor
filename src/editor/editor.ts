@@ -785,7 +785,7 @@ export default class Editor implements IUpdatable {
         },
         (file) => {
             if (!file)
-                return this.notifyMessage('No scene file found.', false, 3000);
+                return this.notifyMessage('Files added.', false, 3000);
             
             // Callback
             const callback = async (scene: Scene, disposePreviousScene: boolean) => {
@@ -863,6 +863,9 @@ export default class Editor implements IUpdatable {
 
                 // Refresh vscode
                 VSCodeSocket.Refresh();
+
+                // Clear
+                this.filesInput['_sceneFileToLoad'] = null;
             };
 
             const errorCallback = (title: string, message: string) => {
@@ -924,7 +927,7 @@ export default class Editor implements IUpdatable {
             };
 
             if (this._showReloadDialog)
-                Dialog.Create('Load scene', 'Append to existing one?', (result) => dialogCallback(result === 'No'));
+                Dialog.Create('Load scene', `Scene file found (${file.name}). Append to existing one?`, (result) => dialogCallback(result === 'No'));
             else
                 dialogCallback(true);
 

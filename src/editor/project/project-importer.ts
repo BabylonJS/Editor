@@ -53,6 +53,8 @@ export default class ProjectImporter {
         if (!scene.isPhysicsEnabled())
             scene.enablePhysics(scene.gravity, new CannonJSPlugin());
 
+        scene.getPhysicsEngine().setTimeStep(0);
+
         // Nodes
         project.nodes.forEach(n => {
             let node: Node | Scene = null;
