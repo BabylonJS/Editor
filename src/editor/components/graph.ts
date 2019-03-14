@@ -33,6 +33,7 @@ export default class EditorGraph {
     constructor (protected editor: Editor) {
         this.tree = new Tree('SceneTree');
         this.tree.multipleSelection = true;
+        this.tree.wholerow = true;
         this.tree.build('SCENE-GRAPH');
 
         // Events
