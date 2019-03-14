@@ -80,7 +80,7 @@ export default class SceneImporter {
 
                 project.filesList = sceneFiles.filter(v => !v.folder).map(v => {
                     const path = 'scene/' + v.name;
-                    const existingIndex = lastFilesList.find(f => f.toLowerCase() === path);
+                    const existingIndex = lastFilesList.find(f => f.toLowerCase() === path.toLowerCase());
                     if (!existingIndex)
                         newlyAddedList.push(path);
 

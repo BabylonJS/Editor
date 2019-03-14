@@ -86,7 +86,7 @@ export default class ElectronStorage extends Storage {
      * @param folder the parent folder
      */
     public async getFiles (folder: string): Promise<GetFiles[]> {
-        const files = await Request.Get<any>('/files' + (folder ? '?path=' + folder : ''));
+        const files = await Request.Get<any>('/files' + (folder ? '?path=' + encodeURIComponent(folder) : ''));
 
         const result: GetFiles[] = [];
         files.value.forEach(v => {
