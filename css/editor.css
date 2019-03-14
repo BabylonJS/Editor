@@ -116,8 +116,15 @@ html, body {
 .w2ui-sidebar .w2ui-sidebar-div .w2ui-node .w2ui-node-image {
     width: 16px;
 }
+.w2ui-sidebar .w2ui-sidebar-div td.w2ui-node-data .w2ui-node-image.w2ui-icon {
+    margin-top: -3px;
+}
+
 .w2ui-sidebar .w2ui-node {
     height: 24px;
+}
+.w2ui-sidebar .w2ui-node-caption {
+    top: -4px;
 }
 
 .w2ui-sidebar .w2ui-node-count {
