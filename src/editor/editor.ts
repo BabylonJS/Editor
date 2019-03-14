@@ -45,6 +45,7 @@ import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
+import GLTFTools from './tools/gltf-tools';
 
 import VSCodeSocket from './vscode/vscode-socket';
 
@@ -831,6 +832,9 @@ export default class Editor implements IUpdatable {
                 // Default light
                 if (scene.lights.length === 0)
                     scene.createDefaultCameraOrLight(false, false, false);
+
+                // Gltf or glb?
+                await GLTFTools.ConfigureFromScene(this, file);
 
                 // Graph
                 this.graph.clear();

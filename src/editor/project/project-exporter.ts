@@ -94,7 +94,13 @@ export default class ProjectExporter {
                 }
             }
 
-            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(FilesInputStore.FilesToLoad[k]) }));
+            Object.keys(FilesInputStore.FilesToLoad).forEach(async k => {
+                const file = FilesInputStore.FilesToLoad[k];
+                if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                    return;
+                
+                sceneFiles.push({ name: k, data: await Tools.ReadFileAsArrayBuffer(file) });
+            });
 
             // Src files
             const srcFiles: CreateFiles[] = [
@@ -141,6 +147,9 @@ export default class ProjectExporter {
 
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
+            if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                continue;
+            
             const ext = Tools.GetFileExtension(file.name);
             if (ext === 'editorproject' || file === editor.projectFile || file === editor.sceneFile)
                 continue;
@@ -236,6 +245,9 @@ export default class ProjectExporter {
         // Setup filesList
         for (const f in FilesInputStore.FilesToLoad) {
             const file = FilesInputStore.FilesToLoad[f];
+            if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
+                continue;
+            
             if (file === editor.projectFile || file === editor.sceneFile)
                 continue;
 

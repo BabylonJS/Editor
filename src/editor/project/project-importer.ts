@@ -270,9 +270,6 @@ export default class ProjectImporter {
                 c._waitingParentId = undefined;
             }
         });
-
-        // Finish
-        scene.materials.forEach(m => m['maxSimultaneousLights'] = scene.lights.length * 2);
     }
 
     /**

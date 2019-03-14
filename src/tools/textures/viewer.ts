@@ -27,8 +27,7 @@ import Editor, {
     EditorPlugin,
     UndoRedo,
     IStringDictionary,
-    ContextMenuItem,
-    Window
+    ContextMenuItem
 } from 'babylonjs-editor';
 
 export interface PreviewScene {

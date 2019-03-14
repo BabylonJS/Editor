@@ -71,7 +71,7 @@ export default class EditorGraph {
         };
 
         this.tree.onContextMenu = (id, data: any) => {
-            if (!data.clone)
+            if (!data.clone || data === this.editor.camera || data === this.editor.core.scene)
                 return [];
             
             const result: TreeContextMenuItem[] = [];
@@ -298,6 +298,8 @@ export default class EditorGraph {
             // Create a random ID if not defined
             if (!n.id || this.tree.get(n.id))
                 n.id = BabylonTools.RandomId();
+
+            n.id = n.id.replace(/ /g, '');
 
             // Instance?
             const parent = root ? root.id : this.root;
