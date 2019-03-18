@@ -1,8 +1,9 @@
-import * as fs from 'fs-extra';
+import { writeFile } from 'fs-extra';
+import { watch, FSWatcher } from 'chokidar';
 
 export default class Watcher {
     // Public members
-    public static WatchedFiles: { [name: string]: boolean } = { };
+    public static WatchedFiles: { [name: string]: FSWatcher } = { };
 
     /**
      * Watches the given file
@@ -11,16 +12,14 @@ export default class Watcher {
      */
     public static async WatchFile (filename: string, callback: () => void): Promise<void> {
         if (this.WatchedFiles[filename])
-            fs.unwatchFile(filename);
+            this.WatchedFiles[filename].close();
         
-        const stats = await fs.stat(filename);
-        this.WatchedFiles[filename] = true;
-
-        fs.watchFile(filename, (curr, prev) => {
-            if (curr.ctimeMs > stats.ctimeMs) {
-                stats.ctimeMs = curr.ctimeMs;
-                callback();
-            }
+        const watcher = this.WatchedFiles[filename] = watch(filename, {
+            persistent: true,
+            awaitWriteFinish: true
+        });
+        watcher.on('change', (path, stats) => {
+            callback();
         });
     }
 
@@ -31,7 +30,7 @@ export default class Watcher {
      * @param callback the callback called once the file changed
      */
     public static async WriteAndWatchFile (filename: string, data: Buffer, callback: () => void): Promise<void> {
-        await fs.writeFile(filename, data);
+        await writeFile(filename, data);
         this.WatchFile(filename, () => callback());
     }
 
@@ -39,8 +38,8 @@ export default class Watcher {
      * Disposes the helper
      */
     public static Dispose (): void {
-        for (const f in this.WatchFile)
-            fs.unwatchFile(this.WatchFile[f]);
+        for (const f in this.WatchedFiles)
+            this.WatchedFiles[f].close();
 
         this.WatchedFiles = { };
     }

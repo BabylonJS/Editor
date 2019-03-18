@@ -137,7 +137,7 @@ declare module 'babylonjs-editor/editor/editor' {
                 * Creates the default scene
                 * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
                 */
-            createDefaultScene(showNewSceneDialog?: boolean): Promise<void>;
+            createDefaultScene(showNewSceneDialog?: boolean, emptyScene?: boolean): Promise<void>;
             /**
                 * Creates the editor camera
                 */
@@ -1829,6 +1829,7 @@ declare module 'babylonjs-editor/editor/vscode/vscode-socket' {
 declare module 'babylonjs-editor/editor/core' {
     import { Engine, Scene, Observable } from 'babylonjs';
     import { AdvancedDynamicTexture } from 'babylonjs-gui';
+    import { ProjectRoot } from 'babylonjs-editor/editor/typings/project';
     export interface IUpdatable {
             /**
                 * On before render the scene
@@ -1862,6 +1863,11 @@ declare module 'babylonjs-editor/editor/core' {
             onDropFiles: Observable<{
                     target: HTMLElement;
                     files: FileList;
+            }>;
+            onSceneLoaded: Observable<{
+                    scene: Scene;
+                    file: File;
+                    project?: ProjectRoot;
             }>;
             renderScenes: boolean;
             /**

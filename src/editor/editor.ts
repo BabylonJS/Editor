@@ -462,7 +462,7 @@ export default class Editor implements IUpdatable {
         const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
 
         if (!hasOpenedFile)
-            return this.createDefaultScene();
+            await this.createDefaultScene();
 
         const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
         pluginsToLoad.forEach(p => this.plugins[p] = null);
@@ -486,13 +486,7 @@ export default class Editor implements IUpdatable {
 
             // Restart plugins
             this.core.scene.executeWhenReady(async () => {
-                await this.restartPlugins();
-
-                if (!showNewSceneDialog) {
-                    const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
-                    await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
-                }
-                else {
+                if (showNewSceneDialog) {
                     // Create scene picker
                     this._createScenePicker();
 
@@ -510,10 +504,6 @@ export default class Editor implements IUpdatable {
             // Fill graph
             this.graph.clear();
             this.graph.fill();
-
-            // List scene preview
-            // if (Tools.IsElectron())
-            //     ScenePreview.Create();
         }
 
         if (!showNewSceneDialog)
@@ -849,7 +839,7 @@ export default class Editor implements IUpdatable {
                 this.graph.fill();
 
                 // Restart plugins
-                this.restartPlugins();
+                await this.restartPlugins();
 
                 // Create scene picker
                 this._createScenePicker();
@@ -1005,7 +995,7 @@ export default class Editor implements IUpdatable {
             const path = list[newVersion][platform];
 
             let lastProgress = '';
-            const data = await Tools.LoadFile<ArrayBuffer>(/*'http://editor.babylonjs.com/' + */path, true, data => {
+            const data = await Tools.LoadFile<ArrayBuffer>('http://editor.babylonjs.com/' + path, true, data => {
                 const progress = ((data.loaded * 100) / data.total).toFixed(1);
 
                 if (progress !== lastProgress) {
