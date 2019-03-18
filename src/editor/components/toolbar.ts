@@ -181,10 +181,10 @@ export default class EditorToolbar {
                 break
             case 'project:new-project':
                 ProjectExporter.ProjectPath = null;
-                await this.editor.createDefaultScene(true);
+                await this.editor.createDefaultScene(true, true);
                 
                 if (Tools.IsElectron())
-                    await Request.Post('/openedFile', { value: null });
+                    await Request.Post('/openedFile', JSON.stringify({ value: null }));
                 break;
 
             case 'project:export-project':

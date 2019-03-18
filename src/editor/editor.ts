@@ -471,38 +471,39 @@ export default class Editor implements IUpdatable {
      * Creates the default scene
      * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
      */
-    public async createDefaultScene(showNewSceneDialog: boolean = false): Promise<void> {
+    public async createDefaultScene(showNewSceneDialog: boolean = false, emptyScene: boolean = false): Promise<void> {
         const callback = async () => {
             // Create default scene
             this.layout.lockPanel('main', 'Loading Preview Scene...', true);
-            DefaultScene.Create(this).then(() => {
-                this.graph.clear();
-                this.graph.fill();
-                
-                this.layout.unlockPanel('main');
 
-                // Restart plugins
-                this.core.scene.executeWhenReady(async () => {
-                    await this.restartPlugins();
+            await DefaultScene.Create(this);
 
-                    if (!showNewSceneDialog) {
-                        const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
-                        await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
-                    }
-                    else {
-                        // Create scene picker
-                        this._createScenePicker();
+            this.graph.clear();
+            this.graph.fill();
+            
+            this.layout.unlockPanel('main');
 
-                        // Update stats
-                        this.stats.updateStats();
+            // Restart plugins
+            this.core.scene.executeWhenReady(async () => {
+                await this.restartPlugins();
 
-                        // Assets
-                        this.assets.refresh();
-                    }
+                if (!showNewSceneDialog) {
+                    const pluginsToLoad  = JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+                    await Promise.all(pluginsToLoad.map(p => this.addEditPanelPlugin(p, false)));
+                }
+                else {
+                    // Create scene picker
+                    this._createScenePicker();
 
-                    // Resize
-                    this.resize();
-                });
+                    // Update stats
+                    this.stats.updateStats();
+
+                    // Assets
+                    this.assets.refresh();
+                }
+
+                // Resize
+                this.resize();
             });
 
             // Fill graph
@@ -517,7 +518,7 @@ export default class Editor implements IUpdatable {
         if (!showNewSceneDialog)
             return await callback();
 
-        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', (result) => {
+        Dialog.Create('Create a new scene?', 'Remove current scene and create a new one?', async (result) => {
             if (result === 'Yes') {
                 UndoRedo.Clear();
                 CodeProjectEditorFactory.CloseAll();
@@ -538,6 +539,9 @@ export default class Editor implements IUpdatable {
                 // Assets
                 this.assets.clear();
 
+                if (emptyScene)
+                    await DefaultScene.CreateEmpty(this);
+                
                 // Create default scene?
                 if (!showNewSceneDialog)
                     callback();

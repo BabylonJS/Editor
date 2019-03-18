@@ -1,5 +1,5 @@
 import {
-    Mesh
+    Mesh, FilesInputStore
 } from 'babylonjs';
 
 import {
@@ -63,12 +63,29 @@ export default class DefaultScene {
 
     /**
      * Creates the default scene
-     * @param scene: the scene reference where to create objects
+     * @param scene: the editor reference
      */
     public static async Create (editor: Editor): Promise<void> {
         // Project
         const project = JSON.parse(await Tools.LoadFile<string>('assets/defaultScene/scene.editorproject'));
         await SceneImporter.LoadProjectFromFile(editor, 'assets/defaultScene/scene.editorproject', project, false);
+        ProjectExporter.ProjectPath = null;
+
+        // Scene file
+        SceneExporter.CreateFiles(editor);
+    }
+
+    /**
+     * Creates an empty scene/project
+     * @param editor the editor reference
+     */
+    public static async CreateEmpty (editor: Editor): Promise<void> {
+        // Clear files
+        FilesInputStore.FilesToLoad = { };
+
+        // Project
+        const project = JSON.parse(await Tools.LoadFile<string>('assets/emptyScene/scene.editorproject'));
+        await SceneImporter.LoadProjectFromFile(editor, 'assets/emptyScene/scene.editorproject', project, false);
         ProjectExporter.ProjectPath = null;
 
         // Scene file

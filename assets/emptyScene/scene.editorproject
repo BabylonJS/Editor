@@ -1,0 +1,152 @@
+{
+    "actions": null,
+    "customMetadatas": {
+        
+    },
+    "globalConfiguration": {
+        "serializedCamera": {
+            "tags": null,
+            "ellipsoid": [
+                0.5,
+                1,
+                0.5
+            ],
+            "ellipsoidOffset": [
+                0,
+                0,
+                0
+            ],
+            "checkCollisions": false,
+            "applyGravity": false,
+            "rotation": [
+                0.2504929707593348,
+                -5.506798891360558,
+                0
+            ],
+            "speed": 0.5,
+            "position": [
+                -23.33170482033053,
+                11.932283015369759,
+                -23.279903713152148
+            ],
+            "upVector": [
+                0,
+                1,
+                0
+            ],
+            "fov": 0.8,
+            "minZ": 1,
+            "maxZ": 10000,
+            "inertia": 0.9,
+            "mode": 0,
+            "layerMask": 268435455,
+            "fovMode": 0,
+            "cameraRigMode": 0,
+            "name": "Editor Camera",
+            "id": "EditorCamera",
+            "uniqueId": 0,
+            "state": "",
+            "metadata": {
+                "behavior": {
+                    "node": "Editor Camera",
+                    "nodeId": "EditorCamera",
+                    "metadatas": []
+                }
+            },
+            "type": "UniversalCamera",
+            "inputsmgr": {
+                "FreeCameraKeyboardMoveInput": {
+                    "tags": null,
+                    "keysUp": [
+                        38,
+                        87,
+                        90
+                    ],
+                    "keysDown": [
+                        40,
+                        83
+                    ],
+                    "keysLeft": [
+                        37,
+                        65,
+                        81
+                    ],
+                    "keysRight": [
+                        39,
+                        68
+                    ]
+                },
+                "FreeCameraMouseInput": {
+                    "tags": null,
+                    "buttons": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "angularSensibility": 3000
+                }
+            },
+            "animations": [],
+            "ranges": []
+        },
+        "imageProcessingConfiguration": {
+            "tags": null,
+            "colorCurves": {
+                "tags": null,
+                "_globalHue": 30,
+                "_globalDensity": 0,
+                "_globalSaturation": 0,
+                "_globalExposure": 0,
+                "_highlightsHue": 30,
+                "_highlightsDensity": 0,
+                "_highlightsSaturation": 0,
+                "_highlightsExposure": 0,
+                "_midtonesHue": 30,
+                "_midtonesDensity": 0,
+                "_midtonesSaturation": 0,
+                "_midtonesExposure": 0
+            },
+            "_colorCurvesEnabled": false,
+            "_colorGradingEnabled": false,
+            "_colorGradingWithGreenDepth": true,
+            "_colorGradingBGR": true,
+            "_exposure": 0.6,
+            "_toneMappingEnabled": true,
+            "_toneMappingType": 0,
+            "_contrast": 1.6,
+            "vignetteStretch": 0,
+            "vignetteCentreX": 0,
+            "vignetteCentreY": 0,
+            "vignetteWeight": 1.5,
+            "vignetteColor": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "vignetteCameraFov": 0.5,
+            "_vignetteBlendMode": 0,
+            "_vignetteEnabled": false,
+            "_applyByPostProcess": false,
+            "_isEnabled": true
+        }
+    },
+    "lensFlares": null,
+    "materials": [],
+    "nodes": [],
+    "particleSystems": [],
+    "physicsEnabled": true,
+    "renderTargets": [],
+    "requestedMaterials": null,
+    "shadowGenerators": [],
+    "sounds": [],
+    "gui": [],
+    "effectLayers": [],
+    "environmentHelper": null,
+    "assets": {
+        "prefabs": []
+    },
+    "filesList": [
+        "scene/scene.babylon"
+    ]
+}

@@ -278,6 +278,9 @@ export default class ProjectExporter {
         const result: Export.Sound[] = [];
         const scene = editor.core.scene;
 
+        if (!scene.soundTracks)
+            return result;
+
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
                 if (!Tags.HasTags(s) || !Tags.MatchesQuery(s, 'added'))
