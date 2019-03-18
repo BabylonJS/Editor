@@ -48,6 +48,7 @@ import ThemeSwitcher, { ThemeType } from './tools/theme';
 import GLTFTools from './tools/gltf-tools';
 
 import VSCodeSocket from './vscode/vscode-socket';
+import { ProjectRoot } from './typings/project';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -820,14 +821,17 @@ export default class Editor implements IUpdatable {
                 }
 
                 const projectFile = this._getProjectFileFromFilesInputStore();
+                let project: ProjectRoot = null;
+                
                 if (projectFile) {
                     this.projectFileName = projectFile.name;
                     Tools.SetWindowTitle(projectFile.name);
                     
                     const content = await Tools.ReadFileAsText(projectFile);
+                    project = JSON.parse(content);
 
                     try {
-                        await ProjectImporter.Import(this, JSON.parse(content));
+                        await ProjectImporter.Import(this, project);
                     } catch (e) {
                         errorCallback('Error while loading project', e.message);
                     }
@@ -870,6 +874,13 @@ export default class Editor implements IUpdatable {
 
                 // Clear
                 this.filesInput['_sceneFileToLoad'] = null;
+
+                // Notify
+                this.core.onSceneLoaded.notifyObservers({
+                    file: file,
+                    project: project,
+                    scene: this.core.scene
+                });
             };
 
             const errorCallback = (title: string, message: string) => {

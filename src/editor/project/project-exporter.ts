@@ -248,7 +248,8 @@ export default class ProjectExporter {
             if (Tags.HasTags(file) && Tags.MatchesQuery(file, 'doNotExport'))
                 continue;
             
-            if (file === editor.projectFile || file === editor.sceneFile)
+            const ext = Tools.GetFileExtension(file.name);
+            if (ext === 'editorproject' || file === editor.projectFile || file === editor.sceneFile)
                 continue;
 
             project.filesList.push('scene/' + f);

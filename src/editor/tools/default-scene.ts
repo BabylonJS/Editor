@@ -1,5 +1,5 @@
 import {
-    Mesh, FilesInputStore
+    Mesh, FilesInputStore, ActionManager, ExecuteCodeAction, PBRMaterial
 } from 'babylonjs';
 
 import {
@@ -73,6 +73,28 @@ export default class DefaultScene {
 
         // Scene file
         SceneExporter.CreateFiles(editor);
+
+        // Event
+        editor.core.onSceneLoaded.addOnce(d => {
+            // GUI
+            const gui = AdvancedDynamicTexture.CreateFullscreenUI('ui');
+            gui.layer.layerMask = 2;
+            editor.core.uiTextures.push(gui);
+
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Sphere Animated'), 'Animated\nView => Animations...', false, '200px', '60px');
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Sphere Standard'), 'Standard Material', false, '200px', '30px');
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Sphere PBR'), 'PBR Material', false, '150px', '30px');
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Documentation'), 'Documentation (Double Click)', false, '300px', '30px');
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Rain Particles'), 'Rain Particle System', false, '300px', '30px');
+            this.CreateLabel(gui, <Mesh> d.scene.getMeshByName('Drop Particles'), 'Drop Particle System', false, '300px', '30px');
+
+            // Actions
+            const documentation = d.scene.getMeshByName('Documentation')
+            documentation.actionManager = new ActionManager(d.scene);
+            documentation.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnDoublePickTrigger, (evt) => {
+                window.open('http://doc.babylonjs.com/resources');
+            }));
+        });
     }
 
     /**
