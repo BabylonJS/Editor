@@ -1,7 +1,6 @@
 import {
-    Observer,
-    Scene,
-    Node,
+    Observer, SerializationHelper,
+    Scene, Node,
     Tools as BabylonTools
 } from 'babylonjs';
 
@@ -53,6 +52,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
     // Private members
     private _savedState: any = { };
+    private _mouseMoveEvent: (ev: MouseEvent) => void = null;
 
     // Static members
     private static _CopiedGraph: NodeGraph = null;
@@ -77,6 +77,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * Closes the plugin
      */
     public async close (): Promise<void> {
+        // Remove document event
+        document.removeEventListener('mousemove', this._mouseMoveEvent);
+
+        // Stop
         this.playStop(true);
         
         // Clear
@@ -157,7 +161,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         this.graph = new LGraphCanvas("#GRAPH-EDITOR-EDITOR", this.graphData);
         this.graph.canvas.classList.add('ctxmenu');
-        this.graph.canvas.addEventListener('mousemove', () => {
+        document.addEventListener('mousemove', this._mouseMoveEvent = (ev) => {
             if (!this.data)
                 return;
  
@@ -608,8 +612,10 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             if (this.node) {
                 this.editor.core.scene.stopAnimation(this.node);
 
-                if (this._savedState.material && this.node.material)
-                    this.node.material.dispose();
+                if (this._savedState.material) {
+                    SerializationHelper.Parse(() => this.node.material, this._savedState.material, this.editor.core.scene, 'file:');
+                    delete this._savedState.material;
+                }
 
                 for (const obj in this._savedState)
                     this.node[obj] = this._savedState[obj];
@@ -632,7 +638,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.node.rotation && (this._savedState.rotation = this.node.rotation.clone());
             this.node.scaling && (this._savedState.scaling = this.node.scaling.clone());
             this.node.rotationQuaternion && (this._savedState.rotationQuaternion = this.node.rotationQuaternion.clone());
-            this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
+            // this.node.material && (this.node.material = this.node.material.clone(this.node.material.name)) && (this._savedState.material = this.node.material);
+            this.node.material && (this._savedState.material = this.node.material.serialize());
 
             const keys = Object.keys(this.node);
             keys.forEach(k => {

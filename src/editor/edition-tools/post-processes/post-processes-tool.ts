@@ -126,6 +126,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrMinimumLuminance').min(0).max(2).name('Minimum Luminance');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrDecreaseRate').min(0).max(2).name('Decrease Rate');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrIncreaseRate').min(0).max(2).name('Increase Rate');
+            // hdr.add(SceneManager.StandardRenderingPipeline, 'hdrAutoExposure').name('Auto Exposure');
 
             const vls = standardPipeline.addFolder('Volumetric Lights');
             vls.open();
@@ -315,8 +316,8 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'totalStrength').min(0).step(0.0001).name('Strength');
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'radius').min(0).step(0.0001).name('Radius');
             ssao2.add(SceneManager.SSAO2RenderingPipeline, 'expensiveBlur').name('Expensive Blur');
-            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(0).step(0.01).name('Max Z');
-            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(0).max(64).step(1).name('Samples');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'maxZ').min(1).step(0.01).name('Max Z');
+            ssao2.add(SceneManager.SSAO2RenderingPipeline, 'samples').min(2).max(64).step(1).name('Samples');
         }
     }
 

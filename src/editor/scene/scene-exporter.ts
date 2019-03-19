@@ -5,17 +5,24 @@ import ProjectExporter from '../project/project-exporter';
 import Tools from '../tools/tools';
 import Editor from '../editor';
 
-const randomId = BabylonTools.RandomId();
-
 export default class SceneExporter {
     // Public members
     public static ProjectExportFormat: 'babylon' | 'glb' | 'gltf' = 'babylon';
+
+    // Private members
+    private static _LastRandomId: string = BabylonTools.RandomId();
 
     /**
      * Creates a new file
      * @param editor: the editor instance
      */
     public static CreateFiles (editor: Editor, format: 'babylon' | 'glb' | 'gltf' = 'babylon'): void {
+        // Delete old files
+        editor.sceneFile && delete FilesInputStore.FilesToLoad[editor.sceneFile.name];
+        editor.projectFile && delete FilesInputStore.FilesToLoad[editor.projectFile.name];
+
+        this._LastRandomId = BabylonTools.RandomId();
+
         // Do not export shader materials
         editor.core.scene.materials.forEach(m => m instanceof ShaderMaterial && (m.doNotSerialize = true));
 
@@ -39,7 +46,7 @@ export default class SceneExporter {
 
         // Scene "File"
         if (format === 'babylon') {
-            editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene' + randomId + '.babylon');
+            editor.sceneFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(serializedScene)), 'scene' + this._LastRandomId + '.babylon');
             FilesInputStore.FilesToLoad[editor.sceneFile.name] = editor.sceneFile;
         }
 
@@ -51,7 +58,7 @@ export default class SceneExporter {
         });
 
         // Project
-        const name = 'scene' + randomId + '.editorproject';
+        const name = 'scene' + this._LastRandomId + '.editorproject';
         const project = ProjectExporter.Export(editor);
         editor.projectFile = Tools.CreateFile(Tools.ConvertStringToUInt8Array(JSON.stringify(project)), name);
         FilesInputStore.FilesToLoad[editor.projectFile.name] = editor.projectFile;
