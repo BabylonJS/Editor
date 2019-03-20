@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor",
-  "version": "2.5.3-alpha.1",
+  "version": "2.5.3-alpha.2",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "build/electron/main.js",
   "productName": "Babylon.js Editor",
@@ -25,8 +25,7 @@
     "webserver": "http-server -p 1338",
     "bundle": "node ./script/dts.js && node ./script/css.js && node ./script/bundle.js && node ./script/electron.js",
     "bundle-js": "node ./script/css.js && node ./script/bundle.js",
-    "dts": "node ./script/dts.js",
-    "postinstall": "cd vscode-extension && npm i && cd .."
+    "dts": "node ./script/dts.js"
   },
   "readme": "https://github.com/BabylonJS/Editor/blob/master/README.md",
   "license": "(Apache-2.0)",
