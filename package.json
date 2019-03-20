@@ -16,7 +16,7 @@
     "clean": "rimraf build && rimraf declaration && rimraf dist && rimraf electron-packages",
     "compile": "tsc -p .",
     "compile-electron": "tsc -p ./electron",
-    "build-vscode-extension": "cd vscode-extension && npm run package && cd ..",
+    "build-vscode-extension": "cd vscode-extension && npm run build && cd ..",
     "build": "npm run compile && npm run compile-electron && npm run build-vscode-extension && npm run bundle",
     "rebuild": "npm run clean && npm run build",
     "watch": "tsc -p . --watch",
