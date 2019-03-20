@@ -11,6 +11,8 @@ export interface TreeNode {
     parent?: string;
     children?: string[];
 
+    onExpand?: () => void;
+
     state?: {
 		checked?: boolean;
 	};
@@ -328,6 +330,19 @@ export default class Tree {
                 // Revert ?
                 if (!success)
                     this.setParent(node.id, data.old_parent);
+            })
+            .on('close_node.jstree', (e, data) => {
+                const node = <TreeNode> data.node;
+                if (node.onExpand) {
+                    node.children.slice().forEach(c => this.remove(c));
+                }
+            })
+            .on('open_node.jstree', (e, data) => {
+                const node = <TreeNode> data.node;
+                if (node.onExpand) {
+                    node.children.slice().forEach(c => this.remove(c));
+                    node.onExpand();
+                }
             });
 
             this.element.dblclick(() => {

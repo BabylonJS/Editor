@@ -135,7 +135,8 @@ declare module 'babylonjs-editor/editor/editor' {
             checkOpenedFile(): Promise<void>;
             /**
                 * Creates the default scene
-                * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
+                * @param showNewSceneDialog if to show a dialog to confirm creating default scene
+                * @param emptyScene sets wether or not the default scene would be empty or not
                 */
             createDefaultScene(showNewSceneDialog?: boolean, emptyScene?: boolean): Promise<void>;
             /**
@@ -989,6 +990,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             data?: any;
             parent?: string;
             children?: string[];
+            onExpand?: () => void;
             state?: {
                     checked?: boolean;
             };

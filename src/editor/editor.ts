@@ -470,7 +470,8 @@ export default class Editor implements IUpdatable {
 
     /**
      * Creates the default scene
-     * @param showNewSceneDialog: if to show a dialog to confirm creating default scene
+     * @param showNewSceneDialog if to show a dialog to confirm creating default scene
+     * @param emptyScene sets wether or not the default scene would be empty or not
      */
     public async createDefaultScene(showNewSceneDialog: boolean = false, emptyScene: boolean = false): Promise<void> {
         const callback = async () => {
