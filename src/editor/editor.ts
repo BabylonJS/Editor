@@ -320,6 +320,9 @@ export default class Editor implements IUpdatable {
         // Assets
         this.assets.layout.element.resize();
 
+        // Files
+        this.files.layout.element.resize();
+
         // Notify
         this.core.onResize.notifyObservers(null);
     }
@@ -637,6 +640,7 @@ export default class Editor implements IUpdatable {
             if (e.dataTransfer && e.dataTransfer.files)
                 this.core.onDropFiles.notifyObservers({ target: <HTMLElement> e.target, files: e.dataTransfer.files });
         });
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
 
         // Undo
         UndoRedo.onUndo = (e) => {
@@ -787,11 +791,9 @@ export default class Editor implements IUpdatable {
             // Starting process
             this.projectFile = null;
             this.sceneFile = null;
-
-            FilesInputStore.FilesToLoad = { };
         },
-        (file) => {
-            if (!file)
+        (sceneFile) => {
+            if (!sceneFile)
                 return this.notifyMessage('Files added.', false, 3000);
             
             // Callback
@@ -822,29 +824,50 @@ export default class Editor implements IUpdatable {
                     CodeProjectEditorFactory.CloseAll();
                 }
 
-                const projectFile = this._getProjectFileFromFilesInputStore();
+                // Project file
                 let project: ProjectRoot = null;
-                
-                if (projectFile) {
-                    this.projectFileName = projectFile.name;
-                    Tools.SetWindowTitle(projectFile.name);
-                    
-                    const content = await Tools.ReadFileAsText(projectFile);
-                    project = JSON.parse(content);
 
-                    try {
-                        await ProjectImporter.Import(this, project);
-                    } catch (e) {
-                        errorCallback('Error while loading project', e.message);
+                if (disposePreviousScene) {
+                    // Load other files
+                    const sceneExtensions = ['babylon', 'obj', 'stl', 'gltf', 'glb'];
+                    const appendPromises: Promise<Scene>[] = [];
+
+                    for (const f in FilesInputStore.FilesToLoad) {
+                        const file = FilesInputStore.FilesToLoad[f];
+                        const ext = Tools.GetFileExtension(file.name).toLowerCase();
+
+                        if (file === sceneFile || file === this.sceneFile || sceneExtensions.indexOf(ext) === -1)
+                            continue;
+
+                        // Load
+                        appendPromises.push(SceneLoader.AppendAsync('file:', file.name, scene));
+                        this.core.engine.hideLoadingUI();
                     }
+
+                    await Promise.all(appendPromises);
+
+                    // Load project
+                    const projectFile = this._getProjectFileFromFilesInputStore();                    
+                    if (projectFile) {
+                        this.projectFileName = projectFile.name;
+                        Tools.SetWindowTitle(projectFile.name);
+                        
+                        const content = await Tools.ReadFileAsText(projectFile);
+                        project = JSON.parse(content);
+
+                        try {
+                            await ProjectImporter.Import(this, project);
+                        } catch (e) {
+                            errorCallback('Error while loading project', e.message);
+                        }
+                    }
+
+                    // Default light
+                    if (scene.lights.length === 0)
+                        scene.createDefaultCameraOrLight(false, false, false);
                 }
-
-                // Default light
-                if (scene.lights.length === 0)
-                    scene.createDefaultCameraOrLight(false, false, false);
-
                 // Gltf or glb?
-                await GLTFTools.ConfigureFromScene(this, file);
+                await GLTFTools.ConfigureFromScene(this, sceneFile);
 
                 // Graph
                 this.graph.clear();
@@ -876,7 +899,7 @@ export default class Editor implements IUpdatable {
 
                 // Notify
                 this.core.onSceneLoaded.notifyObservers({
-                    file: file,
+                    file: sceneFile,
                     project: project,
                     scene: this.core.scene
                 });
@@ -896,7 +919,7 @@ export default class Editor implements IUpdatable {
                 UndoRedo.Clear();
 
                 // Load dependencies
-                const extension = Tools.GetFileExtension(file.name);
+                const extension = Tools.GetFileExtension(sceneFile.name);
                 if (extension !== 'babylon') {
                     this.layout.lockPanel('main', 'Importing Loaders...', true);
                     await Tools.ImportScript('babylonjs-loaders');
@@ -932,21 +955,21 @@ export default class Editor implements IUpdatable {
                 
                 // Load scene
                 if (doNotAppend)
-                    SceneLoader.Load('file:', file.name, this.core.engine, (scene) => callback(scene, true), null, (scene, message) => errorCallback('Error while loading scene', message));
+                    SceneLoader.Load('file:', sceneFile.name, this.core.engine, (scene) => callback(scene, true), null, (scene, message) => errorCallback('Error while loading scene', message));
                 else
-                    SceneLoader.Append('file:', file.name, this.core.scene, (scene) => callback(scene, false), null, (scene, message) => errorCallback('Error while loading scene', message));
+                    SceneLoader.Append('file:', sceneFile.name, this.core.scene, (scene) => callback(scene, false), null, (scene, message) => errorCallback('Error while loading scene', message));
 
                 // Lock panel and hide loading UI
                 this.core.engine.hideLoadingUI();
                 this.layout.lockPanel('main', 'Loading Scene...', true);
 
                 // Delete start scene (when starting the editor) and add new scene
-                delete FilesInputStore.FilesToLoad['scene.babylon'];
-                FilesInputStore.FilesToLoad[file.name] = file;
+                // delete FilesInputStore.FilesToLoad['scene.babylon'];
+                FilesInputStore.FilesToLoad[sceneFile.name] = sceneFile;
             };
 
             if (this._showReloadDialog)
-                Dialog.Create('Load scene', `Scene file found (${file.name}). Append to existing one?`, (result) => dialogCallback(result === 'No'));
+                Dialog.Create('Load scene', `Scene file found (${sceneFile.name}). Append to existing one?`, (result) => dialogCallback(result === 'No'));
             else
                 dialogCallback(true);
 

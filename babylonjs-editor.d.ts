@@ -56,6 +56,7 @@ declare module 'babylonjs-editor/editor/editor' {
     import EditorEditPanel from 'babylonjs-editor/editor/components/edit-panel';
     import EditorStats from 'babylonjs-editor/editor/components/stats';
     import EditorAssets from 'babylonjs-editor/editor/components/assets';
+    import EditorFiles from 'babylonjs-editor/editor/components/files';
     import ScenePicker from 'babylonjs-editor/editor/scene/scene-picker';
     import SceneIcons from 'babylonjs-editor/editor/scene/scene-icons';
     export default class Editor implements IUpdatable {
@@ -71,6 +72,7 @@ declare module 'babylonjs-editor/editor/editor' {
             editPanel: EditorEditPanel;
             stats: EditorStats;
             assets: EditorAssets;
+            files: EditorFiles;
             plugins: IStringDictionary<IEditorPlugin>;
             scenePicker: ScenePicker;
             sceneIcons: SceneIcons;
@@ -2236,6 +2238,48 @@ declare module 'babylonjs-editor/editor/components/assets' {
                 * @param asset the target asset
                 */
             protected getContextMenuItems(component: IAssetComponent, asset: AssetElement<any>): IStringDictionary<ContextMenuItem>;
+    }
+}
+
+declare module 'babylonjs-editor/editor/components/files' {
+    import Editor from "babylonjs-editor/editor/editor";
+    import Layout from "babylonjs-editor/editor/gui/layout";
+    import Toolbar from "babylonjs-editor/editor/gui/toolbar";
+    export default class EditorFiles {
+            protected editor: Editor;
+            tabs: W2UI.W2Tabs;
+            layout: Layout;
+            toolbar: Toolbar;
+            protected divContent: HTMLDivElement;
+            /**
+                * Constructor
+                * @param editor the editore reference
+                */
+            constructor(editor: Editor);
+            /**
+                * Shows the tab identified by the given id
+                * @param id the id of the tab to show
+                */
+            showTab(id: string): void;
+            /**
+                * Refreshes the
+                */
+            refresh(): void;
+            /**
+                * Filers the files input store according to the given
+                */
+            protected filter(): File[];
+            /**
+                * Returns the given array filters according to the given extensions
+                * @param files the files to filter
+                * @param extensions the extensions to check
+                */
+            protected getFilteredArray(files: File[], extensions: string[]): File[];
+            /**
+                * Highlights the given item and removes highlihhting in other items
+                * @param parent the item to highlight
+                */
+            protected highlightItem(parent: HTMLDivElement): void;
     }
 }
 

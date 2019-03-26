@@ -4,8 +4,9 @@ import Editor from "../editor";
 
 import Layout from "../gui/layout";
 import Toolbar from "../gui/toolbar";
-import Tools from "../tools/tools";
 import ContextMenu from "../gui/context-menu";
+
+import Tools from "../tools/tools";
 import UndoRedo from "../tools/undo-redo";
 
 export default class EditorFiles {
@@ -62,6 +63,7 @@ export default class EditorFiles {
         this.tabs.add({ id: 'all', caption: 'All', closable: false, onClick: (event) => this.showTab(event.target) });
         this.tabs.add({ id: 'textures', caption: 'Textures', closable: false, onClick: (event) => this.showTab(event.target) });
         this.tabs.add({ id: 'scenes', caption: 'Scenes', closable: false, onClick: (event) => this.showTab(event.target) });
+        this.tabs.add({ id: 'sounds', caption: 'Sounds', closable: false, onClick: (event) => this.showTab(event.target) });
 
         // Add files content
         $('#FILES-TABS').append('<div id="FILES-CONTENT" style="width: 100%; height: calc(100% - 25px); overflow: auto;"></div>');
@@ -125,21 +127,21 @@ export default class EditorFiles {
             parent.addEventListener('click', () => this.highlightItem(parent));
 
             // Context menu
-            parent.classList.add('ctxmenu');
-            ContextMenu.ConfigureElement(parent, {
-                remove: { name: 'Remove', callback: () => {
-                    UndoRedo.Push({
-                        undo: () => {
-                            FilesInputStore.FilesToLoad[f.name.toLowerCase()] = f;
-                            this.refresh();
-                        },
-                        redo: () => {
-                            delete FilesInput.FilesToLoad[f.name.toLowerCase()];
-                            this.refresh();
-                        }
-                    });
-                } }
-            }, () => this.highlightItem(parent));
+            // parent.classList.add('ctxmenu');
+            // ContextMenu.ConfigureElement(parent, {
+            //     remove: { name: 'Remove', callback: () => {
+            //         UndoRedo.Push({
+            //             undo: () => {
+            //                 FilesInputStore.FilesToLoad[f.name.toLowerCase()] = f;
+            //                 this.refresh();
+            //             },
+            //             redo: () => {
+            //                 delete FilesInput.FilesToLoad[f.name.toLowerCase()];
+            //                 this.refresh();
+            //             }
+            //         });
+            //     } }
+            // }, () => this.highlightItem(parent));
 
             // Add
             parent.appendChild(img);
@@ -159,6 +161,7 @@ export default class EditorFiles {
         switch (this._tabId) {
             case 'textures': return this.getFilteredArray(files, ['jpg', 'jpeg', 'png', 'bmp', 'dds', 'hdr', 'env']);
             case 'scenes': return this.getFilteredArray(files, ['babylon', 'obj', 'gltf', 'glb', 'stl']);
+            case 'sounds': return this.getFilteredArray(files, ['mp3', 'ogg', 'wav', 'wave']);
             default: return files;
         }
     }
