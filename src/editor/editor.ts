@@ -29,6 +29,7 @@ import EditorInspector from './components/inspector';
 import EditorEditPanel from './components/edit-panel';
 import EditorStats from './components/stats';
 import EditorAssets from './components/assets';
+import EditorFiles from './components/files';
 
 import ScenePicker from './scene/scene-picker';
 import SceneManager from './scene/scene-manager';
@@ -66,6 +67,7 @@ export default class Editor implements IUpdatable {
     public editPanel: EditorEditPanel;
     public stats: EditorStats;
     public assets: EditorAssets;
+    public files: EditorFiles;
 
     public plugins: IStringDictionary<IEditorPlugin> = { };
 
@@ -85,7 +87,7 @@ export default class Editor implements IUpdatable {
     private _canvasFocused: boolean = true;
 
     // Static members
-    public static LayoutVersion: string = '2.1.1';
+    public static LayoutVersion: string = '2.2.0';
     public static EditorVersion: string = null;
 
     /**
@@ -139,6 +141,9 @@ export default class Editor implements IUpdatable {
                         { type: 'stack', id: 'edit-panel', componentName: 'Tools', isClosable: false, height: 20, content: [
                             { type: 'component', componentName: 'Stats', width: 20, isClosable: false, html: `
                                 <div id="STATS" style="width: 100%; height: 100%"></div>`
+                            },
+                            { type: 'component', componentName: 'Files', width: 20, isClosable: false, html: `
+                                <div id="FILES" style="width: 100%; height: 100%"></div>`
                             }
                         ] },
                     ] },
@@ -204,6 +209,7 @@ export default class Editor implements IUpdatable {
                 this._createScenePicker();
                 this.stats.updateStats();
                 this.assets.refresh();
+                this.files.refresh();
             });
 
             // Configure core
@@ -234,6 +240,9 @@ export default class Editor implements IUpdatable {
 
         // Assets
         this.assets = new EditorAssets(this);
+
+        // Files
+        this.files = new EditorFiles(this);
 
         if (Tools.IsStandalone) {
             // Create editor camera
@@ -494,8 +503,9 @@ export default class Editor implements IUpdatable {
                     // Update stats
                     this.stats.updateStats();
 
-                    // Assets
+                    // Assets and files
                     this.assets.refresh();
+                    this.files.refresh();
                 }
 
                 // Resize
@@ -542,6 +552,7 @@ export default class Editor implements IUpdatable {
                     this.graph.fill();
 
                     this.assets.refresh();
+                    this.files.refresh();
 
                     this._createScenePicker();
                 }
@@ -845,9 +856,6 @@ export default class Editor implements IUpdatable {
                 // Create scene picker
                 this._createScenePicker();
 
-                // Update stats
-                this.stats.updateStats();
-
                 // Toggle interactions (action manager, etc.)
                 SceneManager.Toggle(this.core.scene);
 
@@ -872,6 +880,11 @@ export default class Editor implements IUpdatable {
                     project: project,
                     scene: this.core.scene
                 });
+
+                // Update components
+                this.stats.updateStats();
+                this.assets.refresh();
+                this.files.refresh();
             };
 
             const errorCallback = (title: string, message: string) => {

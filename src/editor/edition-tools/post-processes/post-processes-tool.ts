@@ -126,7 +126,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrMinimumLuminance').min(0).max(2).name('Minimum Luminance');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrDecreaseRate').min(0).max(2).name('Decrease Rate');
             hdr.add(SceneManager.StandardRenderingPipeline, 'hdrIncreaseRate').min(0).max(2).name('Increase Rate');
-            // hdr.add(SceneManager.StandardRenderingPipeline, 'hdrAutoExposure').name('Auto Exposure');
+            hdr.add(SceneManager.StandardRenderingPipeline, 'hdrAutoExposure').name('Auto Exposure');
 
             const vls = standardPipeline.addFolder('Volumetric Lights');
             vls.open();
