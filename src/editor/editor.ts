@@ -1,5 +1,5 @@
 import {
-    Engine, Scene, SceneLoader,
+    Engine, Scene,
     FreeCamera, Camera,
     Vector3,
     FilesInput,
@@ -32,12 +32,11 @@ import EditorAssets from './components/assets';
 import EditorFiles from './components/files';
 
 import ScenePicker from './scene/scene-picker';
-import SceneManager from './scene/scene-manager';
 import ScenePreview from './scene/scene-preview';
 import SceneIcons from './scene/scene-icons';
 import SceneImporter from './scene/scene-importer';
+import SceneLoader from './scene/scene-loader';
 
-import ProjectImporter from './project/project-importer';
 import ProjectExporter from './project/project-exporter';
 import CodeProjectEditorFactory from './project/project-code-editor';
 
@@ -46,10 +45,8 @@ import DefaultScene from './tools/default-scene';
 import UndoRedo from './tools/undo-redo';
 import Request from './tools/request';
 import ThemeSwitcher, { ThemeType } from './tools/theme';
-import GLTFTools from './tools/gltf-tools';
 
 import VSCodeSocket from './vscode/vscode-socket';
-import { ProjectRoot } from './typings/project';
 
 export default class Editor implements IUpdatable {
     // Public members
@@ -206,7 +203,7 @@ export default class Editor implements IUpdatable {
                 this.graph.clear();
                 this.graph.fill();
 
-                this._createScenePicker();
+                this.createScenePicker();
                 this.stats.updateStats();
                 this.assets.refresh();
                 this.files.refresh();
@@ -256,7 +253,7 @@ export default class Editor implements IUpdatable {
         this.sceneIcons = new SceneIcons(this);
 
         // Create scene picker
-        this._createScenePicker();
+        this.createScenePicker();
 
         // Handle events
         this._handleEvents();
@@ -481,6 +478,34 @@ export default class Editor implements IUpdatable {
     }
 
     /**
+     * Returns the project file looking from the files input store
+     */
+    public getProjectFileFromFilesInputStore (): File {
+        for (const f in FilesInputStore.FilesToLoad) {
+            const file = FilesInputStore.FilesToLoad[f];
+            if (Tools.GetFileExtension(file.name) === 'editorproject')
+                return file;
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates the scene picker
+     */
+    public createScenePicker (): void {
+        if (this.scenePicker)
+            this.scenePicker.removeEvents();
+        
+        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
+        this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
+        this.scenePicker.onPickedMesh = (m) => {
+            if (!this.core.disableObjectSelection)
+                this.core.onSelectObject.notifyObservers(m);
+        };
+    }
+
+    /**
      * Creates the default scene
      * @param showNewSceneDialog if to show a dialog to confirm creating default scene
      * @param emptyScene sets wether or not the default scene would be empty or not
@@ -501,7 +526,7 @@ export default class Editor implements IUpdatable {
             this.core.scene.executeWhenReady(async () => {
                 if (showNewSceneDialog) {
                     // Create scene picker
-                    this._createScenePicker();
+                    this.createScenePicker();
 
                     // Update stats
                     this.stats.updateStats();
@@ -557,7 +582,7 @@ export default class Editor implements IUpdatable {
                     this.assets.refresh();
                     this.files.refresh();
 
-                    this._createScenePicker();
+                    this.createScenePicker();
                 }
 
                 this.core.onSelectObject.notifyObservers(this.core.scene);
@@ -762,249 +787,18 @@ export default class Editor implements IUpdatable {
         // Add files input
         this.filesInput = new FilesInput(this.core.engine, null,
         null,
-        () => {
-
+        (p) => {
+            
         },
         null,
         (remaining: number) => {
             // Loading textures
         },
-        (files: File[]) => {
-            // Check if a scene has been dropped
-            let foundScene: boolean = false;
-            for (const f of files) {
-                const ext = Tools.GetFileExtension(f.name).toLowerCase();
-                foundScene = ext === 'babylon' || ext === 'gltf' || ext === 'glb' || ext === 'obj' || ext === 'stl';
-
-                if (foundScene)
-                    break;
-            }
-
-            if (!foundScene) {
-                return;
-            }
-            else {
-                // Clear last path
-                ProjectExporter.ProjectPath = null;
-            }
-
-            // Starting process
-            this.projectFile = null;
-            this.sceneFile = null;
-        },
-        (sceneFile) => {
-            if (!sceneFile)
-                return this.notifyMessage('Files added.', false, 3000);
-            
-            // Callback
-            const callback = async (scene: Scene, disposePreviousScene: boolean) => {
-                // Configure editor
-                this.core.removeScene(this.core.scene, disposePreviousScene);
-
-                this.core.uiTextures.forEach(ui => ui.dispose());
-                this.core.uiTextures = [];
-
-                this.core.scene = scene;
-                this.core.scenes.push(scene);
-
-                this.playCamera = scene.activeCamera;
-
-                const existingCamera = scene.getCameraByName('Editor Camera');
-                if (existingCamera)
-                    existingCamera.dispose();
-                
-                this.createEditorCamera();
-
-                // Clear scene manager
-                SceneManager.Clear();
-
-                // Editor project
-                if (disposePreviousScene) {
-                    Extensions.ClearExtensions();
-                    CodeProjectEditorFactory.CloseAll();
-                }
-
-                // Project file
-                let project: ProjectRoot = null;
-
-                if (disposePreviousScene) {
-                    // Load other files
-                    const sceneExtensions = ['babylon', 'obj', 'stl', 'gltf', 'glb'];
-                    const appendPromises: Promise<Scene>[] = [];
-
-                    for (const f in FilesInputStore.FilesToLoad) {
-                        const file = FilesInputStore.FilesToLoad[f];
-                        const ext = Tools.GetFileExtension(file.name).toLowerCase();
-
-                        if (file === sceneFile || file === this.sceneFile || sceneExtensions.indexOf(ext) === -1)
-                            continue;
-
-                        // Load
-                        appendPromises.push(SceneLoader.AppendAsync('file:', file.name, scene));
-                        this.core.engine.hideLoadingUI();
-                    }
-
-                    await Promise.all(appendPromises);
-
-                    // Load project
-                    const projectFile = this._getProjectFileFromFilesInputStore();                    
-                    if (projectFile) {
-                        this.projectFileName = projectFile.name;
-                        Tools.SetWindowTitle(projectFile.name);
-                        
-                        const content = await Tools.ReadFileAsText(projectFile);
-                        project = JSON.parse(content);
-
-                        try {
-                            await ProjectImporter.Import(this, project);
-                        } catch (e) {
-                            errorCallback('Error while loading project', e.message);
-                        }
-                    }
-
-                    // Default light
-                    if (scene.lights.length === 0)
-                        scene.createDefaultCameraOrLight(false, false, false);
-                }
-                // Gltf or glb?
-                await GLTFTools.ConfigureFromScene(this, sceneFile);
-
-                // Graph
-                this.graph.clear();
-                this.graph.fill();
-
-                // Restart plugins
-                await this.restartPlugins();
-
-                // Create scene picker
-                this._createScenePicker();
-
-                // Toggle interactions (action manager, etc.)
-                SceneManager.Toggle(this.core.scene);
-
-                // Run scene
-                this.run();
-
-                // Unlock main panel
-                this.layout.unlockPanel('main');
-
-                // Select scene
-                this.core.onSelectObject.notifyObservers(this.core.scene);
-
-                // Refresh vscode
-                VSCodeSocket.Refresh();
-
-                // Clear
-                this.filesInput['_sceneFileToLoad'] = null;
-
-                // Notify
-                this.core.onSceneLoaded.notifyObservers({
-                    file: sceneFile,
-                    project: project,
-                    scene: this.core.scene
-                });
-
-                // Update components
-                this.stats.updateStats();
-                this.assets.refresh();
-                this.files.refresh();
-            };
-
-            const errorCallback = (title: string, message: string) => {
-                Window.CreateAlert(message, title);
-            }
-
-            const dialogCallback = async (doNotAppend: boolean) => {
-                // Clear undo / redo
-                UndoRedo.Clear();
-
-                // Load dependencies
-                const extension = Tools.GetFileExtension(sceneFile.name);
-                if (extension !== 'babylon') {
-                    this.layout.lockPanel('main', 'Importing Loaders...', true);
-                    await Tools.ImportScript('babylonjs-loaders');
-                }
-
-                this.layout.lockPanel('main', 'Importing Physics...', true);
-                await Tools.ImportScript('cannon');
-
-                this.layout.lockPanel('main', 'Importing Materials...', true);
-                await Tools.ImportScript('babylonjs-materials');
-
-                this.layout.lockPanel('main', 'Importing Procedural Textures...', true);
-                await Tools.ImportScript('babylonjs-procedural-textures');
-
-                this.layout.lockPanel('main', 'Importing Post Processes...', true);
-                await Tools.ImportScript('babylonjs-post-process');
-
-                // Import extensions
-                this.layout.lockPanel('main', 'Importing Extensions...', true);
-                await Promise.all([
-                    Tools.ImportScript('behavior-editor'),
-                    Tools.ImportScript('graph-editor'),
-                    Tools.ImportScript('material-editor'),
-                    Tools.ImportScript('post-process-editor'),
-                    Tools.ImportScript('post-processes'),
-                    Tools.ImportScript('path-finder')
-                ]);
-
-                this.layout.unlockPanel('main');
-
-                // Stop render loop
-                this.core.engine.stopRenderLoop();
-                
-                // Load scene
-                if (doNotAppend)
-                    SceneLoader.Load('file:', sceneFile.name, this.core.engine, (scene) => callback(scene, true), null, (scene, message) => errorCallback('Error while loading scene', message));
-                else
-                    SceneLoader.Append('file:', sceneFile.name, this.core.scene, (scene) => callback(scene, false), null, (scene, message) => errorCallback('Error while loading scene', message));
-
-                // Lock panel and hide loading UI
-                this.core.engine.hideLoadingUI();
-                this.layout.lockPanel('main', 'Loading Scene...', true);
-
-                // Delete start scene (when starting the editor) and add new scene
-                // delete FilesInputStore.FilesToLoad['scene.babylon'];
-                FilesInputStore.FilesToLoad[sceneFile.name] = sceneFile;
-            };
-
-            if (this._showReloadDialog)
-                Dialog.Create('Load scene', `Scene file found (${sceneFile.name}). Append to existing one?`, (result) => dialogCallback(result === 'No'));
-            else
-                dialogCallback(true);
-
-            this._showReloadDialog = true;
-
-        }, (file, scene, message) => {
-            // Error callback
-            Dialog.Create('Error when loading scene', message, null);
-        });
+        (files: File[]) => SceneLoader.OnStartingProcessingFiles(this, files),
+        (sceneFile) => SceneLoader.OnReloadingScene(this, sceneFile),
+        (file, scene, message) => Dialog.Create('Error when loading scene', message, null));
 
         this.filesInput.monitorElementForDragNDrop(document.getElementById('renderCanvasEditor'));
-    }
-
-    // Returns the project file looking from the files input store
-    private _getProjectFileFromFilesInputStore (): File {
-        for (const f in FilesInputStore.FilesToLoad) {
-            const file = FilesInputStore.FilesToLoad[f];
-            if (Tools.GetFileExtension(file.name) === 'editorproject')
-                return file;
-        }
-
-        return null;
-    }
-
-    // Creates the scene picker
-    private _createScenePicker (): void {
-        if (this.scenePicker)
-            this.scenePicker.removeEvents();
-        
-        this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
-        this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
-        this.scenePicker.onPickedMesh = (m) => {
-            if (!this.core.disableObjectSelection)
-                this.core.onSelectObject.notifyObservers(m);
-        };
     }
 
     // Checks for updates if electron
