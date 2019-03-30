@@ -25,6 +25,10 @@ export interface IEditorPlugin {
     close (): Promise<void>;
 
     /**
+     * Called on the window, layout etc. is resized.
+     */
+    onResize? (): Promise<void> | void;
+    /**
      * Called on the user hides the extension (by changing tab, etc.)
      */
     onHide? (): Promise<void>;

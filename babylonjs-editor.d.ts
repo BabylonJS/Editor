@@ -96,7 +96,7 @@ declare module 'babylonjs-editor/editor/editor' {
             /**
              * Resizes elements
              */
-            resize(): void;
+            resize(): Promise<void>;
             /**
                 * On after render the scene
                 */
@@ -135,6 +135,14 @@ declare module 'babylonjs-editor/editor/editor' {
                 * @param fullLoad sets if the loader should load newly added files in the scene folder
                 */
             checkOpenedFile(): Promise<void>;
+            /**
+                * Returns the project file looking from the files input store
+                */
+            getProjectFileFromFilesInputStore(): File;
+            /**
+                * Creates the scene picker
+                */
+            createScenePicker(): void;
             /**
                 * Creates the default scene
                 * @param showNewSceneDialog if to show a dialog to confirm creating default scene
@@ -1300,6 +1308,10 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 * Called once closing the plugin
                 */
             close(): Promise<void>;
+            /**
+                * Called on the window, layout etc. is resized.
+                */
+            onResize?(): Promise<void> | void;
             /**
                 * Called on the user hides the extension (by changing tab, etc.)
                 */

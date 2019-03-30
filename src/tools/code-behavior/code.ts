@@ -55,7 +55,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
 
     protected onSelectObject = (node) => node && this.selectObject(node);
     protected onSelectAsset = (asset) => asset && this.selectAsset(asset);
-    protected onResize = () => this.layout.element.resize();
 
     protected targetNode: any;
     protected targetNodeAddScript: boolean;
@@ -95,7 +94,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectObject.removeCallback(this.onSelectObject);
         this.editor.core.onSelectAsset.removeCallback(this.onSelectAsset);
-        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -157,7 +155,6 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectAsset.add(this.onSelectAsset);
         this.editor.core.onSelectObject.add(this.onSelectObject);
-        this.editor.core.onResize.add(this.onResize);
 
         // Metadatas
         this.editor.core.scene.metadata = this.editor.core.scene.metadata || { };
@@ -240,6 +237,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
         // Lock?
         if (BehaviorCodeEditor.CodeProjectEditor)
             this.layout.lockPanel('main');
+    }
+
+    /**
+     * Called on the window, layout etc. is resized.
+     */
+    public onResize (): void {
+        this.layout.element.resize();
     }
 
     /**

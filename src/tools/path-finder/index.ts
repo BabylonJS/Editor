@@ -35,8 +35,6 @@ export default class PathFinderEditor extends EditorPlugin {
     protected canvas: HTMLCanvasElement = null;
     protected pathCubes: AbstractMesh[] = [];
 
-    protected onResize = () => this.layout.element.resize();
-
     /**
      * On load the extension for the first time
      */
@@ -62,9 +60,6 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Scene
         this.pathCubes.forEach(c => c.dispose());
-
-        // Events
-        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -129,9 +124,6 @@ export default class PathFinderEditor extends EditorPlugin {
         this.canvas = <HTMLCanvasElement> $('#PATH-FINDER-PREVIEW')[0];
         this.canvas.addEventListener('click', () => this.editor.edition.setObject(this));
 
-        // Events
-        this.editor.core.onResize.add(this.onResize);
-
         // Request extension
         Extensions.RequestExtension(this.editor.core.scene, 'PathFinderExtension');
 
@@ -152,6 +144,13 @@ export default class PathFinderEditor extends EditorPlugin {
      */
     public onHide (): void {
         this.pathCubes.forEach(c => c.isVisible = false);
+    }
+
+    /**
+     * Called on the window, layout etc. is resized.
+     */
+    public onResize (): void {
+        this.layout.element.resize();
     }
 
     /**

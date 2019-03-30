@@ -42,7 +42,6 @@ export default class MaterialsViewer extends EditorPlugin {
     protected canvas: HTMLCanvasElement = null;
 
     protected engines: Engine[] = [];
-    protected onResizePreview = () => this.resize();
     protected onObjectSelected = (obj) => this.selectedObject(obj);
 
     protected waitingMaterials: Material[] = [];
@@ -69,7 +68,6 @@ export default class MaterialsViewer extends EditorPlugin {
             e.scenes.forEach(s => s.dispose());
             e.dispose();
         });
-        this.editor.core.onResize.removeCallback(this.onResizePreview);
         this.editor.core.onAddObject.removeCallback(this.onAddObject);
         this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
 
@@ -133,7 +131,6 @@ export default class MaterialsViewer extends EditorPlugin {
         // Events
         this.layout.element.on({ execute: 'after', type: 'resize' }, () => this.preview.engine.resize());
         
-        this.editor.core.onResize.add(this.onResizePreview);
         this.editor.core.onAddObject.add(this.onAddObject);
         this.editor.core.onSelectObject.add(this.onObjectSelected);
 
@@ -151,7 +148,7 @@ export default class MaterialsViewer extends EditorPlugin {
         this.waitingMaterials = [];
 
         // Resize
-        this.resize();
+        this.onResize();
 
         // Misc.
         this.targetObject = targetObject;
@@ -161,7 +158,7 @@ export default class MaterialsViewer extends EditorPlugin {
     /**
      * Resizes the plugin
      */
-    protected resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
         this.preview.engine.resize();
 

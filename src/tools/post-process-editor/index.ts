@@ -44,8 +44,6 @@ export default class PostProcessEditor extends EditorPlugin {
 
     protected activeCamera: Camera = this.editor.playCamera;
 
-    protected onResize = () => this.layout.element.resize();
-
     // Static members
     public static DefaultCode: string = '';
     public static DefaultPixel: string = '';
@@ -72,9 +70,6 @@ export default class PostProcessEditor extends EditorPlugin {
         this.code.dispose();
         this.pixel.dispose();
         this.config.dispose();
-
-        // Events
-        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -180,9 +175,6 @@ export default class PostProcessEditor extends EditorPlugin {
         // Add code editors
         await this.createEditors();
 
-        // Events
-        this.editor.core.onResize.add(this.onResize);
-
         // UI
         if (!this.data)
             this.layout.lockPanel('main');
@@ -230,9 +222,9 @@ export default class PostProcessEditor extends EditorPlugin {
     }
 
     /**
-     * Resizes the plugin
+     * Called on the window, layout etc. is resized.
      */
-    protected resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
     }
 

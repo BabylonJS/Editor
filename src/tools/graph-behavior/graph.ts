@@ -46,7 +46,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
     protected data: GraphData = null;
     protected datas: GraphNodeMetadata = null;
     
-    protected resizeObserver: Observer<any> = null;
     protected selectedObjectObserver: Observer<any> = null;
     protected selectedAssetObserver: Observer<any> = null;
 
@@ -91,7 +90,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         // Events
         this.editor.core.onSelectObject.remove(this.selectedObjectObserver);
         this.editor.core.onSelectAsset.remove(this.selectedAssetObserver);
-        this.editor.core.onResize.remove(this.resizeObserver);
 
         this.node && this.editor.edition.setObject(this.node);
 
@@ -246,7 +244,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
         this.editor.core.scene.metadata.behaviorGraphs = this.editor.core.scene.metadata.behaviorGraphs || [];
 
         // Events
-        this.resizeObserver = this.editor.core.onResize.add(() => this.resize());
         this.selectedObjectObserver = this.editor.core.onSelectObject.add(data => this.objectSelected(data));
         this.selectedAssetObserver = this.editor.core.onSelectAsset.add(data => this.assetSelected(data));
 
@@ -293,13 +290,13 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * On the user shows the plugin
      */
     public onShow (): void {
-        this.resize();
+        this.onResize();
     }
 
     /**
-     * Resizes the view
+     * Called on the window, layout etc. is resized.
      */
-    protected resize (): void {
+    public onResize (): void {
         // Layout
         this.layout.element.resize();
 
@@ -391,7 +388,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.toolbar.updateItem('paste', { hidden: true });
             this.toolbar.updateItem('play-stop', { hidden: true });
 
-            this.resize();
+            this.onResize();
 
             this.datas = {
                 node: 'Unknown',
@@ -473,7 +470,7 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Show grid
         this.layout.showPanel('left');
-        this.resize();
+        this.onResize();
 
         // Refresh right text
         this._updateToolbarText();

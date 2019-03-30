@@ -25,7 +25,6 @@ export default class ParticlesCreator extends EditorPlugin {
     protected data: ParticlesCreatorMetadata = null;
     protected currentTab: string = 'PARTICLES-CREATOR-FUNCTIONS';
 
-    protected resizeEvent: Observer<any> = null;
     protected selectedObjectEvent: Observer<any> = null;
 
     // Static members
@@ -52,7 +51,6 @@ export default class ParticlesCreator extends EditorPlugin {
         this.vertexCode.dispose();
         this.pixelCode.dispose();
 
-        this.editor.core.onResize.remove(this.resizeEvent);
         this.editor.core.onSelectObject.remove(this.selectedObjectEvent);
 
         await super.close();
@@ -117,7 +115,6 @@ export default class ParticlesCreator extends EditorPlugin {
         this.pixelCode.onChange = value => this.data && (this.data.pixel = value);
         
         // Events
-        this.resizeEvent = this.editor.core.onResize.add(_ => this.resize());
         this.selectedObjectEvent = this.editor.core.onSelectObject.add(obj => this.selectObject(obj));
         
         this.layout.getPanelFromType('main').tabs.on('click', (ev) => {
@@ -148,9 +145,9 @@ export default class ParticlesCreator extends EditorPlugin {
     }
 
     /**
-     * On the window is resized
+     * Called on the window, layout etc. is resized.
      */
-    public resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
     }
 

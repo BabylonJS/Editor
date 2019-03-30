@@ -298,7 +298,7 @@ export default class Editor implements IUpdatable {
     /**
     * Resizes elements
     */
-    public resize (): void {
+    public async resize (): Promise<void> {
         // Edition size
         const editionSize = this.resizableLayout.getPanelSize('Inspector');
         this.edition.resize(editionSize.width);
@@ -319,6 +319,16 @@ export default class Editor implements IUpdatable {
 
         // Files
         this.files.layout.element.resize();
+
+        // Plugins
+        for (const p in this.plugins) {
+            const plugin = this.plugins[p];
+            try {
+                plugin.onResize && await plugin.onResize();
+            } catch (e) {
+                console.info(`Failed to resize plugin "${p}". The extension may be not ready.`);
+            }
+        }
 
         // Notify
         this.core.onResize.notifyObservers(null);

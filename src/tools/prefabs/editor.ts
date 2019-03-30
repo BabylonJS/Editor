@@ -26,7 +26,6 @@ export default class PrefabEditor extends EditorPlugin {
     protected selectedAsset: Prefab = null;
     protected selectedPrefab: Node = null;
 
-    protected onResize: Observer<any> = null;
     protected onObjectSelected: Observer<any> = null;
     protected onAssetSelected: Observer<any> = null;
 
@@ -54,7 +53,6 @@ export default class PrefabEditor extends EditorPlugin {
         this.layout.element.destroy();
 
         // Events
-        this.editor.core.onResize.remove(this.onResize);
         this.editor.core.onSelectObject.remove(this.onObjectSelected);
         this.editor.core.onSelectAsset.remove(this.onAssetSelected);
 
@@ -99,15 +97,14 @@ export default class PrefabEditor extends EditorPlugin {
         this.objectSelected(null);
 
         // Events
-        this.onResize = this.editor.core.onResize.add(() => this.resize());
         this.onObjectSelected = this.editor.core.onSelectObject.add(node => this.objectSelected(node));
         this.onAssetSelected = this.editor.core.onSelectAsset.add(asset => this.assetSelected(asset));
     }
 
     /**
-     * On resize the component
+     * Called on the window, layout etc. is resized.
      */
-    public resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
         this.engine.resize();
     }

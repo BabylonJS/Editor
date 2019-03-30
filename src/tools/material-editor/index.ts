@@ -42,8 +42,6 @@ export default class MaterialEditor extends EditorPlugin {
 
     protected extension: MaterialCreatorExtension = null;
 
-    protected onResize = () => this.layout.element.resize();
-
     // Static members
     public static DefaultCode: string = '';
     public static DefaultVertex: string = '';
@@ -72,9 +70,6 @@ export default class MaterialEditor extends EditorPlugin {
         this.vertex.dispose();
         this.pixel.dispose();
         this.config.dispose();
-
-        // Events
-        this.editor.core.onResize.removeCallback(this.onResize);
 
         await super.close();
     }
@@ -176,9 +171,6 @@ export default class MaterialEditor extends EditorPlugin {
         await this.createEditors();
         setTimeout(() => this.selectMaterial(0), 500);
 
-        // Events
-        this.editor.core.onResize.add(this.onResize);
-
         // Sockets
         VSCodeSocket.OnUpdateMaterialCode = async (d: MaterialCreatorMetadata) => {
             // Get effective script modified in the vscode editor
@@ -217,9 +209,9 @@ export default class MaterialEditor extends EditorPlugin {
     }
 
     /**
-     * Resizes the plugin
+     * Called on the window, layout etc. is resized.
      */
-    protected resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
     }
 

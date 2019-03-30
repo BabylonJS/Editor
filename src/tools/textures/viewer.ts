@@ -55,7 +55,6 @@ export default class TextureViewer extends EditorPlugin {
     // Protected members
     protected tempPreview: PreviewScene = null;
     protected tempPreviewCanvas: HTMLCanvasElement = null;
-    protected onResizePreview = () => this.resize();
 
     protected object: any;
     protected property: string;
@@ -87,8 +86,6 @@ export default class TextureViewer extends EditorPlugin {
             this.tempPreview.scene.dispose();
             this.tempPreview.engine.dispose();
         }
-
-        this.editor.core.onResize.removeCallback(this.onResizePreview);
 
         // Render targets
         this.clearRenderTargetObservers();
@@ -171,9 +168,6 @@ export default class TextureViewer extends EditorPlugin {
             if (Tools.IsElementChildOf(d.target, div[0]))
                 this.addFromFiles(<any> d.files);
         });
-
-        // Events
-        this.editor.core.onResize.add(this.onResizePreview);
     }
 
     /**
@@ -184,13 +178,13 @@ export default class TextureViewer extends EditorPlugin {
         this.property = property;
         this.allowCubes = allowCubes;
 
-        this.resize();
+        this.onResize();
     }
 
     /**
-     * Resizes the plugin
+     * Called on the window, layout etc. is resized.
      */
-    protected resize (): void {
+    public onResize (): void {
         this.layout.element.resize();
         this.engine.resize();
 

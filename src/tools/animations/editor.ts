@@ -73,7 +73,6 @@ export default class AnimationEditor extends EditorPlugin {
     protected removingKeys: boolean = false;
     protected isPlaying: boolean = false;
 
-    protected onResize = () => this.resize();
     protected onObjectSelected = (node) => node && this.objectSelected(node);
 
     protected forcedObject: IAnimatable;
@@ -229,9 +228,6 @@ export default class AnimationEditor extends EditorPlugin {
             }
         });
 
-        // Resize
-        this.editor.core.onResize.add(this.onResize);
-
         // On select object
         this.objectSelected(this.forcedObject || this.editor.core.currentSelectedObject);
 
@@ -245,7 +241,6 @@ export default class AnimationEditor extends EditorPlugin {
     public async close(): Promise<void> {
         super.close();
         
-        this.editor.core.onResize.removeCallback(this.onResize);
         this.editor.core.onSelectObject.removeCallback(this.onObjectSelected);
 
         this.paper.remove();
@@ -276,9 +271,9 @@ export default class AnimationEditor extends EditorPlugin {
     }
 
     /**
-     * Resizes the panel
+     * Called on the window, layout etc. is resized.
      */
-    protected resize(): void {
+    public onResize(): void {
         this.layout.element.resize();
 
         // TODO: find why setTimeout needed
