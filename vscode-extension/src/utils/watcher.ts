@@ -1,9 +1,10 @@
 import { writeFile } from 'fs-extra';
-import { watch, FSWatcher } from 'chokidar';
+import * as path from 'path';
+import * as watchr from 'watchr';
 
 export default class Watcher {
     // Public members
-    public static WatchedFiles: { [name: string]: FSWatcher } = { };
+    public static WatchedFiles: { [name: string]: any } = { };
 
     /**
      * Watches the given file
@@ -11,16 +12,15 @@ export default class Watcher {
      * @param callback the callback called once the file changed
      */
     public static async WatchFile (filename: string, callback: () => void): Promise<void> {
+        filename = path.normalize(filename);
+
         if (this.WatchedFiles[filename])
             this.WatchedFiles[filename].close();
         
-        const watcher = this.WatchedFiles[filename] = watch(filename, {
-            persistent: true,
-            awaitWriteFinish: true
-        });
-        watcher.on('change', (path, stats) => {
-            callback();
-        });
+        const watcher = this.WatchedFiles[filename] = watchr.create(filename);
+        watcher.setConfig({ persistent: true });
+        watcher.on('change', (path, stats) => callback());
+        watcher.watch((err) => { err ? console.log('Error for ', filename, 'with error ', err) : void 0 });
     }
 
     /**

@@ -62,7 +62,7 @@
         "jquery-contextmenu": "2.8.0",
         "dat.gui": "0.7.5",
         "fs-extra": "7.0.1",
-        "chokidar": "2.1.2"
+        "watchr": "4.1.0"
     },
     "devDependencies": {
         "@types/node": "^8.10.25",
