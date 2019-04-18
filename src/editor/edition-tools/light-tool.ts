@@ -12,6 +12,7 @@ export default class LightTool extends AbstractEditionTool<Light> {
     private _generatesShadows: boolean = false;
     private _shadowMapSize: string = '512';
     private _darkness: number = 0;
+    private _intensityMode: string = '';
 
 	/**
 	* Returns if the object is supported
@@ -43,6 +44,20 @@ export default class LightTool extends AbstractEditionTool<Light> {
 
         this.tool.addColor(colors, 'Diffuse', light.diffuse).open();
         this.tool.addColor(colors, 'Specular', light.specular).open();
+
+        // Mode
+        const mode = this.tool.addFolder('Mode');
+        mode.open();
+
+        const modes: string[] = ['INTENSITYMODE_AUTOMATIC', 'INTENSITYMODE_LUMINOUSPOWER', 'INTENSITYMODE_LUMINOUSINTENSITY', 'INTENSITYMODE_ILLUMINANCE', 'INTENSITYMODE_LUMINANCE'];
+        for (const m of modes) {
+            if (light.intensityMode === Light[m]) {
+                this._intensityMode = m;
+                break;
+            }
+        }
+        mode.add(this, '_intensityMode', modes).name('Intensity').onChange(r => light.intensityMode = Light[r]);
+
 
         // Spot
         if (light instanceof SpotLight) {

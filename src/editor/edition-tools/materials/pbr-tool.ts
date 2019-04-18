@@ -29,6 +29,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         pbrOptions.add(this.object, 'forceNormalForward').name('Force Normal Forward');
         pbrOptions.add(this.object, 'enableSpecularAntiAliasing').name('Force Specular Anti-Aliasing');
         pbrOptions.add(this.object, 'usePhysicalLightFalloff').name('Use Physical Light Falloff');
+        pbrOptions.add(this.object, 'directIntensity').min(0).step(0.01).name('Direct Intensity');
 
         // Albedo
         const albedo = this.tool.addFolder('Albedo');
@@ -59,6 +60,12 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         this.tool.addColor(reflection, 'Color', this.object.reflectionColor).open();
         reflection.add(this.object, 'environmentIntensity').step(0.01).name('Environment Intensity');
 
+        // Opacity
+        const opacity = this.tool.addFolder('Opacity');
+        opacity.open();
+        opacity.add(this.object, 'useRadianceOverAlpha').name('Use Radiance Over Alpha');
+        opacity.add(this.object, 'useSpecularOverAlpha').name('Use Specular Over Alpha');
+
         // Microsurface
         const micro = this.tool.addFolder('Micro Surface');
         micro.open();
@@ -73,7 +80,7 @@ export default class PBRMaterialTool extends MaterialTool<PBRMaterial> {
         metallic.add(this.object, 'useMetallnessFromMetallicTextureBlue').name('Metallness From Metallic Texture Blue');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureAlpha').name('Use Roughness From Metallic Texture Alpha');
         metallic.add(this.object, 'useRoughnessFromMetallicTextureGreen').name('Use Roughness From Metallic Texture Green');
-        if (this.object.metallic !== undefined)
+        if (this.object.metallic !== undefined && this.object.metallic !== null)
             metallic.add(this.object, 'metallic').step(0.01).name('Metallic');
         this.tool.addTexture(metallic, this.editor, 'metallicTexture', this.object, false, false, t => {
             if (this.object.metallic === undefined) {
