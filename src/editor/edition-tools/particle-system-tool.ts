@@ -2,11 +2,14 @@ import {
     ParticleSystem, GPUParticleSystem, Vector3, IParticleSystem,
     BoxParticleEmitter, SphereParticleEmitter, ConeParticleEmitter,
     SphereDirectedParticleEmitter, ParticleHelper,
+    FilesInputStore,
     Tools as BabylonTools
 } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
+
+import Dialog from '../gui/dialog';
 
 export default class ParticleSystemTool extends AbstractEditionTool<ParticleSystem | GPUParticleSystem> {
     // Public members
@@ -197,9 +200,24 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
     }
 
     // Exports the current set
-    private _saveSet (): void {
+    private async _saveSet (): Promise<void> {
+        // Export
         const set = ParticleHelper.ExportSet([this.object]);
-        const json = JSON.stringify(set.serialize(), null, '\t');
+        const serializationObject = set.serialize();
+
+        // Embed?
+        const embed = await Dialog.Create('Embed textures?', 'Do you want to embed textures in the set?');
+        if (embed) {
+            for (const s of serializationObject.systems) {
+                const file = FilesInputStore.FilesToLoad[s.textureName.toLowerCase()];
+                if (!file)
+                    continue;
+                s.textureName = await Tools.ReadFileAsBase64(file);
+            }
+        }
+
+        // Save
+        const json = JSON.stringify(serializationObject, null, '\t');
         const file = Tools.CreateFile(Tools.ConvertStringToUInt8Array(json), this.object.name + '.json');
         BabylonTools.Download(file, file.name);
     }
@@ -213,7 +231,10 @@ export default class ParticleSystemTool extends AbstractEditionTool<ParticleSyst
             return;
 
         const savedEmitter = this.object.emitter;
-        ParticleSystem._Parse(content.systems[0], this.object, this.editor.core.scene, 'file:');
+
+        const rootUrl = content.systems[0].textureName.indexOf('data:') === 0 ? '' : 'file:';
+        ParticleSystem._Parse(content.systems[0], this.object, this.editor.core.scene, rootUrl);
+
         this.object.emitter = savedEmitter;
     }
 }
