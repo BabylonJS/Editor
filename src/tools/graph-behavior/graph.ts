@@ -548,6 +548,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
             this.grid.selectNone();
             this.grid.select([this.datas.metadatas.length - 1]);
             this.selectGraph(this.datas.metadatas.length - 1);
+
+            // Update in graph
+            this.editor.graph.configure();
         }
         else {
             this.assetSelected(data);
@@ -578,6 +581,9 @@ export default class BehaviorGraphEditor extends EditorPlugin {
 
         // Update assets
         this.editor.assets.refresh(this.extension.id);
+
+        // Update in graph
+        this.editor.graph.configure();
     }
 
     /**

@@ -392,8 +392,36 @@ export default class EditorGraph {
         });
 
         // Expand scene as default
-        if (!root)
+        if (!root) {
             this.tree.expand(this.root);
+            this.configure();
+        }
+    }
+
+    /**
+     * Configures the graph
+     */
+    public configure (): void {
+        const scene = this.editor.core.scene;
+        const hasMetadata = n => {
+            let type = 'default';
+
+            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'prefab'))
+                type = 'italic';
+            
+            if (n.metadata && (
+                n.metadata.behavior && n.metadata.behavior.metadatas.length > 0 ||
+                n.metadata.behaviorGraph && n.metadata.behaviorGraph.metadatas.length > 0
+            )) {
+                type = type === 'italic' ? 'boldItalic' : 'bold';
+            }
+
+            return type;
+        };
+
+        scene.meshes.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
+        scene.cameras.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
+        scene.lights.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
     }
 
     /**

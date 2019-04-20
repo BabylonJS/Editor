@@ -993,6 +993,7 @@ declare module 'babylonjs-editor/editor/gui/edition' {
 
 declare module 'babylonjs-editor/editor/gui/tree' {
     import 'jstree';
+    export type TreeNodeType = 'default' | 'bold' | 'italic' | 'boldItalic' | string;
     export interface TreeNode {
             id: string;
             text: string;
@@ -1000,6 +1001,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             data?: any;
             parent?: string;
             children?: string[];
+            type?: TreeNodeType;
             onExpand?: () => void;
             state?: {
                     checked?: boolean;
@@ -1063,6 +1065,17 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 * @param id the id of the node to select
                 */
             select(id: string): void;
+            /**
+                * Sets the given type to the given node
+                * @param id the id of the node to modify its type
+                * @param type the type to set on node
+                */
+            setType(id: string, type?: TreeNodeType): void;
+            /**
+                * Returns the type of the given node
+                * @param id the id of the node to retrieve its type
+                */
+            getType(id: string): any;
             /**
                 * Returns the selected node
                 */
@@ -2005,6 +2018,10 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 * @param root: the root node
                 */
             fill(scene?: Scene, root?: Node): void;
+            /**
+                * Configures the graph
+                */
+            configure(): void;
             /**
              * Returns the icon related to the object type
              * @param object

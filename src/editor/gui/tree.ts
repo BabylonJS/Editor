@@ -1,6 +1,8 @@
 import 'jstree';
 import ContextMenu from './context-menu';
 
+export type TreeNodeType = 'default' | 'bold' | 'italic' | 'boldItalic' | string;
+
 export interface TreeNode {
     id: string;
     text: string;
@@ -10,6 +12,7 @@ export interface TreeNode {
 
     parent?: string;
     children?: string[];
+    type?: TreeNodeType;
 
     onExpand?: () => void;
 
@@ -122,6 +125,29 @@ export default class Tree {
             this.element.jstree().deselect_all(true);
             this.element.jstree().select_node(id, true);
         }
+    }
+
+    /**
+     * Sets the given type to the given node
+     * @param id the id of the node to modify its type
+     * @param type the type to set on node
+     */
+    public setType (id: string, type: TreeNodeType = 'default'): void {
+        const node = this.get(id);
+        if (node)
+            this.element.jstree().set_type(node, type);
+    }
+
+    /**
+     * Returns the type of the given node
+     * @param id the id of the node to retrieve its type
+     */
+    public getType (id: string): any {
+        const node = this.get(id);
+        if (node)
+            return this.element.jstree().get_type(node, true);
+
+        return null;
     }
 
     /**
@@ -254,6 +280,23 @@ export default class Tree {
             search: {
                 show_only_matches: true,
                 show_only_matches_children: true
+            },
+            types: {
+                bold: {
+                    a_attr: {
+                        style: 'font-weight: bold !important;'
+                    }
+                },
+                italic: {
+                    a_attr: {
+                        style: 'font-style: italic !important;'
+                    }
+                },
+                boldItalic: {
+                    a_attr: {
+                        style: 'font-weight: bold !important; font-style: italic !important;'
+                    }
+                }
             },
             contextmenu: {
                 items: () => {

@@ -162,6 +162,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         parent['doNotSerialize'] = true;
 
         Tags.AddTagsTo(parent, 'prefab-master');
+        Tags.AddTagsTo(parent, 'prefab');
         asset.data.sourceInstances[asset.data.sourceNode.name].push(parent);
 
         // Descendants
@@ -245,6 +246,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         if (count) {
             this.editor.graph.clear();
             this.editor.graph.fill();
+            this.editor.graph.configure();
         }
     }
 
@@ -355,6 +357,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
                 d.data.sourceInstances[source.name].push(parent);
                 Tags.AddTagsTo(parent, 'prefab-master');
+                Tags.AddTagsTo(parent, 'prefab');
 
                 if (parent instanceof InstancedMesh)
                     this._configureInstance(p, parent);

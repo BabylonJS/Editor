@@ -467,6 +467,9 @@ export default class EditorAssets {
 
                         this.refresh();
                         this.showTab(component.id);
+
+                        // Refresh graph
+                        this.editor.graph.configure();
                     }
                 });
             }
@@ -477,6 +480,9 @@ export default class EditorAssets {
             this.editor.core.onRemoveObject.notifyObservers(asset.data);
 
             this.refresh();
+
+            // Refresh graph
+            this.editor.graph.configure();
         } });
 
         return items;
