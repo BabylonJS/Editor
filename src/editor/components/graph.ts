@@ -406,7 +406,7 @@ export default class EditorGraph {
         const hasMetadata = n => {
             let type = 'default';
 
-            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'prefab'))
+            if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'prefab') || Tags.MatchesQuery(n, 'prefab-master')))
                 type = 'italic';
             
             if (n.metadata && (

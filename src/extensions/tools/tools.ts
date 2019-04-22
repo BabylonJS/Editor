@@ -114,6 +114,24 @@ export default class Tools {
         const ext = <AssetsExtension> Extensions.Instances['AssetsExtension'];
         return ext.instantiatePrefab(name);
     }
+
+    /**
+     * Calls the given method with the given parameters on the given object which has scripts providing the given method
+     * @param object the object reference where to send the message by calling the given method name
+     * @param methodName the method name to call with the given parameters
+     * @param params the parameters to send to the script attached to the given object
+     */
+    public sendMessage (object: Node | ParticleSystem | Scene, methodName: string, ...params: any[]): void {
+        const ext = <CodeExtension> Extensions.Instances['BehaviorExtension'];
+        if (!ext)
+            return null;
+
+        const scripts = ext.objectsInstances[object instanceof Scene ? 'Scene' : object.id];
+        if (!scripts)
+            return;
+
+        scripts.forEach(s => s[methodName] && s[methodName].apply(s, params));
+    }
 }
 
 /**

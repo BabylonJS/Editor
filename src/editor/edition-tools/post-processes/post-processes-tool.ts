@@ -50,6 +50,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.StandardRenderingPipeline.dispose();
                 SceneManager.StandardRenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].Standard;
             }
             else {
                 const pipeline = new StandardRenderingPipeline('Standard', scene, 1.0, null, scene.cameras);
@@ -167,6 +168,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.DefaultRenderingPipeline.dispose();
                 SceneManager.DefaultRenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].Default;
             }
             else {
                 SceneManager.DefaultRenderingPipeline = new DefaultRenderingPipeline('Default', true, scene, scene.cameras, true);
@@ -257,6 +259,7 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
             if (!r) {
                 SceneManager.SSAORenderingPipeline.dispose();
                 SceneManager.SSAORenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].SSAO;
             }
             else {
                 const pipeline = new SSAORenderingPipeline('SSAO', scene, { ssaoRatio: 0.5, combineRatio: 1.0 }, scene.cameras);
@@ -289,10 +292,11 @@ export default class PostProcessesTool extends AbstractEditionTool<Scene> {
         ssao2.open();
 
         this._ssao2Enabled = SceneManager.SSAO2RenderingPipeline !== null;
-        ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(async r => {
+        ssao2.add(this, '_ssao2Enabled').name('Enable').onChange(r => {
             if (!r) {
                 SceneManager.SSAO2RenderingPipeline.dispose();
                 SceneManager.SSAO2RenderingPipeline = null;
+                delete this.editor.core.scene.postProcessRenderPipelineManager['_renderPipelines'].SSAO2;
             }
             else {
                 const pipeline = new SSAO2RenderingPipeline('SSAO2', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, scene.cameras);

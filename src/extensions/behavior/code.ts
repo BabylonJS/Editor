@@ -66,6 +66,7 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
 
     public instances: IStringDictionary<any> = { };
     public scriptsConstructors: IStringDictionary<any> = { };
+    public objectsInstances: IStringDictionary<any[]> = { };
 
     // Static members
     public static Instance: CodeExtension = null;
@@ -249,12 +250,21 @@ export default class CodeExtension extends Extension<BehaviorMetadata> implement
                 }
 
                 // Instance
-                const instance = new (ctor.ctor || ctor)(node);
+                const instance = new (ctor.ctor || ctor)(node, this.scene);
                 if (m.params)
                     this.setCustomParams(m, instance);
 
                 // Save instance
                 this.instances[(node instanceof Scene ? 'scene' : node.name) + code.name] = instance;
+
+                // Save object instance
+                const id = node instanceof Scene ? 'Scene' : node.id;
+
+                if (!this.objectsInstances[id]) {
+                    this.objectsInstances[id] = [];
+                }
+
+                this.objectsInstances[id].push(instance);
 
                 // Run
                 const scope = this;

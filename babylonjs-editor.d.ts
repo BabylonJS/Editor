@@ -1376,6 +1376,10 @@ declare module 'babylonjs-editor/editor/typings/plugin' {
                 */
             close(): Promise<void>;
             /**
+                * Gets wether or not the plugin has been closed
+                */
+            readonly closed: boolean;
+            /**
                 * Resizes the current layout giving tabs to draw and hide
                 * @param layout the layout to resize
                 * @param keep the panels to keep

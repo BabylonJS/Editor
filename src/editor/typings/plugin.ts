@@ -69,6 +69,8 @@ export abstract class EditorPlugin implements IEditorPlugin {
      */
     public name: string;
 
+    private _closed: boolean = false;
+
     /**
      * Constructor
      * @param name: the plugin's name
@@ -87,6 +89,14 @@ export abstract class EditorPlugin implements IEditorPlugin {
      */
     public async close (): Promise<void> {
         $(this.divElement).html('');
+        this._closed = true;
+    }
+
+    /**
+     * Gets wether or not the plugin has been closed
+     */
+    public get closed (): boolean {
+        return this._closed;
     }
 
     /**

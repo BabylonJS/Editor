@@ -190,12 +190,13 @@ export default class BehaviorCodeEditor extends EditorPlugin {
             // Get effective script modified in the vscode editor
             const scripts = <BehaviorCode[]> this.editor.core.scene.metadata.behaviorScripts;
             const effective = <BehaviorCode> scripts.find(s => s.id === d.id);
-
             const compiledCode = await CodeEditor.TranspileTypeScript(d.code, d.name.replace(/ /, ''), {
                 module: 'cjs',
                 target: 'es5',
                 experimentalDecorators: true,
             });
+
+            let needsUpdate = true;
 
             if (!effective) {
                 // Just refresh
@@ -203,12 +204,14 @@ export default class BehaviorCodeEditor extends EditorPlugin {
                 return;
             }
             else {
+                needsUpdate = effective.code !== d.code;
+                
                 // Just update
                 effective.code = d.code;
                 effective.compiledCode = compiledCode;
             }
 
-            if (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id) {
+            if (needsUpdate && (this.data && this.data.id === d.id || this.asset && this.asset.id === d.id)) {
                 this.code.setValue(d.code);
             }
         };
