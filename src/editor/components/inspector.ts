@@ -1,3 +1,5 @@
+import { Tags } from 'babylonjs';
+
 /**
  * Edition tools
  */
@@ -205,6 +207,7 @@ export default class EditorInspector {
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
+                    Tags.AddTagsTo(this.currentObject, 'modified');
                 });
 
                 this.currentTools.push(t);

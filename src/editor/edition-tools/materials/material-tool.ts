@@ -1,4 +1,5 @@
-import { Material, AbstractMesh, SubMesh } from 'babylonjs';
+import { Material, AbstractMesh, SubMesh, SerializationHelper, Tags } from 'babylonjs';
+import * as BABYLON from 'babylonjs';
 
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
@@ -49,6 +50,22 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         if (object instanceof AbstractMesh) {
             common.add(object, 'receiveShadows').name('Receive Shadows');
             common.add(object, 'applyFog').name('Apply Fog');
+        }
+
+        if (this.object.metadata.originalMaterial) {
+            common.add(this, 'resetToOriginal').name('Reset to original');
+        }
+    }
+
+    /**
+     * Resets the current material to the original one
+     */
+    protected resetToOriginal (): void {
+        const ctor = Tools.GetConstructorName(this.object);
+        if (BABYLON[ctor]) {
+            SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.edition.updateDisplay();
         }
     }
 

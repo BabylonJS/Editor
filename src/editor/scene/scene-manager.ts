@@ -64,6 +64,20 @@ export default class SceneManager {
     }
 
     /**
+     * Saves the original objects coming from the scene
+     * @param scene the scene containing the original objects
+     * @todo
+     */
+    public static SaveOriginalObjects (scene: Scene): void {
+        const set = (orig, obj) => {
+            orig.metadata = orig.metadata || { };
+            orig.metadata.original = obj;
+        }
+        scene.materials.forEach(m => set(m, m.serialize()));
+        scene.lights.forEach(l => set(l, l.serialize()));
+    }
+
+    /**
      * Returns the animatable objects
      * @param scene the scene containing animatables
      */

@@ -154,7 +154,14 @@ export default class ProjectImporter {
 
         // Materials
         project.materials.forEach(m => {
+            const existing = scene.getMaterialByID(m.serializedValues.id);
+            
             const material = Material.Parse(m.serializedValues, scene, 'file:');
+            if (existing) {
+                material.metadata = material.metadata || { };
+                material.metadata.original = existing;
+            }
+
             m.meshesNames.forEach(mn => {
                 const mesh = scene.getMeshByName(mn);
                 if (mesh && !(mesh instanceof InstancedMesh))

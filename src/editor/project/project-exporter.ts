@@ -388,7 +388,7 @@ export default class ProjectExporter {
         const result: Export.ProjectMaterial[] = [];
 
         scene.materials.forEach(m => {
-            if (!Tags.HasTags(m) || !Tags.MatchesQuery(m, 'added'))
+            if (!Tags.HasTags(m) || (!Tags.MatchesQuery(m, 'added') && !Tags.MatchesQuery(m, 'modified')))
                 return;
 
             // Already serialized?
