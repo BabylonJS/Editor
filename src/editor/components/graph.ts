@@ -75,24 +75,27 @@ export default class EditorGraph {
                 return [];
             
             const result: TreeContextMenuItem[] = [];
+            const selectedCount = this.tree.getAllSelected().length;
 
-            if (data.globalPosition || data.getAbsolutePosition)
-                result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
-            
-            if (data instanceof Mesh)
-                result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
-            
-            if (data instanceof AbstractMesh)
-                result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
+            if (selectedCount === 1) {
+                if (data.globalPosition || data.getAbsolutePosition)
+                    result.push({ id: 'focus', text: 'Focus', img: 'icon-focus', separatorAfter: true, callback: async () => await this.onMenuClick('focus') });
+                
+                if (data instanceof Mesh)
+                    result.push({ id: 'create-prefab', text: 'Create Prefab', img: 'icon-add', multiple: true, separatorBefore: true, callback: async (node) => await this.onMenuClick('create-prefab', node) });
+                
+                if (data instanceof AbstractMesh)
+                    result.push({ id: 'set-material', text: 'Set Material...', img: 'icon-shaders', separatorAfter: true, callback: async () => await this.onMenuClick('set-material') });
 
-            if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
-                result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: async () => await this.onMenuClick('attach-script') });
-                result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: async () => await this.onMenuClick('add-script') });
+                if (data instanceof Node || data instanceof Scene || data instanceof ParticleSystem) {
+                    result.push({ id: 'attach-script', text: 'Attach Existing Script...', img: 'icon-behavior-editor', callback: async () => await this.onMenuClick('attach-script') });
+                    result.push({ id: 'add-script', text: 'Add Script...', img: 'icon-behavior-editor', separatorAfter: true, callback: async () => await this.onMenuClick('add-script') });
+                }
+
+                if (data.clone)
+                    result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', multiple: true, callback: async (node) => await this.onMenuClick('clone', node) });
             }
-
-            if (data.clone)
-                result.push({ id: 'clone',  text: 'Clone',  img: 'icon-clone', multiple: true, callback: async (node) => await this.onMenuClick('clone', node) });
-
+            
             result.push.apply(result, [
                 { id: 'delete', text: 'Delete', img: 'icon-error', multiple: true, callback: async (node) => await this.onMenuClick('remove', node) }
             ]);
@@ -576,10 +579,18 @@ export default class EditorGraph {
                 // Setup this
                 this.currentObject = clone;
                 this.editor.core.onSelectObject.notifyObservers(clone);
+
+                // Update graph
+                this.configure();
+
                 break;
 
             // Remove
             case 'remove':
+                // Don't remove editor's camera
+                if (node.data === this.editor.camera)
+                    return;
+                
                 // Undo / redo
                 const scene = this.editor.core.scene;
                 const descendants = (!node.data.getDescendants ? [node.data] : [node.data].concat(node.data.getDescendants())).map(n => {
@@ -622,6 +633,9 @@ export default class EditorGraph {
 
                         // Select node
                         this.tree.onClick(node.id, node.data);
+
+                        // Update graph
+                        this.configure();
                     },
                     redo: () => {
                         descendants.forEach((d) => {
@@ -638,6 +652,9 @@ export default class EditorGraph {
 
                         // Reset gizmo
                         this.editor.scenePicker.setGizmoAttachedMesh(null);
+
+                        // Update graph
+                        this.configure();
                     }
                 });
 

@@ -304,6 +304,7 @@ export default class Tree {
                         return null;
 
                     const lastSelected = this.getSelected(); // Last selected
+                    const allSelected = this.getAllSelected();
 
                     if (!lastSelected)
                         return null;
@@ -317,7 +318,7 @@ export default class Tree {
 
                         result[i.id] = {
                             name: i.text,
-                            callback: () => i.callback(lastSelected)
+                            callback: () => allSelected.forEach(n => i.callback(n))
                         };
 
                         if (i.separatorAfter)
@@ -325,13 +326,15 @@ export default class Tree {
 
                     });
 
-                    const domElement = $('#' + lastSelected.id)[0];
-                    if (!domElement.classList.contains('ctxmenu'))
-                        domElement.classList.add('ctxmenu');
+                    if (items.length > 0) {
+                        const domElement = $('#' + lastSelected.id)[0];
+                        if (!domElement.classList.contains('ctxmenu'))
+                            domElement.classList.add('ctxmenu');
+                        
+                        const box = domElement.getBoundingClientRect();
+                        ContextMenu.Show(<any> { target: domElement, x: box['x'], y: box['y'] + 20 }, result);
+                    }
                     
-                    const box = domElement.getBoundingClientRect();
-                    ContextMenu.Show(<any> { target: domElement, x: box['x'], y: box['y'] + 20 }, result);
-
                     return null;
                 }
             }
