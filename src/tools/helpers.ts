@@ -9,7 +9,7 @@ export default class Helpers {
      * @param editor the editor reference
      * @param editedData the data being updated to avoid typings duplication
      */
-    public static UpdateMonacoTypings (editor: Editor, editedData?: any): void {
+    public static UpdateMonacoTypings (editor: Editor, editedData: any = null, onlyNonAttached: boolean = false): void {
         // Manage extra libs
         const scripts = editor.core.scene.metadata.behaviorScripts;
         const extension = <CodeExtension> Extensions.RequestExtension(editor.core.scene, 'BehaviorExtension');
@@ -30,11 +30,13 @@ export default class Helpers {
                 if (s === editedData)
                     return;
 
-                // Check if attached, then don't share declaration
-                const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
+                if (onlyNonAttached) {
+                    // Check if attached, then don't share declaration
+                    const isAttached = datas.nodes.find(n => n.metadatas.find(m => m.codeId === s.id) !== undefined);
 
-                if (isAttached)
-                    return;
+                    if (isAttached)
+                        return;
+                }
 
                 const code = `declare module "${s.name}" {${s.code}}`;
                 CodeEditor.CustomLibs[s.name] = window['monaco'].languages.typescript.typescriptDefaults.addExtraLib(code, s.name);

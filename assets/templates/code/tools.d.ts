@@ -35,7 +35,7 @@ interface BehaviorCodeTools {
      * Returns a custom material by giving its name
      * @param name the name of the custom material
      */
-    getCustomScript (objectName: string | BABYLON.Node | BABYLON.Scene | BABYLON.ParticleSystem, name: string): IScript;
+    getCustomScript<T extends IScript> (objectName: string | any, name: string): T;
     /**
      * Returns a custom script given by its object attached to
      * and the name of the script
