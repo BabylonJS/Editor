@@ -6,6 +6,9 @@ import Utils from './utils/utils';
 import Watcher from './utils/watcher';
 
 export default class TempFileSystem {
+    // Private members
+    private _libs: { [name: string]: string } = { };
+
     /**
      * Constructor
      */
@@ -106,10 +109,12 @@ export default class TempFileSystem {
         scripts = Array.isArray(scripts) ? scripts : [scripts];
 
         // Write scripts
-        scripts.forEach(async s => {
+        for (const s of scripts) {
             // Write
             const filename = join(Utils.TempFolder, 'behaviors', s.name + '.ts');
             await fs.writeFile(filename, Buffer.from(s.code));
+
+            this._libs[s.name] = `declare module "${s.name}" {\n${s.code}\n}`;
 
             // Watch
             Watcher.WatchFile(filename, async () => {
@@ -119,7 +124,11 @@ export default class TempFileSystem {
                     code: await fs.readFile(filename, { encoding: 'utf-8' })
                 });
             });
-        });
+        }
+
+        // Write libs
+        const libs = Object.keys(this._libs).map(k => this._libs[k]).join('\n');
+        await fs.writeFile(join(Utils.TempFolder, 'behaviors.d.ts'), Buffer.from(libs));
     }
 
     /**

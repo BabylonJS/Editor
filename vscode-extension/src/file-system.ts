@@ -60,6 +60,9 @@ export default class CustomFileSystem implements FileSystemProvider {
     public readonly _emitter = new EventEmitter<FileChangeEvent[]>();
     public readonly onDidChangeFile: Event<FileChangeEvent[]> = this._emitter.event;
 
+    // Private members
+    private _libs: { [name: string]: string } = { };
+
     /**
      * Constructor
      */
@@ -68,12 +71,28 @@ export default class CustomFileSystem implements FileSystemProvider {
         this.createDirectory(Uri.parse('babylonjs-editor:/behaviors'));
         this.createDirectory(Uri.parse('babylonjs-editor:/materials'));
         this.createDirectory(Uri.parse('babylonjs-editor:/post-processes'));
+        this.createDirectory(Uri.parse('babylonjs-editor:/typings'));
 
         // Register events
         Sockets.OnDisconnect = (() => {
             this._clearDirectory('behaviors');
             this._clearDirectory('materials');
             this._clearDirectory('post-processes');
+            this._clearDirectory('typings');
+        });
+
+        Sockets.OnGotProject = (p => {
+            // Clear and create directory
+            this._clearDirectory('typings');
+
+            // Write files
+            this.writeFile(Uri.parse('babylonjs-editor:/tsconfig.json'), Buffer.from(p.tsconfig), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/babylon.module.d.ts'), Buffer.from(p.babylonjs), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/babylonjs.materials.module.d.ts'), Buffer.from(p.babylonjs_materials), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/babylonjs.postProcess.module.d.ts'), Buffer.from(p.babylonjs_postProcess), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/tools.d.ts'), Buffer.from(p.tools), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/mobile.d.ts'), Buffer.from(p.mobile), { create: true, overwrite: true }, uuid());
+            this.writeFile(Uri.parse('babylonjs-editor:/typings/path-finder.d.ts'), Buffer.from(p.pathFinder), { create: true, overwrite: true }, uuid());
         });
 
         Sockets.OnGotBehaviorCodes = (scripts => {
@@ -86,7 +105,14 @@ export default class CustomFileSystem implements FileSystemProvider {
             scripts.forEach(s => {
                 const uri = Uri.parse('babylonjs-editor:/behaviors/' + s.name + '.ts');
                 this.writeFile(uri, Buffer.from(s.code), { create: true, overwrite: true }, s.id);
+
+                this._libs[s.name] = `declare module "${s.name}" {\n${s.code}\n}`;
             });
+
+            // Write libs
+            const libs = Object.keys(this._libs).map(k => this._libs[k]).join('\n');
+            const libsUri = Uri.parse('babylonjs-editor:/behaviors.d.ts');
+            this.writeFile(libsUri, Buffer.from(libs), { create: true, overwrite: true }, uuid());
         });
 
         Sockets.OnGotMaterialCodes = (scripts => {
