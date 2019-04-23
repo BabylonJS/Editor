@@ -207,7 +207,8 @@ export default class EditorInspector {
                 // Manage undo / redo
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
-                    Tags.AddTagsTo(this.currentObject, 'modified');
+                    Tags.AddTagsTo(t.object, 'modified');
+                    t.onModified && t.onModified();
                 });
 
                 this.currentTools.push(t);

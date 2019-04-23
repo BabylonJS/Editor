@@ -13,6 +13,7 @@ export interface IEditionTool<T> {
     update (object: T): void;
     clear (): void;
     isSupported (object: any): boolean;
+    onModified? (): void;
 }
 
 export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {

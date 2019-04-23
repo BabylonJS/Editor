@@ -201,6 +201,9 @@ export default class SceneLoader {
 
             await Promise.all(appendPromises);
 
+            // Save original values
+            SceneManager.SaveOriginalObjects(editor.core.scene);
+
             // Load project
             const projectFile = editor.getProjectFileFromFilesInputStore();                    
             if (projectFile) {

@@ -64,7 +64,17 @@ export default class ProjectImporter {
             }
             else if (n.serializationObject) {
                 switch (n.type) {
-                    case 'Light': node = Light.Parse(n.serializationObject, scene); break;
+                    case 'Light':
+                        const existingLight = scene.getLightByID(n.serializationObject.id);
+                        if (existingLight) {
+                            delete n.serializationObject.metadata;
+                            node = SerializationHelper.Parse(() => existingLight, n.serializationObject, scene, 'file:');
+                            Tags.AddTagsTo(node, 'modified');
+                        } else {
+                            node = Light.Parse(n.serializationObject, scene);
+                            Tags.AddTagsTo(node, 'added');
+                        }
+                        break;
                     case 'Mesh':
                         // Geometries
                         if (n.serializationObject.geometries) {
@@ -74,15 +84,30 @@ export default class ProjectImporter {
                         }
                         // Mesh
                         n.serializationObject.meshes.forEach(m => {
-                            node = Mesh.Parse(m, scene, 'file:');
+                            const existingMesh = scene.getMeshByID(m.id);
+                            if (existingMesh) {
+                                delete m.metadata;
+                                node = SerializationHelper.Parse(() => existingMesh, m, scene, 'file:');
+                                Tags.AddTagsTo(node, 'modified');
+                            } else {
+                                node = Mesh.Parse(m, scene, 'file:');
+                                Tags.AddTagsTo(node, 'added');
+                            }
                         });
                         break;
-                    case 'Camera': node = Camera.Parse(n.serializationObject, scene); break;
+                    case 'Camera':
+                        const existingCamera = scene.getCameraByID(n.serializationObject.id);
+                        if (existingCamera) {
+                            delete n.serializationObject.metadata;
+                            node = SerializationHelper.Parse(() => existingCamera, n.serializationObject, scene, 'file:');
+                            Tags.AddTagsTo(node, 'modified');
+                        } else {
+                            node = Camera.Parse(n.serializationObject, scene);
+                            Tags.AddTagsTo(node, 'added');
+                        }
+                        break;
                     default: throw new Error('Cannot parse node named: ' + n.name);
                 }
-
-                // Node was added
-                Tags.AddTagsTo(node, 'added');
             }
             else {
                 node = scene.getNodeByName(n.name);
@@ -155,12 +180,7 @@ export default class ProjectImporter {
         // Materials
         project.materials.forEach(m => {
             const existing = scene.getMaterialByID(m.serializedValues.id);
-            
-            const material = Material.Parse(m.serializedValues, scene, 'file:');
-            if (existing) {
-                material.metadata = material.metadata || { };
-                material.metadata.original = existing;
-            }
+            const material = existing ? SerializationHelper.Parse(() => existing, m.serializedValues, scene, 'file:') : Material.Parse(m.serializedValues, scene, 'file:');
 
             m.meshesNames.forEach(mn => {
                 const mesh = scene.getMeshByName(mn);
@@ -169,7 +189,7 @@ export default class ProjectImporter {
             });
 
             // Material has been added
-            Tags.AddTagsTo(material, 'added');
+            Tags.AddTagsTo(material, existing ? 'modified' : 'added');
         });
 
         // Shadow Generators

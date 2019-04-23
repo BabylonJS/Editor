@@ -1,4 +1,4 @@
-import { Light, DirectionalLight, PointLight, SpotLight, ShadowGenerator } from 'babylonjs';
+import { Light, DirectionalLight, PointLight, SpotLight, ShadowGenerator, SerializationHelper, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -37,6 +37,10 @@ export default class LightTool extends AbstractEditionTool<Light> {
         common.add(light, 'intensity').min(0).step(0.01).name('Intensity');
         common.add(light, 'range').min(0).step(0.01).name('Range');
         common.add(light, 'radius').min(0).step(0.01).name('Radius');
+
+        if (light.metadata && light.metadata.original) {
+            common.add(this, 'resetToOriginal').name('Reset to original');
+        }
 
         // Colors
         const colors = this.tool.addFolder('Colors');
@@ -116,5 +120,14 @@ export default class LightTool extends AbstractEditionTool<Light> {
                 shadows.add(shadowGenerator, 'useBlurCloseExponentialShadowMap').name('Use Blur Close Exponential Shadow Map');
             }
         }
+    }
+
+    /**
+     * Resets the current light to the original one
+     */
+    protected resetToOriginal (): void {
+        SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
+        setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
+        this.editor.edition.updateDisplay();
     }
 }

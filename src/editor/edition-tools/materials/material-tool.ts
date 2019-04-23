@@ -52,7 +52,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
             common.add(object, 'applyFog').name('Apply Fog');
         }
 
-        if (this.object.metadata.originalMaterial) {
+        if (this.object.metadata && this.object.metadata.original) {
             common.add(this, 'resetToOriginal').name('Reset to original');
         }
     }
@@ -64,7 +64,7 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         const ctor = Tools.GetConstructorName(this.object);
         if (BABYLON[ctor]) {
             SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
-            Tags.RemoveTagsFrom(this.object, 'modified');
+            setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
             this.editor.edition.updateDisplay();
         }
     }

@@ -7,7 +7,8 @@ import {
     GlowLayer,
     HighlightLayer,
     Animatable,
-    EnvironmentHelper
+    EnvironmentHelper,
+    SceneSerializer
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -66,15 +67,22 @@ export default class SceneManager {
     /**
      * Saves the original objects coming from the scene
      * @param scene the scene containing the original objects
-     * @todo
      */
     public static SaveOriginalObjects (scene: Scene): void {
         const set = (orig, obj) => {
             orig.metadata = orig.metadata || { };
             orig.metadata.original = obj;
-        }
+        };
+        scene.meshes.forEach(m => {
+            const s = SceneSerializer.SerializeMesh(m, false, false);
+            delete s.geometries;
+            delete s.materials;
+            set(m, s.meshes[0]);
+        });
         scene.materials.forEach(m => set(m, m.serialize()));
         scene.lights.forEach(l => set(l, l.serialize()));
+        scene.cameras.forEach(c => set(c, c.serialize()));
+        scene.textures.forEach(t => set(t, t.serialize()));
     }
 
     /**

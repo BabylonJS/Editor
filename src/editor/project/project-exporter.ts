@@ -265,6 +265,8 @@ export default class ProjectExporter {
      * Serializes the global configuration of the project
      */
     private static _SerializeGlobalConfiguration (editor: Editor): Export.GlobalConfiguration {
+        delete editor.camera.metadata;
+
         return {
             serializedCamera: editor.camera.serialize(),
             environmentTexture: editor.core.scene.environmentTexture ? editor.core.scene.environmentTexture.serialize() : undefined,
@@ -491,13 +493,25 @@ export default class ProjectExporter {
             if (Tags.MatchesQuery(n, 'added_particlesystem'))
                 addNodeToProject = true;
             
-            if (Tags.HasTags(n) && Tags.MatchesQuery(n, 'added')) {
+            const added = Tags.MatchesQuery(n, 'added');
+            const modified = Tags.MatchesQuery(n, 'modified');
+
+            if (Tags.HasTags(n) && (added || modified)) {
                 addNodeToProject = true;
 
-                if (n instanceof AbstractMesh)
+                if (n instanceof AbstractMesh) {
                     node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
-                else
+                    if (modified) {
+                        delete node.serializationObject.geometries;
+                        delete node.serializationObject.materials;
+                        node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));   
+                    }
+                    this._ClearOriginalMetadata(node.serializationObject.meshes);
+                }
+                else {
                     node.serializationObject = (<Camera | Light> n).serialize();
+                    this._ClearOriginalMetadata(node.serializationObject);
+                }
             }
 
             // Animations
@@ -543,5 +557,11 @@ export default class ProjectExporter {
         });
 
         return result;
+    }
+
+    // Clears the original metadata
+    private static _ClearOriginalMetadata (n: any): void {
+        if (n.metadata && n.metadata.original)
+            delete n.metadata.original;
     }
 }

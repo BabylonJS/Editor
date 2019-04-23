@@ -1,4 +1,7 @@
-import { Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera, InstancedMesh, SubMesh, Color3, ArcRotateCamera } from 'babylonjs';
+import {
+    Node, AbstractMesh, Mesh, Tools as BabylonTools, Camera,
+    InstancedMesh, SubMesh, Color3, ArcRotateCamera, SerializationHelper, Tags
+} from 'babylonjs';
 import { GUI } from 'dat-gui';
 
 import AbstractEditionTool from './edition-tool';
@@ -21,6 +24,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     private _currentCamera: boolean = false;
 
     private _highlightEnabled: boolean = false;
+    private _currentMesh: Mesh = null;
 
     /**
      * Returns if the object is supported
@@ -54,6 +58,9 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             common.add(node, 'isVisible').name('Is Visible');
 
         if (object instanceof Mesh) {
+            this._currentMesh = object;
+
+            // Material
             const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
             this._currentMaterial = object.material ? object.material.name : 'None';
             common.add(this, '_currentMaterial', materials).name('Material').onFinishChange(r => {
@@ -63,6 +70,11 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 const material = this.editor.core.scene.getMaterialByName(r);
                 object.material = material;
             });
+
+            // Reset
+            if (object.metadata && object.metadata.original) {
+                common.add(this, 'resetToOriginal').name('Reset to original');
+            }
         }
 
         if (node.state !== undefined)
@@ -173,6 +185,15 @@ export default class NodeTool extends AbstractEditionTool<Node> {
 
         // Scripts
         this.addScriptsConfiguration(node);
+    }
+
+    /**
+     * Resets the current light to the original one
+     */
+    protected resetToOriginal (): void {
+        SerializationHelper.Parse(() => this._currentMesh, this._currentMesh.metadata.original, this._currentMesh.getScene(), 'file:');
+        setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
+        this.editor.edition.updateDisplay();
     }
 
     /**

@@ -82,6 +82,9 @@ export default class SceneExporter {
         // For each object, replace by custom metadata if exists
         objects.forEach(m => {
             if (m.metadata) {
+                // Clear original saved object
+                delete m.metadata.original;
+
                 if (m.metadata.baseConfiguration)
                     m.pickable = m.metadata.baseConfiguration.isPickable;
                 

@@ -1251,6 +1251,7 @@ declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
             update(object: T): void;
             clear(): void;
             isSupported(object: any): boolean;
+            onModified?(): void;
     }
     export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
             editor: Editor;
@@ -1578,6 +1579,11 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
                 * @param scene the scene to toggle
                 */
             static Toggle(scene: Scene): void;
+            /**
+                * Saves the original objects coming from the scene
+                * @param scene the scene containing the original objects
+                */
+            static SaveOriginalObjects(scene: Scene): void;
             /**
                 * Returns the animatable objects
                 * @param scene the scene containing animatables
