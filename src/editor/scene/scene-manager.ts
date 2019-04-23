@@ -83,6 +83,9 @@ export default class SceneManager {
         scene.lights.forEach(l => set(l, l.serialize()));
         scene.cameras.forEach(c => set(c, c.serialize()));
         scene.textures.forEach(t => set(t, t.serialize()));
+        scene.soundTracks && scene.soundTracks.forEach(st => {
+           st.soundCollection.forEach(s => set(s, s.serialize()));
+        });
     }
 
     /**

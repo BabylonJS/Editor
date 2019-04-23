@@ -2,9 +2,9 @@ import {
     Engine, Scene,
     FreeCamera, Camera,
     Vector3,
-    FilesInput,
-    FilesInputStore,
-    ArcRotateCamera
+    FilesInput, FilesInputStore,
+    ArcRotateCamera,
+    Tags
 } from 'babylonjs';
 
 import { IStringDictionary } from './typings/typings';
@@ -508,7 +508,10 @@ export default class Editor implements IUpdatable {
             this.scenePicker.removeEvents();
         
         this.scenePicker = new ScenePicker(this, this.core.scene, this.core.engine.getRenderingCanvas());
-        this.scenePicker.onUpdateMesh = (m) => this.edition.updateDisplay();
+        this.scenePicker.onUpdateMesh = (m) => {
+            this.edition.updateDisplay();
+            Tags.AddTagsTo(m, 'modified');
+        };
         this.scenePicker.onPickedMesh = (m) => {
             if (!this.core.disableObjectSelection)
                 this.core.onSelectObject.notifyObservers(m);

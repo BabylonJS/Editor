@@ -2,11 +2,10 @@ import {
     Tools as BabylonTools,
     SceneSerializer,
     Node, AbstractMesh, Light, Camera,
-    Tags,
-    Vector3,
-    ActionManager,
+    Tags, ActionManager,
+    Vector3, Vector2, Vector4, Color3, Color4,
     ParticleSystem,
-    FilesInputStore
+    FilesInputStore,
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -390,7 +389,10 @@ export default class ProjectExporter {
         const result: Export.ProjectMaterial[] = [];
 
         scene.materials.forEach(m => {
-            if (!Tags.HasTags(m) || (!Tags.MatchesQuery(m, 'added') && !Tags.MatchesQuery(m, 'modified')))
+            const added = Tags.MatchesQuery(m, 'added');
+            const modifed = Tags.MatchesQuery(m, 'modified');
+
+            if (!Tags.HasTags(m) || (!added && !modifed))
                 return;
 
             // Already serialized?
@@ -408,7 +410,7 @@ export default class ProjectExporter {
             result.push({
                 meshesNames: names,
                 newInstance: true,
-                serializedValues: m.serialize()
+                serializedValues: modifed ? this._MergeModifedProperties(m, m.serialize()) : m.serialize()
             });
         });
 
@@ -498,18 +500,16 @@ export default class ProjectExporter {
 
             if (Tags.HasTags(n) && (added || modified)) {
                 addNodeToProject = true;
-
                 if (n instanceof AbstractMesh) {
                     node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
                     if (modified) {
                         delete node.serializationObject.geometries;
                         delete node.serializationObject.materials;
-                        node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));   
                     }
-                    this._ClearOriginalMetadata(node.serializationObject.meshes);
+                    node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));   
                 }
                 else {
-                    node.serializationObject = (<Camera | Light> n).serialize();
+                    modified ? node.serializationObject = this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : node.serializationObject = (<Camera | Light> n).serialize();
                     this._ClearOriginalMetadata(node.serializationObject);
                 }
             }
@@ -559,9 +559,71 @@ export default class ProjectExporter {
         return result;
     }
 
-    // Clears the original metadata
+    /**
+     * Clears the original metadata
+     */
     private static _ClearOriginalMetadata (n: any): void {
-        if (n.metadata && n.metadata.original)
-            delete n.metadata.original;
+        if (n.metadata && n.metadata.original) {
+            // Copy
+            const saved = n.metadata;
+            n.metadata = { };
+            for (const key in saved) {
+                if (key === 'original')
+                    continue;
+                
+                n.metadata[key] = saved[key];
+            }
+        }
+    }
+
+    /**
+     * Merges the original and current objects to keep only changes 
+     */
+    private static _MergeModifedProperties (source: any, current: any): any {
+        const original = source.metadata && source.metadata.original;
+        if (!original)
+            return current;
+        
+        const result: any = { };
+        for (const key in current) {
+            const value = current[key];
+
+            // Newly created
+            if (original[key] === undefined) {
+                result[key] = value;
+                continue;
+            }
+
+            // Primitive types
+            const type = typeof(value);
+            switch (type.toLowerCase()) {
+                case 'number':
+                case 'boolean':
+                case 'string':
+                    if (current[key] !== original[key])
+                        result[key] = value;
+                    continue;
+                default:
+                    if (Array.isArray(value)) {
+                        const o = original[key];
+                        if (!o)
+                            break;
+                        
+                        const diff = value.find((v, i) => v !== o[i]);
+                        if (diff)
+                            result[key] = value;
+                    }
+                    else {
+                        // TODO: manage textures here
+                        result[key] = value;
+                    }
+                    break;
+            }
+        }
+
+        // Keep id
+        result.id = current.id;
+
+        return result;
     }
 }

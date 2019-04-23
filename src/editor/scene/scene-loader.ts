@@ -60,7 +60,7 @@ export default class SceneLoader {
         if (editor._showReloadDialog) {
             const title = 'Load scene';
             const message = `Scene file found (${sceneFile.name}). Append to existing one?`;
-            Dialog.Create(title, message, (result) => this._Prepare(editor, sceneFile, result === 'No'));
+            Dialog.Create(title, message, (result) => this._Prepare(editor, sceneFile, result === 'Yes'));
         }
         else
             this._Prepare(editor, sceneFile, false);
@@ -72,9 +72,9 @@ export default class SceneLoader {
      * Prepares the scene loader before loading the scene file
      * @param editor the editor reference
      * @param sceneFile the file reference of the scene being loaded
-     * @param doNotAppend if the scene should be appended or not
+     * @param append if the scene should be appended or not
      */
-    private static async _Prepare (editor: Editor, sceneFile: File, doNotAppend: boolean): Promise<void> {
+    private static async _Prepare (editor: Editor, sceneFile: File, append: boolean): Promise<void> {
         // Clear undo / redo
         UndoRedo.Clear();
 
@@ -114,7 +114,7 @@ export default class SceneLoader {
         editor.core.engine.stopRenderLoop();
         
         // Load scene
-        if (!doNotAppend) {
+        if (!append) {
             // Clear files
             FilesInputStore.FilesToLoad = { };
             for (const f of this._CurrentFiles)
