@@ -192,6 +192,11 @@ export default class NodeTool extends AbstractEditionTool<Node> {
      */
     protected resetToOriginal (): void {
         SerializationHelper.Parse(() => this._currentMesh, this._currentMesh.metadata.original, this._currentMesh.getScene(), 'file:');
+
+        // Rotation quaternion
+        if (this._currentMesh.metadata.original.rotationQuaternion === undefined)
+            this._currentMesh.rotationQuaternion = null;
+
         setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
         this.editor.edition.updateDisplay();
     }
