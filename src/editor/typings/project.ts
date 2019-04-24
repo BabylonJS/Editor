@@ -65,6 +65,14 @@ export interface ProjectMaterial {
 }
 
 /**
+ * Custom textures (added by the editor or modified)
+ */
+export interface ProjectTexture {
+    serializedValues: any;
+    newInstance: boolean;
+}
+
+/**
 * Custom physics impostors
 */
 export interface PhysicsImpostor {
@@ -134,6 +142,7 @@ export interface EffectLayer {
 export interface ProjectRoot {
     globalConfiguration: GlobalConfiguration;
     materials: ProjectMaterial[];
+    textures: ProjectTexture[];
     particleSystems: ParticleSystem[];
     nodes: Node[];
     shadowGenerators: any[];

@@ -1,4 +1,4 @@
-import { Tools as BabylonTools, FilesInputStore } from 'babylonjs';
+import { Tools as BabylonTools, FilesInputStore, Scene, BaseTexture } from 'babylonjs';
 import { IStringDictionary } from '../typings/typings';
 
 export default class Tools {
@@ -160,6 +160,20 @@ export default class Tools {
      */
     public static GetFilename (filename: string): string {
         return this.GetFilenameWithoutExtension(filename, false) + '.' + this.GetFileExtension(filename);
+    }
+
+    /**
+     * Returns the first texture found wich has the given name
+     * @param scene the scene containing the textures
+     * @param name the name of the texture to find
+     */
+    public static GetTextureByName (scene: Scene, name: string): BaseTexture {
+        for (const t of scene.textures) {
+            if (t.name === name)
+                return t;
+        }
+
+        return null;
     }
 
     /**

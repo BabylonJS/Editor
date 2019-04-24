@@ -3,9 +3,10 @@ import {
     SceneSerializer,
     Node, AbstractMesh, Light, Camera,
     Tags, ActionManager,
-    Vector3, Vector2, Vector4, Color3, Color4,
+    Vector3,
     ParticleSystem,
     FilesInputStore,
+    BaseTexture,
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -212,6 +213,7 @@ export default class ProjectExporter {
             globalConfiguration: this._SerializeGlobalConfiguration(editor),
             lensFlares: null,
             materials: this._SerializeMaterials(editor),
+            textures: this._SerializeTextures(editor),
             nodes: this._SerializeNodes(editor),
             particleSystems: this._SerializeParticleSystems(editor),
             physicsEnabled: editor.core.scene.isPhysicsEnabled(),
@@ -418,6 +420,32 @@ export default class ProjectExporter {
     }
 
     /**
+     * Serializes the textures
+     */
+    private static _SerializeTextures (editor: Editor): Export.ProjectTexture[] {
+        const scene = editor.core.scene;
+        const result: Export.ProjectTexture[] = [];
+
+        scene.textures.forEach(t => {
+            const added = Tags.MatchesQuery(t, 'added');
+            const modified = Tags.MatchesQuery(t, 'modified');
+
+            if (!added && !modified)
+                return;
+            
+            const serializedValues = modified ? this._MergeModifedProperties(t, t.serialize()) : this._ClearOriginalMetadata(t.serialize());
+            serializedValues.name = t.name;
+
+            result.push({
+                serializedValues: serializedValues,
+                newInstance: added
+            });
+        })
+
+        return result;
+    }
+
+    /**
      * Serializes the Particle Systems
      */
     private static _SerializeParticleSystems (editor: Editor): Export.ParticleSystem[] {
@@ -509,8 +537,7 @@ export default class ProjectExporter {
                     node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));   
                 }
                 else {
-                    modified ? node.serializationObject = this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : node.serializationObject = (<Camera | Light> n).serialize();
-                    this._ClearOriginalMetadata(node.serializationObject);
+                    modified ? node.serializationObject = this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : node.serializationObject = this._ClearOriginalMetadata((<Camera | Light> n).serialize());
                 }
             }
 
@@ -562,18 +589,9 @@ export default class ProjectExporter {
     /**
      * Clears the original metadata
      */
-    private static _ClearOriginalMetadata (n: any): void {
-        if (n.metadata && n.metadata.original) {
-            // Copy
-            const saved = n.metadata;
-            n.metadata = { };
-            for (const key in saved) {
-                if (key === 'original')
-                    continue;
-                
-                n.metadata[key] = saved[key];
-            }
-        }
+    private static _ClearOriginalMetadata (n: any): any {
+        delete n.metadata;
+        return n;
     }
 
     /**
@@ -614,8 +632,18 @@ export default class ProjectExporter {
                             result[key] = value;
                     }
                     else {
-                        // TODO: manage textures here
-                        result[key] = value;
+                        const currentObject = source[key];
+                        const originalValue = original[key];
+
+                        if (currentObject instanceof BaseTexture) {
+                            // Check texture has changed
+                            if (originalValue.name !== value.name)
+                                result[key] = value;
+                            break;
+                        }
+                        else
+                            // Not supported, just copy
+                            result[key] = value;
                     }
                     break;
             }
@@ -624,6 +652,6 @@ export default class ProjectExporter {
         // Keep id
         result.id = current.id;
 
-        return result;
+        return this._ClearOriginalMetadata(result);
     }
 }

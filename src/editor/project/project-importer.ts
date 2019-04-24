@@ -192,6 +192,14 @@ export default class ProjectImporter {
             Tags.AddTagsTo(material, existing ? 'modified' : 'added');
         });
 
+        // Textures
+        project.textures.forEach(t => {
+            const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
+            const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
+
+            Tags.AddTagsTo(texture, existing ? 'modified' : 'added');
+        });
+
         // Shadow Generators
         project.shadowGenerators.forEach(sg => {
             const generator = ShadowGenerator.Parse(sg, scene);
@@ -312,6 +320,7 @@ export default class ProjectImporter {
         project.effectLayers = project.effectLayers || [];
         project.globalConfiguration = project.globalConfiguration || { };
         project.assets = project.assets || { };
+        project.textures = project.textures || [];
 
         // Importer errors
         project.effectLayers.forEach(el => {

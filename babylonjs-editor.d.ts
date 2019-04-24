@@ -157,6 +157,7 @@ declare module 'babylonjs-editor/editor/editor' {
 }
 
 declare module 'babylonjs-editor/editor/tools/tools' {
+    import { Scene, BaseTexture } from 'babylonjs';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export default class Tools {
             static PendingFilesToLoad: number;
@@ -219,6 +220,12 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 * @param filename: the complete filename with path
                 */
             static GetFilename(filename: string): string;
+            /**
+                * Returns the first texture found wich has the given name
+                * @param scene the scene containing the textures
+                * @param name the name of the texture to find
+                */
+            static GetTextureByName(scene: Scene, name: string): BaseTexture;
             /**
                 * Creates an open file dialog
                 * @param callback called once the user selects files
@@ -1403,113 +1410,121 @@ declare module 'babylonjs-editor/editor/typings/project' {
      * Animations
      */
     export interface AnimationEventValue {
-        property?: string;
-        value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion;
+            property?: string;
+            value?: number | boolean | Vector2 | Vector3 | Color3 | Quaternion;
     }
     export interface AnimationEvent {
-        type: string;
-        target: Node | Scene;
-        value: AnimationEventValue;
+            type: string;
+            target: Node | Scene;
+            value: AnimationEventValue;
     }
     export interface AnimationEventFrame {
-        frame: number;
-        events: AnimationEvent[];
+            frame: number;
+            events: AnimationEvent[];
     }
     export interface Animation {
-        targetName: string;
-        targetType: string;
-        serializationObject: any;
-        events: AnimationEventFrame[];
+            targetName: string;
+            targetType: string;
+            serializationObject: any;
+            events: AnimationEventFrame[];
     }
     export interface GlobalConfiguration {
-        serializedCamera?: any;
-        environmentTexture?: any;
-        imageProcessingConfiguration?: any;
+            serializedCamera?: any;
+            environmentTexture?: any;
+            imageProcessingConfiguration?: any;
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)
      */
     export interface ProjectMaterial {
-        serializedValues: any;
-        meshesNames?: string[];
-        newInstance?: boolean;
-        _babylonMaterial?: Material;
+            serializedValues: any;
+            meshesNames?: string[];
+            newInstance?: boolean;
+            _babylonMaterial?: Material;
+    }
+    /**
+        * Custom textures (added by the editor or modified)
+        */
+    export interface ProjectTexture {
+            serializedValues: any;
+            newInstance: boolean;
     }
     /**
      * Custom physics impostors
      */
     export interface PhysicsImpostor {
-        physicsMass: number;
-        physicsFriction: number;
-        physicsRestitution: number;
-        physicsImpostor: number;
+            physicsMass: number;
+            physicsFriction: number;
+            physicsRestitution: number;
+            physicsImpostor: number;
     }
     /**
      * Modified nodes in the editor (custom animations, for custom materials, etc.)
      */
     export interface Node {
-        name: string;
-        id: string;
-        type: string;
-        animations: Animation[];
-        actions?: any;
-        physics?: PhysicsImpostor;
-        serializationObject?: any;
+            name: string;
+            id: string;
+            type: string;
+            animations: Animation[];
+            actions?: any;
+            physics?: PhysicsImpostor;
+            serializationObject?: any;
     }
     /**
      * Custom particle systems
      */
     export interface ParticleSystem {
-        hasEmitter: boolean;
-        serializationObject: any;
-        emitterPosition?: number[];
+            hasEmitter: boolean;
+            serializationObject: any;
+            emitterPosition?: number[];
     }
     /**
      * Lens Flares
      */
     export interface LensFlare {
-        serializationObject: any;
+            serializationObject: any;
     }
     /**
      * Render targets
      */
     export interface RenderTarget {
-        isProbe: boolean;
-        serializationObject: any;
-        waitingTexture?: RenderTargetTexture | ReflectionProbe;
+            isProbe: boolean;
+            serializationObject: any;
+            waitingTexture?: RenderTargetTexture | ReflectionProbe;
     }
     /**
      * Sounds
      */
     export interface Sound {
-        name: string;
-        serializationObject: any;
+            name: string;
+            serializationObject: any;
     }
     export interface EffectLayer {
-        name: string;
-        serializationObject: any;
+            name: string;
+            serializationObject: any;
     }
     /**
      * Root object of project
      */
     export interface ProjectRoot {
-        globalConfiguration: GlobalConfiguration;
-        materials: ProjectMaterial[];
-        particleSystems: ParticleSystem[];
-        nodes: Node[];
-        shadowGenerators: any[];
-        lensFlares: LensFlare[];
-        renderTargets: RenderTarget[];
-        sounds: Sound[];
-        actions: any;
-        physicsEnabled: boolean;
-        effectLayers: EffectLayer[];
-        environmentHelper: any;
-        requestedMaterials?: string[];
-        customMetadatas?: IStringDictionary<any>;
-        gui: any[];
-        assets: IStringDictionary<AssetElement<any>[]>;
-        filesList?: string[];
+            globalConfiguration: GlobalConfiguration;
+            materials: ProjectMaterial[];
+            textures: ProjectTexture[];
+            particleSystems: ParticleSystem[];
+            nodes: Node[];
+            shadowGenerators: any[];
+            lensFlares: LensFlare[];
+            renderTargets: RenderTarget[];
+            sounds: Sound[];
+            actions: any;
+            physicsEnabled: boolean;
+            effectLayers: EffectLayer[];
+            environmentHelper: any;
+            requestedMaterials?: string[];
+            customMetadatas?: IStringDictionary<any>;
+            gui: any[];
+            assets: IStringDictionary<AssetElement<any>[]>;
+            filesList?: string[];
     }
 }
 
