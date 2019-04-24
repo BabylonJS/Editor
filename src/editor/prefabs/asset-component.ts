@@ -66,8 +66,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
         // Configure dictionaries
         sourceNodes.forEach(m => {
-            asset.data.instances[m.name] = [];
-            asset.data.sourceInstances[m.name] = [];
+            asset.data.instances[m.id] = [];
+            asset.data.sourceInstances[m.id] = [];
         });
 
         // Add asset
@@ -163,7 +163,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
         parent['doNotSerialize'] = true;
 
         Tags.AddTagsTo(parent, 'prefab-master');
-        asset.data.sourceInstances[asset.data.sourceNode.name].push(parent);
+        asset.data.sourceInstances[asset.data.sourceNode.id].push(parent);
 
         // Descendants
         if (asset.data.sourceNodes.length > 1) {
@@ -180,7 +180,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
 
                 // Register instance
                 Tags.AddTagsTo(instance, 'prefab');
-                asset.data.sourceInstances[m.name].push(instance);
+                asset.data.sourceInstances[m.id].push(instance);
             });
         }
 
@@ -202,7 +202,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
             const instances: IStringDictionary<any[]> = { };
 
             d.data.sourceNodes.forEach(m => {
-                instances[m.name] = [];
+                instances[m.id] = [];
 
                 // Meshes instances?
                 if (m instanceof Mesh) {
@@ -211,19 +211,19 @@ export default class PrefabAssetComponent implements IAssetComponent {
                             return;
                         
                         if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master'))
-                            instances[m.name].push(i.serialize());
+                            instances[m.id].push(i.serialize());
                     });
                 }
                 // Lights, etc.
                 else {
-                    d.data.sourceInstances[m.name].forEach(i => {
+                    d.data.sourceInstances[m.id].forEach(i => {
                         if (Tags.MatchesQuery(i, 'removed'))
                             return;
                         
                         if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master')) {
                             const serializationObject = i.serialize();
                             serializationObject.customType = Tools.GetConstructorName(i);
-                            instances[m.name].push(serializationObject);
+                            instances[m.id].push(serializationObject);
                         }
                     });
                 }
@@ -341,8 +341,8 @@ export default class PrefabAssetComponent implements IAssetComponent {
             d.data.sourceNodes.push(source);
 
             // Create master instances
-            const parents = d.data.instances[source.name];
-            d.data.sourceInstances[source.name] = [];
+            const parents = (d.data.instances[source.name] || d.data.instances[source.id]);
+            d.data.sourceInstances[source.id] = [];
 
             parents.forEach(p => {
                 const parent = source instanceof Mesh ? source.createInstance(p.name) : this._cloneNode(source, p);
@@ -350,7 +350,7 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 parent['doNotSerialize'] = true;
                 parent['isPickable'] = true;
 
-                d.data.sourceInstances[source.name].push(parent);
+                (d.data.sourceInstances[source.name] || d.data.sourceInstances[source.id]).push(parent);
                 Tags.AddTagsTo(parent, 'prefab-master');
 
                 if (parent instanceof InstancedMesh)
@@ -366,16 +366,16 @@ export default class PrefabAssetComponent implements IAssetComponent {
                     continue;
 
                 d.data.sourceNodes.push(node);
-                d.data.sourceInstances[node.name] = [];
+                d.data.sourceInstances[node.id] = [];
 
-                d.data.instances[node.name].forEach(inst => {
+                (d.data.instances[node.name] || d.data.instances[node.id]).forEach(inst => {
                     const instance = node instanceof Mesh ? node.createInstance(inst.name) : this._cloneNode(node, inst);
                     instance.id = inst.id;
                     instance['parent'] = instance['emitter'] = this.editor.core.scene.getNodeByID(inst.parentId);
                     instance['doNotSerialize'] = true;
                     instance['isPickable'] = true;
 
-                    d.data.sourceInstances[node.name].push(instance);
+                    d.data.sourceInstances[node.id].push(instance);
                     Tags.AddTagsTo(instance, 'prefab');
 
                     if (instance instanceof InstancedMesh)
