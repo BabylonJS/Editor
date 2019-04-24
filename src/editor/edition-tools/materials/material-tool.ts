@@ -41,6 +41,11 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         
         super.setTabName(Tools.GetConstructorName(this.object).replace('Material', '') + ' Material');
 
+        // Reset
+        if (this.object.metadata && this.object.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -50,10 +55,6 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
         if (object instanceof AbstractMesh) {
             common.add(object, 'receiveShadows').name('Receive Shadows');
             common.add(object, 'applyFog').name('Apply Fog');
-        }
-
-        if (this.object.metadata && this.object.metadata.original) {
-            common.add(this, 'resetToOriginal').name('Reset to original');
         }
     }
 

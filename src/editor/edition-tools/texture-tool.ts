@@ -26,6 +26,11 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
     public update(texture: BaseTexture): void {
         super.update(texture);
 
+        // Reset
+        if (texture.metadata && texture.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -55,11 +60,6 @@ export default class TextureTool extends AbstractEditionTool<BaseTexture> {
         common.add(this, '_currentCoordinatesMode', coordinates).name('Coordinates Mode').onFinishChange(r => {
             texture.coordinatesMode = Texture[r];
         });
-
-        // Reset
-        if (texture.metadata && texture.metadata.original) {
-            common.add(this, 'resetToOriginal').name('Reset to original');
-        }
 
         // Texture
         if (texture instanceof Texture) {

@@ -48,6 +48,11 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         const scene = node.getScene();
         this._enabled = node.isEnabled();
 
+        // Reset
+        if (object instanceof Mesh && object.metadata && object.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -70,11 +75,6 @@ export default class NodeTool extends AbstractEditionTool<Node> {
                 const material = this.editor.core.scene.getMaterialByName(r);
                 object.material = material;
             });
-
-            // Reset
-            if (object.metadata && object.metadata.original) {
-                common.add(this, 'resetToOriginal').name('Reset to original');
-            }
         }
 
         if (node.state !== undefined)

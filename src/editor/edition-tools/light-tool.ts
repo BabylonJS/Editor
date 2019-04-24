@@ -30,6 +30,11 @@ export default class LightTool extends AbstractEditionTool<Light> {
         super.update(light);
         super.setTabName(Tools.GetConstructorName(light).replace('Light', ''));
 
+        // Reset
+        if (light.metadata && light.metadata.original) {
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
+
         // Common
         const common = this.tool.addFolder('Common');
         common.open();
@@ -37,10 +42,6 @@ export default class LightTool extends AbstractEditionTool<Light> {
         common.add(light, 'intensity').min(0).step(0.01).name('Intensity');
         common.add(light, 'range').min(0).step(0.01).name('Range');
         common.add(light, 'radius').min(0).step(0.01).name('Radius');
-
-        if (light.metadata && light.metadata.original) {
-            common.add(this, 'resetToOriginal').name('Reset to original');
-        }
 
         // Colors
         const colors = this.tool.addFolder('Colors');
