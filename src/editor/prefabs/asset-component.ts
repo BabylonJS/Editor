@@ -207,6 +207,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 // Meshes instances?
                 if (m instanceof Mesh) {
                     m.instances.forEach(i => {
+                        if (Tags.MatchesQuery(i, 'removed'))
+                            return;
+                        
                         if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master'))
                             instances[m.name].push(i.serialize());
                     });
@@ -214,6 +217,9 @@ export default class PrefabAssetComponent implements IAssetComponent {
                 // Lights, etc.
                 else {
                     d.data.sourceInstances[m.name].forEach(i => {
+                        if (Tags.MatchesQuery(i, 'removed'))
+                            return;
+                        
                         if (Tags.MatchesQuery(i, 'prefab') || Tags.MatchesQuery(i, 'prefab-master')) {
                             const serializationObject = i.serialize();
                             serializationObject.customType = Tools.GetConstructorName(i);

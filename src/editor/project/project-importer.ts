@@ -194,6 +194,12 @@ export default class ProjectImporter {
 
         // Textures
         project.textures.forEach(t => {
+            // In case of a clone
+            if (t.newInstance) {
+                const texture = Texture.Parse(t.serializedValues, scene, 'file:');
+                Tags.AddTagsTo(texture, 'added');
+            }
+
             const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
             const texture = existing ? SerializationHelper.Parse(() => existing, t.serializedValues, scene, 'file:') : Texture.Parse(t.serializedValues, scene, 'file:');
 

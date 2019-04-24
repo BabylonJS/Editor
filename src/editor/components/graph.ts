@@ -6,7 +6,8 @@ import {
     Tools as BabylonTools,
     Skeleton,
     Tags,
-    TransformNode
+    TransformNode,
+    InstancedMesh
 } from 'babylonjs';
 import { AdvancedDynamicTexture, Image } from 'babylonjs-gui';
 
@@ -620,11 +621,15 @@ export default class EditorGraph {
 
                         // Re-add descendants
                         descendants.forEach(d => {
+                            // Push
                             d.array.push(d.node);
                             d.particleSystems.forEach(p => {
                                 scene.particleSystems.push(p.system);
                                 this.tree.add(Object.assign({ }, p.treeNode, { img: this.getIcon(p.system) }), node.id);
+                                Tags.RemoveTagsFrom(p.system, 'removed');
                             });
+
+                            Tags.RemoveTagsFrom(d.node, 'removed');
                         });
 
                         // Fill children
@@ -642,10 +647,14 @@ export default class EditorGraph {
                             if (d.node instanceof Sound)
                                 d.node.stop();
                             
+                            // Splice
                             d.array.splice(d.array.indexOf(d.node), 1);
                             d.particleSystems.forEach(p => {
                                 scene.particleSystems.splice(scene.particleSystems.indexOf(p.system), 1);
+                                Tags.AddTagsTo(p.system, 'removed');
                             });
+
+                            Tags.AddTagsTo(d.node, 'removed');
                         });
 
                         this.tree.remove(node.id);

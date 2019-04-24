@@ -133,7 +133,7 @@ export default class ProjectExporter {
 
         // Project
         const project = this.Export(editor);
-        const content = JSON.stringify(project);
+        const content = JSON.stringify(project, null, '\t');
 
         // Storage
         const storage = await Storage.GetStorage(editor);
@@ -506,6 +506,11 @@ export default class ProjectExporter {
         const result: Export.Node[] = [];
 
         nodes.forEach((n: Node) => {
+            // Ignore prefabs, already saved in assets
+            const prefab = Tags.MatchesQuery(n, 'prefab') || Tags.MatchesQuery(n, 'prefab-master');
+            if (prefab)
+                return;
+            
             let addNodeToProject = false;
 
             const node: Export.Node = {
@@ -526,7 +531,7 @@ export default class ProjectExporter {
             const added = Tags.MatchesQuery(n, 'added');
             const modified = Tags.MatchesQuery(n, 'modified');
 
-            if (Tags.HasTags(n) && (added || modified)) {
+            if (Tags.HasTags(n) && (added || modified) && !prefab) {
                 addNodeToProject = true;
                 if (n instanceof AbstractMesh) {
                     node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
@@ -637,7 +642,7 @@ export default class ProjectExporter {
 
                         if (currentObject instanceof BaseTexture) {
                             // Check texture has changed
-                            if (originalValue.name !== value.name)
+                            if (Tags.HasTags(originalValue) && Tags.MatchesQuery(originalValue, 'added') || originalValue.name !== value.name)
                                 result[key] = value;
                             break;
                         }

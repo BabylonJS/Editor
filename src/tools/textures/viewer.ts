@@ -688,6 +688,7 @@ export default class TextureViewer extends EditorPlugin {
             }
 
             texture.name = texture['url'] = f.name;
+            Tags.AddTagsTo(texture, 'added');
 
             // Add preview node and update tools
             await this.addPreviewNode(f, texture);
@@ -785,6 +786,10 @@ export default class TextureViewer extends EditorPlugin {
                 const s = texture.serialize();
                 const c = Texture.Parse(s, this.editor.core.scene, 'file:');
                 c.name = c['url'] = texture.name;
+
+                Tags.AddTagsTo(c, 'added');
+                if (c.metadata)
+                    delete c.metadata.original;
 
                 if (c instanceof RenderTargetTexture) {
                     this.editor.core.scene.customRenderTargets.push(c);
