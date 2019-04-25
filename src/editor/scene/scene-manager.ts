@@ -77,8 +77,11 @@ export default class SceneManager {
             const s = SceneSerializer.SerializeMesh(m, false, false);
             delete s.geometries;
             delete s.materials;
+            delete s.skeletons;
+            delete s.multiMaterials;
             set(m, s.meshes[0]);
         });
+        scene.skeletons.forEach(s => set(s, s.serialize()));
         scene.materials.forEach(m => set(m, m.serialize()));
         scene.lights.forEach(l => set(l, l.serialize()));
         scene.cameras.forEach(c => set(c, c.serialize()));

@@ -565,6 +565,8 @@ export default class ProjectExporter {
                         else {
                             delete node.serializationObject.geometries;
                             delete node.serializationObject.materials;
+                            delete node.serializationObject.skeletons;
+                            delete node.serializationObject.multiMaterials;
 
                             node.serializationObject.meshes.forEach((m, index) => {
                                 const merge = this._MergeModifedProperties(n, m);
