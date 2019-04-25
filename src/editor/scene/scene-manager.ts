@@ -1,14 +1,9 @@
 import {
     Scene, Material, BaseTexture, RenderTargetTexture,
-    ActionManager,
-    StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline,
-    IAnimatable,
-    ParticleSystem,
-    GlowLayer,
-    HighlightLayer,
-    Animatable,
-    EnvironmentHelper,
-    SceneSerializer
+    ActionManager, StandardRenderingPipeline, SSAORenderingPipeline,
+    SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
+    ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
+    SceneSerializer, InstancedMesh
 } from 'babylonjs';
 
 import { IStringDictionary } from '../typings/typings';
@@ -74,6 +69,11 @@ export default class SceneManager {
             orig.metadata.original = obj;
         };
         scene.meshes.forEach(m => {
+            // Instance?
+            if (m instanceof InstancedMesh)
+                return set(m, m.serialize());
+            
+            // Mesh
             const s = SceneSerializer.SerializeMesh(m, false, false);
             delete s.geometries;
             delete s.materials;

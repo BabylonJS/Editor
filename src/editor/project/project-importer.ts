@@ -1,18 +1,8 @@
 import {
-    Scene, Tags,
-    Animation, ActionManager,
-    Material, Texture,
-    ShadowGenerator,
-    Geometry,
-    Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh,
-    CannonJSPlugin, PhysicsImpostor,
-    Vector3,
-    EffectLayer,
-    Sound,
-    RenderTargetTexture, ReflectionProbe,
-    InstancedMesh,
-    Color3,
-    SerializationHelper
+    Scene, Tags, Animation, ActionManager, Material, Texture, ShadowGenerator,
+    Geometry, Node, Camera, Light, Mesh, ParticleSystem, AbstractMesh, InstancedMesh,
+    CannonJSPlugin, PhysicsImpostor, Vector3, EffectLayer, Sound, RenderTargetTexture, ReflectionProbe,
+    Color3, Color4, SerializationHelper
 } from 'babylonjs';
 
 import Editor from '../editor';
@@ -49,6 +39,21 @@ export default class ProjectImporter {
         if (project.globalConfiguration.imageProcessingConfiguration)
             SerializationHelper.Parse(() => scene.imageProcessingConfiguration, project.globalConfiguration.imageProcessingConfiguration, scene, 'file:');
 
+        if (project.globalConfiguration.ambientColor)
+            scene.ambientColor = Color3.FromArray(project.globalConfiguration.ambientColor);
+            
+        if (project.globalConfiguration.clearColor)
+            scene.clearColor = Color4.FromArray(project.globalConfiguration.clearColor);
+
+        if (project.globalConfiguration.fog) {
+            scene.fogEnabled = project.globalConfiguration.fog.enabled;
+            scene.fogStart = project.globalConfiguration.fog.start;
+            scene.fogEnd = project.globalConfiguration.fog.end;
+            scene.fogDensity = project.globalConfiguration.fog.density;
+            scene.fogColor = Color3.FromArray(project.globalConfiguration.fog.color);
+            scene.fogMode = project.globalConfiguration.fog.mode;
+        }
+
         // Physics
         if (!scene.isPhysicsEnabled())
             scene.enablePhysics(scene.gravity, new CannonJSPlugin());
@@ -72,6 +77,22 @@ export default class ProjectImporter {
                             Tags.AddTagsTo(node, 'modified');
                         } else {
                             node = Light.Parse(n.serializationObject, scene);
+                            Tags.AddTagsTo(node, 'added');
+                        }
+                        break;
+                    case 'InstancedMesh':
+                        const existing = scene.getMeshByID(n.serializationObject.id);
+                        if (existing) {
+                            node = SerializationHelper.Parse(() => existing, n.serializationObject, scene, 'file:');
+                            Tags.AddTagsTo(existing, 'modified');
+                        }
+                        else {
+                            const source = <Mesh> scene.getMeshByID(n.serializationObject.sourceMesh);
+                            if (!source)
+                                break;
+                            
+                            node = source.createInstance(n.serializationObject.name);
+                            SerializationHelper.Parse(() => node, n.serializationObject, scene, 'file:');
                             Tags.AddTagsTo(node, 'added');
                         }
                         break;
@@ -196,6 +217,11 @@ export default class ProjectImporter {
         project.textures.forEach(t => {
             // In case of a clone
             if (t.newInstance) {
+                // Already created by materials?
+                const existing = Tools.GetTextureByName(scene, t.serializedValues.name);
+                if (existing)
+                    return;
+                
                 const texture = Texture.Parse(t.serializedValues, scene, 'file:');
                 Tags.AddTagsTo(texture, 'added');
             }

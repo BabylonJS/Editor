@@ -1,9 +1,10 @@
-import { Material, AbstractMesh, SubMesh, SerializationHelper, Tags } from 'babylonjs';
+import { Material, AbstractMesh, SubMesh, SerializationHelper, Tags, Texture } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
+import * as dat from 'dat-gui';
 
 import AbstractEditionTool from '../edition-tool';
 import Tools from '../../tools/tools';
-import * as dat from 'dat-gui';
+import { IStringDictionary } from '../../typings/typings';
 
 export default abstract class MaterialTool<T extends Material> extends AbstractEditionTool<T> {
     /**
@@ -64,9 +65,40 @@ export default abstract class MaterialTool<T extends Material> extends AbstractE
     protected resetToOriginal (): void {
         const ctor = Tools.GetConstructorName(this.object);
         if (BABYLON[ctor]) {
-            SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
+            // Copy metadata
+            const copy = { };
+            for (const key in this.object.metadata.original)
+                copy[key] = this.object.metadata.original[key];
+
+            // Remove textures
+            const textures: IStringDictionary<any> = { };
+            for (const key in copy) {
+                const value = copy[key];
+
+                if (key.toLowerCase().indexOf('texture') === -1 || typeof(value) !== 'object')
+                    continue;
+                
+                textures[key] = copy[key];
+                delete copy[key];
+            }
+
+            // Simply parse
+            SerializationHelper.Parse(() => this.object, copy, this.object.getScene(), 'file:');
+
+            // Parse textures
+            for (const key in textures) {
+                const value = textures[key];
+                const original = Tools.GetTextureByName(this.object.getScene(), value.name);
+
+                if (original)
+                    this.object[key] = SerializationHelper.Parse(() => original, textures[key], this.object.getScene(), 'file:');
+                else
+                    this.object[key] = Texture.Parse(textures[key], this.object.getScene(), 'file:');
+            }
+
             setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
             this.editor.edition.updateDisplay();
+            this.editor.edition.setObject(this.object);
         }
     }
 

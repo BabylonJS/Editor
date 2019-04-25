@@ -7,6 +7,7 @@ import {
     ParticleSystem,
     FilesInputStore,
     BaseTexture,
+    InstancedMesh,
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
@@ -266,12 +267,23 @@ export default class ProjectExporter {
      * Serializes the global configuration of the project
      */
     private static _SerializeGlobalConfiguration (editor: Editor): Export.GlobalConfiguration {
+        const scene = editor.core.scene;
         delete editor.camera.metadata;
 
         return {
             serializedCamera: editor.camera.serialize(),
-            environmentTexture: editor.core.scene.environmentTexture ? editor.core.scene.environmentTexture.serialize() : undefined,
-            imageProcessingConfiguration: editor.core.scene.imageProcessingConfiguration ? editor.core.scene.imageProcessingConfiguration.serialize() : undefined
+            environmentTexture: scene.environmentTexture ? scene.environmentTexture.serialize() : undefined,
+            imageProcessingConfiguration: scene.imageProcessingConfiguration ? scene.imageProcessingConfiguration.serialize() : undefined,
+            ambientColor: scene.ambientColor.asArray(),
+            clearColor: scene.clearColor.asArray(),
+            fog: {
+                enabled: scene.fogEnabled,
+                start: scene.fogStart,
+                end: scene.fogEnd,
+                density: scene.fogDensity,
+                mode: scene.fogMode,
+                color: scene.fogColor.asArray()
+            }
         }
     }
 
@@ -520,7 +532,8 @@ export default class ProjectExporter {
                 name: n.name,
                 serializationObject: null,
                 physics: null,
-                type: n instanceof AbstractMesh ? 'Mesh' :
+                type: n instanceof InstancedMesh ? 'InstancedMesh' :
+                      n instanceof AbstractMesh ? 'Mesh' :
                       n instanceof Light ? 'Light' :
                       n instanceof Camera ? 'Camera' : 'Unknown!'
             };
@@ -534,12 +547,34 @@ export default class ProjectExporter {
             if (Tags.HasTags(n) && (added || modified) && !prefab) {
                 addNodeToProject = true;
                 if (n instanceof AbstractMesh) {
-                    node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
-                    if (modified) {
-                        delete node.serializationObject.geometries;
-                        delete node.serializationObject.materials;
+                    // Instance
+                    if (n instanceof InstancedMesh) {
+                        if (added) {
+                            node.serializationObject = this._ClearOriginalMetadata(n.serialize());
+                            node.serializationObject.sourceMesh = n.sourceMesh.id;
+                        } else {
+                            node.serializationObject = this._MergeModifedProperties(n, n.serialize());
+                        }
                     }
-                    node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));   
+                    // Mesh
+                    else {
+                        node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
+                        if (added) {
+                            node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));
+                        }
+                        else {
+                            delete node.serializationObject.geometries;
+                            delete node.serializationObject.materials;
+
+                            node.serializationObject.meshes.forEach((m, index) => {
+                                const merge = this._MergeModifedProperties(n, m);
+                                delete merge.instances;
+                                delete merge.subMeshes;
+                                delete merge.materialId;
+                                node.serializationObject.meshes[index] = merge;
+                            });
+                        }
+                    }
                 }
                 else {
                     modified ? node.serializationObject = this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : node.serializationObject = this._ClearOriginalMetadata((<Camera | Light> n).serialize());
@@ -633,7 +668,7 @@ export default class ProjectExporter {
                             break;
                         
                         const diff = value.find((v, i) => v !== o[i]);
-                        if (diff)
+                        if (diff !== undefined)
                             result[key] = value;
                     }
                     else {

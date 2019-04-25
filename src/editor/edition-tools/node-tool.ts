@@ -207,13 +207,14 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     protected createInstance (): void {
         const instance = (<Mesh>this.object).createInstance('New instance ' + BabylonTools.RandomId());
         instance.id = BabylonTools.RandomId();
+        Tags.AddTagsTo(instance, 'added');
 
         this.editor.graph.add({
             id: instance.id,
             img: this.editor.graph.getIcon(instance),
             text: instance.name,
             data: instance
-        }, this.object.id);
+        }, this.editor.graph.root);
 
         this.editor.edition.setObject(instance);
         this.editor.graph.select(instance.id);

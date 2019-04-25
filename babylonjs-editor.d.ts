@@ -1040,6 +1040,7 @@ declare module 'babylonjs-editor/editor/gui/tree' {
             protected currentSelectedNode: string;
             protected moving: boolean;
             protected renaming: boolean;
+            protected selecting: boolean;
             protected isFocused: boolean;
             static Instances: Tree[];
             /**
@@ -1432,6 +1433,16 @@ declare module 'babylonjs-editor/editor/typings/project' {
             serializedCamera?: any;
             environmentTexture?: any;
             imageProcessingConfiguration?: any;
+            ambientColor?: number[];
+            clearColor?: number[];
+            fog?: {
+                    enabled: boolean;
+                    start: number;
+                    end: number;
+                    density: number;
+                    mode: number;
+                    color: number[];
+            };
     }
     /**
      * Custom Materials (sky, gradient, water, etc.)

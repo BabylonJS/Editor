@@ -51,6 +51,16 @@ export interface GlobalConfiguration {
     serializedCamera?: any;
     environmentTexture?: any;
     imageProcessingConfiguration?: any;
+    ambientColor?: number[];
+    clearColor?: number[];
+    fog?: {
+        enabled: boolean;
+        start: number;
+        end: number;
+        density: number;
+        mode: number;
+        color: number[];
+    }
 }
 
 /**

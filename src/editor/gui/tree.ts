@@ -57,6 +57,7 @@ export default class Tree {
     protected currentSelectedNode: string = '';
     protected moving: boolean = false;
     protected renaming: boolean = false;
+    protected selecting: boolean = false;
     protected isFocused: boolean = false;
 
     // Static members
@@ -122,8 +123,10 @@ export default class Tree {
         if (id !== this.currentSelectedNode) {
             this.currentSelectedNode = id;
 
+            this.selecting = true;
             this.element.jstree().deselect_all(true);
-            this.element.jstree().select_node(id, true);
+            this.element.jstree().select_node(id);
+            this.selecting = false;
         }
     }
 
@@ -145,7 +148,7 @@ export default class Tree {
     public getType (id: string): any {
         const node = this.get(id);
         if (node)
-            return this.element.jstree().get_type(node, true);
+            return this.element.jstree().get_type(node, true).type;
 
         return null;
     }
@@ -343,7 +346,7 @@ export default class Tree {
         // Events
         this.element
             .on('changed.jstree', (e, data) => {
-                if (data.action === 'select_node' && this.onClick)
+                if (data.action === 'select_node' && this.onClick && !this.selecting)
                     this.onClick(data.node.id, data.node.data);
             })
             .on('rename_node.jstree', (e, data) => {
