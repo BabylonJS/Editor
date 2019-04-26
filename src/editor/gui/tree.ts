@@ -228,6 +228,20 @@ export default class Tree {
     }
 
     /**
+     * Marks the given node
+     * @param id the id of the node to mark
+     * @param marked if the node should be marked or not
+     */
+    public markNode (id: string, marked: boolean): void {
+        const dom = this.element.jstree().get_node(id, true);
+        if (!dom)
+            return;
+        
+        const i = dom.children('.jstree-anchor').children('.jstree-themeicon');
+		i.css('border', marked ? 'dotted' : '');
+    }
+
+    /**
      * Search nodes fitting the given value
      * @param value the value to search
      */

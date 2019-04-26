@@ -1119,6 +1119,12 @@ declare module 'babylonjs-editor/editor/gui/tree' {
                 */
             setParent(id: string, parentId: string): void;
             /**
+                * Marks the given node
+                * @param id the id of the node to mark
+                * @param marked if the node should be marked or not
+                */
+            markNode(id: string, marked: boolean): void;
+            /**
                 * Search nodes fitting the given value
                 * @param value the value to search
                 */
@@ -2055,6 +2061,11 @@ declare module 'babylonjs-editor/editor/components/graph' {
                 */
             fill(scene?: Scene, root?: Node): void;
             /**
+                * Updates the mark of the given object in graph
+                * @param obj the object to mark
+                */
+            updateObjectMark(obj: any): void;
+            /**
                 * Configures the graph
                 */
             configure(): void;
@@ -2448,12 +2459,15 @@ declare module 'babylonjs-editor/editor/scene/scene-icons' {
             cameraTexture: Texture;
             lightTexture: Texture;
             particleTexture: Texture;
+            soundTexture: Texture;
             camerasPlanes: Mesh[];
             lightsPlanes: Mesh[];
             particleSystemsPlanes: Mesh[];
+            soundsPlanes: Mesh[];
             camerasMaterial: StandardMaterial;
             lightsMaterial: StandardMaterial;
             particleSystemsMaterial: StandardMaterial;
+            soundMaterial: StandardMaterial;
             protected editor: Editor;
             /**
                 * Constructor

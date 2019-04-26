@@ -128,7 +128,10 @@ export default class LightTool extends AbstractEditionTool<Light> {
      */
     protected resetToOriginal (): void {
         SerializationHelper.Parse(() => this.object, this.object.metadata.original, this.object.getScene(), 'file:');
-        setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
+        setTimeout(() => {
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.graph.updateObjectMark(this.object);
+        }, 1);
         this.editor.edition.updateDisplay();
     }
 }

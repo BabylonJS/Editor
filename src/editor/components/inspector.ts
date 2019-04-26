@@ -208,6 +208,7 @@ export default class EditorInspector {
                 t.tool.onFinishChange(t.tool.element, (property, result, object, initialValue) => {
                     UndoRedo.Push({ baseObject: t.object, property: property, to: result, from: initialValue, object: object });
                     Tags.AddTagsTo(t.object, 'modified');
+                    this.editor.graph.updateObjectMark(t.object);
                     t.onModified && t.onModified();
                 });
 

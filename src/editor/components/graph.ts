@@ -403,11 +403,22 @@ export default class EditorGraph {
     }
 
     /**
+     * Updates the mark of the given object in graph
+     * @param obj the object to mark
+     */
+    public updateObjectMark (obj: any): void {
+        const added = Tags.MatchesQuery(obj, 'added');
+        const modified = Tags.MatchesQuery(obj, 'modified');
+        this.tree.markNode(obj.id, modified && !added);
+    }
+
+    /**
      * Configures the graph
      */
     public configure (): void {
         const scene = this.editor.core.scene;
-        const hasMetadata = n => {
+        const configure = n => {
+            // Type
             let type = 'default';
 
             if (Tags.HasTags(n) && (Tags.MatchesQuery(n, 'prefab') || Tags.MatchesQuery(n, 'prefab-master')))
@@ -420,12 +431,15 @@ export default class EditorGraph {
                 type = type === 'italic' ? 'boldItalic' : 'bold';
             }
 
-            return type;
+            this.tree.setType(n.id, type);
+
+            // Marked
+            this.updateObjectMark(n);
         };
 
-        scene.meshes.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
-        scene.cameras.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
-        scene.lights.forEach(n => this.tree.setType(n.id, hasMetadata(n)));
+        scene.meshes.forEach(n => configure(n));
+        scene.cameras.forEach(n => configure(n));
+        scene.lights.forEach(n => configure(n));
     }
 
     /**
@@ -465,24 +479,26 @@ export default class EditorGraph {
      */
     protected fillSounds (scene: Scene, root: Scene | Node): number {
         // Set sounds
-        if (scene.soundTracks.length === 0 || scene.soundTracks[0].soundCollection.length === 0)
+        if (!scene.soundTracks || scene.soundTracks.length === 0)
             return;
 
         let count = 0;
 
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
-                if (root === scene && !s['_connectedMesh']) {
+                s['id'] = s['id'] || BabylonTools.RandomId();
+
+                if (root === scene && !s['_connectedTransformNode']) {
                     this.tree.add({
-                        id: s['id'] || BabylonTools.RandomId(),
+                        id: s['id'],
                         text: s.name,
                         img: this.getIcon(s),
                         data: s
                     }, this.root);
                 }
-                else if (s['_connectedMesh'] === root) {
+                else if (s['_connectedTransformNode'] === root) {
                     this.tree.add({
-                        id: s['id'] || BabylonTools.RandomId(),
+                        id: s['id'],
                         text: s.name,
                         img: this.getIcon(s),
                         data: s

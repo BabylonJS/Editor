@@ -511,6 +511,7 @@ export default class Editor implements IUpdatable {
         this.scenePicker.onUpdateMesh = (m) => {
             this.edition.updateDisplay();
             Tags.AddTagsTo(m, 'modified');
+            this.graph.updateObjectMark(m);
         };
         this.scenePicker.onPickedMesh = (m) => {
             if (!this.core.disableObjectSelection)
@@ -658,6 +659,9 @@ export default class Editor implements IUpdatable {
 
         if (this.core.scene.cameras.length > 1)
             this.camera.doNotSerialize = true;
+
+        // Tags
+        Tags.AddTagsTo(this.camera, 'added');
 
         // Update graph node
         if (graphNode)

@@ -197,7 +197,10 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         if (this._currentMesh.metadata.original.rotationQuaternion === undefined)
             this._currentMesh.rotationQuaternion = null;
 
-        setTimeout(() => Tags.RemoveTagsFrom(this.object, 'modified'), 1);
+        setTimeout(() => {
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.graph.updateObjectMark(this.object);
+        }, 1);
         this.editor.edition.updateDisplay();
     }
 

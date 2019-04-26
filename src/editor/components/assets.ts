@@ -377,6 +377,7 @@ export default class EditorAssets {
 
             component.onDragAndDropAsset(pick.pickedMesh, asset, pick);
             this.editor.core.onSelectObject.notifyObservers(pick.pickedMesh);
+            this.editor.graph.configure();
             this.refresh(component.id);
         };
     }
