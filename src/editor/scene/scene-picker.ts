@@ -134,7 +134,7 @@ export default class ScenePicker {
 
         // Attach mesh and configure
         this.setGizmoAttachedMesh(this.editor.core.currentSelectedObject);
-        this.currentGizmo.scaleRatio = 2;
+        this.currentGizmo.scaleRatio = 2.5;
 
         // Events
         if (!(this.currentGizmo instanceof BoundingBoxGizmo)) {

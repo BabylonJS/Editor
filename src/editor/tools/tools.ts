@@ -315,6 +315,21 @@ export default class Tools {
     }
 
     /**
+     * Copy the values of all of the enumerable own properties from one or more source objects to a
+     * target object. Returns the target object.
+     * @param target The target object to copy to.
+     * @param sources One or more source objects from which to copy properties
+     */
+    public static Assign<T> (target: Object, ...sources: Object[]): T {
+        sources.forEach(a => {
+            for (const key in a)
+                target[key] = a[key];
+        });
+
+        return <T> target;
+    }
+
+    /**
      * Reads the given file
      * @param file the file to read
      * @param arrayBuffer if should read as array buffer

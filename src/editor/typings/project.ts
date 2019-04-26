@@ -83,8 +83,8 @@ export interface ProjectTexture {
 }
 
 /**
-* Custom physics impostors
-*/
+ * Custom physics impostors
+ */
 export interface PhysicsImpostor {
     physicsMass: number;
     physicsFriction: number;
@@ -92,9 +92,13 @@ export interface PhysicsImpostor {
     physicsImpostor: number;
 }
 
+export interface Skeleton {
+    serializationObject: any;
+}
+
 /**
-* Modified nodes in the editor (custom animations, for custom materials, etc.)
-*/
+ * Modified nodes in the editor (custom animations, for custom materials, etc.)
+ */
 export interface Node {
     name: string; // The node name
     id: string; // The node id
@@ -102,6 +106,7 @@ export interface Node {
     animations: Animation[]; // Animations of the node
     actions?: any; // Related actions of the node
     physics?: PhysicsImpostor;
+    skeleton?: Skeleton;
 
     serializationObject?: any;
 }

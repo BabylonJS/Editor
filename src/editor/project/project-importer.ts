@@ -103,6 +103,15 @@ export default class ProjectImporter {
                                 Geometry.Parse(v, scene, 'file:');
                             });
                         }
+                        // Skeleton
+                        if (n.skeleton) {
+                            const existing = scene.getSkeletonById(n.skeleton.serializationObject.id);
+                            if (existing) {
+                                Tools.Assign(existing, n.skeleton.serializationObject);
+                                Tags.AddTagsTo(existing, 'modified');
+                            }
+                        }
+
                         // Mesh
                         n.serializationObject.meshes.forEach(m => {
                             const existingMesh = scene.getMeshByID(m.id);

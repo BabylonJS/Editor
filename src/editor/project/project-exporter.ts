@@ -563,6 +563,16 @@ export default class ProjectExporter {
                             node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));
                         }
                         else {
+                            // Skeleton
+                            if (node.serializationObject.skeletons && Tags.MatchesQuery(n.skeleton, 'modified')) {
+                                node.skeleton = {
+                                    serializationObject: this._MergeModifedProperties(n.skeleton, n.skeleton.serialize())
+                                };
+                                // Don't save bones
+                                delete node.skeleton.serializationObject.bones;
+                            }
+
+                            // Remove unnecessary informations
                             delete node.serializationObject.geometries;
                             delete node.serializationObject.materials;
                             delete node.serializationObject.skeletons;
@@ -579,7 +589,7 @@ export default class ProjectExporter {
                     }
                 }
                 else {
-                    modified ? node.serializationObject = this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : node.serializationObject = this._ClearOriginalMetadata((<Camera | Light> n).serialize());
+                    node.serializationObject = modified ? this._MergeModifedProperties(n, (<Camera | Light> n).serialize()) : this._ClearOriginalMetadata((<Camera | Light> n).serialize());
                 }
             }
 

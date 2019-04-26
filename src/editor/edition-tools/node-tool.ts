@@ -49,9 +49,8 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         this._enabled = node.isEnabled();
 
         // Reset
-        if (object instanceof Mesh && object.metadata && object.metadata.original) {
+        if (object instanceof Mesh && object.metadata && object.metadata.original)
             this.tool.add(this, 'resetToOriginal').name('Reset to original');
-        }
 
         // Common
         const common = this.tool.addFolder('Common');
