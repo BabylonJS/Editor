@@ -1,4 +1,4 @@
-import { Sound, Vector3, Animatable, Animation } from 'babylonjs';
+import { Sound, Vector3, Tags } from 'babylonjs';
 
 import AbstractEditionTool from './edition-tool';
 import Tools from '../tools/tools';
@@ -30,6 +30,10 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
 	*/
     public update(sound: Sound): void {
         super.update(sound);
+
+        // Reset
+        if (sound['metadata'] && sound['metadata'].original)
+            this.tool.add(this, 'resetToOriginal').name('Reset to original');
 
         // Common
         const common = this.tool.addFolder('Sound');
@@ -74,6 +78,43 @@ export default class SoundTool extends AbstractEditionTool<Sound> {
         }
 
         spatial.add(this, '_attachToMesh').name('Attach to mesh...');
+    }
+
+    /**
+     * Resets the current sound to the original one
+     */
+    protected resetToOriginal (): void {
+        const m = this.object['metadata'].original;
+        
+        // Common
+        this.object.loop = m.loop;
+        this.object.setVolume(m.volume);
+        this.object.rolloffFactor = m.rolloffFactor;
+        this.object.setPlaybackRate(m.playbackRate);
+        this.object.spatialSound = m.spatialSound;
+
+        // Spatial
+        if (!m.connectedMeshId) {
+            this.object.detachFromMesh();
+            this.object.setPosition(Vector3.Zero());
+            this.editor.graph.setParent(this.object['id'], this.editor.graph.root);
+        } else {
+            const mesh = this.editor.core.scene.getMeshByID(m.connectedMeshId);
+            if (mesh) {
+                this.object.attachToMesh(mesh);
+                this.object.setPosition(Vector3.FromArray(m.position));
+                this.editor.graph.setParent(this.object['id'], mesh.id);
+            }
+        }
+
+        // Update
+        setTimeout(() => {
+            Tags.RemoveTagsFrom(this.object, 'modified');
+            this.editor.graph.updateObjectMark(this.object);
+        }, 1);
+
+        this.editor.edition.updateDisplay();
+        this.update(this.object);
     }
 
     // Pause sound

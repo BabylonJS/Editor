@@ -50,7 +50,7 @@ export default class SkeletonTool extends AbstractEditionTool<Skeleton> {
     }
 
     /**
-     * Resets the current light to the original one
+     * Resets the skeleton light to the original one
      */
     protected resetToOriginal (): void {
         const m = this._skeleton['metadata'].original;

@@ -299,12 +299,17 @@ export default class ProjectExporter {
 
         scene.soundTracks.forEach(st => {
             st.soundCollection.forEach(s => {
-                if (!Tags.HasTags(s) || !Tags.MatchesQuery(s, 'added'))
+                const added = Tags.MatchesQuery(s, 'added');
+                const modified = Tags.MatchesQuery(s, 'modified');
+
+                if (!added && !modified)
                     return;
 
                 result.push({
                     name: s.name,
-                    serializationObject: s.serialize()
+                    serializationObject: added ? s.serialize() : Tools.Assign(this._MergeModifedProperties(s, s.serialize()), {
+                        name: s.name
+                    })
                 });
             });
         });
@@ -532,6 +537,7 @@ export default class ProjectExporter {
                 name: n.name,
                 serializationObject: null,
                 physics: null,
+                added: Tags.MatchesQuery(n, 'added'),
                 type: n instanceof InstancedMesh ? 'InstancedMesh' :
                       n instanceof AbstractMesh ? 'Mesh' :
                       n instanceof Light ? 'Light' :
@@ -541,15 +547,14 @@ export default class ProjectExporter {
             if (Tags.MatchesQuery(n, 'added_particlesystem'))
                 addNodeToProject = true;
             
-            const added = Tags.MatchesQuery(n, 'added');
             const modified = Tags.MatchesQuery(n, 'modified');
 
-            if (Tags.HasTags(n) && (added || modified) && !prefab) {
+            if (Tags.HasTags(n) && (node.added || modified) && !prefab) {
                 addNodeToProject = true;
                 if (n instanceof AbstractMesh) {
                     // Instance
                     if (n instanceof InstancedMesh) {
-                        if (added) {
+                        if (node.added) {
                             node.serializationObject = this._ClearOriginalMetadata(n.serialize());
                             node.serializationObject.sourceMesh = n.sourceMesh.id;
                         } else {
@@ -559,7 +564,7 @@ export default class ProjectExporter {
                     // Mesh
                     else {
                         node.serializationObject = SceneSerializer.SerializeMesh(n, false, false);
-                        if (added) {
+                        if (node.added) {
                             node.serializationObject.meshes.forEach(m => this._ClearOriginalMetadata(m));
                         }
                         else {

@@ -106,6 +106,10 @@ export default class EditorGraph {
 
         this.tree.onCanDrag = (id, data) => !(data instanceof Scene);
         this.tree.onDrag = (node: any, parent: any) => {
+            // Add modified tag
+            Tags.AddTagsTo(node, 'modified');
+
+            // Search operation
             if (node instanceof ParticleSystem) {
                 if (!(parent instanceof AbstractMesh))
                     return false;
@@ -166,6 +170,8 @@ export default class EditorGraph {
                 }
             }
 
+            // No action, remove tag and reset
+            Tags.RemoveTagsFrom(node, 'modified');
             return false;
         };
 

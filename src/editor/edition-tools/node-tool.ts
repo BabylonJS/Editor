@@ -24,7 +24,7 @@ export default class NodeTool extends AbstractEditionTool<Node> {
     private _currentCamera: boolean = false;
 
     private _highlightEnabled: boolean = false;
-    private _currentMesh: Mesh = null;
+    private _currentObject: Mesh | InstancedMesh | Camera = null;
 
     /**
      * Returns if the object is supported
@@ -49,8 +49,10 @@ export default class NodeTool extends AbstractEditionTool<Node> {
         this._enabled = node.isEnabled();
 
         // Reset
-        if (object instanceof Mesh && object.metadata && object.metadata.original)
+        if ((object instanceof Mesh || object instanceof InstancedMesh || object instanceof Camera) && object.metadata && object.metadata.original) {
+            this._currentObject = object;
             this.tool.add(this, 'resetToOriginal').name('Reset to original');
+        }
 
         // Common
         const common = this.tool.addFolder('Common');
@@ -62,8 +64,6 @@ export default class NodeTool extends AbstractEditionTool<Node> {
             common.add(node, 'isVisible').name('Is Visible');
 
         if (object instanceof Mesh) {
-            this._currentMesh = object;
-
             // Material
             const materials = ['None'].concat(this.editor.core.scene.materials.map(m => m.name));
             this._currentMaterial = object.material ? object.material.name : 'None';
@@ -190,11 +190,23 @@ export default class NodeTool extends AbstractEditionTool<Node> {
      * Resets the current light to the original one
      */
     protected resetToOriginal (): void {
-        SerializationHelper.Parse(() => this._currentMesh, this._currentMesh.metadata.original, this._currentMesh.getScene(), 'file:');
+        const m = this._currentObject.metadata.original;
+
+        // Parse
+        SerializationHelper.Parse(() => this._currentObject, m, this._currentObject.getScene(), 'file:');
+
+        // Parenting
+        if (m.parentId && (!this._currentObject.parent || this._currentObject.parent.id !== m.parentId)) {
+            this._currentObject.parent = this._currentObject.getScene().getMeshByID(m.parentId);
+            this.editor.graph.setParent(this._currentObject.id, m.parentId);
+        } else if (this._currentObject.parent) {
+            this._currentObject.parent = null;
+            this.editor.graph.setParent(this._currentObject.id, this.editor.graph.root);
+        }
 
         // Rotation quaternion
-        if (this._currentMesh.metadata.original.rotationQuaternion === undefined)
-            this._currentMesh.rotationQuaternion = null;
+        if (this._currentObject instanceof AbstractMesh && m.rotationQuaternion === undefined)
+            this._currentObject.rotationQuaternion = null;
 
         setTimeout(() => {
             Tags.RemoveTagsFrom(this.object, 'modified');

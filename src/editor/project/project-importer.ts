@@ -75,7 +75,8 @@ export default class ProjectImporter {
                             delete n.serializationObject.metadata;
                             node = SerializationHelper.Parse(() => existingLight, n.serializationObject, scene, 'file:');
                             Tags.AddTagsTo(node, 'modified');
-                        } else {
+                        }
+                        else if (n.added === undefined || n.added) {
                             node = Light.Parse(n.serializationObject, scene);
                             Tags.AddTagsTo(node, 'added');
                         }
@@ -86,7 +87,7 @@ export default class ProjectImporter {
                             node = SerializationHelper.Parse(() => existing, n.serializationObject, scene, 'file:');
                             Tags.AddTagsTo(existing, 'modified');
                         }
-                        else {
+                        else if (n.added === undefined || n.added) {
                             const source = <Mesh> scene.getMeshByID(n.serializationObject.sourceMesh);
                             if (!source)
                                 break;
@@ -119,10 +120,15 @@ export default class ProjectImporter {
                                 delete m.metadata;
                                 node = SerializationHelper.Parse(() => existingMesh, m, scene, 'file:');
                                 Tags.AddTagsTo(node, 'modified');
-                            } else {
+                            }
+                            else if (n.added === undefined || n.added) {
                                 node = Mesh.Parse(m, scene, 'file:');
                                 Tags.AddTagsTo(node, 'added');
                             }
+
+                            // Parent id
+                            if (m.parentId)
+                                node['_waitingParentId'] = m.parentId;
                         });
                         break;
                     case 'Camera':
@@ -131,7 +137,8 @@ export default class ProjectImporter {
                             delete n.serializationObject.metadata;
                             node = SerializationHelper.Parse(() => existingCamera, n.serializationObject, scene, 'file:');
                             Tags.AddTagsTo(node, 'modified');
-                        } else {
+                        }
+                        else if (n.added === undefined || n.added) {
                             node = Camera.Parse(n.serializationObject, scene);
                             Tags.AddTagsTo(node, 'added');
                         }
@@ -157,6 +164,10 @@ export default class ProjectImporter {
             // Node not found
             if (!node)
                 return;
+
+            // Parent id
+            if (n.serializationObject.parentId)
+                node['_waitingParentId'] = n.serializationObject.parentId;
 
             // Node animations
             if (n.animations) {
@@ -251,8 +262,31 @@ export default class ProjectImporter {
 
         // Sounds
         project.sounds.forEach(s => {
-            const sound = Sound.Parse(s.serializationObject, scene, 'file:');
-            Tags.AddTagsTo(sound, 'added');
+            const existing = scene.getSoundByName(s.serializationObject.name);
+            if (existing) {
+                // Common
+                s.serializationObject.loop !== undefined && (existing.loop = s.serializationObject.loop);
+                s.serializationObject.volume !== undefined && existing.setVolume(s.serializationObject.volume);
+                s.serializationObject.rolloffFactor !== undefined && (existing.rolloffFactor = s.serializationObject.rolloffFactor);
+                s.serializationObject.playbackRate !== undefined && existing.setPlaybackRate(s.serializationObject.playbackRate);
+
+                // Spatial
+                if (!s.serializationObject.connectedMeshId) {
+                    existing.detachFromMesh();
+                    existing.setPosition(Vector3.Zero());
+                } else {
+                    const mesh = editor.core.scene.getMeshByID(s.serializationObject.connectedMeshId);
+                    if (mesh) {
+                        existing.attachToMesh(mesh);
+                        s.serializationObject.position !== undefined && existing.setPosition(Vector3.FromArray(s.serializationObject.position));
+                    }
+                }
+
+                Tags.AddTagsTo(existing, 'modified');
+            } else {
+                const sound = Sound.Parse(s.serializationObject, scene, 'file:');
+                Tags.AddTagsTo(sound, 'added');
+            }
         });
 
         // Actions (scene)

@@ -269,6 +269,13 @@ declare module 'babylonjs-editor/editor/tools/tools' {
                 */
             static ConvertStringToUInt8Array(str: string): Uint8Array;
             /**
+                * Copy the values of all of the enumerable own properties from one or more source objects to a
+                * target object. Returns the target object.
+                * @param target The target object to copy to.
+                * @param sources One or more source objects from which to copy properties
+                */
+            static Assign<T>(target: Object, ...sources: Object[]): T;
+            /**
                 * Reads the given file
                 * @param file the file to read
                 * @param arrayBuffer if should read as array buffer
@@ -1467,17 +1474,20 @@ declare module 'babylonjs-editor/editor/typings/project' {
             newInstance: boolean;
     }
     /**
-     * Custom physics impostors
-     */
+        * Custom physics impostors
+        */
     export interface PhysicsImpostor {
             physicsMass: number;
             physicsFriction: number;
             physicsRestitution: number;
             physicsImpostor: number;
     }
+    export interface Skeleton {
+            serializationObject: any;
+    }
     /**
-     * Modified nodes in the editor (custom animations, for custom materials, etc.)
-     */
+        * Modified nodes in the editor (custom animations, for custom materials, etc.)
+        */
     export interface Node {
             name: string;
             id: string;
@@ -1485,6 +1495,8 @@ declare module 'babylonjs-editor/editor/typings/project' {
             animations: Animation[];
             actions?: any;
             physics?: PhysicsImpostor;
+            skeleton?: Skeleton;
+            added?: boolean;
             serializationObject?: any;
     }
     /**

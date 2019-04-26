@@ -108,6 +108,7 @@ export interface Node {
     physics?: PhysicsImpostor;
     skeleton?: Skeleton;
 
+    added?: boolean;
     serializationObject?: any;
 }
 
