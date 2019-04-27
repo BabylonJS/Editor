@@ -15,6 +15,14 @@ export default class VSCodeSocket {
 
     // Private members
     private static _Editor: Editor = null;
+    
+    private static _TsConfig: string = null;
+    private static _BabylonJS: string = null;
+    private static _BabylonJSMaterials: string = null;
+    private static _BabylonJSPostProcess: string = null;
+    private static _Tools: string = null;
+    private static _Mobile: string = null;
+    private static _PathFinder: string = null;
 
     /**
      * Creates a scene preview listener
@@ -67,13 +75,13 @@ export default class VSCodeSocket {
      */
     public static async RefreshProject (): Promise<void> {
         this.Socket.emit('project', {
-            tsconfig: await Tools.LoadFile<string>('assets/templates/vscode/tsconfig.json'),
-            babylonjs: await Tools.LoadFile<string>('assets/typings/babylon.module.d.ts'),
-            babylonjs_materials: await Tools.LoadFile<string>('assets/typings/babylonjs.materials.module.d.ts'),
-            babylonjs_postProcess: await Tools.LoadFile<string>('assets/typings/babylonjs.postProcess.module.d.ts'),
-            tools: await Tools.LoadFile<string>('assets/templates/code/tools.d.ts'),
-            mobile: await Tools.LoadFile<string>('assets/templates/code/mobile.d.ts'),
-            pathFinder: await Tools.LoadFile<string>('assets/templates/code/path-finder.d.ts'),
+            tsconfig: this._TsConfig || (this._TsConfig = await Tools.LoadFile<string>('assets/templates/vscode/tsconfig.json')),
+            babylonjs: this._BabylonJS || (this._BabylonJS = await Tools.LoadFile<string>('assets/typings/babylon.module.d.ts')),
+            babylonjs_materials: this._BabylonJSMaterials || (this._BabylonJSMaterials = await Tools.LoadFile<string>('assets/typings/babylonjs.materials.module.d.ts')),
+            babylonjs_postProcess: this._BabylonJSPostProcess || (this._BabylonJSPostProcess = await Tools.LoadFile<string>('assets/typings/babylonjs.postProcess.module.d.ts')),
+            tools: this._Tools || (this._Tools = await Tools.LoadFile<string>('assets/templates/code/tools.d.ts')),
+            mobile: this._Mobile || (this._Mobile = await Tools.LoadFile<string>('assets/templates/code/mobile.d.ts')),
+            pathFinder: this._PathFinder || (this._PathFinder = await Tools.LoadFile<string>('assets/templates/code/path-finder.d.ts')),
         });
     }
 

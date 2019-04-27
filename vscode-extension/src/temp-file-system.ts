@@ -128,7 +128,7 @@ export default class TempFileSystem {
 
         // Write libs
         const libs = Object.keys(this._libs).map(k => this._libs[k]).join('\n');
-        await fs.writeFile(join(Utils.TempFolder, 'behaviors.d.ts'), Buffer.from(libs));
+        await fs.writeFile(join(Utils.TempFolder, 'typings', 'behaviors.d.ts'), Buffer.from(libs));
     }
 
     /**

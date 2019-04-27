@@ -111,16 +111,14 @@ export default abstract class Storage {
         this._uploadedCount = 0;
         this.filesCount = this.recursivelyGetFilesToUploadCount(filesToWrite);
 
-        this.editor.layout.element.sizeTo('bottom', 50);
-        this.editor.layout.lockPanel('bottom', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+        this.editor.toolbar.notifyRightMessage(`Uploading... (${this._uploadedCount} / ${this.filesCount})`);
 
         this.onCreateFiles && this.onCreateFiles(folder);
 
         await this.recursivelyCreateFiles(folder, filesToWrite);
 
         // Unlock
-        this.editor.layout.unlockPanel('bottom');
-        this.editor.layout.element.sizeTo('bottom', 0);
+        this.editor.toolbar.notifyRightMessage('');
     }
 
     /**
@@ -200,7 +198,7 @@ export default abstract class Storage {
      */
     protected set uploadedCount (value: number) {
         this._uploadedCount = value;
-        this.editor.layout.lockPanel('bottom', `Uploading... (${this._uploadedCount} / ${this.filesCount})`, true);
+        this.editor.toolbar.notifyRightMessage(`Uploading... (${this._uploadedCount} / ${this.filesCount})`);
     }
 
     /**
