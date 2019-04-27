@@ -1553,6 +1553,7 @@ declare module 'babylonjs-editor/editor/typings/project' {
             customMetadatas?: IStringDictionary<any>;
             gui: any[];
             assets: IStringDictionary<AssetElement<any>[]>;
+            removedObjects?: IStringDictionary<any>;
             filesList?: string[];
     }
 }
@@ -1600,9 +1601,15 @@ declare module 'babylonjs-editor/editor/project/project-code-editor' {
 }
 
 declare module 'babylonjs-editor/editor/scene/scene-manager' {
-    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper } from 'babylonjs';
+    import { Scene, ActionManager, StandardRenderingPipeline, SSAORenderingPipeline, SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable, GlowLayer, HighlightLayer, EnvironmentHelper, Node, Sound } from 'babylonjs';
+    import Editor from 'babylonjs-editor/editor/editor';
     import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     import PostProcessesExtension from 'babylonjs-editor/extensions/post-process/post-processes';
+    export interface RemovedObject {
+            reference?: Node | Sound;
+            type?: string;
+            serializationObject: any;
+    }
     export default class SceneManager {
             static ActionManagers: IStringDictionary<ActionManager>;
             static StandardRenderingPipeline: StandardRenderingPipeline;
@@ -1613,6 +1620,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
             static HighLightLayer: HighlightLayer;
             static EnvironmentHelper: EnvironmentHelper;
             static PostProcessExtension: PostProcessesExtension;
+            static RemovedObjects: IStringDictionary<RemovedObject>;
             /**
                 * Clears the scene manager
                 */
@@ -1663,6 +1671,17 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
                 * @param scene the scene containing the textures
                 */
             static CleanUnusedTextures(scene: Scene): number;
+            /**
+                * Saves the removed objects references
+                * @param scene the scene containing the objects to remove
+                * @param removedObjects the removed objects references
+                */
+            static ApplyRemovedObjects(scene: Scene, removedObjects: IStringDictionary<any>): void;
+            /**
+                * Draws a dialog to restore removed objects
+                * @param editor the editor reference
+                */
+            static RestoreRemovedObjects(editor: Editor): void;
     }
 }
 

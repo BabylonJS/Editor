@@ -396,6 +396,7 @@ export default class ProjectImporter {
         project.globalConfiguration = project.globalConfiguration || { };
         project.assets = project.assets || { };
         project.textures = project.textures || [];
+        project.removedObjects = project.removedObjects || { };
 
         // Importer errors
         project.effectLayers.forEach(el => {

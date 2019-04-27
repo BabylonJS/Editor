@@ -1,13 +1,23 @@
 import {
+    Tools as BabylonTools,
     Scene, Material, BaseTexture, RenderTargetTexture,
     ActionManager, StandardRenderingPipeline, SSAORenderingPipeline,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
     ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
-    SceneSerializer, InstancedMesh
+    SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper
 } from 'babylonjs';
+import * as BABYLON from 'babylonjs';
 
+import Editor from '../editor';
 import { IStringDictionary } from '../typings/typings';
 import PostProcessesExtension from '../../extensions/post-process/post-processes';
+import Picker from '../gui/picker';
+
+export interface RemovedObject {
+    reference?: Node | Sound;
+    type?: string;
+    serializationObject: any;
+}
 
 export default class SceneManager {
     // Public members
@@ -23,6 +33,8 @@ export default class SceneManager {
     public static EnvironmentHelper: EnvironmentHelper = null;
 
     public static PostProcessExtension: PostProcessesExtension = null;
+
+    public static RemovedObjects: IStringDictionary<RemovedObject> = { };
 
     /**
      * Clears the scene manager
@@ -41,6 +53,7 @@ export default class SceneManager {
         this.SSAORenderingPipeline = null;
 
         this.EnvironmentHelper = null;
+        this.RemovedObjects = { };
     }
 
     /**
@@ -218,5 +231,111 @@ export default class SceneManager {
         }
 
         return count;
+    }
+
+    /**
+     * Saves the removed objects references
+     * @param scene the scene containing the objects to remove
+     * @param removedObjects the removed objects references
+     */
+    public static ApplyRemovedObjects (scene: Scene, removedObjects: IStringDictionary<any>): void {
+        // Save
+        this.RemovedObjects = removedObjects;
+
+        // Apply
+        for (const id in this.RemovedObjects) {
+            // Value
+            const value = this.RemovedObjects[id];
+
+            // Node
+            const n = scene.getNodeByID(id);
+            if (n) {
+                value.reference = n;
+                n.dispose(true, false);
+                continue;
+            }
+
+            // Sound
+            scene.soundTracks && scene.soundTracks.forEach(st => {
+                const s = st.soundCollection.find(s => s.name === id);
+                if (!s)
+                    return;
+
+                s.stop();
+                value.reference = s;
+                s.dispose();
+            });
+        }
+    }
+
+    /**
+     * Draws a dialog to restore removed objects
+     * @param editor the editor reference
+     */
+    public static RestoreRemovedObjects (editor: Editor): void {
+        const keys = Object.keys(this.RemovedObjects);
+        
+        const picker = new Picker('Restore Removed Objects...');
+        picker.addItems(keys.map(i => ({ name: this.RemovedObjects[i].serializationObject.name })));
+        picker.open(items => {
+            const errors: string[] = [];
+
+            items.forEach(i => {
+                const value = this.RemovedObjects[keys[i.id]];
+                let result: Node | Sound = null;
+
+                // Instanced mesh
+                if (value.reference instanceof InstancedMesh) {
+                    const source = <Mesh> editor.core.scene.getMeshByID(value.serializationObject.sourceMesh);
+                    if (!source) {
+                        errors.push(`Can't restore instanced mesh "${i.name}". Source mesh wasn't found.`);
+                        return;
+                    }
+                    
+                    result = source.createInstance(value.serializationObject.name);
+                    SerializationHelper.Parse(() => result, value.serializationObject, editor.core.scene, 'file:');
+                }
+                // Other
+                else {
+                    const ctor = BABYLON[value.type];
+                    if (!ctor || !ctor.Parse) {
+                        errors.push(`Can't restore node "${i.name}": object can't be re-created`);
+                        return;
+                    }
+
+                    result = ctor.Parse(value.serializationObject, editor.core.scene, 'file:');
+                }
+
+                if (result instanceof Node) {
+                    result.parent = editor.core.scene.getNodeByID(value.serializationObject.parentId);
+                    editor.graph.add({
+                        data: result,
+                        id: result.id,
+                        img: editor.graph.getIcon(result),
+                        text: result.name,
+                    }, result.parent ? result.parent.id : editor.graph.root);
+                }
+                else if (result instanceof Sound) {
+                    result['id'] = result['id'] || BabylonTools.RandomId();
+                    editor.graph.add({
+                        data: result,
+                        id: result['id'],
+                        img: editor.graph.getIcon(result),
+                        text: result.name,
+                    }, result.spatialSound && result['_connectedTransformNode'] ? result['_connectedTransformNode'].id : editor.graph.root);
+                }
+
+                // Finalize
+                result['metadata'] = result['metadata'] || { };
+                result['metadata'].original = value.serializationObject;
+                delete this.RemovedObjects[keys[i.id]];
+                editor.graph.configure();
+            });
+
+            if (errors.length > 0) {
+                // TODO: notify
+                debugger;
+            }
+        });
     }
 }

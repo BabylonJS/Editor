@@ -214,7 +214,11 @@ export default class SceneLoader {
                 this._CurrentProject = JSON.parse(content);
 
                 try {
+                    // Apply project
                     await ProjectImporter.Import(editor, this._CurrentProject);
+
+                    // Removed objects
+                    SceneManager.ApplyRemovedObjects(scene, this._CurrentProject.removedObjects);
                 } catch (e) {
                     this._OnError('Error while loading project', e.message);
                 }

@@ -11,7 +11,7 @@ import {
 } from 'babylonjs';
 import { GLTF2Export, GLTFData } from 'babylonjs-serializers';
 
-import SceneManager from '../scene/scene-manager';
+import SceneManager, { RemovedObject } from '../scene/scene-manager';
 import SceneExporter from '../scene/scene-exporter';
 
 import Window from '../gui/window';
@@ -226,6 +226,7 @@ export default class ProjectExporter {
             effectLayers: this._SerializeEffectLayers(editor),
             environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null,
             assets: this._SerializeAssets(editor),
+            removedObjects: this._SerializeRemovedObjects(),
             filesList: []
         };
 
@@ -506,6 +507,25 @@ export default class ProjectExporter {
         if (SceneManager.HighLightLayer)
             result.push({ name: 'HighLightLayer', serializationObject: SceneManager.HighLightLayer.serialize() });
         
+        return result;
+    }
+
+    /**
+     * Serializes the removed objects to keep references
+     */
+    public static _SerializeRemovedObjects (): IStringDictionary<RemovedObject> {
+        const result: IStringDictionary<RemovedObject> = { };
+
+        // Set type
+        for (const key in SceneManager.RemovedObjects) {
+            const value = SceneManager.RemovedObjects[key];
+
+            result[key] = {
+                serializationObject: value.serializationObject,
+                type: Tools.GetConstructorName(value.reference)
+            }
+        }
+
         return result;
     }
 

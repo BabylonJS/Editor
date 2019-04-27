@@ -63,6 +63,8 @@ export default class EditorToolbar {
                     { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
                     { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' },
                     { type: 'break' },
+                    { id: 'restore-removed-object', img: 'icon-recycle', text: 'Restore Removed Object...' },
+                    { type: 'break' },
                     { id: 'set-theme-light', img: 'icon-helpers', text: 'Light Theme' },
                     { id: 'set-theme-dark', img: 'icon-helpers', text: 'Dark Theme' }
                 ]
@@ -225,6 +227,11 @@ export default class EditorToolbar {
                 Window.CreateAlert(`Cleared ${SceneManager.CleanUnusedTextures(this.editor.core.scene)} textures`, 'Report');
                 break;
 
+
+            case 'edit:restore-removed-object':
+                SceneManager.RestoreRemovedObjects(this.editor);
+                break;
+            
             case 'edit:set-theme-light':
                 ThemeSwitcher.ThemeName = 'Light';
                 break;

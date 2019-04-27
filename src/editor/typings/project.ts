@@ -176,5 +176,6 @@ export interface ProjectRoot {
     gui: any[];
     assets: IStringDictionary<AssetElement<any>[]>;
 
+    removedObjects?: IStringDictionary<any>;
     filesList?: string[];
 }

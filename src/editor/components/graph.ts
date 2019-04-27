@@ -18,6 +18,7 @@ import Tree, { TreeNode, TreeContextMenuItem } from '../gui/tree';
 import UndoRedo from '../tools/undo-redo';
 
 import ScenePicker from '../scene/scene-picker';
+import SceneManager from '../scene/scene-manager';
 
 export default class EditorGraph {
     // Public members
@@ -652,6 +653,10 @@ export default class EditorGraph {
                             });
 
                             Tags.RemoveTagsFrom(d.node, 'removed');
+
+                            // Remove reference
+                            if (d.node.metadata && d.node.metadata.original)
+                                delete SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id];
                         });
 
                         // Fill children
@@ -677,6 +682,17 @@ export default class EditorGraph {
                             });
 
                             Tags.AddTagsTo(d.node, 'removed');
+
+                            // Save reference
+                            if (d.node.metadata && d.node.metadata.original) {
+                                SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id] = {
+                                    reference: d.node,
+                                    type: Tools.GetConstructorName(d.node),
+                                    serializationObject: Tools.Assign({ }, d.node.metadata.original, {
+                                        sourceMesh: d.node instanceof InstancedMesh ? d.node.sourceMesh.id : undefined
+                                    })
+                                };
+                            }
                         });
 
                         this.tree.remove(node.id);

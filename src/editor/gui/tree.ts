@@ -408,12 +408,12 @@ export default class Tree {
                 }
             });
 
-            this.element.dblclick(() => {
-                if (this.onDblClick) {
-                    const node = this.getSelected();
-                    this.onDblClick(node.id, node.data);
-                }
-            });
+        this.element.dblclick(() => {
+            if (this.onDblClick) {
+                const node = this.getSelected();
+                node && this.onDblClick(node.id, node.data);
+            }
+        });
 
         this.element.focusin(() => this.isFocused = true);
         this.element.focusout(() => this.isFocused = false);
