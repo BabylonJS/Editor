@@ -2426,6 +2426,11 @@ declare module 'babylonjs-editor/editor/scene/scene-picker' {
                 */
             constructor(editor: Editor, scene: Scene, canvas: HTMLCanvasElement);
             /**
+                * Configures the given mesh
+                * @param mesh the mesh to configure
+                */
+            configureMesh(mesh: AbstractMesh): void;
+            /**
              * Sets if the scene picker is enabled
              */
             enabled: boolean;

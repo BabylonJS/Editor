@@ -4,14 +4,17 @@ import {
     ActionManager, StandardRenderingPipeline, SSAORenderingPipeline,
     SSAO2RenderingPipeline, DefaultRenderingPipeline, IAnimatable,
     ParticleSystem, GlowLayer, HighlightLayer, Animatable, EnvironmentHelper,
-    SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper
+    SceneSerializer, InstancedMesh, Node, Sound, Mesh, SerializationHelper,
+    AbstractMesh
 } from 'babylonjs';
 import * as BABYLON from 'babylonjs';
 
 import Editor from '../editor';
 import { IStringDictionary } from '../typings/typings';
 import PostProcessesExtension from '../../extensions/post-process/post-processes';
+
 import Picker from '../gui/picker';
+import Window from '../gui/window';
 
 export interface RemovedObject {
     reference?: Node | Sound;
@@ -99,6 +102,7 @@ export default class SceneManager {
         scene.lights.forEach(l => set(l, l.serialize()));
         scene.cameras.forEach(c => set(c, c.serialize()));
         scene.textures.forEach(t => set(t, t.serialize()));
+        scene.transformNodes.forEach(t => set(t, t.serialize()));
         scene.soundTracks && scene.soundTracks.forEach(st => {
            st.soundCollection.forEach(s => set(s, s.serialize()));
         });
@@ -282,14 +286,17 @@ export default class SceneManager {
 
             items.forEach(i => {
                 const value = this.RemovedObjects[keys[i.id]];
+                const parent = value.reference instanceof Node ? value.reference.parent : value.reference['_connectedTransformNode'];
+                if (parent && !editor.core.scene.getNodeByID(parent.id))
+                    return errors.push(`Can't restore node "${i.name}": the original parent does not exist in scene ("${parent.name}")`);
+                
                 let result: Node | Sound = null;
 
                 // Instanced mesh
                 if (value.reference instanceof InstancedMesh) {
                     const source = <Mesh> editor.core.scene.getMeshByID(value.serializationObject.sourceMesh);
                     if (!source) {
-                        errors.push(`Can't restore instanced mesh "${i.name}". Source mesh wasn't found.`);
-                        return;
+                        return errors.push(`Can't restore instanced mesh "${i.name}". Source mesh wasn't found.`);
                     }
                     
                     result = source.createInstance(value.serializationObject.name);
@@ -298,16 +305,17 @@ export default class SceneManager {
                 // Other
                 else {
                     const ctor = BABYLON[value.type];
-                    if (!ctor || !ctor.Parse) {
-                        errors.push(`Can't restore node "${i.name}": object can't be re-created`);
-                        return;
-                    }
+                    if (!ctor || !ctor.Parse)
+                        return errors.push(`Can't restore node "${i.name}": object can't be re-created as the .Parse function does not exist`);
 
                     result = ctor.Parse(value.serializationObject, editor.core.scene, 'file:');
                 }
 
                 if (result instanceof Node) {
-                    result.parent = editor.core.scene.getNodeByID(value.serializationObject.parentId);
+                    if (result instanceof AbstractMesh)
+                        editor.scenePicker.configureMesh(result);
+                    
+                    result.parent = parent;
                     editor.graph.add({
                         data: result,
                         id: result.id,
@@ -316,6 +324,11 @@ export default class SceneManager {
                     }, result.parent ? result.parent.id : editor.graph.root);
                 }
                 else if (result instanceof Sound) {
+                    // Parent
+                    if (parent)
+                        result.attachToMesh(parent);
+                    
+                    // Add
                     result['id'] = result['id'] || BabylonTools.RandomId();
                     editor.graph.add({
                         data: result,
@@ -333,8 +346,9 @@ export default class SceneManager {
             });
 
             if (errors.length > 0) {
-                // TODO: notify
-                debugger;
+                setTimeout(() => {
+                    Window.CreateAlert(errors.join('\n'), 'Errors found');
+                }, 1000);
             }
         });
     }

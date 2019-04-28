@@ -292,6 +292,7 @@ export default class EditorGraph {
             scene.cameras.forEach(c => !c.parent && nodes.push(c));
             scene.lights.forEach(l => !l.parent && nodes.push(l));
             scene.meshes.forEach(m => !m.parent && nodes.push(m));
+            scene.transformNodes.forEach(t => !t.parent && nodes.push(t));
 
             // Fill sounds
             this.fillSounds(scene, scene);
@@ -307,8 +308,11 @@ export default class EditorGraph {
                 return;
             
             // Create a random ID if not defined
-            if (!n.id || this.tree.get(n.id))
+            if (!n.id || this.tree.get(n.id)) {
                 n.id = BabylonTools.RandomId();
+                if (n.metadata && n.metadata.original)
+                    n.metadata.original.id = n.id;
+            }
 
             n.id = n.id.replace(/ /g, '');
 
@@ -612,7 +616,7 @@ export default class EditorGraph {
             // Remove
             case 'remove':
                 // Don't remove editor's camera
-                if (node.data === this.editor.camera)
+                if (node.data === this.editor.camera || node.data === this.editor.core.scene)
                     return;
                 
                 // Undo / redo
@@ -627,9 +631,18 @@ export default class EditorGraph {
                                          [];
                     const particleSystems = scene.particleSystems.filter(p => p.emitter === n);
 
+                    const sounds: Sound[] = [];
+                    scene.soundTracks.forEach(st => st.soundCollection.forEach(s => s['_connectedTransformNode'] === n && sounds.push(s)));
+
                     return {
                         node: n,
                         array: array,
+                        sounds: sounds.map(s => ({
+                            soundTrackId: s.soundTrackId,
+                            isPlaying: s.isPlaying,
+                            treeNode: this.getByData(s),
+                            sound: s
+                        })),
                         particleSystems: particleSystems.map(p => ({
                             system: p,
                             treeNode: this.getByData(p)
@@ -644,12 +657,28 @@ export default class EditorGraph {
 
                         // Re-add descendants
                         descendants.forEach(d => {
+                            // Test if doesn't exists
+                            if (scene.getNodeByID(d.node.id))
+                                return Tags.RemoveTagsFrom(d.node, 'removed');
+
+                            for (const st of scene.soundTracks) {
+                                if (st.soundCollection.find(s => s.name === d.node.name))
+                                    return Tags.RemoveTagsFrom(d.node, 'removed');
+                            }
+                            
                             // Push
                             d.array.push(d.node);
                             d.particleSystems.forEach(p => {
                                 scene.particleSystems.push(p.system);
                                 this.tree.add(Object.assign({ }, p.treeNode, { img: this.getIcon(p.system) }), node.id);
                                 Tags.RemoveTagsFrom(p.system, 'removed');
+                            });
+                            d.sounds.forEach(s => {
+                                debugger;
+                                scene.soundTracks[s.soundTrackId].soundCollection.push(s.sound);
+                                s.isPlaying && s.sound.play();
+                                this.tree.add(Object.assign({ }, s.treeNode, { img: this.getIcon(s.sound) }), node.id);
+                                Tags.RemoveTagsFrom(s.sound, 'removed');
                             });
 
                             Tags.RemoveTagsFrom(d.node, 'removed');
@@ -663,11 +692,15 @@ export default class EditorGraph {
                         if (node.data instanceof Node)
                             this.fill(scene, node.data);
 
-                        // Select node
-                        this.tree.onClick(node.id, node.data);
+                        setTimeout(() => {
+                            // Select node
+                            this.tree.select(node.id);
+                            this.tree.onClick(node.id, node.data);
+                            this.currentObject = node.data;
 
-                        // Update graph
-                        this.configure();
+                            // Update graph
+                            this.configure();
+                        }, 1);
                     },
                     redo: () => {
                         descendants.forEach((d) => {
@@ -680,12 +713,25 @@ export default class EditorGraph {
                                 scene.particleSystems.splice(scene.particleSystems.indexOf(p.system), 1);
                                 Tags.AddTagsTo(p.system, 'removed');
                             });
+                            d.sounds.forEach(s => {
+                                scene.soundTracks[s.soundTrackId].soundCollection.splice(scene.soundTracks[s.soundTrackId].soundCollection.indexOf(s.sound), 1);
+                                Tags.AddTagsTo(s.sound, 'removed');
+
+                                // Save reference
+                                if (s.sound['metadata'] && s.sound['metadata'].original) {
+                                    SceneManager.RemovedObjects[s.sound.name] = {
+                                        reference: s.sound,
+                                        type: Tools.GetConstructorName(s.sound),
+                                        serializationObject: Tools.Assign({ }, s.sound['metadata'].original)
+                                    };
+                                }
+                            });
 
                             Tags.AddTagsTo(d.node, 'removed');
 
                             // Save reference
                             if (d.node.metadata && d.node.metadata.original) {
-                                SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id] = {
+                                SceneManager.RemovedObjects[d.node.id] = {
                                     reference: d.node,
                                     type: Tools.GetConstructorName(d.node),
                                     serializationObject: Tools.Assign({ }, d.node.metadata.original, {
@@ -701,6 +747,7 @@ export default class EditorGraph {
                         this.editor.scenePicker.setGizmoAttachedMesh(null);
 
                         // Update graph
+                        this.currentObject = null;
                         this.configure();
                     }
                 });

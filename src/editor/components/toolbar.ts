@@ -40,8 +40,8 @@ export default class EditorToolbar {
                     { id: 'reload-project', img: 'icon-copy', text: 'Reload...' },
                     { id: 'new-project', img: 'icon-copy', text: 'New Project...' },
                     { type: 'break' },
-                    { id: 'export-project', img: 'icon-files', text: 'Save Project...' },
-                    { id: 'export-project-as', img: 'icon-files', text: 'Save Project As...' },
+                    { id: 'export-project', img: 'icon-files', text: 'Save Project... <kbd>CTRL + S</kbd>' },
+                    { id: 'export-project-as', img: 'icon-files', text: 'Save Project As... <kbd>ALT + CTRL + S</kbd>' },
                     { type: 'break' },
                     { id: 'export-template', img: 'icon-files-project', text: 'Export Template...' }
                 ]
@@ -57,8 +57,8 @@ export default class EditorToolbar {
             { type: 'break' },
             {
                 type: 'menu', id: 'edit', text: 'Edit', img: 'icon-edit', items: [
-                    { id: 'undo', img: 'icon-undo', text: 'Undo' },
-                    { id: 'redo', img: 'icon-redo', text: 'Redo' },
+                    { id: 'undo', img: 'icon-undo', text: 'Undo <kbd>CTRL + Z</kbd>' },
+                    { id: 'redo', img: 'icon-redo', text: 'Redo <kbd>CTRL + Y</kbd>' },
                     { type: 'break' },
                     { id: 'clean-materials', img: 'icon-recycle', text: 'Clean Unused Materials' },
                     { id: 'clean-textures', img: 'icon-recycle', text: 'Clean Unused Textures' },

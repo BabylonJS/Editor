@@ -67,13 +67,7 @@ export default class ScenePicker {
             c.detachControl(canvas);
             c.attachControl(canvas, true);
         });
-        scene.meshes.forEach(m => {
-            m.metadata = m.metadata || { };
-            m.metadata.baseConfiguration = {
-                isPickable: m.isPickable
-            };
-            m.isPickable = true;
-        });
+        scene.meshes.forEach(m => this.configureMesh(m));
 
         // Gizmos
         this.gizmosLayer = new UtilityLayerRenderer(scene);
@@ -82,6 +76,18 @@ export default class ScenePicker {
 
         // Add events
         this.addEvents();
+    }
+
+    /**
+     * Configures the given mesh
+     * @param mesh the mesh to configure
+     */
+    public configureMesh (mesh: AbstractMesh): void {
+        mesh.metadata = mesh.metadata || { };
+        mesh.metadata.baseConfiguration = {
+            isPickable: mesh.isPickable
+        };
+        mesh.isPickable = true;
     }
 
     /**
