@@ -36,8 +36,9 @@ export default class PrefabEditor extends EditorPlugin {
      * Constructor
      * @param name: the name of the plugin 
      */
-    constructor(public editor: Editor) {
+    constructor(public editor: Editor, asset: Prefab = null) {
         super('Prefab Editor');
+        this.selectedAsset = asset;
     }
 
     /**
@@ -94,7 +95,7 @@ export default class PrefabEditor extends EditorPlugin {
         this.tree.build('PREFAB-EDITOR-TREE');
 
         // Select
-        this.objectSelected(null);
+        this.assetSelected(this.selectedAsset);
 
         // Events
         this.onObjectSelected = this.editor.core.onSelectObject.add(node => this.objectSelected(node));

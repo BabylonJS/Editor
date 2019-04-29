@@ -1823,6 +1823,11 @@ declare module 'babylonjs-editor/editor/prefabs/asset-component' {
                 */
             onRemoveAsset(asset: AssetElement<Prefab>): void;
             /**
+                * On the user double clicks on asset
+                * @param asset the asset being double-clicked by the user
+                */
+            onDoubleClickAsset(asset: AssetElement<any>): void;
+            /**
                 * On the user drops an asset in the scene
                 * @param targetMesh the mesh under the pointer
                 * @param asset the asset being dropped
@@ -2570,6 +2575,7 @@ declare module 'babylonjs-editor/extensions/typings/asset' {
         onRemoveAsset?(asset: AssetElement<any>): void;
         onAddAsset?(asset: AssetElement<any>): void;
         onDragAndDropAsset?(targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+        onDoubleClickAsset?(asset: AssetElement<any>): void;
         onContextMenu?(): AssetContextMenu[];
         onSerializeAssets?(): AssetElement<any>[];
         onParseAssets?(data: AssetElement<any>[]): void;

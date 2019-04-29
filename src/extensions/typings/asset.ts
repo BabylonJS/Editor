@@ -28,6 +28,7 @@ export interface IAssetComponent {
     onAddAsset? (asset: AssetElement<any>): void;
     
     onDragAndDropAsset? (targetMesh: AbstractMesh, asset: AssetElement<any>, pickInfo?: PickingInfo): void;
+    onDoubleClickAsset? (asset: AssetElement<any>): void;
     onContextMenu? (): AssetContextMenu[];
 
     onSerializeAssets? (): AssetElement<any>[];

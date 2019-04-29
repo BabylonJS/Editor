@@ -147,6 +147,14 @@ export default class PrefabAssetComponent implements IAssetComponent {
     }
 
     /**
+     * On the user double clicks on asset
+     * @param asset the asset being double-clicked by the user
+     */
+    public onDoubleClickAsset (asset: AssetElement<any>): void {
+        this.editor.addEditPanelPlugin('prefab-editor', false, 'Prefab Editor...', asset.data);
+    }
+
+    /**
      * On the user drops an asset in the scene
      * @param targetMesh the mesh under the pointer
      * @param asset the asset being dropped

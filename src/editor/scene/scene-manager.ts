@@ -10,6 +10,7 @@ import {
 import * as BABYLON from 'babylonjs';
 
 import Editor from '../editor';
+import UndoRedo from '../tools/undo-redo';
 import { IStringDictionary } from '../typings/typings';
 import PostProcessesExtension from '../../extensions/post-process/post-processes';
 
@@ -84,11 +85,11 @@ export default class SceneManager {
             orig.metadata = orig.metadata || { };
             orig.metadata.original = obj;
         };
-        scene.meshes.forEach(m => {
+        scene.meshes.forEach(m => { 
             // Instance?
             if (m instanceof InstancedMesh)
                 return set(m, m.serialize());
-            
+
             // Mesh
             const s = SceneSerializer.SerializeMesh(m, false, false);
             delete s.geometries;
@@ -104,7 +105,7 @@ export default class SceneManager {
         scene.textures.forEach(t => set(t, t.serialize()));
         scene.transformNodes.forEach(t => set(t, t.serialize()));
         scene.soundTracks && scene.soundTracks.forEach(st => {
-           st.soundCollection.forEach(s => set(s, s.serialize()));
+            st.soundCollection.forEach(s => set(s, s.serialize()));
         });
     }
 
@@ -120,6 +121,7 @@ export default class SceneManager {
         scene.meshes.forEach(m => animatables.push(m));
         scene.lights.forEach(l => animatables.push(l));
         scene.cameras.forEach(c => animatables.push(c));
+        scene.transformNodes.forEach(t => animatables.push(t));
         scene.particleSystems.forEach(ps => animatables.push(<ParticleSystem> ps));
 
         return animatables;
@@ -300,7 +302,12 @@ export default class SceneManager {
                     }
                     
                     result = source.createInstance(value.serializationObject.name);
-                    SerializationHelper.Parse(() => result, value.serializationObject, editor.core.scene, 'file:');
+
+                    try {
+                        SerializationHelper.Parse(() => result, value.serializationObject, editor.core.scene, 'file:');
+                    } catch (e) {
+                        return errors.push(e.message);
+                    }
                 }
                 // Other
                 else {
@@ -308,7 +315,11 @@ export default class SceneManager {
                     if (!ctor || !ctor.Parse)
                         return errors.push(`Can't restore node "${i.name}": object can't be re-created as the .Parse function does not exist`);
 
-                    result = ctor.Parse(value.serializationObject, editor.core.scene, 'file:');
+                    try {
+                        result = ctor.Parse(value.serializationObject, editor.core.scene, 'file:');
+                    } catch (e) {
+                        return errors.push(`Failed to parse object "${i.name}":\n ${e.message}`);
+                    }
                 }
 
                 if (result instanceof Node) {
@@ -338,6 +349,9 @@ export default class SceneManager {
                     }, result.spatialSound && result['_connectedTransformNode'] ? result['_connectedTransformNode'].id : editor.graph.root);
                 }
 
+                // Undoredo
+                UndoRedo.ClearScope(result['id']);
+
                 // Finalize
                 result['metadata'] = result['metadata'] || { };
                 result['metadata'].original = value.serializationObject;
@@ -347,7 +361,7 @@ export default class SceneManager {
 
             if (errors.length > 0) {
                 setTimeout(() => {
-                    Window.CreateAlert(errors.join('\n'), 'Errors found');
+                    Window.CreateAlert(errors.join('<br><br>'), 'Errors found');
                 }, 1000);
             }
         });

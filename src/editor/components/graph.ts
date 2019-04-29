@@ -651,6 +651,7 @@ export default class EditorGraph {
                 });
 
                 UndoRedo.Push({
+                    scope: node.id,
                     undo: () => {
                         // Re-add in tree graph
                         this.tree.add(Object.assign({ }, node, { img: this.getIcon(node.data) }), node.parent);

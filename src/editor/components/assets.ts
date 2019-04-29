@@ -239,6 +239,10 @@ export default class EditorAssets {
                     this.highlight(img);
                     this.editor.core.onSelectAsset.notifyObservers(a.data);
                 });
+                
+                c.onDoubleClickAsset && img.addEventListener('dblclick', ev => {
+                    c.onDoubleClickAsset(a);
+                });
 
                 ContextMenu.ConfigureElement(img, this.getContextMenuItems(c, a), () => {
                     this.highlight(img);
