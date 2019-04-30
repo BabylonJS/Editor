@@ -408,9 +408,6 @@ export default class BehaviorGraphEditor extends EditorPlugin {
      * @param data the selected node
      */
     protected objectSelected (node: Node | Scene): void {
-        if (this.node === node)
-            return;
-        
         if (!node || !(node instanceof Node) && !(node instanceof Scene)) {
             this.layout.lockPanel('left');
             this.layout.lockPanel('main', 'No Node Selected');
@@ -759,7 +756,8 @@ export default class BehaviorGraphEditor extends EditorPlugin {
                 });
 
                 // Refresh assets
-                this.editor.assets.refresh();
+                this.editor.assets.refresh(this.extension.id);
+                this.editor.graph.configure();
                 this.objectSelected(this.node);
             });
         }
