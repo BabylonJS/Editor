@@ -1608,6 +1608,7 @@ declare module 'babylonjs-editor/editor/scene/scene-manager' {
     export interface RemovedObject {
             reference?: Node | Sound;
             type?: string;
+            name: string;
             serializationObject: any;
     }
     export default class SceneManager {

@@ -20,6 +20,7 @@ import Window from '../gui/window';
 export interface RemovedObject {
     reference?: Node | Sound;
     type?: string;
+    name: string;
     serializationObject: any;
 }
 
@@ -262,6 +263,7 @@ export default class SceneManager {
             }
 
             // Sound
+            let foundReference = false;
             scene.soundTracks && scene.soundTracks.forEach(st => {
                 const s = st.soundCollection.find(s => s.name === id);
                 if (!s)
@@ -270,7 +272,12 @@ export default class SceneManager {
                 s.stop();
                 value.reference = s;
                 s.dispose();
+
+                foundReference = true;
             });
+
+            if (!foundReference)
+                delete this.RemovedObjects[id];
         }
     }
 

@@ -675,7 +675,6 @@ export default class EditorGraph {
                                 Tags.RemoveTagsFrom(p.system, 'removed');
                             });
                             d.sounds.forEach(s => {
-                                debugger;
                                 scene.soundTracks[s.soundTrackId].soundCollection.push(s.sound);
                                 s.isPlaying && s.sound.play();
                                 this.tree.add(Object.assign({ }, s.treeNode, { img: this.getIcon(s.sound) }), node.id);
@@ -685,8 +684,9 @@ export default class EditorGraph {
                             Tags.RemoveTagsFrom(d.node, 'removed');
 
                             // Remove reference
-                            if (d.node.metadata && d.node.metadata.original)
+                            if (d.node.metadata && d.node.metadata.original) {
                                 delete SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id];
+                            }
                         });
 
                         // Fill children
@@ -720,11 +720,16 @@ export default class EditorGraph {
 
                                 // Save reference
                                 if (s.sound['metadata'] && s.sound['metadata'].original) {
-                                    SceneManager.RemovedObjects[s.sound.name] = {
+                                    const savedRemovedObject = {
                                         reference: s.sound,
                                         type: Tools.GetConstructorName(s.sound),
-                                        serializationObject: Tools.Assign({ }, s.sound['metadata'].original)
+                                        serializationObject: Tools.Assign<any>({ }, s.sound['metadata'].original),
+                                        name: s.sound.name
                                     };
+                                    savedRemovedObject.serializationObject.metadata = Tools.Assign({ }, savedRemovedObject.serializationObject.metadata, {
+                                        original: undefined
+                                    });
+                                    SceneManager.RemovedObjects[s.sound.name] = savedRemovedObject;
                                 }
                             });
 
@@ -732,13 +737,18 @@ export default class EditorGraph {
 
                             // Save reference
                             if (d.node.metadata && d.node.metadata.original) {
-                                SceneManager.RemovedObjects[d.node.id] = {
+                                const savedRemovedObject = {
                                     reference: d.node,
                                     type: Tools.GetConstructorName(d.node),
-                                    serializationObject: Tools.Assign({ }, d.node.metadata.original, {
+                                    serializationObject: Tools.Assign<any>({ }, d.node.metadata.original, {
                                         sourceMesh: d.node instanceof InstancedMesh ? d.node.sourceMesh.id : undefined
-                                    })
+                                    }),
+                                    name: d.node.name
                                 };
+                                savedRemovedObject.serializationObject.metadata = Tools.Assign({ }, savedRemovedObject.serializationObject.metadata, {
+                                    original: undefined
+                                });
+                                SceneManager.RemovedObjects[d.node instanceof Sound ? d.node.name : d.node.id] = savedRemovedObject;
                             }
                         });
 

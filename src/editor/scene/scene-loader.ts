@@ -79,11 +79,8 @@ export default class SceneLoader {
         UndoRedo.Clear();
 
         // Load dependencies
-        const extension = Tools.GetFileExtension(sceneFile.name);
-        if (extension !== 'babylon') {
-            editor.layout.lockPanel('main', 'Importing Loaders...', true);
-            await Tools.ImportScript('babylonjs-loaders');
-        }
+        editor.layout.lockPanel('main', 'Importing Loaders...', true);
+        await Tools.ImportScript('babylonjs-loaders');
 
         editor.layout.lockPanel('main', 'Importing Physics...', true);
         await Tools.ImportScript('cannon');

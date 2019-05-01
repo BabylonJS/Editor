@@ -522,8 +522,9 @@ export default class ProjectExporter {
 
             result[key] = {
                 serializationObject: value.serializationObject,
-                type: Tools.GetConstructorName(value.reference)
-            }
+                type: Tools.GetConstructorName(value.reference),
+                name: value.name
+            };
         }
 
         return result;
