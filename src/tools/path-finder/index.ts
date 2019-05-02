@@ -72,16 +72,18 @@ export default class PathFinderEditor extends EditorPlugin {
 
         // Get data
         scene.metadata = scene.metadata || { };
-
-        scene.metadata['PathFinderExtension'] = scene.metadata['PathFinderExtension'] || [{
-            name: 'New path finder configuration',
-            rayHeight: 10,
-            size: 100,
-            castMeshes: [],
-            rayLength: 100
-        }];
+        scene.metadata['PathFinderExtension'] = scene.metadata['PathFinderExtension'] || [];
 
         this.datas = scene.metadata['PathFinderExtension'];
+        if (this.datas.length === 0) {
+            this.datas.push({
+                name: 'New path finder configuration',
+                rayHeight: 10,
+                size: 100,
+                castMeshes: [],
+                rayLength: 100
+            });
+        }
         this.data = this.datas[0];
 
         // Create layout
