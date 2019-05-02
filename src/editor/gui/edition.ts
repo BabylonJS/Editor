@@ -75,7 +75,7 @@ export default class Edition {
             c.onFinishChange((result) => {
                 callback(c['property'], result, c['object'], c['initialValue']);
                 if (existingFn)
-                    existingFn(result);
+                    existingFn(result, c['initialValue']);
             });
         });
 
@@ -97,7 +97,7 @@ export default class Edition {
             c.onChange((result) => {
                 callback(c['property'], result, c['object'], c['initialValue']);
                 if (existingFn)
-                    existingFn(result);
+                    existingFn(result, c['initialValue']);
             });
         });
 
@@ -235,11 +235,11 @@ export default class Edition {
         });
 
         const target = {
-            active: object[property] ? object[property].name : 'None',
+            texture: object[property] ? object[property].name : 'None',
             browse: () => editor.addEditPanelPlugin('texture-viewer', false, 'Textures Viewer', object, property, allowCubes)
         };
 
-        const controller = parent.add(target, 'active', textures);
+        const controller = parent.add(target, 'texture', textures);
         controller.onFinishChange(r => {
             const currentTexture = object[property];
             const texture = scene.textures.find(t => t.name === r);
