@@ -178,4 +178,5 @@ export interface ProjectRoot {
 
     removedObjects?: IStringDictionary<any>;
     filesList?: string[];
+    editionToolsStates?: { id: string, state: any }[];
 }

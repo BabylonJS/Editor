@@ -227,7 +227,8 @@ export default class ProjectExporter {
             environmentHelper: SceneManager.EnvironmentHelper ? SceneManager.EnvironmentHelper['_options'] : null,
             assets: this._SerializeAssets(editor),
             removedObjects: this._SerializeRemovedObjects(),
-            filesList: []
+            filesList: [],
+            editionToolsStates: editor.edition.getToolsStates()
         };
 
         // Usable assets for extensions

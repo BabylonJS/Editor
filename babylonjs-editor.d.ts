@@ -1263,21 +1263,28 @@ declare module 'babylonjs-editor/editor/gui/resizable-layout' {
 declare module 'babylonjs-editor/editor/edition-tools/edition-tool' {
     import Edition from 'babylonjs-editor/editor/gui/edition';
     import Editor from 'babylonjs-editor/editor/editor';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
     export interface IEditionTool<T> {
             editor?: Editor;
             divId: string;
             tabName: string;
             object: T;
             tool: Edition;
+            state: IStringDictionary<ToolState>;
             update(object: T): void;
             clear(): void;
             isSupported(object: any): boolean;
             onModified?(): void;
     }
+    export interface ToolState {
+            closed: boolean;
+            children: IStringDictionary<ToolState>;
+    }
     export default abstract class AbstractEditionTool<T> implements IEditionTool<T> {
             editor: Editor;
             object: T;
             tool: Edition;
+            state: IStringDictionary<ToolState>;
             abstract divId: string;
             abstract tabName: string;
             /**
@@ -1555,6 +1562,10 @@ declare module 'babylonjs-editor/editor/typings/project' {
             assets: IStringDictionary<AssetElement<any>[]>;
             removedObjects?: IStringDictionary<any>;
             filesList?: string[];
+            editionToolsStates?: {
+                    id: string;
+                    state: any;
+            }[];
     }
 }
 
@@ -2165,11 +2176,16 @@ declare module 'babylonjs-editor/editor/components/inspector' {
     /**
         * Edition tools
         */
-    import { IEditionTool } from 'babylonjs-editor/editor/edition-tools/edition-tool';
+    import { IEditionTool, ToolState } from 'babylonjs-editor/editor/edition-tools/edition-tool';
     /**
         * Editor
         */
     import Editor from 'babylonjs-editor/editor/editor';
+    import { IStringDictionary } from 'babylonjs-editor/editor/typings/typings';
+    export interface ToolsStates {
+            id: string;
+            state: IStringDictionary<ToolState>;
+    }
     export default class EditorInspector {
             protected editor: Editor;
             tools: IEditionTool<any>[];
@@ -2206,6 +2222,15 @@ declare module 'babylonjs-editor/editor/components/inspector' {
                 * Updates the display of all visible edition tools
                 */
             updateDisplay(): void;
+            /**
+                * Returns the current tools configurations
+                */
+            getToolsStates(): ToolsStates[];
+            /**
+                * Sets the states of each tool
+                * @param states the list of states for each tool
+                */
+            setToolsStates(states: ToolsStates[]): void;
             /**
                 * When a tab changed
                 * @param target the target tab Id

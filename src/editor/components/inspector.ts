@@ -3,7 +3,7 @@ import { Tags } from 'babylonjs';
 /**
  * Edition tools
  */
-import { IEditionTool } from '../edition-tools/edition-tool';
+import { IEditionTool, ToolState } from '../edition-tools/edition-tool';
 import SceneTool from '../edition-tools/scene-tool';
 import NodeTool from '../edition-tools/node-tool';
 import LightTool from '../edition-tools/light-tool';
@@ -54,6 +54,12 @@ import EnvironmentHelperTool from '../edition-tools/environment-helper-tool';
  */
 import Editor from '../editor';
 import UndoRedo from '../tools/undo-redo';
+import { IStringDictionary } from '../typings/typings';
+
+export interface ToolsStates {
+    id: string;
+    state: IStringDictionary<ToolState>;
+}
 
 export default class EditorInspector {
     // Public members
@@ -244,6 +250,27 @@ export default class EditorInspector {
      */
     public updateDisplay (): void {
         this.currentTools.forEach(t => t.tool.updateDisplay());
+    }
+
+    /**
+     * Returns the current tools configurations
+     */
+    public getToolsStates (): ToolsStates[] {
+        return this.tools.map(t => ({ id: t.divId, state: t.state }));
+    }
+
+    /**
+     * Sets the states of each tool
+     * @param states the list of states for each tool
+     */
+    public setToolsStates (states: ToolsStates[]): void {
+        states.forEach(s => {
+            const t = this.tools.find(t => t.divId === s.id);
+            if (!t)
+                return;
+
+            t.state = s.state;
+        });
     }
 
     /**

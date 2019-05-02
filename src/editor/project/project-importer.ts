@@ -29,6 +29,9 @@ export default class ProjectImporter {
         // Clean project (compatibility)
         this.CleanProject(project);
 
+        // Tools states
+        editor.edition.setToolsStates(project.editionToolsStates);
+
         // Global Configuration
         if (project.globalConfiguration.serializedCamera)
             editor.createEditorCamera(project.globalConfiguration.serializedCamera);
@@ -397,6 +400,7 @@ export default class ProjectImporter {
         project.assets = project.assets || { };
         project.textures = project.textures || [];
         project.removedObjects = project.removedObjects || { };
+        project.editionToolsStates = project.editionToolsStates || [];
 
         // Importer errors
         project.effectLayers.forEach(el => {
