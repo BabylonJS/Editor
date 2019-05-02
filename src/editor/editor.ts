@@ -427,7 +427,11 @@ export default class Editor implements IUpdatable {
      * @param plugin: the plugin to remove
      */
     public async removePlugin (plugin: IEditorPlugin, removePanel: boolean = true): Promise<void> {
-        await plugin.close();
+        try {
+            await plugin.close();
+        } catch (e) {
+            /* Catch silently */
+        }
 
         if (removePanel)
             plugin.divElement.remove();
@@ -481,7 +485,7 @@ export default class Editor implements IUpdatable {
         const hasOpenedFile = await SceneImporter.CheckOpenedFile(this);
 
         if (!hasOpenedFile)
-            await this.createDefaultScene();
+            return await this.createDefaultScene();
 
         const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
         pluginsToLoad.forEach(p => this.plugins[p] = null);
@@ -557,6 +561,10 @@ export default class Editor implements IUpdatable {
             // Fill graph
             this.graph.clear();
             this.graph.fill();
+
+            // Reload plugins
+            const pluginsToLoad = <string[]> JSON.parse(localStorage.getItem('babylonjs-editor-plugins') || '[]');
+            pluginsToLoad.forEach(p => this.plugins[p] = null);
         }
 
         if (!showNewSceneDialog)

@@ -34,7 +34,8 @@ export default class VSCodeSocket {
             return;
         
         this.Socket = SocketIO(`http://localhost:1337/vscode`);
-        this.Socket.on('connect', () => this.RefreshProject());
+        // this.Socket.on('connect', () => this.RefreshProject());
+        this.Socket.on('connection', () => this.RefreshProject());
 
         // Common
         this.Socket.on('refresh', () => {
@@ -57,6 +58,9 @@ export default class VSCodeSocket {
      * @param scripts the scripts to send (alone or as an array)
      */
     public static Refresh (): void {
+        if (!this.Socket)
+            return;
+        
         const metadatas = this._Editor.core.scene.metadata;
         if (!metadatas)
             return;
@@ -74,7 +78,7 @@ export default class VSCodeSocket {
      * Refreshes the project
      */
     public static async RefreshProject (): Promise<void> {
-        this.Socket.emit('project', {
+        this.Socket && this.Socket.emit('project', {
             tsconfig: this._TsConfig || (this._TsConfig = await Tools.LoadFile<string>('assets/templates/vscode/tsconfig.json')),
             babylonjs: this._BabylonJS || (this._BabylonJS = await Tools.LoadFile<string>('assets/typings/babylon.module.d.ts')),
             babylonjs_materials: this._BabylonJSMaterials || (this._BabylonJSMaterials = await Tools.LoadFile<string>('assets/typings/babylonjs.materials.module.d.ts')),
@@ -90,7 +94,7 @@ export default class VSCodeSocket {
      * @param data: the behavior datas to update (single or array)
      */
     public static RefreshBehavior (data: any | any[]): void {
-        this.Socket.emit('behavior-codes', data);
+        this.Socket && this.Socket.emit('behavior-codes', data);
     }
 
     /**
@@ -98,7 +102,7 @@ export default class VSCodeSocket {
      * @param data: the materials datas to update (single or array)
      */
     public static RefreshMaterial (data: any | any[]): void {
-        this.Socket.emit('material-codes', data);
+        this.Socket && this.Socket.emit('material-codes', data);
     }
 
     /**
@@ -106,7 +110,7 @@ export default class VSCodeSocket {
      * @param data: the post-processes datas to update (single or array)
      */
     public static RefreshPostProcess (data: any | any[]): void {
-        this.Socket.emit('post-process-codes', data);
+        this.Socket && this.Socket.emit('post-process-codes', data);
     }
 
     /**
@@ -114,13 +118,16 @@ export default class VSCodeSocket {
      * @param data: the graphs datas to update (single or array)
      */
     public static RefreshBehaviorGraph (data: any | any[]): void {
-        this.Socket.emit('behavior-graphs', data);
+        this.Socket && this.Socket.emit('behavior-graphs', data);
     }
 
     /**
      * Refreshes the scene infos
      */
     public static RefreshSceneInfos (): void {
+        if (!this.Socket)
+            return;
+        
         const scene = SceneSerializer.Serialize(this._Editor.core.scene);
         this.Socket.emit('scene-infos', scene);
     }
@@ -130,6 +137,9 @@ export default class VSCodeSocket {
      * @param object the object being selected in the editor
      */
     public static RefreshSelectedObject (object: any): void {
+        if (!this.Socket)
+            return;
+        
         if (object instanceof Scene) {
             this.Socket.emit('set-selected-object', 'Scene');
             return;

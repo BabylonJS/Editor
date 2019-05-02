@@ -71,8 +71,8 @@ export default abstract class Storage {
         this.picker = new Picker('Export...');
         this.picker.addItems(files);
 
-        return await new Promise<string>((resolve, reject) => {
-            this.picker.open(async (items) => {
+        return await new Promise<string>(async (resolve, reject) => {
+            await this.picker.open(async (items) => {
                 await this.uploadFiles(current.folder, filesToWrite);
                 resolve(current.folder);
             });
