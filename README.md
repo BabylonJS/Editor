@@ -5,7 +5,7 @@ The Babylon.js Editor provides a way, for designers (and developers), to go furt
 
 The editor V2 is available online at http://editor.babylonjs.com/
 
-The Documentation is available here: http://doc.babylonjs.com/extensions/
+The Documentation is available here: http://doc.babylonjs.com/resources/
 
 Some more articles/tutorials are available here: https://medium.com/babylon-js/
 
