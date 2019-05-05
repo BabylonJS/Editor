@@ -2,5 +2,9 @@
     "2.5.2": {
         "win32": "electron/2.5.2/BabylonJS Editor Setup 2.5.2.exe",
         "darwin": "electron/2.5.2/BabylonJS Editor-2.5.2.dmg"
+    },
+    "3.0.0": {
+        "win32": "electron/3.0.0/BabylonJS Editor Setup 3.0.0.exe",
+        "darwin": "electron/3.0.0/BabylonJS Editor-3.0.0.dmg"
     }
 }
