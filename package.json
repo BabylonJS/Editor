@@ -1,6 +1,6 @@
 {
   "name": "babylonjs-editor",
-  "version": "3.0.0-rc.0",
+  "version": "3.0.0",
   "description": "Babylon.js Editor is a Web Application helping artists to work with Babylon.js",
   "main": "build/electron/main.js",
   "productName": "Babylon.js Editor",
